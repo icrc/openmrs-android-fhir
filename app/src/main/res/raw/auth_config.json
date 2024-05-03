@@ -1,0 +1,8 @@
+{
+  "client_id": "openmrs-fhir",
+  "redirect_uri": "com.google.fhir.examples.demo:/oauth2redirect",
+  "end_session_redirect_uri": "com.google.fhir.examples.demo:/oauth2redirect",
+  "authorization_scope": "openid",
+  "discovery_uri": "http://10.0.2.2:8080/realms/main/.well-known/openid-configuration",
+  "https_required": false
+}

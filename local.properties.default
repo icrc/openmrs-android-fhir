@@ -1,0 +1,3 @@
+sdk.dir=<path to Android SDK>
+gpr.user=<Your GitHub Account>
+gpr.key=<A GitHub token>
