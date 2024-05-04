@@ -12,7 +12,8 @@ There is an issue with current OpenMRS installation and SSO Logout process.
 
 List of Users: https://github.com/icrc/openmrs-distro-sso/blob/main/keycloak/users.csv
 
-
+# Development
+See https://github.com/google/android-fhir/tree/openmrs as a custom code is made for openmrs
 
 # Temporary Situation
 
