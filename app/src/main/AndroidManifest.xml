@@ -19,7 +19,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:name="com.google.fhir.examples.demo.FhirApplication"
+        android:name="org.openmrs.android.fhir.FhirApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_fire_engine"
         android:label="@string/app_name"
@@ -29,7 +29,7 @@
         android:theme="@style/AppTheme"
     >
         <activity
-            android:name="com.google.fhir.examples.demo.LoginActivity"
+            android:name="org.openmrs.android.fhir.LoginActivity"
             android:exported="true"
         >
             <intent-filter>
@@ -39,7 +39,7 @@
         </activity>
 
         <activity
-            android:name="com.google.fhir.examples.demo.MainActivity"
+            android:name="org.openmrs.android.fhir.MainActivity"
             android:windowSoftInputMode="adjustResize"
             android:exported="true"
         >
@@ -59,7 +59,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="com.google.fhir.examples.demo"
+                    android:host="org.openmrs.android.fhir"
                     android:path="/oauth2redirect"
                 />
             </intent-filter>

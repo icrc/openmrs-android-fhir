@@ -7,70 +7,150 @@
     android:padding="1dp"
 >
   <LinearLayout
-        android:id="@+id/patient_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingLeft="@dimen/fab_margin"
-        android:background="@color/unknown_risk_background"
-        android:orientation="vertical"
-        tools:ignore="UselessParent"
-    >
+      android:id="@+id/patient_container"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:background="@color/unknown_risk_background"
+      android:orientation="vertical"
+      android:paddingLeft="@dimen/fab_margin"
+      tools:ignore="UselessParent">
 
     <TextView
-            android:id="@+id/title"
-            style="@style/AppTheme.PatientDetails.headline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            tools:text="Mary Odhiambo"
-        />
-    <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-        >
-      <TextView
-                android:id="@+id/status"
-                style="@style/AppTheme.PatientDetails.body2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Current status:"
-            />
-      <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/status_value"
-                style="@style/AppTheme.PatientDetails.body2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="4dp"
-                android:text=""
-            />
-    </LinearLayout>
-    <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-        >
-      <TextView
-                android:id="@+id/last_contact"
-                style="@style/AppTheme.PatientDetails.body2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Last contacted:"
-            />
-      <TextView
-                android:id="@+id/last_contact_value"
-                style="@style/AppTheme.PatientDetails.body2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=""
-            />
-    </LinearLayout>
+        android:id="@+id/title"
+        style="@style/AppTheme.PatientDetails.headline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="Mary Odhiambo" />
+    <!--    <LinearLayout-->
+    <!--            android:layout_width="match_parent"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:orientation="horizontal"-->
+    <!--        >-->
+    <!--      <TextView-->
+    <!--                android:id="@+id/status"-->
+    <!--                style="@style/AppTheme.PatientDetails.body2"-->
+    <!--                android:layout_width="wrap_content"-->
+    <!--                android:layout_height="wrap_content"-->
+    <!--                android:text="Current status:"-->
+    <!--            />-->
+    <!--      <com.google.android.material.textview.MaterialTextView-->
+    <!--                android:id="@+id/status_value"-->
+    <!--                style="@style/AppTheme.PatientDetails.body2"-->
+    <!--                android:layout_width="wrap_content"-->
+    <!--                android:layout_height="wrap_content"-->
+    <!--                android:padding="4dp"-->
+    <!--                android:text=""-->
+    <!--            />-->
+    <!--    </LinearLayout>-->
 
-    <com.google.android.material.button.MaterialButton
-            android:id="@+id/screener"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:text="@string/complete_survey"
-        />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+      <ImageView
+          android:id="@+id/patient_user"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_centerVertical="true"
+          android:src="@drawable/ic_user" />
+
+      <TextView
+          android:id="@+id/gender_value"
+          style="@style/AppTheme.PatientDetails.body2"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_centerVertical="true"
+          android:layout_toEndOf="@id/patient_user"
+          android:text="Other" />
+
+      <TextView
+          android:id="@+id/separator"
+          style="@style/AppTheme.PatientDetails.body2"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_centerVertical="true"
+          android:layout_toEndOf="@id/gender_value"
+          android:text="*" />
+
+      <TextView
+          android:id="@+id/date_of_birth_value"
+          style="@style/AppTheme.PatientDetails.body2"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_centerVertical="true"
+          android:layout_toEndOf="@id/separator"
+          android:text="01/01/1995" />
+    </RelativeLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+      <ImageView
+          android:id="@+id/patient_id"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_centerVertical="true"
+          android:src="@drawable/baseline_tag_24" />
+
+      <TextView
+          android:id="@+id/patient_id_value"
+          style="@style/AppTheme.PatientDetails.body2"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_centerVertical="true"
+          android:layout_toEndOf="@id/patient_id"
+          android:text="" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+      <ImageView
+          android:id="@+id/imageView"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_centerVertical="true"
+          android:src="@drawable/baseline_phone_24" />
+
+      <TextView
+          android:id="@+id/patient_phone_value"
+          style="@style/AppTheme.PatientDetails.body2"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_centerVertical="true"
+          android:layout_toEndOf="@id/imageView"
+          android:text="" />
+    </RelativeLayout>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+
+    <!--    <LinearLayout-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:orientation="horizontal"-->
+    <!--        >-->
+
+    <!--      <com.google.android.material.button.MaterialButton-->
+    <!--          android:id="@+id/screener"-->
+    <!--          android:layout_width="wrap_content"-->
+    <!--          android:layout_height="wrap_content"-->
+    <!--          android:layout_margin="5dp"-->
+    <!--          android:text="@string/complete_survey"-->
+    <!--          />-->
+    <!--      <com.google.android.material.button.MaterialButton-->
+    <!--          android:id="@+id/startVisit"-->
+    <!--          android:layout_width="wrap_content"-->
+    <!--          android:layout_height="wrap_content"-->
+    <!--          android:layout_margin="5dp"-->
+    <!--          android:text="@string/start_visit"-->
+    <!--          />-->
+    <!--    </LinearLayout>-->
   </LinearLayout>
+
 </FrameLayout>

@@ -7,10 +7,10 @@ plugins {
 }
 
 android {
-  namespace = "com.google.fhir.examples.demo"
+  namespace = "org.openmrs.android.fhir"
   compileSdk = 34
   defaultConfig {
-    applicationId = "com.google.fhir.examples.demo"
+    applicationId = "org.openmrs.android.fhir"
     minSdk = 24
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     manifestPlaceholders["appAuthRedirectScheme"] = applicationId!!
