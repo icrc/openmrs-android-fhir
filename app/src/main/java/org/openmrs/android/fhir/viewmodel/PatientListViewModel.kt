@@ -26,7 +26,7 @@ import com.google.android.fhir.search.Order
 import com.google.android.fhir.search.StringFilterModifier
 import com.google.android.fhir.search.count
 import com.google.android.fhir.search.search
-import com.google.fhir.examples.demo.RiskAssessmentItem
+import org.openmrs.android.fhir.RiskAssessmentItem
 import java.time.LocalDate
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Patient

@@ -29,9 +29,9 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.FhirEngine
-import com.google.fhir.examples.demo.PatientDetailsRecyclerViewAdapter
-import com.google.fhir.examples.demo.PatientDetailsViewModel
-import com.google.fhir.examples.demo.PatientDetailsViewModelFactory
+import org.openmrs.android.fhir.PatientDetailsRecyclerViewAdapter
+import org.openmrs.android.fhir.PatientDetailsViewModel
+import org.openmrs.android.fhir.PatientDetailsViewModelFactory
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.adapters.PatientItemRecyclerViewAdapter

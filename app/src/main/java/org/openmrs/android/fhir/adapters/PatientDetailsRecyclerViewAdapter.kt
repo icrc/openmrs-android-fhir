@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.fhir.examples.demo
+package org.openmrs.android.fhir
 
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -27,7 +27,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.RoundedCornerTreatment
 import com.google.android.material.shape.ShapeAppearanceModel
-import com.google.fhir.examples.demo.PatientDetailsRecyclerViewAdapter.Companion.allCornersRounded
+import org.openmrs.android.fhir.PatientDetailsRecyclerViewAdapter.Companion.allCornersRounded
 import org.openmrs.android.fhir.databinding.PatientDetailsCardViewBinding
 import org.openmrs.android.fhir.databinding.PatientDetailsHeaderBinding
 import org.openmrs.android.fhir.databinding.PatientListItemViewBinding
