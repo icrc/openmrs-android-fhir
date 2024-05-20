@@ -1,4 +1,3 @@
-
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
@@ -7,32 +6,23 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.Toast
-import androidx.activity.addCallback
-import androidx.appcompat.app.AlertDialog
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.commit
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.google.android.fhir.FhirEngine
-import com.google.android.fhir.datacapture.QuestionnaireFragment
-import org.openmrs.android.fhir.databinding.CreateEncounterFragmentBinding
-import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.Form
+import org.openmrs.android.fhir.MockConstants.MOCK_FORMS
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.databinding.CreateEncounterFragmentBinding
 
-/**
- * A fragment representing a single Patient detail screen. This fragment is contained in a
- * [MainActivity].
- */
 class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
-  private lateinit var fhirEngine: FhirEngine
   private var _binding: CreateEncounterFragmentBinding? = null
   private val binding
     get() = _binding!!
+
+  private val args: CreateEncountersFragmentArgs by navArgs()
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -47,7 +37,6 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     _binding = CreateEncounterFragmentBinding.inflate(inflater, container, false)
     return binding.root
   }
-  private val args: CreateEncountersFragmentArgs by navArgs()
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
@@ -55,39 +44,37 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     setHasOptionsMenu(true)
     updateArguments()
     onBackPressed()
-    if (savedInstanceState == null) {
-      addQuestionnaireFragment()
-    }
-    childFragmentManager.setFragmentResultListener(
-      QuestionnaireFragment.SUBMIT_REQUEST_KEY,
-      viewLifecycleOwner,
-    ) { _, _ ->
-      onSubmitAction()
-    }
     loadFormSchemas(view)
   }
 
   fun loadFormSchemas(view: View) {
-    setupFormButton(view, R.id.assessment_form_button, "assessment.json")
-    setupFormButton(view, R.id.follow_up_form_button, "screener-questionnaire.json")
-    setupFormButton(view, R.id.closure_form_button, "assessment.json")
+    val buttonContainer = view.findViewById<LinearLayout>(R.id.button_container)
+    for (form in MOCK_FORMS) {
+      setupFormButton(buttonContainer, form)
+    }
   }
 
-  private fun setupFormButton(view: View, buttonId: Int, formFileName: String) {
-    view.findViewById<Button>(buttonId).setOnClickListener {
-      findNavController().navigate(
-        CreateEncountersFragmentDirections.actionCreateEncounterFragmentToGenericFormEntryFragment(
-          formFileName,
-          args.patientId
+  private fun setupFormButton(parentView: ViewGroup, form: Form) {
+    val button = Button(context).apply {
+      text = form.display
+      setOnClickListener {
+        findNavController().navigate(
+          CreateEncountersFragmentDirections.actionCreateEncounterFragmentToGenericFormEntryFragment(
+            form.resource,
+            form.display,
+            form.code,
+            args.patientId
+          )
         )
-      )
+      }
     }
+    parentView.addView(button)
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
       android.R.id.home -> {
-        showCancelScreenerQuestionnaireAlertDialog()
+        NavHostFragment.findNavController(this@CreateEncountersFragment).navigateUp()
         true
       }
       else -> super.onOptionsItemSelected(item)
@@ -104,48 +91,7 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     requireArguments().putString(QUESTIONNAIRE_FILE_PATH_KEY, "screener-questionnaire.json")
   }
 
-  private fun addQuestionnaireFragment() {
-//    childFragmentManager.commit {
-//      add(
-//        R.id.add_patient_container,
-//        QuestionnaireFragment.builder().setQuestionnaire(viewModel.questionnaire).build(),
-//        QUESTIONNAIRE_FRAGMENT_TAG,
-//      )
-//    }
-  }
-
-  private fun onSubmitAction() {
-//    lifecycleScope.launch {
-//      val questionnaireFragment =
-//        childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG) as QuestionnaireFragment
-//      viewModel.saveScreenerEncounter(
-//        questionnaireFragment.getQuestionnaireResponse(),
-//        args.patientId,
-//      )
-//    }
-  }
-
-  private fun showCancelScreenerQuestionnaireAlertDialog() {
-    val alertDialog: AlertDialog? =
-      activity?.let {
-        val builder = AlertDialog.Builder(it)
-        builder.apply {
-          setMessage(getString(R.string.cancel_questionnaire_message))
-          setPositiveButton(getString(android.R.string.yes)) { _, _ ->
-            NavHostFragment.findNavController(this@CreateEncountersFragment).navigateUp()
-          }
-          setNegativeButton(getString(android.R.string.no)) { _, _ -> }
-        }
-        builder.create()
-      }
-    alertDialog?.show()
-  }
-
-  private fun onBackPressed() {
-    activity?.onBackPressedDispatcher?.addCallback(viewLifecycleOwner) {
-      showCancelScreenerQuestionnaireAlertDialog()
-    }
-  }
+  private fun onBackPressed() {}
   companion object {
     const val QUESTIONNAIRE_FILE_PATH_KEY = "questionnaire-file-path-key"
     const val QUESTIONNAIRE_FRAGMENT_TAG = "questionnaire-fragment-tag"

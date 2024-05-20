@@ -38,6 +38,8 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.openmrs.android.fhir.FhirApplication
+import org.openmrs.android.fhir.Form
+import org.openmrs.android.fhir.MockConstants
 import org.openmrs.android.fhir.extensions.readFileFromAssets
 import org.openmrs.android.fhir.fragments.GenericFormEntryFragment
 import java.util.Date
@@ -59,30 +61,30 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
 
   private var questionnaireJson: String? = null
   private var fhirEngine: FhirEngine = FhirApplication.fhirEngine(application.applicationContext)
-
   /**
    * Saves generic encounter questionnaire response into the application database.
    *
    * @param questionnaireResponse generic encounter questionnaire response
    */
-  fun saveEncounter(questionnaireResponse: QuestionnaireResponse, patientId: String) {
+  fun saveEncounter(questionnaireResponse: QuestionnaireResponse, form: Form, patientId: String) {
     viewModelScope.launch {
       val bundle = ResourceMapper.extract(questionnaireResource, questionnaireResponse)
-      val subjectReference = Reference("Patient/$patientId")
+      val patientReference = Reference("Patient/$patientId")
       val encounterId = generateUuid()
       if (isRequiredFieldMissing(bundle)) {
         isResourcesSaved.value = false
         return@launch
       }
 
-      saveResources(bundle, subjectReference, encounterId)
+      saveResources(bundle, patientReference, form, encounterId )
       isResourcesSaved.value = true
     }
   }
 
   private suspend fun saveResources(
     bundle: Bundle,
-    subjectReference: Reference,
+    patientReference: Reference,
+    form: Form,
     encounterId: String,
   ) {
     val encounterReference = Reference("Encounter/$encounterId")
@@ -91,7 +93,7 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
         is Observation -> {
           if (resource.hasCode()) {
             resource.id = generateUuid()
-            resource.subject = subjectReference
+            resource.subject = patientReference
             resource.encounter = encounterReference
             saveResourceToDatabase(resource)
           }
@@ -99,40 +101,45 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
         is Condition -> {
           if (resource.hasCode()) {
             resource.id = generateUuid()
-            resource.subject = subjectReference
+            resource.subject = patientReference
             resource.encounter = encounterReference
             saveResourceToDatabase(resource)
           }
         }
         is Encounter -> {
-          //TODO Popular with live data
-          resource.subject = subjectReference
-          resource.id = encounterId
-          resource.status = Encounter.EncounterStatus.FINISHED
-          resource.addParticipant(createParticipant("test", subjectReference))
-          val location = Encounter.EncounterLocationComponent()
-          location.location = Reference("Location/123")
-          val period = Period()
-          period.start = Date()
-          val encounterTypeCoding = Coding()
-          encounterTypeCoding.system = "http://terminology.hl7.org/CodeSystem/v3-ActCode"
-          encounterTypeCoding.code = "AMB"
-          val encounterType = CodeableConcept()
-          encounterType.coding = listOf(encounterTypeCoding)
-          resource.addLocation(location)
-          resource.setPeriod(period)
-          resource.addType(encounterType)
+          resource.apply {
+            subject = patientReference
+            id = encounterId
+            status = Encounter.EncounterStatus.FINISHED
+            setPeriod(Period().apply { start = Date() })
+            addParticipant(createParticipant())
+            addLocation(Encounter.EncounterLocationComponent().apply {
+              location = MockConstants.LOCATION
+            })
 
-          saveResourceToDatabase(resource)
+            addType(CodeableConcept().apply {
+              coding = listOf(
+                Coding().apply {
+                  system = "http://fhir.openmrs.org/code-system/encounter-type"
+                  code = form.code
+                  display = form.display
+                }
+              )
+            })
+            saveResourceToDatabase(this)
+          }
         }
       }
     }
   }
 
-  fun createParticipant(name: String, reference: Reference): EncounterParticipantComponent {
+  fun createParticipant(): EncounterParticipantComponent {
+    //TODO Replace this with method to get the authenticated user's reference
+    val authenticatedUser = MockConstants.AUTHENTICATED_USER
     val participant = EncounterParticipantComponent()
-    participant.individual = reference
-    participant.individual.display = name // Display name for the participant
+    participant.individual = Reference("Practitioner/${authenticatedUser.uuid}")
+    participant.individual.display = authenticatedUser.display
+    participant.individual.type = "Practitioner"
     return participant
   }
 

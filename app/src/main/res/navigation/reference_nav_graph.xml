@@ -64,6 +64,12 @@
         android:name="form_resource"
         app:argType="string" />
     <argument
+        android:name="form_display"
+        app:argType="string" />
+    <argument
+        android:name="form_code"
+        app:argType="string" />
+    <argument
         android:name="patient_id"
         app:argType="string" />
   </fragment>
