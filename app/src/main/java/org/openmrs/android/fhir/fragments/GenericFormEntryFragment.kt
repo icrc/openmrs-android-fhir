@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
-import androidx.activity.addCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -15,6 +14,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.Form
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
 
@@ -79,7 +79,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
         childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG) as QuestionnaireFragment
       viewModel.saveEncounter(
         questionnaireFragment.getQuestionnaireResponse(),
-        args.patientId,
+        Form(args.formDisplay, args.formCode), args.patientId
       )
     }
   }

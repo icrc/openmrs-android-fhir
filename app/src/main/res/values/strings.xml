@@ -14,7 +14,7 @@
  limitations under the License.
 -->
 <resources>
-  <string name="app_name">FHIR Engine Sample App</string>
+  <string name="app_name">OpenMRS</string>
 
   <string name="title_patient_list">Registered Patients</string>
   <string name="title_patient_detail">SamplePatient Detail</string>

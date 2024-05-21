@@ -1,29 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center">
-
-  <Button
-      android:id="@+id/assessment_form_button"
-      android:layout_width="wrap_content"
+  <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      android:id="@+id/button_container"
+      android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:text="Assessment Form" />
+      android:orientation="vertical"
+      android:padding="16dp">
 
-  <Button
-      android:id="@+id/follow_up_form_button"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="Follow-up Form"
-      android:layout_marginTop="16dp"/>
+    <!-- Other views can be added here -->
 
-  <Button
-      android:id="@+id/closure_form_button"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:text="Closure Form"
-      android:layout_marginTop="16dp"/>
-
-</LinearLayout>
+  </LinearLayout>
