@@ -69,4 +69,10 @@
   <string name="syncing">Syncing</string>
   <string name="sync">Sync</string>
   <string name="button_login">Log in</string>
+  <string name="header_encounters">Encounters</string>
+  <string name="component_nav_heading">Components</string>
+  <string name="layout_nav_heading">Layouts</string>
+  <string name="behavior_nav_heading">Behaviors</string>
+  <string name="error">Error</string>
+  <string name="open_questionnaire">Open questionnaire</string>
 </resources>
