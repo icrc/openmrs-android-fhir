@@ -18,9 +18,9 @@ Keycloak can be accessed only from one URL but:
 - `localhost` will be used to log into OpenMRS Web application
 - `10.0.0.2` will be used from the android App
 
-So the variable `KC_HOSTNAME` ( see `docker-compose.yml`, line 89) defining Keycloak hostname should be changed accordingly to the use case.
+Thus the variable `KC_HOSTNAME` ( see `docker-compose.yml`, line 89) defining Keycloak hostname should be changed accordingly to the use case.
 
-Restart Keycloak with `docker compose up -d` that will restart only the service keycloak if you change that variable only or use `docker compose restart keycloak`.
+After a modification, Restart Keycloak with `docker compose up -d` that will restart only the service keycloak if you change that variable only or use `docker compose restart keycloak`.
 
 # Development
 See https://github.com/google/android-fhir/tree/openmrs as a custom code is made for openmrs
