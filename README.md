@@ -10,7 +10,17 @@ Accessing artifacts hosted on GitHub necessitates the use of a GitHub account fo
 to logout: http://localhost:8080/realms/main/protocol/openid-connect/logout
 There is an issue with current OpenMRS installation and SSO Logout process.
 
-List of Users: https://github.com/icrc/openmrs-distro-sso/blob/main/keycloak/users.csv
+List of Users for OpenMRS: https://github.com/icrc/openmrs-distro-sso/blob/main/keycloak/users.csv
+
+# Keycloak and `localhost` vs `10.0.0.2`
+
+Keycloak can be accessed only from one URL but:
+- `localhost` will be used to log into OpenMRS Web application
+- `10.0.0.2` will be used from the android App
+
+So the variable `KC_HOSTNAME` ( see `docker-compose.yml`, line 89) defining Keycloak hostname should be changed accordingly to the use case.
+
+Restart Keycloak with `docker compose up -d` that will restart only the service keycloak if you change that variable only or use `docker compose restart keycloak`.
 
 # Development
 See https://github.com/google/android-fhir/tree/openmrs as a custom code is made for openmrs
