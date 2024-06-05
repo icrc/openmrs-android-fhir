@@ -1,0 +1,179 @@
+package org.openmrs.android.fhir.viewmodel
+
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.liveData
+import androidx.lifecycle.viewModelScope
+import ca.uhn.fhir.context.FhirContext
+import ca.uhn.fhir.context.FhirVersionEnum
+import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.mapping.ResourceMapper
+import com.google.android.fhir.get
+import com.google.android.fhir.search.search
+import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.*
+import org.openmrs.android.fhir.FhirApplication
+import org.openmrs.android.fhir.extensions.readFileFromAssets
+import java.util.UUID
+
+class EditEncounterViewModel(application: Application, private val state: SavedStateHandle) :
+    AndroidViewModel(application) {
+
+    private val fhirEngine: FhirEngine = FhirApplication.fhirEngine(application.applicationContext)
+    private val encounterId: String = requireNotNull(state["encounter_id"])
+        ?: throw IllegalArgumentException("Encounter ID is required")
+    private val formResource: String = requireNotNull(state["form_resource"])
+        ?: throw IllegalArgumentException("Form resource is required")
+    val liveEncounterData = liveData { emit(prepareEditEncounter()) }
+    val isResourcesSaved = MutableLiveData<Boolean>()
+
+    private lateinit var questionnaireResource: Questionnaire
+    private lateinit var observations: List<Observation>
+    private lateinit var contitions: List<Condition>
+    private lateinit var patientReference: Reference
+
+    private suspend fun prepareEditEncounter(): Pair<String, String> {
+        val encounter = fhirEngine.get<Encounter>(encounterId)
+        observations = getObservationsEncounterId(encounterId)
+        contitions = getConditionsEncounterId(encounterId)
+        patientReference = encounter.subject
+
+        val questionnaireJson =
+            getApplication<Application>().readFileFromAssets(formResource).trimIndent()
+        val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+        questionnaireResource =
+            parser.parseResource(Questionnaire::class.java, questionnaireJson) as Questionnaire
+
+
+        val observationBundle = Bundle().apply {
+            type = Bundle.BundleType.COLLECTION
+            observations.forEach {
+                addEntry().resource = it.apply {
+                    id = "Observation/$id"
+                }
+            }
+        }
+
+        val launchContexts = mapOf("observations" to observationBundle)
+        val questionnaireResponse = ResourceMapper.populate(questionnaireResource, launchContexts)
+        val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
+        return questionnaireJson to questionnaireResponseJson
+    }
+
+    fun updateEncounter(questionnaireResponse: QuestionnaireResponse) {
+        viewModelScope.launch {
+            val bundle = ResourceMapper.extract(questionnaireResource, questionnaireResponse)
+            saveResources(bundle)
+            isResourcesSaved.value = true
+        }
+    }
+
+    private suspend fun saveResources(bundle: Bundle) {
+        val encounterReference = Reference("Encounter/$encounterId")
+        val encounterSubject = fhirEngine.get<Encounter>(encounterId).subject
+
+        bundle.entry.forEach {
+            when (val resource = it.resource) {
+                is Observation -> {
+                    if (resource.hasCode()) {
+                        handleObservation(resource, encounterReference, patientReference)
+                    }
+                }
+
+                is Condition -> {
+                    if (resource.hasCode()) {
+                        handleCondition(resource, encounterReference, encounterSubject)
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun handleObservation(
+        resource: Observation,
+        encounterReference: Reference,
+        subjectReference: Reference
+    ) {
+        val existingObservation = observations.find { obs ->
+            obs.code.coding.any { coding -> coding.code == resource.code.codingFirstRep.code }
+        }
+        if (existingObservation != null) {
+            resource.id = existingObservation.id
+        } else {
+            resource.id = UUID.randomUUID().toString()
+        }
+        resource.subject = subjectReference
+        resource.encounter = encounterReference
+
+        if (existingObservation != null) {
+            updateResourceToDatabase(resource)
+        } else {
+            createResourceToDatabase(resource)
+        }
+    }
+
+    private suspend fun handleCondition(
+        resource: Condition,
+        encounterReference: Reference,
+        subjectReference: Reference
+    ) {
+        val existingCondition = contitions.find { cond ->
+            cond.code.coding.any { coding -> coding.code == resource.code.codingFirstRep.code }
+        }
+        if (existingCondition != null) {
+            resource.id = existingCondition.id
+        } else {
+            resource.id = UUID.randomUUID().toString()
+        }
+        resource.subject = subjectReference
+        resource.encounter = encounterReference
+
+        updateResourceToDatabase(resource)
+    }
+
+    private suspend fun getObservationsEncounterId(encounterId: String): List<Observation> {
+        val searchResult = fhirEngine.search<Observation> {
+            filter(Observation.ENCOUNTER, { value = "Encounter/$encounterId" })
+        }
+        return searchResult.map { it.resource }
+    }
+
+    private suspend fun getConditionsEncounterId(encounterId: String): List<Condition> {
+        val searchResult = fhirEngine.search<Condition> {
+            filter(Condition.ENCOUNTER, { value = "Encounter/$encounterId" })
+        }
+        return searchResult.map { it.resource }
+    }
+
+    private suspend fun updateResourceToDatabase(resource: Resource) {
+        fhirEngine.update(resource)
+    }
+
+    private suspend fun createResourceToDatabase(resource: Resource) {
+        fhirEngine.create(resource)
+    }
+}
+
+class EditEncounterViewModelFactory(
+    private val application: Application,
+    private val formResource: String,
+    private val encounterId: String
+) : ViewModelProvider.Factory {
+
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(EditEncounterViewModel::class.java)) {
+            val savedStateHandle = SavedStateHandle(
+                mapOf(
+                    "encounter_id" to encounterId,
+                    "form_resource" to formResource
+                )
+            )
+            return EditEncounterViewModel(application, savedStateHandle) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}

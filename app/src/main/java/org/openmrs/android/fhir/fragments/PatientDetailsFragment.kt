@@ -16,6 +16,7 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -34,7 +35,6 @@ import org.openmrs.android.fhir.PatientDetailsViewModel
 import org.openmrs.android.fhir.PatientDetailsViewModelFactory
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
-import org.openmrs.android.fhir.adapters.PatientItemRecyclerViewAdapter
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.databinding.PatientDetailBinding
 
@@ -75,7 +75,7 @@ class PatientDetailsFragment : Fragment() {
         PatientDetailsViewModelFactory(requireActivity().application, fhirEngine, args.patientId),
       )
         .get(PatientDetailsViewModel::class.java)
-    val adapter = PatientDetailsRecyclerViewAdapter(::onCreateEncounterClick)
+    val adapter = PatientDetailsRecyclerViewAdapter(::onCreateEncounterClick, ::onEditEncounterClick)
     binding.createEncounterFloatingButton.setOnClickListener { onCreateEncounterClick() }
     binding.recycler.adapter = adapter
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
@@ -96,6 +96,14 @@ class PatientDetailsFragment : Fragment() {
     findNavController().navigate(
       PatientDetailsFragmentDirections.actionPatientDetailsToCreateEncounterFragment(
         args.patientId
+      )
+    )
+  }
+
+  private fun onEditEncounterClick(encounterId: String, formDisplay: String, formResource: String) {
+    findNavController().navigate(
+      PatientDetailsFragmentDirections.actionPatientDetailsToEditEncounterFragment(
+       encounterId, formResource
       )
     )
   }
