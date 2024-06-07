@@ -16,8 +16,10 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -26,22 +28,45 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.fhir.datacapture.QuestionnaireFragment
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.openmrs.android.fhir.viewmodel.AddPatientViewModel
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.databinding.AddPatientFragmentBinding
 
 /** A fragment class to show patient registration screen. */
 class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
 
   private val viewModel: AddPatientViewModel by viewModels()
+  private var _binding: AddPatientFragmentBinding? = null
 
+  private val binding
+    get() = _binding!!
+
+  override fun onCreateView(
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?,
+  ): View {
+    _binding = AddPatientFragmentBinding.inflate(inflater, container, false)
+    return binding.root
+  }
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     setUpActionBar()
     setHasOptionsMenu(true)
     updateArguments()
+    lifecycleScope.launch {
+      val selectedLocation = context?.applicationContext?.dataStore?.data?.first()?.get(
+        PreferenceKeys.LOCATION_NAME)
+      if (selectedLocation != null) {
+        binding.currentLocationLabel.text = getString(R.string.current_location_label) +" "+ selectedLocation
+      }
+    }
     if (savedInstanceState == null) {
       addQuestionnaireFragment()
     }

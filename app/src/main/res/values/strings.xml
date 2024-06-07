@@ -77,4 +77,5 @@
   <string name="behavior_nav_heading">Behaviors</string>
   <string name="error">Error</string>
   <string name="open_questionnaire">Open questionnaire</string>
+  <string name="current_location_label">Current Location : </string>
 </resources>
