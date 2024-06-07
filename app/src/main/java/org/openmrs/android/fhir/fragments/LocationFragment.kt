@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.fhir.FhirEngine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
@@ -52,7 +53,12 @@ class LocationFragment: Fragment(R.layout.fragment_location) {
             title = requireContext().getString(R.string.select_location)
             setDisplayHomeAsUpEnabled(true)
         }
-
+        lifecycleScope.launch {
+            val selectedLocation = context?.applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.LOCATION_NAME)
+            if (selectedLocation != null) {
+                binding.selectedLocationTv.text = selectedLocation
+            }
+        }
         fhirEngine = FhirApplication.fhirEngine(requireContext())
         locationViewModel =
             ViewModelProvider(
@@ -81,7 +87,7 @@ class LocationFragment: Fragment(R.layout.fragment_location) {
                     preferences[PreferenceKeys.LOCATION_ID] = selectedLocation.resourceId
                     preferences[PreferenceKeys.LOCATION_NAME] = selectedLocation.name
                 }
-
+                binding.selectedLocationTv.text = selectedLocation.name
                 Toast.makeText(context, "Location Updated", Toast.LENGTH_SHORT).show()
             }
         }
