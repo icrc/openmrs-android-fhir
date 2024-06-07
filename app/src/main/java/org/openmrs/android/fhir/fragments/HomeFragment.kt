@@ -19,12 +19,18 @@ package org.openmrs.android.fhir.fragments
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
@@ -41,7 +47,16 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
   private fun setOnClicks() {
     requireView().findViewById<CardView>(R.id.item_new_patient).setOnClickListener {
-      findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToAddPatientFragment())
+      lifecycleScope.launch {
+        if(
+          context?.applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.LOCATION_NAME) != null
+        ) {
+          findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToAddPatientFragment())
+        } else {
+          Toast.makeText(context, "Please select a location first", Toast.LENGTH_LONG).show()
+        }
+      }
+
     }
     requireView().findViewById<CardView>(R.id.item_patient_list).setOnClickListener {
       findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToPatientList())

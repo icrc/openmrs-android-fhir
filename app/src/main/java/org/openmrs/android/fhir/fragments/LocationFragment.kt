@@ -9,13 +9,18 @@ import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.fhir.FhirEngine
+import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.FragmentLocationBinding
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 
@@ -71,7 +76,14 @@ class LocationFragment: Fragment(R.layout.fragment_location) {
 
         autoCompleteTextView.setOnItemClickListener { parent, _, position, _ ->
             val selectedLocation = parent.getItemAtPosition(position) as LocationViewModel.LocationItem
-            Toast.makeText(context, "Selected: ${selectedLocation.name}", Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch {
+                context?.applicationContext?.dataStore?.edit { preferences ->
+                    preferences[PreferenceKeys.LOCATION_ID] = selectedLocation.resourceId
+                    preferences[PreferenceKeys.LOCATION_NAME] = selectedLocation.name
+                }
+
+                Toast.makeText(context, "Location Updated", Toast.LENGTH_SHORT).show()
+            }
         }
 
         autoCompleteTextView.setOnClickListener {
