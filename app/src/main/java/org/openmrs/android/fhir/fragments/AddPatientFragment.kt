@@ -66,6 +66,9 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
       if (selectedLocation != null) {
         binding.currentLocationLabel.text = getString(R.string.current_location_label) +" "+ selectedLocation
       }
+      viewModel.locationId = context?.applicationContext?.dataStore?.data?.first()?.get(
+        PreferenceKeys.LOCATION_ID
+      )
     }
     if (savedInstanceState == null) {
       addQuestionnaireFragment()
