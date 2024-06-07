@@ -88,6 +88,7 @@ class LocationFragment: Fragment(R.layout.fragment_location) {
                     preferences[PreferenceKeys.LOCATION_NAME] = selectedLocation.name
                 }
                 binding.selectedLocationTv.text = selectedLocation.name
+                (activity as MainActivity).updateLocationName(selectedLocation.name)
                 Toast.makeText(context, "Location Updated", Toast.LENGTH_SHORT).show()
             }
         }

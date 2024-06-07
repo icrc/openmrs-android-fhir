@@ -26,8 +26,11 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import com.google.android.fhir.sync.CurrentSyncJobStatus
+import kotlinx.coroutines.flow.first
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
 import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import timber.log.Timber
 
@@ -79,6 +82,21 @@ class MainActivity : AppCompatActivity() {
     drawerToggle = ActionBarDrawerToggle(this, binding.drawer, R.string.open, R.string.close)
     binding.drawer.addDrawerListener(drawerToggle)
     drawerToggle.syncState()
+    setLocationInDrawer()
+  }
+
+  private fun setLocationInDrawer() {
+    lifecycleScope.launch {
+      val selectedLocationName = applicationContext?.dataStore?.data?.first()?.get(
+        PreferenceKeys.LOCATION_NAME)
+      if (selectedLocationName != null) {
+        binding.navigationView.menu.findItem(R.id.menu_current_location).title = selectedLocationName
+      }
+    }
+  }
+
+  fun updateLocationName(locationName: String) {
+    binding.navigationView.menu.findItem(R.id.menu_current_location).title = locationName
   }
 
   private fun onNavigationItemSelected(item: MenuItem): Boolean {
