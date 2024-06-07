@@ -49,8 +49,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     requireView().findViewById<CardView>(R.id.item_search).setOnClickListener {
       findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToPatientList())
     }
+    requireView().findViewById<CardView>(R.id.select_location).setOnClickListener {
+      findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToLocationFragment())
+    }
   }
 
+  @Deprecated("Deprecated in Java")
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
       android.R.id.home -> {
