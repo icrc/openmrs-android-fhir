@@ -6,7 +6,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import ca.uhn.fhir.rest.gclient.StringClientParam
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.search.Order
 import com.google.android.fhir.search.search
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Location
@@ -22,7 +24,12 @@ class LocationViewModel(application: Application, private val fhirEngine: FhirEn
     private fun getLocations() {
         viewModelScope.launch {
             val locationsList : MutableList<LocationItem> = mutableListOf()
-            fhirEngine.search<Location> {  }
+            fhirEngine.search<Location> {
+                sort(
+                    StringClientParam(Location.SP_NAME),
+                    Order.ASCENDING
+                )
+            }
                 .mapIndexed { index, fhirLocation -> fhirLocation.resource.toLocationItem(index + 1) }
                 .let { locationsList.addAll(it) }
             locations.value = locationsList
