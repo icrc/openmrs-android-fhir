@@ -29,9 +29,13 @@ import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import java.util.UUID
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.Identifier
+import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
+import org.hl7.fhir.r4.model.Reference
+import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.fragments.AddPatientFragment
 
@@ -40,6 +44,7 @@ class AddPatientViewModel(application: Application, private val state: SavedStat
   AndroidViewModel(application) {
 
   private var _questionnaireJson: String? = null
+  var locationId: String? = null
   val questionnaireJson: String
     get() = fetchQuestionnaireJson()
 
@@ -84,9 +89,28 @@ class AddPatientViewModel(application: Application, private val state: SavedStat
       }
       val patient = entry.resource as Patient
       patient.id = generateUuid()
+      val location = locationId?.let { fhirEngine.get(ResourceType.Location, it) } as Location?
+      if(location != null) {
+        patient.addIdentifier(createLocationIdentifier(location))
+      }
       fhirEngine.create(patient)
       isPatientSaved.value = true
     }
+  }
+
+  private fun createLocationIdentifier(location: Location) : Identifier{
+    val identifier = Identifier().apply {
+      id = generateUuid()
+      use = Identifier.IdentifierUse.OFFICIAL
+    }
+    //TODO: Add Type to identifier which includes OpenMRS ID
+    identifier.addExtension(PATIENT_LOCATION_IDENTIFIER_URL, Reference().apply {
+      reference = location.id
+      type = "Location"
+      display = location.name
+    })
+
+    return identifier
   }
 
   private fun fetchQuestionnaireJson(): String {
@@ -102,4 +126,10 @@ class AddPatientViewModel(application: Application, private val state: SavedStat
   private fun generateUuid(): String {
     return UUID.randomUUID().toString()
   }
+
+  companion object {
+    private val PATIENT_LOCATION_IDENTIFIER_URL = "http://fhir.openmrs.org/ext/patient/identifier#location"
+  }
 }
+
+

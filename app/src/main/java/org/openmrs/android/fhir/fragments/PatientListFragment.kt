@@ -30,12 +30,14 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -45,12 +47,16 @@ import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.LastSyncJobStatus
 import com.google.android.fhir.sync.PeriodicSyncJobStatus
 import com.google.android.fhir.sync.SyncJobStatus
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.adapters.PatientItemRecyclerViewAdapter
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.FragmentPatientListBinding
 import org.openmrs.android.fhir.extensions.launchAndRepeatStarted
 import timber.log.Timber
@@ -252,8 +258,15 @@ class PatientListFragment : Fragment() {
   }
 
   private fun onAddPatientClick() {
-    findNavController()
-      .navigate(PatientListFragmentDirections.actionPatientListToAddPatientFragment())
+    lifecycleScope.launch {
+      if(
+        context?.applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.LOCATION_NAME) != null
+      ) {
+        findNavController().navigate(PatientListFragmentDirections.actionPatientListToAddPatientFragment())
+      } else {
+        Toast.makeText(context, "Please select a location first", Toast.LENGTH_LONG).show()
+      }
+    }
   }
 
   private fun fadeInTopBanner(state: CurrentSyncJobStatus) {
