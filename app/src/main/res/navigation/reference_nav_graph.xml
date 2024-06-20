@@ -21,6 +21,10 @@
         android:id="@+id/action_home_fragment_to_patient_list"
         app:destination="@id/patient_list"
         />
+    <action
+        android:id="@+id/action_home_fragment_to_locationFragment"
+        app:destination="@id/locationFragment"
+        />
   </fragment>
 
   <fragment
@@ -117,5 +121,12 @@
     <argument android:name="encounter_id" app:argType="string" />
     <argument android:name="form_resource" app:argType="string" />
   </fragment>
+
+  <fragment
+      android:id="@+id/locationFragment"
+      android:label="@string/location"
+      android:name="org.openmrs.android.fhir.fragments.LocationFragment"
+      tools:layout="@layout/fragment_location"
+      />
 
 </navigation>
