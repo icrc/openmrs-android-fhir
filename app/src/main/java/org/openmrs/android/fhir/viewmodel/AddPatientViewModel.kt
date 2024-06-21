@@ -29,6 +29,7 @@ import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import java.util.UUID
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
@@ -93,15 +94,19 @@ class AddPatientViewModel(application: Application, private val state: SavedStat
       if(location != null) {
         patient.addIdentifier(createLocationIdentifier(location))
       }
+
       fhirEngine.create(patient)
       isPatientSaved.value = true
     }
   }
 
-  private fun createLocationIdentifier(location: Location) : Identifier{
+  private fun createLocationIdentifier(location: Location): Identifier {
+    val identifierValue = fetchIdentifierFromServer()
     val identifier = Identifier().apply {
       id = generateUuid()
       use = Identifier.IdentifierUse.OFFICIAL
+      value = identifierValue
+      type = CodeableConcept().apply { text = DEFAULT_IDENTIFIER_TYPE }
     }
     //TODO: Add Type to identifier which includes OpenMRS ID
     identifier.addExtension(PATIENT_LOCATION_IDENTIFIER_URL, Reference().apply {
@@ -111,6 +116,11 @@ class AddPatientViewModel(application: Application, private val state: SavedStat
     })
 
     return identifier
+  }
+
+  //TODO: fetch Identifier from server
+  private fun fetchIdentifierFromServer(): String {
+    return (1000..9999).random().toString()
   }
 
   private fun fetchQuestionnaireJson(): String {
@@ -129,7 +139,6 @@ class AddPatientViewModel(application: Application, private val state: SavedStat
 
   companion object {
     private val PATIENT_LOCATION_IDENTIFIER_URL = "http://fhir.openmrs.org/ext/patient/identifier#location"
+    private val DEFAULT_IDENTIFIER_TYPE = "HSU ID"
   }
 }
-
-
