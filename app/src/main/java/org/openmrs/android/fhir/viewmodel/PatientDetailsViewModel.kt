@@ -25,7 +25,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
-import com.google.android.fhir.logicalId
 import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
 import kotlinx.coroutines.launch
@@ -44,7 +43,9 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Date
+import java.util.LinkedList
+import java.util.Locale
 
 /**
  * The ViewModel helper class for PatientItemRecyclerViewAdapter, that is responsible for preparing
@@ -434,8 +435,17 @@ class PatientDetailsViewModelFactory(
 }
 
 data class RiskAssessmentItem(
-    var riskStatusColor: Int,
-    var riskStatus: String,
-    var lastContacted: String,
-    var patientCardColor: Int,
+  var riskStatusColor: Int,
+  var riskStatus: String,
+  var lastContacted: String,
+  var patientCardColor: Int,
 )
+
+/**
+ * The logical (unqualified) part of the ID. For example, if the ID is
+ * "http://example.com/fhir/Patient/123/_history/456", then this value would be "123".
+ */
+private val Resource.logicalId: String
+  get() {
+    return this.idElement?.idPart.orEmpty()
+  }

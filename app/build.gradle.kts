@@ -36,7 +36,7 @@ android {
   packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
   repositories{
     maven {
-      url = uri("https://maven.pkg.github.com/icrc-fdeniger/android-fhir")
+      url = uri("https://maven.pkg.github.com/google/android-fhir")
       credentials {
         username = gradleLocalProperties(rootDir).getProperty("gpr.user") ?: System.getenv("USERNAME")
         password = gradleLocalProperties(rootDir).getProperty("gpr.key") ?: System.getenv("TOKEN")
@@ -68,6 +68,6 @@ dependencies {
   implementation("com.jakewharton.timber:timber:5.0.1")
   implementation("net.openid:appauth:0.11.1")
   implementation("com.auth0.android:jwtdecode:2.0.2")
-  implementation("com.google.android.fhir:engine:1.0.1-SNAPSHOT")
-  implementation("com.google.android.fhir:data-capture:1.1.1-SNAPSHOT")
+  implementation("com.google.android.fhir:engine:1.0.0-SNAPSHOT")
+  implementation("com.google.android.fhir:data-capture:1.1.0-SNAPSHOT")
 }
