@@ -26,6 +26,7 @@ import com.google.android.fhir.datacapture.DataCaptureConfig
 import com.google.android.fhir.datacapture.XFhirQueryResolver
 import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.remote.HttpLogger
+import okhttp3.OkHttpClient
 import timber.log.Timber
 
 class FhirApplication : Application(), DataCaptureConfig.Provider {
@@ -35,6 +36,8 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
   private var dataCaptureConfig: DataCaptureConfig? = null
 
   private val dataStore by lazy { DemoDataStore(this) }
+
+  val okHttpClient: OkHttpClient by lazy { constructOkHttpClient() }
 
   override fun onCreate() {
     super.onCreate()
@@ -69,10 +72,16 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     return FhirEngineProvider.getInstance(this)
   }
 
+  private fun constructOkHttpClient(): OkHttpClient {
+    return OkHttpClient.Builder().build()
+  }
+
   companion object {
     fun fhirEngine(context: Context) = (context.applicationContext as FhirApplication).fhirEngine
 
     fun dataStore(context: Context) = (context.applicationContext as FhirApplication).dataStore
+
+    fun okHttpClient(context: Context) = (context.applicationContext as FhirApplication).okHttpClient
   }
 
   override fun getDataCaptureConfig(): DataCaptureConfig = dataCaptureConfig ?: DataCaptureConfig()
@@ -80,4 +89,5 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
 
 object ServerConstants {
   const val BASE_URL = "http://10.0.2.2:8080/openmrs/ws/fhir2/R4/"
+  const val REST_BASE_URL = "http://10.0.2.2:8080/openmrs/ws/rest/v1/"
 }

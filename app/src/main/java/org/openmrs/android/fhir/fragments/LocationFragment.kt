@@ -130,6 +130,10 @@ class LocationFragment: Fragment(R.layout.fragment_location) {
             (activity as MainActivity).updateLocationName(locationItem.name)
             Toast.makeText(context, "Location Updated", Toast.LENGTH_SHORT).show()
         }
+        this.context?.let { PatientIdentifierManager.initialize(it) }
+
+
+
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

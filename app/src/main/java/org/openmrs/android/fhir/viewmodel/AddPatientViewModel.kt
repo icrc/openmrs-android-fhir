@@ -29,6 +29,7 @@ import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import java.util.UUID
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Location
@@ -101,7 +102,8 @@ class AddPatientViewModel(application: Application, private val state: SavedStat
   }
 
   private fun createLocationIdentifier(location: Location): Identifier {
-    val identifierValue = fetchIdentifierFromServer()
+    val identifierValue = runBlocking { PatientIdentifierManager.getNextIdentifier() }
+
     val identifier = Identifier().apply {
       id = generateUuid()
       use = Identifier.IdentifierUse.OFFICIAL
@@ -116,11 +118,6 @@ class AddPatientViewModel(application: Application, private val state: SavedStat
     })
 
     return identifier
-  }
-
-  //TODO: fetch Identifier from server
-  private fun fetchIdentifierFromServer(): String {
-    return (1000..9999).random().toString()
   }
 
   private fun fetchQuestionnaireJson(): String {
