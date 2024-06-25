@@ -76,7 +76,7 @@ class LocationViewModel(application: Application, private val fhirEngine: FhirEn
             resourceId = idElement.idPart,
             status = status.name,
             name = name,
-            description = description
+            description ?: ""
         )
     }
 
