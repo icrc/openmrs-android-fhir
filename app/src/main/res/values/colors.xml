@@ -90,6 +90,7 @@
 
     <color name="black">#000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="light_grey">#FAFAFA</color>
     <color name="dashboard_cardview_textcolor">#4D4D4D</color>
 
 </resources>
