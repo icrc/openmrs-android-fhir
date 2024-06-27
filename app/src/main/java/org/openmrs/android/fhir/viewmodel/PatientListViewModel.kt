@@ -30,6 +30,7 @@ import org.openmrs.android.fhir.RiskAssessmentItem
 import java.time.LocalDate
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Patient
+import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.RiskAssessment
 import timber.log.Timber
 import java.time.ZoneOffset
@@ -58,8 +59,8 @@ class PatientListViewModel(application: Application, private val fhirEngine: Fhi
    * by the client every time search query changes or data-sync is completed.
    */
   private fun updatePatientListAndPatientCount(
-      search: suspend () -> List<PatientItem>,
-      count: suspend () -> Long,
+    search: suspend () -> List<PatientItem>,
+    count: suspend () -> Long,
   ) {
     viewModelScope.launch {
       liveSearchedPatients.value = search()
@@ -103,7 +104,13 @@ class PatientListViewModel(application: Application, private val fhirEngine: Fhi
         from = 0
       }
       .mapIndexed { index, fhirPatient -> fhirPatient.resource.toPatientItem(index + 1) }
-      .let { patients.addAll(it) }
+      .let {
+        patients.addAll(it)
+        patients.map { patientItem->
+          patientItem.isSynced = fhirEngine.getLocalChanges(ResourceType.Patient, patientItem.resourceId).isEmpty()
+        }
+      }
+
 
     val risks = getRiskAssessments()
     patients.forEach { patient ->
@@ -138,6 +145,7 @@ class PatientListViewModel(application: Application, private val fhirEngine: Fhi
     val country: String,
     val isActive: Boolean,
     val html: String,
+    var isSynced: Boolean? = false,
     var risk: String? = "",
     var riskItem: RiskAssessmentItem? = null,
   ) {
@@ -208,15 +216,15 @@ internal fun Patient.toPatientItem(position: Int): PatientListViewModel.PatientI
   val html: String = if (hasText()) text.div.valueAsString else ""
 
   return PatientListViewModel.PatientItem(
-      id = position.toString(),
-      resourceId = patientId,
-      name = name,
-      gender = gender ?: "",
-      dob = dob,
-      phone = phone ?: "",
-      city = city ?: "",
-      country = country ?: "",
-      isActive = isActive,
-      html = html,
+    id = position.toString(),
+    resourceId = patientId,
+    name = name,
+    gender = gender ?: "",
+    dob = dob,
+    phone = phone ?: "",
+    city = city ?: "",
+    country = country ?: "",
+    isActive = isActive,
+    html = html,
   )
 }

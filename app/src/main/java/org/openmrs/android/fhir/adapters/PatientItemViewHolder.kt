@@ -15,16 +15,14 @@
  */
 package org.openmrs.android.fhir.adapters
 
-import android.content.res.ColorStateList
 import android.content.res.Resources
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import org.openmrs.android.fhir.databinding.PatientListItemViewBinding
 import java.time.LocalDate
 import java.time.Period
-import org.hl7.fhir.r4.model.codesystems.RiskProbability
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 
@@ -36,30 +34,23 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
   private val idView: TextView = binding.id
 
   fun bindTo(
-      patientItem: PatientListViewModel.PatientItem,
-      onItemClicked: (PatientListViewModel.PatientItem) -> Unit,
+    patientItem: PatientListViewModel.PatientItem,
+    onItemClicked: (PatientListViewModel.PatientItem) -> Unit,
   ) {
     this.nameView.text = patientItem.name
     this.ageView.text = getFormattedAge(patientItem, ageView.context.resources)
     this.idView.text = "Id: #---${getTruncatedId(patientItem)}"
     this.itemView.setOnClickListener { onItemClicked(patientItem) }
-    statusView.imageTintList =
-      ColorStateList.valueOf(
-        ContextCompat.getColor(
-          statusView.context,
-          when (patientItem.risk) {
-            RiskProbability.HIGH.toCode() -> R.color.high_risk
-            RiskProbability.MODERATE.toCode() -> R.color.moderate_risk
-            RiskProbability.LOW.toCode() -> R.color.low_risk
-            else -> R.color.unknown_risk
-          },
-        ),
-      )
+    if(patientItem.isSynced !=null && patientItem.isSynced!!) {
+      statusView.visibility = View.GONE
+    } else {
+      statusView.visibility = View.VISIBLE
+    }
   }
 
   private fun getFormattedAge(
-      patientItem: PatientListViewModel.PatientItem,
-      resources: Resources,
+    patientItem: PatientListViewModel.PatientItem,
+    resources: Resources,
   ): String {
     if (patientItem.dob == null) return ""
     return Period.between(patientItem.dob, LocalDate.now()).let {
