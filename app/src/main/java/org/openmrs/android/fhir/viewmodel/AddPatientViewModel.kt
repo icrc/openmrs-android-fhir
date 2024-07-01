@@ -139,3 +139,5 @@ class AddPatientViewModel(application: Application, private val state: SavedStat
     private val DEFAULT_IDENTIFIER_TYPE = "HSU ID"
   }
 }
+
+
