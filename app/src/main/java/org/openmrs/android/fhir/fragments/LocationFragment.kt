@@ -16,6 +16,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.fhir.FhirEngine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
@@ -24,9 +25,12 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.FragmentLocationBinding
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
+import PatientIdentifierManager
+import RestApiManager
 
 class LocationFragment: Fragment(R.layout.fragment_location) {
     private lateinit var fhirEngine: FhirEngine
+    private lateinit var restApiClient: RestApiManager
     private lateinit var locationViewModel: LocationViewModel
     private var _binding: FragmentLocationBinding? = null
     private lateinit var locationAdapter: LocationItemRecyclerViewAdapter
@@ -56,6 +60,7 @@ class LocationFragment: Fragment(R.layout.fragment_location) {
             setDisplayHomeAsUpEnabled(true)
         }
         fhirEngine = FhirApplication.fhirEngine(requireContext())
+        restApiClient = FhirApplication.restApiClient(requireContext())
         locationViewModel =
             ViewModelProvider(
                 this,
@@ -128,11 +133,15 @@ class LocationFragment: Fragment(R.layout.fragment_location) {
                 preferences[PreferenceKeys.LOCATION_NAME] = locationItem.name
             }
             (activity as MainActivity).updateLocationName(locationItem.name)
-            Toast.makeText(context, "Location Updated", Toast.LENGTH_SHORT).show()
         }
-        this.context?.let { PatientIdentifierManager.initialize(it) }
 
+        runBlocking { restApiClient.updateSessionLocation(locationItem.resourceId) }
+        runBlocking { context?.applicationContext?.let {
+            PatientIdentifierManager.updateAvailablePatientIdentifiers(
+                it)
+        } }
 
+        Toast.makeText(context, "Location Updated", Toast.LENGTH_SHORT).show()
 
     }
 

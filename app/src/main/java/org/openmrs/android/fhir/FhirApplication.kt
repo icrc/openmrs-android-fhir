@@ -15,6 +15,7 @@
  */
 package org.openmrs.android.fhir
 
+import RestApiManager
 import android.app.Application
 import android.content.Context
 import com.google.android.fhir.DatabaseErrorStrategy.RECREATE_AT_OPEN
@@ -26,7 +27,12 @@ import com.google.android.fhir.datacapture.DataCaptureConfig
 import com.google.android.fhir.datacapture.XFhirQueryResolver
 import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.remote.HttpLogger
-import okhttp3.OkHttpClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
 import timber.log.Timber
 
 class FhirApplication : Application(), DataCaptureConfig.Provider {
@@ -37,7 +43,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
 
   private val dataStore by lazy { DemoDataStore(this) }
 
-  val okHttpClient: OkHttpClient by lazy { constructOkHttpClient() }
+  private val restApiClient: RestApiManager by lazy { initializeRestApiManager() }
 
   override fun onCreate() {
     super.onCreate()
@@ -68,12 +74,16 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
       }
   }
 
-  private fun constructFhirEngine(): FhirEngine {
-    return FhirEngineProvider.getInstance(this)
+  private fun initializeRestApiManager(): RestApiManager {
+    val restApiManager = RestApiManager.getInstance(applicationContext)
+    CoroutineScope(Dispatchers.IO).launch {
+      restApiManager.initialize(applicationContext.applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID])
+    }
+    return restApiManager
   }
 
-  private fun constructOkHttpClient(): OkHttpClient {
-    return OkHttpClient.Builder().build()
+  private fun constructFhirEngine(): FhirEngine {
+    return FhirEngineProvider.getInstance(this)
   }
 
   companion object {
@@ -81,7 +91,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
 
     fun dataStore(context: Context) = (context.applicationContext as FhirApplication).dataStore
 
-    fun okHttpClient(context: Context) = (context.applicationContext as FhirApplication).okHttpClient
+    fun restApiClient(context: Context) = (context.applicationContext as FhirApplication).restApiClient
   }
 
   override fun getDataCaptureConfig(): DataCaptureConfig = dataCaptureConfig ?: DataCaptureConfig()
@@ -90,4 +100,5 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
 object ServerConstants {
   const val BASE_URL = "http://10.0.2.2:8080/openmrs/ws/fhir2/R4/"
   const val REST_BASE_URL = "http://10.0.2.2:8080/openmrs/ws/rest/v1/"
+  const val CHECK_SERVER_URL = REST_BASE_URL + "session"
 }
