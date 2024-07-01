@@ -24,6 +24,7 @@ import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
@@ -40,6 +41,8 @@ import org.hl7.fhir.r4.model.Resource
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.Form
 import org.openmrs.android.fhir.MockConstants
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.extensions.readFileFromAssets
 import org.openmrs.android.fhir.fragments.GenericFormEntryFragment
 import java.util.Date
@@ -88,6 +91,9 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
     encounterId: String,
   ) {
     val encounterReference = Reference("Encounter/$encounterId")
+    val appContext = getApplication<Application>().applicationContext
+    val locationId = appContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+
     bundle.entry.forEach {
       when (val resource = it.resource) {
         is Observation -> {
@@ -114,7 +120,7 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
             setPeriod(Period().apply { start = Date() })
             addParticipant(createParticipant())
             addLocation(Encounter.EncounterLocationComponent().apply {
-              location = MockConstants.LOCATION
+              location = Reference("Location/$locationId")  // Set the location reference
             })
 
             addType(CodeableConcept().apply {

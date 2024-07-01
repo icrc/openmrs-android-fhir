@@ -8,5 +8,6 @@ class PreferenceKeys {
         val LOCATION_ID = stringPreferencesKey("LOCATION_ID")
         val LOCATION_NAME = stringPreferencesKey("LOCATION_NAME")
         val FAVORITE_LOCATIONS = stringSetPreferencesKey("FAVORITE_LOCATIONS")
+        const val PATIENT_IDENTIFIERS = "PATIENT_IDENTIFIERS"
     }
 }
