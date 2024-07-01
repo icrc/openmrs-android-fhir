@@ -48,130 +48,135 @@ import java.util.UUID
 
 /** ViewModel for Generic questionnaire screen {@link GenericFormEntryFragment}. */
 class GenericFormEntryViewModel(application: Application, private val state: SavedStateHandle) :
-  AndroidViewModel(application) {
-  val questionnaire: String
-    get() = getQuestionnaireJson()
+    AndroidViewModel(application) {
+    val questionnaire: String
+        get() = getQuestionnaireJson()
 
-  val isResourcesSaved = MutableLiveData<Boolean>()
+    val isResourcesSaved = MutableLiveData<Boolean>()
 
-  private val questionnaireResource: Questionnaire
-    get() =
-      FhirContext.forCached(FhirVersionEnum.R4).newJsonParser().parseResource(questionnaire)
-        as Questionnaire
+    private val questionnaireResource: Questionnaire
+        get() =
+            FhirContext.forCached(FhirVersionEnum.R4).newJsonParser().parseResource(questionnaire)
+                    as Questionnaire
 
-  private var questionnaireJson: String? = null
-  private var fhirEngine: FhirEngine = FhirApplication.fhirEngine(application.applicationContext)
-  /**
-   * Saves generic encounter questionnaire response into the application database.
-   *
-   * @param questionnaireResponse generic encounter questionnaire response
-   */
-  fun saveEncounter(questionnaireResponse: QuestionnaireResponse, form: Form, patientId: String) {
-    viewModelScope.launch {
-      val bundle = ResourceMapper.extract(questionnaireResource, questionnaireResponse)
-      val patientReference = Reference("Patient/$patientId")
-      val encounterId = generateUuid()
-      if (isRequiredFieldMissing(bundle)) {
-        isResourcesSaved.value = false
-        return@launch
-      }
+    private var questionnaireJson: String? = null
+    private var fhirEngine: FhirEngine = FhirApplication.fhirEngine(application.applicationContext)
 
-      saveResources(bundle, patientReference, form, encounterId )
-      isResourcesSaved.value = true
+    /**
+     * Saves generic encounter questionnaire response into the application database.
+     *
+     * @param questionnaireResponse generic encounter questionnaire response
+     */
+    fun saveEncounter(questionnaireResponse: QuestionnaireResponse, form: Form, patientId: String) {
+        viewModelScope.launch {
+            val bundle = ResourceMapper.extract(questionnaireResource, questionnaireResponse)
+            val patientReference = Reference("Patient/$patientId")
+            val encounterId = generateUuid()
+            if (isRequiredFieldMissing(bundle)) {
+                isResourcesSaved.value = false
+                return@launch
+            }
+
+            saveResources(bundle, patientReference, form, encounterId)
+            isResourcesSaved.value = true
+        }
     }
-  }
 
-  private suspend fun saveResources(
-    bundle: Bundle,
-    patientReference: Reference,
-    form: Form,
-    encounterId: String,
-  ) {
-    val encounterReference = Reference("Encounter/$encounterId")
-    bundle.entry.forEach {
-      when (val resource = it.resource) {
-        is Observation -> {
-          if (resource.hasCode()) {
-            resource.id = generateUuid()
-            resource.subject = patientReference
-            resource.encounter = encounterReference
-            saveResourceToDatabase(resource)
-          }
-        }
-        is Condition -> {
-          if (resource.hasCode()) {
-            resource.id = generateUuid()
-            resource.subject = patientReference
-            resource.encounter = encounterReference
-            saveResourceToDatabase(resource)
-          }
-        }
-        is Encounter -> {
-          resource.apply {
-            subject = patientReference
-            id = encounterId
-            status = Encounter.EncounterStatus.FINISHED
-            setPeriod(Period().apply { start = Date() })
-            addParticipant(createParticipant())
-            addLocation(Encounter.EncounterLocationComponent().apply {
-              location = MockConstants.LOCATION
-            })
+    private suspend fun saveResources(
+        bundle: Bundle,
+        patientReference: Reference,
+        form: Form,
+        encounterId: String,
+    ) {
+        val encounterReference = Reference("Encounter/$encounterId")
+        bundle.entry.forEach {
+            when (val resource = it.resource) {
+                is Observation -> {
+                    if (resource.hasCode()) {
+                        resource.id = generateUuid()
+                        resource.subject = patientReference
+                        resource.encounter = encounterReference
+                        //TODO save the questionLink ID
 
-            addType(CodeableConcept().apply {
-              coding = listOf(
-                Coding().apply {
-                  system = "http://fhir.openmrs.org/code-system/encounter-type"
-                  code = form.code
-                  display = form.display
+                        saveResourceToDatabase(resource)
+                    }
                 }
-              )
-            })
-            saveResourceToDatabase(this)
-          }
+
+                is Condition -> {
+                    if (resource.hasCode()) {
+                        resource.id = generateUuid()
+                        resource.subject = patientReference
+                        resource.encounter = encounterReference
+                        saveResourceToDatabase(resource)
+                    }
+                }
+
+                is Encounter -> {
+                    resource.apply {
+                        subject = patientReference
+                        id = encounterId
+                        status = Encounter.EncounterStatus.FINISHED
+                        setPeriod(Period().apply { start = Date() })
+                        addParticipant(createParticipant())
+                        addLocation(Encounter.EncounterLocationComponent().apply {
+                            location = MockConstants.LOCATION
+                        })
+
+                        addType(CodeableConcept().apply {
+                            coding = listOf(
+                                Coding().apply {
+                                    system = "http://fhir.openmrs.org/code-system/encounter-type"
+                                    code = form.code
+                                    display = form.display
+                                }
+                            )
+                        })
+                        saveResourceToDatabase(this)
+                    }
+                }
+            }
         }
-      }
     }
-  }
 
-  fun createParticipant(): EncounterParticipantComponent {
-    //TODO Replace this with method to get the authenticated user's reference
-    val authenticatedUser = MockConstants.AUTHENTICATED_USER
-    val participant = EncounterParticipantComponent()
-    participant.individual = Reference("Practitioner/${authenticatedUser.uuid}")
-    participant.individual.display = authenticatedUser.display
-    participant.individual.type = "Practitioner"
-    return participant
-  }
+    fun createParticipant(): EncounterParticipantComponent {
+        //TODO Replace this with method to get the authenticated user's reference
+        val authenticatedUser = MockConstants.AUTHENTICATED_USER
+        val participant = EncounterParticipantComponent()
+        participant.individual = Reference("Practitioner/${authenticatedUser.providerUuid}")
+        participant.individual.display = authenticatedUser.display
+        participant.individual.type = "Practitioner"
+        return participant
+    }
 
-  private fun isRequiredFieldMissing(bundle: Bundle): Boolean {
-    bundle.entry.forEach {
-      when (val resource = it.resource) {
-        is Observation -> {
-          if (resource.hasValueQuantity() && !resource.valueQuantity.hasValueElement()) {
-            return true
-          }
+    private fun isRequiredFieldMissing(bundle: Bundle): Boolean {
+        bundle.entry.forEach {
+            when (val resource = it.resource) {
+                is Observation -> {
+                    if (resource.hasValueQuantity() && !resource.valueQuantity.hasValueElement()) {
+                        return true
+                    }
+                }
+                // TODO check other resources inputs
+            }
         }
-        // TODO check other resources inputs
-      }
+        return false
     }
-    return false
-  }
 
-  private suspend fun saveResourceToDatabase(resource: Resource) {
-    fhirEngine.create(resource)
-  }
-
-  private fun getQuestionnaireJson(): String {
-    questionnaireJson?.let {
-      return it
+    private suspend fun saveResourceToDatabase(resource: Resource) {
+        fhirEngine.create(resource)
     }
-    questionnaireJson =
-      getApplication<Application>()
-        .readFileFromAssets(state[GenericFormEntryFragment.QUESTIONNAIRE_FILE_PATH_KEY]!!)
-    return questionnaireJson!!
-  }
 
-  private fun generateUuid(): String {
-    return UUID.randomUUID().toString()
-  }
+    private fun getQuestionnaireJson(): String {
+        questionnaireJson?.let {
+            return it
+        }
+        questionnaireJson =
+            getApplication<Application>()
+                .readFileFromAssets(state[GenericFormEntryFragment.QUESTIONNAIRE_FILE_PATH_KEY]!!)
+        return questionnaireJson!!
+    }
+
+    private fun generateUuid(): String {
+        return UUID.randomUUID().toString()
+    }
 }

@@ -20,6 +20,7 @@ data class Patient(
 data class User(
     val uuid: String,
     val display: String,
+    val providerUuid: String,
 )
 
 
@@ -57,7 +58,8 @@ fun createMockLocationReference(): Reference {
 fun getAuthenticatedUser(): User {
     val authenticatedUser = User(
         uuid = "1c3db49d-440a-11e6-a65c-00e04c680037",
-        display = "Admin"
+        display = "Admin",
+        providerUuid = "f9badd80-ab76-11e2-9e96-0800200c9a66"
     )
     return authenticatedUser
 }

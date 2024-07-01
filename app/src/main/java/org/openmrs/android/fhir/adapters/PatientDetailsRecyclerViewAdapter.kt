@@ -17,6 +17,7 @@ package org.openmrs.android.fhir
 
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,14 +28,15 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.RoundedCornerTreatment
 import com.google.android.material.shape.ShapeAppearanceModel
-import org.openmrs.android.fhir.PatientDetailsRecyclerViewAdapter.Companion.allCornersRounded
 import org.openmrs.android.fhir.databinding.PatientDetailsCardViewBinding
 import org.openmrs.android.fhir.databinding.PatientDetailsHeaderBinding
 import org.openmrs.android.fhir.databinding.PatientListItemViewBinding
-import org.hl7.fhir.r4.model.Encounter
 
-class PatientDetailsRecyclerViewAdapter(private val onCreateEncountersClick: () -> Unit) :
-  ListAdapter<PatientDetailData, PatientDetailItemViewHolder>(PatientDetailDiffUtil()) {
+class PatientDetailsRecyclerViewAdapter(
+  private val onCreateEncountersClick: () -> Unit,
+  private val onEditEncounterClick: (String, String, String) -> Unit,
+) : ListAdapter<PatientDetailData, PatientDetailItemViewHolder>(PatientDetailDiffUtil()) {
+
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PatientDetailItemViewHolder {
     return when (ViewTypes.from(viewType)) {
       ViewTypes.HEADER ->
@@ -60,7 +62,8 @@ class PatientDetailsRecyclerViewAdapter(private val onCreateEncountersClick: () 
         )
       ViewTypes.ENCOUNTER ->
         PatientDetailsEncounterItemViewHolder(
-          PatientListItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+          PatientListItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+          onEditEncounterClick
         )
     }
   }
@@ -114,8 +117,7 @@ class PatientDetailsRecyclerViewAdapter(private val onCreateEncountersClick: () 
           .setAllCornerSizes(CORNER_RADIUS)
           .setAllCorners(RoundedCornerTreatment())
           .build(),
-      )
-        .applyStrokeColor()
+      ).applyStrokeColor()
     }
 
     fun topCornersRounded(): MaterialShapeDrawable {
@@ -126,8 +128,7 @@ class PatientDetailsRecyclerViewAdapter(private val onCreateEncountersClick: () 
           .setTopLeftCorner(RoundedCornerTreatment())
           .setTopRightCorner(RoundedCornerTreatment())
           .build(),
-      )
-        .applyStrokeColor()
+      ).applyStrokeColor()
     }
 
     fun bottomCornersRounded(): MaterialShapeDrawable {
@@ -138,8 +139,7 @@ class PatientDetailsRecyclerViewAdapter(private val onCreateEncountersClick: () 
           .setBottomLeftCorner(RoundedCornerTreatment())
           .setBottomRightCorner(RoundedCornerTreatment())
           .build(),
-      )
-        .applyStrokeColor()
+      ).applyStrokeColor()
     }
 
     fun noCornersRounded(): MaterialShapeDrawable {
@@ -164,23 +164,13 @@ class PatientOverviewItemViewHolder(
   val onCreateEncountersClick: () -> Unit,
 ) : PatientDetailItemViewHolder(binding.root) {
   override fun bind(data: PatientDetailData) {
-//    binding.screener.setOnClickListener { onScreenerClick() }
-//    binding.startVisit.setOnClickListener { onStartVisitClick() }
     (data as PatientDetailOverview).let {
       binding.title.text = it.patient.name
-      binding.patientIdValue.text= it.patient.resourceId
-      binding.genderValue.text= it.patient.gender
-      binding.patientPhoneValue.text= it.patient.phone
-      binding.dateOfBirthValue.text= it.patient.dob?.toString() ?: ""
+      binding.patientIdValue.text = it.patient.resourceId
+      binding.genderValue.text = it.patient.gender
+      binding.patientPhoneValue.text = it.patient.phone
+      binding.dateOfBirthValue.text = it.patient.dob?.toString() ?: ""
     }
-//    data.patient.let {
-//      binding.patientContainer.setBackgroundColor(it.patientCardColor)
-//      binding.patientIdValue.text = it.
-//      binding.statusValue.setTextColor(Color.BLACK)
-//      binding.statusValue.background =
-//        allCornersRounded().apply { fillColor = ColorStateList.valueOf(it.riskStatusColor) }
-//      binding.lastContactValue.text = it.lastContacted
-//    }
   }
 }
 
@@ -215,12 +205,18 @@ class PatientDetailsObservationItemViewHolder(private val binding: PatientListIt
   }
 }
 
-class PatientDetailsEncounterItemViewHolder(private val binding: PatientListItemViewBinding) :
-  PatientDetailItemViewHolder(binding.root) {
+class PatientDetailsEncounterItemViewHolder(
+  private val binding: PatientListItemViewBinding,
+  private val onEditEncounterClick: (String, String, String) -> Unit
+) : PatientDetailItemViewHolder(binding.root) {
   override fun bind(data: PatientDetailData) {
     (data as PatientDetailEncounters).let {
-      binding.name.text = it.encounter.type
-      binding.fieldName.text = it.encounter.dateTime
+      val encounter = it.encounter;
+      binding.name.text = encounter.type
+      binding.fieldName.text = encounter.dateTime
+      binding.name.setOnClickListener {
+        onEditEncounterClick(  encounter.encounterId ?: "", encounter.formDisplay ?: "", encounter.formResource ?: "")
+      }
     }
     binding.status.visibility = View.GONE
     binding.id.visibility = View.GONE
@@ -258,6 +254,5 @@ enum class ViewTypes {
 class PatientDetailDiffUtil : DiffUtil.ItemCallback<PatientDetailData>() {
   override fun areItemsTheSame(o: PatientDetailData, n: PatientDetailData) = o == n
 
-  override fun areContentsTheSame(o: PatientDetailData, n: PatientDetailData) =
-    areItemsTheSame(o, n)
+  override fun areContentsTheSame(o: PatientDetailData, n: PatientDetailData) = areItemsTheSame(o, n)
 }

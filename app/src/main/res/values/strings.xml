@@ -44,12 +44,14 @@
   <string name="patient_property_gender">Gender</string>
   <string name="add_patient">Add Patient</string>
   <string name="edit_patient">Edit Patient</string>
+  <string name="edit_encounter">Edit Encounter</string>
   <string name="location">Location</string>
   <string name="select_a_location">Select a Location</string>
   <string name="submit">Submit</string>
   <string name="message_syncing">Syncing\u2026</string>
 
   <string name="message_patient_updated">Patient is updated.</string>
+  <string name="message_encounter_updated">Encounter is updated.</string>
   <string name="inputs_missing">Inputs are missing.</string>
   <string name="resources_saved">Resources are saved.</string>
   <string name="response_received">questionnaire response is received.</string>

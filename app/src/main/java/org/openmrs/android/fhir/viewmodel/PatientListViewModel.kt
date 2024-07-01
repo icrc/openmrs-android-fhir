@@ -163,13 +163,16 @@ class PatientListViewModel(application: Application, private val fhirEngine: Fhi
     override fun toString(): String = code
   }
 
-  data class EncounterItem(
-    val id: String,
-    val type: String,
-    val dateTime: String
-  ){
-    override fun toString(): String = id
-  }
+    data class EncounterItem(
+        val encounterId: String?,
+        val type: String,
+        val dateTime: String,
+        val formCode: String?,
+        val formDisplay: String?,
+        val formResource: String?
+    ) {
+        override fun toString(): String = encounterId ?: type
+    }
 
   class PatientListViewModelFactory(
     private val application: Application,

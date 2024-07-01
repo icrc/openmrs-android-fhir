@@ -57,6 +57,9 @@
     <action
         android:id="@+id/action_patient_details_to_createEncounterFragment"
         app:destination="@id/createEncounterFragment" />
+    <action
+        android:id="@+id/action_patient_details_to_editEncounterFragment"
+        app:destination="@id/editEncounterFragment" />
   </fragment>
 
   <fragment
@@ -76,6 +79,11 @@
     <argument
         android:name="patient_id"
         app:argType="string" />
+    <argument
+        android:name="encounter_id"
+        app:argType="string"
+        android:defaultValue="@null"
+        app:nullable="true" />
   </fragment>
   <fragment
       android:id="@+id/createEncounterFragment"
@@ -103,6 +111,15 @@
       tools:layout="@layout/add_patient_fragment"
       >
     <argument android:name="patient_id" app:argType="string" />
+  </fragment>
+  <fragment
+      android:id="@+id/editEncounterFragment"
+      android:label="Edit Patient"
+      android:name="org.openmrs.android.fhir.fragments.EditEncounterFragment"
+      tools:layout="@layout/generic_formentry_fragment"
+      >
+    <argument android:name="encounter_id" app:argType="string" />
+    <argument android:name="form_resource" app:argType="string" />
   </fragment>
 
   <fragment
