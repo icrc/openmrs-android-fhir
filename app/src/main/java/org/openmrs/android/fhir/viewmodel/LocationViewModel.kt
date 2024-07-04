@@ -58,7 +58,7 @@ class LocationViewModel(application: Application, private val fhirEngine: FhirEn
     }
 
     fun getLocationsListFiltered(query: String = ""): List<LocationItem> {
-        return if (favoriteLocationSet == null){
+        return if (favoriteLocationSet == null) {
             masterLocationsList.filter {
                 it.name.contains(query, true)
             }
@@ -81,11 +81,11 @@ class LocationViewModel(application: Application, private val fhirEngine: FhirEn
     }
 
     data class LocationItem(
-        val id:String,
+        val id: String,
         val resourceId: String,
-        val status:String,
-        val name:String,
-        val description:String,
+        val status: String,
+        val name: String,
+        val description: String,
     )
 
     class LocationViewModelFactory(
