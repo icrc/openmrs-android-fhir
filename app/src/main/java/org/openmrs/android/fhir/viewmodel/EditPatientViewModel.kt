@@ -94,6 +94,8 @@ class EditPatientViewModel(application: Application, private val state: SavedSta
                 patient.hasTelecom() &&
                 patient.telecom[0].value != null
             ) {
+                val originalPatient = fhirEngine.get<Patient>(patientId);
+                patient.identifier.addAll(originalPatient.identifier);
                 patient.id = patientId
                 fhirEngine.update(patient)
                 isPatientSaved.value = true
