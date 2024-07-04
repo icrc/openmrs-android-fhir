@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -6,11 +6,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
+
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="32dp"
+        android:layout_margin="12dp"
         android:hint="Search a location"
         app:hintTextColor="@color/outline_neutral_variant_60"
         app:boxStrokeColor="@color/outline_neutral_variant_60"
@@ -18,11 +19,11 @@
         app:endIconDrawable="@drawable/ic_home_search"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/locationInputEditText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="text" />
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/locationInputEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -32,14 +33,15 @@
         android:layout_height="wrap_content"
         android:scrollbars="vertical"
         app:layoutManager="LinearLayoutManager"
-        tools:listitem="@layout/location_list_item_view"
-        />
+        tools:listitem="@layout/location_list_item_view" />
+
     <androidx.appcompat.widget.LinearLayoutCompat
         android:background="@color/browser_actions_bg_grey"
         android:layout_width="match_parent"
         android:layout_marginHorizontal="8dp"
         android:layout_height="1dp"
         android:layout_marginVertical="4dp"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/locationRecyclerView"
         android:layout_width="match_parent"
@@ -47,9 +49,19 @@
         android:layout_height="wrap_content"
         android:scrollbars="vertical"
         app:layoutManager="LinearLayoutManager"
-        tools:listitem="@layout/location_list_item_view"
-        />
+        tools:listitem="@layout/location_list_item_view" />
 
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminateTint="#4285F4"
+            android:visibility="gone" />
+    </FrameLayout>
 
 </LinearLayout>
