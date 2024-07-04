@@ -88,7 +88,7 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
   }
 
   private fun updateArguments() {
-    requireArguments().putString(QUESTIONNAIRE_FILE_PATH_KEY, "screener-questionnaire.json")
+    requireArguments().putString(QUESTIONNAIRE_FILE_PATH_KEY, "assessment.json")
   }
 
   private fun onBackPressed() {}

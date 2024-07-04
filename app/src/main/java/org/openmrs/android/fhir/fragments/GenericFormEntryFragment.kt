@@ -28,7 +28,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
     super.onViewCreated(view, savedInstanceState)
     setUpActionBar()
     setHasOptionsMenu(true)
-    updateArguments(args.formResource)
+    updateArguments(args.formResource, args.formCode)
     onBackPressed()
     observeResourcesSaveAction()
     if (savedInstanceState == null) {
@@ -58,8 +58,9 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
     }
   }
 
-  private fun updateArguments(formResource: String) {
+  private fun updateArguments(formResource: String, encounterId: String) {
     requireArguments().putString(QUESTIONNAIRE_FILE_PATH_KEY, formResource)
+    requireArguments().putString("encounter_id", encounterId)
 //    requireArguments().putString(QUESTIONNAIRE_FILE_PATH_KEY, "screener-questionnaire.json")
   }
 
