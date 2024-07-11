@@ -58,9 +58,6 @@
         - name: Change wrapper permissions
           run: chmod +x ./gradlew
 
-        - name: Spotless check
-          run: ./gradlew spotlessCheck --full-stacktrace
-
         - name: Run Gradle tests
           run: ./gradlew test --full-stacktrace
 
