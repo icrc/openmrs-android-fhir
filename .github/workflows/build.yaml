@@ -31,6 +31,9 @@
     build:
       runs-on: ubuntu-latest
       timeout-minutes: 60
+      permissions:
+        contents: read
+        packages: read
 
       strategy:
         fail-fast: false
@@ -57,9 +60,18 @@
 
         - name: Change wrapper permissions
           run: chmod +x ./gradlew
+          env:
+            USERNAME: $GITHUB_ACTOR
+            TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         - name: Run Gradle tests
           run: ./gradlew test --full-stacktrace
+          env:
+            USERNAME: $GITHUB_ACTOR
+            TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         - name: Build (full) with Gradle
           run: ./gradlew build --full-stacktrace
+          env:
+            USERNAME: $GITHUB_ACTOR
+            TOKEN: ${{ secrets.GITHUB_TOKEN }}
