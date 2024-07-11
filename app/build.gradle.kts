@@ -63,7 +63,7 @@ dependencies {
   implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
   implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
   implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
-  implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+  implementation("com.squareup.retrofit2:converter-gson:2.11.0")
   implementation("androidx.datastore:datastore-preferences:1.0.0")
   implementation("com.google.android.material:material:1.11.0")
   implementation("com.jakewharton.timber:timber:5.0.1")
