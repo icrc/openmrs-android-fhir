@@ -203,6 +203,9 @@ class PatientListFragment : Fragment() {
         fadeOutTopBanner(currentSyncJobStatus)
       }
       CurrentSyncJobStatus.Cancelled -> TODO()
+      else -> {
+        TODO()
+      }
     }
   }
 
@@ -234,6 +237,7 @@ class PatientListFragment : Fragment() {
         fadeOutTopBanner(periodicSyncJobStatus.currentSyncJobStatus)
       }
       CurrentSyncJobStatus.Cancelled -> TODO()
+      CurrentSyncJobStatus.Blocked -> TODO()
     }
   }
 

@@ -1,31 +1,35 @@
 package org.openmrs.android.fhir.fragments
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.doOnTextChanged
 import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.adapters.IdentifierAdapter
+import org.openmrs.android.fhir.adapters.IdentifierTypeRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.database.model.IdentifierTypeModel
 import org.openmrs.android.fhir.databinding.FragmentIdentifierBinding
 
 class IdentifierFragment: Fragment(R.layout.fragment_identifier) {
     private var _binding: FragmentIdentifierBinding? = null
-
+    private lateinit var identifierAdapter: IdentifierTypeRecyclerViewAdapter
+    private lateinit var selectedIdentifierTypes: MutableSet<String>
+    private lateinit var identifierTypes: MutableList<IdentifierTypeModel>
     private val binding
         get() = _binding!!
 
@@ -46,68 +50,57 @@ class IdentifierFragment: Fragment(R.layout.fragment_identifier) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         (requireActivity() as AppCompatActivity).supportActionBar?.apply {
-            title = requireContext().getString(R.string.select_identifier)
+            title = requireContext().getString(R.string.select_identifier_types)
             setDisplayHomeAsUpEnabled(true)
         }
         runBlocking{
-            val identifiers = context?.applicationContext?.getSharedPreferences(PreferenceKeys.IDENTIFIERS, Context.MODE_PRIVATE)?.getStringSet(PreferenceKeys.IDENTIFIERS,
-                mutableSetOf()
-            )
-            if (identifiers.isNullOrEmpty()) {
+            identifierTypes = context?.applicationContext?.let { FhirApplication.roomDatabase(it).dao().getAllIdentifierTypes().toMutableList()} ?: mutableListOf()
+            if (identifierTypes.isEmpty()) {
                 context?.applicationContext?.let {
-                    IdentifierManager.fetchIdentifiers(it)
+                    IdentifierTypeManager.fetchIdentifiers(it)
                 }
             }
-
-            val selectedIdentifier = context?.applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.IDENTIFIER_NAME)
-            if (selectedIdentifier != null) {
-                binding.selectedIdentifierTv.text = selectedIdentifier
-            }
+            selectedIdentifierTypes = context?.dataStore?.data?.first()?.get(PreferenceKeys.SELECTED_IDENTIFIER_TYPES)?.toMutableSet() ?: mutableSetOf()
+            val identifierRecyclerView: RecyclerView = binding.identifierRecyclerView
+            identifierAdapter = IdentifierTypeRecyclerViewAdapter(this@IdentifierFragment::onIdentifierTypeItemClicked, selectedIdentifierTypes)
+            identifierRecyclerView.adapter = identifierAdapter
+            identifierAdapter.submitList(identifierTypes)
         }
-        setupIdentifierSpinner()
         (activity as MainActivity).setDrawerEnabled(false)
+
+        addSearchTextChangeListener()
     }
 
-    private fun setupIdentifierSpinner() {
-        val autoCompleteTextView: AutoCompleteTextView = requireView().findViewById(R.id.autoCompleteTextView)
+    private fun addSearchTextChangeListener() {
+        binding.identifierInputEditText.doOnTextChanged { text, _, _, _ ->
+            if (::identifierAdapter.isInitialized && text != null) {
+                identifierAdapter.submitList(identifierTypes.filter{
+                    it.display?.contains(text) ?: true
+                })
+            }
+        }
+    }
 
+    private fun onIdentifierTypeItemClicked(identifierTypeItem: IdentifierTypeModel, isSelected: Boolean) {
         lifecycleScope.launch {
-            val identifiers = context?.applicationContext?.getSharedPreferences(PreferenceKeys.IDENTIFIERS, Context.MODE_PRIVATE)?.getStringSet(PreferenceKeys.IDENTIFIERS,
-                mutableSetOf()
-            )
-            val result = mutableListOf<IdentifierManager.IdentifierItem>()
-            identifiers?.forEach { identifier ->
-                result.add(
-                    IdentifierManager.IdentifierItem(identifier.substringAfter(","), identifier.substringBefore(","))
-                )
-            }
-            val adapter = IdentifierAdapter(requireContext(), result.toList())
-            autoCompleteTextView.setAdapter(adapter)
-        }
-
-
-        autoCompleteTextView.setOnItemClickListener { parent, _, position, _ ->
-            val selectedIdentifier = parent.getItemAtPosition(position) as IdentifierManager.IdentifierItem
-            lifecycleScope.launch {
+            if(isSelected){
                 context?.applicationContext?.dataStore?.edit { preferences ->
-                    preferences[PreferenceKeys.IDENTIFIER_ID] = selectedIdentifier.uuid
-                    preferences[PreferenceKeys.IDENTIFIER_NAME] = selectedIdentifier.display
+                    selectedIdentifierTypes.remove(identifierTypeItem.uuid)
+                    preferences[PreferenceKeys.SELECTED_IDENTIFIER_TYPES] = selectedIdentifierTypes
+                    Toast.makeText(context, "Identifier removed", Toast.LENGTH_SHORT).show()
                 }
-                binding.selectedIdentifierTv.text = selectedIdentifier.display
-                Toast.makeText(context, "Identifier Updated", Toast.LENGTH_SHORT).show()
+            } else {
+                lifecycleScope.launch {
+                    selectedIdentifierTypes.add(identifierTypeItem.uuid)
+                    context?.applicationContext?.dataStore?.edit { preferences ->
+                        preferences[PreferenceKeys.SELECTED_IDENTIFIER_TYPES] = selectedIdentifierTypes
+                        Toast.makeText(context, "Identifier added", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
-        }
-
-        autoCompleteTextView.setOnClickListener {
-            if (!autoCompleteTextView.isPopupShowing) {
-                autoCompleteTextView.showDropDown()
-            }
-        }
-
-        // Show dropdown on focus
-        autoCompleteTextView.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                autoCompleteTextView.showDropDown()
+            if (::identifierAdapter.isInitialized) {
+                identifierAdapter.notifyDataSetChanged()
+                identifierAdapter.submitList(identifierTypes)
             }
         }
     }

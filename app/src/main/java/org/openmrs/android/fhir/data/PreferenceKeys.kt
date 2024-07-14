@@ -7,10 +7,8 @@ class PreferenceKeys {
     companion object {
         val LOCATION_ID = stringPreferencesKey("LOCATION_ID")
         val LOCATION_NAME = stringPreferencesKey("LOCATION_NAME")
-        val IDENTIFIER_ID = stringPreferencesKey("IDENTIFIER_ID")
-        val IDENTIFIER_NAME = stringPreferencesKey("IDENTIFIER_NAME")
         val FAVORITE_LOCATIONS = stringSetPreferencesKey("FAVORITE_LOCATIONS")
-        const val IDENTIFIERS = "IDENTIFIERS"
+        val SELECTED_IDENTIFIER_TYPES = stringSetPreferencesKey("SELECTED_IDENTIFIER_TYPES")
         const val PATIENT_IDENTIFIERS = "PATIENT_IDENTIFIERS"
     }
 }
