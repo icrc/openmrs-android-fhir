@@ -3,6 +3,6 @@
   "redirect_uri": "org.openmrs.android.fhir:/oauth2redirect",
   "end_session_redirect_uri": "org.openmrs.android.fhir:/oauth2redirect",
   "authorization_scope": "openid",
-  "discovery_uri": "http://10.0.2.2:8081/realms/main/.well-known/openid-configuration",
+  "discovery_uri": "http://127.0.0.1:8080/realms/main/.well-known/openid-configuration",
   "https_required": false
 }

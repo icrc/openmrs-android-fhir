@@ -11,7 +11,7 @@ android {
   compileSdk = 34
   defaultConfig {
     applicationId = "org.openmrs.android.fhir"
-    minSdk = 24
+    minSdk = 26
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     manifestPlaceholders["appAuthRedirectScheme"] = applicationId!!
     buildFeatures.buildConfig = true

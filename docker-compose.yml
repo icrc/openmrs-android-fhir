@@ -6,7 +6,7 @@ services:
       - frontend
       - backend
     ports:
-      - "80:80"
+      - "8080:80"
 
   frontend:
     image: ghcr.io/icrc/openmrs-distro-sso/openmrs-frontend:qa-6bd40c4
@@ -23,7 +23,7 @@ services:
       - backend
 
   backend:
-    image: ghcr.io/icrc/openmrs-distro-sso/openmrs-backend:2.5.13-1e0518a
+      image: ghcr.io/icrc/openmrs-distro-sso/openmrs-backend:2.5.13-1e0518a
     restart: "unless-stopped"
     depends_on:
       - database
@@ -65,18 +65,20 @@ services:
       - db-data:/var/lib/mysql
 
   keycloak:
-    image: ghcr.io/icrc/openmrs-distro-sso/keycloak:24.0.3-e83a6d6
+    image: ghcr.io/icrc/openmrs-distro-sso/keycloak:24.0.3-5287625
     ports:
-      - "8080:8080"
+      - "8081:8080"
     environment:
       KEYCLOAK_ADMIN: ${KC_ADMIN_USER}
       KEYCLOAK_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
       OMRS_OAUTH_CLIENT_SECRET: ${OMRS_OAUTH_CLIENT_SECRET}
       USERS_DEFAULT_PASSWORD: ${USERS_DEFAULT_PASSWORD}
+      ANDROID_SDK_REDIRECT_URIS: org.openmrs.android.fhir:/oauth2redirect
       KC_HOSTNAME_STRICT: false
       KC_HTTP_ENABLED: true
-      KC_HOSTNAME: 10.0.2.2
-#      KC_HOSTNAME: localhost
+      KC_HTTP_PORT: 8081
+#      KC_HOSTNAME: 10.0.2.2
+      KC_HOSTNAME: 127.0.0.1
     command: ["start-dev"]
 
 volumes:

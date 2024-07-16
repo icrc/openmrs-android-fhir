@@ -98,7 +98,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
 }
 
 object ServerConstants {
-  const val BASE_URL = "http://10.0.2.2:8080/openmrs/ws/fhir2/R4/"
-  const val REST_BASE_URL = "http://10.0.2.2:8080/openmrs/ws/rest/v1/"
+  const val BASE_URL = "http://localhost:8081/openmrs/ws/fhir2/R4/"
+  const val REST_BASE_URL = "http://localhost:8081/openmrs/ws/rest/v1/"
   const val CHECK_SERVER_URL = REST_BASE_URL + "session"
 }

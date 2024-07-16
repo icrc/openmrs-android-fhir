@@ -80,6 +80,7 @@ private constructor(
   suspend fun initializeAppAuth() {
     Timber.i("Initializing AppAuth")
     if (authStateManager.current.authorizationServiceConfiguration != null) {
+
       // configuration is already created, skip to client initialization
       Timber.i("auth authConfig already established")
       clientId.set(authConfig.clientId)
@@ -216,7 +217,7 @@ private constructor(
         _authState.emit(true)
         Timber.i("Refresh token expired")
       }
-      authStateManager.current.accessToken!!
+      authStateManager.current.accessToken?:""
     }
   }
 
