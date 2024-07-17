@@ -1,15 +1,15 @@
 services:
   gateway:
-    image: openmrs/openmrs-reference-application-3-gateway:${TAG:-qa}
+    image: ghcr.io/icrc/openmrs-distro-sso/openmrs-gateway:qa-d5a37f9
     restart: "unless-stopped"
     depends_on:
       - frontend
       - backend
     ports:
-      - "8080:80"
+      - "8080:8080"
 
   frontend:
-    image: ghcr.io/icrc/openmrs-distro-sso/openmrs-frontend:qa-6bd40c4
+    image: ghcr.io/icrc/openmrs-distro-sso/openmrs-frontend:qa-d5a37f9
     restart: "unless-stopped"
     environment:
       SPA_PATH: /openmrs/spa
@@ -23,7 +23,7 @@ services:
       - backend
 
   backend:
-      image: ghcr.io/icrc/openmrs-distro-sso/openmrs-backend:2.5.13-1e0518a
+    image: ghcr.io/icrc/openmrs-distro-sso/openmrs-backend:2.5.13-d5a37f9
     restart: "unless-stopped"
     depends_on:
       - database
@@ -36,8 +36,8 @@ services:
       OMRS_CONFIG_CONNECTION_USERNAME: ${OMRS_DB_USER:-openmrs}
       OMRS_CONFIG_CONNECTION_PASSWORD: ${OMRS_DB_PASSWORD}
       OMRS_OAUTH_CLIENT_SECRET: ${OMRS_OAUTH_CLIENT_SECRET}
-      OMRS_OAUTH_USER_AUTHORIZATION_URI: ${OMRS_OAUTH_USER_AUTHORIZATION_URI}
-      OMRS_OAUTH_USER_LOGOUT_URI: ${OMRS_OAUTH_USER_LOGOUT_URI:-http://localhost:8080/realms/main/protocol/openid-connect/logout}
+      OMRS_OAUTH_USER_AUTHORIZATION_URI: ${OMRS_OAUTH_USER_AUTHORIZATION_URI:-http://localhost:8081/realms/main/protocol/openid-connect/auth}
+      OMRS_OAUTH_USER_LOGOUT_URI: ${OMRS_OAUTH_USER_LOGOUT_URI:-http://localhost:8081/realms/main/protocol/openid-connect/logout}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/openmrs"]
       timeout: 5s
@@ -65,20 +65,19 @@ services:
       - db-data:/var/lib/mysql
 
   keycloak:
-    image: ghcr.io/icrc/openmrs-distro-sso/keycloak:24.0.3-5287625
+    image: ghcr.io/icrc/openmrs-distro-sso/keycloak:24.0.3-d5a37f9
     ports:
-      - "8081:8080"
+      - "8081:8081"
     environment:
       KEYCLOAK_ADMIN: ${KC_ADMIN_USER}
       KEYCLOAK_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD}
       OMRS_OAUTH_CLIENT_SECRET: ${OMRS_OAUTH_CLIENT_SECRET}
       USERS_DEFAULT_PASSWORD: ${USERS_DEFAULT_PASSWORD}
-      ANDROID_SDK_REDIRECT_URIS: org.openmrs.android.fhir:/oauth2redirect
       KC_HOSTNAME_STRICT: false
       KC_HTTP_ENABLED: true
       KC_HTTP_PORT: 8081
-#      KC_HOSTNAME: 10.0.2.2
-      KC_HOSTNAME: 127.0.0.1
+      #      KC_HOSTNAME: 10.0.2.2
+      KC_HOSTNAME: localhost
     command: ["start-dev"]
 
 volumes:

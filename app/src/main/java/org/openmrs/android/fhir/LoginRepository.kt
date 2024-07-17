@@ -130,7 +130,7 @@ private constructor(
       Timber.i("Discovery document retrieved")
 
       if (authConfig.connectionBuilder is ConnectionBuilderForTesting) {
-        val updatedConfig = AuthConfigUtil.replaceLocalhost(authServiceConfig.toJsonString())
+        val updatedConfig = AuthConfigUtil.replaceLocalhost(authServiceConfig.toJsonString(),ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2)
         authStateManager.replace(
           AuthState(AuthorizationServiceConfiguration.fromJson(updatedConfig))
         )

@@ -76,7 +76,10 @@ class AuthConfiguration private constructor(private val context: Context) {
     get() =
       if (authConfigJson.https_required) {
         DefaultConnectionBuilder.INSTANCE
-      } else ConnectionBuilderForTesting
+      } else {
+        ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2=authConfigJson.replace_localhost_by_10_0_2_2?:true
+        ConnectionBuilderForTesting
+      }
   init {
     AuthConfigUtil.isRequiredConfigString(authConfigJson.client_id)
     AuthConfigUtil.isRequiredConfigString(authConfigJson.authorization_scope)
@@ -114,4 +117,5 @@ data class AuthConfigData(
   val end_session_endpoint: String?,
   val registration_endpoint_uri: String?,
   val https_required: Boolean,
+  val replace_localhost_by_10_0_2_2: Boolean?,
 )

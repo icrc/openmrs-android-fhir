@@ -29,15 +29,18 @@ object AuthConfigUtil {
     internal constructor(reason: String?) : super(reason)
     internal constructor(reason: String?, cause: Throwable?) : super(reason, cause)
   }
+
   private fun getStringIfNotNull(propName: String?): String? {
     if (TextUtils.isEmpty(propName)) {
       throw InvalidConfigurationException("Missing field in the configuration JSON")
     }
     return propName
   }
+
   fun isRequiredConfigString(propName: String?) {
     getStringIfNotNull(propName)
   }
+
   fun isRequiredConfigUri(propName: String?) {
     val uriStr = getStringIfNotNull(propName)
     val uri: Uri =
@@ -59,6 +62,7 @@ object AuthConfigUtil {
       throw InvalidConfigurationException("$propName must not have a fragment")
     }
   }
+
   fun isRequiredConfigWebUri(propName: String?): Uri {
     isRequiredConfigUri(propName)
     val uri: Uri = Uri.parse(propName)
@@ -68,6 +72,7 @@ object AuthConfigUtil {
     }
     return uri
   }
+
   fun isRedirectUriRegistered(context: Context, redirectUri: String) {
     // ensure that the redirect URI declared in the configuration is handled by some activity
     // in the app, by querying the package manager speculatively
@@ -86,8 +91,11 @@ object AuthConfigUtil {
     }
   }
 
-  fun replaceLocalhost(jsonString: String): JSONObject {
+  fun replaceLocalhost(jsonString: String, replaceLocalhost: Boolean): JSONObject {
     val localhostEndpoints = gson.fromJson(jsonString, EndpointConfig::class.java)
+    if (!replaceLocalhost) {
+      return JSONObject(gson.toJson(localhostEndpoints))
+    }
     val updatedAuthEndpoint =
       localhostEndpoints.authorizationEndpoint.replace("localhost", "10.0.2.2")
     val updatedTokenEndpoint = localhostEndpoints.tokenEndpoint.replace("localhost", "10.0.2.2")

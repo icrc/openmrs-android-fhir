@@ -43,6 +43,7 @@ import timber.log.Timber
 object ConnectionBuilderForTesting : ConnectionBuilder {
   private val CONNECTION_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(15).toInt()
   private val READ_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(10).toInt()
+  var replace_localhost_by_10_0_2_2=true
   private const val HTTP = "http"
   private const val HTTPS = "https"
   @SuppressLint("TrustAllX509TrustManager")
