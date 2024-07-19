@@ -6,8 +6,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.databinding.IdentifierTypeItemViewBinding
+import org.openmrs.android.fhir.R
 
-class IdentifierTypeViewHolder(private val binding: IdentifierTypeItemViewBinding) :
+class IdentifierTypeViewHolder(binding: IdentifierTypeItemViewBinding) :
     RecyclerView.ViewHolder(binding.root) {
 
     private val identifierTypeNameView: TextView = binding.identifierText
@@ -25,7 +26,11 @@ class IdentifierTypeViewHolder(private val binding: IdentifierTypeItemViewBindin
         } else {
             selectedIcon.visibility = View.VISIBLE
         }
-        itemView.setOnClickListener { onItemClicked(identifierTypeItem, isSelected) }
+        if(identifierTypeItem.required){
+            selectedIcon.setImageResource(R.drawable.ic_check_decagram_green)
+        } else {
+            itemView.setOnClickListener { onItemClicked(identifierTypeItem, isSelected) }
+        }
 
         selectedIdentifierTypeId = identifierTypeItem.uuid
     }

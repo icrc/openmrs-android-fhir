@@ -82,25 +82,27 @@ class IdentifierFragment: Fragment(R.layout.fragment_identifier) {
     }
 
     private fun onIdentifierTypeItemClicked(identifierTypeItem: IdentifierType, isSelected: Boolean) {
-        lifecycleScope.launch {
-            if(isSelected){
-                context?.applicationContext?.dataStore?.edit { preferences ->
-                    selectedIdentifierTypes.remove(identifierTypeItem.uuid)
-                    preferences[PreferenceKeys.SELECTED_IDENTIFIER_TYPES] = selectedIdentifierTypes
-                    Toast.makeText(context, "Identifier removed", Toast.LENGTH_SHORT).show()
-                }
-            } else {
-                lifecycleScope.launch {
-                    selectedIdentifierTypes.add(identifierTypeItem.uuid)
+        if(!identifierTypeItem.required){
+            lifecycleScope.launch {
+                if(isSelected){
                     context?.applicationContext?.dataStore?.edit { preferences ->
+                        selectedIdentifierTypes.remove(identifierTypeItem.uuid)
                         preferences[PreferenceKeys.SELECTED_IDENTIFIER_TYPES] = selectedIdentifierTypes
-                        Toast.makeText(context, "Identifier added", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Identifier removed", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    lifecycleScope.launch {
+                        selectedIdentifierTypes.add(identifierTypeItem.uuid)
+                        context?.applicationContext?.dataStore?.edit { preferences ->
+                            preferences[PreferenceKeys.SELECTED_IDENTIFIER_TYPES] = selectedIdentifierTypes
+                            Toast.makeText(context, "Identifier added", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
-            }
-            if (::identifierAdapter.isInitialized) {
-                identifierAdapter.notifyDataSetChanged()
-                identifierAdapter.submitList(identifierTypes)
+                if (::identifierAdapter.isInitialized) {
+                    identifierAdapter.notifyDataSetChanged()
+                    identifierAdapter.submitList(identifierTypes)
+                }
             }
         }
     }
