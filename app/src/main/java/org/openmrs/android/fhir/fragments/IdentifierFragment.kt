@@ -22,14 +22,14 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.IdentifierTypeRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
-import org.openmrs.android.fhir.data.database.model.IdentifierTypeModel
+import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.databinding.FragmentIdentifierBinding
 
 class IdentifierFragment: Fragment(R.layout.fragment_identifier) {
     private var _binding: FragmentIdentifierBinding? = null
     private lateinit var identifierAdapter: IdentifierTypeRecyclerViewAdapter
     private lateinit var selectedIdentifierTypes: MutableSet<String>
-    private lateinit var identifierTypes: MutableList<IdentifierTypeModel>
+    private lateinit var identifierTypes: MutableList<IdentifierType>
     private val binding
         get() = _binding!!
 
@@ -81,7 +81,7 @@ class IdentifierFragment: Fragment(R.layout.fragment_identifier) {
         }
     }
 
-    private fun onIdentifierTypeItemClicked(identifierTypeItem: IdentifierTypeModel, isSelected: Boolean) {
+    private fun onIdentifierTypeItemClicked(identifierTypeItem: IdentifierType, isSelected: Boolean) {
         lifecycleScope.launch {
             if(isSelected){
                 context?.applicationContext?.dataStore?.edit { preferences ->

@@ -4,7 +4,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import org.openmrs.android.fhir.data.database.model.IdentifierTypeModel
+import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.databinding.IdentifierTypeItemViewBinding
 
 class IdentifierTypeViewHolder(private val binding: IdentifierTypeItemViewBinding) :
@@ -15,8 +15,8 @@ class IdentifierTypeViewHolder(private val binding: IdentifierTypeItemViewBindin
     private var selectedIdentifierTypeId: String? = null
 
     fun bindTo(
-        identifierTypeItem: IdentifierTypeModel,
-        onItemClicked: (IdentifierTypeModel, Boolean) -> Unit,
+        identifierTypeItem: IdentifierType,
+        onItemClicked: (IdentifierType, Boolean) -> Unit,
         isSelected: Boolean
     ) {
         identifierTypeNameView.text = identifierTypeItem.display ?: "unknown"

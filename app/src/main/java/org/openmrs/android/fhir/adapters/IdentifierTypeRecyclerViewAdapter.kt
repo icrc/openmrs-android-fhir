@@ -4,23 +4,23 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
-import org.openmrs.android.fhir.data.database.model.IdentifierTypeModel
+import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.databinding.IdentifierTypeItemViewBinding
 
 class IdentifierTypeRecyclerViewAdapter(
-    private val onItemClicked: (IdentifierTypeModel, Boolean) -> Unit,
+    private val onItemClicked: (IdentifierType, Boolean) -> Unit,
     private val selectedIdentifierId: MutableSet<String>
-) : ListAdapter<IdentifierTypeModel, IdentifierTypeViewHolder>(IdentifierTypeDiffCallback()) {
+) : ListAdapter<IdentifierType, IdentifierTypeViewHolder>(IdentifierTypeDiffCallback()) {
 
-    class IdentifierTypeDiffCallback : DiffUtil.ItemCallback<IdentifierTypeModel>() {
+    class IdentifierTypeDiffCallback : DiffUtil.ItemCallback<IdentifierType>() {
         override fun areItemsTheSame(
-            oldItem: IdentifierTypeModel,
-            newItem: IdentifierTypeModel
+            oldItem: IdentifierType,
+            newItem: IdentifierType
         ): Boolean = oldItem.uuid == newItem.uuid
 
         override fun areContentsTheSame(
-            oldItem: IdentifierTypeModel,
-            newItem: IdentifierTypeModel
+            oldItem: IdentifierType,
+            newItem: IdentifierType
         ): Boolean = oldItem == newItem
     }
 

@@ -6,7 +6,7 @@ import okhttp3.Request
 import org.json.JSONObject
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.ServerConstants.REST_BASE_URL
-import org.openmrs.android.fhir.data.database.model.IdentifierTypeModel
+import org.openmrs.android.fhir.data.database.model.IdentifierType
 
 class IdentifierTypeManager private constructor(private val context: Context) {
 
@@ -30,13 +30,13 @@ class IdentifierTypeManager private constructor(private val context: Context) {
         }
     }
 
-    private suspend fun storeIdentifiers(identifierTypes: List<IdentifierTypeModel>) {
+    private suspend fun storeIdentifiers(identifierTypes: List<IdentifierType>) {
         withContext(Dispatchers.IO){
             database.dao().insertAllIdentifierTypeModel(identifierTypes)
         }
     }
 
-     suspend fun fetchIdentifierFromEndpoint(): List<IdentifierTypeModel>? {
+     suspend fun fetchIdentifierFromEndpoint(): List<IdentifierType>? {
         return withContext(Dispatchers.IO) {
             try {
 
@@ -46,12 +46,12 @@ class IdentifierTypeManager private constructor(private val context: Context) {
                 val response = restApiClient.call(requestBuilder)
 
                 if (response.isSuccessful) {
-                    val resArray = mutableListOf<IdentifierTypeModel>()
+                    val resArray = mutableListOf<IdentifierType>()
                     val jsonResponse = JSONObject(response.body?.string() ?: "")
                     val identifiers = jsonResponse.getJSONArray("results")
                     for (i in 0..<identifiers.length()) {
                         val objects: JSONObject = identifiers.getJSONObject(i)
-                        resArray.add(IdentifierTypeModel(
+                        resArray.add(IdentifierType(
                             objects["uuid"].toString(),
                             objects["display"].toString(),
                             objects["uniquenessBehavior"].toString()

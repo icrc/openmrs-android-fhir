@@ -11,7 +11,7 @@ import org.openmrs.android.fhir.ServerConstants.REST_BASE_URL
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
-import org.openmrs.android.fhir.data.database.model.IdentifierModel
+import org.openmrs.android.fhir.data.database.model.Identifier
 
 class PatientIdentifierManager private constructor(private val context: Context) {
 
@@ -105,9 +105,9 @@ class PatientIdentifierManager private constructor(private val context: Context)
     }
 
     private suspend fun storeIdentifiers(identifierValues: List<String>, identifierTypeId: String) {
-        val identifiers: MutableList<IdentifierModel> = mutableListOf()
+        val identifiers: MutableList<Identifier> = mutableListOf()
         for (identifierValue in identifierValues){
-            identifiers.add(IdentifierModel(
+            identifiers.add(Identifier(
                 identifierValue,
                 identifierTypeId
             ))
