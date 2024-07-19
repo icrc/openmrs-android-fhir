@@ -8,5 +8,6 @@ data class IdentifierType(
     @PrimaryKey val uuid: String,
     val display: String?,
     val isUnique: String,
+    val required: Boolean
 ) {
 }

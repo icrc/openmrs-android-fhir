@@ -1,11 +1,15 @@
 import android.annotation.SuppressLint
 import android.content.Context
+import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import org.json.JSONObject
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.ServerConstants.REST_BASE_URL
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.model.IdentifierType
 
 class IdentifierTypeManager private constructor(private val context: Context) {
@@ -25,6 +29,7 @@ class IdentifierTypeManager private constructor(private val context: Context) {
                 val newIdentifiers = instance.fetchIdentifierFromEndpoint()
                 if(newIdentifiers!= null){
                     instance.storeIdentifiers(newIdentifiers)
+                    instance.selectRequiredIdentifiers(newIdentifiers)
                 }
             }
         }
@@ -33,6 +38,24 @@ class IdentifierTypeManager private constructor(private val context: Context) {
     private suspend fun storeIdentifiers(identifierTypes: List<IdentifierType>) {
         withContext(Dispatchers.IO){
             database.dao().insertAllIdentifierTypeModel(identifierTypes)
+        }
+    }
+
+    private suspend fun selectRequiredIdentifiers(identifierTypes: List<IdentifierType>) {
+        withContext(Dispatchers.IO){
+            val selectedIdentifierTypes = instance.context.dataStore.data.first()[PreferenceKeys.SELECTED_IDENTIFIER_TYPES]
+                ?.toMutableSet() ?: mutableSetOf()
+            val requiredIdentifierTypes = identifierTypes.filter {
+                it.required
+            }
+            if(requiredIdentifierTypes.isNotEmpty()){
+                requiredIdentifierTypes.forEach {
+                    selectedIdentifierTypes.add(it.uuid)
+                }
+            }
+            instance.context.dataStore.edit { preferences ->
+                preferences[PreferenceKeys.SELECTED_IDENTIFIER_TYPES] = selectedIdentifierTypes
+            }
         }
     }
 
@@ -54,7 +77,8 @@ class IdentifierTypeManager private constructor(private val context: Context) {
                         resArray.add(IdentifierType(
                             objects["uuid"].toString(),
                             objects["display"].toString(),
-                            objects["uniquenessBehavior"].toString()
+                            objects["uniquenessBehavior"].toString(),
+                            objects.getBoolean("required")
                         ))
                     }
                     resArray.toList()
