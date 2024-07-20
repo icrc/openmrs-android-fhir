@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.fhir.FhirEngine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
@@ -166,13 +165,6 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
             if (::locationAdapter.isInitialized && ::favoriteLocationAdapter.isInitialized) {
                 locationAdapter.setSelectedLocation(locationItem.resourceId)
                 favoriteLocationAdapter.setSelectedLocation(locationItem.resourceId)
-            }
-        }
-
-        runBlocking { restApiClient.updateSessionLocation(locationItem.resourceId) }
-        runBlocking {
-            context?.applicationContext?.let {
-                PatientIdentifierManager.updateAvailablePatientIdentifiers(it)
             }
         }
 

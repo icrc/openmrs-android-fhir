@@ -16,23 +16,37 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.app.Application
+import android.content.Context
 import android.text.format.DateFormat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
+import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.PeriodicSyncConfiguration
 import com.google.android.fhir.sync.PeriodicSyncJobStatus
 import com.google.android.fhir.sync.RepeatInterval
 import com.google.android.fhir.sync.Sync
+import kotlinx.coroutines.Dispatchers
 import org.openmrs.android.fhir.data.FhirSyncWorker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.Request
+import okhttp3.RequestBody
+import org.json.JSONObject
+import org.openmrs.android.fhir.FhirApplication
+import org.openmrs.android.fhir.ServerConstants
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
@@ -65,8 +79,77 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
       }
       .shareIn(viewModelScope, SharingStarted.Eagerly, 0)
 
-  fun triggerOneTimeSync() {
-    _oneTimeSyncTrigger.value = !_oneTimeSyncTrigger.value
+  fun triggerOneTimeSync(context: Context) {
+    viewModelScope.launch {
+      embeddIdentifierToUnsyncedPatients(context)
+      _oneTimeSyncTrigger.value = !_oneTimeSyncTrigger.value
+
+    }
+  }
+
+  private suspend fun embeddIdentifierToUnsyncedPatients(context: Context) {
+    //Setting location session first.
+    context.dataStore.data.first()[PreferenceKeys.LOCATION_ID]?.let {
+      FhirApplication.restApiClient(getApplication<FhirApplication>().applicationContext).updateSessionLocation(
+        it
+      )
+    }
+    var filteredIdentifierTypes = setOf<String>()
+    val selectedIdentifierTypes = context.dataStore.data.first()[PreferenceKeys.SELECTED_IDENTIFIER_TYPES]?.toList()
+    if(selectedIdentifierTypes != null) {
+       filteredIdentifierTypes = selectedIdentifierTypes.filter { identifierTypeId ->
+        val isUnique = let {
+          FhirApplication.roomDatabase(context).dao()
+            .getIdentifierTypeById(identifierTypeId)?.isUnique
+        }
+        isUnique != null && isUnique != "null"
+      }.toSet()
+    }
+
+    val patients = FhirApplication.fhirEngine(context).search<org.hl7.fhir.r4.model.Patient> {
+      filter(org.hl7.fhir.r4.model.Patient.IDENTIFIER, {
+        value=of("unsynced")
+      })
+    }.map { it.resource }.toMutableList()
+
+
+    patients.forEach {
+      val identifiers = it.identifier
+      identifiers.forEach { identifier ->
+        if(identifier.value in filteredIdentifierTypes) {
+          val value = fetchIdentifierFromEndpoint(identifier.value)
+          identifier.value = value
+        }
+      }
+      identifiers.removeAt(0)
+      it.identifier = identifiers
+      FhirApplication.fhirEngine(getApplication<Application>().applicationContext).update(it)
+    }
+  }
+
+  private suspend fun fetchIdentifierFromEndpoint(identifierId: String): String? {
+    return withContext(Dispatchers.IO) {
+      try {
+
+        val requestBuilder = Request.Builder()
+          .url(getEndpoint(identifierId))
+          .post(RequestBody.create("application/json; charset=utf-8".toMediaType(), "{}"))
+        val response = FhirApplication.restApiClient(getApplication<FhirApplication>().applicationContext).call(requestBuilder)
+
+        if (response.isSuccessful) {
+          val jsonResponse = JSONObject(response.body?.string() ?: "")
+          jsonResponse.getString("identifier")
+        } else {
+          null
+        }
+      } catch (e: Exception) {
+        null
+      }
+    }
+  }
+
+  private fun getEndpoint(idType: String) : String{
+    return ServerConstants.REST_BASE_URL + "idgen/identifiersource/" + idType + "/identifier"
   }
 
   /** Emits last sync time. */

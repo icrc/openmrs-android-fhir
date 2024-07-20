@@ -30,7 +30,6 @@ import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValid
 import kotlinx.coroutines.flow.first
 import java.util.UUID
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Location
@@ -96,6 +95,7 @@ class AddPatientViewModel(application: Application, private val state: SavedStat
       if(location != null) {
         val identifiers = extractLocationIdentifiersFromQuestionnaireResponse(questionnaireResponse,location)
         identifiers.addAll(createLocationIdentifiers(location))
+        identifiers.add(0, createUnsyncedIdentifier(location))
         patient.identifier = identifiers
       }
       fhirEngine.create(patient)
@@ -103,25 +103,51 @@ class AddPatientViewModel(application: Application, private val state: SavedStat
     }
   }
 
-  private fun createLocationIdentifiers(location: Location): List<Identifier> {
+  private suspend fun createLocationIdentifiers(location: Location): List<Identifier> {
     val identifierList: MutableList<Identifier> = mutableListOf()
-    val identifierMap = runBlocking { PatientIdentifierManager.getNextIdentifiers() }
-    identifierMap.forEach { (identifierTypeDisplay, identifierValue) ->
-      val identifier = Identifier().apply {
-        id = generateUuid()
-        use = Identifier.IdentifierUse.OFFICIAL
-        value = identifierValue
-        type = CodeableConcept().apply { text = identifierTypeDisplay }
+    val appContext = getApplication<Application>().applicationContext
+    val database: AppDatabase = FhirApplication.roomDatabase(appContext)
+    val selectedIdentifierTypes = appContext.dataStore.data.first()[PreferenceKeys.SELECTED_IDENTIFIER_TYPES]?.toList()
+    if(selectedIdentifierTypes != null){
+      val filteredIdentifierTypes = selectedIdentifierTypes.filter { identifierTypeId ->
+        val isUnique = let {database.dao().getIdentifierTypeById(identifierTypeId)?.isUnique }
+        isUnique != null && isUnique != "null"
       }
-      identifier.addExtension(PATIENT_LOCATION_IDENTIFIER_URL, Reference().apply {
-        reference = location.id
-        type = "Location"
-        display = location.name
-      })
-      identifierList.add(identifier)
+      for (identifierTypeId in filteredIdentifierTypes) {
+        val identifierType = let { database.dao().getIdentifierTypeById(identifierTypeId) }
+        val identifier = Identifier().apply {
+          id = generateUuid()
+          use = Identifier.IdentifierUse.OFFICIAL
+          value = identifierType?.uuid
+          type = CodeableConcept().apply { text = identifierType?.display }
+        }
+        identifier.addExtension(PATIENT_LOCATION_IDENTIFIER_URL, Reference().apply {
+          reference = location.id
+          type = "Location"
+          display = location.name
+        })
+        identifierList.add(identifier)
+      }
+
     }
     return identifierList
   }
+
+  private fun createUnsyncedIdentifier(location: Location): Identifier {
+    val identifier = Identifier().apply {
+      id = generateUuid()
+      use = Identifier.IdentifierUse.OFFICIAL
+      value = "unsynced"
+      type = CodeableConcept().apply { text = "unsynced" }
+    }
+    identifier.addExtension(PATIENT_LOCATION_IDENTIFIER_URL, Reference().apply {
+      reference = location.id
+      type = "Location"
+      display = location.name
+    })
+    return identifier
+  }
+
 
   private fun extractLocationIdentifiersFromQuestionnaireResponse(questionnaireResponse: QuestionnaireResponse, location: Location): MutableList<Identifier> {
     val identifierItems = questionnaireResponse.item.filter {
