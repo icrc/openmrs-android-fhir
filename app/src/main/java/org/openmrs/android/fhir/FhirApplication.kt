@@ -55,7 +55,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
         enableEncryptionIfSupported = false,
         RECREATE_AT_OPEN,
         ServerConfiguration(
-          ServerConstants.BASE_URL,
+          fhirBaseURl(applicationContext),
           authenticator = LoginRepository.getInstance(applicationContext),
           httpLogger = HttpLogger(
             HttpLogger.Configuration(
@@ -92,13 +92,14 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     fun dataStore(context: Context) = (context.applicationContext as FhirApplication).dataStore
 
     fun restApiClient(context: Context) = (context.applicationContext as FhirApplication).restApiClient
+
+    fun fhirBaseURl(context: Context)= context.getString(R.string.fhir_base_url)
+
+    fun openmrsRestUrl(context: Context)= context.getString(R.string.openmrs_rest_url)
+
+    fun checkServerUrl(context: Context)= context.getString(R.string.check_server_url)
   }
 
   override fun getDataCaptureConfig(): DataCaptureConfig = dataCaptureConfig ?: DataCaptureConfig()
 }
 
-object ServerConstants {
-  const val BASE_URL = "http://127.0.0.1:8080/openmrs/ws/fhir2/R4/"
-  const val REST_BASE_URL = "http://127.0.0.1:8080/openmrs/ws/rest/v1/"
-  const val CHECK_SERVER_URL = REST_BASE_URL + "session"
-}

@@ -1,6 +1,6 @@
 services:
   gateway:
-    image: ghcr.io/icrc/openmrs-distro-sso/openmrs-gateway:qa-d5a37f9
+    image: ghcr.io/icrc/openmrs-distro-sso/openmrs-gateway:qa-ecab134
     restart: "unless-stopped"
     depends_on:
       - frontend
