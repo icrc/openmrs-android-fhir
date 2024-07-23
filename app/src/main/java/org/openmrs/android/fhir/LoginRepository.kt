@@ -55,8 +55,8 @@ private constructor(
   val _authState = MutableSharedFlow<Boolean>()
 
   suspend fun hasConfigurationChanged() {
-    val storedConfig = authConfig.stored
-    if (storedConfig != authConfig.authConfigData) {
+//    TODO FRED
+    if (authConfig.isNotStored() || authConfig.stored != authConfig.authConfigData) {
       Timber.i("Configuration change detected, discarding old state")
       authStateManager.replace(AuthState())
       authConfig.save()
@@ -130,7 +130,10 @@ private constructor(
       Timber.i("Discovery document retrieved")
 
       if (authConfig.connectionBuilder is ConnectionBuilderForTesting) {
-        val updatedConfig = AuthConfigUtil.replaceLocalhost(authServiceConfig.toJsonString(),ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2)
+        val updatedConfig = AuthConfigUtil.replaceLocalhost(
+          authServiceConfig.toJsonString(),
+          ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2
+        )
         authStateManager.replace(
           AuthState(AuthorizationServiceConfiguration.fromJson(updatedConfig))
         )
@@ -217,7 +220,7 @@ private constructor(
         _authState.emit(true)
         Timber.i("Refresh token expired")
       }
-      authStateManager.current.accessToken?:""
+      authStateManager.current.accessToken ?: ""
     }
   }
 

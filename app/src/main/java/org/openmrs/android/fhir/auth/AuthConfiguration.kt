@@ -20,14 +20,12 @@ import android.content.Context
 import android.net.Uri
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import org.openmrs.android.fhir.R
 import com.google.gson.Gson
-import java.io.IOException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import net.openid.appauth.connectivity.ConnectionBuilder
 import net.openid.appauth.connectivity.DefaultConnectionBuilder
-import org.json.JSONException
+import org.openmrs.android.fhir.R
 
 class AuthConfiguration private constructor(private val context: Context) {
   private val authConfigKey by lazy { stringPreferencesKey("AuthConfig") }
@@ -38,6 +36,10 @@ class AuthConfiguration private constructor(private val context: Context) {
         runBlocking { context.dataStore.data.first()[authConfigKey] } ?: return authConfigData
       return gson.fromJson(serializedAuth, AuthConfigData::class.java)
     }
+
+  suspend fun isNotStored(): Boolean{
+    return context.dataStore.data.first()[authConfigKey] ==null
+  }
 
   suspend fun save() {
     context.dataStore.edit { pref -> pref[authConfigKey] = gson.toJson(authConfigData) }
