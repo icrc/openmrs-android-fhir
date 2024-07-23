@@ -56,7 +56,7 @@ private constructor(
 
   suspend fun hasConfigurationChanged() {
     val storedConfig = authConfig.stored
-    if (storedConfig != authConfig.authConfigJson) {
+    if (storedConfig != authConfig.authConfigData) {
       Timber.i("Configuration change detected, discarding old state")
       authStateManager.replace(AuthState())
       authConfig.save()
@@ -248,7 +248,7 @@ private constructor(
         val browserMatcher: BrowserMatcher = AnyBrowserMatcher.INSTANCE
         val builder = AppAuthConfiguration.Builder()
         builder.setBrowserMatcher(browserMatcher)
-        builder.setSkipIssuerHttpsCheck(!authConfig.authConfigJson.https_required)
+        builder.setSkipIssuerHttpsCheck(!authConfig.authConfigData.https_required)
         builder.setConnectionBuilder(authConfig.connectionBuilder)
         val authService = AuthorizationService(context.applicationContext, builder.build())
 

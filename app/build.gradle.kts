@@ -17,9 +17,27 @@ android {
     manifestPlaceholders["appAuthRedirectScheme"] = applicationId!!
     buildFeatures.buildConfig = true
     versionCode = 1
+//    server
     setResValue("fhir_base_url", "FHIR_BASE_URL",this)
     setResValue("openmrs_rest_url", "OPENMRS_REST_URL",this)
     setResValue("check_server_url", "CHECK_SERVER_URL",this)
+    //    oauth
+    setResValue("auth_authorization_scope", "AUTH_AUTHORIZATION_SCOPE",this)
+    setResValue("auth_client_id", "AUTH_CLIENT_ID",this)
+    setResValue("auth_redirect_uri", "AUTH_REDIRECT_URI",this)
+    setResValue("auth_end_session_redirect_uri", "AUTH_END_SESSION_REDIRECT_URI",this)
+    setResValue("auth_discovery_uri", "AUTH_DISCOVERY_URI",this)
+    setResValue("auth_end_session_endpoint", "AUTH_END_SESSION_ENDPOINT",this)
+    setResValue("auth_authorization_endpoint_uri", "AUTH_AUTHORIZATION_ENDPOINT_URI",this)
+    setResValue("auth_token_endpoint_uri", "AUTH_TOKEN_ENDPOINT_URI",this)
+    setResValue("auth_user_info_endpoint_uri", "AUTH_USER_INFO_ENDPOINT_URI",this)
+    setResValue("auth_registration_endpoint_uri", "AUTH_REGISTRATION_ENDPOINT_URI",this)
+    setResValue("auth_registration_endpoint_uri", "AUTH_REGISTRATION_ENDPOINT_URI",this)
+
+    setResValue("auth_https_required", "AUTH_HTTPS_REQUIRED",this,"bool")
+    setResValue("auth_replace_localhost_by_10_0_2_2", "AUTH_REPLACE_LOCALHOST_BY_10_0_2_2",this,"bool")
+
+
 
   }
   buildTypes {
@@ -81,12 +99,13 @@ dependencies {
 fun localPropertyOrEnv(propertyName: String, envName: String): String? =
   gradleLocalProperties(rootDir).getProperty(propertyName) ?: System.getenv(envName)
 
-fun setResValue(propertyName: String, envName: String,variants: VariantDimension) {
+fun setResValue(propertyName: String, envName: String,variants: VariantDimension, type: String="string") {
   val prop=localPropertyOrEnv(propertyName,envName)
   if(prop!=null){
-    variants.resValue("string", propertyName, prop)
+    variants.resValue(type, propertyName, prop)
   }
 }
+
 
 
 
