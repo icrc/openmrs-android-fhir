@@ -1,3 +1,9 @@
 sdk.dir=<path to Android SDK>
 gpr.user=<Your GitHub Account>
 gpr.key=<A GitHub token>
+
+
+# Default values:
+#fhir_base_url=http://127.0.0.1:8080/openmrs/ws/fhir2/R4/
+#openmrs_rest_url=http://127.0.0.1:8080/openmrs/ws/rest/v1/
+#check_server_url=http://127.0.0.1:8080/openmrs/ws/rest/v1/session

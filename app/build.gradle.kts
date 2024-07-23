@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.VariantDimension
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 plugins {
@@ -16,6 +17,10 @@ android {
     manifestPlaceholders["appAuthRedirectScheme"] = applicationId!!
     buildFeatures.buildConfig = true
     versionCode = 1
+    setResValue("fhir_base_url", "FHIR_BASE_URL",this)
+    setResValue("openmrs_rest_url", "OPENMRS_REST_URL",this)
+    setResValue("check_server_url", "CHECK_SERVER_URL",this)
+
   }
   buildTypes {
     debug {
@@ -35,12 +40,12 @@ android {
   }
   kotlin { jvmToolchain(11) }
   packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
-  repositories{
+  repositories {
     maven {
       url = uri("https://maven.pkg.github.com/google/android-fhir")
       credentials {
-        username = gradleLocalProperties(rootDir).getProperty("gpr.user") ?: System.getenv("USERNAME")
-        password = gradleLocalProperties(rootDir).getProperty("gpr.key") ?: System.getenv("TOKEN")
+        username = localPropertyOrEnv("gpr.user", "USERNAME")
+        password = localPropertyOrEnv("gpr.key", "TOKEN")
       }
     }
   }
@@ -72,3 +77,16 @@ dependencies {
   implementation("com.google.android.fhir:engine:1.0.0-SNAPSHOT")
   implementation("com.google.android.fhir:data-capture:1.1.0-SNAPSHOT")
 }
+
+fun localPropertyOrEnv(propertyName: String, envName: String): String? =
+  gradleLocalProperties(rootDir).getProperty(propertyName) ?: System.getenv(envName)
+
+fun setResValue(propertyName: String, envName: String,variants: VariantDimension) {
+  val prop=localPropertyOrEnv(propertyName,envName)
+  if(prop!=null){
+    variants.resValue("string", propertyName, prop)
+  }
+}
+
+
+
