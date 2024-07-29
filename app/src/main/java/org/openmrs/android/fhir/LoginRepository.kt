@@ -54,14 +54,19 @@ private constructor(
   private val authRequest = AtomicReference<AuthorizationRequest?>()
   val _authState = MutableSharedFlow<Boolean>()
 
-  suspend fun hasConfigurationChanged() {
-    val storedConfig = authConfig.stored
-    if (storedConfig != authConfig.authConfigJson) {
+  suspend fun updateAuthIfConfigurationChanged() {
+    if (hasConfigurationChanged()) {
       Timber.i("Configuration change detected, discarding old state")
       authStateManager.replace(AuthState())
       authConfig.save()
     }
   }
+
+  private suspend fun hasConfigurationChanged() = authConfig.isNotStored() || authConfig.stored != authConfig.authConfigData
+
+  suspend fun isAuthEstablished() = !hasConfigurationChanged() && authStateManager.current.authorizationServiceConfiguration !=null
+
+
 
   fun getAuthIntent(): Intent? {
     val authRequestBuilder =
@@ -80,6 +85,7 @@ private constructor(
   suspend fun initializeAppAuth() {
     Timber.i("Initializing AppAuth")
     if (authStateManager.current.authorizationServiceConfiguration != null) {
+
       // configuration is already created, skip to client initialization
       Timber.i("auth authConfig already established")
       clientId.set(authConfig.clientId)
@@ -129,7 +135,10 @@ private constructor(
       Timber.i("Discovery document retrieved")
 
       if (authConfig.connectionBuilder is ConnectionBuilderForTesting) {
-        val updatedConfig = AuthConfigUtil.replaceLocalhost(authServiceConfig.toJsonString())
+        val updatedConfig = AuthConfigUtil.replaceLocalhost(
+          authServiceConfig.toJsonString(),
+          ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2
+        )
         authStateManager.replace(
           AuthState(AuthorizationServiceConfiguration.fromJson(updatedConfig))
         )
@@ -216,7 +225,7 @@ private constructor(
         _authState.emit(true)
         Timber.i("Refresh token expired")
       }
-      authStateManager.current.accessToken!!
+      authStateManager.current.accessToken ?: ""
     }
   }
 
@@ -247,7 +256,7 @@ private constructor(
         val browserMatcher: BrowserMatcher = AnyBrowserMatcher.INSTANCE
         val builder = AppAuthConfiguration.Builder()
         builder.setBrowserMatcher(browserMatcher)
-        builder.setSkipIssuerHttpsCheck(!authConfig.authConfigJson.https_required)
+        builder.setSkipIssuerHttpsCheck(!authConfig.authConfigData.https_required)
         builder.setConnectionBuilder(authConfig.connectionBuilder)
         val authService = AuthorizationService(context.applicationContext, builder.build())
 

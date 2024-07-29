@@ -7,7 +7,6 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.json.JSONObject
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.ServerConstants.REST_BASE_URL
 import org.openmrs.android.fhir.data.PreferenceKeys.Companion.PATIENT_IDENTIFIERS
 
 class PatientIdentifierManager private constructor(private val context: Context) {
@@ -30,12 +29,15 @@ class PatientIdentifierManager private constructor(private val context: Context)
         private const val HSU_ID_TYPE = "691eed12-c0f1-11e2-94be-8c13b969e334"
         private const val DEFAULT_FETCH_COUNT = 2
         private const val MINIMUM_THRESHOLD = 1
-        private const val ENDPOINT = REST_BASE_URL + "idgen/identifiersource/" + HSU_ID_TYPE + "/identifier"
 
         suspend fun getNextIdentifier(): String? {
             return withContext(Dispatchers.IO) {
                 instance.getNextIdentifierInternal()
             }
+        }
+
+        fun getIdentifierEndpoint(context: Context): String {
+            return FhirApplication.openmrsRestUrl(context) + "idgen/identifiersource/" + HSU_ID_TYPE + "/identifier"
         }
     }
 
@@ -57,7 +59,7 @@ class PatientIdentifierManager private constructor(private val context: Context)
             try {
 
                 val requestBuilder = Request.Builder()
-                    .url(ENDPOINT)
+                    .url(getIdentifierEndpoint(context))
                     .post(RequestBody.create("application/json; charset=utf-8".toMediaType(), "{}"))
                 val response = restApiClient.call(requestBuilder)
 

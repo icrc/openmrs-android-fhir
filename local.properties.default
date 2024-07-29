@@ -1,3 +1,27 @@
+# Mandatory Fill these values
 sdk.dir=<path to Android SDK>
 gpr.user=<Your GitHub Account>
 gpr.key=<A GitHub token>
+
+
+# Optional values. Default values are already defined for local development.
+# URLs default values for development setup:
+#fhir_base_url=http://127.0.0.1:8080/openmrs/ws/fhir2/R4/
+#openmrs_rest_url=http://127.0.0.1:8080/openmrs/ws/rest/v1/
+#check_server_url=http://127.0.0.1:8080/openmrs/ws/rest/v1/session
+
+# oauth2 default values for development setup:
+
+#auth_authorization_scope=openid
+#auth_client_id=openmrs-fhir
+#auth_redirect_uri=org.openmrs.android.fhir:/oauth2redirect
+#auth_end_session_redirect_uri=org.openmrs.android.fhir:/oauth2redirect
+#auth_discovery_uri=http://127.0.0.1:8081/realms/main/.well-known/openid-configuration
+#auth_https_required=false
+#auth_replace_localhost_by_10_0_2_2=true
+## required if no discovery url
+#auth_end_session_endpoint=
+#auth_authorization_endpoint_uri=
+#auth_token_endpoint_uri=
+#auth_user_info_endpoint_uri=
+#auth_registration_endpoint_uri=
