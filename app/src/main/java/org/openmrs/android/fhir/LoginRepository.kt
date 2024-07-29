@@ -54,13 +54,19 @@ private constructor(
   private val authRequest = AtomicReference<AuthorizationRequest?>()
   val _authState = MutableSharedFlow<Boolean>()
 
-  suspend fun hasConfigurationChanged() {
-    if (authConfig.isNotStored() || authConfig.stored != authConfig.authConfigData) {
+  suspend fun updateAuthIfConfigurationChanged() {
+    if (hasConfigurationChanged()) {
       Timber.i("Configuration change detected, discarding old state")
       authStateManager.replace(AuthState())
       authConfig.save()
     }
   }
+
+  private suspend fun hasConfigurationChanged() = authConfig.isNotStored() || authConfig.stored != authConfig.authConfigData
+
+  suspend fun isAuthEstablished() = !hasConfigurationChanged() && authStateManager.current.authorizationServiceConfiguration !=null
+
+
 
   fun getAuthIntent(): Intent? {
     val authRequestBuilder =
