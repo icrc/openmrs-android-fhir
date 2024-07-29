@@ -52,7 +52,11 @@ class LoginActivity : AppCompatActivity() {
     setContentView(binding.root)
     lifecycleScope.launchWhenResumed {
       val loginIntent = viewModel.createIntent()
-      binding.buttonLogin.setOnClickListener { getContent.launch(loginIntent) }
+      binding.buttonLogin.setOnClickListener {
+        if (loginIntent != null) {
+          getContent.launch(loginIntent)
+        }
+      }
     }
   }
 }
