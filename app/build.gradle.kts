@@ -59,7 +59,7 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.22")
   implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
-  implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+  implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
   implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
   implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
   implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
