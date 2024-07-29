@@ -55,7 +55,6 @@ private constructor(
   val _authState = MutableSharedFlow<Boolean>()
 
   suspend fun hasConfigurationChanged() {
-//    TODO FRED
     if (authConfig.isNotStored() || authConfig.stored != authConfig.authConfigData) {
       Timber.i("Configuration change detected, discarding old state")
       authStateManager.replace(AuthState())
