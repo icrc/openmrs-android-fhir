@@ -65,11 +65,15 @@ class LoginActivity : AppCompatActivity() {
         } else {
           val loginIntent = viewModel.createIntent()
           val lastConfigurationError = viewModel.getLastConfigurationError()
-          if (lastConfigurationError !=null) {
-            Toast.makeText(this@LoginActivity, lastConfigurationError.localizedMessage,Toast.LENGTH_LONG).show()
-            binding.buttonLogin.setOnClickListener{
+          if (lastConfigurationError != null) {
+            Toast.makeText(
+              this@LoginActivity,
+              lastConfigurationError.cause?.localizedMessage ?: lastConfigurationError.localizedMessage,
+              Toast.LENGTH_LONG
+            ).show()
+            binding.buttonLogin.setOnClickListener {
               Timber.i("restart current login activity as configuration can't be retrieved")
-              val intent=this@LoginActivity.intent
+              val intent = this@LoginActivity.intent
               this@LoginActivity.finish()
               startActivity(intent)
             }
