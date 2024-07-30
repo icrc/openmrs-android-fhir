@@ -17,10 +17,14 @@ package org.openmrs.android.fhir
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.databinding.ActivityLoginBinding
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
@@ -34,14 +38,16 @@ class LoginActivity : AppCompatActivity() {
 
   private val getContent =
     registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-      lifecycleScope.launchWhenResumed {
-        if (result.resultCode == RESULT_OK) {
-          Timber.i("Exchange for token")
-          val response = result.data?.let { AuthorizationResponse.fromIntent(it) }
-          val ex = AuthorizationException.fromIntent(result.data)
-          viewModel.handleLoginResponse(response, ex)
-          val mainActivityIntent = Intent(this@LoginActivity, MainActivity::class.java)
-          startActivity(mainActivityIntent)
+      lifecycleScope.launch {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+          if (result.resultCode == RESULT_OK) {
+            Timber.i("Exchange for token")
+            val response = result.data?.let { AuthorizationResponse.fromIntent(it) }
+            val ex = AuthorizationException.fromIntent(result.data)
+            viewModel.handleLoginResponse(response, ex)
+            val mainActivityIntent = Intent(this@LoginActivity, MainActivity::class.java)
+            startActivity(mainActivityIntent)
+          }
         }
       }
     }
@@ -50,9 +56,27 @@ class LoginActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     binding = ActivityLoginBinding.inflate(layoutInflater)
     setContentView(binding.root)
-    lifecycleScope.launchWhenResumed {
-      val loginIntent = viewModel.createIntent()
-      binding.buttonLogin.setOnClickListener { getContent.launch(loginIntent) }
+    lifecycleScope.launch {
+      lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+        if (viewModel.isAuthAlreadyEstablished()) {
+          Timber.i("Auth already established do not show login again")
+          val mainActivityIntent = Intent(this@LoginActivity, MainActivity::class.java)
+          startActivity(mainActivityIntent)
+        } else {
+          val loginIntent = viewModel.createIntent()
+          val lastConfigurationError = viewModel.getLastConfigurationError()
+          if (lastConfigurationError !=null) {
+            Toast.makeText(this@LoginActivity, lastConfigurationError.localizedMessage,Toast.LENGTH_LONG).show()
+            binding.buttonLogin.setOnClickListener{
+              Timber.i("restart current login activity as configuration can't be retrieved")
+              val intent=this@LoginActivity.intent
+              this@LoginActivity.finish()
+              startActivity(intent)
+            }
+          } else
+            binding.buttonLogin.setOnClickListener { getContent.launch(loginIntent) }
+        }
+      }
     }
   }
 }

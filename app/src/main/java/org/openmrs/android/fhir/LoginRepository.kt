@@ -27,7 +27,9 @@ import org.openmrs.android.fhir.auth.ConnectionBuilderForTesting
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.runBlocking
 import net.openid.appauth.AppAuthConfiguration
 import net.openid.appauth.AuthState
@@ -52,7 +54,8 @@ private constructor(
 ) : HttpAuthenticator {
   private val clientId = AtomicReference<String?>()
   private val authRequest = AtomicReference<AuthorizationRequest?>()
-  val _authState = MutableSharedFlow<Boolean>()
+  private val _needLogin = MutableStateFlow(false)
+  val needLogin: StateFlow<Boolean> = _needLogin.asStateFlow()
 
   suspend fun updateAuthIfConfigurationChanged() {
     if (hasConfigurationChanged()) {
@@ -62,13 +65,20 @@ private constructor(
     }
   }
 
-  private suspend fun hasConfigurationChanged() = authConfig.isNotStored() || authConfig.stored != authConfig.authConfigData
+  private suspend fun hasConfigurationChanged() =
+    authConfig.isNotStored() || authConfig.stored != authConfig.authConfigData
 
-  suspend fun isAuthEstablished() = !hasConfigurationChanged() && authStateManager.current.authorizationServiceConfiguration !=null
+  suspend fun isAuthEstablished() =
+    !hasConfigurationChanged() && authStateManager.current.authorizationServiceConfiguration != null
 
+  fun getLastConfigurationError(): AuthorizationException?= authConfig.lastException
 
 
   fun getAuthIntent(): Intent? {
+    if (authStateManager.current.authorizationServiceConfiguration == null) {
+      Timber.i("can't get authorizationServiceConfiguration")
+      return null
+    }
     val authRequestBuilder =
       AuthorizationRequest.Builder(
         authStateManager.current.authorizationServiceConfiguration!!,
@@ -128,6 +138,7 @@ private constructor(
     ex: AuthorizationException?,
   ) {
     runBlocking {
+      authConfig.lastException=ex
       if (authServiceConfig == null) {
         Timber.i("Failed to retrieve discovery document", ex)
         return@runBlocking
@@ -197,6 +208,7 @@ private constructor(
     tokenResponse: TokenResponse?,
     authException: AuthorizationException?,
   ) {
+
     runBlocking {
       authStateManager.updateAfterTokenResponse(tokenResponse, authException)
       if (!authStateManager.current.isAuthorized) {
@@ -222,7 +234,7 @@ private constructor(
         refreshAccessToken()
       }
       if (authStateManager.current.needsTokenRefresh) {
-        _authState.emit(true)
+        _needLogin.emit(true)
         Timber.i("Refresh token expired")
       }
       authStateManager.current.accessToken ?: ""

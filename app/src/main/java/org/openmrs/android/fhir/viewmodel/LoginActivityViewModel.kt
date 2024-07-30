@@ -34,6 +34,10 @@ class LoginActivityViewModel constructor(application: Application) : AndroidView
     return loginRepository.getAuthIntent()
   }
 
+  fun getLastConfigurationError(): AuthorizationException? {
+    return loginRepository.getLastConfigurationError()
+  }
+
   suspend fun isAuthAlreadyEstablished() = loginRepository.isAuthEstablished()
 
   suspend fun handleLoginResponse(response: AuthorizationResponse?, ex: AuthorizationException?) {

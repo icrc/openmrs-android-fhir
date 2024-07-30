@@ -23,12 +23,14 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import net.openid.appauth.AuthorizationException
 import net.openid.appauth.connectivity.ConnectionBuilder
 import net.openid.appauth.connectivity.DefaultConnectionBuilder
 import org.openmrs.android.fhir.R
 
 class AuthConfiguration private constructor(private val context: Context) {
   private val authConfigKey by lazy { stringPreferencesKey("AuthConfig") }
+  var  lastException: AuthorizationException?=null
   private val gson = Gson()
   val stored: AuthConfigData
     get() {
@@ -48,9 +50,9 @@ class AuthConfiguration private constructor(private val context: Context) {
   val authConfigData: AuthConfigData by lazy {
     AuthConfigData(
       client_id = context.getString(R.string.auth_client_id),
-      redirect_uri = context.getString(R.string.auth_redirect_uri),
+      redirect_uri = context.getString(R.string.auth_redirect_uri_host)+":"+context.getString(R.string.auth_redirect_uri_path),
       authorization_scope = context.getString(R.string.auth_authorization_scope),
-      end_session_redirect_uri = context.getString(R.string.auth_end_session_redirect_uri),
+//      end_session_redirect_uri = context.getString(R.string.auth_end_session_redirect_uri),
       discovery_uri = context.getString(R.string.auth_discovery_uri),
       authorization_endpoint_uri = context.getString(R.string.auth_authorization_endpoint_uri),
       registration_endpoint_uri = context.getString(R.string.auth_registration_endpoint_uri),
@@ -90,7 +92,7 @@ class AuthConfiguration private constructor(private val context: Context) {
     AuthConfigUtil.isRequiredConfigString(authConfigData.client_id)
     AuthConfigUtil.isRequiredConfigString(authConfigData.authorization_scope)
     AuthConfigUtil.isRequiredConfigUri(authConfigData.redirect_uri)
-    AuthConfigUtil.isRequiredConfigUri(authConfigData.end_session_redirect_uri)
+//    AuthConfigUtil.isRequiredConfigUri(authConfigData.end_session_redirect_uri)
     AuthConfigUtil.isRedirectUriRegistered(context, authConfigData.redirect_uri!!)
     if (authConfigData.discovery_uri == null || authConfigData.discovery_uri.isNullOrEmpty()) {
       AuthConfigUtil.isRequiredConfigWebUri(authConfigData.authorization_endpoint_uri)
@@ -118,7 +120,7 @@ data class AuthConfigData(
   val client_id: String,
   val authorization_scope: String?,
   val redirect_uri: String?,
-  val end_session_redirect_uri: String?,
+//  val end_session_redirect_uri: String?,
   val discovery_uri: String?,
   val authorization_endpoint_uri: String?,
   val token_endpoint_uri: String?,

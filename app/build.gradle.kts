@@ -24,8 +24,8 @@ android {
     //    oauth
     setResValue("auth_authorization_scope", "AUTH_AUTHORIZATION_SCOPE",this)
     setResValue("auth_client_id", "AUTH_CLIENT_ID",this)
-    setResValue("auth_redirect_uri", "AUTH_REDIRECT_URI",this)
-    setResValue("auth_end_session_redirect_uri", "AUTH_END_SESSION_REDIRECT_URI",this)
+    setResValue("auth_redirect_uri_host", "AUTH_REDIRECT_URI_HOST",this)
+    setResValue("auth_redirect_uri_path", "AUTH_REDIRECT_URI_PATH",this)
     setResValue("auth_discovery_uri", "AUTH_DISCOVERY_URI",this)
     setResValue("auth_end_session_endpoint", "AUTH_END_SESSION_ENDPOINT",this)
     setResValue("auth_authorization_endpoint_uri", "AUTH_AUTHORIZATION_ENDPOINT_URI",this)

@@ -14,8 +14,8 @@ gpr.key=<A GitHub token>
 
 #auth_authorization_scope=openid
 #auth_client_id=openmrs-fhir
-#auth_redirect_uri=org.openmrs.android.fhir:/oauth2redirect
-#auth_end_session_redirect_uri=org.openmrs.android.fhir:/oauth2redirect
+#auth_redirect_uri_host=org.openmrs.android.fhir
+#auth_redirect_uri_path=/oauth2redirect
 #auth_discovery_uri=http://127.0.0.1:8081/realms/main/.well-known/openid-configuration
 #auth_https_required=false
 #auth_replace_localhost_by_10_0_2_2=true
