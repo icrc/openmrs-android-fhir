@@ -25,9 +25,12 @@ services:
   backend:
     image: ghcr.io/icrc/openmrs-distro-sso/openmrs-backend:2.5.13-d5a37f9
     restart: "unless-stopped"
+    ports:
+      - "5005:5005"
     depends_on:
       - database
     environment:
+      OMRS_DEV_DEBUG_PORT: 5005
       OMRS_CONFIG_MODULE_WEB_ADMIN: "true"
       OMRS_CONFIG_AUTO_UPDATE_DATABASE: "true"
       OMRS_CONFIG_CREATE_TABLES: "true"
