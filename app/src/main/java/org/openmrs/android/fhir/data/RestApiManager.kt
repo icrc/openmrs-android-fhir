@@ -6,9 +6,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.LoginRepository
-import org.openmrs.android.fhir.ServerConstants.CHECK_SERVER_URL
-import org.openmrs.android.fhir.ServerConstants.REST_BASE_URL
 import java.io.IOException
 
 class RestApiManager private constructor(private val context: Context) {
@@ -34,7 +33,7 @@ class RestApiManager private constructor(private val context: Context) {
     private suspend fun setSessionLocation(locationId: String) {
         withContext(Dispatchers.IO) {
             sessionCookie = ""
-            val url = REST_BASE_URL + "session"
+            val url = FhirApplication.checkServerUrl(context)
             val json = """{"sessionLocation": "$locationId"}"""
             val requestBody = RequestBody.create("application/json; charset=utf-8".toMediaType(), json)
             val request = Request.Builder()
@@ -73,7 +72,7 @@ class RestApiManager private constructor(private val context: Context) {
     }
 
     fun isServerLive(): Boolean {
-        val request = Request.Builder().url(CHECK_SERVER_URL).build()
+        val request = Request.Builder().url(FhirApplication.checkServerUrl(context)).build()
         return try {
             client.newCall(request).execute().use { response ->
                 response.isSuccessful

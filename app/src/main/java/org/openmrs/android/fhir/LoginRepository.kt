@@ -27,7 +27,9 @@ import org.openmrs.android.fhir.auth.ConnectionBuilderForTesting
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.runBlocking
 import net.openid.appauth.AppAuthConfiguration
 import net.openid.appauth.AuthState
@@ -52,18 +54,31 @@ private constructor(
 ) : HttpAuthenticator {
   private val clientId = AtomicReference<String?>()
   private val authRequest = AtomicReference<AuthorizationRequest?>()
-  val _authState = MutableSharedFlow<Boolean>()
+  private val _needLogin = MutableStateFlow(false)
+  val needLogin: StateFlow<Boolean> = _needLogin.asStateFlow()
 
-  suspend fun hasConfigurationChanged() {
-    val storedConfig = authConfig.stored
-    if (storedConfig != authConfig.authConfigJson) {
+  suspend fun updateAuthIfConfigurationChanged() {
+    if (hasConfigurationChanged()) {
       Timber.i("Configuration change detected, discarding old state")
       authStateManager.replace(AuthState())
       authConfig.save()
     }
   }
 
+  private suspend fun hasConfigurationChanged() =
+    authConfig.isNotStored() || authConfig.stored != authConfig.authConfigData
+
+  suspend fun isAuthEstablished() =
+    !hasConfigurationChanged() && authStateManager.current.authorizationServiceConfiguration != null
+
+  fun getLastConfigurationError(): AuthorizationException?= authConfig.lastException
+
+
   fun getAuthIntent(): Intent? {
+    if (authStateManager.current.authorizationServiceConfiguration == null) {
+      Timber.i("can't get authorizationServiceConfiguration")
+      return null
+    }
     val authRequestBuilder =
       AuthorizationRequest.Builder(
         authStateManager.current.authorizationServiceConfiguration!!,
@@ -80,6 +95,7 @@ private constructor(
   suspend fun initializeAppAuth() {
     Timber.i("Initializing AppAuth")
     if (authStateManager.current.authorizationServiceConfiguration != null) {
+
       // configuration is already created, skip to client initialization
       Timber.i("auth authConfig already established")
       clientId.set(authConfig.clientId)
@@ -122,6 +138,7 @@ private constructor(
     ex: AuthorizationException?,
   ) {
     runBlocking {
+      authConfig.lastException=ex
       if (authServiceConfig == null) {
         Timber.i("Failed to retrieve discovery document", ex)
         return@runBlocking
@@ -129,7 +146,10 @@ private constructor(
       Timber.i("Discovery document retrieved")
 
       if (authConfig.connectionBuilder is ConnectionBuilderForTesting) {
-        val updatedConfig = AuthConfigUtil.replaceLocalhost(authServiceConfig.toJsonString())
+        val updatedConfig = AuthConfigUtil.replaceLocalhost(
+          authServiceConfig.toJsonString(),
+          ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2
+        )
         authStateManager.replace(
           AuthState(AuthorizationServiceConfiguration.fromJson(updatedConfig))
         )
@@ -188,6 +208,7 @@ private constructor(
     tokenResponse: TokenResponse?,
     authException: AuthorizationException?,
   ) {
+
     runBlocking {
       authStateManager.updateAfterTokenResponse(tokenResponse, authException)
       if (!authStateManager.current.isAuthorized) {
@@ -213,10 +234,10 @@ private constructor(
         refreshAccessToken()
       }
       if (authStateManager.current.needsTokenRefresh) {
-        _authState.emit(true)
+        _needLogin.emit(true)
         Timber.i("Refresh token expired")
       }
-      authStateManager.current.accessToken!!
+      authStateManager.current.accessToken ?: ""
     }
   }
 
@@ -247,7 +268,7 @@ private constructor(
         val browserMatcher: BrowserMatcher = AnyBrowserMatcher.INSTANCE
         val builder = AppAuthConfiguration.Builder()
         builder.setBrowserMatcher(browserMatcher)
-        builder.setSkipIssuerHttpsCheck(!authConfig.authConfigJson.https_required)
+        builder.setSkipIssuerHttpsCheck(!authConfig.authConfigData.https_required)
         builder.setConnectionBuilder(authConfig.connectionBuilder)
         val authService = AuthorizationService(context.applicationContext, builder.build())
 

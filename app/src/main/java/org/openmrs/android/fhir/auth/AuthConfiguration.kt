@@ -20,78 +20,92 @@ import android.content.Context
 import android.net.Uri
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import org.openmrs.android.fhir.R
 import com.google.gson.Gson
-import java.io.IOException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import net.openid.appauth.AuthorizationException
 import net.openid.appauth.connectivity.ConnectionBuilder
 import net.openid.appauth.connectivity.DefaultConnectionBuilder
-import org.json.JSONException
+import org.openmrs.android.fhir.R
 
 class AuthConfiguration private constructor(private val context: Context) {
   private val authConfigKey by lazy { stringPreferencesKey("AuthConfig") }
+  var  lastException: AuthorizationException?=null
   private val gson = Gson()
   val stored: AuthConfigData
     get() {
       val serializedAuth =
-        runBlocking { context.dataStore.data.first()[authConfigKey] } ?: return authConfigJson
+        runBlocking { context.dataStore.data.first()[authConfigKey] } ?: return authConfigData
       return gson.fromJson(serializedAuth, AuthConfigData::class.java)
     }
-  suspend fun save() {
-    context.dataStore.edit { pref -> pref[authConfigKey] = gson.toJson(authConfigJson) }
+
+  suspend fun isNotStored(): Boolean{
+    return context.dataStore.data.first()[authConfigKey] ==null
   }
-  val authConfigJson: AuthConfigData by lazy {
-    try {
-      val stringJson =
-        context.resources.openRawResource(R.raw.auth_config).bufferedReader().use { it.readText() }
-      gson.fromJson(stringJson, AuthConfigData::class.java)
-    } catch (ex: IOException) {
-      throw AuthConfigUtil.InvalidConfigurationException(
-        "Failed to read configuration: " + ex.message
-      )
-    } catch (ex: JSONException) {
-      throw AuthConfigUtil.InvalidConfigurationException(
-        "Unable to parse configuration: " + ex.message
-      )
-    }
+
+  suspend fun save() {
+    context.dataStore.edit { pref -> pref[authConfigKey] = gson.toJson(authConfigData) }
+  }
+
+  val authConfigData: AuthConfigData by lazy {
+    AuthConfigData(
+      client_id = context.getString(R.string.auth_client_id),
+      redirect_uri = context.getString(R.string.auth_redirect_uri_host)+":"+context.getString(R.string.auth_redirect_uri_path),
+      authorization_scope = context.getString(R.string.auth_authorization_scope),
+//      end_session_redirect_uri = context.getString(R.string.auth_end_session_redirect_uri),
+      discovery_uri = context.getString(R.string.auth_discovery_uri),
+      authorization_endpoint_uri = context.getString(R.string.auth_authorization_endpoint_uri),
+      registration_endpoint_uri = context.getString(R.string.auth_registration_endpoint_uri),
+      token_endpoint_uri = context.getString(R.string.auth_token_endpoint_uri),
+      user_info_endpoint_uri = context.getString(R.string.auth_user_info_endpoint_uri),
+      end_session_endpoint = context.getString(R.string.auth_end_session_endpoint),
+      https_required = context.resources.getBoolean(R.bool.auth_https_required),
+      replace_localhost_by_10_0_2_2 = context.resources.getBoolean(R.bool.auth_replace_localhost_by_10_0_2_2)
+    )
   }
   val clientId: String
-    get() = authConfigJson.client_id
+    get() = authConfigData.client_id
   val scope: String?
-    get() = authConfigJson.authorization_scope
+    get() = authConfigData.authorization_scope
   val redirectUri: Uri?
-    get() = Uri.parse(authConfigJson.redirect_uri)
+    get() = Uri.parse(authConfigData.redirect_uri)
   val discoveryUri: Uri?
-    get() = Uri.parse(authConfigJson.discovery_uri)
+    get() = Uri.parse(authConfigData.discovery_uri)
   val authEndpointUri: Uri?
-    get() = Uri.parse(authConfigJson.authorization_endpoint_uri)
+    get() = Uri.parse(authConfigData.authorization_endpoint_uri)
   val tokenEndpointUri: Uri?
-    get() = Uri.parse(authConfigJson.token_endpoint_uri)
-  val registrationEndpointUri: Uri?=null
-//    get() = Uri.parse(authConfigJson.registration_endpoint_uri)
+    get() = Uri.parse(authConfigData.token_endpoint_uri)
+  val registrationEndpointUri: Uri?
+    get() = Uri.parse(authConfigData.registration_endpoint_uri)
   val endSessionEndpoint: Uri?
-    get() = Uri.parse(authConfigJson.end_session_endpoint)
+    get() = Uri.parse(authConfigData.end_session_endpoint)
   val connectionBuilder: ConnectionBuilder
     get() =
-      if (authConfigJson.https_required) {
+      if (authConfigData.https_required) {
         DefaultConnectionBuilder.INSTANCE
-      } else ConnectionBuilderForTesting
+      } else {
+        ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2 = authConfigData.replace_localhost_by_10_0_2_2 ?: true
+        ConnectionBuilderForTesting
+      }
+
   init {
-    AuthConfigUtil.isRequiredConfigString(authConfigJson.client_id)
-    AuthConfigUtil.isRequiredConfigString(authConfigJson.authorization_scope)
-    AuthConfigUtil.isRequiredConfigUri(authConfigJson.redirect_uri)
-    AuthConfigUtil.isRequiredConfigUri(authConfigJson.end_session_redirect_uri)
-    AuthConfigUtil.isRedirectUriRegistered(context, authConfigJson.redirect_uri!!)
-    if (authConfigJson.discovery_uri == null) {
-      AuthConfigUtil.isRequiredConfigWebUri(authConfigJson.authorization_endpoint_uri)
-      AuthConfigUtil.isRequiredConfigWebUri(authConfigJson.token_endpoint_uri)
-      AuthConfigUtil.isRequiredConfigWebUri(authConfigJson.user_info_endpoint_uri)
-      AuthConfigUtil.isRequiredConfigWebUri(authConfigJson.end_session_endpoint)
+    AuthConfigUtil.isRequiredConfigString(authConfigData.client_id)
+    AuthConfigUtil.isRequiredConfigString(authConfigData.authorization_scope)
+    AuthConfigUtil.isRequiredConfigUri(authConfigData.redirect_uri)
+//    AuthConfigUtil.isRequiredConfigUri(authConfigData.end_session_redirect_uri)
+    AuthConfigUtil.isRedirectUriRegistered(context, authConfigData.redirect_uri!!)
+    if (authConfigData.discovery_uri == null || authConfigData.discovery_uri.isNullOrEmpty()) {
+      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.authorization_endpoint_uri)
+      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.token_endpoint_uri)
+      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.user_info_endpoint_uri)
+      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.end_session_endpoint)
     }
   }
+
   companion object {
-    @SuppressLint("StaticFieldLeak") private var INSTANCE: AuthConfiguration? = null
+    @SuppressLint("StaticFieldLeak")
+    private var INSTANCE: AuthConfiguration? = null
+
     @Synchronized
     fun getInstance(context: Context): AuthConfiguration {
       if (INSTANCE == null) {
@@ -106,7 +120,7 @@ data class AuthConfigData(
   val client_id: String,
   val authorization_scope: String?,
   val redirect_uri: String?,
-  val end_session_redirect_uri: String?,
+//  val end_session_redirect_uri: String?,
   val discovery_uri: String?,
   val authorization_endpoint_uri: String?,
   val token_endpoint_uri: String?,
@@ -114,4 +128,5 @@ data class AuthConfigData(
   val end_session_endpoint: String?,
   val registration_endpoint_uri: String?,
   val https_required: Boolean,
+  val replace_localhost_by_10_0_2_2: Boolean?,
 )
