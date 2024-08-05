@@ -33,7 +33,7 @@
       timeout-minutes: 60
       permissions:
         contents: read
-        packages: read
+        packages: write
 
       strategy:
         fail-fast: false
@@ -75,3 +75,12 @@
           env:
             USERNAME: $GITHUB_ACTOR
             TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        - name: Publish Maven packages to GitHub Packages
+          if: ${{ github.event_name == 'push' }}
+          run: ./gradlew publish
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            REPOSITORY_URL: 'https://maven.pkg.github.com/icrc/openmrs-android-fhir'
+            # Use SNAPSHOT Prefix to follow Maven convention
+            ARTIFACT_VERSION_SUFFIX: SNAPSHOT

@@ -5,6 +5,7 @@ plugins {
   id("com.android.application")
   id("kotlin-android")
   id("androidx.navigation.safeargs.kotlin")
+  id("maven-publish")
 }
 
 android {
@@ -68,6 +69,21 @@ android {
     }
   }
 }
+
+publishing{
+  repositories{
+      maven{
+        name = "CI"
+        url= uri(System.getenv("REPOSITORY_URL"))
+        credentials {
+          username = System.getenv("GITHUB_ACTOR")
+          password = System.getenv("GITHUB_TOKEN")
+        }
+      }
+  }
+}
+
+
 
 dependencies {
   coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
