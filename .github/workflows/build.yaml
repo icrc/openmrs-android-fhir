@@ -81,6 +81,3 @@
           run: ./gradlew publish
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            REPOSITORY_URL: 'https://maven.pkg.github.com/icrc/openmrs-android-fhir'
-            # Use SNAPSHOT Prefix to follow Maven convention
-            ARTIFACT_VERSION_SUFFIX: SNAPSHOT
