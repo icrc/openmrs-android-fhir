@@ -20,13 +20,10 @@ import org.openmrs.android.fhir.data.PreferenceKeys
 class LocationViewModel(application: Application, private val fhirEngine: FhirEngine) : AndroidViewModel(application) {
     private var masterLocationsList: MutableList<LocationItem> = mutableListOf()
     var favoriteLocationSet: MutableSet<String>? = null
-    init {
-        getLocations()
-    }
 
     val locations = MutableLiveData<List<LocationItem>>()
 
-    private fun getLocations() {
+    fun getLocations() {
         viewModelScope.launch {
             val locationsList: MutableList<LocationItem> = mutableListOf()
             fhirEngine.search<Location> {

@@ -83,6 +83,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
                     fhirEngine
                 )
             )[LocationViewModel::class.java]
+        locationViewModel.getLocations()
         locationViewModel.setFavoriteLocations(context?.applicationContext!!)
 
         val locationRecyclerView: RecyclerView = binding.locationRecyclerView

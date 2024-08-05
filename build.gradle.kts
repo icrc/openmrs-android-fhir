@@ -8,7 +8,7 @@ buildscript {
   }
   dependencies {
     classpath("com.android.tools.build:gradle:8.2.2")
-    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0")
+    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
     classpath("com.google.gms:google-services:4.4.1")
     classpath("com.diffplug.spotless:spotless-plugin-gradle:6.22.0")
     classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.7.7")
@@ -16,6 +16,10 @@ buildscript {
     // NOTE: Do not place your application dependencies here; they belong
     // in the individual module build.gradle.kts files
   }
+}
+
+plugins {
+  id("com.google.devtools.ksp") version "2.0.0-1.0.21" apply false
 }
 
 allprojects {
