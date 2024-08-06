@@ -44,4 +44,4 @@ See https://github.com/google/android-fhir/tree/openmrs as a custom code is made
 
 # Android FHIR SDK with the FHIR Info Gateway
    - Based on  https://github.com/google/fhir-app-examples/tree/main/demo
-- See https://github.com/icrc/openmrs-android-fhir
+   - See https://github.com/icrc/openmrs-android-fhir
