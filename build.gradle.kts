@@ -31,10 +31,13 @@ allprojects {
       name = "google-android-fhir"
       url = uri("https://maven.pkg.github.com/google/android-fhir")
       credentials {
-        username = gradleLocalProperties(rootDir).getProperty("gpr.user")
-        password = gradleLocalProperties(rootDir).getProperty("gpr.key")
+        username = localPropertyOrEnv("gpr.user", "USERNAME")
+        password = localPropertyOrEnv("gpr.key", "TOKEN")
       }
     }
   }
 
 }
+
+fun localPropertyOrEnv(propertyName: String, envName: String): String? =
+  gradleLocalProperties(rootDir).getProperty(propertyName) ?: System.getenv(envName)
