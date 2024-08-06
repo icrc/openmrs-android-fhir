@@ -2,7 +2,7 @@
 <resources>
   <string name="auth_authorization_scope">openid</string>
   <string name="auth_client_id">openmrs-fhir</string>
-  <string name="auth_redirect_uri_host">org.openmrs.android.fhir.app</string>
+  <string name="auth_redirect_uri_host">org.openmrs.android.fhir</string>
   <string name="auth_redirect_uri_path">/oauth2redirect</string>
   <string name="auth_discovery_uri">http://127.0.0.1:8081/realms/main/.well-known/openid-configuration</string>
   <bool name="auth_https_required">false</bool>

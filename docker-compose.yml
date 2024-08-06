@@ -68,7 +68,7 @@ services:
       - db-data:/var/lib/mysql
 
   keycloak:
-    image: ghcr.io/icrc/openmrs-distro-sso/keycloak:24.0.3-d5a37f9
+    image: ghcr.io/icrc/openmrs-distro-sso/keycloak:24.0.3-4668ae1
     ports:
       - "8081:8081"
     environment:

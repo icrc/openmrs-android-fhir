@@ -52,7 +52,6 @@ class AuthConfiguration private constructor(private val context: Context) {
       client_id = context.getString(R.string.auth_client_id),
       redirect_uri = context.getString(R.string.auth_redirect_uri_host)+":"+context.getString(R.string.auth_redirect_uri_path),
       authorization_scope = context.getString(R.string.auth_authorization_scope),
-//      end_session_redirect_uri = context.getString(R.string.auth_end_session_redirect_uri),
       discovery_uri = context.getString(R.string.auth_discovery_uri),
       authorization_endpoint_uri = context.getString(R.string.auth_authorization_endpoint_uri),
       registration_endpoint_uri = context.getString(R.string.auth_registration_endpoint_uri),
