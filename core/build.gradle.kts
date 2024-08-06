@@ -33,8 +33,7 @@ android {
   packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
 
   publishing {
-    multipleVariants {
-      allVariants()
+    singleVariant("release") {
       withSourcesJar()
     }
   }
@@ -53,6 +52,31 @@ android {
 
 }
 
+publishing {
+  publications {
+    create<MavenPublication>("release") {
+      groupId = android.namespace
+      artifactId = "coreapp"
+      version = "0.1-SNAPSHOT"
+
+      afterEvaluate {
+        from(components["release"])
+      }
+    }
+  }
+  repositories {
+    maven {
+      name = "CI"
+      url = uri("https://maven.pkg.github.com/icrc/openmrs-android-fhir")
+      if (System.getenv("GITHUB_TOKEN") != null) {
+        credentials {
+          username = System.getenv("GITHUB_ACTOR")
+          password = System.getenv("GITHUB_TOKEN")
+        }
+      }
+    }
+  }
+}
 
 
 
