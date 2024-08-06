@@ -32,15 +32,10 @@ android {
   kotlin { jvmToolchain(11) }
   packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
 
-}
-
-
-publishing {
-  publications {
-    create<MavenPublication>("maven") {
-      groupId = android.namespace
-      artifactId = "coreapp"
-      version = "0.1-SNAPSHOT"
+  publishing {
+    multipleVariants {
+      allVariants()
+      withSourcesJar()
     }
   }
   repositories {
@@ -55,9 +50,13 @@ publishing {
       }
     }
   }
+
 }
 
-object Versions{
+
+
+
+object Versions {
   const val desugar_jdk_libs = "2.0.4"
   const val appauth = "0.11.1"
   const val timber = "5.0.1"
