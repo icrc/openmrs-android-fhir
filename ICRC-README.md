@@ -16,4 +16,5 @@ remount succeeded
 > adb reboot
 ```
 
+
 instead of `adb push` you can use `Device Explorer` view from IntelliJ.
