@@ -110,7 +110,7 @@ dependencies {
   implementation("com.jakewharton.timber:timber:5.0.1")
   implementation("net.openid:appauth:0.11.1")
   implementation("com.auth0.android:jwtdecode:2.0.2")
-  implementation("com.google.android.fhir:engine:1.0.0-SNAPSHOT")
+  implementation("com.google.android.fhir:engine:1.0.0")
   implementation("com.google.android.fhir:data-capture:1.1.0-SNAPSHOT")
   //Room database
   val room_version = "2.6.1"
