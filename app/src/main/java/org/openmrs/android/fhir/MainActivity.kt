@@ -15,8 +15,13 @@
  */
 package org.openmrs.android.fhir
 
+import android.app.Activity
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
+import android.view.View.OnFocusChangeListener
+import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -27,12 +32,13 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import kotlinx.coroutines.flow.first
-import org.openmrs.android.fhir.databinding.ActivityMainBinding
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.databinding.ActivityMainBinding
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import timber.log.Timber
+
 
 const val MAX_RESOURCE_COUNT = 20
 
@@ -51,6 +57,22 @@ class MainActivity : AppCompatActivity() {
     observeSyncState()
     viewModel.updateLastSyncTimestamp()
     viewModel.triggerIdentifierTypeSync(applicationContext)
+  }
+
+  override fun onResume() {
+    super.onResume()
+    //getting Root View that gets focus
+    val rootView = (findViewById<View>(android.R.id.content) as ViewGroup).getChildAt(0)
+    rootView.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
+      if (hasFocus) {
+        hideKeyboard(this@MainActivity)
+      }
+    }
+  }
+
+  private fun hideKeyboard(context: Activity) {
+    val inputMethodManager = context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+    inputMethodManager.hideSoftInputFromWindow(context.currentFocus!!.windowToken, 0)
   }
 
   override fun onBackPressed() {
