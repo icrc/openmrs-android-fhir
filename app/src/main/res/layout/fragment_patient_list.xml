@@ -4,6 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/mainLayout"
 >
 
     <LinearLayout
@@ -19,13 +20,25 @@
             layout="@layout/sync_status_layout"
         />
 
-        <androidx.appcompat.widget.SearchView
-            android:id="@+id/search"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:iconifiedByDefault="false"
-            app:queryHint="@string/query_hint_patient_search"
-        />
+            android:layout_margin="12dp"
+            android:hint="@string/query_hint_patient_search"
+            app:hintTextColor="@color/outline_neutral_variant_60"
+            app:boxStrokeColor="@color/outline_neutral_variant_60"
+            app:endIconMode="custom"
+            app:endIconDrawable="@drawable/ic_home_search"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/patientInputEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionDone"
+                android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <include
             android:id="@+id/patient_list_container"

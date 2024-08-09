@@ -15,7 +15,6 @@
  */
 package org.openmrs.android.fhir.fragments
 
-import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -26,14 +25,13 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
-import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProvider
@@ -65,11 +63,11 @@ import kotlin.math.roundToInt
 class PatientListFragment : Fragment() {
   private lateinit var fhirEngine: FhirEngine
   private lateinit var patientListViewModel: PatientListViewModel
-  private lateinit var searchView: SearchView
   private lateinit var topBanner: LinearLayout
   private lateinit var syncStatus: TextView
   private lateinit var syncPercent: TextView
   private lateinit var syncProgress: ProgressBar
+  private lateinit var patientQuery: String
   private var _binding: FragmentPatientListBinding? = null
   private val binding
     get() = _binding!!
@@ -118,41 +116,22 @@ class PatientListFragment : Fragment() {
     patientListViewModel.patientCount.observe(viewLifecycleOwner) {
       binding.patientListContainer.patientCount.text = "$it Patient(s)"
     }
+    patientQuery = binding.patientInputEditText.text.toString()
+    addSearchTextChangeListener()
 
-    searchView = binding.search
     topBanner = binding.syncStatusContainer.linearLayoutSyncStatus
     topBanner.visibility = View.GONE
     syncStatus = binding.syncStatusContainer.tvSyncingStatus
     syncPercent = binding.syncStatusContainer.tvSyncingPercent
     syncProgress = binding.syncStatusContainer.progressSyncing
-    searchView.setOnQueryTextListener(
-      object : SearchView.OnQueryTextListener {
-        override fun onQueryTextChange(newText: String): Boolean {
-          patientListViewModel.searchPatientsByName(newText)
-          return true
-        }
-
-        override fun onQueryTextSubmit(query: String): Boolean {
-          patientListViewModel.searchPatientsByName(query)
-          return true
-        }
-      },
-    )
-    searchView.setOnQueryTextFocusChangeListener { view, focused ->
-      if (!focused) {
-        // hide soft keyboard
-        (requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager)
-          .hideSoftInputFromWindow(view.windowToken, 0)
-      }
-    }
     requireActivity()
       .onBackPressedDispatcher
       .addCallback(
         viewLifecycleOwner,
         object : OnBackPressedCallback(true) {
           override fun handleOnBackPressed() {
-            if (searchView.query.isNotEmpty()) {
-              searchView.setQuery("", true)
+            if (binding.patientInputEditText.text.toString().trim().isNotEmpty()) {
+              binding.patientInputEditText.setText("")
             } else {
               isEnabled = false
               activity?.onBackPressed()
@@ -173,6 +152,12 @@ class PatientListFragment : Fragment() {
     )
   }
 
+  private fun addSearchTextChangeListener() {
+    binding.patientInputEditText.doOnTextChanged { newText, _, _, _ ->
+      patientListViewModel.searchPatientsByName(newText.toString().trim())
+    }
+  }
+
   private fun currentSyncJobStatus(currentSyncJobStatus: CurrentSyncJobStatus) {
     when (currentSyncJobStatus) {
       is CurrentSyncJobStatus.Running -> {
@@ -185,7 +170,7 @@ class PatientListFragment : Fragment() {
         Timber.i(
           "Sync: ${currentSyncJobStatus::class.java.simpleName} at ${currentSyncJobStatus.timestamp}",
         )
-        patientListViewModel.searchPatientsByName(searchView.query.toString().trim())
+        patientListViewModel.searchPatientsByName(binding.patientInputEditText.text.toString().trim())
         mainActivityViewModel.updateLastSyncTimestamp(currentSyncJobStatus.timestamp)
         fadeOutTopBanner(currentSyncJobStatus)
       }
@@ -193,13 +178,13 @@ class PatientListFragment : Fragment() {
         Timber.i(
           "Sync: ${currentSyncJobStatus::class.java.simpleName} at ${currentSyncJobStatus.timestamp}",
         )
-        patientListViewModel.searchPatientsByName(searchView.query.toString().trim())
+        patientListViewModel.searchPatientsByName(binding.patientInputEditText.text.toString().trim())
         mainActivityViewModel.updateLastSyncTimestamp(currentSyncJobStatus.timestamp)
         fadeOutTopBanner(currentSyncJobStatus)
       }
       is CurrentSyncJobStatus.Enqueued -> {
         Timber.i("Sync: Enqueued")
-        patientListViewModel.searchPatientsByName(searchView.query.toString().trim())
+        patientListViewModel.searchPatientsByName(binding.patientInputEditText.text.toString().trim())
         fadeOutTopBanner(currentSyncJobStatus)
       }
       is CurrentSyncJobStatus.Cancelled -> {
@@ -221,7 +206,7 @@ class PatientListFragment : Fragment() {
       is CurrentSyncJobStatus.Succeeded -> {
         val lastSyncTimestamp =
           (periodicSyncJobStatus.currentSyncJobStatus as CurrentSyncJobStatus.Succeeded).timestamp
-        patientListViewModel.searchPatientsByName(searchView.query.toString().trim())
+        patientListViewModel.searchPatientsByName(binding.patientInputEditText.text.toString().trim())
         mainActivityViewModel.updateLastSyncTimestamp(lastSyncTimestamp)
         fadeOutTopBanner(periodicSyncJobStatus.currentSyncJobStatus)
       }
@@ -231,13 +216,13 @@ class PatientListFragment : Fragment() {
         Timber.i(
           "Sync: ${periodicSyncJobStatus.currentSyncJobStatus::class.java.simpleName} at $lastSyncTimestamp}",
         )
-        patientListViewModel.searchPatientsByName(searchView.query.toString().trim())
+        patientListViewModel.searchPatientsByName(binding.patientInputEditText.text.toString().trim())
         mainActivityViewModel.updateLastSyncTimestamp(lastSyncTimestamp)
         fadeOutTopBanner(periodicSyncJobStatus.currentSyncJobStatus)
       }
       is CurrentSyncJobStatus.Enqueued -> {
         Timber.i("Sync: Enqueued")
-        patientListViewModel.searchPatientsByName(searchView.query.toString().trim())
+        patientListViewModel.searchPatientsByName(binding.patientInputEditText.text.toString().trim())
         fadeOutTopBanner(periodicSyncJobStatus.currentSyncJobStatus)
       }
       is CurrentSyncJobStatus.Cancelled -> {
@@ -259,7 +244,13 @@ class PatientListFragment : Fragment() {
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
       android.R.id.home -> {
-        NavHostFragment.findNavController(this).navigateUp()
+        if (binding.patientInputEditText.text.toString().trim().isNotEmpty()) {
+          binding.patientInputEditText.setText("")
+        } else {
+//          isEnabled = false
+          NavHostFragment.findNavController(this).navigateUp()
+
+        }
         true
       }
       else -> false
