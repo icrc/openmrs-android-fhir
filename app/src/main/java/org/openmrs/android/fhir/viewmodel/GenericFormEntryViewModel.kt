@@ -143,7 +143,7 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
     //TODO Replace this with method to get the authenticated user's reference
     val authenticatedUser = MockConstants.AUTHENTICATED_USER
     val participant = EncounterParticipantComponent()
-    participant.individual = Reference("Practitioner/${authenticatedUser.uuid}")
+    participant.individual = Reference("Practitioner/${authenticatedUser.providerUuid}")
     participant.individual.display = authenticatedUser.display
     participant.individual.type = "Practitioner"
     return participant
