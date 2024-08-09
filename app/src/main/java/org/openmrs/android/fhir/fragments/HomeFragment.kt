@@ -67,6 +67,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     requireView().findViewById<CardView>(R.id.select_location).setOnClickListener {
       findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToLocationFragment())
     }
+    requireView().findViewById<CardView>(R.id.select_identifier).setOnClickListener {
+      findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToIdentifierFragment())
+    }
   }
 
   @Deprecated("Deprecated in Java")

@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity() {
     observeLastSyncTime()
     observeSyncState()
     viewModel.updateLastSyncTimestamp()
+    viewModel.triggerIdentifierTypeSync(applicationContext)
   }
 
   override fun onBackPressed() {
@@ -102,7 +103,7 @@ class MainActivity : AppCompatActivity() {
   private fun onNavigationItemSelected(item: MenuItem): Boolean {
     when (item.itemId) {
       R.id.menu_sync -> {
-        viewModel.triggerOneTimeSync()
+        viewModel.triggerOneTimeSync(applicationContext)
         binding.drawer.closeDrawer(GravityCompat.START)
         return false
       }

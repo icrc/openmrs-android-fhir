@@ -46,7 +46,9 @@
   <string name="edit_patient">Edit Patient</string>
   <string name="edit_encounter">Edit Encounter</string>
   <string name="location">Location</string>
+  <string name="identifier">Identifier</string>
   <string name="select_a_location">Select a Location</string>
+  <string name="select_identifier_types">Select Identifier Types</string>
   <string name="submit">Submit</string>
   <string name="message_syncing">Syncing\u2026</string>
 

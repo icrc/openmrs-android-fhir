@@ -5,6 +5,7 @@ plugins {
   id("com.android.application")
   id("kotlin-android")
   id("androidx.navigation.safeargs.kotlin")
+  id("com.google.devtools.ksp")
   id("maven-publish")
 }
 
@@ -111,6 +112,12 @@ dependencies {
   implementation("com.auth0.android:jwtdecode:2.0.2")
   implementation("com.google.android.fhir:engine:1.0.0-SNAPSHOT")
   implementation("com.google.android.fhir:data-capture:1.1.0-SNAPSHOT")
+  //Room database
+  val room_version = "2.6.1"
+  implementation("androidx.room:room-runtime:$room_version")
+  implementation("androidx.room:room-ktx:$room_version")
+  annotationProcessor("androidx.room:room-compiler:$room_version")
+  ksp("androidx.room:room-compiler:$room_version")
 }
 
 fun localPropertyOrEnv(propertyName: String, envName: String): String? =
