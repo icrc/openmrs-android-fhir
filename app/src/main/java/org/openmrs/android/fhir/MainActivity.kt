@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity() {
     observeLastSyncTime()
     observeSyncState()
     viewModel.updateLastSyncTimestamp()
+    viewModel.triggerIdentifierTypeSync(applicationContext)
   }
 
   override fun onBackPressed() {
