@@ -16,7 +16,7 @@
 <resources>
   <string name="app_name">OpenMRS</string>
 
-  <string name="title_patient_list">Registered Patients</string>
+  <string name="title_patient_list">Patient List</string>
   <string name="title_patient_detail">SamplePatient Detail</string>
 
   <string name="menu_about">About Fhir Engine</string>
@@ -51,6 +51,8 @@
   <string name="select_identifier_types">Select Identifier Types</string>
   <string name="submit">Submit</string>
   <string name="message_syncing">Syncing\u2026</string>
+  <string name="register_patient">Register patient</string>
+
 
   <string name="message_patient_updated">Patient is updated.</string>
   <string name="message_encounter_updated">Encounter is updated.</string>

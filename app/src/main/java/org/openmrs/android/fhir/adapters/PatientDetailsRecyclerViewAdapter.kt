@@ -17,7 +17,6 @@ package org.openmrs.android.fhir
 
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -30,7 +29,7 @@ import com.google.android.material.shape.RoundedCornerTreatment
 import com.google.android.material.shape.ShapeAppearanceModel
 import org.openmrs.android.fhir.databinding.PatientDetailsCardViewBinding
 import org.openmrs.android.fhir.databinding.PatientDetailsHeaderBinding
-import org.openmrs.android.fhir.databinding.PatientListItemViewBinding
+import org.openmrs.android.fhir.databinding.PatientPropertyItemViewBinding
 
 class PatientDetailsRecyclerViewAdapter(
   private val onCreateEncountersClick: () -> Unit,
@@ -50,19 +49,19 @@ class PatientDetailsRecyclerViewAdapter(
         )
       ViewTypes.PATIENT_PROPERTY ->
         PatientPropertyItemViewHolder(
-          PatientListItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+          PatientPropertyItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
         )
       ViewTypes.OBSERVATION ->
         PatientDetailsObservationItemViewHolder(
-          PatientListItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+          PatientPropertyItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
         )
       ViewTypes.CONDITION ->
         PatientDetailsConditionItemViewHolder(
-          PatientListItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+          PatientPropertyItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
         )
       ViewTypes.ENCOUNTER ->
         PatientDetailsEncounterItemViewHolder(
-          PatientListItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+          PatientPropertyItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
           onEditEncounterClick
         )
     }
@@ -74,14 +73,19 @@ class PatientDetailsRecyclerViewAdapter(
     if (holder is PatientDetailsHeaderItemViewHolder) return
 
     holder.itemView.background =
-      if (model.firstInGroup && model.lastInGroup) {
-        allCornersRounded()
-      } else if (model.firstInGroup) {
-        topCornersRounded()
-      } else if (model.lastInGroup) {
-        bottomCornersRounded()
-      } else {
-        noCornersRounded()
+      when {
+          model.firstInGroup && model.lastInGroup -> {
+            allCornersRounded()
+          }
+          model.firstInGroup -> {
+            topCornersRounded()
+          }
+          model.lastInGroup -> {
+            bottomCornersRounded()
+          }
+          else -> {
+            noCornersRounded()
+          }
       }
     if (holder is PatientDetailsEncounterItemViewHolder) {
       holder.bind(getItem(position) as PatientDetailEncounters)
@@ -174,7 +178,7 @@ class PatientOverviewItemViewHolder(
   }
 }
 
-class PatientPropertyItemViewHolder(private val binding: PatientListItemViewBinding) :
+class PatientPropertyItemViewHolder(private val binding: PatientPropertyItemViewBinding) :
   PatientDetailItemViewHolder(binding.root) {
   override fun bind(data: PatientDetailData) {
     (data as PatientDetailProperty).let {
@@ -182,7 +186,6 @@ class PatientPropertyItemViewHolder(private val binding: PatientListItemViewBind
       binding.fieldName.text = it.patientProperty.value
     }
     binding.status.visibility = View.GONE
-    binding.id.visibility = View.GONE
   }
 }
 
@@ -193,7 +196,7 @@ class PatientDetailsHeaderItemViewHolder(private val binding: PatientDetailsCard
   }
 }
 
-class PatientDetailsObservationItemViewHolder(private val binding: PatientListItemViewBinding) :
+class PatientDetailsObservationItemViewHolder(private val binding: PatientPropertyItemViewBinding) :
   PatientDetailItemViewHolder(binding.root) {
   override fun bind(data: PatientDetailData) {
     (data as PatientDetailObservation).let {
@@ -206,7 +209,7 @@ class PatientDetailsObservationItemViewHolder(private val binding: PatientListIt
 }
 
 class PatientDetailsEncounterItemViewHolder(
-  private val binding: PatientListItemViewBinding,
+  private val binding: PatientPropertyItemViewBinding,
   private val onEditEncounterClick: (String, String, String) -> Unit
 ) : PatientDetailItemViewHolder(binding.root) {
   override fun bind(data: PatientDetailData) {
@@ -224,7 +227,7 @@ class PatientDetailsEncounterItemViewHolder(
 }
 
 
-class PatientDetailsConditionItemViewHolder(private val binding: PatientListItemViewBinding) :
+class PatientDetailsConditionItemViewHolder(private val binding: PatientPropertyItemViewBinding) :
   PatientDetailItemViewHolder(binding.root) {
   override fun bind(data: PatientDetailData) {
     (data as PatientDetailCondition).let {

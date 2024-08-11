@@ -15,8 +15,6 @@
  */
 package org.openmrs.android.fhir.fragments
 
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -38,7 +36,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.sync.CurrentSyncJobStatus
@@ -92,30 +89,21 @@ class PatientListFragment : Fragment() {
     fhirEngine = FhirApplication.fhirEngine(requireContext())
     patientListViewModel =
       ViewModelProvider(
-        this,
-          PatientListViewModel.PatientListViewModelFactory(
-              requireActivity().application,
-              fhirEngine
-          ),
-      )
-        .get(PatientListViewModel::class.java)
+          this,
+        PatientListViewModel.PatientListViewModelFactory(
+          requireActivity().application,
+          fhirEngine
+        ),
+      )[PatientListViewModel::class.java]
     val recyclerView: RecyclerView = binding.patientListContainer.patientList
     val adapter = PatientItemRecyclerViewAdapter(this::onPatientItemClicked)
     recyclerView.adapter = adapter
-    recyclerView.addItemDecoration(
-      DividerItemDecoration(requireContext(), DividerItemDecoration.VERTICAL).apply {
-        setDrawable(ColorDrawable(Color.LTGRAY))
-      },
-    )
 
     patientListViewModel.liveSearchedPatients.observe(viewLifecycleOwner) {
       Timber.d("Submitting ${it.count()} patient records")
       adapter.submitList(it)
     }
 
-    patientListViewModel.patientCount.observe(viewLifecycleOwner) {
-      binding.patientListContainer.patientCount.text = "$it Patient(s)"
-    }
     patientQuery = binding.patientInputEditText.text.toString()
     addSearchTextChangeListener()
 
@@ -142,7 +130,6 @@ class PatientListFragment : Fragment() {
 
     binding.apply {
       addPatient.setOnClickListener { onAddPatientClick() }
-      addPatient.setColorFilter(Color.WHITE)
     }
     setHasOptionsMenu(true)
     (activity as MainActivity).setDrawerEnabled(false)
