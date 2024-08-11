@@ -30,6 +30,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="36dp"
                 android:text="@string/button_login"
+                android:backgroundTint="@color/primary_blue_40"
                 app:layout_constraintEnd_toEndOf="@+id/textview_title"
                 app:layout_constraintStart_toStartOf="@+id/textview_title"
                 app:layout_constraintTop_toBottomOf="@+id/textview_title"
