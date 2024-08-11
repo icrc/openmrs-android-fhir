@@ -21,6 +21,7 @@
         <item
             name="colorPrimaryContainer"
         >@color/primaryContainer_blue_90</item>
+        <item name="android:windowLightStatusBar">true</item>
         <item
             name="colorOnPrimaryContainer"
         >@color/onPrimaryContainer_blue_10</item>
