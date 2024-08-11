@@ -30,13 +30,13 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.FhirEngine
-import org.openmrs.android.fhir.PatientDetailsRecyclerViewAdapter
-import org.openmrs.android.fhir.PatientDetailsViewModel
-import org.openmrs.android.fhir.PatientDetailsViewModelFactory
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.adapters.PatientDetailsRecyclerViewAdapter
 import org.openmrs.android.fhir.databinding.PatientDetailBinding
+import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
+import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModelFactory
 
 /**
  * A fragment representing a single Patient detail screen. This fragment is contained in a
