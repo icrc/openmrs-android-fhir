@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openmrs.android.fhir
+package org.openmrs.android.fhir.adapters
 
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -30,6 +30,13 @@ import com.google.android.material.shape.ShapeAppearanceModel
 import org.openmrs.android.fhir.databinding.PatientDetailsCardViewBinding
 import org.openmrs.android.fhir.databinding.PatientDetailsHeaderBinding
 import org.openmrs.android.fhir.databinding.PatientPropertyItemViewBinding
+import org.openmrs.android.fhir.viewmodel.PatientDetailCondition
+import org.openmrs.android.fhir.viewmodel.PatientDetailData
+import org.openmrs.android.fhir.viewmodel.PatientDetailEncounters
+import org.openmrs.android.fhir.viewmodel.PatientDetailHeader
+import org.openmrs.android.fhir.viewmodel.PatientDetailObservation
+import org.openmrs.android.fhir.viewmodel.PatientDetailOverview
+import org.openmrs.android.fhir.viewmodel.PatientDetailProperty
 
 class PatientDetailsRecyclerViewAdapter(
   private val onCreateEncountersClick: () -> Unit,

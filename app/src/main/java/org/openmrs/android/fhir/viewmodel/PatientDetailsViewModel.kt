@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openmrs.android.fhir
+package org.openmrs.android.fhir.viewmodel
 
 import android.app.Application
 import android.content.res.Resources
@@ -37,8 +37,8 @@ import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.RiskAssessment
 import org.hl7.fhir.r4.model.codesystems.RiskProbability
-import org.openmrs.android.fhir.viewmodel.PatientListViewModel
-import org.openmrs.android.fhir.viewmodel.toPatientItem
+import org.openmrs.android.fhir.MAX_RESOURCE_COUNT
+import org.openmrs.android.fhir.R
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
@@ -68,10 +68,6 @@ class PatientDetailsViewModel(
         val searchResult =
             fhirEngine.search<Patient> {
                 filter(Resource.RES_ID, { value = of(patientId) })
-//
-//        revInclude<RiskAssessment>(RiskAssessment.SUBJECT)
-//        revInclude<Observation>(Observation.SUBJECT)
-//        revInclude<Condition>(Condition.SUBJECT)
                 revInclude<Encounter>(Encounter.SUBJECT)
             }
 
