@@ -1,5 +1,7 @@
 package org.openmrs.android.fhir
 import org.hl7.fhir.r4.model.Reference
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 data class Form(
     val display: String,
@@ -26,8 +28,10 @@ data class User(
 
 
 object MockConstants {
+    val DATE24_FORMATTER = SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault())
     val LOCATION = createMockLocationReference()
     val AUTHENTICATED_USER = getAuthenticatedUser()
+    val VISIT_TYPE_UUID = "7b0f5697-27e3-40c4-8bae-f4049abfb4ed";
     val MOCK_FORMS = listOf(
         Form(
             display = "Assessment Form",

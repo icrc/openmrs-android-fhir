@@ -46,6 +46,7 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.extensions.readFileFromAssets
 import org.openmrs.android.fhir.fragments.GenericFormEntryFragment
+import org.openmrs.android.helpers.OpenMRSHelper
 import java.util.Date
 import java.util.UUID
 
@@ -75,13 +76,17 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
       val bundle = ResourceMapper.extract(questionnaireResource, questionnaireResponse)
       val patientReference = Reference("Patient/$patientId")
       val encounterId = generateUuid()
+      val visitId = OpenMRSHelper.VisitHelper.getActiveVisit(fhirEngine, patientId, true)
       if (isRequiredFieldMissing(bundle)) {
         isResourcesSaved.value = false
         return@launch
       }
 
-      saveResources(bundle, patientReference, form, encounterId )
-      isResourcesSaved.value = true
+      if (visitId != null) {
+        saveResources(bundle, patientReference, form, encounterId, visitId.id )
+        isResourcesSaved.value = true
+
+      }
     }
   }
 
@@ -90,6 +95,7 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
     patientReference: Reference,
     form: Form,
     encounterId: String,
+    visitId: String,
   ) {
     val encounterReference = Reference("Encounter/$encounterId")
     val appContext = getApplication<Application>().applicationContext
@@ -102,7 +108,7 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
           subject = patientReference
           id = encounterId
           status = Encounter.EncounterStatus.FINISHED
-          partOf = Reference("Encounter/0f3b5ced-9d77-4753-bc35-2e5eb1e7bbc4")  // FIXME: Dynamically fetch visit reference
+          partOf = Reference(visitId)
           setPeriod(Period().apply { start = Date() })
           addParticipant(createParticipant())
           addLocation(Encounter.EncounterLocationComponent().apply {
