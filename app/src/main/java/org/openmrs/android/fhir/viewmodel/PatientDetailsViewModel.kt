@@ -16,9 +16,6 @@
 package org.openmrs.android.fhir
 
 import android.app.Application
-import android.content.res.Resources
-import android.icu.text.DateFormat
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -28,23 +25,15 @@ import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
 import kotlinx.coroutines.launch
-import org.apache.commons.lang3.StringUtils
-import org.hl7.fhir.r4.model.Condition
 import org.hl7.fhir.r4.model.Encounter
-import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Resource
-import org.hl7.fhir.r4.model.ResourceType
-import org.hl7.fhir.r4.model.RiskAssessment
-import org.hl7.fhir.r4.model.codesystems.RiskProbability
+import org.openmrs.android.fhir.MockConstants.DATE24_FORMATTER
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import org.openmrs.android.fhir.viewmodel.toPatientItem
+import org.openmrs.android.helpers.OpenMRSHelper
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Date
-import java.util.LinkedList
 import java.util.Locale
 
 /**
@@ -58,322 +47,105 @@ class PatientDetailsViewModel(
 ) : AndroidViewModel(application) {
     val livePatientData = MutableLiveData<List<PatientDetailData>>()
 
-
     /** Emits list of [PatientDetailData]. */
     fun getPatientDetailData() {
-        viewModelScope.launch { livePatientData.value = getPatientDetailDataModel() }
+        viewModelScope.launch {
+
+            livePatientData.value = getPatientDetailDataModel()
+        }
     }
 
     private suspend fun getPatientDetailDataModel(): List<PatientDetailData> {
-        val searchResult =
-            fhirEngine.search<Patient> {
-                filter(Resource.RES_ID, { value = of(patientId) })
-//
-//        revInclude<RiskAssessment>(RiskAssessment.SUBJECT)
-//        revInclude<Observation>(Observation.SUBJECT)
-//        revInclude<Condition>(Condition.SUBJECT)
-                revInclude<Encounter>(Encounter.SUBJECT)
-            }
+        val searchResult = fhirEngine.search<Patient> {
+            filter(Resource.RES_ID, { value = of(patientId) })
+            revInclude<Encounter>(Encounter.SUBJECT)
+        }
 
-        val encounters = LinkedList<Encounter>()
-        fhirEngine.search<Encounter> {}.map { it.resource }.let { encounters.addAll(it) }
-
+        val patientResource = searchResult.firstOrNull()?.resource ?: return emptyList()
 
         val data = mutableListOf<PatientDetailData>()
+        val visits = OpenMRSHelper.VisitHelper.getVisits(fhirEngine, patientId)
 
-        searchResult.first().let {
-            data.addPatientDetailData(
-                it.resource,
-                getRiskItem(
-                    it.revIncluded?.get(ResourceType.RiskAssessment to RiskAssessment.SUBJECT.paramName)
-                            as List<RiskAssessment>?,
-                ),
-            )
-            it.revIncluded?.get(ResourceType.Observation to Observation.SUBJECT.paramName)?.let {
-                data.addObservationsData(it as List<Observation>)
-            }
-            it.revIncluded?.get(ResourceType.Condition to Condition.SUBJECT.paramName)?.let {
-                data.addConditionsData(it as List<Condition>)
-            }
-            it.revIncluded?.get(ResourceType.Encounter to Encounter.SUBJECT.paramName)?.let {
-                data.addEncountersData(it as List<Encounter>)
+        data.addPatientDetailData(patientResource)
+
+        visits.forEach { (visit, encounters) ->
+            data.addVisitData(visit, encounters)
+            encounters.forEach { encounter ->
+                data.addEncounterData(encounter)
             }
         }
 
         return data
     }
 
-    private fun getRiskItem(riskAssessments: List<RiskAssessment>?) =
-        riskAssessments
-            ?.filter { it.hasOccurrence() }
-            ?.maxByOrNull { it.occurrenceDateTimeType.value }
-            .let {
-                RiskAssessmentItem(
-                    getRiskAssessmentStatusColor(it),
-                    getRiskAssessmentStatus(it),
-                    getLastContactedDate(it),
-                    getPatientDetailsCardColor(it),
-                )
-            }
-
     private fun MutableList<PatientDetailData>.addPatientDetailData(
         patient: Patient,
-        riskAssessment: RiskAssessmentItem,
     ) {
-        patient
-            .toPatientItem(0)
-            .apply { riskItem = riskAssessment }
-            .let { patientItem ->
-                add(PatientDetailOverview(patientItem, firstInGroup = true))
-//        add(
-//          PatientDetailProperty(
-//            PatientProperty(getString(R.string.patient_property_mobile), patientItem.phone),
-//          ),
-//        )
-//        add(
-//          PatientDetailProperty(
-//            PatientProperty(getString(R.string.patient_property_id), patientItem.resourceId),
-//          ),
-//        )
-//        add(
-//          PatientDetailProperty(
-//            PatientProperty(
-//              getString(R.string.patient_property_address),
-//              "${patientItem.city}, ${patientItem.country} ",
-//            ),
-//          ),
-//        )
-//        add(
-//          PatientDetailProperty(
-//            PatientProperty(
-//              getString(R.string.patient_property_dob),
-//              patientItem.dob?.localizedString ?: "",
-//            ),
-//          ),
-//        )
-//        add(
-//          PatientDetailProperty(
-//            PatientProperty(
-//              getString(R.string.patient_property_gender),
-//              patientItem.gender.replaceFirstChar {
-//                if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString()
-//              },
-//            ),
-//            lastInGroup = true,
-//          ),
-//        )
-            }
+        patient.toPatientItem(0).let { patientItem ->
+            add(PatientDetailOverview(patientItem, firstInGroup = true))
+            // Add other patient details if necessary
+        }
     }
 
-    private fun MutableList<PatientDetailData>.addEncountersData(encounters: List<Encounter>?) {
-        if (encounters.isNullOrEmpty()) return
+    suspend fun hasActiveVisit(): Boolean {
+        return OpenMRSHelper.VisitHelper.getActiveVisit(fhirEngine, patientId, false) != null
+    }
 
-        add(PatientDetailHeader(getString(R.string.header_encounters)))
-        encounters
-            .take(MAX_RESOURCE_COUNT)
-            .map { createEncounterItem(it) }
-            .mapIndexed { index, encounterItem ->
-                PatientDetailEncounters(
-                    encounterItem,
-                    firstInGroup = index == 0,
-                    lastInGroup = index == encounters.size - 1,
-                )
-            }
-            .let { addAll(it) }
+    fun createVisit(startDate: Date) {
+        viewModelScope.launch {
+            val visit =
+                OpenMRSHelper.VisitHelper.startVisit(fhirEngine, patientId, MockConstants.VISIT_TYPE_UUID, startDate);
+            fhirEngine.create(visit)
+        }
+    }
+
+    private fun MutableList<PatientDetailData>.addVisitData(visit: Encounter, encounters: List<Encounter>?) {
+        val visitItem = createVisitItem(visit)
+        add(PatientDetailVisit(visitItem))
+    }
+
+    private fun MutableList<PatientDetailData>.addEncounterData(encounter: Encounter) {
+        add(PatientDetailEncounter(createEncounterItem(encounter)))
+    }
+
+    private fun createVisitItem(visit: Encounter): PatientListViewModel.VisitItem {
+        val visitType = visit.type.firstOrNull()?.coding?.firstOrNull()?.display ?: "Type"
+        val startDate = visit.period?.start?.let {
+            DATE24_FORMATTER.format(it)
+        } ?: ""
+
+        val endDate = visit.period?.end?.let {
+            DATE24_FORMATTER.format(it)
+        } ?: ""
+
+        return PatientListViewModel.VisitItem(
+            visit.logicalId,
+            visitType,
+            startDate,
+            endDate
+        )
     }
 
     private fun createEncounterItem(encounter: Encounter): PatientListViewModel.EncounterItem {
-        val display = encounter.type.firstOrNull()?.coding?.firstOrNull()?.display ?: "Type"
-        val dateTimeString = encounter.period?.start?.toString() ?: "date"
+        val visitType = encounter.type.firstOrNull()?.coding?.firstOrNull()?.display ?: "Type"
+        val visitDate = encounter.period?.start?.let {
+            SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(it)
+        } ?: "Date"
+
         return PatientListViewModel.EncounterItem(
             encounter.logicalId,
-            display,
-            dateTimeString,
-            encounter.type[0].id,
-            encounter.type[0].text,
+            visitType,
+            visitDate,
+            encounter.type.getOrNull(0)?.id,
+            encounter.type.getOrNull(0)?.text,
             "assessment.json"
         )
     }
 
-    private fun MutableList<PatientDetailData>.addObservationsData(observations: List<Observation>) {
-        if (observations.isNotEmpty()) {
-            add(PatientDetailHeader(getString(R.string.header_observation)))
-
-            observations
-                .take(MAX_RESOURCE_COUNT)
-                .map { createObservationItem(it, getApplication<Application>().resources) }
-                .mapIndexed { index, observationItem ->
-                    PatientDetailObservation(
-                        observationItem,
-                        firstInGroup = index == 0,
-                        lastInGroup = index == observations.size - 1,
-                    )
-                }
-                .let { addAll(it) }
-        }
-    }
-
-    private fun MutableList<PatientDetailData>.addConditionsData(conditions: List<Condition>) {
-        if (conditions.isNotEmpty()) {
-            add(PatientDetailHeader(getString(R.string.header_conditions)))
-            conditions
-                .take(MAX_RESOURCE_COUNT)
-                .map { createConditionItem(it, getApplication<Application>().resources) }
-                .mapIndexed { index, conditionItem ->
-                    PatientDetailCondition(
-                        conditionItem,
-                        firstInGroup = index == 0,
-                        lastInGroup = index == conditions.size - 1,
-                    )
-                }
-                .let { addAll(it) }
-        }
-    }
-
-    private val LocalDate.localizedString: String
-        get() {
-            val date = Date.from(atStartOfDay(ZoneId.systemDefault())?.toInstant())
-            return if (isAndroidIcuSupported()) {
-                DateFormat.getDateInstance(DateFormat.DEFAULT).format(date)
-            } else {
-                SimpleDateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault())
-                    .format(date)
-            }
-        }
-
-    // Android ICU is supported API level 24 onwards.
-    private fun isAndroidIcuSupported() = true
-
     private fun getString(resId: Int) = getApplication<Application>().resources.getString(resId)
 
-    private fun getRiskAssessmentStatusColor(riskAssessment: RiskAssessment?): Int {
-        riskAssessment?.let {
-            return when (it.prediction.first().qualitativeRisk.coding.first().code) {
-                RiskProbability.LOW.toCode() -> ContextCompat.getColor(
-                    getApplication(),
-                    R.color.low_risk
-                )
-
-                RiskProbability.MODERATE.toCode() ->
-                    ContextCompat.getColor(getApplication(), R.color.moderate_risk)
-
-                RiskProbability.HIGH.toCode() -> ContextCompat.getColor(
-                    getApplication(),
-                    R.color.high_risk
-                )
-
-                else -> ContextCompat.getColor(getApplication(), R.color.unknown_risk)
-            }
-        }
-        return ContextCompat.getColor(getApplication(), R.color.unknown_risk)
-    }
-
-    private fun getPatientDetailsCardColor(riskAssessment: RiskAssessment?): Int {
-        riskAssessment?.let {
-            return when (it.prediction.first().qualitativeRisk.coding.first().code) {
-                RiskProbability.LOW.toCode() ->
-                    ContextCompat.getColor(getApplication(), R.color.low_risk_background)
-
-                RiskProbability.MODERATE.toCode() ->
-                    ContextCompat.getColor(getApplication(), R.color.moderate_risk_background)
-
-                RiskProbability.HIGH.toCode() ->
-                    ContextCompat.getColor(getApplication(), R.color.high_risk_background)
-
-                else -> ContextCompat.getColor(getApplication(), R.color.unknown_risk_background)
-            }
-        }
-        return ContextCompat.getColor(getApplication(), R.color.unknown_risk_background)
-    }
-
-    private fun getRiskAssessmentStatus(riskAssessment: RiskAssessment?): String {
-        riskAssessment?.let {
-            return StringUtils.upperCase(it.prediction.first().qualitativeRisk.coding.first().display)
-        }
-        return getString(R.string.unknown)
-    }
-
-    private fun getLastContactedDate(riskAssessment: RiskAssessment?): String {
-        riskAssessment?.let {
-            if (it.hasOccurrence()) {
-                return LocalDate.parse(
-                    it.occurrenceDateTimeType.valueAsString,
-                    DateTimeFormatter.ISO_DATE_TIME,
-                )
-                    .localizedString
-            }
-        }
-        return getString(R.string.none)
-    }
-
     companion object {
-        /**
-         * Creates ObservationItem objects with displayable values from the Fhir Observation objects.
-         */
-        private fun createObservationItem(
-            observation: Observation,
-            resources: Resources,
-        ): PatientListViewModel.ObservationItem {
-            val observationCode = observation.code.text ?: observation.code.codingFirstRep.display
-
-            // Show nothing if no values available for datetime and value quantity.
-            val dateTimeString =
-                if (observation.hasEffectiveDateTimeType()) {
-                    observation.effectiveDateTimeType.asStringValue()
-                } else {
-                    resources.getText(R.string.message_no_datetime).toString()
-                }
-            val value =
-                if (observation.hasValueQuantity()) {
-                    observation.valueQuantity.value.toString()
-                } else if (observation.hasValueCodeableConcept()) {
-                    observation.valueCodeableConcept.coding.firstOrNull()?.display ?: ""
-                } else {
-                    ""
-                }
-            val valueUnit =
-                if (observation.hasValueQuantity()) {
-                    observation.valueQuantity.unit ?: observation.valueQuantity.code
-                } else {
-                    ""
-                }
-            val valueString = "$value $valueUnit"
-
-            return PatientListViewModel.ObservationItem(
-                observation.logicalId,
-                observationCode,
-                dateTimeString,
-                valueString,
-            )
-        }
-
-        /** Creates ConditionItem objects with displayable values from the Fhir Condition objects. */
-        private fun createConditionItem(
-            condition: Condition,
-            resources: Resources,
-        ): PatientListViewModel.ConditionItem {
-            val observationCode = condition.code.text ?: condition.code.codingFirstRep.display ?: ""
-
-            // Show nothing if no values available for datetime and value quantity.
-            val dateTimeString =
-                if (condition.hasOnsetDateTimeType()) {
-                    condition.onsetDateTimeType.asStringValue()
-                } else {
-                    resources.getText(R.string.message_no_datetime).toString()
-                }
-            val value =
-                if (condition.hasVerificationStatus()) {
-                    condition.verificationStatus.codingFirstRep.code
-                } else {
-                    ""
-                }
-            return PatientListViewModel.ConditionItem(
-                condition.logicalId,
-                observationCode,
-                dateTimeString,
-                value,
-            )
-        }
+        private const val MAX_RESOURCE_COUNT = 10
     }
 }
 
@@ -412,8 +184,14 @@ data class PatientDetailCondition(
     override val lastInGroup: Boolean = false,
 ) : PatientDetailData
 
-data class PatientDetailEncounters(
+data class PatientDetailEncounter(
     val encounter: PatientListViewModel.EncounterItem,
+    override val firstInGroup: Boolean = false,
+    override val lastInGroup: Boolean = false,
+) : PatientDetailData
+
+data class PatientDetailVisit(
+    val visit: PatientListViewModel.VisitItem,
     override val firstInGroup: Boolean = false,
     override val lastInGroup: Boolean = false,
 ) : PatientDetailData
@@ -435,10 +213,10 @@ class PatientDetailsViewModelFactory(
 }
 
 data class RiskAssessmentItem(
-  var riskStatusColor: Int,
-  var riskStatus: String,
-  var lastContacted: String,
-  var patientCardColor: Int,
+    var riskStatusColor: Int,
+    var riskStatus: String,
+    var lastContacted: String,
+    var patientCardColor: Int,
 )
 
 /**
@@ -446,6 +224,6 @@ data class RiskAssessmentItem(
  * "http://example.com/fhir/Patient/123/_history/456", then this value would be "123".
  */
 private val Resource.logicalId: String
-  get() {
-    return this.idElement?.idPart.orEmpty()
-  }
+    get() {
+        return this.idElement?.idPart.orEmpty()
+    }

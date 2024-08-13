@@ -17,7 +17,6 @@ package org.openmrs.android.fhir
 
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,10 +30,13 @@ import com.google.android.material.shape.ShapeAppearanceModel
 import org.openmrs.android.fhir.databinding.PatientDetailsCardViewBinding
 import org.openmrs.android.fhir.databinding.PatientDetailsHeaderBinding
 import org.openmrs.android.fhir.databinding.PatientListItemViewBinding
+import org.openmrs.android.fhir.databinding.VisitListItemBinding
+import org.openmrs.android.fhir.PatientDetailsVisitItemViewHolder.*
 
 class PatientDetailsRecyclerViewAdapter(
   private val onCreateEncountersClick: () -> Unit,
   private val onEditEncounterClick: (String, String, String) -> Unit,
+  private val onEditVisitClick: (String) -> Unit,
 ) : ListAdapter<PatientDetailData, PatientDetailItemViewHolder>(PatientDetailDiffUtil()) {
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PatientDetailItemViewHolder {
@@ -65,6 +67,11 @@ class PatientDetailsRecyclerViewAdapter(
           PatientListItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
           onEditEncounterClick
         )
+      ViewTypes.VISIT ->
+        PatientDetailsVisitItemViewHolder(
+          VisitListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+          onEditVisitClick
+        )
     }
   }
 
@@ -84,7 +91,7 @@ class PatientDetailsRecyclerViewAdapter(
         noCornersRounded()
       }
     if (holder is PatientDetailsEncounterItemViewHolder) {
-      holder.bind(getItem(position) as PatientDetailEncounters)
+      holder.bind(getItem(position) as PatientDetailEncounter)
     }
   }
 
@@ -96,7 +103,8 @@ class PatientDetailsRecyclerViewAdapter(
       is PatientDetailProperty -> ViewTypes.PATIENT_PROPERTY
       is PatientDetailObservation -> ViewTypes.OBSERVATION
       is PatientDetailCondition -> ViewTypes.CONDITION
-      is PatientDetailEncounters -> ViewTypes.ENCOUNTER
+      is PatientDetailEncounter -> ViewTypes.ENCOUNTER
+      is PatientDetailVisit -> ViewTypes.VISIT
       else -> {
         throw IllegalArgumentException("Undefined Item type")
       }
@@ -210,7 +218,7 @@ class PatientDetailsEncounterItemViewHolder(
   private val onEditEncounterClick: (String, String, String) -> Unit
 ) : PatientDetailItemViewHolder(binding.root) {
   override fun bind(data: PatientDetailData) {
-    (data as PatientDetailEncounters).let {
+    (data as PatientDetailEncounter).let {
       val encounter = it.encounter;
       binding.name.text = encounter.type
       binding.fieldName.text = encounter.dateTime
@@ -222,6 +230,22 @@ class PatientDetailsEncounterItemViewHolder(
     binding.id.visibility = View.GONE
   }
 }
+
+class PatientDetailsVisitItemViewHolder(
+  private val binding: VisitListItemBinding, // Update to the correct binding class
+  private val onEditVisitClick: (String) -> Unit
+) : PatientDetailItemViewHolder(binding.root) {
+
+  override fun bind(data: PatientDetailData) {
+    (data as PatientDetailVisit).let {
+      val visit = it.visit
+      binding.encounterType.text = visit.code
+      binding.encounterDate.text = visit.getPeriods()
+      binding.encounterDate.setOnClickListener {
+        onEditVisitClick( visit.id )
+      }
+    }
+  }
 
 
 class PatientDetailsConditionItemViewHolder(private val binding: PatientListItemViewBinding) :
@@ -242,7 +266,8 @@ enum class ViewTypes {
   PATIENT_PROPERTY,
   OBSERVATION,
   CONDITION,
-  ENCOUNTER;
+  ENCOUNTER,
+  VISIT;
 
   companion object {
     fun from(ordinal: Int): ViewTypes {
@@ -255,4 +280,5 @@ class PatientDetailDiffUtil : DiffUtil.ItemCallback<PatientDetailData>() {
   override fun areItemsTheSame(o: PatientDetailData, n: PatientDetailData) = o == n
 
   override fun areContentsTheSame(o: PatientDetailData, n: PatientDetailData) = areItemsTheSame(o, n)
+}
 }

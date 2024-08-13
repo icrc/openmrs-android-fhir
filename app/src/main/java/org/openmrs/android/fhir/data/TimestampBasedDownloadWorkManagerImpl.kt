@@ -33,8 +33,8 @@ import java.util.*
 class TimestampBasedDownloadWorkManagerImpl(private val dataStore: DemoDataStore) : DownloadWorkManager {
   private val resourceTypeList = ResourceType.values().map { it.name }
   private val urls = LinkedList(listOf(
-    "Location?_summary=data&_tag=Login+Location",
-    "Patient",
+    "Location?_summary=data&_tag=Offline",
+    "Patient?address-city=GENEVA&_sort=_lastUpdated",
     "Encounter",
   ))
   override suspend fun getNextRequest(): DownloadRequest? {
