@@ -104,7 +104,7 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
 
   private fun setUpActionBar() {
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
-      title = requireContext().getString(R.string.add_patient)
+      title = requireContext().getString(R.string.register_new_patient)
       setDisplayHomeAsUpEnabled(true)
     }
   }
@@ -122,6 +122,8 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
           .setQuestionnaire(questionnaire)
           .setShowCancelButton(true)
           .setShowSubmitButton(true)
+          .showOptionalText(true)
+          .showRequiredText(false)
           .build(),
         QUESTIONNAIRE_FRAGMENT_TAG,
       )
