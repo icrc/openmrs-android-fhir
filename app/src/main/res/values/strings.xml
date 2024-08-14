@@ -42,7 +42,7 @@
   <string name="patient_property_address">Address</string>
   <string name="patient_property_dob">Date of Birth</string>
   <string name="patient_property_gender">Gender</string>
-  <string name="add_patient">Add Patient</string>
+  <string name="register_new_patient">Register new patient</string>
   <string name="edit_patient">Edit Patient</string>
   <string name="edit_encounter">Edit Encounter</string>
   <string name="location">Location</string>

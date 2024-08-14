@@ -66,6 +66,7 @@
 
         <item name="colorOutline">@color/outline_neutral_variant_50</item>
 
+        <item name="questionnaire_theme">@style/Questionnaire</item>
     </style>
 
     <style name="AppCard" parent="Widget.Material3.CardView.Outlined">
@@ -96,5 +97,52 @@
         <item
             name="android:textAppearance"
         >?attr/textAppearanceBodyMedium</item>
+    </style>
+    
+    <style name="Questionnaire.questionnaireQuestionTextStyle">
+        <item name="fontFamily">@font/inter_semibold</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingBottom">4sp</item>
+    </style>
+
+    <style name="Questionnaire.questionnaireGroupTypeQuestionTextStyle">
+        <item name="android:textSize">24sp</item>
+        <item name="fontFamily">@font/inter_bold</item>
+    </style>
+
+    <style name="Questionnaire.questionnaireTextInputEditTextStyle">
+        <item name="fontFamily">@font/inter_bold</item>
+        <item name="android:layout_margin">0sp</item>
+    </style>
+
+    <style name="Questionnaire.questionnaireTextInputLayoutStyle">
+        <item name="fontFamily">@font/inter_bold</item>
+    </style>
+
+    <style name="Questionnaire.questionnaireRadioButtonStyle" parent="Widget.Material3.CompoundButton.RadioButton">
+        <item name="fontFamily">@font/inter</item>
+        <item name="paddingStart">4sp</item>
+        <item name="android:scaleX">1.1</item>
+        <item name="android:scaleY">1.1</item>
+        <item name="buttonTint">@color/dashboard_cardview_textcolor</item>
+    </style>
+
+    <style name="Questionnaire.questionnaireSubmitButtonStyle" parent="Widget.Material3.Button">
+        <item name="fontFamily">@font/inter</item>
+        <item name="cornerRadius">4sp</item>
+        <item name="backgroundTint">@color/dashboard_cardview_textcolor</item>
+    </style>
+    <style name="Questionnaire.questionnaireBottomNavContainerStyle">
+        <item name="android:background">@color/white</item>
+        <item name="backgroundTint">@color/white</item>
+    </style>
+    <style name="Questionnaire" parent="Theme.Questionnaire">
+        <item name="questionnaireQuestionTextStyle">@style/Questionnaire.questionnaireQuestionTextStyle</item>
+        <item name="questionnaireGroupTypeQuestionTextStyle">@style/Questionnaire.questionnaireGroupTypeQuestionTextStyle</item>
+        <item name="questionnaireTextInputEditTextStyle">@style/Questionnaire.questionnaireTextInputEditTextStyle</item>
+        <item name="questionnaireTextInputLayoutStyle">@style/Questionnaire.questionnaireTextInputLayoutStyle</item>
+        <item name="questionnaireRadioButtonStyle">@style/Questionnaire.questionnaireRadioButtonStyle</item>
+        <item name="questionnaireSubmitButtonStyle">@style/Questionnaire.questionnaireSubmitButtonStyle</item>
+        <item name="questionnaireBottomNavContainerStyle">@style/Questionnaire.questionnaireBottomNavContainerStyle</item>
     </style>
 </resources>
