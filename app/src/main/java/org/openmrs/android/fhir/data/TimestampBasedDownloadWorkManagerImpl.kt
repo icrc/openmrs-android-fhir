@@ -33,8 +33,8 @@ import java.util.*
 class TimestampBasedDownloadWorkManagerImpl(private val dataStore: DemoDataStore) : DownloadWorkManager {
   private val resourceTypeList = ResourceType.values().map { it.name }
   private val urls = LinkedList(listOf(
-    "Location?_summary=data&_tag=Login+Location",
-    "Patient",
+    "Location?_summary=data&_tag=Offline",
+    "Patient?address-city=GENEVA&_sort=_lastUpdated",
     "Encounter",
   ))
   override suspend fun getNextRequest(): DownloadRequest? {
@@ -130,7 +130,10 @@ private fun affixLastUpdatedTimestamp(url: String, lastUpdated: String): String 
   // Affix lastUpdate to non-$everything queries as per:
   // https://hl7.org/fhir/operation-patient-everything.html
   if (!downloadUrl.contains("\$everything")) {
-    downloadUrl = "$downloadUrl&_lastUpdated=gt$lastUpdated"
+    if(!downloadUrl.contains('?'))
+      downloadUrl = "$downloadUrl?_lastUpdated=gt$lastUpdated"
+    else
+      downloadUrl = "$downloadUrl&_lastUpdated=gt$lastUpdated"
   }
 
   // Do not modify any URL set by a server that specifies the token of the page to return.

@@ -54,6 +54,7 @@ class IdentifierFragment: Fragment(R.layout.fragment_identifier) {
             setDisplayHomeAsUpEnabled(true)
         }
         runBlocking{
+            binding.progressBar.visibility = View.VISIBLE
             identifierTypes = context?.applicationContext?.let { FhirApplication.roomDatabase(it).dao().getAllIdentifierTypes().toMutableList()} ?: mutableListOf()
             if (identifierTypes.isEmpty()) {
                 context?.applicationContext?.let {
@@ -65,6 +66,7 @@ class IdentifierFragment: Fragment(R.layout.fragment_identifier) {
             identifierAdapter = IdentifierTypeRecyclerViewAdapter(this@IdentifierFragment::onIdentifierTypeItemClicked, selectedIdentifierTypes)
             identifierRecyclerView.adapter = identifierAdapter
             identifierAdapter.submitList(identifierTypes)
+            binding.progressBar.visibility = View.GONE
         }
         (activity as MainActivity).setDrawerEnabled(false)
 

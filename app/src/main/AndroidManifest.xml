@@ -41,9 +41,10 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:host="org.openmrs.android.fhir"
-                    android:path="/oauth2redirect"
-                    android:scheme="https" />
+                    android:scheme="https"
+                    android:host="@string/auth_redirect_uri_host"
+                    android:path="@string/auth_redirect_uri_path"
+                />
             </intent-filter>
         </activity>
     </application>

@@ -28,6 +28,9 @@ interface Dao {
 
     @Query("SELECT COUNT(*) FROM identifier WHERE identifierTypeUUID=:identifierTypeId")
     suspend fun getIdentifierCountByTypeId(identifierTypeId: String): Int
+
+    @Query("SELECT COUNT(*) FROM IdentifierType")
+    suspend fun getIdentifierTypesCount(): Int
     @Delete
     suspend fun delete(identifier: Identifier)
 

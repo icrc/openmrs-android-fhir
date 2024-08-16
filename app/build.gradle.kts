@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.VariantDimension
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 plugins {
@@ -5,6 +6,7 @@ plugins {
   id("kotlin-android")
   id("androidx.navigation.safeargs.kotlin")
   id("com.google.devtools.ksp")
+  id("maven-publish")
 }
 
 android {
@@ -17,6 +19,27 @@ android {
     manifestPlaceholders["appAuthRedirectScheme"] = applicationId!!
     buildFeatures.buildConfig = true
     versionCode = 1
+//    server
+    setResValue("fhir_base_url", "FHIR_BASE_URL", this)
+    setResValue("openmrs_rest_url", "OPENMRS_REST_URL", this)
+    setResValue("check_server_url", "CHECK_SERVER_URL", this)
+    //    oauth
+    setResValue("auth_authorization_scope", "AUTH_AUTHORIZATION_SCOPE", this)
+    setResValue("auth_client_id", "AUTH_CLIENT_ID", this)
+    setResValue("auth_redirect_uri_host", "AUTH_REDIRECT_URI_HOST", this)
+    setResValue("auth_redirect_uri_path", "AUTH_REDIRECT_URI_PATH", this)
+    setResValue("auth_discovery_uri", "AUTH_DISCOVERY_URI", this)
+    setResValue("auth_end_session_endpoint", "AUTH_END_SESSION_ENDPOINT", this)
+    setResValue("auth_authorization_endpoint_uri", "AUTH_AUTHORIZATION_ENDPOINT_URI", this)
+    setResValue("auth_token_endpoint_uri", "AUTH_TOKEN_ENDPOINT_URI", this)
+    setResValue("auth_user_info_endpoint_uri", "AUTH_USER_INFO_ENDPOINT_URI", this)
+    setResValue("auth_registration_endpoint_uri", "AUTH_REGISTRATION_ENDPOINT_URI", this)
+    setResValue("auth_registration_endpoint_uri", "AUTH_REGISTRATION_ENDPOINT_URI", this)
+
+    setResValue("auth_https_required", "AUTH_HTTPS_REQUIRED", this, "bool")
+    setResValue("auth_replace_localhost_by_10_0_2_2", "AUTH_REPLACE_LOCALHOST_BY_10_0_2_2", this, "bool")
+
+
   }
   buildTypes {
     debug {
@@ -36,16 +59,33 @@ android {
   }
   kotlin { jvmToolchain(11) }
   packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
-  repositories{
+  repositories {
     maven {
       url = uri("https://maven.pkg.github.com/google/android-fhir")
       credentials {
-        username = gradleLocalProperties(rootDir).getProperty("gpr.user") ?: System.getenv("USERNAME")
-        password = gradleLocalProperties(rootDir).getProperty("gpr.key") ?: System.getenv("TOKEN")
+        username = localPropertyOrEnv("gpr.user", "USERNAME")
+        password = localPropertyOrEnv("gpr.key", "TOKEN")
       }
     }
   }
 }
+
+publishing {
+  repositories {
+    maven {
+      name = "CI"
+      url = uri("https://maven.pkg.github.com/icrc/openmrs-android-fhir")
+      if (System.getenv("GITHUB_TOKEN") != null) {
+        credentials {
+          username = System.getenv("GITHUB_ACTOR")
+          password = System.getenv("GITHUB_TOKEN")
+        }
+      }
+    }
+  }
+}
+
+
 
 dependencies {
   implementation("androidx.activity:activity:1.9.0")
@@ -80,3 +120,17 @@ dependencies {
   annotationProcessor("androidx.room:room-compiler:$room_version")
   ksp("androidx.room:room-compiler:$room_version")
 }
+
+fun localPropertyOrEnv(propertyName: String, envName: String): String? =
+  gradleLocalProperties(rootDir).getProperty(propertyName) ?: System.getenv(envName)
+
+fun setResValue(propertyName: String, envName: String, variants: VariantDimension, type: String = "string") {
+  val prop = localPropertyOrEnv(propertyName, envName)
+  if (prop != null) {
+    variants.resValue(type, propertyName, prop)
+  }
+}
+
+
+
+
