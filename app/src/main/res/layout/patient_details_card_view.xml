@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <com.google.android.material.textview.MaterialTextView
     android:id="@+id/header"
+    android:fontFamily="@font/inter_semibold"
+    android:textColor="@color/black"
+    android:textSize="20sp"
     android:layout_marginStart="@dimen/text_margin"
     android:paddingVertical="10dp"
     android:orientation="vertical"

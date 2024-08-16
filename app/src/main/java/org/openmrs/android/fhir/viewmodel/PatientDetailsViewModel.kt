@@ -28,6 +28,7 @@ import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.StringUtils
 import org.hl7.fhir.r4.model.Condition
 import org.hl7.fhir.r4.model.Encounter
@@ -120,7 +121,13 @@ class PatientDetailsViewModel(
             .toPatientItem(0)
             .apply { riskItem = riskAssessment }
             .let { patientItem ->
-                add(PatientDetailOverview(patientItem, firstInGroup = true))
+                runBlocking {
+                    patientItem.isSynced = fhirEngine.getLocalChanges(ResourceType.Patient, patientItem.resourceId).isEmpty()
+                    add(PatientDetailOverview(patientItem, firstInGroup = true))
+                    if(patientItem.isSynced !=null && !patientItem.isSynced!!){
+                        add(PatientUnsynced(false,false))
+                    }
+                }
 //        add(
 //          PatientDetailProperty(
 //            PatientProperty(getString(R.string.patient_property_mobile), patientItem.phone),
@@ -395,6 +402,11 @@ data class PatientDetailOverview(
     override val firstInGroup: Boolean = false,
     override val lastInGroup: Boolean = false,
 ) : PatientDetailData
+
+data class PatientUnsynced(
+    override val firstInGroup: Boolean = false,
+    override val lastInGroup: Boolean = false
+    ):PatientDetailData
 
 data class PatientDetailObservation(
     val observation: PatientListViewModel.ObservationItem,

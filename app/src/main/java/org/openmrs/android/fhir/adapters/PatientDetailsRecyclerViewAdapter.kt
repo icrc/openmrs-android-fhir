@@ -29,6 +29,7 @@ import com.google.android.material.shape.RoundedCornerTreatment
 import com.google.android.material.shape.ShapeAppearanceModel
 import org.openmrs.android.fhir.databinding.PatientDetailsCardViewBinding
 import org.openmrs.android.fhir.databinding.PatientDetailsHeaderBinding
+import org.openmrs.android.fhir.databinding.PatientDetailsUnsyncedBinding
 import org.openmrs.android.fhir.databinding.PatientPropertyItemViewBinding
 import org.openmrs.android.fhir.viewmodel.PatientDetailCondition
 import org.openmrs.android.fhir.viewmodel.PatientDetailData
@@ -37,6 +38,7 @@ import org.openmrs.android.fhir.viewmodel.PatientDetailHeader
 import org.openmrs.android.fhir.viewmodel.PatientDetailObservation
 import org.openmrs.android.fhir.viewmodel.PatientDetailOverview
 import org.openmrs.android.fhir.viewmodel.PatientDetailProperty
+import org.openmrs.android.fhir.viewmodel.PatientUnsynced
 
 class PatientDetailsRecyclerViewAdapter(
   private val onCreateEncountersClick: () -> Unit,
@@ -53,6 +55,10 @@ class PatientDetailsRecyclerViewAdapter(
         PatientOverviewItemViewHolder(
           PatientDetailsHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false),
           onCreateEncountersClick
+        )
+      ViewTypes.PATIENT_UNSYNCED ->
+        PatientDetailsUnsyncedItemViewHolder(
+          PatientDetailsUnsyncedBinding.inflate(LayoutInflater.from(parent.context),parent, false)
         )
       ViewTypes.PATIENT_PROPERTY ->
         PatientPropertyItemViewHolder(
@@ -78,22 +84,6 @@ class PatientDetailsRecyclerViewAdapter(
     val model = getItem(position)
     holder.bind(model)
     if (holder is PatientDetailsHeaderItemViewHolder) return
-
-    holder.itemView.background =
-      when {
-          model.firstInGroup && model.lastInGroup -> {
-            allCornersRounded()
-          }
-          model.firstInGroup -> {
-            topCornersRounded()
-          }
-          model.lastInGroup -> {
-            bottomCornersRounded()
-          }
-          else -> {
-            noCornersRounded()
-          }
-      }
     if (holder is PatientDetailsEncounterItemViewHolder) {
       holder.bind(getItem(position) as PatientDetailEncounters)
     }
@@ -107,6 +97,7 @@ class PatientDetailsRecyclerViewAdapter(
       is PatientDetailProperty -> ViewTypes.PATIENT_PROPERTY
       is PatientDetailObservation -> ViewTypes.OBSERVATION
       is PatientDetailCondition -> ViewTypes.CONDITION
+      is PatientUnsynced -> ViewTypes.PATIENT_UNSYNCED
       is PatientDetailEncounters -> ViewTypes.ENCOUNTER
       else -> {
         throw IllegalArgumentException("Undefined Item type")
@@ -177,10 +168,6 @@ class PatientOverviewItemViewHolder(
   override fun bind(data: PatientDetailData) {
     (data as PatientDetailOverview).let {
       binding.title.text = it.patient.name
-      binding.patientIdValue.text = it.patient.resourceId
-      binding.genderValue.text = it.patient.gender
-      binding.patientPhoneValue.text = it.patient.phone
-      binding.dateOfBirthValue.text = it.patient.dob?.toString() ?: ""
     }
   }
 }
@@ -203,6 +190,11 @@ class PatientDetailsHeaderItemViewHolder(private val binding: PatientDetailsCard
   }
 }
 
+class PatientDetailsUnsyncedItemViewHolder(private val binding: PatientDetailsUnsyncedBinding) :
+  PatientDetailItemViewHolder(binding.root) {
+  override fun bind(data: PatientDetailData) {
+  }
+}
 class PatientDetailsObservationItemViewHolder(private val binding: PatientPropertyItemViewBinding) :
   PatientDetailItemViewHolder(binding.root) {
   override fun bind(data: PatientDetailData) {
@@ -249,6 +241,7 @@ class PatientDetailsConditionItemViewHolder(private val binding: PatientProperty
 enum class ViewTypes {
   HEADER,
   PATIENT,
+  PATIENT_UNSYNCED,
   PATIENT_PROPERTY,
   OBSERVATION,
   CONDITION,
