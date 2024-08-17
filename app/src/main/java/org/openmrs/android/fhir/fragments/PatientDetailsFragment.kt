@@ -1,20 +1,9 @@
-/*
- * Copyright 2022-2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package org.openmrs.android.fhir.fragments
 
+import android.app.AlertDialog
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -22,13 +11,16 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.FhirEngine
+import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
@@ -36,11 +28,9 @@ import org.openmrs.android.fhir.adapters.PatientDetailsRecyclerViewAdapter
 import org.openmrs.android.fhir.databinding.PatientDetailBinding
 import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
 import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModelFactory
+import org.openmrs.android.helpers.OpenMRSHelper.VisitHelper.endVisit
+import java.util.*
 
-/**
- * A fragment representing a single Patient detail screen. This fragment is contained in a
- * [MainActivity].
- */
 class PatientDetailsFragment : Fragment() {
   private lateinit var fhirEngine: FhirEngine
   private lateinit var patientDetailsViewModel: PatientDetailsViewModel
@@ -72,13 +62,12 @@ class PatientDetailsFragment : Fragment() {
       ViewModelProvider(
         this,
         PatientDetailsViewModelFactory(requireActivity().application, fhirEngine, args.patientId),
-      )
-        .get(PatientDetailsViewModel::class.java)
-    val adapter = PatientDetailsRecyclerViewAdapter(::onCreateEncounterClick, ::onEditEncounterClick)
+      ).get(PatientDetailsViewModel::class.java)
+    val adapter = PatientDetailsRecyclerViewAdapter(::onCreateEncounterClick, ::onEditEncounterClick, ::onEditVisitClick)
     binding.createEncounterFloatingButton.setOnClickListener { onCreateEncounterClick() }
     binding.recycler.adapter = adapter
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
-      title = "Patient Card"
+      title = "Patient"
       setDisplayHomeAsUpEnabled(true)
     }
     patientDetailsViewModel.livePatientData.observe(viewLifecycleOwner) {
@@ -92,19 +81,97 @@ class PatientDetailsFragment : Fragment() {
   }
 
   private fun onCreateEncounterClick() {
+    lifecycleScope.launch {
+      val hasActiveVisit = patientDetailsViewModel.hasActiveVisit()
+      if (hasActiveVisit) {
+        navigateToCreateEncounter()
+      } else {
+        showStartVisitDateTimeDialog()
+      }
+    }
+  }
+
+  private fun navigateToCreateEncounter() {
     findNavController().navigate(
-      PatientDetailsFragmentDirections.actionPatientDetailsToCreateEncounterFragment(
-        args.patientId
-      )
+      PatientDetailsFragmentDirections.actionPatientDetailsToCreateEncounterFragment(args.patientId)
     )
+  }
+
+
+  fun showEndVisitDialog(context: Context, visitId: String, onEndVisitConfirmed: (String) -> Unit) {
+    val builder = AlertDialog.Builder(context)
+    builder.setMessage("Are you sure you want to end the visit now?")
+
+    builder.setPositiveButton("Yes") { dialog, _ ->
+      onEndVisitConfirmed(visitId)
+      dialog.dismiss()
+    }
+
+    builder.setNegativeButton("No") { dialog, _ ->
+      dialog.dismiss()
+    }
+
+    val dialog = builder.create()
+    dialog.show()
+  }
+
+
+  private fun showStartVisitDateTimeDialog() {
+    val calendar = Calendar.getInstance()
+
+    DatePickerDialog(
+      requireContext(),
+      { _, selectedYear, selectedMonth, selectedDayOfMonth ->
+        calendar.set(selectedYear, selectedMonth, selectedDayOfMonth)
+
+        TimePickerDialog(
+          requireContext(),
+          { _, selectedHourOfDay, selectedMinute ->
+            calendar.set(Calendar.HOUR_OF_DAY, selectedHourOfDay)
+            calendar.set(Calendar.MINUTE, selectedMinute)
+
+            val selectedDateTime = calendar.time
+
+            if (selectedDateTime.after(Date())) {
+              Toast.makeText(requireContext(), "Future date/time is not allowed.", Toast.LENGTH_SHORT).show()
+            } else {
+              patientDetailsViewModel.createVisit(selectedDateTime)
+              navigateToCreateEncounter()
+            }
+          },
+          calendar.get(Calendar.HOUR_OF_DAY),
+          calendar.get(Calendar.MINUTE),
+          true
+        ).apply {
+          setTitle("Select time for the visit")
+        }.show()
+      },
+      calendar.get(Calendar.YEAR),
+      calendar.get(Calendar.MONTH),
+      calendar.get(Calendar.DAY_OF_MONTH)
+    ).apply {
+      setTitle("Start a new visit?")
+      datePicker.maxDate = calendar.timeInMillis
+    }.show()
   }
 
   private fun onEditEncounterClick(encounterId: String, formDisplay: String, formResource: String) {
     findNavController().navigate(
       PatientDetailsFragmentDirections.actionPatientDetailsToEditEncounterFragment(
-       encounterId, formResource
+        encounterId, formResource
       )
     )
+  }
+
+
+  private fun onEditVisitClick(visitId: String) {
+    context?.let { ctx ->
+      showEndVisitDialog(ctx, visitId) { id ->
+        lifecycleScope.launch {
+          endVisit(fhirEngine, id)
+        }
+      }
+    }
   }
 
   override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

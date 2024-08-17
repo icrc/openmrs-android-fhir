@@ -86,4 +86,5 @@
   <string name="current_location_label">Current Location : </string>
   <string name="no_location_selected">No Location Selected</string>
   <string name="patient_unsynced_info">Patient information will synchronize with\nPearl next time you are online</string>
+  <string name="header_visits">Visit Header</string>
 </resources>

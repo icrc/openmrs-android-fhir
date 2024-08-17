@@ -170,6 +170,16 @@ class PatientListViewModel(application: Application, private val fhirEngine: Fhi
     override fun toString(): String = code
   }
 
+  data class VisitItem(
+    val id: String,
+    val code: String,
+    val startDate: String,
+    val endDate: String
+  ) {
+    override fun toString(): String = code + ", " + startDate + " - " + endDate
+    fun getPeriods(): String = startDate + " - " + endDate
+  }
+
     data class EncounterItem(
         val encounterId: String?,
         val type: String,
