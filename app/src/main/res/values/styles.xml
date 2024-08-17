@@ -121,9 +121,6 @@
 
     <style name="Questionnaire.questionnaireRadioButtonStyle" parent="Widget.Material3.CompoundButton.RadioButton">
         <item name="fontFamily">@font/inter</item>
-        <item name="paddingStart">4sp</item>
-        <item name="android:scaleX">1.1</item>
-        <item name="android:scaleY">1.1</item>
         <item name="buttonTint">@color/dashboard_cardview_textcolor</item>
     </style>
 
