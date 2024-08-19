@@ -15,7 +15,6 @@
  */
 package org.openmrs.android.fhir.adapters
 
-import android.content.res.Resources
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -23,7 +22,6 @@ import androidx.recyclerview.widget.RecyclerView
 import org.openmrs.android.fhir.databinding.PatientListItemViewBinding
 import java.time.LocalDate
 import java.time.Period
-import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 
 class PatientItemViewHolder(binding: PatientListItemViewBinding) :
@@ -31,15 +29,13 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
   private val statusView: ImageView = binding.status
   private val nameView: TextView = binding.name
   private val ageView: TextView = binding.fieldName
-  private val idView: TextView = binding.id
 
   fun bindTo(
     patientItem: PatientListViewModel.PatientItem,
     onItemClicked: (PatientListViewModel.PatientItem) -> Unit,
   ) {
     this.nameView.text = patientItem.name
-    this.ageView.text = getFormattedAge(patientItem, ageView.context.resources)
-    this.idView.text = "Id: #---${getTruncatedId(patientItem)}"
+    this.ageView.text = getFormattedAge(patientItem) + "," + patientItem.gender[0].uppercase()
     this.itemView.setOnClickListener { onItemClicked(patientItem) }
     if(patientItem.isSynced !=null && patientItem.isSynced!!) {
       statusView.visibility = View.GONE
@@ -50,20 +46,14 @@ class PatientItemViewHolder(binding: PatientListItemViewBinding) :
 
   private fun getFormattedAge(
     patientItem: PatientListViewModel.PatientItem,
-    resources: Resources,
   ): String {
     if (patientItem.dob == null) return ""
     return Period.between(patientItem.dob, LocalDate.now()).let {
       when {
-        it.years > 0 -> resources.getQuantityString(R.plurals.ageYear, it.years, it.years)
-        it.months > 0 -> resources.getQuantityString(R.plurals.ageMonth, it.months, it.months)
-        else -> resources.getQuantityString(R.plurals.ageDay, it.days, it.days)
+        it.years > 0 -> it.years.toString()
+        it.months > 0 -> it.months.toString()+ " months"
+        else -> it.days.toString() + " months"
       }
     }
-  }
-
-  /** The new ui just shows shortened id with just last 3 characters. */
-  private fun getTruncatedId(patientItem: PatientListViewModel.PatientItem): String {
-    return patientItem.resourceId.takeLast(3)
   }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openmrs.android.fhir
+package org.openmrs.android.fhir.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -25,9 +25,18 @@ import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import org.apache.commons.lang3.StringUtils
+import org.hl7.fhir.r4.model.Condition
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Resource
+import org.hl7.fhir.r4.model.ResourceType
+import org.hl7.fhir.r4.model.RiskAssessment
+import org.hl7.fhir.r4.model.codesystems.RiskProbability
+import org.openmrs.android.fhir.MAX_RESOURCE_COUNT
+import org.openmrs.android.fhir.MockConstants
+import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.MockConstants.DATE24_FORMATTER
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import org.openmrs.android.fhir.viewmodel.toPatientItem
@@ -65,9 +74,8 @@ class PatientDetailsViewModel(
 
         val data = mutableListOf<PatientDetailData>()
         val visits = OpenMRSHelper.VisitHelper.getVisits(fhirEngine, patientId)
-
         data.addPatientDetailData(patientResource)
-
+        data.add(PatientDetailHeader(getString(R.string.header_encounters)))
         visits.forEach { (visit, encounters) ->
             data.addVisitData(visit, encounters)
             encounters.forEach { encounter ->
@@ -81,10 +89,18 @@ class PatientDetailsViewModel(
     private fun MutableList<PatientDetailData>.addPatientDetailData(
         patient: Patient,
     ) {
-        patient.toPatientItem(0).let { patientItem ->
-            add(PatientDetailOverview(patientItem, firstInGroup = true))
-            // Add other patient details if necessary
-        }
+        patient
+            .toPatientItem(0)
+            .let { patientItem ->
+                runBlocking {
+                    patientItem.isSynced = fhirEngine.getLocalChanges(ResourceType.Patient, patientItem.resourceId).isEmpty()
+                    add(PatientDetailOverview(patientItem, firstInGroup = true))
+                    if(patientItem.isSynced !=null && !patientItem.isSynced!!){
+                        add(PatientUnsynced(false,false))
+                    }
+                }
+                // Add other patient details if necessary
+            }
     }
 
     suspend fun hasActiveVisit(): Boolean {
@@ -171,6 +187,11 @@ data class PatientDetailOverview(
     override val firstInGroup: Boolean = false,
     override val lastInGroup: Boolean = false,
 ) : PatientDetailData
+
+data class PatientUnsynced(
+    override val firstInGroup: Boolean = false,
+    override val lastInGroup: Boolean = false
+    ):PatientDetailData
 
 data class PatientDetailObservation(
     val observation: PatientListViewModel.ObservationItem,

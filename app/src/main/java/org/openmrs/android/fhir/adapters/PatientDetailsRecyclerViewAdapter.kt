@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.openmrs.android.fhir
+package org.openmrs.android.fhir.adapters
 
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -29,45 +29,62 @@ import com.google.android.material.shape.RoundedCornerTreatment
 import com.google.android.material.shape.ShapeAppearanceModel
 import org.openmrs.android.fhir.databinding.PatientDetailsCardViewBinding
 import org.openmrs.android.fhir.databinding.PatientDetailsHeaderBinding
-import org.openmrs.android.fhir.databinding.PatientListItemViewBinding
+import org.openmrs.android.fhir.databinding.PatientDetailsUnsyncedBinding
+import org.openmrs.android.fhir.databinding.PatientPropertyItemViewBinding
+import org.openmrs.android.fhir.viewmodel.PatientDetailCondition
+import org.openmrs.android.fhir.viewmodel.PatientDetailData
+import org.openmrs.android.fhir.viewmodel.PatientDetailHeader
+import org.openmrs.android.fhir.viewmodel.PatientDetailObservation
+import org.openmrs.android.fhir.viewmodel.PatientDetailOverview
+import org.openmrs.android.fhir.viewmodel.PatientDetailProperty
+import org.openmrs.android.fhir.viewmodel.PatientUnsynced
 import org.openmrs.android.fhir.databinding.VisitListItemBinding
-import org.openmrs.android.fhir.PatientDetailsVisitItemViewHolder.*
+import org.openmrs.android.fhir.viewmodel.PatientDetailEncounter
+import org.openmrs.android.fhir.viewmodel.PatientDetailVisit
 
 class PatientDetailsRecyclerViewAdapter(
   private val onCreateEncountersClick: () -> Unit,
   private val onEditEncounterClick: (String, String, String) -> Unit,
   private val onEditVisitClick: (String) -> Unit,
-) : ListAdapter<PatientDetailData, PatientDetailItemViewHolder>(PatientDetailDiffUtil()) {
+) : ListAdapter<PatientDetailData, PatientDetailItemViewHolder>(PatientDetailsVisitItemViewHolder.PatientDetailDiffUtil()) {
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PatientDetailItemViewHolder {
-    return when (ViewTypes.from(viewType)) {
-      ViewTypes.HEADER ->
+    return when (PatientDetailsVisitItemViewHolder.ViewTypes.from(viewType)) {
+      PatientDetailsVisitItemViewHolder.ViewTypes.HEADER ->
         PatientDetailsHeaderItemViewHolder(
           PatientDetailsCardViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
         )
-      ViewTypes.PATIENT ->
+      PatientDetailsVisitItemViewHolder.ViewTypes.PATIENT ->
         PatientOverviewItemViewHolder(
           PatientDetailsHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false),
           onCreateEncountersClick
         )
-      ViewTypes.PATIENT_PROPERTY ->
+      PatientDetailsVisitItemViewHolder.ViewTypes.PATIENT_UNSYNCED ->
+        PatientDetailsUnsyncedItemViewHolder(
+          PatientDetailsUnsyncedBinding.inflate(LayoutInflater.from(parent.context),parent, false)
+        )
+      PatientDetailsVisitItemViewHolder.ViewTypes.PATIENT_PROPERTY ->
         PatientPropertyItemViewHolder(
-          PatientListItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+          PatientPropertyItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
         )
-      ViewTypes.OBSERVATION ->
+      PatientDetailsVisitItemViewHolder.ViewTypes.OBSERVATION ->
         PatientDetailsObservationItemViewHolder(
-          PatientListItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+          PatientPropertyItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
         )
-      ViewTypes.CONDITION ->
-        PatientDetailsConditionItemViewHolder(
-          PatientListItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+      PatientDetailsVisitItemViewHolder.ViewTypes.CONDITION ->
+        PatientDetailsVisitItemViewHolder.PatientDetailsConditionItemViewHolder(
+          PatientPropertyItemViewBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+          ),
         )
-      ViewTypes.ENCOUNTER ->
+      PatientDetailsVisitItemViewHolder.ViewTypes.ENCOUNTER ->
         PatientDetailsEncounterItemViewHolder(
-          PatientListItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+          PatientPropertyItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
           onEditEncounterClick
         )
-      ViewTypes.VISIT ->
+      PatientDetailsVisitItemViewHolder.ViewTypes.VISIT ->
         PatientDetailsVisitItemViewHolder(
           VisitListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false),
           onEditVisitClick
@@ -79,17 +96,6 @@ class PatientDetailsRecyclerViewAdapter(
     val model = getItem(position)
     holder.bind(model)
     if (holder is PatientDetailsHeaderItemViewHolder) return
-
-    holder.itemView.background =
-      if (model.firstInGroup && model.lastInGroup) {
-        allCornersRounded()
-      } else if (model.firstInGroup) {
-        topCornersRounded()
-      } else if (model.lastInGroup) {
-        bottomCornersRounded()
-      } else {
-        noCornersRounded()
-      }
     if (holder is PatientDetailsEncounterItemViewHolder) {
       holder.bind(getItem(position) as PatientDetailEncounter)
     }
@@ -98,13 +104,14 @@ class PatientDetailsRecyclerViewAdapter(
   override fun getItemViewType(position: Int): Int {
     val item = getItem(position)
     return when (item) {
-      is PatientDetailHeader -> ViewTypes.HEADER
-      is PatientDetailOverview -> ViewTypes.PATIENT
-      is PatientDetailProperty -> ViewTypes.PATIENT_PROPERTY
-      is PatientDetailObservation -> ViewTypes.OBSERVATION
-      is PatientDetailCondition -> ViewTypes.CONDITION
-      is PatientDetailEncounter -> ViewTypes.ENCOUNTER
-      is PatientDetailVisit -> ViewTypes.VISIT
+      is PatientDetailHeader -> PatientDetailsVisitItemViewHolder.ViewTypes.HEADER
+      is PatientDetailOverview -> PatientDetailsVisitItemViewHolder.ViewTypes.PATIENT
+      is PatientDetailProperty -> PatientDetailsVisitItemViewHolder.ViewTypes.PATIENT_PROPERTY
+      is PatientDetailObservation -> PatientDetailsVisitItemViewHolder.ViewTypes.OBSERVATION
+      is PatientDetailCondition -> PatientDetailsVisitItemViewHolder.ViewTypes.CONDITION
+      is PatientUnsynced -> PatientDetailsVisitItemViewHolder.ViewTypes.PATIENT_UNSYNCED
+      is PatientDetailEncounter -> PatientDetailsVisitItemViewHolder.ViewTypes.ENCOUNTER
+      is PatientDetailVisit -> PatientDetailsVisitItemViewHolder.ViewTypes.VISIT
       else -> {
         throw IllegalArgumentException("Undefined Item type")
       }
@@ -174,23 +181,17 @@ class PatientOverviewItemViewHolder(
   override fun bind(data: PatientDetailData) {
     (data as PatientDetailOverview).let {
       binding.title.text = it.patient.name
-      binding.patientIdValue.text = it.patient.resourceId
-      binding.genderValue.text = it.patient.gender
-      binding.patientPhoneValue.text = it.patient.phone
-      binding.dateOfBirthValue.text = it.patient.dob?.toString() ?: ""
     }
   }
 }
 
-class PatientPropertyItemViewHolder(private val binding: PatientListItemViewBinding) :
+class PatientPropertyItemViewHolder(private val binding: PatientPropertyItemViewBinding) :
   PatientDetailItemViewHolder(binding.root) {
   override fun bind(data: PatientDetailData) {
     (data as PatientDetailProperty).let {
       binding.name.text = it.patientProperty.header
       binding.fieldName.text = it.patientProperty.value
     }
-    binding.status.visibility = View.GONE
-    binding.id.visibility = View.GONE
   }
 }
 
@@ -201,20 +202,23 @@ class PatientDetailsHeaderItemViewHolder(private val binding: PatientDetailsCard
   }
 }
 
-class PatientDetailsObservationItemViewHolder(private val binding: PatientListItemViewBinding) :
+class PatientDetailsUnsyncedItemViewHolder(private val binding: PatientDetailsUnsyncedBinding) :
+  PatientDetailItemViewHolder(binding.root) {
+  override fun bind(data: PatientDetailData) {
+  }
+}
+class PatientDetailsObservationItemViewHolder(private val binding: PatientPropertyItemViewBinding) :
   PatientDetailItemViewHolder(binding.root) {
   override fun bind(data: PatientDetailData) {
     (data as PatientDetailObservation).let {
       binding.name.text = it.observation.code
       binding.fieldName.text = it.observation.value
     }
-    binding.status.visibility = View.GONE
-    binding.id.visibility = View.GONE
   }
 }
 
 class PatientDetailsEncounterItemViewHolder(
-  private val binding: PatientListItemViewBinding,
+  private val binding: PatientPropertyItemViewBinding,
   private val onEditEncounterClick: (String, String, String) -> Unit
 ) : PatientDetailItemViewHolder(binding.root) {
   override fun bind(data: PatientDetailData) {
@@ -226,8 +230,6 @@ class PatientDetailsEncounterItemViewHolder(
         onEditEncounterClick(  encounter.encounterId ?: "", encounter.formDisplay ?: "", encounter.formResource ?: "")
       }
     }
-    binding.status.visibility = View.GONE
-    binding.id.visibility = View.GONE
   }
 }
 
@@ -248,21 +250,20 @@ class PatientDetailsVisitItemViewHolder(
   }
 
 
-class PatientDetailsConditionItemViewHolder(private val binding: PatientListItemViewBinding) :
+class PatientDetailsConditionItemViewHolder(private val binding: PatientPropertyItemViewBinding) :
   PatientDetailItemViewHolder(binding.root) {
   override fun bind(data: PatientDetailData) {
     (data as PatientDetailCondition).let {
       binding.name.text = it.condition.code
       binding.fieldName.text = it.condition.value
     }
-    binding.status.visibility = View.GONE
-    binding.id.visibility = View.GONE
   }
 }
 
 enum class ViewTypes {
   HEADER,
   PATIENT,
+  PATIENT_UNSYNCED,
   PATIENT_PROPERTY,
   OBSERVATION,
   CONDITION,

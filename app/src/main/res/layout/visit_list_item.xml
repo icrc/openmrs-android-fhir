@@ -3,12 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:layout_marginStart="@dimen/text_margin"
     android:padding="8dp">
 
     <TextView
         android:id="@+id/encounterType"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:fontFamily="@font/inter"
         android:text="Encounter Name"
         android:textSize="16sp"
         android:layout_marginBottom="4dp"/>
@@ -17,6 +19,7 @@
         android:id="@+id/encounterDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:fontFamily="@font/inter"
         android:text="Encounter Date"
         android:textSize="14sp"
         android:textColor="@android:color/darker_gray"/>

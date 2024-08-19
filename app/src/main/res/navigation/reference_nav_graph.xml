@@ -103,10 +103,9 @@
   </fragment>
   <fragment
       android:id="@+id/addPatientFragment"
-      android:label="@string/add_patient"
       android:name="org.openmrs.android.fhir.fragments.AddPatientFragment"
-      tools:layout="@layout/add_patient_fragment"
-      />
+      android:label="@string/register_new_patient"
+      tools:layout="@layout/add_patient_fragment" />
 
   <fragment
       android:id="@+id/editPatientFragment"

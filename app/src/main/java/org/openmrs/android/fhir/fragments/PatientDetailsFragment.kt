@@ -21,13 +21,13 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.FhirEngine
 import kotlinx.coroutines.launch
-import org.openmrs.android.fhir.PatientDetailsRecyclerViewAdapter
-import org.openmrs.android.fhir.PatientDetailsViewModel
-import org.openmrs.android.fhir.PatientDetailsViewModelFactory
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.adapters.PatientDetailsRecyclerViewAdapter
 import org.openmrs.android.fhir.databinding.PatientDetailBinding
+import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
+import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModelFactory
 import org.openmrs.android.helpers.OpenMRSHelper.VisitHelper.endVisit
 import java.util.*
 
