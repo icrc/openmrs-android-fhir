@@ -75,10 +75,16 @@ class LoginActivity : AppCompatActivity() {
             Timber.i("restart current login activity as configuration can't be retrieved")
             val intent = this@LoginActivity.intent
             this@LoginActivity.finish()
-            startActivity(intent)
+            if(intent != null){
+              startActivity(intent)
+            }
           }
         } else
-          binding.buttonLogin.setOnClickListener { getContent.launch(loginIntent) }
+          binding.buttonLogin.setOnClickListener {
+            if(loginIntent != null){
+              getContent.launch(loginIntent)
+            }
+          }
       }
 //      }
     }
