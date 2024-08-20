@@ -58,29 +58,35 @@ class LoginActivity : AppCompatActivity() {
     setContentView(binding.root)
     lifecycleScope.launch {
       lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-        if (viewModel.isAuthAlreadyEstablished()) {
-          Timber.i("Auth already established do not show login again")
-          val mainActivityIntent = Intent(this@LoginActivity, MainActivity::class.java)
-          startActivity(mainActivityIntent)
-        } else {
-          val loginIntent = viewModel.createIntent()
-          val lastConfigurationError = viewModel.getLastConfigurationError()
-          if (lastConfigurationError != null) {
-            Toast.makeText(
-              this@LoginActivity,
-              lastConfigurationError.cause?.localizedMessage ?: lastConfigurationError.localizedMessage,
-              Toast.LENGTH_LONG
-            ).show()
-            binding.buttonLogin.setOnClickListener {
-              Timber.i("restart current login activity as configuration can't be retrieved")
-              val intent = this@LoginActivity.intent
-              this@LoginActivity.finish()
+//        if (viewModel.isAuthAlreadyEstablished()) {
+//          Timber.i("Auth already established do not show login again")
+//          val mainActivityIntent = Intent(this@LoginActivity, MainActivity::class.java)
+//          startActivity(mainActivityIntent)
+//        } else {
+        val loginIntent = viewModel.createIntent()
+        val lastConfigurationError = viewModel.getLastConfigurationError()
+        if (lastConfigurationError != null) {
+          Toast.makeText(
+            this@LoginActivity,
+            lastConfigurationError.cause?.localizedMessage ?: lastConfigurationError.localizedMessage,
+            Toast.LENGTH_LONG
+          ).show()
+          binding.buttonLogin.setOnClickListener {
+            Timber.i("restart current login activity as configuration can't be retrieved")
+            val intent = this@LoginActivity.intent
+            this@LoginActivity.finish()
+            if(intent != null){
               startActivity(intent)
             }
-          } else
-            binding.buttonLogin.setOnClickListener { getContent.launch(loginIntent) }
-        }
+          }
+        } else
+          binding.buttonLogin.setOnClickListener {
+            if(loginIntent != null){
+              getContent.launch(loginIntent)
+            }
+          }
       }
+//      }
     }
   }
 }

@@ -26,7 +26,6 @@ import com.google.android.fhir.search.Order
 import com.google.android.fhir.search.StringFilterModifier
 import com.google.android.fhir.search.count
 import com.google.android.fhir.search.search
-import org.openmrs.android.fhir.RiskAssessmentItem
 import java.time.LocalDate
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Patient
@@ -169,6 +168,16 @@ class PatientListViewModel(application: Application, private val fhirEngine: Fhi
     val value: String,
   ) {
     override fun toString(): String = code
+  }
+
+  data class VisitItem(
+    val id: String,
+    val code: String,
+    val startDate: String,
+    val endDate: String
+  ) {
+    override fun toString(): String = code + ", " + startDate + " - " + endDate
+    fun getPeriods(): String = startDate + " - " + endDate
   }
 
     data class EncounterItem(
