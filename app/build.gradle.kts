@@ -102,8 +102,10 @@ publishing {
 
 
 dependencies {
+  androidTestImplementation("junit:junit:4.12")
+  implementation("androidx.core:core-ktx:1.6.0")
+  coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
   implementation("androidx.activity:activity:1.9.0")
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
   implementation("androidx.activity:activity-ktx:1.8.2")
   implementation("androidx.appcompat:appcompat:1.6.1")
   implementation("androidx.constraintlayout:constraintlayout:2.1.4")
@@ -133,6 +135,20 @@ dependencies {
   implementation("androidx.room:room-ktx:$room_version")
   annotationProcessor("androidx.room:room-compiler:$room_version")
   ksp("androidx.room:room-compiler:$room_version")
+  // AndroidX Test libraries
+  testImplementation("junit:junit:4.13.2")
+  testImplementation("androidx.arch.core:core-testing:2.1.0")
+  testImplementation("androidx.test:core:1.4.0")
+  testImplementation("androidx.test.ext:junit:1.1.3")
+  testImplementation("androidx.test.ext:truth:1.4.0")
+  testImplementation("androidx.test:rules:1.4.0")
+  testImplementation("androidx.test:runner:1.4.0")
+
+  // Mockito for mocking dependencies
+  testImplementation("org.mockito:mockito-core:3.12.4")
+  testImplementation("org.mockito:mockito-inline:3.12.4")
+  testImplementation("org.mockito:mockito-android:3.12.4")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.2")
 }
 
 fun localPropertyOrEnv(propertyName: String, envName: String): String? =

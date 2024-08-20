@@ -18,9 +18,10 @@ buildscript {
   }
 }
 
-  plugins {
+
+ plugins {
     id("com.google.devtools.ksp") version "2.0.0-1.0.21" apply false
-      id("org.jetbrains.kotlin.android") version "2.0.0" apply false
+    id("org.jetbrains.kotlin.android") version "2.0.0" apply false
   }
 
 allprojects {
