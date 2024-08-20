@@ -2,6 +2,7 @@ plugins {
   id("com.android.library")
   id("kotlin-android")
   id("androidx.navigation.safeargs.kotlin")
+  id("com.google.devtools.ksp")
   id("maven-publish")
 }
 
@@ -100,6 +101,7 @@ object Versions {
   const val material = "1.11.0"
   const val converterGson = "2.9.0"
   const val kotlinStdlibJdk7 = "1.9.22"
+  const val room = "2.6.1"
 }
 
 dependencies {
@@ -128,6 +130,11 @@ dependencies {
   implementation("com.auth0.android:jwtdecode:${Versions.jwtdecode}")
   implementation("com.google.android.fhir:engine:${Versions.fhirEngine}")
   implementation("com.google.android.fhir:data-capture:${Versions.fhirDataCapture}")
+
+  implementation("androidx.room:room-runtime:${Versions.room}")
+  implementation("androidx.room:room-ktx:${Versions.room}")
+  annotationProcessor("androidx.room:room-compiler:${Versions.room}")
+  ksp("androidx.room:room-compiler:${Versions.room}")
 }
 
 
