@@ -27,6 +27,7 @@
     <color name="disable_state">#9AFFFFFF</color>
 
     <color name="primary_blue_40">#0B57D0</color>
+    <color name="blue">#4285F4</color>
     <color name="onPrimary_blue_100">#FFFFFF</color>
     <color name="primaryContainer_blue_90">#D3E3FD</color>
     <color name="onPrimaryContainer_blue_10">#041E49</color>

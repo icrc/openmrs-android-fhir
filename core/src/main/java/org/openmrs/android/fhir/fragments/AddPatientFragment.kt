@@ -71,8 +71,9 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
       )
     }
     if (savedInstanceState == null) {
-      addQuestionnaireFragment()
+      viewModel.getEmbeddedQuestionnaire()
     }
+    observeQuestionnaire()
     observePatientSaveAction()
     (activity as MainActivity).setDrawerEnabled(false)
 
@@ -103,7 +104,7 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
 
   private fun setUpActionBar() {
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
-      title = requireContext().getString(R.string.add_patient)
+      title = requireContext().getString(R.string.register_new_patient)
       setDisplayHomeAsUpEnabled(true)
     }
   }
@@ -113,14 +114,16 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
       .putString(QUESTIONNAIRE_FILE_PATH_KEY, "new-patient-registration-paginated.json")
   }
 
-  private fun addQuestionnaireFragment() {
+  private fun addQuestionnaireFragment(questionnaire: String) {
     childFragmentManager.commit {
       add(
           R.id.add_patient_container,
         QuestionnaireFragment.builder()
-          .setQuestionnaire(viewModel.questionnaireJson)
+          .setQuestionnaire(questionnaire)
           .setShowCancelButton(true)
           .setShowSubmitButton(true)
+          .showOptionalText(true)
+          .showRequiredText(false)
           .build(),
         QUESTIONNAIRE_FRAGMENT_TAG,
       )
@@ -147,6 +150,12 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
       }
       Toast.makeText(requireContext(), "Patient is saved.", Toast.LENGTH_SHORT).show()
       NavHostFragment.findNavController(this).navigateUp()
+    }
+  }
+
+  private fun observeQuestionnaire() {
+    viewModel.embeddedQuestionnaire.observe(viewLifecycleOwner) {
+      it?.let { addQuestionnaireFragment(it) }
     }
   }
 

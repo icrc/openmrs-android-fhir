@@ -61,11 +61,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     requireView().findViewById<CardView>(R.id.item_patient_list).setOnClickListener {
       findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToPatientList())
     }
-    requireView().findViewById<CardView>(R.id.item_search).setOnClickListener {
-      findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToPatientList())
-    }
     requireView().findViewById<CardView>(R.id.select_location).setOnClickListener {
       findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToLocationFragment())
+    }
+    requireView().findViewById<CardView>(R.id.select_identifier).setOnClickListener {
+      findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToIdentifierFragment())
     }
   }
 

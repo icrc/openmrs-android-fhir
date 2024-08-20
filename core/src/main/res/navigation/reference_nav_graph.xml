@@ -25,6 +25,10 @@
         android:id="@+id/action_home_fragment_to_locationFragment"
         app:destination="@id/locationFragment"
         />
+    <action
+        android:id="@+id/action_home_fragment_to_identifierFragment"
+        app:destination="@id/identifierFragment"
+        />
   </fragment>
 
   <fragment
@@ -99,10 +103,9 @@
   </fragment>
   <fragment
       android:id="@+id/addPatientFragment"
-      android:label="@string/add_patient"
       android:name="org.openmrs.android.fhir.fragments.AddPatientFragment"
-      tools:layout="@layout/add_patient_fragment"
-      />
+      android:label="@string/register_new_patient"
+      tools:layout="@layout/add_patient_fragment" />
 
   <fragment
       android:id="@+id/editPatientFragment"
@@ -127,6 +130,12 @@
       android:label="@string/location"
       android:name="org.openmrs.android.fhir.fragments.LocationFragment"
       tools:layout="@layout/fragment_location"
+      />
+  <fragment
+      android:id="@+id/identifierFragment"
+      android:label="@string/identifier"
+      android:name="org.openmrs.android.fhir.fragments.IdentifierFragment"
+      tools:layout="@layout/fragment_identifier"
       />
 
 </navigation>

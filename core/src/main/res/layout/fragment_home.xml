@@ -8,8 +8,7 @@
     android:layout_marginTop="@dimen/dashboard_margin"
     android:orientation="vertical">
 
-    <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+    <androidx.cardview.widget.CardView
         android:id="@+id/item_new_patient"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -31,6 +30,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_home_new_patient"
+                app:tint="@color/dashboard_cardview_textcolor"
                 android:contentDescription="Task Image" />
 
             <TextView
@@ -48,8 +48,7 @@
 
     </androidx.cardview.widget.CardView>
 
-    <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+    <androidx.cardview.widget.CardView
         android:id="@+id/item_patient_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -71,6 +70,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_home_patient_list"
+                app:tint="@color/dashboard_cardview_textcolor"
                 android:contentDescription="Task Image" />
 
             <TextView
@@ -88,50 +88,7 @@
 
     </androidx.cardview.widget.CardView>
 
-    <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/item_search"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/search_patient_cardview_horizontal_margin"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:layout_marginTop="@dimen/search_patient_cardview_margin_top"
-        android:layout_marginVertical="@dimen/search_patient_cardview_vertical_margin"
-        app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="@dimen/cardView_radius_corner">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="@dimen/new_patient_padding"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_home_search"
-                android:contentDescription="Task Image" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textAppearance="?textAppearanceTitleLarge"
-                android:textSize="@dimen/dashboard_text_fontSize"
-                android:textColor="@color/dashboard_cardview_textcolor"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
-                android:layout_gravity="center"
-                android:text="Find a patient" />
-        </LinearLayout>
-
-    </androidx.cardview.widget.CardView>
-
     <androidx.cardview.widget.CardView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/select_location"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -155,6 +112,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_location"
+                app:tint="@color/dashboard_cardview_textcolor"
                 android:contentDescription="Task Image"
                 />
             <TextView
@@ -168,6 +126,49 @@
                 android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
                 android:layout_gravity="center"
                 android:text="Select Location"
+                />
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/select_identifier"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/search_patient_cardview_horizontal_margin"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginTop="@dimen/search_patient_cardview_margin_top"
+        android:layout_marginVertical="@dimen/search_patient_cardview_vertical_margin"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="@dimen/cardView_radius_corner"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/new_patient_padding"
+            android:orientation="horizontal"
+            >
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_file"
+                app:tint="@color/dashboard_cardview_textcolor"
+                android:contentDescription="Task Image"
+                />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?textAppearanceTitleLarge"
+                android:textSize="@dimen/dashboard_text_fontSize"
+                android:textColor="@color/dashboard_cardview_textcolor"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
+                android:layout_gravity="center"
+                android:text="Select Identifier"
                 />
         </LinearLayout>
 

@@ -1,12 +1,12 @@
 import com.android.build.api.dsl.VariantDimension
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
-
-
 plugins {
   id("com.android.application")
   id("kotlin-android")
   id("androidx.navigation.safeargs.kotlin")
+  id("com.google.devtools.ksp")
+  id("maven-publish")
 }
 
 android {
@@ -50,6 +50,14 @@ android {
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
   }
+  splits {
+    abi {
+      isEnable = true
+      reset()
+      include("arm64-v8a", "armeabi-v7a", "x86")
+      isUniversalApk = false
+    }
+  }
   buildFeatures { viewBinding = true }
   compileOptions {
     // Flag to enable support for the new language APIs
@@ -59,6 +67,12 @@ android {
     targetCompatibility = JavaVersion.VERSION_11
   }
   kotlin { jvmToolchain(11) }
+  packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt"))
+    jniLibs {
+      useLegacyPackaging = true
+    }
+  }
+
   packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
 }
 
