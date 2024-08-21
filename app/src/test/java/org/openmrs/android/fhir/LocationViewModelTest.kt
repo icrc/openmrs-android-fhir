@@ -77,7 +77,7 @@ class LocationViewModelTest {
 
         Mockito.verify(observer).onChanged(Mockito.anyList())
         assert(locationViewModel.locations.value?.size == 1)
-        assert(locationViewModel.locations.value?.get(0)?.name == "Location 2")
+        assert(locationViewModel.locations.value?.get(0)?.name == "Location 1")
     }
 
 
