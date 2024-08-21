@@ -1,4 +1,4 @@
-package org.openmrs.android.fhir
+package org.openmrs.android.fhir.viewmodel
 
 import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
@@ -20,7 +20,6 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.mockito.junit.MockitoJUnitRunner
-import org.openmrs.android.fhir.viewmodel.LocationViewModel
 
 @RunWith(MockitoJUnitRunner::class)
 class LocationViewModelTest {

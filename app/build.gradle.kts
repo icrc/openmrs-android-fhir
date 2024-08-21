@@ -36,7 +36,6 @@ android {
     setResValue("auth_token_endpoint_uri", this)
     setResValue("auth_user_info_endpoint_uri", this)
     setResValue("auth_registration_endpoint_uri", this)
-    setResValue("auth_registration_endpoint_uri", this)
 
     setResValue("auth_https_required", this, "bool")
     setResValue("auth_replace_localhost_by_10_0_2_2", this, "bool")

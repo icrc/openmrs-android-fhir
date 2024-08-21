@@ -88,20 +88,28 @@ object Versions {
   const val jwtdecode = "2.0.2"
   const val fhirEngine = "1.0.0-SNAPSHOT"
   const val fhirDataCapture = "1.1.0-SNAPSHOT"
-  const val lifecycle = "2.7.0"
+  const val lifecycle = "2.8.4"
   const val navigation = "2.7.7"
-  const val datastore = "1.0.0"
-  const val coroutines = "1.7.3"
+  const val datastore = "1.1.1"
+  const val coroutines = "1.8.1"
   const val constraintlayout = "2.1.4"
-  const val appcompat = "1.6.1"
-  const val fragment = "1.6.2"
-  const val activity = "1.8.2"
+  const val appcompat = "1.7.0"
+  const val fragment = "1.8.2"
+  const val activity = "1.9.1"
   const val recyclerview = "1.3.2"
-  const val work = "2.9.0"
-  const val material = "1.11.0"
+  const val work = "2.9.1"
+  const val material = "1.12.0"
   const val converterGson = "2.9.0"
   const val kotlinStdlibJdk7 = "1.9.22"
   const val room = "2.6.1"
+  const val junit = "4.13.2"
+  const val coreTesting = "2.2.0"
+  const val androidXTest = "1.6.1"
+  const val androidTestTruth = "1.6.0"
+  const val androidXTestRunner = "1.6.2"
+  const val androidXTestJunit = "1.2.1"
+  const val coroutineTest = "1.8.1"
+  const val mockito = "4.0.0"
 }
 
 dependencies {
@@ -135,6 +143,23 @@ dependencies {
   implementation("androidx.room:room-ktx:${Versions.room}")
   annotationProcessor("androidx.room:room-compiler:${Versions.room}")
   ksp("androidx.room:room-compiler:${Versions.room}")
+
+  androidTestImplementation("junit:junit:${Versions.junit}")
+
+  // AndroidX Test libraries
+  testImplementation("junit:junit:${Versions.junit}")
+  testImplementation("androidx.arch.core:core-testing:${Versions.coreTesting}")
+  testImplementation("androidx.test:core:${Versions.androidXTest}")
+  testImplementation("androidx.test:rules:${Versions.androidXTest}")
+  testImplementation("androidx.test:runner:${Versions.androidXTestRunner}")
+  testImplementation("androidx.test.ext:truth:${Versions.androidTestTruth}")
+  testImplementation("androidx.test.ext:junit:${Versions.androidXTestJunit}")
+
+  // Mockito for mocking dependencies
+  testImplementation("org.mockito:mockito-core:${Versions.mockito}")
+  testImplementation("org.mockito:mockito-inline:${Versions.mockito}")
+  testImplementation("org.mockito:mockito-android:${Versions.mockito}")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.coroutineTest}")
 }
 
 
