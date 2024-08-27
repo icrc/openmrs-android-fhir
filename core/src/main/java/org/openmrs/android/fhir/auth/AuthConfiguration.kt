@@ -30,7 +30,7 @@ import org.openmrs.android.fhir.R
 
 class AuthConfiguration private constructor(private val context: Context) {
   private val authConfigKey by lazy { stringPreferencesKey("AuthConfig") }
-  var  lastException: AuthorizationException?=null
+  var lastException: AuthorizationException? = null
   private val gson = Gson()
   val stored: AuthConfigData
     get() {
@@ -39,8 +39,8 @@ class AuthConfiguration private constructor(private val context: Context) {
       return gson.fromJson(serializedAuth, AuthConfigData::class.java)
     }
 
-  suspend fun isNotStored(): Boolean{
-    return context.dataStore.data.first()[authConfigKey] ==null
+  suspend fun isNotStored(): Boolean {
+    return context.dataStore.data.first()[authConfigKey] == null
   }
 
   suspend fun save() {
@@ -50,7 +50,7 @@ class AuthConfiguration private constructor(private val context: Context) {
   val authConfigData: AuthConfigData by lazy {
     AuthConfigData(
       client_id = context.getString(R.string.auth_client_id),
-      redirect_uri = context.getString(R.string.auth_redirect_uri_host)+":"+context.getString(R.string.auth_redirect_uri_path),
+      redirect_uri = context.getString(R.string.auth_redirect_uri_host) + ":" + context.getString(R.string.auth_redirect_uri_path),
       authorization_scope = context.getString(R.string.auth_authorization_scope),
       discovery_uri = context.getString(R.string.auth_discovery_uri),
       authorization_endpoint_uri = context.getString(R.string.auth_authorization_endpoint_uri),
@@ -69,7 +69,11 @@ class AuthConfiguration private constructor(private val context: Context) {
   val redirectUri: Uri?
     get() = Uri.parse(authConfigData.redirect_uri)
   val discoveryUri: Uri?
-    get() = Uri.parse(authConfigData.discovery_uri)
+    get() =
+      if (authConfigData.discovery_uri.isNullOrBlank())
+        null
+      else
+        Uri.parse(authConfigData.discovery_uri)
   val authEndpointUri: Uri?
     get() = Uri.parse(authConfigData.authorization_endpoint_uri)
   val tokenEndpointUri: Uri?
@@ -91,7 +95,6 @@ class AuthConfiguration private constructor(private val context: Context) {
     AuthConfigUtil.isRequiredConfigString(authConfigData.client_id)
     AuthConfigUtil.isRequiredConfigString(authConfigData.authorization_scope)
     AuthConfigUtil.isRequiredConfigUri(authConfigData.redirect_uri)
-//    AuthConfigUtil.isRequiredConfigUri(authConfigData.end_session_redirect_uri)
     AuthConfigUtil.isRedirectUriRegistered(context, authConfigData.redirect_uri!!)
     if (authConfigData.discovery_uri == null || authConfigData.discovery_uri.isNullOrEmpty()) {
       AuthConfigUtil.isRequiredConfigWebUri(authConfigData.authorization_endpoint_uri)
