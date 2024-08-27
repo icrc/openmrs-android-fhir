@@ -16,6 +16,7 @@ android {
   defaultConfig {
     applicationId = "org.openmrs.android.fhir.app"
     minSdk = 26
+    targetSdk = 34
     manifestPlaceholders["appAuthRedirectScheme"] = applicationId!!
     buildFeatures.buildConfig = true
     versionCode = 1
