@@ -13,13 +13,16 @@ android {
     minSdk = 26
     testInstrumentationRunner = "androidx.test.runner.Android JUnitRunner"
     buildFeatures.buildConfig = true
-
-
   }
   buildFeatures { viewBinding = true }
   buildTypes {
     release {
+      isMinifyEnabled = true
+      proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+    }
+    debug {
       isMinifyEnabled = false
+      isJniDebuggable = true
       proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
     }
   }
@@ -56,22 +59,13 @@ android {
 
 publishing {
   publications {
-    create<MavenPublication>("release") {
+    register<MavenPublication>("default") {
       groupId = android.namespace
       artifactId = "coreapp"
       version = "0.1-SNAPSHOT"
 
       afterEvaluate {
-        from(components["release"])
-      }
-    }
-    create<MavenPublication>("debug") {
-      groupId = android.namespace
-      artifactId = "coreapp"
-      version = "0.1-SNAPSHOT"
-
-      afterEvaluate {
-        from(components["debug"])
+        from(components["default"])
       }
     }
   }
