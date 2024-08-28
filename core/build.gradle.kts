@@ -56,22 +56,13 @@ android {
 
 publishing {
   publications {
-    create<MavenPublication>("release") {
+    register<MavenPublication>("default") {
       groupId = android.namespace
       artifactId = "coreapp"
       version = "0.1-SNAPSHOT"
 
       afterEvaluate {
-        from(components["release"])
-      }
-    }
-    create<MavenPublication>("debug") {
-      groupId = android.namespace
-      artifactId = "coreapp"
-      version = "0.1-SNAPSHOT"
-
-      afterEvaluate {
-        from(components["debug"])
+        from(components["default"])
       }
     }
   }
@@ -123,8 +114,6 @@ object Versions {
 }
 
 dependencies {
-
-
   coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:${Versions.desugar_jdk_libs}")
   implementation("androidx.activity:activity-ktx:${Versions.activity}")
   implementation("androidx.appcompat:appcompat:${Versions.appcompat}")
