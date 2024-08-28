@@ -20,7 +20,7 @@ android {
   buildTypes {
     release {
       isMinifyEnabled = false
-      proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
   }
   compileOptions {
@@ -92,7 +92,7 @@ publishing {
 
 
 object Versions {
-  const val desugar_jdk_libs = "2.0.4"
+  const val desugar_jdk_libs = "2.1.0 "
   const val appauth = "0.11.1"
   const val timber = "5.0.1"
   const val jwtdecode = "2.0.2"
