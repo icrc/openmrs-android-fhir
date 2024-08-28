@@ -17,21 +17,16 @@ package org.openmrs.android.fhir.data
 
 import android.content.Context
 import androidx.work.WorkerParameters
-import com.google.android.fhir.FhirEngineProvider
 import com.google.android.fhir.sync.AcceptLocalConflictResolver
 import com.google.android.fhir.sync.DownloadWorkManager
 import com.google.android.fhir.sync.FhirSyncWorker
 import com.google.android.fhir.sync.upload.UploadStrategy
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.LoginRepository
 
 class FhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
   FhirSyncWorker(appContext, workerParams) {
 
   override fun getDownloadWorkManager(): DownloadWorkManager {
-//    val loginRepository = LoginRepository.getInstance(applicationContext)
-//    val accessToken = loginRepository.getAccessToken()
-//    val patientListId = JWT(accessToken).getClaim("patient_list").asString()
     return TimestampBasedDownloadWorkManagerImpl(FhirApplication.dataStore(applicationContext))
   }
 

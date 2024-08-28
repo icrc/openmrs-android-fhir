@@ -51,6 +51,8 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
 
   override fun onCreate() {
     super.onCreate()
+    Timber.e("FHIR Application started. Test Error log. Is Debug "+BuildConfig.DEBUG  )
+    Timber.d("FHIR Application started. Test Debug log")
     if (BuildConfig.DEBUG) {
       Timber.plant(Timber.DebugTree())
     }
