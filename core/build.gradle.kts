@@ -65,6 +65,15 @@ publishing {
         from(components["release"])
       }
     }
+    create<MavenPublication>("debug") {
+      groupId = android.namespace
+      artifactId = "coreapp"
+      version = "0.1-SNAPSHOT"
+
+      afterEvaluate {
+        from(components["debug"])
+      }
+    }
   }
   repositories {
     maven {
