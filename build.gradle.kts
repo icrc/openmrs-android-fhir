@@ -9,9 +9,9 @@ buildscript {
 
   }
   dependencies {
-    classpath("com.android.tools.build:gradle:8.2.2")
+    classpath("com.android.tools.build:gradle:8.5.2")
     classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
-    classpath("com.google.gms:google-services:4.4.1")
+    classpath("com.google.gms:google-services:4.4.2")
     classpath("com.diffplug.spotless:spotless-plugin-gradle:6.22.0")
     classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.7.7")
 
@@ -35,13 +35,13 @@ allprojects {
       name = "google-android-fhir"
       url = uri("https://maven.pkg.github.com/google/android-fhir")
       credentials {
-        username = localPropertyOrEnv("gpr.user", "USERNAME")
-        password = localPropertyOrEnv("gpr.key", "TOKEN")
+        username = localPropertyOrEnv(providers,"gpr.user", "USERNAME")
+        password = localPropertyOrEnv(providers,"gpr.key", "TOKEN")
       }
     }
   }
 
 }
 
-fun localPropertyOrEnv(propertyName: String, envName: String): String? =
-  gradleLocalProperties(rootDir).getProperty(propertyName) ?: System.getenv(envName)
+fun localPropertyOrEnv(providers: ProviderFactory, propertyName: String, envName: String): String? =
+  gradleLocalProperties(rootDir, providers).getProperty(propertyName) ?: System.getenv(envName)
