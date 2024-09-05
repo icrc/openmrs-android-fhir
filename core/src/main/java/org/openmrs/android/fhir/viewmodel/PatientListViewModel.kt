@@ -28,6 +28,7 @@ import com.google.android.fhir.search.count
 import com.google.android.fhir.search.search
 import java.time.LocalDate
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.RiskAssessment
@@ -143,6 +144,7 @@ class PatientListViewModel(application: Application, private val fhirEngine: Fhi
     val city: String,
     val country: String,
     val isActive: Boolean,
+    val identifiers: List<Identifier>,
     val html: String,
     var isSynced: Boolean? = false,
     var risk: String? = "",
@@ -224,6 +226,7 @@ internal fun Patient.toPatientItem(position: Int): PatientListViewModel.PatientI
   val phone = if (hasTelecom()) telecom[0].value else ""
   val city = if (hasAddress()) address[0].city else ""
   val country = if (hasAddress()) address[0].country else ""
+  val identifiers = identifier
   val isActive = active
   val html: String = if (hasText()) text.div.valueAsString else ""
 
@@ -237,6 +240,7 @@ internal fun Patient.toPatientItem(position: Int): PatientListViewModel.PatientI
     city = city ?: "",
     country = country ?: "",
     isActive = isActive,
+    identifiers = identifiers,
     html = html,
   )
 }
