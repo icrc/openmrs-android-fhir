@@ -85,6 +85,12 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
       embeddIdentifierToUnsyncedPatients(context)
       _oneTimeSyncTrigger.value = !_oneTimeSyncTrigger.value
 
+      _oneTimeSyncTrigger
+        .combine(
+          flow = Sync.oneTimeSync<FhirSyncWorker>(context = getApplication<Application>().applicationContext),
+        ) { _, syncJobStatus ->
+          syncJobStatus
+        }
     }
   }
 
