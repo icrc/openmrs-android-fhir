@@ -26,20 +26,13 @@ import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.apache.commons.lang3.StringUtils
-import org.hl7.fhir.r4.model.Condition
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
-import org.hl7.fhir.r4.model.RiskAssessment
-import org.hl7.fhir.r4.model.codesystems.RiskProbability
-import org.openmrs.android.fhir.MAX_RESOURCE_COUNT
 import org.openmrs.android.fhir.MockConstants
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.MockConstants.DATE24_FORMATTER
-import org.openmrs.android.fhir.viewmodel.PatientListViewModel
-import org.openmrs.android.fhir.viewmodel.toPatientItem
 import org.openmrs.android.helpers.OpenMRSHelper
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -111,7 +104,6 @@ class PatientDetailsViewModel(
         viewModelScope.launch {
             val visit =
                 OpenMRSHelper.VisitHelper.startVisit(fhirEngine, patientId, MockConstants.VISIT_TYPE_UUID, startDate);
-            fhirEngine.create(visit)
         }
     }
 
