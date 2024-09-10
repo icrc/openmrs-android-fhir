@@ -101,7 +101,6 @@ class OpenMRSHelper {
             val encounter = Encounter().apply {
                 subject = Reference("Patient/$patientId")
                 status = Encounter.EncounterStatus.INPROGRESS
-                id = "4244c25d-7426-4244-bd81-250ebc69fc51"
                 setPeriod(Period().apply { start = startDate })
                 addParticipant(createParticipant())
                 addLocation(Encounter.EncounterLocationComponent().apply {
