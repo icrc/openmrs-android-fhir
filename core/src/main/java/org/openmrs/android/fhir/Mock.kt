@@ -49,6 +49,7 @@ object MockConstants {
             resource = "assessment.json"
         )
     )
+    val WRAP_ENCOUNTER = true
 }
 fun createMockLocationReference(): Reference {
     val locationReference = Reference().apply {

@@ -47,6 +47,9 @@ import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.extensions.readFileFromAssets
 import org.openmrs.android.fhir.fragments.GenericFormEntryFragment
 import org.openmrs.android.helpers.OpenMRSHelper
+import org.openmrs.android.helpers.OpenMRSHelper.MiscHelper
+import org.openmrs.android.helpers.OpenMRSHelper.UserHelper
+import java.time.ZoneId
 import java.util.Date
 import java.util.UUID
 
@@ -66,6 +69,39 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
 
   private var questionnaireJson: String? = null
   private var fhirEngine: FhirEngine = FhirApplication.fhirEngine(application.applicationContext)
+
+  suspend fun createWrapperVisit(patientId: String): Encounter {
+
+    val localDate = Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+    val localStartOfDay = localDate.atStartOfDay()
+
+    val visitDate = Date.from(localStartOfDay.atZone(ZoneId.systemDefault()).toInstant())
+
+    val visit = Encounter().apply {
+      subject = Reference("Patient/$patientId")
+      status = Encounter.EncounterStatus.INPROGRESS
+      setPeriod(Period().apply { start = visitDate; end = visitDate })
+      addParticipant(MiscHelper.createParticipant())
+      addLocation(Encounter.EncounterLocationComponent().apply {
+        location = Reference("Location/${UserHelper.getCurrentAuthLocation().id}")
+      })
+      addType(CodeableConcept().apply {
+        coding = listOf(
+          Coding().apply {
+            system = "http://fhir.openmrs.org/code-system/visit-type"
+            code = MockConstants.VISIT_TYPE_UUID
+            display = "Facility Visit"
+          }
+        )
+      })
+
+    }
+
+    fhirEngine.create(visit)
+
+    return visit
+  }
+
   /**
    * Saves generic encounter questionnaire response into the application database.
    *
@@ -76,17 +112,21 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
       val bundle = ResourceMapper.extract(questionnaireResource, questionnaireResponse)
       val patientReference = Reference("Patient/$patientId")
       val encounterId = generateUuid()
-      val visitId = OpenMRSHelper.VisitHelper.getActiveVisit(fhirEngine, patientId, true)
+
+      val visit : Encounter
+      if (MockConstants.WRAP_ENCOUNTER) {
+        visit = createWrapperVisit(patientId)
+      } else {
+        visit = OpenMRSHelper.VisitHelper.getActiveVisit(fhirEngine, patientId, true)!!
+      }
+
       if (isRequiredFieldMissing(bundle)) {
         isResourcesSaved.value = false
         return@launch
       }
 
-      if (visitId != null) {
-        saveResources(bundle, patientReference, form, encounterId, visitId.id )
-        isResourcesSaved.value = true
-
-      }
+      saveResources(bundle, patientReference, form, encounterId, visit.idPart)
+      isResourcesSaved.value = true
     }
   }
 
@@ -101,6 +141,15 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
     val appContext = getApplication<Application>().applicationContext
     val locationId = appContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
 
+    val encounterDate: Date
+    if (MockConstants.WRAP_ENCOUNTER) {
+      val localDate = Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+      val localStartOfDay = localDate.atStartOfDay()
+      encounterDate = Date.from(localStartOfDay.atZone(ZoneId.systemDefault()).toInstant())
+    } else {
+      encounterDate = Date()
+    }
+
     bundle.entry
       .mapNotNull { it.resource as? Encounter }
       .forEach { encounter ->
@@ -108,8 +157,8 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
           subject = patientReference
           id = encounterId
           status = Encounter.EncounterStatus.FINISHED
-          partOf = Reference(visitId)
-          setPeriod(Period().apply { start = Date() })
+          partOf = Reference("Encounter/$visitId")
+          setPeriod(Period().apply { start = encounterDate; end = encounterDate })
           addParticipant(createParticipant())
           addLocation(Encounter.EncounterLocationComponent().apply {
             location = Reference("Location/$locationId")  // Set the location reference

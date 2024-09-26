@@ -23,6 +23,7 @@ import com.google.android.fhir.FhirEngine
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
+import org.openmrs.android.fhir.MockConstants
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.PatientDetailsRecyclerViewAdapter
 import org.openmrs.android.fhir.databinding.PatientDetailBinding
@@ -83,10 +84,14 @@ class PatientDetailsFragment : Fragment() {
   private fun onCreateEncounterClick() {
     lifecycleScope.launch {
       val hasActiveVisit = patientDetailsViewModel.hasActiveVisit()
-      if (hasActiveVisit) {
+      if (MockConstants.WRAP_ENCOUNTER) {
         navigateToCreateEncounter()
       } else {
-        showStartVisitDateTimeDialog()
+        if (hasActiveVisit) {
+          navigateToCreateEncounter()
+        } else {
+          showStartVisitDateTimeDialog()
+        }
       }
     }
   }
