@@ -70,7 +70,8 @@ class PatientDetailsViewModel(
         data.addPatientDetailData(patientResource)
         data.add(PatientDetailHeader(getString(R.string.header_encounters)))
         visits.forEach { (visit, encounters) ->
-            data.addVisitData(visit, encounters)
+            //Hide Facility visit details
+            //data.addVisitData(visit, encounters)
             encounters.forEach { encounter ->
                 data.addEncounterData(encounter)
             }
