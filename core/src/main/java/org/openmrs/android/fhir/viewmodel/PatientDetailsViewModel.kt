@@ -33,6 +33,7 @@ import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.MockConstants
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.MockConstants.DATE24_FORMATTER
+import org.openmrs.android.fhir.MockConstants.WRAP_ENCOUNTER
 import org.openmrs.android.helpers.OpenMRSHelper
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -70,7 +71,11 @@ class PatientDetailsViewModel(
         data.addPatientDetailData(patientResource)
         data.add(PatientDetailHeader(getString(R.string.header_encounters)))
         visits.forEach { (visit, encounters) ->
-            data.addVisitData(visit, encounters)
+
+            if (!WRAP_ENCOUNTER) {
+                data.addVisitData(visit, encounters)
+            }
+
             encounters.forEach { encounter ->
                 data.addEncounterData(encounter)
             }
@@ -86,10 +91,11 @@ class PatientDetailsViewModel(
             .toPatientItem(0)
             .let { patientItem ->
                 runBlocking {
-                    patientItem.isSynced = fhirEngine.getLocalChanges(ResourceType.Patient, patientItem.resourceId).isEmpty()
+                    patientItem.isSynced =
+                        fhirEngine.getLocalChanges(ResourceType.Patient, patientItem.resourceId).isEmpty()
                     add(PatientDetailOverview(patientItem, firstInGroup = true))
-                    if(patientItem.isSynced !=null && !patientItem.isSynced!!){
-                        add(PatientUnsynced(false,false))
+                    if (patientItem.isSynced != null && !patientItem.isSynced!!) {
+                        add(PatientUnsynced(false, false))
                     }
                 }
                 // Add other patient details if necessary
@@ -183,7 +189,7 @@ data class PatientDetailOverview(
 data class PatientUnsynced(
     override val firstInGroup: Boolean = false,
     override val lastInGroup: Boolean = false
-    ):PatientDetailData
+) : PatientDetailData
 
 data class PatientDetailObservation(
     val observation: PatientListViewModel.ObservationItem,
