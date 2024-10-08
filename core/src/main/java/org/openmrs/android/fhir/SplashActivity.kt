@@ -21,7 +21,10 @@ class SplashActivity : AppCompatActivity() {
             insets
         }
         authStateManager = AuthStateManager.getInstance(applicationContext)
-        if (authStateManager.current.isAuthorized) {
+        //TODO: fix that point for real offline mode
+        //by removing needsTokenRefresh we have an exception later on net.openid.appauth.AuthState.mRefreshToken being null
+        // in this method: net.openid.appauth.AuthState.createTokenRefreshRequest(java.util.Map<java.lang.String,java.lang.String>)
+        if (authStateManager.current.isAuthorized && !authStateManager.current.needsTokenRefresh) {
             startActivity(Intent(this, MainActivity::class.java))
         } else {
             startActivity(Intent(this, LoginActivity::class.java))

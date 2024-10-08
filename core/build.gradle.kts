@@ -60,7 +60,7 @@ publishing {
     register<MavenPublication>("default") {
       groupId = android.namespace
       artifactId = "coreapp"
-      version = "0.1-SNAPSHOT"
+      version = "0.1.1-SNAPSHOT"
 
       afterEvaluate {
         from(components["default"])

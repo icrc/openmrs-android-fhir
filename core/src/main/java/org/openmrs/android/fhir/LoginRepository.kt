@@ -229,7 +229,7 @@ private constructor(
 
   fun getAccessToken(): String {
     return runBlocking {
-      if (authStateManager.current.needsTokenRefresh and authStateManager.current.isAuthorized) {
+      if (authStateManager.current.needsTokenRefresh and authStateManager.current.isAuthorized && (authStateManager.current.refreshToken !=null)) {
         Timber.i("Refreshing access token")
         refreshAccessToken()
       }
