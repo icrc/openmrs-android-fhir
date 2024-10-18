@@ -20,6 +20,8 @@ import androidx.work.WorkerParameters
 import com.google.android.fhir.sync.AcceptLocalConflictResolver
 import com.google.android.fhir.sync.DownloadWorkManager
 import com.google.android.fhir.sync.FhirSyncWorker
+import com.google.android.fhir.sync.upload.HttpCreateMethod
+import com.google.android.fhir.sync.upload.HttpUpdateMethod
 import com.google.android.fhir.sync.upload.UploadStrategy
 import org.openmrs.android.fhir.FhirApplication
 
@@ -31,7 +33,11 @@ class FhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
   }
 
 
-  override fun getUploadStrategy(): UploadStrategy = UploadStrategy.SingleResourcePost
+  override fun getUploadStrategy(): UploadStrategy = UploadStrategy.forIndividualRequest(
+      methodForCreate = HttpCreateMethod.POST,
+      methodForUpdate = HttpUpdateMethod.PATCH,
+      squash = true
+  )
 
   override fun getConflictResolver() = AcceptLocalConflictResolver
 
