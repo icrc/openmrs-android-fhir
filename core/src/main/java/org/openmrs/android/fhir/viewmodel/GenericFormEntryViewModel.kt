@@ -181,11 +181,15 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
       when (val resource = it.resource) {
         is Observation -> {
           if (resource.hasCode() && resource.hasValue()) {
-            resource.id = generateUuid()
-            resource.subject = patientReference
-            resource.encounter = encounterReference
-            resource.effective = DateTimeType(Date())
-            resource.status = Observation.ObservationStatus.FINAL
+
+            resource.apply {
+              id = generateUuid()
+              subject = patientReference
+              encounter = encounterReference
+              status = Observation.ObservationStatus.FINAL
+              effective = DateTimeType(Date())
+              value = resource.value
+            }
             saveResourceToDatabase(resource)
           }
         }

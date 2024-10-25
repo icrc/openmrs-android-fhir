@@ -41,6 +41,7 @@
     <string name="patient_property_gender">Gender</string>
     <string name="register_new_patient">Register new patient</string>
     <string name="edit_patient">Edit Patient</string>
+    <string name="create_encounter">Create Encounter</string>
     <string name="edit_encounter">Edit Encounter</string>
     <string name="location">Location</string>
     <string name="identifier">Identifier</string>

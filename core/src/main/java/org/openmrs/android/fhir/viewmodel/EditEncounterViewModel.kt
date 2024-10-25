@@ -19,6 +19,7 @@ import org.hl7.fhir.r4.model.*
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.extensions.readFileFromAssets
 import java.util.UUID
+import java.util.Date
 
 class EditEncounterViewModel(application: Application, private val state: SavedStateHandle) :
     AndroidViewModel(application) {
@@ -101,18 +102,30 @@ class EditEncounterViewModel(application: Application, private val state: SavedS
         val existingObservation = observations.find { obs ->
             obs.code.coding.any { coding -> coding.code == resource.code.codingFirstRep.code }
         }
-        if (existingObservation != null) {
-            resource.id = existingObservation.id
-        } else {
-            resource.id = UUID.randomUUID().toString()
-        }
-        resource.subject = subjectReference
-        resource.encounter = encounterReference
 
-        if (existingObservation != null) {
-            updateResourceToDatabase(resource)
+        if(existingObservation != null && existingObservation.value.equalsDeep(resource.value)) {
+            return;
+        }
+
+        existingObservation?.apply {
+            id = existingObservation.id
+            status = Observation.ObservationStatus.AMENDED
+            value = resource.value
+        }
+
+        if (existingObservation != null && existingObservation.hasValue()) {
+            updateResourceToDatabase(existingObservation)
         } else {
-            createResourceToDatabase(resource)
+            resource.apply {
+                id = UUID.randomUUID().toString()
+                subject = subjectReference
+                encounter = encounterReference
+                status = Observation.ObservationStatus.FINAL
+                effective = DateTimeType(Date())
+            }
+            if(resource.hasValue()){
+                createResourceToDatabase(resource)
+            }
         }
     }
 
