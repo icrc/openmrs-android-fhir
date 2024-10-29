@@ -255,6 +255,7 @@ class PatientDetailsEncounterItemViewHolder(
             val encounter = it.encounter;
             binding.name.text = encounter.type
             binding.fieldName.text = encounter.dateTime
+            binding.syncItemStatus.visibility = if (encounter.isSynced!! && encounter.isSynced) View.GONE else View.VISIBLE
             binding.name.setOnClickListener {
                 onEditEncounterClick(
                     encounter.encounterId ?: "",

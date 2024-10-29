@@ -110,11 +110,10 @@ class MainActivity : AppCompatActivity() {
 
   private fun setLocationInDrawer() {
     lifecycleScope.launch {
-      val selectedLocationName = applicationContext?.dataStore?.data?.first()?.get(
-        PreferenceKeys.LOCATION_NAME)
-      if (selectedLocationName != null) {
-        binding.navigationView.menu.findItem(R.id.menu_current_location).title = selectedLocationName
-      }
+      binding.navigationView.menu.findItem(R.id.menu_current_location).title =
+        applicationContext?.dataStore?.data
+          ?.first()
+          ?.get(PreferenceKeys.LOCATION_NAME) ?: getString(R.string.no_location_selected)
     }
   }
 
