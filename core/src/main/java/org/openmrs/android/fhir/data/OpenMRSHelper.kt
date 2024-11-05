@@ -41,11 +41,6 @@ class OpenMRSHelper {
         ): Map<Encounter, List<Encounter>> {
             val visits: MutableMap<Encounter, List<Encounter>> = HashMap()
 
-            val patientResult = fhirEngine.search<Patient> {
-                filter(Resource.RES_ID, { value = of(patientId) })
-                revInclude<Encounter>(Encounter.SUBJECT)
-            }
-
             val allEncounters = LinkedList<Encounter>();
 
             fhirEngine.search<Encounter> {

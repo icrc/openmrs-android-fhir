@@ -45,9 +45,11 @@ class EditPatientViewModel(application: Application, private val state: SavedSta
 
     private val patientId: String = requireNotNull(state["patient_id"])
     val livePatientData = liveData { emit(prepareEditPatient()) }
+    lateinit var originalPatient: Patient
 
     private suspend fun prepareEditPatient(): Pair<String, String> {
         val patient = fhirEngine.get<Patient>(patientId)
+        originalPatient = patient
         val launchContexts = mapOf<String, Resource>("client" to patient)
         val question =
             getApplication<Application>()
@@ -94,6 +96,7 @@ class EditPatientViewModel(application: Application, private val state: SavedSta
                 patient.hasTelecom() &&
                 patient.telecom[0].value != null
             ) {
+                patient.name[0].id = originalPatient.name[0].id
                 patient.id = patientId
                 fhirEngine.update(patient)
                 isPatientSaved.value = true

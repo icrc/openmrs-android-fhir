@@ -188,7 +188,8 @@ class PatientListViewModel(application: Application, private val fhirEngine: Fhi
         val dateTime: String,
         val formCode: String?,
         val formDisplay: String?,
-        val formResource: String?
+        val formResource: String?,
+        val isSynced: Boolean?,
     ) {
         override fun toString(): String = encounterId ?: type
     }
