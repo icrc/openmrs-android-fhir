@@ -30,10 +30,19 @@ import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.viewmodel.EditPatientViewModel
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.databinding.AddPatientFragmentBinding
+import kotlinx.coroutines.flow.first
+
 
 /** A fragment representing Edit Patient screen. This fragment is contained in a [MainActivity]. */
 class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
   private val viewModel: EditPatientViewModel by viewModels()
+  private var _binding: AddPatientFragmentBinding? = null
+
+  private val binding
+    get() = _binding!!
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -42,8 +51,17 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
+    _binding = AddPatientFragmentBinding.bind(view)
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title = requireContext().getString(R.string.edit_patient)
+    }
+
+    lifecycleScope.launch {
+      val selectedLocation = context?.applicationContext?.dataStore?.data
+        ?.first()
+        ?.get(PreferenceKeys.LOCATION_NAME)
+
+      binding.currentLocationLabel.text = selectedLocation ?: getString(R.string.no_location_selected)
     }
     requireArguments()
       .putString(QUESTIONNAIRE_FILE_PATH_KEY, "new-patient-registration-paginated.json")
