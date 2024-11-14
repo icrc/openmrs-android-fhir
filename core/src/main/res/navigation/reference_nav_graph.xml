@@ -88,6 +88,7 @@
         app:argType="string"
         android:defaultValue="@null"
         app:nullable="true" />
+      <argument android:name="encounterType_code" app:argType="string"/>
   </fragment>
   <fragment
       android:id="@+id/createEncounterFragment"

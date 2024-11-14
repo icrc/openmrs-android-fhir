@@ -163,12 +163,20 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
           addLocation(Encounter.EncounterLocationComponent().apply {
             location = Reference("Location/$locationId")  // Set the location reference
           })
-
           addType(CodeableConcept().apply {
             coding = listOf(
               Coding().apply {
                 system = "http://fhir.openmrs.org/code-system/encounter-type"
-                code = form.code
+                code = form.encounterType
+                display = form.display
+              }
+            )
+          })
+          addType(CodeableConcept().apply {
+            coding = listOf(
+              Coding().apply {
+                system = "http://fhir.openmrs.org/core/StructureDefinition/omrs-form"
+                code = form.form
                 display = form.display
               }
             )

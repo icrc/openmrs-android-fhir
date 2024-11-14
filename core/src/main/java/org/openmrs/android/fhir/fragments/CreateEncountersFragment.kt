@@ -62,8 +62,9 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
           CreateEncountersFragmentDirections.actionCreateEncounterFragmentToGenericFormEntryFragment(
             form.resource,
             form.display,
-            form.code,
-            args.patientId
+            form.form,
+            args.patientId,
+            form.encounterType
           )
         )
       }

@@ -28,7 +28,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
     super.onViewCreated(view, savedInstanceState)
     setUpActionBar()
     setHasOptionsMenu(true)
-    updateArguments(args.formResource, args.formCode)
+    updateArguments(args.formResource, args.encounterTypeCode)
     onBackPressed()
     observeResourcesSaveAction()
     if (savedInstanceState == null) {
@@ -80,7 +80,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
         childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG) as QuestionnaireFragment
       viewModel.saveEncounter(
         questionnaireFragment.getQuestionnaireResponse(),
-        Form(args.formDisplay, args.formCode), args.patientId
+        Form(args.formDisplay, args.encounterTypeCode, args.formCode), args.patientId
       )
     }
   }

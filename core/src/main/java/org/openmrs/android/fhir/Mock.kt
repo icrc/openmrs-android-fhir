@@ -5,10 +5,11 @@ import java.util.Locale
 
 data class Form(
     val display: String,
-    val code: String,
+    val encounterType: String,
+    val form: String,
     val resource: String
 ) {
-    constructor(display: String, code: String) : this(display, code, "")
+    constructor(display: String, code: String, form: String) : this(display, code, form, "")
 }
 
 data class Patient(
@@ -35,17 +36,20 @@ object MockConstants {
     val MOCK_FORMS = listOf(
         Form(
             display = "Assessment Form",
-            code = "0c63150d-ff39-42e1-9048-834mh76p2s72",
+            encounterType = "0c63150d-ff39-42e1-9048-834mh76p2s72",
+            form = "17dea7cc-a0e6-34be-af31-9867004202df",
             resource = "assessment.json"
         ),
         Form(
             display = "Followup Form",
-            code = "07a7dd1c-7280-483a-a3bc-01be995293ac",
+            encounterType = "07a7dd1c-7280-483a-a3bc-01be995293ac",
+            form = "798a600f-fe2b-3d24-ad15-19d8ff2c17ac",
             resource = "assessment.json"
         ),
         Form(
             display = "Closure Form",
-            code = "95458795-3o06-4l59-9508-c217aa21ea26",
+            encounterType = "95458795-3o06-4l59-9508-c217aa21ea26",
+            form = "07154b0d-2163-3fe2-b75f-096368f0f852",
             resource = "assessment.json"
         )
     )
