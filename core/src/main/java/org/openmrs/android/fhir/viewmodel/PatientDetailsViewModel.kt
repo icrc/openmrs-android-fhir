@@ -77,11 +77,19 @@ class PatientDetailsViewModel(
             }
 
             encounters.forEach { encounter ->
-                data.addEncounterData(encounter)
+                val isSynced = fhirEngine.getLocalChanges(ResourceType.Encounter, encounter.logicalId).isEmpty()
+                data.addEncounterData(encounter, isSynced)
             }
         }
 
-        return data
+        return data.sortedBy {
+            when (it) {
+                is PatientDetailOverview -> false
+                is PatientDetailHeader -> false
+                is PatientDetailEncounter -> it.encounter.isSynced
+                else -> true
+            }
+        }
     }
 
     private fun MutableList<PatientDetailData>.addPatientDetailData(
@@ -118,8 +126,8 @@ class PatientDetailsViewModel(
         add(PatientDetailVisit(visitItem))
     }
 
-    private fun MutableList<PatientDetailData>.addEncounterData(encounter: Encounter) {
-        add(PatientDetailEncounter(createEncounterItem(encounter)))
+    private fun MutableList<PatientDetailData>.addEncounterData(encounter: Encounter, isSynced: Boolean) {
+        add(PatientDetailEncounter(createEncounterItem(encounter, isSynced)))
     }
 
     private fun createVisitItem(visit: Encounter): PatientListViewModel.VisitItem {
@@ -140,7 +148,7 @@ class PatientDetailsViewModel(
         )
     }
 
-    private fun createEncounterItem(encounter: Encounter): PatientListViewModel.EncounterItem {
+    private fun createEncounterItem(encounter: Encounter, isSynced: Boolean): PatientListViewModel.EncounterItem {
         val visitType = encounter.type.firstOrNull()?.coding?.firstOrNull()?.display ?: "Type"
         val visitDate = encounter.period?.start?.let {
             SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(it)
@@ -152,7 +160,8 @@ class PatientDetailsViewModel(
             visitDate,
             encounter.type.getOrNull(0)?.id,
             encounter.type.getOrNull(0)?.text,
-            "assessment.json"
+            "assessment.json",
+            isSynced
         )
     }
 
@@ -215,7 +224,7 @@ data class PatientDetailVisit(
     override val lastInGroup: Boolean = false,
 ) : PatientDetailData
 
-data class PatientProperty(val header: String, val value: String)
+data class PatientProperty(val header: String, val value: String, val isSynced: Boolean)
 
 class PatientDetailsViewModelFactory(
     private val application: Application,

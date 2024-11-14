@@ -4,7 +4,7 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24"
-    android:tint="@color/edit_menu_color"
+    android:tint="@color/black"
 >
   <path
         android:fillColor="@android:color/white"
