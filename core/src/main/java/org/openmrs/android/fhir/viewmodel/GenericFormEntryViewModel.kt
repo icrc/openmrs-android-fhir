@@ -1,18 +1,31 @@
 /*
- * Copyright 2022-2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* BSD 3-Clause License
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice,
+*    this list of conditions and the following disclaimer in the documentation
+*    and/or other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its
+*    contributors may be used to endorse or promote products derived from
+*    this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 package org.openmrs.android.fhir.viewmodel
 
 import android.app.Application
@@ -24,6 +37,9 @@ import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
+import java.time.ZoneId
+import java.util.Date
+import java.util.UUID
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Bundle
@@ -49,10 +65,6 @@ import org.openmrs.android.fhir.fragments.GenericFormEntryFragment
 import org.openmrs.android.helpers.OpenMRSHelper
 import org.openmrs.android.helpers.OpenMRSHelper.MiscHelper
 import org.openmrs.android.helpers.OpenMRSHelper.UserHelper
-import java.time.ZoneId
-import java.util.Date
-import java.util.UUID
-
 
 /** ViewModel for Generic questionnaire screen {@link GenericFormEntryFragment}. */
 class GenericFormEntryViewModel(application: Application, private val state: SavedStateHandle) :
@@ -77,25 +89,35 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
 
     val visitDate = Date.from(localStartOfDay.atZone(ZoneId.systemDefault()).toInstant())
 
-    val visit = Encounter().apply {
-      subject = Reference("Patient/$patientId")
-      status = Encounter.EncounterStatus.INPROGRESS
-      setPeriod(Period().apply { start = visitDate; end = visitDate })
-      addParticipant(MiscHelper.createParticipant())
-      addLocation(Encounter.EncounterLocationComponent().apply {
-        location = Reference("Location/${UserHelper.getCurrentAuthLocation().id}")
-      })
-      addType(CodeableConcept().apply {
-        coding = listOf(
-          Coding().apply {
-            system = "http://fhir.openmrs.org/code-system/visit-type"
-            code = MockConstants.VISIT_TYPE_UUID
-            display = "Facility Visit"
+    val visit =
+      Encounter().apply {
+        subject = Reference("Patient/$patientId")
+        status = Encounter.EncounterStatus.INPROGRESS
+        setPeriod(
+          Period().apply {
+            start = visitDate
+            end = visitDate
           }
         )
-      })
-
-    }
+        addParticipant(MiscHelper.createParticipant())
+        addLocation(
+          Encounter.EncounterLocationComponent().apply {
+            location = Reference("Location/${UserHelper.getCurrentAuthLocation().id}")
+          }
+        )
+        addType(
+          CodeableConcept().apply {
+            coding =
+              listOf(
+                Coding().apply {
+                  system = "http://fhir.openmrs.org/code-system/visit-type"
+                  code = MockConstants.VISIT_TYPE_UUID
+                  display = "Facility Visit"
+                }
+              )
+          }
+        )
+      }
 
     fhirEngine.create(visit)
 
@@ -113,7 +135,7 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
       val patientReference = Reference("Patient/$patientId")
       val encounterId = generateUuid()
 
-      val visit : Encounter
+      val visit: Encounter
       if (MockConstants.WRAP_ENCOUNTER) {
         visit = createWrapperVisit(patientId)
       } else {
@@ -158,21 +180,42 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
           id = encounterId
           status = Encounter.EncounterStatus.FINISHED
           partOf = Reference("Encounter/$visitId")
-          setPeriod(Period().apply { start = encounterDate; end = encounterDate })
+          setPeriod(
+            Period().apply {
+              start = encounterDate
+              end = encounterDate
+            }
+          )
           addParticipant(createParticipant())
-          addLocation(Encounter.EncounterLocationComponent().apply {
-            location = Reference("Location/$locationId")  // Set the location reference
-          })
-
-          addType(CodeableConcept().apply {
-            coding = listOf(
-              Coding().apply {
-                system = "http://fhir.openmrs.org/code-system/encounter-type"
-                code = form.code
-                display = form.display
-              }
-            )
-          })
+          addLocation(
+            Encounter.EncounterLocationComponent().apply {
+              location = Reference("Location/$locationId") // Set the location reference
+            }
+          )
+          addType(
+            CodeableConcept().apply {
+              coding =
+                listOf(
+                  Coding().apply {
+                    system = "http://fhir.openmrs.org/code-system/encounter-type"
+                    code = form.encounterType
+                    display = form.display
+                  }
+                )
+            }
+          )
+          addType(
+            CodeableConcept().apply {
+              coding =
+                listOf(
+                  Coding().apply {
+                    system = "http://fhir.openmrs.org/core/StructureDefinition/omrs-form"
+                    code = form.form
+                    display = form.display
+                  }
+                )
+            }
+          )
           saveResourceToDatabase(this)
         }
       }
@@ -206,7 +249,7 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
   }
 
   fun createParticipant(): EncounterParticipantComponent {
-    //TODO Replace this with method to get the authenticated user's reference
+    // TODO Replace this with method to get the authenticated user's reference
     val authenticatedUser = MockConstants.AUTHENTICATED_USER
     val participant = EncounterParticipantComponent()
     participant.individual = Reference("Practitioner/${authenticatedUser.providerUuid}")
@@ -223,7 +266,7 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
             return true
           }
         }
-        // TODO check other resources inputs
+      // TODO check other resources inputs
       }
     }
     return false
