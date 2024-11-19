@@ -5,138 +5,135 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/reference_nav_graph"
     app:startDestination="@id/home_fragment"
+>
+
+  <fragment
+        android:id="@+id/home_fragment"
+        android:name="org.openmrs.android.fhir.fragments.HomeFragment"
+        android:label="HomeFragment"
+        tools:layout="@layout/fragment_home"
     >
-
-  <fragment
-      android:id="@+id/home_fragment"
-      android:name="org.openmrs.android.fhir.fragments.HomeFragment"
-      android:label="HomeFragment"
-      tools:layout="@layout/fragment_home"
-      >
     <action
-        android:id="@+id/action_home_fragment_to_addPatientFragment"
-        app:destination="@id/addPatientFragment"
+            android:id="@+id/action_home_fragment_to_addPatientFragment"
+            app:destination="@id/addPatientFragment"
         />
     <action
-        android:id="@+id/action_home_fragment_to_patient_list"
-        app:destination="@id/patient_list"
+            android:id="@+id/action_home_fragment_to_patient_list"
+            app:destination="@id/patient_list"
         />
     <action
-        android:id="@+id/action_home_fragment_to_locationFragment"
-        app:destination="@id/locationFragment"
+            android:id="@+id/action_home_fragment_to_locationFragment"
+            app:destination="@id/locationFragment"
         />
     <action
-        android:id="@+id/action_home_fragment_to_identifierFragment"
-        app:destination="@id/identifierFragment"
+            android:id="@+id/action_home_fragment_to_identifierFragment"
+            app:destination="@id/identifierFragment"
         />
   </fragment>
 
   <fragment
-      android:id="@+id/patient_list"
-      android:label="Patient List"
-      android:name="org.openmrs.android.fhir.fragments.PatientListFragment"
-      tools:layout="@layout/patient_list_view"
-      >
+        android:id="@+id/patient_list"
+        android:label="Patient List"
+        android:name="org.openmrs.android.fhir.fragments.PatientListFragment"
+        tools:layout="@layout/patient_list_view"
+    >
     <action
-        android:id="@+id/navigate_to_product_detail"
-        app:destination="@id/patient_details"
+            android:id="@+id/navigate_to_product_detail"
+            app:destination="@id/patient_details"
         />
     <action
-        android:id="@+id/action_patient_list_to_addPatientFragment"
-        app:destination="@id/addPatientFragment"
+            android:id="@+id/action_patient_list_to_addPatientFragment"
+            app:destination="@id/addPatientFragment"
         />
   </fragment>
 
   <fragment
-      android:id="@+id/patient_details"
-      android:label="Patient Details"
-      android:name="org.openmrs.android.fhir.fragments.PatientDetailsFragment"
-      tools:layout="@layout/patient_detail"
-      >
+        android:id="@+id/patient_details"
+        android:label="Patient Details"
+        android:name="org.openmrs.android.fhir.fragments.PatientDetailsFragment"
+        tools:layout="@layout/patient_detail"
+    >
     <action
-        android:id="@+id/navigate_to_edit_patient"
-        app:destination="@id/editPatientFragment"
+            android:id="@+id/navigate_to_edit_patient"
+            app:destination="@id/editPatientFragment"
         />
     <argument android:name="patient_id" app:argType="string" />
     <action
-        android:id="@+id/action_patient_details_to_createEncounterFragment"
-        app:destination="@id/createEncounterFragment" />
+            android:id="@+id/action_patient_details_to_createEncounterFragment"
+            app:destination="@id/createEncounterFragment"
+        />
     <action
-        android:id="@+id/action_patient_details_to_editEncounterFragment"
-        app:destination="@id/editEncounterFragment" />
+            android:id="@+id/action_patient_details_to_editEncounterFragment"
+            app:destination="@id/editEncounterFragment"
+        />
   </fragment>
 
   <fragment
-      android:id="@+id/genericFormEntryFragment"
-      android:name="org.openmrs.android.fhir.fragments.GenericFormEntryFragment"
-      android:label="Generic Form Entry"
-      tools:layout="@layout/generic_formentry_fragment">
+        android:id="@+id/genericFormEntryFragment"
+        android:name="org.openmrs.android.fhir.fragments.GenericFormEntryFragment"
+        android:label="Generic Form Entry"
+        tools:layout="@layout/generic_formentry_fragment"
+    >
+    <argument android:name="form_resource" app:argType="string" />
+    <argument android:name="form_display" app:argType="string" />
+    <argument android:name="form_code" app:argType="string" />
+    <argument android:name="patient_id" app:argType="string" />
     <argument
-        android:name="form_resource"
-        app:argType="string" />
-    <argument
-        android:name="form_display"
-        app:argType="string" />
-    <argument
-        android:name="form_code"
-        app:argType="string" />
-    <argument
-        android:name="patient_id"
-        app:argType="string" />
-    <argument
-        android:name="encounter_id"
-        app:argType="string"
-        android:defaultValue="@null"
-        app:nullable="true" />
-      <argument android:name="encounterType_code" app:argType="string"/>
+            android:name="encounter_id"
+            app:argType="string"
+            android:defaultValue="@null"
+            app:nullable="true"
+        />
+      <argument android:name="encounterType_code" app:argType="string" />
   </fragment>
   <fragment
-      android:id="@+id/createEncounterFragment"
-      android:name="org.openmrs.android.fhir.fragments.CreateEncountersFragment"
-      android:label="createEncounterFragment"
-      tools:layout="@layout/create_encounter_fragment">
-    <argument
-        android:name="patient_id"
-        app:argType="string" />
+        android:id="@+id/createEncounterFragment"
+        android:name="org.openmrs.android.fhir.fragments.CreateEncountersFragment"
+        android:label="createEncounterFragment"
+        tools:layout="@layout/create_encounter_fragment"
+    >
+    <argument android:name="patient_id" app:argType="string" />
     <action
-        android:id="@+id/action_createEncounterFragment_to_genericFormEntryFragment"
-        app:destination="@id/genericFormEntryFragment" />
+            android:id="@+id/action_createEncounterFragment_to_genericFormEntryFragment"
+            app:destination="@id/genericFormEntryFragment"
+        />
   </fragment>
   <fragment
-      android:id="@+id/addPatientFragment"
-      android:name="org.openmrs.android.fhir.fragments.AddPatientFragment"
-      android:label="@string/register_new_patient"
-      tools:layout="@layout/add_patient_fragment" />
+        android:id="@+id/addPatientFragment"
+        android:name="org.openmrs.android.fhir.fragments.AddPatientFragment"
+        android:label="@string/register_new_patient"
+        tools:layout="@layout/add_patient_fragment"
+    />
 
   <fragment
-      android:id="@+id/editPatientFragment"
-      android:label="Edit Patient"
-      android:name="org.openmrs.android.fhir.fragments.EditPatientFragment"
-      tools:layout="@layout/add_patient_fragment"
-      >
+        android:id="@+id/editPatientFragment"
+        android:label="Edit Patient"
+        android:name="org.openmrs.android.fhir.fragments.EditPatientFragment"
+        tools:layout="@layout/add_patient_fragment"
+    >
     <argument android:name="patient_id" app:argType="string" />
   </fragment>
   <fragment
-      android:id="@+id/editEncounterFragment"
-      android:label="Edit Patient"
-      android:name="org.openmrs.android.fhir.fragments.EditEncounterFragment"
-      tools:layout="@layout/generic_formentry_fragment"
-      >
+        android:id="@+id/editEncounterFragment"
+        android:label="Edit Patient"
+        android:name="org.openmrs.android.fhir.fragments.EditEncounterFragment"
+        tools:layout="@layout/generic_formentry_fragment"
+    >
     <argument android:name="encounter_id" app:argType="string" />
     <argument android:name="form_resource" app:argType="string" />
   </fragment>
 
   <fragment
-      android:id="@+id/locationFragment"
-      android:label="@string/location"
-      android:name="org.openmrs.android.fhir.fragments.LocationFragment"
-      tools:layout="@layout/fragment_location"
-      />
+        android:id="@+id/locationFragment"
+        android:label="@string/location"
+        android:name="org.openmrs.android.fhir.fragments.LocationFragment"
+        tools:layout="@layout/fragment_location"
+    />
   <fragment
-      android:id="@+id/identifierFragment"
-      android:label="@string/identifier"
-      android:name="org.openmrs.android.fhir.fragments.IdentifierFragment"
-      tools:layout="@layout/fragment_identifier"
-      />
+        android:id="@+id/identifierFragment"
+        android:label="@string/identifier"
+        android:name="org.openmrs.android.fhir.fragments.IdentifierFragment"
+        tools:layout="@layout/fragment_identifier"
+    />
 
 </navigation>
