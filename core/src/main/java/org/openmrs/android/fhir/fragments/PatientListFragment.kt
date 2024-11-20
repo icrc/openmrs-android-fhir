@@ -31,13 +31,12 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.LastSyncJobStatus
 import com.google.android.fhir.sync.PeriodicSyncJobStatus
@@ -55,11 +54,16 @@ import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.FragmentPatientListBinding
 import org.openmrs.android.fhir.extensions.launchAndRepeatStarted
 import timber.log.Timber
+import javax.inject.Inject
+import kotlin.getValue
 import kotlin.math.roundToInt
 
 class PatientListFragment : Fragment() {
-  private lateinit var fhirEngine: FhirEngine
-  private lateinit var patientListViewModel: PatientListViewModel
+
+  @Inject
+  lateinit var viewModelFactory: ViewModelProvider.Factory
+  private val patientListViewModel by viewModels<PatientListViewModel> {viewModelFactory}
+  private val mainActivityViewModel by viewModels<MainActivityViewModel>{viewModelFactory}
   private lateinit var topBanner: LinearLayout
   private lateinit var syncStatus: TextView
   private lateinit var syncPercent: TextView
@@ -69,7 +73,6 @@ class PatientListFragment : Fragment() {
   private val binding
     get() = _binding!!
 
-  private val mainActivityViewModel: MainActivityViewModel by activityViewModels()
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -86,15 +89,7 @@ class PatientListFragment : Fragment() {
       title = resources.getString(R.string.title_patient_list)
       setDisplayHomeAsUpEnabled(true)
     }
-    fhirEngine = FhirApplication.fhirEngine(requireContext())
-    patientListViewModel =
-      ViewModelProvider(
-          this,
-        PatientListViewModel.PatientListViewModelFactory(
-          requireActivity().application,
-          fhirEngine
-        ),
-      )[PatientListViewModel::class.java]
+    (requireActivity().application as FhirApplication).appComponent.inject(this)
     val recyclerView: RecyclerView = binding.patientListContainer.patientList
     val adapter = PatientItemRecyclerViewAdapter(this::onPatientItemClicked)
     recyclerView.adapter = adapter

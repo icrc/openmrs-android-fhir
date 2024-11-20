@@ -14,7 +14,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
@@ -27,14 +27,24 @@ import org.openmrs.android.fhir.MockConstants
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.PatientDetailsRecyclerViewAdapter
 import org.openmrs.android.fhir.databinding.PatientDetailBinding
+import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
-import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModelFactory
 import org.openmrs.android.helpers.OpenMRSHelper.VisitHelper.endVisit
 import java.util.*
+import javax.inject.Inject
+import kotlin.getValue
 
 class PatientDetailsFragment : Fragment() {
-  private lateinit var fhirEngine: FhirEngine
-  private lateinit var patientDetailsViewModel: PatientDetailsViewModel
+
+  @Inject
+  lateinit var fhirEngine: FhirEngine
+
+  @Inject
+  lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
+  private val patientDetailsViewModel: PatientDetailsViewModel by viewModels {
+    viewModelSavedStateFactory
+  }
+
   private val args: PatientDetailsFragmentArgs by navArgs()
   private var _binding: PatientDetailBinding? = null
   private val binding
@@ -58,12 +68,8 @@ class PatientDetailsFragment : Fragment() {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
-    fhirEngine = FhirApplication.fhirEngine(requireContext())
-    patientDetailsViewModel =
-      ViewModelProvider(
-        this,
-        PatientDetailsViewModelFactory(requireActivity().application, fhirEngine, args.patientId),
-      ).get(PatientDetailsViewModel::class.java)
+    updateArguments(args.patientId)
+    (requireActivity().application as FhirApplication).appComponent.inject(this)
     val adapter = PatientDetailsRecyclerViewAdapter(::onCreateEncounterClick, ::onEditEncounterClick, ::onEditVisitClick)
     binding.createEncounterFloatingButton.setOnClickListener { onCreateEncounterClick() }
     binding.recycler.adapter = adapter
@@ -197,6 +203,10 @@ class PatientDetailsFragment : Fragment() {
       }
       else -> super.onOptionsItemSelected(item)
     }
+  }
+
+  private fun updateArguments(patientId: String) {
+    requireArguments().putString("patient_id", patientId)
   }
 
   override fun onDestroyView() {

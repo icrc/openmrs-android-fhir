@@ -18,9 +18,7 @@ package org.openmrs.android.fhir
 import RestApiManager
 import android.app.Application
 import android.content.Context
-import androidx.room.Room
 import com.google.android.fhir.DatabaseErrorStrategy.RECREATE_AT_OPEN
-import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.FhirEngineConfiguration
 import com.google.android.fhir.FhirEngineProvider
 import com.google.android.fhir.ServerConfiguration
@@ -34,14 +32,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
-import org.openmrs.android.fhir.data.database.AppDatabase
+import org.openmrs.android.fhir.di.AppComponent
+import org.openmrs.android.fhir.di.DaggerAppComponent
 import timber.log.Timber
 
 class FhirApplication : Application(), DataCaptureConfig.Provider {
-  // Only initiate the FhirEngine when used for the first time, not when the app is created.
-  private val fhirEngine: FhirEngine by lazy { constructFhirEngine() }
 
-  private val roomDatabase: AppDatabase by lazy { constructRoomDatabase()}
+  val appComponent: AppComponent by lazy { constructApplicationGraph() }
 
   private var dataCaptureConfig: DataCaptureConfig? = null
 
@@ -76,9 +73,8 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     dataCaptureConfig =
       DataCaptureConfig().apply {
         urlResolver = ReferenceUrlResolver(this@FhirApplication as Context)
-        xFhirQueryResolver = XFhirQueryResolver { it -> fhirEngine.search(it).map { it.resource } }
+        xFhirQueryResolver = XFhirQueryResolver { it -> FhirEngineProvider.getInstance(applicationContext).search(it).map { it.resource } }
       }
-    constructRoomDatabase()
   }
 
   private fun initializeRestApiManager(): RestApiManager {
@@ -89,25 +85,18 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     return restApiManager
   }
 
-  private fun constructFhirEngine(): FhirEngine {
-    return FhirEngineProvider.getInstance(this)
+  private fun constructApplicationGraph(): AppComponent {
+    return DaggerAppComponent.factory().create(applicationContext)
   }
 
-  private fun constructRoomDatabase() : AppDatabase{
-    return Room.databaseBuilder(
-      applicationContext,
-      AppDatabase::class.java, "openmrs_android_fhir"
-    ).build()
-  }
 
   companion object {
-    fun fhirEngine(context: Context) = (context.applicationContext as FhirApplication).fhirEngine
+
+    fun appComponent(context: Context) = (context.applicationContext as FhirApplication).appComponent
 
     fun dataStore(context: Context) = (context.applicationContext as FhirApplication).dataStore
 
     fun restApiClient(context: Context) = (context.applicationContext as FhirApplication).restApiClient
-
-    fun roomDatabase(context: Context) = (context.applicationContext as FhirApplication).roomDatabase
 
     fun fhirBaseURl(context: Context)= context.getString(R.string.fhir_base_url)
 

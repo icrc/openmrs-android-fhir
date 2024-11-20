@@ -15,17 +15,18 @@
  */
 package org.openmrs.android.fhir.viewmodel
 
-import android.app.Application
+import android.content.Context
 import android.content.Intent
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 import org.openmrs.android.fhir.LoginRepository
 import timber.log.Timber
+import javax.inject.Inject
 
-class LoginActivityViewModel constructor(application: Application) : AndroidViewModel(application) {
+class LoginActivityViewModel @Inject constructor(private val applicationContext: Context) : ViewModel() {
   private val loginRepository by lazy {
-    LoginRepository.getInstance(application.applicationContext)
+    LoginRepository.getInstance(applicationContext)
   }
 
   suspend fun createIntent(): Intent? {

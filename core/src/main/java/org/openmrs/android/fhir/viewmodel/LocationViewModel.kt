@@ -1,11 +1,8 @@
 package org.openmrs.android.fhir.viewmodel
 
-import android.app.Application
 import android.content.Context
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.rest.gclient.StringClientParam
 import com.google.android.fhir.FhirEngine
@@ -16,8 +13,9 @@ import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Location
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import javax.inject.Inject
 
-class LocationViewModel(application: Application, private val fhirEngine: FhirEngine) : AndroidViewModel(application) {
+class LocationViewModel @Inject constructor(private val fhirEngine: FhirEngine) : ViewModel() {
     private var masterLocationsList: MutableList<LocationItem> = mutableListOf()
     var favoriteLocationSet: MutableSet<String>? = null
 
@@ -85,17 +83,5 @@ class LocationViewModel(application: Application, private val fhirEngine: FhirEn
         val description: String,
     )
 
-    class LocationViewModelFactory(
-        private val application: Application,
-        private val fhirEngine: FhirEngine,
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(LocationViewModel::class.java)) {
-                return LocationViewModel(application, fhirEngine) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
-    }
 
 }

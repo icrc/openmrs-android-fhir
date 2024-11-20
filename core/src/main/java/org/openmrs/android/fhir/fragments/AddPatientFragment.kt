@@ -25,23 +25,29 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.QuestionnaireResponse
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.viewmodel.AddPatientViewModel
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.AddPatientFragmentBinding
+import javax.inject.Inject
 
 /** A fragment class to show patient registration screen. */
 class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
 
-  private val viewModel: AddPatientViewModel by viewModels()
+  @Inject
+  lateinit var viewModelFactory: ViewModelProvider.Factory
+  private val viewModel by viewModels<AddPatientViewModel> {viewModelFactory}
+
   private var _binding: AddPatientFragmentBinding? = null
 
   private val binding
@@ -60,6 +66,7 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
     setUpActionBar()
     setHasOptionsMenu(true)
     updateArguments()
+    (requireActivity().application as FhirApplication).appComponent.inject(this)
     lifecycleScope.launch {
       val selectedLocation = context?.applicationContext?.dataStore?.data?.first()?.get(
         PreferenceKeys.LOCATION_NAME)
@@ -71,7 +78,7 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
       )
     }
     if (savedInstanceState == null) {
-      viewModel.getEmbeddedQuestionnaire()
+      viewModel.getEmbeddedQuestionnaire(requireArguments().getString(QUESTIONNAIRE_FILE_PATH_KEY, "new-patient-registration-paginated.json"))
     }
     observeQuestionnaire()
     observePatientSaveAction()

@@ -34,11 +34,18 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.AddPatientFragmentBinding
 import kotlinx.coroutines.flow.first
+import org.openmrs.android.fhir.FhirApplication
+import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import javax.inject.Inject
 
 
 /** A fragment representing Edit Patient screen. This fragment is contained in a [MainActivity]. */
 class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
-  private val viewModel: EditPatientViewModel by viewModels()
+  @Inject
+  lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
+  private val viewModel: EditPatientViewModel by viewModels {
+    viewModelSavedStateFactory
+  }
   private var _binding: AddPatientFragmentBinding? = null
 
   private val binding
@@ -51,6 +58,7 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
+    (requireActivity().application as FhirApplication).appComponent.inject(this)
     _binding = AddPatientFragmentBinding.bind(view)
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title = requireContext().getString(R.string.edit_patient)

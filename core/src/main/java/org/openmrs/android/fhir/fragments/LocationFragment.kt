@@ -14,7 +14,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.fhir.FhirEngine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
@@ -26,11 +25,16 @@ import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.FragmentLocationBinding
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 import RestApiManager
+import androidx.fragment.app.viewModels
+import javax.inject.Inject
+import kotlin.getValue
 
 class LocationFragment : Fragment(R.layout.fragment_location) {
-    private lateinit var fhirEngine: FhirEngine
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
+    private val locationViewModel by viewModels<LocationViewModel> {viewModelFactory}
+
     private lateinit var restApiClient: RestApiManager
-    private lateinit var locationViewModel: LocationViewModel
     private var _binding: FragmentLocationBinding? = null
     private lateinit var locationAdapter: LocationItemRecyclerViewAdapter
     private lateinit var favoriteLocationAdapter: LocationItemRecyclerViewAdapter
@@ -55,6 +59,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
+        (requireActivity().application as FhirApplication).appComponent.inject(this)
 
         lifecycleScope.launch {
             val savedLocationName = context?.applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.LOCATION_NAME)
@@ -71,17 +76,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
         }
 
         actionBar?.setDisplayHomeAsUpEnabled(true)
-
-        fhirEngine = FhirApplication.fhirEngine(requireContext())
         restApiClient = FhirApplication.restApiClient(requireContext())
-        locationViewModel =
-            ViewModelProvider(
-                this,
-                LocationViewModel.LocationViewModelFactory(
-                    requireActivity().application,
-                    fhirEngine
-                )
-            )[LocationViewModel::class.java]
         locationViewModel.getLocations()
         locationViewModel.setFavoriteLocations(context?.applicationContext!!)
 

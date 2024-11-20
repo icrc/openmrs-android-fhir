@@ -22,10 +22,15 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.IdentifierTypeRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.databinding.FragmentIdentifierBinding
+import javax.inject.Inject
 
 class IdentifierFragment: Fragment(R.layout.fragment_identifier) {
+
+    @Inject
+    lateinit var database: AppDatabase
     private var _binding: FragmentIdentifierBinding? = null
     private lateinit var identifierAdapter: IdentifierTypeRecyclerViewAdapter
     private lateinit var selectedIdentifierTypes: MutableSet<String>
@@ -49,16 +54,17 @@ class IdentifierFragment: Fragment(R.layout.fragment_identifier) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        (requireActivity().application as FhirApplication).appComponent.inject(this)
         (requireActivity() as AppCompatActivity).supportActionBar?.apply {
             title = requireContext().getString(R.string.select_identifier_types)
             setDisplayHomeAsUpEnabled(true)
         }
         runBlocking{
             binding.progressBar.visibility = View.VISIBLE
-            identifierTypes = context?.applicationContext?.let { FhirApplication.roomDatabase(it).dao().getAllIdentifierTypes().toMutableList()} ?: mutableListOf()
+            identifierTypes = context?.applicationContext?.let { database.dao().getAllIdentifierTypes().toMutableList()} ?: mutableListOf()
             if (identifierTypes.isEmpty()) {
                 context?.applicationContext?.let {
-                    IdentifierTypeManager.fetchIdentifiers(it)
+                    IdentifierTypeManager.fetchIdentifiers(it, database)
                 }
             }
             selectedIdentifierTypes = context?.dataStore?.data?.first()?.get(PreferenceKeys.SELECTED_IDENTIFIER_TYPES)?.toMutableSet() ?: mutableSetOf()

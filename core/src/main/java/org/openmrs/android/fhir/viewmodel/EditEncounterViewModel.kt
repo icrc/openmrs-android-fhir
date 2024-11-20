@@ -1,11 +1,9 @@
 package org.openmrs.android.fhir.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
@@ -14,17 +12,26 @@ import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.google.android.fhir.get
 import com.google.android.fhir.search.search
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.*
-import org.openmrs.android.fhir.FhirApplication
+import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.readFileFromAssets
 import java.util.UUID
 import java.util.Date
 
-class EditEncounterViewModel(application: Application, private val state: SavedStateHandle) :
-    AndroidViewModel(application) {
+class EditEncounterViewModel @AssistedInject constructor(private val applicationContext: Context, private val fhirEngine: FhirEngine, @Assisted val state: SavedStateHandle) :
+    ViewModel() {
 
-    private val fhirEngine: FhirEngine = FhirApplication.fhirEngine(application.applicationContext)
+    @AssistedFactory
+    interface Factory : ViewModelAssistedFactory<EditEncounterViewModel> {
+        override fun create(
+            handle: SavedStateHandle
+        ): EditEncounterViewModel
+    }
+
     private val encounterId: String = requireNotNull(state["encounter_id"])
         ?: throw IllegalArgumentException("Encounter ID is required")
     private val formResource: String = requireNotNull(state["form_resource"])
@@ -44,7 +51,7 @@ class EditEncounterViewModel(application: Application, private val state: SavedS
         patientReference = encounter.subject
 
         val questionnaireJson =
-            getApplication<Application>().readFileFromAssets(formResource).trimIndent()
+            applicationContext.readFileFromAssets(formResource).trimIndent()
         val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
         questionnaireResource =
             parser.parseResource(Questionnaire::class.java, questionnaireJson) as Questionnaire
@@ -171,22 +178,3 @@ class EditEncounterViewModel(application: Application, private val state: SavedS
     }
 }
 
-class EditEncounterViewModelFactory(
-    private val application: Application,
-    private val formResource: String,
-    private val encounterId: String
-) : ViewModelProvider.Factory {
-
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(EditEncounterViewModel::class.java)) {
-            val savedStateHandle = SavedStateHandle(
-                mapOf(
-                    "encounter_id" to encounterId,
-                    "form_resource" to formResource
-                )
-            )
-            return EditEncounterViewModel(application, savedStateHandle) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
-    }
-}

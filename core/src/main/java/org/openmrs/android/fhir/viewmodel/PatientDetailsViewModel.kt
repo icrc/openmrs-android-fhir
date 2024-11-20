@@ -15,15 +15,17 @@
  */
 package org.openmrs.android.fhir.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import android.content.Context
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.hl7.fhir.r4.model.Encounter
@@ -34,6 +36,7 @@ import org.openmrs.android.fhir.MockConstants
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.MockConstants.DATE24_FORMATTER
 import org.openmrs.android.fhir.MockConstants.WRAP_ENCOUNTER
+import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.helpers.OpenMRSHelper
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -43,11 +46,20 @@ import java.util.Locale
  * The ViewModel helper class for PatientItemRecyclerViewAdapter, that is responsible for preparing
  * data for UI.
  */
-class PatientDetailsViewModel(
-    application: Application,
+class PatientDetailsViewModel @AssistedInject constructor(
+    private val applicationContext: Context,
     private val fhirEngine: FhirEngine,
-    private val patientId: String
-) : AndroidViewModel(application) {
+    @Assisted val state: SavedStateHandle
+) : ViewModel() {
+
+    @AssistedFactory
+    interface Factory : ViewModelAssistedFactory<PatientDetailsViewModel> {
+        override fun create(
+            handle: SavedStateHandle
+        ): PatientDetailsViewModel
+    }
+
+    private val patientId: String = requireNotNull(state["patient_id"])
     val livePatientData = MutableLiveData<List<PatientDetailData>>()
 
     /** Emits list of [PatientDetailData]. */
@@ -165,7 +177,7 @@ class PatientDetailsViewModel(
         )
     }
 
-    private fun getString(resId: Int) = getApplication<Application>().resources.getString(resId)
+    private fun getString(resId: Int) = applicationContext.resources.getString(resId)
 
     companion object {
         private const val MAX_RESOURCE_COUNT = 10
@@ -225,20 +237,6 @@ data class PatientDetailVisit(
 ) : PatientDetailData
 
 data class PatientProperty(val header: String, val value: String, val isSynced: Boolean)
-
-class PatientDetailsViewModelFactory(
-    private val application: Application,
-    private val fhirEngine: FhirEngine,
-    private val patientId: String,
-) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        require(modelClass.isAssignableFrom(PatientDetailsViewModel::class.java)) {
-            "Unknown ViewModel class"
-        }
-        return PatientDetailsViewModel(application, fhirEngine, patientId) as T
-    }
-}
 
 data class RiskAssessmentItem(
     var riskStatusColor: Int,

@@ -9,18 +9,24 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.viewmodel.EditEncounterViewModelFactory
+import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import javax.inject.Inject
 
 /** A fragment representing Edit Encounter screen. This fragment is contained in a [MainActivity]. */
 class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
-  private lateinit var viewModel: EditEncounterViewModel
+  @Inject
+  lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
+
+  private val viewModel: EditEncounterViewModel by viewModels {
+    viewModelSavedStateFactory
+  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -34,12 +40,12 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
       ?: throw IllegalArgumentException("Encounter ID is required")
 
     // Initialize the ViewModel using a factory
-    val viewModelFactory = EditEncounterViewModelFactory(requireActivity().application, formResource, encounterId)
-    viewModel = viewModels<EditEncounterViewModel> { viewModelFactory }.value
+
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
+    (requireActivity().application as FhirApplication).appComponent.inject(this)
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title = requireContext().getString(R.string.edit_encounter)
     }

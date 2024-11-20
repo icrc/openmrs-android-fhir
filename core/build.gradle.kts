@@ -4,6 +4,7 @@ plugins {
   id("androidx.navigation.safeargs.kotlin")
   id("com.google.devtools.ksp")
   id("maven-publish")
+  id("kotlin-kapt")
 }
 
 android {
@@ -112,6 +113,7 @@ object Versions {
   const val androidXTestJunit = "1.2.1"
   const val coroutineTest = "1.8.1"
   const val mockito = "4.0.0"
+  const val daggerVersion = "2.51.1"
 }
 
 dependencies {
@@ -160,6 +162,10 @@ dependencies {
   testImplementation("org.mockito:mockito-inline:${Versions.mockito}")
   testImplementation("org.mockito:mockito-android:${Versions.mockito}")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.coroutineTest}")
+
+  //Dependency injection
+  implementation("com.google.dagger:dagger:${Versions.daggerVersion}")
+  kapt("com.google.dagger:dagger-compiler:${Versions.daggerVersion}")
 }
 
 

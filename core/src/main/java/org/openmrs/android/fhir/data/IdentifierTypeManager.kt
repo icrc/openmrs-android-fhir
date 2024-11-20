@@ -9,19 +9,19 @@ import org.json.JSONObject
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.IdentifierType
 
-class IdentifierTypeManager private constructor(private val context: Context) {
+class IdentifierTypeManager private constructor(private val context: Context, val database: AppDatabase) {
 
     private var restApiClient: RestApiManager = FhirApplication.restApiClient(context)
-    private val database = FhirApplication.roomDatabase(context)
     private val ENDPOINT = FhirApplication.openmrsRestUrl(context) + "idgen/autogenerationoption?v=default"
     companion object {
         @SuppressLint("StaticFieldLeak")
         private lateinit var instance: IdentifierTypeManager
-        suspend fun fetchIdentifiers(context: Context) {
+        suspend fun fetchIdentifiers(context: Context, database: AppDatabase) {
             withContext(Dispatchers.IO) {
-                instance = IdentifierTypeManager(context)
+                instance = IdentifierTypeManager(context, database)
                 val newIdentifiers = instance.fetchIdentifierFromEndpoint()
                 if(newIdentifiers!= null){
                     instance.storeIdentifiers(newIdentifiers)

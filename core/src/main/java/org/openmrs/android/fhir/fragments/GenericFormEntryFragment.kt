@@ -14,14 +14,21 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.Form
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
+import javax.inject.Inject
 
 /** A fragment class to show screener questionnaire screen. */
 class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
 
-  private val viewModel: GenericFormEntryViewModel by viewModels()
+  @Inject
+  lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
+  private val viewModel: GenericFormEntryViewModel by viewModels {
+    viewModelSavedStateFactory
+  }
   private val args: GenericFormEntryFragmentArgs by navArgs()
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -29,6 +36,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
     setUpActionBar()
     setHasOptionsMenu(true)
     updateArguments(args.formResource, args.formCode)
+    (requireActivity().application as FhirApplication).appComponent.inject(this)
     onBackPressed()
     observeResourcesSaveAction()
     if (savedInstanceState == null) {

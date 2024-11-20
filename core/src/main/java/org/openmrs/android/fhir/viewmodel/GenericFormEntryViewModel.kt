@@ -15,15 +15,18 @@
  */
 package org.openmrs.android.fhir.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Bundle
@@ -39,11 +42,11 @@ import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
-import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.Form
 import org.openmrs.android.fhir.MockConstants
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.readFileFromAssets
 import org.openmrs.android.fhir.fragments.GenericFormEntryFragment
 import org.openmrs.android.helpers.OpenMRSHelper
@@ -55,8 +58,16 @@ import java.util.UUID
 
 
 /** ViewModel for Generic questionnaire screen {@link GenericFormEntryFragment}. */
-class GenericFormEntryViewModel(application: Application, private val state: SavedStateHandle) :
-  AndroidViewModel(application) {
+class GenericFormEntryViewModel @AssistedInject constructor(private val applicationContext: Context, private val fhirEngine: FhirEngine, @Assisted val state: SavedStateHandle) :
+  ViewModel() {
+
+  @AssistedFactory
+  interface Factory : ViewModelAssistedFactory<GenericFormEntryViewModel> {
+    override fun create(
+      handle: SavedStateHandle
+    ): GenericFormEntryViewModel
+  }
+
   val questionnaire: String
     get() = getQuestionnaireJson()
 
@@ -68,7 +79,6 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
         as Questionnaire
 
   private var questionnaireJson: String? = null
-  private var fhirEngine: FhirEngine = FhirApplication.fhirEngine(application.applicationContext)
 
   suspend fun createWrapperVisit(patientId: String): Encounter {
 
@@ -138,8 +148,7 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
     visitId: String,
   ) {
     val encounterReference = Reference("Encounter/$encounterId")
-    val appContext = getApplication<Application>().applicationContext
-    val locationId = appContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+    val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
 
     val encounterDate: Date
     if (MockConstants.WRAP_ENCOUNTER) {
@@ -238,7 +247,7 @@ class GenericFormEntryViewModel(application: Application, private val state: Sav
       return it
     }
     questionnaireJson =
-      getApplication<Application>()
+      applicationContext
         .readFileFromAssets(state[GenericFormEntryFragment.QUESTIONNAIRE_FILE_PATH_KEY]!!)
     return questionnaireJson!!
   }

@@ -22,6 +22,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
@@ -30,11 +31,15 @@ import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 import org.openmrs.android.fhir.viewmodel.LoginActivityViewModel
 import timber.log.Timber
+import javax.inject.Inject
 
 class LoginActivity : AppCompatActivity() {
 
   private lateinit var binding: ActivityLoginBinding
-  private val viewModel: LoginActivityViewModel by viewModels()
+
+  @Inject
+  lateinit var viewModelFactory: ViewModelProvider.Factory
+  private val viewModel by viewModels<LoginActivityViewModel> {viewModelFactory}
 
   private val getContent =
     registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -54,6 +59,7 @@ class LoginActivity : AppCompatActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    (this.application as FhirApplication).appComponent.inject(this)
     binding = ActivityLoginBinding.inflate(layoutInflater)
     setContentView(binding.root)
     lifecycleScope.launch {

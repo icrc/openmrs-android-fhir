@@ -17,9 +17,10 @@ import org.openmrs.android.fhir.User
 import org.openmrs.android.helpers.OpenMRSHelper.MiscHelper.createParticipant
 import java.util.Date
 import java.util.LinkedList
+import javax.inject.Inject
 
 
-class OpenMRSHelper {
+class OpenMRSHelper @Inject constructor(private val fhirEngine: FhirEngine) {
 
     // User related functions
     object UserHelper {

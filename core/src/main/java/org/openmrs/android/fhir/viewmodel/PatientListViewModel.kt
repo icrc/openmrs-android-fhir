@@ -15,11 +15,8 @@
  */
 package org.openmrs.android.fhir.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.Order
@@ -34,13 +31,14 @@ import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.RiskAssessment
 import timber.log.Timber
 import java.time.ZoneOffset
+import javax.inject.Inject
 
 /**
  * The ViewModel helper class for PatientItemRecyclerViewAdapter, that is responsible for preparing
  * data for UI.
  */
-class PatientListViewModel(application: Application, private val fhirEngine: FhirEngine) :
-  AndroidViewModel(application) {
+class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngine) :
+  ViewModel() {
 
   val liveSearchedPatients = MutableLiveData<List<PatientItem>>()
   val patientCount = MutableLiveData<Long>()
@@ -194,18 +192,6 @@ class PatientListViewModel(application: Application, private val fhirEngine: Fhi
         override fun toString(): String = encounterId ?: type
     }
 
-  class PatientListViewModelFactory(
-    private val application: Application,
-    private val fhirEngine: FhirEngine,
-  ) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-      if (modelClass.isAssignableFrom(PatientListViewModel::class.java)) {
-        return PatientListViewModel(application, fhirEngine) as T
-      }
-      throw IllegalArgumentException("Unknown ViewModel class")
-    }
-  }
 }
 
 internal fun Patient.toPatientItem(position: Int): PatientListViewModel.PatientItem {
