@@ -55,17 +55,6 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         build-mode: autobuild
-#
-#    - name: Set up JDK 17
-#      uses: actions/setup-java@v4
-#      with:
-#        distribution: temurin
-#        java-version: "17"
-#        cache: 'gradle'
-#
-#    - name: build kotlin
-#      shell: bash
-#      run: ./gradlew --scan --full-stacktrace -Dorg.gradle.dependency.verification=off compileDebugAndroidTestSources
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
