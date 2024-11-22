@@ -23,7 +23,7 @@ services:
       - backend
 
   backend:
-    image: ghcr.io/icrc/openmrs-distro-sso/openmrs-backend:2.5.13-d5a37f9
+    image: ghcr.io/icrc/openmrs-distro-sso/openmrs-backend:2.5.13-335a066
     restart: "unless-stopped"
     ports:
       - "5005:5005"
@@ -79,8 +79,8 @@ services:
       KC_HOSTNAME_STRICT: false
       KC_HTTP_ENABLED: true
       KC_HTTP_PORT: 8081
-      KC_HOSTNAME: 10.0.2.2
-      #KC_HOSTNAME: localhost
+#      KC_HOSTNAME: 10.0.2.2
+      KC_HOSTNAME: localhost
     command: ["start-dev"]
 
 volumes:

@@ -10,6 +10,8 @@ Accessing artifacts hosted on GitHub necessitates the use of a GitHub account fo
 - Option 1: Use the docker  compose file in the root of this project. **Create the file `.env` from the template `.env.default`**
 - Option 2: Follow the steps & apply change in the note below using the Project: https://github.com/icrc/openmrs-distro-sso/tree/main
 
+To login, use one of this user: https://github.com/icrc/openmrs-distro-sso/blob/main/keycloak/users.csv
+
 # Common setup issues fixes:
 1. Error 404 on clicking login button
     - Match the discovery_uri's port matches with your keycloak container's port in your file `local.properties`
