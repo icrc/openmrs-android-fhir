@@ -19,10 +19,10 @@ android {
     manifestPlaceholders["appAuthRedirectScheme"] = applicationId!!
     buildFeatures.buildConfig = true
     versionCode = 1
-    //    server
 
     //    server
     setResValue(providers, "fhir_base_url", this)
+    setResValue(providers, "fhir_sync_urls", this)
     setResValue(providers, "openmrs_rest_url", this)
     setResValue(providers, "check_server_url", this)
     //    oauth

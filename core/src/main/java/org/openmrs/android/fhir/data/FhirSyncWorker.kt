@@ -43,7 +43,10 @@ class FhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
   FhirSyncWorker(appContext, workerParams) {
 
   override fun getDownloadWorkManager(): DownloadWorkManager {
-    return TimestampBasedDownloadWorkManagerImpl(FhirApplication.dataStore(applicationContext))
+    return TimestampBasedDownloadWorkManagerImpl(
+      FhirApplication.dataStore(applicationContext),
+      applicationContext
+    )
   }
 
   override fun getUploadStrategy(): UploadStrategy =
