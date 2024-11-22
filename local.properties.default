@@ -7,7 +7,7 @@ gpr.key=<A GitHub token>
 # Optional values. Default values are already defined for local development.
 # URLs default values for development setup:
 #fhir_base_url=http://127.0.0.1:8080/openmrs/ws/fhir2/R4/
-#fhir_sync_urls=Location?_sort=_lastUpdated&_summary=data&_tag=Offline,Patient?_sort=_lastUpdated,Encounter?_sort=_lastUpdated,Observation?_sort=_lastUpdated
+#fhir_sync_urls=Location?_sort=_lastUpdated&_summary=data,Patient?_sort=_lastUpdated,Encounter?_sort=_lastUpdated,Observation?_sort=_lastUpdated
 #openmrs_rest_url=http://127.0.0.1:8080/openmrs/ws/rest/v1/
 #check_server_url=http://127.0.0.1:8080/openmrs/ws/rest/v1/session
 

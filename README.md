@@ -16,11 +16,11 @@ To login, use one of this user: https://github.com/icrc/openmrs-distro-sso/blob/
 
 To enable FHIR synchronization, you must set the local property fhir_sync_urls with the required resource URLs. 
 
-Each resource type should be separated by a comma (`,`). 
+Each resource type should be separated by a comma (`,`. 
 
-Example of how to configure fhir_sync_urls:
+Example of how to set fhir_sync_urls:
 
-`fhir_sync_urls=Location?_sort=_lastUpdated&_summary=data&_tag=Offline,Patient?_sort=_lastUpdated,Encounter?_sort=_lastUpdated,Observation?_sort=_lastUpdated`
+`fhir_sync_urls=Location?_sort=_lastUpdated&_summary=data,Patient?_sort=_lastUpdated,Encounter?_sort=_lastUpdated,Observation?_sort=_lastUpdated`
 
 # Common setup issues fixes:
 1. Error 404 on clicking login button
