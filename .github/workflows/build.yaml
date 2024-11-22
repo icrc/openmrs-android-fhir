@@ -64,6 +64,12 @@
             USERNAME: $GITHUB_ACTOR
             TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+        - name:  Spotless check
+          run: ./gradlew spotlessCheck --scan --full-stacktrace
+          env:
+            USERNAME: $GITHUB_ACTOR
+            TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
         - name: Run Gradle tests
           run: ./gradlew test --full-stacktrace
           env:
