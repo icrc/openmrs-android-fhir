@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools"
-    >
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+>
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -13,10 +14,12 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@drawable/openmrs_logo"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+    >
         <activity
             android:name="org.openmrs.android.fhir.SplashActivity"
-            android:exported="true">
+            android:exported="true"
+        >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -25,18 +28,22 @@
         </activity>
         <activity
             android:name="org.openmrs.android.fhir.LoginActivity"
-            android:exported="false">
+            android:exported="false"
+        >
 
         </activity>
         <activity
             android:name="org.openmrs.android.fhir.MainActivity"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+        >
         </activity>
 <!--        weird that we should add MissingClass as it's declared in a library-->
-        <activity tools:ignore="MissingClass"
+        <activity
+            tools:ignore="MissingClass"
             android:name="net.openid.appauth.RedirectUriReceiverActivity"
-            android:exported="true">
+            android:exported="true"
+        >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -53,7 +60,8 @@
 
         <meta-data
             android:name="preloaded_fonts"
-            android:resource="@array/preloaded_fonts" />
+            android:resource="@array/preloaded_fonts"
+        />
     </application>
 
 </manifest>

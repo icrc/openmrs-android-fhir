@@ -1,6 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <resources>
-  <string name="fhir_base_url">http://10.0.2.2:8080/openmrs/ws/fhir2/R4/</string>
-  <string name="openmrs_rest_url">http://10.0.2.2:8080/openmrs/ws/rest/v1/</string>
-  <string name="check_server_url">http://10.0.2.2:8080/openmrs/ws/rest/v1/session</string>
+  <string
+        name="fhir_base_url"
+    >http://10.0.2.2:8080/openmrs/ws/fhir2/R4/</string>
+  <string
+        name="openmrs_rest_url"
+    >http://10.0.2.2:8080/openmrs/ws/rest/v1/</string>
+  <string
+        name="check_server_url"
+    >http://10.0.2.2:8080/openmrs/ws/rest/v1/session</string>
 </resources>

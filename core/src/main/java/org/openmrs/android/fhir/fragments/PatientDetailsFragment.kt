@@ -1,3 +1,31 @@
+/*
+* BSD 3-Clause License
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice,
+*    this list of conditions and the following disclaimer in the documentation
+*    and/or other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its
+*    contributors may be used to endorse or promote products derived from
+*    this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 package org.openmrs.android.fhir.fragments
 
 import android.app.AlertDialog
@@ -20,6 +48,9 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.FhirEngine
+import java.util.*
+import javax.inject.Inject
+import kotlin.getValue
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
@@ -30,17 +61,12 @@ import org.openmrs.android.fhir.databinding.PatientDetailBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
 import org.openmrs.android.helpers.OpenMRSHelper.VisitHelper.endVisit
-import java.util.*
-import javax.inject.Inject
-import kotlin.getValue
 
 class PatientDetailsFragment : Fragment() {
 
-  @Inject
-  lateinit var fhirEngine: FhirEngine
+  @Inject lateinit var fhirEngine: FhirEngine
 
-  @Inject
-  lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
+  @Inject lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
   private val patientDetailsViewModel: PatientDetailsViewModel by viewModels {
     viewModelSavedStateFactory
   }
@@ -70,7 +96,12 @@ class PatientDetailsFragment : Fragment() {
     super.onViewCreated(view, savedInstanceState)
     updateArguments(args.patientId)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
-    val adapter = PatientDetailsRecyclerViewAdapter(::onCreateEncounterClick, ::onEditEncounterClick, ::onEditVisitClick)
+    val adapter =
+      PatientDetailsRecyclerViewAdapter(
+        ::onCreateEncounterClick,
+        ::onEditEncounterClick,
+        ::onEditVisitClick,
+      )
     binding.createEncounterFloatingButton.setOnClickListener { onCreateEncounterClick() }
     binding.recycler.adapter = adapter
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
@@ -103,11 +134,13 @@ class PatientDetailsFragment : Fragment() {
   }
 
   private fun navigateToCreateEncounter() {
-    findNavController().navigate(
-      PatientDetailsFragmentDirections.actionPatientDetailsToCreateEncounterFragment(args.patientId)
-    )
+    findNavController()
+      .navigate(
+        PatientDetailsFragmentDirections.actionPatientDetailsToCreateEncounterFragment(
+          args.patientId,
+        ),
+      )
   }
-
 
   fun showEndVisitDialog(context: Context, visitId: String, onEndVisitConfirmed: (String) -> Unit) {
     val builder = AlertDialog.Builder(context)
@@ -118,70 +151,71 @@ class PatientDetailsFragment : Fragment() {
       dialog.dismiss()
     }
 
-    builder.setNegativeButton("No") { dialog, _ ->
-      dialog.dismiss()
-    }
+    builder.setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
 
     val dialog = builder.create()
     dialog.show()
   }
 
-
   private fun showStartVisitDateTimeDialog() {
     val calendar = Calendar.getInstance()
 
     DatePickerDialog(
-      requireContext(),
-      { _, selectedYear, selectedMonth, selectedDayOfMonth ->
-        calendar.set(selectedYear, selectedMonth, selectedDayOfMonth)
+        requireContext(),
+        { _, selectedYear, selectedMonth, selectedDayOfMonth ->
+          calendar.set(selectedYear, selectedMonth, selectedDayOfMonth)
 
-        TimePickerDialog(
-          requireContext(),
-          { _, selectedHourOfDay, selectedMinute ->
-            calendar.set(Calendar.HOUR_OF_DAY, selectedHourOfDay)
-            calendar.set(Calendar.MINUTE, selectedMinute)
+          TimePickerDialog(
+              requireContext(),
+              { _, selectedHourOfDay, selectedMinute ->
+                calendar.set(Calendar.HOUR_OF_DAY, selectedHourOfDay)
+                calendar.set(Calendar.MINUTE, selectedMinute)
 
-            val selectedDateTime = calendar.time
+                val selectedDateTime = calendar.time
 
-            if (selectedDateTime.after(Date())) {
-              Toast.makeText(requireContext(), "Future date/time is not allowed.", Toast.LENGTH_SHORT).show()
-            } else {
-              patientDetailsViewModel.createVisit(selectedDateTime)
-              navigateToCreateEncounter()
-            }
-          },
-          calendar.get(Calendar.HOUR_OF_DAY),
-          calendar.get(Calendar.MINUTE),
-          true
-        ).apply {
-          setTitle("Select time for the visit")
-        }.show()
-      },
-      calendar.get(Calendar.YEAR),
-      calendar.get(Calendar.MONTH),
-      calendar.get(Calendar.DAY_OF_MONTH)
-    ).apply {
-      setTitle("Start a new visit?")
-      datePicker.maxDate = calendar.timeInMillis
-    }.show()
+                if (selectedDateTime.after(Date())) {
+                  Toast.makeText(
+                      requireContext(),
+                      "Future date/time is not allowed.",
+                      Toast.LENGTH_SHORT,
+                    )
+                    .show()
+                } else {
+                  patientDetailsViewModel.createVisit(selectedDateTime)
+                  navigateToCreateEncounter()
+                }
+              },
+              calendar.get(Calendar.HOUR_OF_DAY),
+              calendar.get(Calendar.MINUTE),
+              true,
+            )
+            .apply { setTitle("Select time for the visit") }
+            .show()
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH),
+      )
+      .apply {
+        setTitle("Start a new visit?")
+        datePicker.maxDate = calendar.timeInMillis
+      }
+      .show()
   }
 
   private fun onEditEncounterClick(encounterId: String, formDisplay: String, formResource: String) {
-    findNavController().navigate(
-      PatientDetailsFragmentDirections.actionPatientDetailsToEditEncounterFragment(
-        encounterId, formResource
+    findNavController()
+      .navigate(
+        PatientDetailsFragmentDirections.actionPatientDetailsToEditEncounterFragment(
+          encounterId,
+          formResource,
+        ),
       )
-    )
   }
-
 
   private fun onEditVisitClick(visitId: String) {
     context?.let { ctx ->
-      showEndVisitDialog(ctx, visitId) { id ->
-        lifecycleScope.launch {
-          endVisit(fhirEngine, id)
-        }
-      }
+      showEndVisitDialog(ctx, visitId) { id -> lifecycleScope.launch { endVisit(fhirEngine, id) } }
     }
   }
 

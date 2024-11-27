@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     android:layout_marginHorizontal="@dimen/dashboard_margin"
     android:layout_marginTop="@dimen/dashboard_margin"
-    android:orientation="vertical">
+    android:orientation="vertical"
+>
 
     <androidx.cardview.widget.CardView
         android:id="@+id/item_new_patient"
@@ -18,20 +19,23 @@
         android:focusable="true"
         android:layout_marginVertical="@dimen/cardView_margin_vertical"
         app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="@dimen/cardView_radius_corner">
+        app:cardCornerRadius="@dimen/cardView_radius_corner"
+    >
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="@dimen/new_patient_padding"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+        >
 
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_home_new_patient"
                 app:tint="@color/dashboard_cardview_textcolor"
-                android:contentDescription="Task Image" />
+                android:contentDescription="Task Image"
+            />
 
             <TextView
                 android:layout_width="match_parent"
@@ -43,7 +47,8 @@
                 android:maxLines="1"
                 android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
                 android:layout_gravity="center"
-                android:text="Register new patient" />
+                android:text="Register new patient"
+            />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
@@ -58,20 +63,23 @@
         android:focusable="true"
         android:layout_marginVertical="@dimen/cardView_margin_vertical"
         app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="@dimen/cardView_radius_corner">
+        app:cardCornerRadius="@dimen/cardView_radius_corner"
+    >
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="@dimen/new_patient_padding"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+        >
 
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_home_patient_list"
                 app:tint="@color/dashboard_cardview_textcolor"
-                android:contentDescription="Task Image" />
+                android:contentDescription="Task Image"
+            />
 
             <TextView
                 android:layout_width="match_parent"
@@ -83,7 +91,8 @@
                 android:maxLines="1"
                 android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
                 android:layout_gravity="center"
-                android:text="Patient list  " />
+                android:text="Patient list  "
+            />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
@@ -100,21 +109,21 @@
         android:layout_marginVertical="@dimen/search_patient_cardview_vertical_margin"
         app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="@dimen/cardView_radius_corner"
-        >
+    >
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="@dimen/new_patient_padding"
             android:orientation="horizontal"
-            >
+        >
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_location"
                 app:tint="@color/dashboard_cardview_textcolor"
                 android:contentDescription="Task Image"
-                />
+            />
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -126,7 +135,7 @@
                 android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
                 android:layout_gravity="center"
                 android:text="Select Location"
-                />
+            />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
@@ -143,21 +152,21 @@
         android:layout_marginVertical="@dimen/search_patient_cardview_vertical_margin"
         app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="@dimen/cardView_radius_corner"
-        >
+    >
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="@dimen/new_patient_padding"
             android:orientation="horizontal"
-            >
+        >
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_file"
                 app:tint="@color/dashboard_cardview_textcolor"
                 android:contentDescription="Task Image"
-                />
+            />
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -169,7 +178,7 @@
                 android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
                 android:layout_gravity="center"
                 android:text="Select Identifier"
-                />
+            />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>

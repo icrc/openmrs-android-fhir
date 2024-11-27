@@ -1,18 +1,31 @@
 /*
- * Copyright 2022-2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* BSD 3-Clause License
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice,
+*    this list of conditions and the following disclaimer in the documentation
+*    and/or other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its
+*    contributors may be used to endorse or promote products derived from
+*    this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
@@ -41,29 +54,28 @@ import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.LastSyncJobStatus
 import com.google.android.fhir.sync.PeriodicSyncJobStatus
 import com.google.android.fhir.sync.SyncJobStatus
+import javax.inject.Inject
+import kotlin.getValue
+import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
-import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
-import org.openmrs.android.fhir.adapters.PatientItemRecyclerViewAdapter
-import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.adapters.PatientItemRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.FragmentPatientListBinding
 import org.openmrs.android.fhir.extensions.launchAndRepeatStarted
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
+import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import timber.log.Timber
-import javax.inject.Inject
-import kotlin.getValue
-import kotlin.math.roundToInt
 
 class PatientListFragment : Fragment() {
 
-  @Inject
-  lateinit var viewModelFactory: ViewModelProvider.Factory
-  private val patientListViewModel by viewModels<PatientListViewModel> {viewModelFactory}
-  private val mainActivityViewModel by viewModels<MainActivityViewModel>{viewModelFactory}
+  @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+  private val patientListViewModel by viewModels<PatientListViewModel> { viewModelFactory }
+  private val mainActivityViewModel by viewModels<MainActivityViewModel> { viewModelFactory }
   private lateinit var topBanner: LinearLayout
   private lateinit var syncStatus: TextView
   private lateinit var syncPercent: TextView
@@ -72,7 +84,6 @@ class PatientListFragment : Fragment() {
   private var _binding: FragmentPatientListBinding? = null
   private val binding
     get() = _binding!!
-
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -123,9 +134,7 @@ class PatientListFragment : Fragment() {
         },
       )
 
-    binding.apply {
-      addPatient.setOnClickListener { onAddPatientClick() }
-    }
+    binding.apply { addPatient.setOnClickListener { onAddPatientClick() } }
     setHasOptionsMenu(true)
     (activity as MainActivity).setDrawerEnabled(false)
     launchAndRepeatStarted(
@@ -152,7 +161,9 @@ class PatientListFragment : Fragment() {
         Timber.i(
           "Sync: ${currentSyncJobStatus::class.java.simpleName} at ${currentSyncJobStatus.timestamp}",
         )
-        patientListViewModel.searchPatientsByName(binding.patientInputEditText.text.toString().trim())
+        patientListViewModel.searchPatientsByName(
+          binding.patientInputEditText.text.toString().trim(),
+        )
         mainActivityViewModel.updateLastSyncTimestamp(currentSyncJobStatus.timestamp)
         fadeOutTopBanner(currentSyncJobStatus)
       }
@@ -160,13 +171,17 @@ class PatientListFragment : Fragment() {
         Timber.i(
           "Sync: ${currentSyncJobStatus::class.java.simpleName} at ${currentSyncJobStatus.timestamp}",
         )
-        patientListViewModel.searchPatientsByName(binding.patientInputEditText.text.toString().trim())
+        patientListViewModel.searchPatientsByName(
+          binding.patientInputEditText.text.toString().trim(),
+        )
         mainActivityViewModel.updateLastSyncTimestamp(currentSyncJobStatus.timestamp)
         fadeOutTopBanner(currentSyncJobStatus)
       }
       is CurrentSyncJobStatus.Enqueued -> {
         Timber.i("Sync: Enqueued")
-        patientListViewModel.searchPatientsByName(binding.patientInputEditText.text.toString().trim())
+        patientListViewModel.searchPatientsByName(
+          binding.patientInputEditText.text.toString().trim(),
+        )
         fadeOutTopBanner(currentSyncJobStatus)
       }
       is CurrentSyncJobStatus.Cancelled -> {
@@ -188,7 +203,9 @@ class PatientListFragment : Fragment() {
       is CurrentSyncJobStatus.Succeeded -> {
         val lastSyncTimestamp =
           (periodicSyncJobStatus.currentSyncJobStatus as CurrentSyncJobStatus.Succeeded).timestamp
-        patientListViewModel.searchPatientsByName(binding.patientInputEditText.text.toString().trim())
+        patientListViewModel.searchPatientsByName(
+          binding.patientInputEditText.text.toString().trim(),
+        )
         mainActivityViewModel.updateLastSyncTimestamp(lastSyncTimestamp)
         fadeOutTopBanner(periodicSyncJobStatus.currentSyncJobStatus)
       }
@@ -198,13 +215,17 @@ class PatientListFragment : Fragment() {
         Timber.i(
           "Sync: ${periodicSyncJobStatus.currentSyncJobStatus::class.java.simpleName} at $lastSyncTimestamp}",
         )
-        patientListViewModel.searchPatientsByName(binding.patientInputEditText.text.toString().trim())
+        patientListViewModel.searchPatientsByName(
+          binding.patientInputEditText.text.toString().trim(),
+        )
         mainActivityViewModel.updateLastSyncTimestamp(lastSyncTimestamp)
         fadeOutTopBanner(periodicSyncJobStatus.currentSyncJobStatus)
       }
       is CurrentSyncJobStatus.Enqueued -> {
         Timber.i("Sync: Enqueued")
-        patientListViewModel.searchPatientsByName(binding.patientInputEditText.text.toString().trim())
+        patientListViewModel.searchPatientsByName(
+          binding.patientInputEditText.text.toString().trim(),
+        )
         fadeOutTopBanner(periodicSyncJobStatus.currentSyncJobStatus)
       }
       is CurrentSyncJobStatus.Cancelled -> {
@@ -229,9 +250,8 @@ class PatientListFragment : Fragment() {
         if (binding.patientInputEditText.text.toString().trim().isNotEmpty()) {
           binding.patientInputEditText.setText("")
         } else {
-//          isEnabled = false
+          //          isEnabled = false
           NavHostFragment.findNavController(this).navigateUp()
-
         }
         true
       }
@@ -246,10 +266,12 @@ class PatientListFragment : Fragment() {
 
   private fun onAddPatientClick() {
     lifecycleScope.launch {
-      if(
-        context?.applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.LOCATION_NAME) != null
+      if (
+        context?.applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.LOCATION_NAME) !=
+          null
       ) {
-        findNavController().navigate(PatientListFragmentDirections.actionPatientListToAddPatientFragment())
+        findNavController()
+          .navigate(PatientListFragmentDirections.actionPatientListToAddPatientFragment())
       } else {
         Toast.makeText(context, "Please select a location first", Toast.LENGTH_LONG).show()
       }

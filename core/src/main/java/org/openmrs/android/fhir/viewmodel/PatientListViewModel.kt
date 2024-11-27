@@ -1,18 +1,31 @@
 /*
- * Copyright 2022-2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* BSD 3-Clause License
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice,
+*    this list of conditions and the following disclaimer in the documentation
+*    and/or other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its
+*    contributors may be used to endorse or promote products derived from
+*    this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 package org.openmrs.android.fhir.viewmodel
 
 import androidx.lifecycle.MutableLiveData
@@ -24,21 +37,20 @@ import com.google.android.fhir.search.StringFilterModifier
 import com.google.android.fhir.search.count
 import com.google.android.fhir.search.search
 import java.time.LocalDate
+import java.time.ZoneOffset
+import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.RiskAssessment
 import timber.log.Timber
-import java.time.ZoneOffset
-import javax.inject.Inject
 
 /**
  * The ViewModel helper class for PatientItemRecyclerViewAdapter, that is responsible for preparing
  * data for UI.
  */
-class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngine) :
-  ViewModel() {
+class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngine) : ViewModel() {
 
   val liveSearchedPatients = MutableLiveData<List<PatientItem>>()
   val patientCount = MutableLiveData<Long>()
@@ -104,11 +116,11 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
       .mapIndexed { index, fhirPatient -> fhirPatient.resource.toPatientItem(index + 1) }
       .let {
         patients.addAll(it)
-        patients.map { patientItem->
-          patientItem.isSynced = fhirEngine.getLocalChanges(ResourceType.Patient, patientItem.resourceId).isEmpty()
+        patients.map { patientItem ->
+          patientItem.isSynced =
+            fhirEngine.getLocalChanges(ResourceType.Patient, patientItem.resourceId).isEmpty()
         }
       }
-
 
     val risks = getRiskAssessments()
     patients.forEach { patient ->
@@ -174,24 +186,24 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
     val id: String,
     val code: String,
     val startDate: String,
-    val endDate: String
+    val endDate: String,
   ) {
     override fun toString(): String = code + ", " + startDate + " - " + endDate
+
     fun getPeriods(): String = startDate + " - " + endDate
   }
 
-    data class EncounterItem(
-        val encounterId: String?,
-        val type: String,
-        val dateTime: String,
-        val formCode: String?,
-        val formDisplay: String?,
-        val formResource: String?,
-        val isSynced: Boolean?,
-    ) {
-        override fun toString(): String = encounterId ?: type
-    }
-
+  data class EncounterItem(
+    val encounterId: String?,
+    val type: String,
+    val dateTime: String,
+    val formCode: String?,
+    val formDisplay: String?,
+    val formResource: String?,
+    val isSynced: Boolean?,
+  ) {
+    override fun toString(): String = encounterId ?: type
+  }
 }
 
 internal fun Patient.toPatientItem(position: Int): PatientListViewModel.PatientItem {
@@ -202,14 +214,14 @@ internal fun Patient.toPatientItem(position: Int): PatientListViewModel.PatientI
   val dob =
     if (hasBirthDateElement()) {
       try {
-        birthDateElement.value.toInstant()
-          .atOffset(ZoneOffset.UTC)
-          .toLocalDate()
+        birthDateElement.value.toInstant().atOffset(ZoneOffset.UTC).toLocalDate()
       } catch (e: Exception) {
         Timber.e("${birthDateElement.valueAsString} can't be parsed")
         null
       }
-    } else null
+    } else {
+      null
+    }
   val phone = if (hasTelecom()) telecom[0].value else ""
   val city = if (hasAddress()) address[0].city else ""
   val country = if (hasAddress()) address[0].country else ""

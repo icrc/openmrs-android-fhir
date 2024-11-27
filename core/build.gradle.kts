@@ -14,8 +14,6 @@ android {
     minSdk = 26
     testInstrumentationRunner = "androidx.test.runner.Android JUnitRunner"
     buildFeatures.buildConfig = true
-
-
   }
   buildFeatures { viewBinding = true }
   buildTypes {
@@ -29,10 +27,10 @@ android {
     // Flag to enable support for the new language APIs
     // See https://developer.android.com/studio/write/java8-support
     isCoreLibraryDesugaringEnabled = true
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
   }
-  kotlin { jvmToolchain(11) }
+  kotlin { jvmToolchain(17) }
   packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
 
   publishing {
@@ -53,7 +51,6 @@ android {
       }
     }
   }
-
 }
 
 publishing {
@@ -63,9 +60,7 @@ publishing {
       artifactId = "coreapp"
       version = "0.1.1-SNAPSHOT"
 
-      afterEvaluate {
-        from(components["default"])
-      }
+      afterEvaluate { from(components["default"]) }
     }
   }
   repositories {
@@ -81,8 +76,6 @@ publishing {
     }
   }
 }
-
-
 
 object Versions {
   const val desugar_jdk_libs = "2.1.0"
@@ -143,7 +136,6 @@ dependencies {
 
   implementation("androidx.room:room-runtime:${Versions.room}")
   implementation("androidx.room:room-ktx:${Versions.room}")
-  annotationProcessor("androidx.room:room-compiler:${Versions.room}")
   ksp("androidx.room:room-compiler:${Versions.room}")
 
   androidTestImplementation("junit:junit:${Versions.junit}")
@@ -163,10 +155,7 @@ dependencies {
   testImplementation("org.mockito:mockito-android:${Versions.mockito}")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.coroutineTest}")
 
-  //Dependency injection
+  // Dependency injection
   implementation("com.google.dagger:dagger:${Versions.daggerVersion}")
   kapt("com.google.dagger:dagger-compiler:${Versions.daggerVersion}")
 }
-
-
-

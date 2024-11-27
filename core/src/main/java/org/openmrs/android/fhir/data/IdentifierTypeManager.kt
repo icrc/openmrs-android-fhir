@@ -1,3 +1,33 @@
+/*
+* BSD 3-Clause License
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice,
+*    this list of conditions and the following disclaimer in the documentation
+*    and/or other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its
+*    contributors may be used to endorse or promote products derived from
+*    this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+package org.openmrs.android.fhir.data
+
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.datastore.preferences.core.edit
@@ -8,92 +38,90 @@ import okhttp3.Request
 import org.json.JSONObject
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.IdentifierType
 
-class IdentifierTypeManager private constructor(private val context: Context, val database: AppDatabase) {
+class IdentifierTypeManager
+private constructor(private val context: Context, val database: AppDatabase) {
 
-    private var restApiClient: RestApiManager = FhirApplication.restApiClient(context)
-    private val ENDPOINT = FhirApplication.openmrsRestUrl(context) + "idgen/autogenerationoption?v=default"
-    companion object {
-        @SuppressLint("StaticFieldLeak")
-        private lateinit var instance: IdentifierTypeManager
-        suspend fun fetchIdentifiers(context: Context, database: AppDatabase) {
-            withContext(Dispatchers.IO) {
-                instance = IdentifierTypeManager(context, database)
-                val newIdentifiers = instance.fetchIdentifierFromEndpoint()
-                if(newIdentifiers!= null){
-                    instance.storeIdentifiers(newIdentifiers)
-                    instance.selectRequiredIdentifiers(newIdentifiers)
-                }
-            }
+  private var restApiClient: RestApiManager = FhirApplication.restApiClient(context)
+  private val ENDPOINT =
+    FhirApplication.openmrsRestUrl(context) + "idgen/autogenerationoption?v=default"
+
+  companion object {
+    @SuppressLint("StaticFieldLeak") private lateinit var instance: IdentifierTypeManager
+
+    suspend fun fetchIdentifiers(context: Context, database: AppDatabase) {
+      withContext(Dispatchers.IO) {
+        instance = IdentifierTypeManager(context, database)
+        val newIdentifiers = instance.fetchIdentifierFromEndpoint()
+        if (newIdentifiers != null) {
+          instance.storeIdentifiers(newIdentifiers)
+          instance.selectRequiredIdentifiers(newIdentifiers)
         }
+      }
     }
+  }
 
-    private suspend fun storeIdentifiers(identifierTypes: List<IdentifierType>) {
-        withContext(Dispatchers.IO){
-            database.dao().insertAllIdentifierTypeModel(identifierTypes)
+  private suspend fun storeIdentifiers(identifierTypes: List<IdentifierType>) {
+    withContext(Dispatchers.IO) { database.dao().insertAllIdentifierTypeModel(identifierTypes) }
+  }
+
+  private suspend fun selectRequiredIdentifiers(identifierTypes: List<IdentifierType>) {
+    withContext(Dispatchers.IO) {
+      val selectedIdentifierTypes =
+        instance.context.dataStore.data
+          .first()[PreferenceKeys.SELECTED_IDENTIFIER_TYPES]
+          ?.toMutableSet()
+          ?: mutableSetOf()
+      val requiredIdentifierTypes = identifierTypes.filter { it.required }
+      if (requiredIdentifierTypes.isNotEmpty()) {
+        requiredIdentifierTypes.forEach { selectedIdentifierTypes.add(it.uuid) }
+      }
+      instance.context.dataStore.edit { preferences ->
+        preferences[PreferenceKeys.SELECTED_IDENTIFIER_TYPES] = selectedIdentifierTypes
+      }
+    }
+  }
+
+  suspend fun fetchIdentifierFromEndpoint(): List<IdentifierType>? {
+    return withContext(Dispatchers.IO) {
+      try {
+        val requestBuilder = Request.Builder().url(ENDPOINT).get()
+        val response = restApiClient.call(requestBuilder)
+        val identifierIdSet = mutableSetOf<String>()
+        if (response.isSuccessful) {
+          val resArray = mutableListOf<IdentifierType>()
+          val jsonResponse = JSONObject(response.body?.string() ?: "")
+          val identifiers = jsonResponse.getJSONArray("results")
+          for (i in 0 until identifiers.length()) {
+            val autoGeneratedObject: JSONObject = identifiers.getJSONObject(i)
+            val identifierTypeObject = autoGeneratedObject.getJSONObject("identifierType")
+            if (identifierTypeObject["uuid"].toString() !in identifierIdSet) {
+              identifierIdSet.add(identifierTypeObject["uuid"].toString())
+              var sourceId = ""
+              if (autoGeneratedObject.getBoolean("automaticGenerationEnabled")) {
+                val sourceObject = autoGeneratedObject.getJSONObject("source")
+                sourceId = sourceObject["uuid"].toString()
+              }
+              resArray.add(
+                IdentifierType(
+                  identifierTypeObject["uuid"].toString(),
+                  identifierTypeObject["display"].toString(),
+                  autoGeneratedObject.getBoolean("automaticGenerationEnabled"),
+                  identifierTypeObject.getBoolean("required"),
+                  sourceId,
+                ),
+              )
+            }
+          }
+          resArray.toList()
+        } else {
+          null
         }
+      } catch (e: Exception) {
+        null
+      }
     }
-
-    private suspend fun selectRequiredIdentifiers(identifierTypes: List<IdentifierType>) {
-        withContext(Dispatchers.IO){
-            val selectedIdentifierTypes = instance.context.dataStore.data.first()[PreferenceKeys.SELECTED_IDENTIFIER_TYPES]
-                ?.toMutableSet() ?: mutableSetOf()
-            val requiredIdentifierTypes = identifierTypes.filter {
-                it.required
-            }
-            if(requiredIdentifierTypes.isNotEmpty()){
-                requiredIdentifierTypes.forEach {
-                    selectedIdentifierTypes.add(it.uuid)
-                }
-            }
-            instance.context.dataStore.edit { preferences ->
-                preferences[PreferenceKeys.SELECTED_IDENTIFIER_TYPES] = selectedIdentifierTypes
-            }
-        }
-    }
-
-     suspend fun fetchIdentifierFromEndpoint(): List<IdentifierType>? {
-        return withContext(Dispatchers.IO) {
-            try {
-                val requestBuilder = Request.Builder()
-                    .url(ENDPOINT)
-                    .get()
-                val response = restApiClient.call(requestBuilder)
-                val identifierIdSet = mutableSetOf<String>()
-                if (response.isSuccessful) {
-                    val resArray = mutableListOf<IdentifierType>()
-                    val jsonResponse = JSONObject(response.body?.string() ?: "")
-                    val identifiers = jsonResponse.getJSONArray("results")
-                    for (i in 0..<identifiers.length()) {
-                        val autoGeneratedObject: JSONObject = identifiers.getJSONObject(i)
-                        val identifierTypeObject = autoGeneratedObject.getJSONObject("identifierType")
-                        if(identifierTypeObject["uuid"].toString() !in identifierIdSet){
-                            identifierIdSet.add(identifierTypeObject["uuid"].toString())
-                            var sourceId = ""
-                            if(autoGeneratedObject.getBoolean("automaticGenerationEnabled")){
-                                val sourceObject = autoGeneratedObject.getJSONObject("source")
-                                sourceId = sourceObject["uuid"].toString()
-                            }
-                            resArray.add(IdentifierType(
-                                identifierTypeObject["uuid"].toString(),
-                                identifierTypeObject["display"].toString(),
-                                autoGeneratedObject.getBoolean("automaticGenerationEnabled"),
-                                identifierTypeObject.getBoolean("required"),
-                                sourceId
-                            ))
-                        }
-                    }
-                    resArray.toList()
-                } else {
-                    null
-                }
-            } catch (e: Exception) {
-                null
-            }
-        }
-    }
-
+  }
 }

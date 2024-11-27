@@ -1,18 +1,31 @@
 /*
- * Copyright 2022-2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* BSD 3-Clause License
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice,
+*    this list of conditions and the following disclaimer in the documentation
+*    and/or other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its
+*    contributors may be used to endorse or promote products derived from
+*    this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 package org.openmrs.android.fhir
 
 import android.annotation.SuppressLint
@@ -20,10 +33,6 @@ import android.content.Context
 import android.content.Intent
 import com.google.android.fhir.sync.HttpAuthenticationMethod
 import com.google.android.fhir.sync.HttpAuthenticator
-import org.openmrs.android.fhir.auth.AuthConfigUtil
-import org.openmrs.android.fhir.auth.AuthConfiguration
-import org.openmrs.android.fhir.auth.AuthStateManager
-import org.openmrs.android.fhir.auth.ConnectionBuilderForTesting
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -44,13 +53,17 @@ import net.openid.appauth.TokenRequest
 import net.openid.appauth.TokenResponse
 import net.openid.appauth.browser.AnyBrowserMatcher
 import net.openid.appauth.browser.BrowserMatcher
+import org.openmrs.android.fhir.auth.AuthConfigUtil
+import org.openmrs.android.fhir.auth.AuthConfiguration
+import org.openmrs.android.fhir.auth.AuthStateManager
+import org.openmrs.android.fhir.auth.ConnectionBuilderForTesting
 import timber.log.Timber
 
 class LoginRepository
 private constructor(
   private val authStateManager: AuthStateManager,
   private val authConfig: AuthConfiguration,
-  private var authService: AuthorizationService
+  private var authService: AuthorizationService,
 ) : HttpAuthenticator {
   private val clientId = AtomicReference<String?>()
   private val authRequest = AtomicReference<AuthorizationRequest?>()
@@ -71,8 +84,7 @@ private constructor(
   suspend fun isAuthEstablished() =
     !hasConfigurationChanged() && authStateManager.current.authorizationServiceConfiguration != null
 
-  fun getLastConfigurationError(): AuthorizationException?= authConfig.lastException
-
+  fun getLastConfigurationError(): AuthorizationException? = authConfig.lastException
 
   fun getAuthIntent(): Intent? {
     if (authStateManager.current.authorizationServiceConfiguration == null) {
@@ -81,11 +93,11 @@ private constructor(
     }
     val authRequestBuilder =
       AuthorizationRequest.Builder(
-        authStateManager.current.authorizationServiceConfiguration!!,
-        clientId.get()!!,
-        ResponseTypeValues.CODE,
-        authConfig.redirectUri!!
-      )
+          authStateManager.current.authorizationServiceConfiguration!!,
+          clientId.get()!!,
+          ResponseTypeValues.CODE,
+          authConfig.redirectUri!!,
+        )
         .setScope(authConfig.scope)
     authRequest.set(authRequestBuilder.build())
 
@@ -95,7 +107,6 @@ private constructor(
   suspend fun initializeAppAuth() {
     Timber.i("Initializing AppAuth")
     if (authStateManager.current.authorizationServiceConfiguration != null) {
-
       // configuration is already created, skip to client initialization
       Timber.i("auth authConfig already established")
       clientId.set(authConfig.clientId)
@@ -110,7 +121,7 @@ private constructor(
           authConfig.authEndpointUri!!,
           authConfig.tokenEndpointUri!!,
           authConfig.registrationEndpointUri,
-          authConfig.endSessionEndpoint
+          authConfig.endSessionEndpoint,
         )
       authStateManager.replace(AuthState(authConfig))
       clientId.set(this.authConfig.clientId)
@@ -128,7 +139,7 @@ private constructor(
           handleConfigurationRetrievalResult(config, ex)
           cont.resume(Unit)
         },
-        authConfig.connectionBuilder
+        authConfig.connectionBuilder,
       )
     }
   }
@@ -138,7 +149,7 @@ private constructor(
     ex: AuthorizationException?,
   ) {
     runBlocking {
-      authConfig.lastException=ex
+      authConfig.lastException = ex
       if (authServiceConfig == null) {
         Timber.i("Failed to retrieve discovery document", ex)
         return@runBlocking
@@ -146,12 +157,13 @@ private constructor(
       Timber.i("Discovery document retrieved")
 
       if (authConfig.connectionBuilder is ConnectionBuilderForTesting) {
-        val updatedConfig = AuthConfigUtil.replaceLocalhost(
-          authServiceConfig.toJsonString(),
-          ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2
-        )
+        val updatedConfig =
+          AuthConfigUtil.replaceLocalhost(
+            authServiceConfig.toJsonString(),
+            ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2,
+          )
         authStateManager.replace(
-          AuthState(AuthorizationServiceConfiguration.fromJson(updatedConfig))
+          AuthState(AuthorizationServiceConfiguration.fromJson(updatedConfig)),
         )
       } else {
         authStateManager.replace(AuthState(authServiceConfig))
@@ -162,7 +174,7 @@ private constructor(
 
   suspend fun updateAfterAuthorization(
     response: AuthorizationResponse?,
-    ex: AuthorizationException?
+    ex: AuthorizationException?,
   ) {
     authStateManager.updateAfterAuthorization(response, ex)
   }
@@ -178,8 +190,8 @@ private constructor(
     return suspendCoroutine { cont ->
       Timber.i("Exchanging authorization code")
       performTokenRequest(authorizationResponse.createTokenExchangeRequest()) {
-          tokenResponse: TokenResponse?,
-          authException: AuthorizationException?,
+        tokenResponse: TokenResponse?,
+        authException: AuthorizationException?,
         ->
         handleCodeExchangeResponse(tokenResponse, authException)
         cont.resume(Unit)
@@ -198,7 +210,7 @@ private constructor(
       Timber.d(
         "Token request cannot be made, client authentication for the token " +
           "endpoint could not be constructed (%s)",
-        ex
+        ex,
       )
       Timber.e("Client authentication method is unsupported")
     }
@@ -208,7 +220,6 @@ private constructor(
     tokenResponse: TokenResponse?,
     authException: AuthorizationException?,
   ) {
-
     runBlocking {
       authStateManager.updateAfterTokenResponse(tokenResponse, authException)
       if (!authStateManager.current.isAuthorized) {
@@ -226,10 +237,12 @@ private constructor(
     return HttpAuthenticationMethod.Bearer(getAccessToken())
   }
 
-
   fun getAccessToken(): String {
     return runBlocking {
-      if (authStateManager.current.needsTokenRefresh and authStateManager.current.isAuthorized && (authStateManager.current.refreshToken !=null)) {
+      if (
+        authStateManager.current.needsTokenRefresh and authStateManager.current.isAuthorized &&
+          (authStateManager.current.refreshToken != null)
+      ) {
         Timber.i("Refreshing access token")
         refreshAccessToken()
       }
@@ -244,8 +257,8 @@ private constructor(
   private suspend fun refreshAccessToken() {
     return suspendCoroutine { cont ->
       performTokenRequest(authStateManager.current.createTokenRefreshRequest()) {
-          tokenResponse: TokenResponse?,
-          authException: AuthorizationException?,
+        tokenResponse: TokenResponse?,
+        authException: AuthorizationException?,
         ->
         handleCodeExchangeResponse(tokenResponse, authException)
         cont.resume(Unit)
@@ -254,14 +267,13 @@ private constructor(
   }
 
   companion object {
-    @SuppressLint("StaticFieldLeak")
-    private var INSTANCE: LoginRepository? = null
+    @SuppressLint("StaticFieldLeak") private var INSTANCE: LoginRepository? = null
 
     @Synchronized
     fun getInstance(
       context: Context,
       authStateManager: AuthStateManager = AuthStateManager.getInstance(context.applicationContext),
-      authConfig: AuthConfiguration = AuthConfiguration.getInstance(context.applicationContext)
+      authConfig: AuthConfiguration = AuthConfiguration.getInstance(context.applicationContext),
     ): LoginRepository {
       if (INSTANCE == null) {
         Timber.i("Creating authorization service")
