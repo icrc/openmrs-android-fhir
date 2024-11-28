@@ -26,40 +26,58 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.database
+package org.openmrs.android.fhir.di
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import org.openmrs.android.fhir.data.database.model.Identifier
-import org.openmrs.android.fhir.data.database.model.IdentifierType
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import dagger.Binds
+import dagger.MapKey
+import dagger.Module
+import javax.inject.Inject
+import javax.inject.Provider
+import kotlin.reflect.KClass
 
-@Dao
-interface Dao {
-
-  @Query("SELECT * from identifier WHERE identifierTypeUUID=:identifierTypeUUID LIMIT 1")
-  suspend fun getOneIdentifierByType(identifierTypeUUID: String): Identifier?
-
-  @Query("SELECT * from IdentifierType WHERE uuid=:identifierTypeUUID LIMIT 1")
-  suspend fun getIdentifierTypeById(identifierTypeUUID: String): IdentifierType?
-
-  @Query("SELECT * FROM identifiertype") suspend fun getAllIdentifierTypes(): List<IdentifierType>
-
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
-  suspend fun insertAllIdentifierModel(identifiers: List<Identifier>)
-
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
-  suspend fun insertAllIdentifierTypeModel(identifierTypes: List<IdentifierType>)
-
-  @Query("SELECT COUNT(*) FROM identifier WHERE identifierTypeUUID=:identifierTypeId")
-  suspend fun getIdentifierCountByTypeId(identifierTypeId: String): Int
-
-  @Query("SELECT COUNT(*) FROM IdentifierType") suspend fun getIdentifierTypesCount(): Int
-
-  @Delete suspend fun delete(identifier: Identifier)
-
-  @Query("DELETE FROM identifier WHERE value = :identifierValue ")
-  suspend fun deleteIdentifierByValue(identifierValue: String)
+/** ViewModelFactory which uses Dagger to create the instances. */
+class FhirViewModelFactory
+@Inject
+constructor(
+  private val creators: @JvmSuppressWildcards Map<Class<out ViewModel>, Provider<ViewModel>>,
+) : ViewModelProvider.Factory {
+  override fun <T : ViewModel> create(modelClass: Class<T>): T {
+    var creator: Provider<out ViewModel>? = creators[modelClass]
+    if (creator == null) {
+      for ((key, value) in creators) {
+        if (modelClass.isAssignableFrom(key)) {
+          creator = value
+          break
+        }
+      }
+    }
+    if (creator == null) {
+      throw IllegalArgumentException("Unknown model class: $modelClass")
+    }
+    try {
+      @Suppress("UNCHECKED_CAST") return creator.get() as T
+    } catch (e: Exception) {
+      throw RuntimeException(e)
+    }
+  }
 }
+
+@Module
+abstract class ViewModelBuilderModule {
+
+  @Binds
+  abstract fun bindViewModelFactory(
+    factory: FhirViewModelFactory,
+  ): ViewModelProvider.Factory
+}
+
+@Target(
+  AnnotationTarget.FUNCTION,
+  AnnotationTarget.PROPERTY_GETTER,
+  AnnotationTarget.PROPERTY_SETTER,
+)
+@Retention(AnnotationRetention.RUNTIME)
+@MapKey
+annotation class ViewModelKey(val value: KClass<out ViewModel>)

@@ -26,47 +26,60 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.viewmodel
+package org.openmrs.android.fhir.di
 
 import android.content.Context
-import android.content.Intent
-import androidx.lifecycle.ViewModel
-import javax.inject.Inject
-import net.openid.appauth.AuthorizationException
-import net.openid.appauth.AuthorizationResponse
-import org.openmrs.android.fhir.LoginRepository
-import timber.log.Timber
+import dagger.BindsInstance
+import dagger.Component
+import javax.inject.Singleton
+import org.openmrs.android.fhir.LoginActivity
+import org.openmrs.android.fhir.MainActivity
+import org.openmrs.android.fhir.fragments.AddPatientFragment
+import org.openmrs.android.fhir.fragments.EditEncounterFragment
+import org.openmrs.android.fhir.fragments.EditPatientFragment
+import org.openmrs.android.fhir.fragments.GenericFormEntryFragment
+import org.openmrs.android.fhir.fragments.IdentifierFragment
+import org.openmrs.android.fhir.fragments.LocationFragment
+import org.openmrs.android.fhir.fragments.PatientDetailsFragment
+import org.openmrs.android.fhir.fragments.PatientListFragment
 
-class LoginActivityViewModel @Inject constructor(private val applicationContext: Context) :
-  ViewModel() {
-  private val loginRepository by lazy { LoginRepository.getInstance(applicationContext) }
+@Singleton
+@Component(
+  modules =
+    [
+      AppModule::class,
+      AssistedViewModelModule::class,
+      ViewModelModule::class,
+      ViewModelBuilderModule::class,
+    ],
+)
+interface AppComponent {
 
-  suspend fun createIntent(): Intent? {
-    loginRepository.updateAuthIfConfigurationChanged()
-    loginRepository.initializeAppAuth()
-    return loginRepository.getAuthIntent()
+  @Component.Factory
+  interface Factory {
+    fun create(@BindsInstance applicationContext: Context): AppComponent
   }
 
-  fun getLastConfigurationError(): AuthorizationException? {
-    return loginRepository.getLastConfigurationError()
-  }
+  /*
+   * Fragments & Activities
+   */
+  fun inject(fragment: AddPatientFragment)
 
-  suspend fun isAuthAlreadyEstablished() = loginRepository.isAuthEstablished()
+  fun inject(fragment: LocationFragment)
 
-  suspend fun handleLoginResponse(response: AuthorizationResponse?, ex: AuthorizationException?) {
-    if (response != null || ex != null) {
-      loginRepository.updateAfterAuthorization(response, ex)
-    }
-    when {
-      response?.authorizationCode != null -> {
-        loginRepository.exchangeCodeForToken(response, ex)
-      }
-      ex != null -> {
-        Timber.e("Authorization flow failed: " + ex.message)
-      }
-      else -> {
-        Timber.e("No authorization state retained - reauthorization required")
-      }
-    }
-  }
+  fun inject(fragment: EditEncounterFragment)
+
+  fun inject(fragment: EditPatientFragment)
+
+  fun inject(fragment: GenericFormEntryFragment)
+
+  fun inject(fragment: IdentifierFragment)
+
+  fun inject(fragment: PatientListFragment)
+
+  fun inject(fragment: PatientDetailsFragment)
+
+  fun inject(activity: LoginActivity)
+
+  fun inject(activity: MainActivity)
 }

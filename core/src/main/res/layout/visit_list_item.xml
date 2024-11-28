@@ -4,7 +4,8 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:layout_marginStart="@dimen/text_margin"
-    android:padding="8dp">
+    android:padding="8dp"
+>
 
     <TextView
         android:id="@+id/encounterType"
@@ -13,7 +14,8 @@
         android:fontFamily="@font/inter"
         android:text="Encounter Name"
         android:textSize="16sp"
-        android:layout_marginBottom="4dp"/>
+        android:layout_marginBottom="4dp"
+    />
 
     <TextView
         android:id="@+id/encounterDate"
@@ -22,6 +24,7 @@
         android:fontFamily="@font/inter"
         android:text="Encounter Date"
         android:textSize="14sp"
-        android:textColor="@android:color/darker_gray"/>
+        android:textColor="@android:color/darker_gray"
+    />
 
 </LinearLayout>

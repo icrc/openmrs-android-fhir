@@ -7,9 +7,9 @@
             android:title="@string/sync_menu"
         />
   <item
-      android:id="@+id/menu_current_location"
-      android:icon="@drawable/ic_location"
-      android:title="@string/no_location_selected"
-      />
+            android:id="@+id/menu_current_location"
+            android:icon="@drawable/ic_location"
+            android:title="@string/no_location_selected"
+        />
 </group>
 </menu>

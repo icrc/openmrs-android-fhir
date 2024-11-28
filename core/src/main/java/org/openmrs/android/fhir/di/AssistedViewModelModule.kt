@@ -26,40 +26,45 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.database
+package org.openmrs.android.fhir.di
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import org.openmrs.android.fhir.data.database.model.Identifier
-import org.openmrs.android.fhir.data.database.model.IdentifierType
+import androidx.lifecycle.ViewModel
+import dagger.Module
+import dagger.Provides
+import dagger.multibindings.IntoMap
+import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
+import org.openmrs.android.fhir.viewmodel.EditPatientViewModel
+import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
+import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
 
-@Dao
-interface Dao {
+@Module
+class AssistedViewModelModule {
 
-  @Query("SELECT * from identifier WHERE identifierTypeUUID=:identifierTypeUUID LIMIT 1")
-  suspend fun getOneIdentifierByType(identifierTypeUUID: String): Identifier?
+  @Provides
+  @IntoMap
+  @ViewModelKey(EditEncounterViewModel::class)
+  fun editEncounterViewModelAssistedFactory(
+    factory: EditEncounterViewModel.Factory,
+  ): ViewModelAssistedFactory<out ViewModel> = factory
 
-  @Query("SELECT * from IdentifierType WHERE uuid=:identifierTypeUUID LIMIT 1")
-  suspend fun getIdentifierTypeById(identifierTypeUUID: String): IdentifierType?
+  @Provides
+  @IntoMap
+  @ViewModelKey(EditPatientViewModel::class)
+  fun editPatientViewModelAssistedFactory(
+    factory: EditPatientViewModel.Factory,
+  ): ViewModelAssistedFactory<out ViewModel> = factory
 
-  @Query("SELECT * FROM identifiertype") suspend fun getAllIdentifierTypes(): List<IdentifierType>
+  @Provides
+  @IntoMap
+  @ViewModelKey(GenericFormEntryViewModel::class)
+  fun genericFormEntryViewModelAssistedFactory(
+    factory: GenericFormEntryViewModel.Factory,
+  ): ViewModelAssistedFactory<out ViewModel> = factory
 
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
-  suspend fun insertAllIdentifierModel(identifiers: List<Identifier>)
-
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
-  suspend fun insertAllIdentifierTypeModel(identifierTypes: List<IdentifierType>)
-
-  @Query("SELECT COUNT(*) FROM identifier WHERE identifierTypeUUID=:identifierTypeId")
-  suspend fun getIdentifierCountByTypeId(identifierTypeId: String): Int
-
-  @Query("SELECT COUNT(*) FROM IdentifierType") suspend fun getIdentifierTypesCount(): Int
-
-  @Delete suspend fun delete(identifier: Identifier)
-
-  @Query("DELETE FROM identifier WHERE value = :identifierValue ")
-  suspend fun deleteIdentifierByValue(identifierValue: String)
+  @Provides
+  @IntoMap
+  @ViewModelKey(PatientDetailsViewModel::class)
+  fun patientDetailsViewModelAssistedFactory(
+    factory: PatientDetailsViewModel.Factory,
+  ): ViewModelAssistedFactory<out ViewModel> = factory
 }

@@ -3,21 +3,24 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:padding="8dp"
+>
 
     <TextView
-            android:id="@+id/encounterDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Encounter Date"
-            android:textSize="14sp"
-            android:textColor="@android:color/darker_gray"/>
+        android:id="@+id/encounterDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Encounter Date"
+        android:textSize="14sp"
+        android:textColor="@android:color/darker_gray"
+    />
     <TextView
         android:id="@+id/encounterType"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Encounter Name"
         android:textSize="16sp"
-        android:layout_marginBottom="4dp"/>
+        android:layout_marginBottom="4dp"
+    />
 
 </LinearLayout>

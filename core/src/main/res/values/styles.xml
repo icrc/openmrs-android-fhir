@@ -119,12 +119,18 @@
         <item name="fontFamily">@font/inter_bold</item>
     </style>
 
-    <style name="Questionnaire.questionnaireRadioButtonStyle" parent="Widget.Material3.CompoundButton.RadioButton">
+    <style
+        name="Questionnaire.questionnaireRadioButtonStyle"
+        parent="Widget.Material3.CompoundButton.RadioButton"
+    >
         <item name="fontFamily">@font/inter</item>
         <item name="buttonTint">@color/dashboard_cardview_textcolor</item>
     </style>
 
-    <style name="Questionnaire.questionnaireSubmitButtonStyle" parent="Widget.Material3.Button">
+    <style
+        name="Questionnaire.questionnaireSubmitButtonStyle"
+        parent="Widget.Material3.Button"
+    >
         <item name="fontFamily">@font/inter</item>
         <item name="cornerRadius">4sp</item>
         <item name="backgroundTint">@color/dashboard_cardview_textcolor</item>
@@ -134,12 +140,26 @@
         <item name="backgroundTint">@color/white</item>
     </style>
     <style name="Questionnaire" parent="Theme.Questionnaire">
-        <item name="questionnaireQuestionTextStyle">@style/Questionnaire.questionnaireQuestionTextStyle</item>
-        <item name="questionnaireGroupTypeQuestionTextStyle">@style/Questionnaire.questionnaireGroupTypeQuestionTextStyle</item>
-        <item name="questionnaireTextInputEditTextStyle">@style/Questionnaire.questionnaireTextInputEditTextStyle</item>
-        <item name="questionnaireTextInputLayoutStyle">@style/Questionnaire.questionnaireTextInputLayoutStyle</item>
-        <item name="questionnaireRadioButtonStyle">@style/Questionnaire.questionnaireRadioButtonStyle</item>
-        <item name="questionnaireSubmitButtonStyle">@style/Questionnaire.questionnaireSubmitButtonStyle</item>
-        <item name="questionnaireBottomNavContainerStyle">@style/Questionnaire.questionnaireBottomNavContainerStyle</item>
+        <item
+            name="questionnaireQuestionTextStyle"
+        >@style/Questionnaire.questionnaireQuestionTextStyle</item>
+        <item
+            name="questionnaireGroupTypeQuestionTextStyle"
+        >@style/Questionnaire.questionnaireGroupTypeQuestionTextStyle</item>
+        <item
+            name="questionnaireTextInputEditTextStyle"
+        >@style/Questionnaire.questionnaireTextInputEditTextStyle</item>
+        <item
+            name="questionnaireTextInputLayoutStyle"
+        >@style/Questionnaire.questionnaireTextInputLayoutStyle</item>
+        <item
+            name="questionnaireRadioButtonStyle"
+        >@style/Questionnaire.questionnaireRadioButtonStyle</item>
+        <item
+            name="questionnaireSubmitButtonStyle"
+        >@style/Questionnaire.questionnaireSubmitButtonStyle</item>
+        <item
+            name="questionnaireBottomNavContainerStyle"
+        >@style/Questionnaire.questionnaireBottomNavContainerStyle</item>
     </style>
 </resources>

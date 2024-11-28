@@ -26,40 +26,36 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.database
+package org.openmrs.android.fhir.di
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import org.openmrs.android.fhir.data.database.model.Identifier
-import org.openmrs.android.fhir.data.database.model.IdentifierType
+import android.content.Context
+import androidx.room.Room
+import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.FhirEngineProvider
+import dagger.Module
+import dagger.Provides
+import javax.inject.Singleton
+import org.openmrs.android.fhir.data.database.AppDatabase
 
-@Dao
-interface Dao {
+@Module
+object AppModule {
 
-  @Query("SELECT * from identifier WHERE identifierTypeUUID=:identifierTypeUUID LIMIT 1")
-  suspend fun getOneIdentifierByType(identifierTypeUUID: String): Identifier?
+  @JvmStatic
+  @Singleton
+  @Provides
+  fun provideAppFhirEngine(context: Context): FhirEngine {
+    return FhirEngineProvider.getInstance(context)
+  }
 
-  @Query("SELECT * from IdentifierType WHERE uuid=:identifierTypeUUID LIMIT 1")
-  suspend fun getIdentifierTypeById(identifierTypeUUID: String): IdentifierType?
-
-  @Query("SELECT * FROM identifiertype") suspend fun getAllIdentifierTypes(): List<IdentifierType>
-
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
-  suspend fun insertAllIdentifierModel(identifiers: List<Identifier>)
-
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
-  suspend fun insertAllIdentifierTypeModel(identifierTypes: List<IdentifierType>)
-
-  @Query("SELECT COUNT(*) FROM identifier WHERE identifierTypeUUID=:identifierTypeId")
-  suspend fun getIdentifierCountByTypeId(identifierTypeId: String): Int
-
-  @Query("SELECT COUNT(*) FROM IdentifierType") suspend fun getIdentifierTypesCount(): Int
-
-  @Delete suspend fun delete(identifier: Identifier)
-
-  @Query("DELETE FROM identifier WHERE value = :identifierValue ")
-  suspend fun deleteIdentifierByValue(identifierValue: String)
+  @JvmStatic
+  @Singleton
+  @Provides
+  fun provideDatabase(context: Context): AppDatabase {
+    return Room.databaseBuilder(
+        context,
+        AppDatabase::class.java,
+        "openmrs_android_fhir",
+      )
+      .build()
+  }
 }

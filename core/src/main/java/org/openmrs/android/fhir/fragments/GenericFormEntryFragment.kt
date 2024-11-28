@@ -1,3 +1,31 @@
+/*
+* BSD 3-Clause License
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice,
+*    this list of conditions and the following disclaimer in the documentation
+*    and/or other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its
+*    contributors may be used to endorse or promote products derived from
+*    this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
@@ -13,15 +41,19 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.datacapture.QuestionnaireFragment
+import javax.inject.Inject
 import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.Form
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
 
 /** A fragment class to show screener questionnaire screen. */
 class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
 
-  private val viewModel: GenericFormEntryViewModel by viewModels()
+  @Inject lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
+  private val viewModel: GenericFormEntryViewModel by viewModels { viewModelSavedStateFactory }
   private val args: GenericFormEntryFragmentArgs by navArgs()
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -29,6 +61,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
     setUpActionBar()
     setHasOptionsMenu(true)
     updateArguments(args.formResource, args.formCode)
+    (requireActivity().application as FhirApplication).appComponent.inject(this)
     onBackPressed()
     observeResourcesSaveAction()
     if (savedInstanceState == null) {
@@ -61,7 +94,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
   private fun updateArguments(formResource: String, encounterId: String) {
     requireArguments().putString(QUESTIONNAIRE_FILE_PATH_KEY, formResource)
     requireArguments().putString("encounter_id", encounterId)
-//    requireArguments().putString(QUESTIONNAIRE_FILE_PATH_KEY, "screener-questionnaire.json")
+    //    requireArguments().putString(QUESTIONNAIRE_FILE_PATH_KEY, "screener-questionnaire.json")
   }
 
   private fun addQuestionnaireFragment() {
@@ -80,7 +113,8 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
         childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG) as QuestionnaireFragment
       viewModel.saveEncounter(
         questionnaireFragment.getQuestionnaireResponse(),
-        Form(args.formDisplay, args.formCode), args.patientId
+        Form(args.formDisplay, args.formCode),
+        args.patientId,
       )
     }
   }
@@ -102,9 +136,9 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
   }
 
   private fun onBackPressed() {
-//    activity?.onBackPressedDispatcher?.addCallback(viewLifecycleOwner) {
-//      showCancelScreenerQuestionnaireAlertDialog()
-//    }
+    //    activity?.onBackPressedDispatcher?.addCallback(viewLifecycleOwner) {
+    //      showCancelScreenerQuestionnaireAlertDialog()
+    //    }
   }
 
   private fun observeResourcesSaveAction() {

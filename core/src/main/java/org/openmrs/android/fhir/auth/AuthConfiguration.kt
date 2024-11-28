@@ -1,18 +1,31 @@
 /*
- * Copyright 2022-2023 Google LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* BSD 3-Clause License
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice,
+*    this list of conditions and the following disclaimer in the documentation
+*    and/or other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its
+*    contributors may be used to endorse or promote products derived from
+*    this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 package org.openmrs.android.fhir.auth
 
 import android.annotation.SuppressLint
@@ -50,7 +63,10 @@ class AuthConfiguration private constructor(private val context: Context) {
   val authConfigData: AuthConfigData by lazy {
     AuthConfigData(
       client_id = context.getString(R.string.auth_client_id),
-      redirect_uri = context.getString(R.string.auth_redirect_uri_host) + ":" + context.getString(R.string.auth_redirect_uri_path),
+      redirect_uri =
+        context.getString(R.string.auth_redirect_uri_host) +
+          ":" +
+          context.getString(R.string.auth_redirect_uri_path),
       authorization_scope = context.getString(R.string.auth_authorization_scope),
       discovery_uri = context.getString(R.string.auth_discovery_uri),
       authorization_endpoint_uri = context.getString(R.string.auth_authorization_endpoint_uri),
@@ -59,35 +75,46 @@ class AuthConfiguration private constructor(private val context: Context) {
       user_info_endpoint_uri = context.getString(R.string.auth_user_info_endpoint_uri),
       end_session_endpoint = context.getString(R.string.auth_end_session_endpoint),
       https_required = context.resources.getBoolean(R.bool.auth_https_required),
-      replace_localhost_by_10_0_2_2 = context.resources.getBoolean(R.bool.auth_replace_localhost_by_10_0_2_2)
+      replace_localhost_by_10_0_2_2 =
+        context.resources.getBoolean(R.bool.auth_replace_localhost_by_10_0_2_2),
     )
   }
   val clientId: String
     get() = authConfigData.client_id
+
   val scope: String?
     get() = authConfigData.authorization_scope
+
   val redirectUri: Uri?
     get() = Uri.parse(authConfigData.redirect_uri)
+
   val discoveryUri: Uri?
     get() =
-      if (authConfigData.discovery_uri.isNullOrBlank())
+      if (authConfigData.discovery_uri.isNullOrBlank()) {
         null
-      else
+      } else {
         Uri.parse(authConfigData.discovery_uri)
+      }
+
   val authEndpointUri: Uri?
     get() = Uri.parse(authConfigData.authorization_endpoint_uri)
+
   val tokenEndpointUri: Uri?
     get() = Uri.parse(authConfigData.token_endpoint_uri)
+
   val registrationEndpointUri: Uri?
     get() = Uri.parse(authConfigData.registration_endpoint_uri)
+
   val endSessionEndpoint: Uri?
     get() = Uri.parse(authConfigData.end_session_endpoint)
+
   val connectionBuilder: ConnectionBuilder
     get() =
       if (authConfigData.https_required) {
         DefaultConnectionBuilder.INSTANCE
       } else {
-        ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2 = authConfigData.replace_localhost_by_10_0_2_2 ?: true
+        ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2 =
+          authConfigData.replace_localhost_by_10_0_2_2 ?: true
         ConnectionBuilderForTesting
       }
 
@@ -105,8 +132,7 @@ class AuthConfiguration private constructor(private val context: Context) {
   }
 
   companion object {
-    @SuppressLint("StaticFieldLeak")
-    private var INSTANCE: AuthConfiguration? = null
+    @SuppressLint("StaticFieldLeak") private var INSTANCE: AuthConfiguration? = null
 
     @Synchronized
     fun getInstance(context: Context): AuthConfiguration {
@@ -122,7 +148,7 @@ data class AuthConfigData(
   val client_id: String,
   val authorization_scope: String?,
   val redirect_uri: String?,
-//  val end_session_redirect_uri: String?,
+  //  val end_session_redirect_uri: String?,
   val discovery_uri: String?,
   val authorization_endpoint_uri: String?,
   val token_endpoint_uri: String?,

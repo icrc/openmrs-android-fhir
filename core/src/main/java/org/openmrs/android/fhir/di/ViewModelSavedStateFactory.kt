@@ -26,40 +26,37 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.database
+package org.openmrs.android.fhir.di
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import org.openmrs.android.fhir.data.database.model.Identifier
-import org.openmrs.android.fhir.data.database.model.IdentifierType
+import androidx.lifecycle.AbstractSavedStateViewModelFactory
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import javax.inject.Inject
+import javax.inject.Provider
 
-@Dao
-interface Dao {
+class ViewModelSavedStateFactory
+@Inject
+constructor(
+  private val viewModelAssistedFactory:
+    @JvmSuppressWildcards
+    Map<Class<out ViewModel>, Provider<ViewModelAssistedFactory<out ViewModel>>>,
+) : AbstractSavedStateViewModelFactory() {
 
-  @Query("SELECT * from identifier WHERE identifierTypeUUID=:identifierTypeUUID LIMIT 1")
-  suspend fun getOneIdentifierByType(identifierTypeUUID: String): Identifier?
+  @Suppress("UNCHECKED_CAST")
+  override fun <T : ViewModel> create(
+    key: String,
+    modelClass: Class<T>,
+    handle: SavedStateHandle,
+  ): T {
+    val factoryProvider =
+      viewModelAssistedFactory[modelClass]
+        ?: throw IllegalArgumentException("Unknown model class $modelClass")
+    return factoryProvider.get().create(handle) as T
+  }
+}
 
-  @Query("SELECT * from IdentifierType WHERE uuid=:identifierTypeUUID LIMIT 1")
-  suspend fun getIdentifierTypeById(identifierTypeUUID: String): IdentifierType?
-
-  @Query("SELECT * FROM identifiertype") suspend fun getAllIdentifierTypes(): List<IdentifierType>
-
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
-  suspend fun insertAllIdentifierModel(identifiers: List<Identifier>)
-
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
-  suspend fun insertAllIdentifierTypeModel(identifierTypes: List<IdentifierType>)
-
-  @Query("SELECT COUNT(*) FROM identifier WHERE identifierTypeUUID=:identifierTypeId")
-  suspend fun getIdentifierCountByTypeId(identifierTypeId: String): Int
-
-  @Query("SELECT COUNT(*) FROM IdentifierType") suspend fun getIdentifierTypesCount(): Int
-
-  @Delete suspend fun delete(identifier: Identifier)
-
-  @Query("DELETE FROM identifier WHERE value = :identifierValue ")
-  suspend fun deleteIdentifierByValue(identifierValue: String)
+interface ViewModelAssistedFactory<T : ViewModel> {
+  fun create(
+    handle: SavedStateHandle,
+  ): T
 }

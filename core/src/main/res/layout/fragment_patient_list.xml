@@ -30,14 +30,16 @@
             app:boxStrokeColor="@color/outline_neutral_variant_60"
             app:endIconMode="custom"
             app:endIconDrawable="@drawable/ic_home_search"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        >
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/patientInputEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:imeOptions="actionDone"
-                android:inputType="text" />
+                android:inputType="text"
+            />
         </com.google.android.material.textfield.TextInputLayout>
 
         <include
