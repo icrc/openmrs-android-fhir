@@ -30,6 +30,8 @@ package org.openmrs.android.fhir
 
 import android.app.Activity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.MenuItem
 import android.view.View
 import android.view.View.OnFocusChangeListener
@@ -39,15 +41,19 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.fhir.sync.CurrentSyncJobStatus
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
@@ -59,6 +65,10 @@ const val MAX_RESOURCE_COUNT = 20
 class MainActivity : AppCompatActivity() {
   private lateinit var binding: ActivityMainBinding
   private lateinit var drawerToggle: ActionBarDrawerToggle
+  private lateinit var authStateManager: AuthStateManager
+  private var tokenExpiryHandler: Handler? = null
+  private var tokenCheckRunnable: Runnable? = null
+  private var isDialogShowing = false
 
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
   private val viewModel by viewModels<MainActivityViewModel> { viewModelFactory }
@@ -67,11 +77,15 @@ class MainActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     (this.application as FhirApplication).appComponent.inject(this)
     binding = ActivityMainBinding.inflate(layoutInflater)
+    authStateManager = AuthStateManager.getInstance(applicationContext)
     setContentView(binding.root)
+    tokenExpiryHandler = Handler(Looper.getMainLooper()) // Initialize the handler
+
     initActionBar()
     initNavigationDrawer()
     observeLastSyncTime()
     observeSyncState()
+    observeNetworkConnection()
     viewModel.updateLastSyncTimestamp()
     viewModel.triggerIdentifierTypeSync(applicationContext)
   }
@@ -179,5 +193,73 @@ class MainActivity : AppCompatActivity() {
     viewModel.lastSyncTimestampLiveData.observe(this) {
       binding.navigationView.getHeaderView(0).findViewById<TextView>(R.id.last_sync_tv).text = it
     }
+  }
+
+  private suspend fun monitorTokenExpiry() {
+    val isServerAvailable = withContext(Dispatchers.IO) {
+      viewModel.isServerAvailable()
+    }
+    tokenCheckRunnable = object : Runnable {
+      override fun run() {
+        val authState = authStateManager.current
+        val expirationTime = authState.accessTokenExpirationTime
+        if (expirationTime != null && System.currentTimeMillis() > expirationTime) {
+          if (isServerAvailable){
+            showTokenExpiredDialog()
+            tokenExpiryHandler?.removeCallbacks(this)
+          }
+        } else {
+          tokenExpiryHandler?.postDelayed(this, 60 * 1000)
+        }
+      }
+    }
+
+    // Start the first check immediately
+    tokenExpiryHandler?.post(tokenCheckRunnable!!)
+  }
+
+  private fun showTokenExpiredDialog() {
+    if (!isDialogShowing) {
+      isDialogShowing = true
+      AlertDialog.Builder(this)
+        .setTitle("Session Expired")
+        .setMessage("Your session has expired. Please log in again.")
+        .setPositiveButton("OK") { dialog, _ ->
+          isDialogShowing = false
+          dialog.dismiss()
+        }
+        .setCancelable(false)
+        .show()
+    }
+  }
+
+  private fun observeNetworkConnection() {
+    lifecycleScope.launch {
+      viewModel.networkStatus.collect { isNetworkAvailable ->
+        if (isNetworkAvailable) {
+          binding.offlineFlag.tvNetworkStatus.text = getString(R.string.online)
+          viewModel.triggerOneTimeSync(applicationContext)
+          monitorTokenExpiry()
+        } else {
+          binding.offlineFlag.tvNetworkStatus.text = getString(R.string.offline)
+        }
+      }
+    }
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    // Clean up the handler to prevent memory leaks
+    tokenExpiryHandler?.removeCallbacksAndMessages(null)
+  }
+
+  override fun onStart() {
+    super.onStart()
+    viewModel.registerNetworkCallback()
+  }
+
+  override fun onStop() {
+    super.onStop()
+    viewModel.unregisterNetworkCallback()
   }
 }

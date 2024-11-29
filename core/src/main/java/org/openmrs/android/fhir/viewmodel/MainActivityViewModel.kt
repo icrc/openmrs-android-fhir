@@ -29,6 +29,8 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
 import android.text.format.DateFormat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -50,6 +52,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
@@ -79,6 +82,26 @@ constructor(
     get() = _lastSyncTimestampLiveData
 
   private val _oneTimeSyncTrigger = MutableStateFlow(false)
+
+  private val restApiManager = FhirApplication.restApiClient(applicationContext)
+
+  private val _networkStatus = MutableStateFlow(false)
+  val networkStatus: StateFlow<Boolean> get() = _networkStatus
+
+  private var connectivityManager: ConnectivityManager = applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+  private var networkCallBack: ConnectivityManager.NetworkCallback = object : ConnectivityManager.NetworkCallback() {
+    override fun onAvailable(network: Network) {
+      super.onAvailable(network)
+      // Network is available
+      _networkStatus.value = true
+    }
+
+    override fun onLost(network: Network) {
+      super.onLost(network)
+      // Network is lost
+      _networkStatus.value = false
+    }
+  }
 
   val pollPeriodicSyncJobStatus: SharedFlow<PeriodicSyncJobStatus> =
     Sync.periodicSync<FhirSyncWorker>(
@@ -215,6 +238,19 @@ constructor(
     _lastSyncTimestampLiveData.value =
       lastSync?.let { it.toLocalDateTime()?.format(formatter) ?: "" }
         ?: Sync.getLastSyncTimestamp(applicationContext)?.toLocalDateTime()?.format(formatter) ?: ""
+  }
+
+  fun registerNetworkCallback() {
+    connectivityManager.registerDefaultNetworkCallback(networkCallBack)
+  }
+
+  // Unregister the network callback
+  fun unregisterNetworkCallback() {
+    connectivityManager.unregisterNetworkCallback(networkCallBack)
+  }
+
+  fun isServerAvailable(): Boolean {
+    return restApiManager.isServerLive()
   }
 
   companion object {
