@@ -59,6 +59,8 @@ import org.openmrs.android.fhir.databinding.FragmentIdentifierBinding
 class IdentifierFragment : Fragment(R.layout.fragment_identifier) {
 
   @Inject lateinit var database: AppDatabase
+
+  @Inject lateinit var identifierTypeManager: IdentifierTypeManager
   private var _binding: FragmentIdentifierBinding? = null
   private lateinit var identifierAdapter: IdentifierTypeRecyclerViewAdapter
   private lateinit var selectedIdentifierTypes: MutableSet<String>
@@ -93,7 +95,7 @@ class IdentifierFragment : Fragment(R.layout.fragment_identifier) {
         context?.applicationContext?.let { database.dao().getAllIdentifierTypes().toMutableList() }
           ?: mutableListOf()
       if (identifierTypes.isEmpty()) {
-        context?.applicationContext?.let { IdentifierTypeManager.fetchIdentifiers(it, database) }
+        context?.applicationContext?.let { identifierTypeManager.fetchIdentifiers() }
       }
       selectedIdentifierTypes =
         context

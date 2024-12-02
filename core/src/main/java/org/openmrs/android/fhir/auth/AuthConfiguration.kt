@@ -33,23 +33,24 @@ import android.content.Context
 import android.net.Uri
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.connectivity.ConnectionBuilder
 import net.openid.appauth.connectivity.DefaultConnectionBuilder
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.model.AuthConfigData
+import org.openmrs.android.fhir.extensions.fromJson
+import org.openmrs.android.fhir.extensions.toJson
 
 class AuthConfiguration private constructor(private val context: Context) {
   private val authConfigKey by lazy { stringPreferencesKey("AuthConfig") }
   var lastException: AuthorizationException? = null
-  private val gson = Gson()
   val stored: AuthConfigData
     get() {
       val serializedAuth =
         runBlocking { context.dataStore.data.first()[authConfigKey] } ?: return authConfigData
-      return gson.fromJson(serializedAuth, AuthConfigData::class.java)
+      return serializedAuth.fromJson<AuthConfigData>()!!
     }
 
   suspend fun isNotStored(): Boolean {
@@ -57,77 +58,77 @@ class AuthConfiguration private constructor(private val context: Context) {
   }
 
   suspend fun save() {
-    context.dataStore.edit { pref -> pref[authConfigKey] = gson.toJson(authConfigData) }
+    context.dataStore.edit { pref -> pref[authConfigKey] = authConfigData.toJson() }
   }
 
   val authConfigData: AuthConfigData by lazy {
     AuthConfigData(
-      client_id = context.getString(R.string.auth_client_id),
-      redirect_uri =
+      clientId = context.getString(R.string.auth_client_id),
+      redirectUri =
         context.getString(R.string.auth_redirect_uri_host) +
           ":" +
           context.getString(R.string.auth_redirect_uri_path),
-      authorization_scope = context.getString(R.string.auth_authorization_scope),
-      discovery_uri = context.getString(R.string.auth_discovery_uri),
-      authorization_endpoint_uri = context.getString(R.string.auth_authorization_endpoint_uri),
-      registration_endpoint_uri = context.getString(R.string.auth_registration_endpoint_uri),
-      token_endpoint_uri = context.getString(R.string.auth_token_endpoint_uri),
-      user_info_endpoint_uri = context.getString(R.string.auth_user_info_endpoint_uri),
-      end_session_endpoint = context.getString(R.string.auth_end_session_endpoint),
-      https_required = context.resources.getBoolean(R.bool.auth_https_required),
-      replace_localhost_by_10_0_2_2 =
+      authorizationScope = context.getString(R.string.auth_authorization_scope),
+      discoveryUri = context.getString(R.string.auth_discovery_uri),
+      authorizationEndpointUri = context.getString(R.string.auth_authorization_endpoint_uri),
+      registrationEndpointUri = context.getString(R.string.auth_registration_endpoint_uri),
+      tokenEndpointUri = context.getString(R.string.auth_token_endpoint_uri),
+      userInfoEndpointUri = context.getString(R.string.auth_user_info_endpoint_uri),
+      endSessionEndpoint = context.getString(R.string.auth_end_session_endpoint),
+      httpsRequired = context.resources.getBoolean(R.bool.auth_https_required),
+      replaceLocalhostBy1022 =
         context.resources.getBoolean(R.bool.auth_replace_localhost_by_10_0_2_2),
     )
   }
   val clientId: String
-    get() = authConfigData.client_id
+    get() = authConfigData.clientId
 
   val scope: String?
-    get() = authConfigData.authorization_scope
+    get() = authConfigData.authorizationScope
 
   val redirectUri: Uri?
-    get() = Uri.parse(authConfigData.redirect_uri)
+    get() = Uri.parse(authConfigData.redirectUri)
 
   val discoveryUri: Uri?
     get() =
-      if (authConfigData.discovery_uri.isNullOrBlank()) {
+      if (authConfigData.discoveryUri.isNullOrBlank()) {
         null
       } else {
-        Uri.parse(authConfigData.discovery_uri)
+        Uri.parse(authConfigData.discoveryUri)
       }
 
   val authEndpointUri: Uri?
-    get() = Uri.parse(authConfigData.authorization_endpoint_uri)
+    get() = Uri.parse(authConfigData.authorizationEndpointUri)
 
   val tokenEndpointUri: Uri?
-    get() = Uri.parse(authConfigData.token_endpoint_uri)
+    get() = Uri.parse(authConfigData.tokenEndpointUri)
 
   val registrationEndpointUri: Uri?
-    get() = Uri.parse(authConfigData.registration_endpoint_uri)
+    get() = Uri.parse(authConfigData.registrationEndpointUri)
 
   val endSessionEndpoint: Uri?
-    get() = Uri.parse(authConfigData.end_session_endpoint)
+    get() = Uri.parse(authConfigData.endSessionEndpoint)
 
   val connectionBuilder: ConnectionBuilder
     get() =
-      if (authConfigData.https_required) {
+      if (authConfigData.httpsRequired) {
         DefaultConnectionBuilder.INSTANCE
       } else {
         ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2 =
-          authConfigData.replace_localhost_by_10_0_2_2 ?: true
+          authConfigData.replaceLocalhostBy1022 ?: true
         ConnectionBuilderForTesting
       }
 
   init {
-    AuthConfigUtil.isRequiredConfigString(authConfigData.client_id)
-    AuthConfigUtil.isRequiredConfigString(authConfigData.authorization_scope)
-    AuthConfigUtil.isRequiredConfigUri(authConfigData.redirect_uri)
-    AuthConfigUtil.isRedirectUriRegistered(context, authConfigData.redirect_uri!!)
-    if (authConfigData.discovery_uri == null || authConfigData.discovery_uri.isNullOrEmpty()) {
-      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.authorization_endpoint_uri)
-      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.token_endpoint_uri)
-      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.user_info_endpoint_uri)
-      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.end_session_endpoint)
+    AuthConfigUtil.isRequiredConfigString(authConfigData.clientId)
+    AuthConfigUtil.isRequiredConfigString(authConfigData.authorizationScope)
+    AuthConfigUtil.isRequiredConfigUri(authConfigData.redirectUri)
+    AuthConfigUtil.isRedirectUriRegistered(context, authConfigData.redirectUri!!)
+    if (authConfigData.discoveryUri == null || authConfigData.discoveryUri.isNullOrEmpty()) {
+      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.authorizationEndpointUri)
+      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.tokenEndpointUri)
+      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.userInfoEndpointUri)
+      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.endSessionEndpoint)
     }
   }
 
@@ -143,18 +144,3 @@ class AuthConfiguration private constructor(private val context: Context) {
     }
   }
 }
-
-data class AuthConfigData(
-  val client_id: String,
-  val authorization_scope: String?,
-  val redirect_uri: String?,
-  //  val end_session_redirect_uri: String?,
-  val discovery_uri: String?,
-  val authorization_endpoint_uri: String?,
-  val token_endpoint_uri: String?,
-  val user_info_endpoint_uri: String?,
-  val end_session_endpoint: String?,
-  val registration_endpoint_uri: String?,
-  val https_required: Boolean,
-  val replace_localhost_by_10_0_2_2: Boolean?,
-)

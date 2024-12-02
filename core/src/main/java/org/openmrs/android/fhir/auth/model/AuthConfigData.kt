@@ -26,17 +26,24 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data
+package org.openmrs.android.fhir.auth.model
 
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
-class PreferenceKeys {
-  companion object {
-    val LOCATION_ID = stringPreferencesKey("LOCATION_ID")
-    val LOCATION_NAME = stringPreferencesKey("LOCATION_NAME")
-    val FAVORITE_LOCATIONS = stringSetPreferencesKey("FAVORITE_LOCATIONS")
-    val SELECTED_IDENTIFIER_TYPES = stringSetPreferencesKey("SELECTED_IDENTIFIER_TYPES")
-    val PREF_COOKIES = stringSetPreferencesKey("PREF_COOKIES")
-  }
-}
+@JsonClass(generateAdapter = true)
+data class AuthConfigData(
+  @Json(name = "client_id") val clientId: String,
+  @Json(name = "authorization_scope") val authorizationScope: String?,
+  @Json(name = "redirect_uri") val redirectUri: String?,
+  // @Json(name = "end_session_redirect_uri") val endSessionRedirectUri: String?, // Uncomment if
+  // needed
+  @Json(name = "discovery_uri") val discoveryUri: String?,
+  @Json(name = "authorization_endpoint_uri") val authorizationEndpointUri: String?,
+  @Json(name = "token_endpoint_uri") val tokenEndpointUri: String?,
+  @Json(name = "user_info_endpoint_uri") val userInfoEndpointUri: String?,
+  @Json(name = "end_session_endpoint") val endSessionEndpoint: String?,
+  @Json(name = "registration_endpoint_uri") val registrationEndpointUri: String?,
+  @Json(name = "https_required") val httpsRequired: Boolean,
+  @Json(name = "replace_localhost_by_10_0_2_2") val replaceLocalhostBy1022: Boolean?,
+)

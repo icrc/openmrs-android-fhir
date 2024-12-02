@@ -46,7 +46,6 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -54,17 +53,15 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.Request
-import okhttp3.RequestBody
-import org.json.JSONObject
-import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.FhirSyncWorker
 import org.openmrs.android.fhir.data.IdentifierTypeManager
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
+import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.remote.ApiResponse
+import org.openmrs.android.fhir.data.remote.model.IdentifierWrapper
+import org.openmrs.android.fhir.data.remote.model.SessionLocation
 
 /** View model for [MainActivity]. */
 class MainActivityViewModel
@@ -73,6 +70,8 @@ constructor(
   private val applicationContext: Context,
   val fhirEngine: FhirEngine,
   val database: AppDatabase,
+  val apiManager: ApiManager,
+  val identifierTypeManager: IdentifierTypeManager,
 ) : ViewModel() {
   private val _lastSyncTimestampLiveData = MutableLiveData<String>()
   val lastSyncTimestampLiveData: LiveData<String>
@@ -102,10 +101,9 @@ constructor(
 
   fun triggerOneTimeSync(context: Context) {
     viewModelScope.launch {
-      fetchIdentifierTypesIfEmpty(context)
+      fetchIdentifierTypesIfEmpty()
       embeddIdentifierToUnsyncedPatients(context)
       _oneTimeSyncTrigger.value = !_oneTimeSyncTrigger.value
-
       _oneTimeSyncTrigger.combine(
         flow = Sync.oneTimeSync<FhirSyncWorker>(context = applicationContext),
       ) { _, syncJobStatus ->
@@ -115,16 +113,13 @@ constructor(
   }
 
   fun triggerIdentifierTypeSync(context: Context) {
-    viewModelScope.launch { fetchIdentifierTypesIfEmpty(context) }
+    viewModelScope.launch { fetchIdentifierTypesIfEmpty() }
   }
 
   private suspend fun embeddIdentifierToUnsyncedPatients(context: Context) {
     // Setting location session first.
     context.dataStore.data.first()[PreferenceKeys.LOCATION_ID]?.let {
-      FhirApplication.restApiClient(applicationContext)
-        .updateSessionLocation(
-          it,
-        )
+      apiManager.setLocationSession(SessionLocation(it))
     }
     var filteredIdentifierTypes = setOf<String>()
     val identifierTypeToSourceIdMap = mutableMapOf<String, String>()
@@ -172,37 +167,17 @@ constructor(
   }
 
   private suspend fun fetchIdentifierFromEndpoint(identifierId: String): String? {
-    return withContext(Dispatchers.IO) {
-      try {
-        val requestBuilder =
-          Request.Builder()
-            .url(getEndpoint(identifierId))
-            .post(RequestBody.create("application/json; charset=utf-8".toMediaType(), "{}"))
-        val response = FhirApplication.restApiClient(applicationContext).call(requestBuilder)
-
-        if (response.isSuccessful) {
-          val jsonResponse = JSONObject(response.body?.string() ?: "")
-          jsonResponse.getString("identifier")
-        } else {
-          null
-        }
-      } catch (e: Exception) {
-        null
-      }
+    val response = apiManager.getIdentifier(identifierId)
+    return when (response) {
+      is ApiResponse.Success<IdentifierWrapper> -> response.data?.identifier
+      else -> null
     }
   }
 
-  private fun getEndpoint(idType: String): String {
-    return FhirApplication.openmrsRestUrl(applicationContext) +
-      "idgen/identifiersource/" +
-      idType +
-      "/identifier"
-  }
-
-  private suspend fun fetchIdentifierTypesIfEmpty(context: Context) {
+  private suspend fun fetchIdentifierTypesIfEmpty() {
     val identifierTypes = database.dao().getIdentifierTypesCount()
     if (identifierTypes == 0) {
-      IdentifierTypeManager.fetchIdentifiers(context, database)
+      identifierTypeManager.fetchIdentifiers()
     }
   }
 
