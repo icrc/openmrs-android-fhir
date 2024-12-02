@@ -29,6 +29,8 @@
 package org.openmrs.android.fhir
 
 import android.app.Activity
+import android.app.PendingIntent
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -47,9 +49,11 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.work.WorkManager
+import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.sync.CurrentSyncJobStatus
-import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -58,6 +62,8 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel.Companion.KEY_USER_CHOICE
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel.Companion.PREFS_NAME
 import timber.log.Timber
 
 const val MAX_RESOURCE_COUNT = 20
@@ -69,14 +75,19 @@ class MainActivity : AppCompatActivity() {
   private var tokenExpiryHandler: Handler? = null
   private var tokenCheckRunnable: Runnable? = null
   private var isDialogShowing = false
+  private lateinit var loginRepository: LoginRepository
 
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+
+  @Inject lateinit var fhirEngine: FhirEngine
+
   private val viewModel by viewModels<MainActivityViewModel> { viewModelFactory }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     (this.application as FhirApplication).appComponent.inject(this)
     binding = ActivityMainBinding.inflate(layoutInflater)
+    loginRepository = LoginRepository.getInstance(applicationContext)
     authStateManager = AuthStateManager.getInstance(applicationContext)
     setContentView(binding.root)
     tokenExpiryHandler = Handler(Looper.getMainLooper()) // Initialize the handler
@@ -158,6 +169,9 @@ class MainActivity : AppCompatActivity() {
         binding.drawer.closeDrawer(GravityCompat.START)
         return false
       }
+      R.id.menu_logout -> {
+        showLogoutWarningDialog()
+      }
     }
     binding.drawer.closeDrawer(GravityCompat.START)
     return false
@@ -196,23 +210,22 @@ class MainActivity : AppCompatActivity() {
   }
 
   private suspend fun monitorTokenExpiry() {
-    val isServerAvailable = withContext(Dispatchers.IO) {
-      viewModel.isServerAvailable()
-    }
-    tokenCheckRunnable = object : Runnable {
-      override fun run() {
-        val authState = authStateManager.current
-        val expirationTime = authState.accessTokenExpirationTime
-        if (expirationTime != null && System.currentTimeMillis() > expirationTime) {
-          if (isServerAvailable){
-            showTokenExpiredDialog()
-            tokenExpiryHandler?.removeCallbacks(this)
+    val isServerAvailable = withContext(Dispatchers.IO) { viewModel.isServerAvailable() }
+    tokenCheckRunnable =
+      object : Runnable {
+        override fun run() {
+          val authState = authStateManager.current
+          val expirationTime = authState.accessTokenExpirationTime
+          if (expirationTime != null && System.currentTimeMillis() > expirationTime) {
+            if (isServerAvailable) {
+              showTokenExpiredDialog()
+              tokenExpiryHandler?.removeCallbacks(this)
+            }
+          } else {
+            tokenExpiryHandler?.postDelayed(this, 60 * 1000)
           }
-        } else {
-          tokenExpiryHandler?.postDelayed(this, 60 * 1000)
         }
       }
-    }
 
     // Start the first check immediately
     tokenExpiryHandler?.post(tokenCheckRunnable!!)
@@ -222,15 +235,38 @@ class MainActivity : AppCompatActivity() {
     if (!isDialogShowing) {
       isDialogShowing = true
       AlertDialog.Builder(this)
-        .setTitle("Session Expired")
-        .setMessage("Your session has expired. Please log in again.")
-        .setPositiveButton("OK") { dialog, _ ->
+        .setTitle(getString(R.string.login_expired))
+        .setMessage(getString(R.string.session_expired))
+        .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
           isDialogShowing = false
+          lifecycleScope.launch { loginRepository.refreshAccessToken() }
+          saveLoginExpiryChoice(getString(R.string.yes))
+          dialog.dismiss()
+        }
+        .setNegativeButton(getString(R.string.no)) { dialog, _ ->
+          isDialogShowing = false
+          scheduleDialogForLater()
+          saveLoginExpiryChoice(getString(R.string.no))
+          dialog.dismiss()
+        }
+        .setNeutralButton(getString(R.string.no_and_don_t_ask_me_again)) { dialog, _ ->
+          isDialogShowing = true
+          viewModel.cancelPeriodicSyncWorker(applicationContext)
+          saveLoginExpiryChoice(getString(R.string.no_and_don_t_ask_me_again))
           dialog.dismiss()
         }
         .setCancelable(false)
         .show()
     }
+  }
+
+  private fun scheduleDialogForLater() {
+    tokenExpiryHandler?.postDelayed(
+      {
+        showTokenExpiredDialog() // Re-show the dialog after 15 minutes
+      },
+      15 * 60 * 1000,
+    ) // 15 minutes in milliseconds
   }
 
   private fun observeNetworkConnection() {
@@ -261,5 +297,59 @@ class MainActivity : AppCompatActivity() {
   override fun onStop() {
     super.onStop()
     viewModel.unregisterNetworkCallback()
+  }
+
+  private fun showLogoutWarningDialog() {
+    AlertDialog.Builder(this)
+      .setTitle(getString(R.string.logout))
+      .setMessage(getString(R.string.logout_message))
+      .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
+        lifecycleScope.launch { navigateToLogin() }
+      }
+      .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
+      .setCancelable(false)
+      .show()
+  }
+
+  private suspend fun navigateToLogin() {
+    val intent = Intent(this, LoginActivity::class.java)
+    val pendingIntentSuccess =
+      PendingIntent.getActivity(
+        this,
+        0,
+        intent,
+        PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+      )
+    val pendingIntentCancel =
+      PendingIntent.getActivity(
+        this,
+        1,
+        intent,
+        PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+      )
+    lifecycleScope
+      .launch(Dispatchers.IO) {
+        WorkManager.getInstance(this@MainActivity).cancelAllWork()
+        fhirEngine.clearDatabase()
+        clearPreferences()
+      }
+      .invokeOnCompletion {
+        authStateManager.endSessionRequest(pendingIntentSuccess, pendingIntentCancel)
+      }
+  }
+
+  private fun clearPreferences() {
+    val sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+    sharedPreferences.edit().clear().apply()
+  }
+
+  private fun saveLoginExpiryChoice(choice: String) {
+    val sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+    sharedPreferences.edit().putString(KEY_USER_CHOICE, choice).apply()
+  }
+
+  private fun getUserChoice(): String? {
+    val sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+    return sharedPreferences.getString(KEY_USER_CHOICE, null)
   }
 }

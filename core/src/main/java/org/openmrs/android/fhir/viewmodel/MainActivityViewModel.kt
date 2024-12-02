@@ -37,6 +37,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
+import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.CurrentSyncJobStatus
@@ -86,22 +87,25 @@ constructor(
   private val restApiManager = FhirApplication.restApiClient(applicationContext)
 
   private val _networkStatus = MutableStateFlow(false)
-  val networkStatus: StateFlow<Boolean> get() = _networkStatus
+  val networkStatus: StateFlow<Boolean>
+    get() = _networkStatus
 
-  private var connectivityManager: ConnectivityManager = applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-  private var networkCallBack: ConnectivityManager.NetworkCallback = object : ConnectivityManager.NetworkCallback() {
-    override fun onAvailable(network: Network) {
-      super.onAvailable(network)
-      // Network is available
-      _networkStatus.value = true
-    }
+  private var connectivityManager: ConnectivityManager =
+    applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+  private var networkCallBack: ConnectivityManager.NetworkCallback =
+    object : ConnectivityManager.NetworkCallback() {
+      override fun onAvailable(network: Network) {
+        super.onAvailable(network)
+        // Network is available
+        _networkStatus.value = true
+      }
 
-    override fun onLost(network: Network) {
-      super.onLost(network)
-      // Network is lost
-      _networkStatus.value = false
+      override fun onLost(network: Network) {
+        super.onLost(network)
+        // Network is lost
+        _networkStatus.value = false
+      }
     }
-  }
 
   val pollPeriodicSyncJobStatus: SharedFlow<PeriodicSyncJobStatus> =
     Sync.periodicSync<FhirSyncWorker>(
@@ -253,8 +257,15 @@ constructor(
     return restApiManager.isServerLive()
   }
 
+  fun cancelPeriodicSyncWorker(context: Context) {
+    WorkManager.getInstance(context)
+      .cancelUniqueWork("${FhirSyncWorker::class.java.name}-periodicSync")
+  }
+
   companion object {
     private const val formatString24 = "yyyy-MM-dd HH:mm:ss"
     private const val formatString12 = "yyyy-MM-dd hh:mm:ss a"
+    const val PREFS_NAME = "tokenDialogPrefs"
+    const val KEY_USER_CHOICE = "userChoice"
   }
 }
