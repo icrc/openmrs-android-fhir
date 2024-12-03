@@ -49,7 +49,7 @@ import org.openmrs.android.fhir.R
 
 class TimestampBasedDownloadWorkManagerImpl(
   private val dataStore: DemoDataStore,
-  private val context: Context
+  private val context: Context,
 ) : DownloadWorkManager {
   private val resourceTypeList = ResourceType.values().map { it.name }
   private val urls = LinkedList(loadUrlsFromProperties())
@@ -122,7 +122,8 @@ class TimestampBasedDownloadWorkManagerImpl(
   ) {
     resources
       .groupBy { it.resourceType }
-      .entries.map { map ->
+      .entries
+      .map { map ->
         dataStore.saveLastUpdatedTimestamp(
           map.key,
           map.value.maxOfOrNull { it.meta.lastUpdated }?.toTimeZoneString() ?: "",
@@ -150,8 +151,11 @@ private fun affixLastUpdatedTimestamp(url: String, lastUpdated: String): String 
   // Affix lastUpdate to non-$everything queries as per:
   // https://hl7.org/fhir/operation-patient-everything.html
   if (!downloadUrl.contains("\$everything")) {
-    if (!downloadUrl.contains('?')) downloadUrl = "$downloadUrl?_lastUpdated=gt$lastUpdated"
-    else downloadUrl = "$downloadUrl&_lastUpdated=gt$lastUpdated"
+    if (!downloadUrl.contains('?')) {
+      downloadUrl = "$downloadUrl?_lastUpdated=gt$lastUpdated"
+    } else {
+      downloadUrl = "$downloadUrl&_lastUpdated=gt$lastUpdated"
+    }
   }
 
   // Do not modify any URL set by a server that specifies the token of the page to return.
