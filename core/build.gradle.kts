@@ -95,7 +95,7 @@ object Versions {
   const val recyclerview = "1.3.2"
   const val work = "2.9.1"
   const val material = "1.12.0"
-  const val converterGson = "2.9.0"
+  const val retrofitVersion = "2.9.0"
   const val kotlinStdlibJdk7 = "1.9.22"
   const val room = "2.6.1"
   const val junit = "4.13.2"
@@ -107,6 +107,9 @@ object Versions {
   const val coroutineTest = "1.8.1"
   const val mockito = "4.0.0"
   const val daggerVersion = "2.51.1"
+  const val eventBus = "3.3.1"
+  const val moshi = "1.14.0"
+  const val loggingInterceptor = "5.0.0-alpha.2"
 }
 
 dependencies {
@@ -124,7 +127,12 @@ dependencies {
   implementation("androidx.recyclerview:recyclerview:${Versions.recyclerview}")
   implementation("androidx.work:work-runtime-ktx:${Versions.work}")
   implementation("com.google.android.material:material:${Versions.material}")
-  implementation("com.squareup.retrofit2:converter-gson:${Versions.converterGson}")
+  implementation("com.squareup.retrofit2:retrofit:${Versions.retrofitVersion}")
+  implementation("com.squareup.retrofit2:converter-moshi:${Versions.retrofitVersion}")
+  implementation("com.squareup.okhttp3:logging-interceptor:${Versions.loggingInterceptor}")
+  ksp("com.squareup.moshi:moshi-kotlin-codegen:${Versions.moshi}")
+  implementation("com.squareup.moshi:moshi:${Versions.moshi}")
+  implementation("org.greenrobot:eventbus:${Versions.eventBus}")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.coroutines}")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${Versions.kotlinStdlibJdk7}")

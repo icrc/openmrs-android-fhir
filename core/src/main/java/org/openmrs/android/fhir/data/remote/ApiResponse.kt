@@ -26,17 +26,21 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data
+package org.openmrs.android.fhir.data.remote
 
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
+sealed class ApiResponse<out T> {
 
-class PreferenceKeys {
-  companion object {
-    val LOCATION_ID = stringPreferencesKey("LOCATION_ID")
-    val LOCATION_NAME = stringPreferencesKey("LOCATION_NAME")
-    val FAVORITE_LOCATIONS = stringSetPreferencesKey("FAVORITE_LOCATIONS")
-    val SELECTED_IDENTIFIER_TYPES = stringSetPreferencesKey("SELECTED_IDENTIFIER_TYPES")
-    val PREF_COOKIES = stringSetPreferencesKey("PREF_COOKIES")
-  }
+  data class Success<out T>(val data: T?, val successMessage: String? = null) : ApiResponse<T>()
+
+  data class Loading(val isRefresh: Boolean = false, val isLoadMore: Boolean = false) :
+    ApiResponse<Nothing>()
+
+  data class ApiError(val apiErrorMessage: String? = null, val apiErrorMessageResId: Int? = null) :
+    ApiResponse<Nothing>()
+
+  data class ServerError(val errorMessage: String) : ApiResponse<Nothing>()
+
+  data class UnauthorizedAccess(val errorMessage: String) : ApiResponse<Nothing>()
+
+  object NoInternetConnection : ApiResponse<Nothing>()
 }

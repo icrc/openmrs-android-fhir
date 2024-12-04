@@ -32,11 +32,12 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.text.TextUtils
-import com.google.gson.Gson
 import org.json.JSONObject
+import org.openmrs.android.fhir.auth.model.EndpointConfig
+import org.openmrs.android.fhir.extensions.fromJson
+import org.openmrs.android.fhir.extensions.toJson
 
 object AuthConfigUtil {
-  private val gson = Gson()
 
   class InvalidConfigurationException : Exception {
     internal constructor(reason: String?) : super(reason)
@@ -106,23 +107,20 @@ object AuthConfigUtil {
   }
 
   fun replaceLocalhost(jsonString: String, replaceLocalhost: Boolean): JSONObject {
-    val localhostEndpoints = gson.fromJson(jsonString, EndpointConfig::class.java)
+    val androidSystemLocalhostURL = "10.0.2.2"
+    val localhostEndpoints = jsonString.fromJson<EndpointConfig>()
     if (!replaceLocalhost) {
-      return JSONObject(gson.toJson(localhostEndpoints))
+      return JSONObject(localhostEndpoints.toJson())
     }
     val updatedAuthEndpoint =
-      localhostEndpoints.authorizationEndpoint.replace("localhost", "10.0.2.2")
-    val updatedTokenEndpoint = localhostEndpoints.tokenEndpoint.replace("localhost", "10.0.2.2")
-    val updatedEndpointConfig = EndpointConfig(updatedAuthEndpoint, updatedTokenEndpoint)
+      localhostEndpoints?.authorizationEndpoint?.replace("localhost", androidSystemLocalhostURL)
+    val updatedTokenEndpoint =
+      localhostEndpoints?.tokenEndpoint?.replace("localhost", androidSystemLocalhostURL)
+    val updatedEndpointConfig = EndpointConfig(updatedAuthEndpoint!!, updatedTokenEndpoint!!)
     val oldDiscoveryDoc = JSONObject(jsonString).getString("discoveryDoc")
-    val updatedDiscoveryDoc = oldDiscoveryDoc.replace("localhost", "10.0.2.2")
-    val newJson = JSONObject(gson.toJson(updatedEndpointConfig))
+    val updatedDiscoveryDoc = oldDiscoveryDoc.replace("localhost", androidSystemLocalhostURL)
+    val newJson = JSONObject(updatedEndpointConfig.toJson())
     newJson.put("discoveryDoc", JSONObject(updatedDiscoveryDoc))
     return newJson
   }
 }
-
-data class EndpointConfig(
-  val authorizationEndpoint: String,
-  val tokenEndpoint: String,
-)

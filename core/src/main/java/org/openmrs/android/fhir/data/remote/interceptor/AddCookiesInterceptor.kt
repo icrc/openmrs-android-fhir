@@ -26,17 +26,31 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data
+package org.openmrs.android.fhir.data.remote.interceptor
 
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
+import android.content.Context
+import java.io.IOException
+import kotlin.collections.toMutableSet
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
 
-class PreferenceKeys {
-  companion object {
-    val LOCATION_ID = stringPreferencesKey("LOCATION_ID")
-    val LOCATION_NAME = stringPreferencesKey("LOCATION_NAME")
-    val FAVORITE_LOCATIONS = stringSetPreferencesKey("FAVORITE_LOCATIONS")
-    val SELECTED_IDENTIFIER_TYPES = stringSetPreferencesKey("SELECTED_IDENTIFIER_TYPES")
-    val PREF_COOKIES = stringSetPreferencesKey("PREF_COOKIES")
+class AddCookiesInterceptor(private val context: Context) : Interceptor {
+  @Throws(IOException::class)
+  override fun intercept(chain: Interceptor.Chain): Response {
+    val builder: Request.Builder = chain.request().newBuilder()
+    runBlocking {
+      val prefCookies: Set<String> =
+        context.dataStore.data.first()[PreferenceKeys.PREF_COOKIES]?.toMutableSet()
+          ?: mutableSetOf()
+      for (cookie in prefCookies) {
+        builder.addHeader("Cookie", cookie)
+      }
+    }
+    return chain.proceed(builder.build())
   }
 }

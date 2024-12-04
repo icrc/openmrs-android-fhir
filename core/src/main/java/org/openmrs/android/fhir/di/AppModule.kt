@@ -35,7 +35,10 @@ import com.google.android.fhir.FhirEngineProvider
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
+import org.openmrs.android.fhir.data.IdentifierTypeManager
 import org.openmrs.android.fhir.data.database.AppDatabase
+import org.openmrs.android.fhir.data.remote.Api
+import org.openmrs.android.fhir.data.remote.ApiManager
 
 @Module
 object AppModule {
@@ -57,5 +60,23 @@ object AppModule {
         "openmrs_android_fhir",
       )
       .build()
+  }
+
+  @JvmStatic
+  @Singleton
+  @Provides
+  fun provideAppApi(context: Context): Api {
+    return ApiManager(context)
+  }
+
+  @JvmStatic
+  @Singleton
+  @Provides
+  fun provideIdentifierTypeManager(
+    context: Context,
+    database: AppDatabase,
+    apiManager: ApiManager,
+  ): IdentifierTypeManager {
+    return IdentifierTypeManager(context, database, apiManager)
   }
 }
