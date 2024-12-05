@@ -28,12 +28,15 @@
 */
 package org.openmrs.android.fhir.data
 
+import android.content.Context
 import com.google.android.fhir.sync.DownloadWorkManager
 import com.google.android.fhir.sync.SyncDataParams
 import com.google.android.fhir.sync.download.DownloadRequest
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Date
+import java.util.LinkedList
+import java.util.Locale
 import org.hl7.fhir.exceptions.FHIRException
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.ListResource
@@ -42,19 +45,18 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.DemoDataStore
+import org.openmrs.android.fhir.R
 
-class TimestampBasedDownloadWorkManagerImpl(private val dataStore: DemoDataStore) :
-  DownloadWorkManager {
+class TimestampBasedDownloadWorkManagerImpl(
+  private val dataStore: DemoDataStore,
+  private val context: Context,
+) : DownloadWorkManager {
   private val resourceTypeList = ResourceType.values().map { it.name }
-  private val urls =
-    LinkedList(
-      listOf(
-        "Location?_sort=_lastUpdated&_summary=data&_tag=Offline",
-        "Patient?address-city=GENEVA&_sort=_lastUpdated",
-        "Encounter?_sort=_lastUpdated",
-        "Observation?_sort=_lastUpdated",
-      ),
-    )
+  private val urls = LinkedList(loadUrlsFromProperties())
+
+  private fun loadUrlsFromProperties(): List<String> {
+    return context.getString(R.string.fhir_sync_urls).split(',').toList()
+  }
 
   override suspend fun getNextRequest(): DownloadRequest? {
     var url = urls.poll() ?: return null

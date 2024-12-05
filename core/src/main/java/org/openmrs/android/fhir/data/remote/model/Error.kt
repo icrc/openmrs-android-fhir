@@ -26,17 +26,15 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data
+package org.openmrs.android.fhir.data.remote.model
 
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
-class PreferenceKeys {
-  companion object {
-    val LOCATION_ID = stringPreferencesKey("LOCATION_ID")
-    val LOCATION_NAME = stringPreferencesKey("LOCATION_NAME")
-    val FAVORITE_LOCATIONS = stringSetPreferencesKey("FAVORITE_LOCATIONS")
-    val SELECTED_IDENTIFIER_TYPES = stringSetPreferencesKey("SELECTED_IDENTIFIER_TYPES")
-    val PREF_COOKIES = stringSetPreferencesKey("PREF_COOKIES")
-  }
-}
+@JsonClass(generateAdapter = true)
+data class Error(
+  @Json(name = "error") var error: String? = null,
+  @Json(name = "statusCode") var statusCode: Int? = null,
+  @Json(name = "errorMessage") var errorMessage: String? = null,
+  @Json(name = "error_description") var errorDescription: String? = null,
+)

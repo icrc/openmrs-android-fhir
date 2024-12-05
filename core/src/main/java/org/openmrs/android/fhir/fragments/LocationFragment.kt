@@ -44,7 +44,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.RecyclerView
 import javax.inject.Inject
-import kotlin.getValue
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
@@ -53,7 +52,6 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.LocationItemRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
-import org.openmrs.android.fhir.data.RestApiManager
 import org.openmrs.android.fhir.databinding.FragmentLocationBinding
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 
@@ -61,7 +59,6 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
   private val locationViewModel by viewModels<LocationViewModel> { viewModelFactory }
 
-  private lateinit var restApiClient: RestApiManager
   private var _binding: FragmentLocationBinding? = null
   private lateinit var locationAdapter: LocationItemRecyclerViewAdapter
   private lateinit var favoriteLocationAdapter: LocationItemRecyclerViewAdapter
@@ -105,7 +102,6 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
     }
 
     actionBar?.setDisplayHomeAsUpEnabled(true)
-    restApiClient = FhirApplication.restApiClient(requireContext())
     locationViewModel.getLocations()
     locationViewModel.setFavoriteLocations(context?.applicationContext!!)
 

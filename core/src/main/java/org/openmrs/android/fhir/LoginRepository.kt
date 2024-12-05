@@ -267,7 +267,7 @@ private constructor(
         val browserMatcher: BrowserMatcher = AnyBrowserMatcher.INSTANCE
         val builder = AppAuthConfiguration.Builder()
         builder.setBrowserMatcher(browserMatcher)
-        builder.setSkipIssuerHttpsCheck(!authConfig.authConfigData.https_required)
+        builder.setSkipIssuerHttpsCheck(!authConfig.authConfigData.httpsRequired)
         builder.setConnectionBuilder(authConfig.connectionBuilder)
         val authService = AuthorizationService(context.applicationContext, builder.build())
 

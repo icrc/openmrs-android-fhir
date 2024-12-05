@@ -2,11 +2,14 @@
 <resources>
   <string
         name="fhir_base_url"
-    >http://10.0.2.2:8080/openmrs/ws/fhir2/R4/</string>
+    >http://127.0.0.1:8080/openmrs/ws/fhir2/R4/</string>
+  <string
+        name="fhir_sync_urls"
+    >Location?_sort=_lastUpdated,Patient?_sort=_lastUpdated,Encounter?_sort=_lastUpdated</string>
   <string
         name="openmrs_rest_url"
-    >http://10.0.2.2:8080/openmrs/ws/rest/v1/</string>
+    >http://127.0.0.1:8080/openmrs/ws/rest/v1/</string>
   <string
         name="check_server_url"
-    >http://10.0.2.2:8080/openmrs/ws/rest/v1/session</string>
+    >http://127.0.0.1:8080/openmrs/ws/rest/v1/session</string>
 </resources>
