@@ -57,6 +57,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.FhirSyncWorker
 import org.openmrs.android.fhir.data.IdentifierTypeManager
