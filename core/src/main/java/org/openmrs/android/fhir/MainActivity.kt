@@ -62,7 +62,6 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
-import org.openmrs.android.fhir.viewmodel.MainActivityViewModel.Companion.KEY_USER_CHOICE
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel.Companion.PREFS_NAME
 import timber.log.Timber
 
@@ -90,7 +89,7 @@ class MainActivity : AppCompatActivity() {
     loginRepository = LoginRepository.getInstance(applicationContext)
     authStateManager = AuthStateManager.getInstance(applicationContext)
     setContentView(binding.root)
-    tokenExpiryHandler = Handler(Looper.getMainLooper()) // Initialize the handler
+    tokenExpiryHandler = Handler(Looper.getMainLooper())
 
     initActionBar()
     initNavigationDrawer()
@@ -240,19 +239,20 @@ class MainActivity : AppCompatActivity() {
         .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
           isDialogShowing = false
           lifecycleScope.launch { loginRepository.refreshAccessToken() }
-          saveLoginExpiryChoice(getString(R.string.yes))
+          viewModel.setStopSync(false)
           dialog.dismiss()
         }
         .setNegativeButton(getString(R.string.no)) { dialog, _ ->
           isDialogShowing = false
           scheduleDialogForLater()
-          saveLoginExpiryChoice(getString(R.string.no))
+          viewModel.setStopSync(false)
           dialog.dismiss()
         }
         .setNeutralButton(getString(R.string.no_and_don_t_ask_me_again)) { dialog, _ ->
           isDialogShowing = true
           viewModel.cancelPeriodicSyncWorker(applicationContext)
-          saveLoginExpiryChoice(getString(R.string.no_and_don_t_ask_me_again))
+          viewModel.setStopSync(true)
+          Toast.makeText(this, "Sync: Terminated", Toast.LENGTH_SHORT).show()
           dialog.dismiss()
         }
         .setCancelable(false)
@@ -285,7 +285,6 @@ class MainActivity : AppCompatActivity() {
 
   override fun onDestroy() {
     super.onDestroy()
-    // Clean up the handler to prevent memory leaks
     tokenExpiryHandler?.removeCallbacksAndMessages(null)
   }
 
@@ -304,6 +303,7 @@ class MainActivity : AppCompatActivity() {
       .setTitle(getString(R.string.logout))
       .setMessage(getString(R.string.logout_message))
       .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
+        dialog.dismiss()
         lifecycleScope.launch { navigateToLogin() }
       }
       .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
@@ -341,15 +341,5 @@ class MainActivity : AppCompatActivity() {
   private fun clearPreferences() {
     val sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
     sharedPreferences.edit().clear().apply()
-  }
-
-  private fun saveLoginExpiryChoice(choice: String) {
-    val sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-    sharedPreferences.edit().putString(KEY_USER_CHOICE, choice).apply()
-  }
-
-  private fun getUserChoice(): String? {
-    val sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-    return sharedPreferences.getString(KEY_USER_CHOICE, null)
   }
 }

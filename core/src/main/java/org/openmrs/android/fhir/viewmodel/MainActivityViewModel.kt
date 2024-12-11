@@ -78,6 +78,10 @@ constructor(
   val apiManager: ApiManager,
   val identifierTypeManager: IdentifierTypeManager,
 ) : ViewModel() {
+  private var _stopSync: Boolean = false
+  val stopSync
+    get() = _stopSync
+
   private val _lastSyncTimestampLiveData = MutableLiveData<String>()
   val lastSyncTimestampLiveData: LiveData<String>
     get() = _lastSyncTimestampLiveData
@@ -129,19 +133,25 @@ constructor(
 
   fun triggerOneTimeSync(context: Context) {
     viewModelScope.launch {
-      fetchIdentifierTypesIfEmpty()
-      embeddIdentifierToUnsyncedPatients(context)
-      _oneTimeSyncTrigger.value = !_oneTimeSyncTrigger.value
-      _oneTimeSyncTrigger.combine(
-        flow = Sync.oneTimeSync<FhirSyncWorker>(context = applicationContext),
-      ) { _, syncJobStatus ->
-        syncJobStatus
+      if (!stopSync) {
+        fetchIdentifierTypesIfEmpty()
+        embeddIdentifierToUnsyncedPatients(context)
+        _oneTimeSyncTrigger.value = !_oneTimeSyncTrigger.value
+        _oneTimeSyncTrigger.combine(
+          flow = Sync.oneTimeSync<FhirSyncWorker>(context = applicationContext),
+        ) { _, syncJobStatus ->
+          syncJobStatus
+        }
       }
     }
   }
 
   fun triggerIdentifierTypeSync(context: Context) {
-    viewModelScope.launch { fetchIdentifierTypesIfEmpty() }
+    viewModelScope.launch {
+      if (!stopSync) {
+        fetchIdentifierTypesIfEmpty()
+      }
+    }
   }
 
   private suspend fun embeddIdentifierToUnsyncedPatients(context: Context) {
@@ -238,10 +248,13 @@ constructor(
       .cancelUniqueWork("${FhirSyncWorker::class.java.name}-periodicSync")
   }
 
+  fun setStopSync(stopSync: Boolean) {
+    this._stopSync = stopSync
+  }
+
   companion object {
     private const val formatString24 = "yyyy-MM-dd HH:mm:ss"
     private const val formatString12 = "yyyy-MM-dd hh:mm:ss a"
     const val PREFS_NAME = "tokenDialogPrefs"
-    const val KEY_USER_CHOICE = "userChoice"
   }
 }
