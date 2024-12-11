@@ -304,14 +304,14 @@ class MainActivity : AppCompatActivity() {
       .setMessage(getString(R.string.logout_message))
       .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
         dialog.dismiss()
-        lifecycleScope.launch { navigateToLogin() }
+        navigateToLogin()
       }
       .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
       .setCancelable(false)
       .show()
   }
 
-  private suspend fun navigateToLogin() {
+  private fun navigateToLogin() {
     val intent = Intent(this, LoginActivity::class.java)
     val pendingIntentSuccess =
       PendingIntent.getActivity(
