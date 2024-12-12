@@ -39,8 +39,8 @@
             android:layout_height="wrap_content"
         >
         <include
-                android:id="@+id/offline_flag"
-                layout="@layout/offline_flag_layout"
+                android:id="@+id/network_status_flag"
+                layout="@layout/network_status_flag_layout"
             />
 
         <androidx.appcompat.widget.Toolbar

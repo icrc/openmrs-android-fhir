@@ -55,4 +55,8 @@ class DemoDataStore(private val context: Context) {
   suspend fun getLasUpdateTimestamp(resourceType: ResourceType): String? {
     return context.dataStorage.data.first()[stringPreferencesKey(resourceType.name)]
   }
+
+  suspend fun clearAll() {
+    context.dataStorage.edit { it.clear() }
+  }
 }

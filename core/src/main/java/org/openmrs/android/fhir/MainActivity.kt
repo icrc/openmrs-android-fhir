@@ -164,9 +164,7 @@ class MainActivity : AppCompatActivity() {
   private fun onNavigationItemSelected(item: MenuItem): Boolean {
     when (item.itemId) {
       R.id.menu_sync -> {
-        viewModel.triggerOneTimeSync(applicationContext)
-        binding.drawer.closeDrawer(GravityCompat.START)
-        return false
+        onSyncPress()
       }
       R.id.menu_logout -> {
         showLogoutWarningDialog()
@@ -174,6 +172,18 @@ class MainActivity : AppCompatActivity() {
     }
     binding.drawer.closeDrawer(GravityCompat.START)
     return false
+  }
+
+  private fun onSyncPress() {
+    if (!isTokenExpired() && viewModel.networkStatus.value) {
+      viewModel.triggerOneTimeSync(applicationContext)
+      binding.drawer.closeDrawer(GravityCompat.START)
+    } else if (isTokenExpired() && viewModel.networkStatus.value) {
+      showTokenExpiredDialog()
+    } else if (!viewModel.networkStatus.value) {
+      Toast.makeText(this, getString(R.string.sync_device_offline_message), Toast.LENGTH_SHORT)
+        .show()
+    }
   }
 
   private fun showToast(message: String) {
@@ -186,17 +196,17 @@ class MainActivity : AppCompatActivity() {
       viewModel.pollState.collect {
         Timber.d("observerSyncState: pollState Got status $it")
         when (it) {
-          is CurrentSyncJobStatus.Enqueued -> showToast("Sync: started")
-          is CurrentSyncJobStatus.Running -> showToast("Sync: in progress")
+          is CurrentSyncJobStatus.Enqueued -> showToast(getString(R.string.sync_started))
+          is CurrentSyncJobStatus.Running -> showToast(getString(R.string.sync_in_progress))
           is CurrentSyncJobStatus.Succeeded -> {
-            showToast("Sync: succeeded at ${it.timestamp}")
+            showToast(getString(R.string.sync_succeeded_at, it.timestamp))
             viewModel.updateLastSyncTimestamp()
           }
           is CurrentSyncJobStatus.Failed -> {
-            showToast("Sync: failed at ${it.timestamp}")
+            showToast(getString(R.string.sync_failed_at, it.timestamp))
             viewModel.updateLastSyncTimestamp()
           }
-          else -> showToast("Sync: unknown state.")
+          else -> showToast(getString(R.string.sync_unknown_state))
         }
       }
     }
@@ -213,10 +223,8 @@ class MainActivity : AppCompatActivity() {
     tokenCheckRunnable =
       object : Runnable {
         override fun run() {
-          val authState = authStateManager.current
-          val expirationTime = authState.accessTokenExpirationTime
-          if (expirationTime != null && System.currentTimeMillis() > expirationTime) {
-            if (isServerAvailable) {
+          if (isTokenExpired()) {
+            if (isServerAvailable && viewModel.networkStatus.value) {
               showTokenExpiredDialog()
               tokenExpiryHandler?.removeCallbacks(this)
             }
@@ -225,9 +233,13 @@ class MainActivity : AppCompatActivity() {
           }
         }
       }
+    tokenCheckRunnable?.let { tokenExpiryHandler?.post(it) }
+  }
 
-    // Start the first check immediately
-    tokenExpiryHandler?.post(tokenCheckRunnable!!)
+  private fun isTokenExpired(): Boolean {
+    val authState = authStateManager.current
+    val expirationTime = authState.accessTokenExpirationTime
+    return expirationTime != null && System.currentTimeMillis() > expirationTime
   }
 
   private fun showTokenExpiredDialog() {
@@ -252,7 +264,7 @@ class MainActivity : AppCompatActivity() {
           isDialogShowing = true
           viewModel.cancelPeriodicSyncWorker(applicationContext)
           viewModel.setStopSync(true)
-          Toast.makeText(this, "Sync: Terminated", Toast.LENGTH_SHORT).show()
+          Toast.makeText(this, getString(R.string.sync_terminated), Toast.LENGTH_SHORT).show()
           dialog.dismiss()
         }
         .setCancelable(false)
@@ -273,11 +285,11 @@ class MainActivity : AppCompatActivity() {
     lifecycleScope.launch {
       viewModel.networkStatus.collect { isNetworkAvailable ->
         if (isNetworkAvailable) {
-          binding.offlineFlag.tvNetworkStatus.text = getString(R.string.online)
+          binding.networkStatusFlag.tvNetworkStatus.text = getString(R.string.online)
           viewModel.triggerOneTimeSync(applicationContext)
           monitorTokenExpiry()
         } else {
-          binding.offlineFlag.tvNetworkStatus.text = getString(R.string.offline)
+          binding.networkStatusFlag.tvNetworkStatus.text = getString(R.string.offline)
         }
       }
     }
@@ -338,7 +350,9 @@ class MainActivity : AppCompatActivity() {
       }
   }
 
-  private fun clearPreferences() {
+  private suspend fun clearPreferences() {
+    val demoDataStore = DemoDataStore(this)
+    demoDataStore.clearAll()
     val sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
     sharedPreferences.edit().clear().apply()
   }

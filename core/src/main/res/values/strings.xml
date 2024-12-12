@@ -104,4 +104,13 @@
     <string
         name="logout_message"
     >Are you sure you want to log out? \n\nIf you proceed, All of this applications data will be deleted permanently. \nThis includes all resources, user sessions, database etc.</string>
+    <string name="sync_in_progress">Sync: in progress</string>
+    <string name="sync_started">Sync: started</string>
+    <string name="sync_succeeded_at">Sync: succeeded at %1$s</string>
+    <string name="sync_failed_at">Sync: failed at %1$s</string>
+    <string name="sync_unknown_state">Sync: unknown state.</string>
+    <string name="sync_terminated">Sync: Terminated</string>
+    <string
+        name="sync_device_offline_message"
+    >Device Offline. Sync will resume as soon as the device is Online</string>
 </resources>
