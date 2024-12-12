@@ -255,6 +255,5 @@ constructor(
   companion object {
     private const val formatString24 = "yyyy-MM-dd HH:mm:ss"
     private const val formatString12 = "yyyy-MM-dd hh:mm:ss a"
-    const val PREFS_NAME = "tokenDialogPrefs"
   }
 }

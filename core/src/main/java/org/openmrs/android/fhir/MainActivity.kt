@@ -49,6 +49,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.findNavController
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.sync.CurrentSyncJobStatus
@@ -62,7 +63,6 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
-import org.openmrs.android.fhir.viewmodel.MainActivityViewModel.Companion.PREFS_NAME
 import timber.log.Timber
 
 const val MAX_RESOURCE_COUNT = 20
@@ -75,6 +75,7 @@ class MainActivity : AppCompatActivity() {
   private var tokenCheckRunnable: Runnable? = null
   private var isDialogShowing = false
   private lateinit var loginRepository: LoginRepository
+  private lateinit var demoDataStore: DemoDataStore
 
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
@@ -90,6 +91,7 @@ class MainActivity : AppCompatActivity() {
     authStateManager = AuthStateManager.getInstance(applicationContext)
     setContentView(binding.root)
     tokenExpiryHandler = Handler(Looper.getMainLooper())
+    demoDataStore = DemoDataStore(this)
 
     initActionBar()
     initNavigationDrawer()
@@ -169,6 +171,9 @@ class MainActivity : AppCompatActivity() {
       R.id.menu_logout -> {
         showLogoutWarningDialog()
       }
+      R.id.menu_settings -> {
+        findNavController(R.id.nav_host_fragment).navigate(R.id.settings_fragment)
+      }
     }
     binding.drawer.closeDrawer(GravityCompat.START)
     return false
@@ -220,6 +225,7 @@ class MainActivity : AppCompatActivity() {
 
   private suspend fun monitorTokenExpiry() {
     val isServerAvailable = withContext(Dispatchers.IO) { viewModel.isServerAvailable() }
+    val delayDuration = withContext(Dispatchers.IO) { demoDataStore.getTokenExpiryDelay() }
     tokenCheckRunnable =
       object : Runnable {
         override fun run() {
@@ -229,7 +235,7 @@ class MainActivity : AppCompatActivity() {
               tokenExpiryHandler?.removeCallbacks(this)
             }
           } else {
-            tokenExpiryHandler?.postDelayed(this, 60 * 1000)
+            tokenExpiryHandler?.postDelayed(this, delayDuration)
           }
         }
       }
@@ -274,11 +280,9 @@ class MainActivity : AppCompatActivity() {
 
   private fun scheduleDialogForLater() {
     tokenExpiryHandler?.postDelayed(
-      {
-        showTokenExpiredDialog() // Re-show the dialog after 15 minutes
-      },
+      { showTokenExpiredDialog() },
       15 * 60 * 1000,
-    ) // 15 minutes in milliseconds
+    )
   }
 
   private fun observeNetworkConnection() {
@@ -351,9 +355,6 @@ class MainActivity : AppCompatActivity() {
   }
 
   private suspend fun clearPreferences() {
-    val demoDataStore = DemoDataStore(this)
     demoDataStore.clearAll()
-    val sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-    sharedPreferences.edit().clear().apply()
   }
 }
