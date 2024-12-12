@@ -48,6 +48,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.findNavController
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.sync.CurrentSyncJobStatus
@@ -103,6 +104,7 @@ class MainActivity : AppCompatActivity() {
     observeNetworkConnection()
     viewModel.updateLastSyncTimestamp()
     viewModel.triggerIdentifierTypeSync(applicationContext)
+    observeSettings()
   }
 
   override fun onResume() {
@@ -173,6 +175,9 @@ class MainActivity : AppCompatActivity() {
       }
       R.id.menu_logout -> {
         showLogoutWarningDialog()
+      }
+      R.id.menu_settings -> {
+        findNavController(R.id.nav_host_fragment).navigate(R.id.settings_fragment)
       }
     }
     binding.drawer.closeDrawer(GravityCompat.START)
@@ -365,5 +370,17 @@ class MainActivity : AppCompatActivity() {
       .invokeOnCompletion {
         authStateManager.endSessionRequest(pendingIntentSuccess, pendingIntentCancel)
       }
+  }
+
+  private fun observeSettings() {
+    lifecycleScope.launch {
+      demoDataStore.getCheckNetworkConnectivityFlow().collect { isCheckNetworkConnectivityEnabled ->
+        if (isCheckNetworkConnectivityEnabled) {
+          binding.networkStatusFlag.tvNetworkStatus.visibility = View.VISIBLE
+        } else {
+          binding.networkStatusFlag.tvNetworkStatus.visibility = View.GONE
+        }
+      }
+    }
   }
 }
