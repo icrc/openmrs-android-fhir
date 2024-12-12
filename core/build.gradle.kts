@@ -94,7 +94,7 @@ object Versions {
   const val activity = "1.9.1"
   const val recyclerview = "1.3.2"
   const val work = "2.9.1"
-  const val material = "1.12.0"
+  const val material = "1.4.0"
   const val retrofitVersion = "2.9.0"
   const val kotlinStdlibJdk7 = "1.9.22"
   const val room = "2.6.1"

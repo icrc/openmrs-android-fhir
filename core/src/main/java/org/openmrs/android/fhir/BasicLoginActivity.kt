@@ -26,53 +26,37 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.di
+package org.openmrs.android.fhir
 
-import androidx.lifecycle.ViewModel
-import dagger.Binds
-import dagger.Module
-import dagger.multibindings.IntoMap
-import org.openmrs.android.fhir.viewmodel.AddPatientViewModel
+import android.os.Bundle
+import android.widget.Toast
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import javax.inject.Inject
+import org.openmrs.android.fhir.databinding.ActivityBasicLoginBinding
 import org.openmrs.android.fhir.viewmodel.BasicLoginActivityViewModel
-import org.openmrs.android.fhir.viewmodel.LocationViewModel
-import org.openmrs.android.fhir.viewmodel.LoginActivityViewModel
-import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
-import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 
-@Module
-abstract class ViewModelModule {
+class BasicLoginActivity : AppCompatActivity() {
 
-  /*
-   * Viewmodels
-   */
+  private lateinit var binding: ActivityBasicLoginBinding
 
-  @Binds
-  @IntoMap
-  @ViewModelKey(AddPatientViewModel::class)
-  abstract fun bindAddPatientViewModel(viewmodel: AddPatientViewModel): ViewModel
+  @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+  private val viewModel by viewModels<BasicLoginActivityViewModel> { viewModelFactory }
 
-  @Binds
-  @IntoMap
-  @ViewModelKey(LocationViewModel::class)
-  abstract fun bindLocationViewModel(viewmodel: LocationViewModel): ViewModel
-
-  @Binds
-  @IntoMap
-  @ViewModelKey(LoginActivityViewModel::class)
-  abstract fun bindLoginActivityViewModel(viewmodel: LoginActivityViewModel): ViewModel
-
-  @Binds
-  @IntoMap
-  @ViewModelKey(MainActivityViewModel::class)
-  abstract fun bindMainActivityViewModel(viewmodel: MainActivityViewModel): ViewModel
-
-  @Binds
-  @IntoMap
-  @ViewModelKey(PatientListViewModel::class)
-  abstract fun bindPatientListViewModel(viewmodel: PatientListViewModel): ViewModel
-
-  @Binds
-  @IntoMap
-  @ViewModelKey(BasicLoginActivityViewModel::class)
-  abstract fun bindBasicLoginActivityViewModel(viewmodel: BasicLoginActivityViewModel): ViewModel
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    (this.application as FhirApplication).appComponent.inject(this)
+    binding = ActivityBasicLoginBinding.inflate(layoutInflater)
+    setContentView(binding.root)
+    binding.basicLoginButton.setOnClickListener {
+      val username = binding.usernameInputText.text.toString()
+      val password = binding.passwordInputText.text.toString()
+      if (username.isEmpty() || password.isEmpty()) {
+        Toast.makeText(this, "Either username or password is empty", Toast.LENGTH_SHORT).show()
+      } else {
+        viewModel.handleLogin(this, username, password)
+      }
+    }
+  }
 }

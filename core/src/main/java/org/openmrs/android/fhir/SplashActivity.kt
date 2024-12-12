@@ -39,11 +39,13 @@ import org.openmrs.android.fhir.auth.AuthStateManager
 class SplashActivity : AppCompatActivity() {
 
   private lateinit var authStateManager: AuthStateManager
+  private lateinit var authMethod: String
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
     setContentView(R.layout.activity_splash)
+    authMethod = FhirApplication.authMethod(applicationContext)
     ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
       val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
       v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -58,7 +60,11 @@ class SplashActivity : AppCompatActivity() {
     if (authStateManager.current.isAuthorized && !authStateManager.current.needsTokenRefresh) {
       startActivity(Intent(this, MainActivity::class.java))
     } else {
-      startActivity(Intent(this, LoginActivity::class.java))
+      if (authMethod == "basic") {
+        startActivity(Intent(this, BasicLoginActivity::class.java))
+      } else {
+        startActivity(Intent(this, LoginActivity::class.java))
+      }
     }
     finish()
   }

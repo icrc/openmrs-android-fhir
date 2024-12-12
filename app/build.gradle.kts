@@ -39,6 +39,8 @@ android {
 
     setResValue(providers, "auth_https_required", this, "bool")
     setResValue(providers, "auth_replace_localhost_by_10_0_2_2", this, "bool")
+
+    setResValue(providers, "auth_method", this)
   }
   buildTypes {
     getByName("release") { signingConfig = signingConfigs.getByName("debug") }

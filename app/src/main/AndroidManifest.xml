@@ -33,6 +33,13 @@
 
         </activity>
         <activity
+            android:name="org.openmrs.android.fhir.BasicLoginActivity"
+            android:exported="false"
+        >
+
+        </activity>
+
+        <activity
             android:name="org.openmrs.android.fhir.MainActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
