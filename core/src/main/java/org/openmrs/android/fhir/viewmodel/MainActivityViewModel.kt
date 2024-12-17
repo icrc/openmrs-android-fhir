@@ -29,12 +29,15 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
 import android.text.format.DateFormat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
+import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.CurrentSyncJobStatus
@@ -49,10 +52,12 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.FhirSyncWorker
 import org.openmrs.android.fhir.data.IdentifierTypeManager
@@ -73,11 +78,38 @@ constructor(
   val apiManager: ApiManager,
   val identifierTypeManager: IdentifierTypeManager,
 ) : ViewModel() {
+  private var _stopSync: Boolean = false
+  val stopSync
+    get() = _stopSync
+
   private val _lastSyncTimestampLiveData = MutableLiveData<String>()
   val lastSyncTimestampLiveData: LiveData<String>
     get() = _lastSyncTimestampLiveData
 
   private val _oneTimeSyncTrigger = MutableStateFlow(false)
+
+  private val restApiManager = FhirApplication.restApiClient(applicationContext)
+
+  private val _networkStatus = MutableStateFlow(false)
+  val networkStatus: StateFlow<Boolean>
+    get() = _networkStatus
+
+  private var connectivityManager: ConnectivityManager =
+    applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+  private var networkCallBack: ConnectivityManager.NetworkCallback =
+    object : ConnectivityManager.NetworkCallback() {
+      override fun onAvailable(network: Network) {
+        super.onAvailable(network)
+        // Network is available
+        _networkStatus.value = true
+      }
+
+      override fun onLost(network: Network) {
+        super.onLost(network)
+        // Network is lost
+        _networkStatus.value = false
+      }
+    }
 
   val pollPeriodicSyncJobStatus: SharedFlow<PeriodicSyncJobStatus> =
     Sync.periodicSync<FhirSyncWorker>(
@@ -101,19 +133,25 @@ constructor(
 
   fun triggerOneTimeSync(context: Context) {
     viewModelScope.launch {
-      fetchIdentifierTypesIfEmpty()
-      embeddIdentifierToUnsyncedPatients(context)
-      _oneTimeSyncTrigger.value = !_oneTimeSyncTrigger.value
-      _oneTimeSyncTrigger.combine(
-        flow = Sync.oneTimeSync<FhirSyncWorker>(context = applicationContext),
-      ) { _, syncJobStatus ->
-        syncJobStatus
+      if (!stopSync) {
+        fetchIdentifierTypesIfEmpty()
+        embeddIdentifierToUnsyncedPatients(context)
+        _oneTimeSyncTrigger.value = !_oneTimeSyncTrigger.value
+        _oneTimeSyncTrigger.combine(
+          flow = Sync.oneTimeSync<FhirSyncWorker>(context = applicationContext),
+        ) { _, syncJobStatus ->
+          syncJobStatus
+        }
       }
     }
   }
 
   fun triggerIdentifierTypeSync(context: Context) {
-    viewModelScope.launch { fetchIdentifierTypesIfEmpty() }
+    viewModelScope.launch {
+      if (!stopSync) {
+        fetchIdentifierTypesIfEmpty()
+      }
+    }
   }
 
   private suspend fun embeddIdentifierToUnsyncedPatients(context: Context) {
@@ -192,8 +230,31 @@ constructor(
         ?: Sync.getLastSyncTimestamp(applicationContext)?.toLocalDateTime()?.format(formatter) ?: ""
   }
 
+  fun registerNetworkCallback() {
+    connectivityManager.registerDefaultNetworkCallback(networkCallBack)
+  }
+
+  // Unregister the network callback
+  fun unregisterNetworkCallback() {
+    connectivityManager.unregisterNetworkCallback(networkCallBack)
+  }
+
+  fun isServerAvailable(): Boolean {
+    return restApiManager.isServerLive()
+  }
+
+  fun cancelPeriodicSyncWorker(context: Context) {
+    WorkManager.getInstance(context)
+      .cancelUniqueWork("${FhirSyncWorker::class.java.name}-periodicSync")
+  }
+
+  fun setStopSync(stopSync: Boolean) {
+    this._stopSync = stopSync
+  }
+
   companion object {
     private const val formatString24 = "yyyy-MM-dd HH:mm:ss"
     private const val formatString12 = "yyyy-MM-dd hh:mm:ss a"
+    const val PREFS_NAME = "tokenDialogPrefs"
   }
 }

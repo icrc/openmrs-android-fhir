@@ -38,6 +38,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
         >
+        <include
+                android:id="@+id/network_status_flag"
+                layout="@layout/network_status_flag_layout"
+            />
 
         <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
