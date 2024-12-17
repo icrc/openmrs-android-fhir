@@ -38,7 +38,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.google.android.fhir.sync.DownloadWorkManager
 import kotlinx.coroutines.flow.first
 import org.hl7.fhir.r4.model.ResourceType
-import org.openmrs.android.fhir.auth.dataStore
 
 private val Context.dataStorage: DataStore<Preferences> by
   preferencesDataStore(name = "demo_app_storage")
@@ -58,19 +57,21 @@ class DemoDataStore(private val context: Context) {
     return context.dataStorage.data.first()[stringPreferencesKey(resourceType.name)]
   }
 
-  suspend fun saveTokenExpiryDelay(time: Long) {
-    context.dataStore.edit { pref -> pref[longPreferencesKey(TOKEN_EXPIRY_DELAY)] = time }
+  suspend fun clearAll() {
+    context.dataStorage.edit { it.clear() }
   }
 
   suspend fun getTokenExpiryDelay(): Long {
     return context.dataStorage.data.first()[longPreferencesKey(TOKEN_EXPIRY_DELAY)] ?: (60 * 1000)
   }
 
-  suspend fun clearAll() {
-    context.dataStorage.edit { it.clear() }
+  suspend fun getPeriodicSyncDelay(): Long {
+    return context.dataStorage.data.first()[longPreferencesKey(PERIODIC_SYNC_DELAY)]
+      ?: (15 * 60 * 1000)
   }
 
   companion object {
     const val TOKEN_EXPIRY_DELAY = "token-expiry-delay"
+    const val PERIODIC_SYNC_DELAY = "periodic-sync-delay"
   }
 }

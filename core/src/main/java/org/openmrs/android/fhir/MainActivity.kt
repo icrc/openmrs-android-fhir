@@ -49,7 +49,6 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.findNavController
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.sync.CurrentSyncJobStatus
@@ -171,9 +170,6 @@ class MainActivity : AppCompatActivity() {
       R.id.menu_logout -> {
         showLogoutWarningDialog()
       }
-      R.id.menu_settings -> {
-        findNavController(R.id.nav_host_fragment).navigate(R.id.settings_fragment)
-      }
     }
     binding.drawer.closeDrawer(GravityCompat.START)
     return false
@@ -225,7 +221,7 @@ class MainActivity : AppCompatActivity() {
 
   private suspend fun monitorTokenExpiry() {
     val isServerAvailable = withContext(Dispatchers.IO) { viewModel.isServerAvailable() }
-    val delayDuration = withContext(Dispatchers.IO) { demoDataStore.getTokenExpiryDelay() }
+    val tokenExpiryDelay = withContext(Dispatchers.IO) { demoDataStore.getTokenExpiryDelay() }
     tokenCheckRunnable =
       object : Runnable {
         override fun run() {
@@ -235,7 +231,7 @@ class MainActivity : AppCompatActivity() {
               tokenExpiryHandler?.removeCallbacks(this)
             }
           } else {
-            tokenExpiryHandler?.postDelayed(this, delayDuration)
+            tokenExpiryHandler?.postDelayed(this, tokenExpiryDelay)
           }
         }
       }
@@ -262,7 +258,7 @@ class MainActivity : AppCompatActivity() {
         }
         .setNegativeButton(getString(R.string.no)) { dialog, _ ->
           isDialogShowing = false
-          scheduleDialogForLater()
+          lifecycleScope.launch { scheduleDialogForLater() }
           viewModel.setStopSync(false)
           dialog.dismiss()
         }
@@ -278,11 +274,13 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
-  private fun scheduleDialogForLater() {
+  private suspend fun scheduleDialogForLater() {
     tokenExpiryHandler?.postDelayed(
-      { showTokenExpiredDialog() },
-      15 * 60 * 1000,
-    )
+      {
+        showTokenExpiredDialog() // Re-show the dialog after 15 minutes
+      },
+      demoDataStore.getPeriodicSyncDelay(),
+    ) // 15 minutes in milliseconds
   }
 
   private fun observeNetworkConnection() {
@@ -347,14 +345,10 @@ class MainActivity : AppCompatActivity() {
       .launch(Dispatchers.IO) {
         WorkManager.getInstance(this@MainActivity).cancelAllWork()
         fhirEngine.clearDatabase()
-        clearPreferences()
+        demoDataStore.clearAll()
       }
       .invokeOnCompletion {
         authStateManager.endSessionRequest(pendingIntentSuccess, pendingIntentCancel)
       }
-  }
-
-  private suspend fun clearPreferences() {
-    demoDataStore.clearAll()
   }
 }
