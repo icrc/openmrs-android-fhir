@@ -135,10 +135,4 @@
         tools:layout="@layout/fragment_identifier"
     />
 
-  <fragment
-        android:id="@+id/settings_fragment"
-        android:label="Settings Screen"
-        android:name="org.openmrs.android.fhir.fragments.SettingsFragment"
-        tools:layout="@layout/settings_page"
-    />
 </navigation>
