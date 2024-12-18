@@ -26,78 +26,96 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.NavHostFragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import javax.inject.Inject
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.adapters.SyncSessionsAdapter
+import org.openmrs.android.fhir.databinding.FragmentSyncInfoBinding
+import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
 
-class HomeFragment : Fragment(R.layout.fragment_home) {
+class SyncInfoFragment : Fragment() {
+
+  private var _binding: FragmentSyncInfoBinding? = null
+  private val binding
+    get() = _binding!!
+
+  @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+  private val viewModel by viewModels<SyncInfoViewModel> { viewModelFactory }
+
+  private lateinit var adapter: SyncSessionsAdapter
+
+  override fun onCreateView(
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?,
+  ): View {
+    _binding = FragmentSyncInfoBinding.inflate(inflater, container, false)
+    return binding.root
+  }
+
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setHasOptionsMenu(true)
+  }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
+    (requireActivity().application as FhirApplication).appComponent.inject(this)
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
-      title = resources.getString(R.string.app_name)
+      title = requireContext().getString(R.string.sync_info)
       setDisplayHomeAsUpEnabled(true)
     }
-    setHasOptionsMenu(true)
-    (activity as MainActivity).setDrawerEnabled(true)
-    setOnClicks()
+    setupRecyclerView()
+    observeViewModel()
+
+    binding.btnClearAllSyncData.setOnClickListener { viewModel.clearAllSyncSessions() }
+    (activity as MainActivity).setDrawerEnabled(false)
   }
 
-  private fun setOnClicks() {
-    requireView().findViewById<CardView>(R.id.item_new_patient).setOnClickListener {
-      lifecycleScope.launch {
-        if (
-          context
-            ?.applicationContext
-            ?.dataStore
-            ?.data
-            ?.first()
-            ?.get(PreferenceKeys.LOCATION_NAME) != null
-        ) {
-          findNavController()
-            .navigate(HomeFragmentDirections.actionHomeFragmentToAddPatientFragment())
-        } else {
-          Toast.makeText(context, "Please select a location first", Toast.LENGTH_LONG).show()
-        }
-      }
-    }
-    requireView().findViewById<CardView>(R.id.item_patient_list).setOnClickListener {
-      findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToPatientList())
-    }
-    requireView().findViewById<CardView>(R.id.select_location).setOnClickListener {
-      findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToLocationFragment())
-    }
-    requireView().findViewById<CardView>(R.id.select_identifier).setOnClickListener {
-      findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToIdentifierFragment())
-    }
-    requireView().findViewById<CardView>(R.id.sync_info).setOnClickListener {
-      findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSyncInfoFragment())
+  private fun setupRecyclerView() {
+    adapter = SyncSessionsAdapter { session -> viewModel.deleteSyncSession(session) }
+
+    binding.recyclerViewSyncSessions.apply {
+      layoutManager = LinearLayoutManager(requireContext())
+      adapter = this@SyncInfoFragment.adapter
     }
   }
 
-  @Deprecated("Deprecated in Java")
+  private fun observeViewModel() {
+    // Observe the live data for the sync sessions
+    viewModel.syncSessions.observe(
+      viewLifecycleOwner,
+      Observer { sessions -> adapter.submitList(sessions) },
+    )
+  }
+
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
       android.R.id.home -> {
-        (requireActivity() as MainActivity).openNavigationDrawer()
+        NavHostFragment.findNavController(this).navigateUp()
         true
       }
       else -> false
     }
+  }
+
+  override fun onDestroyView() {
+    super.onDestroyView()
+    _binding = null
   }
 }

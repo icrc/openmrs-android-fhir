@@ -51,6 +51,7 @@ import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
+import org.openmrs.android.fhir.extensions.showSnackBar
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import timber.log.Timber
 
@@ -159,14 +160,38 @@ class MainActivity : AppCompatActivity() {
       viewModel.pollState.collect {
         Timber.d("observerSyncState: pollState Got status $it")
         when (it) {
-          is CurrentSyncJobStatus.Enqueued -> showToast("Sync: started")
-          is CurrentSyncJobStatus.Running -> showToast("Sync: in progress")
+          is CurrentSyncJobStatus.Enqueued -> {
+            showSnackBar(this@MainActivity, "Sync started")
+            viewModel.handleStartSync(it)
+          }
+          is CurrentSyncJobStatus.Running -> {
+            viewModel.handleInProgressSync(it)
+          }
           is CurrentSyncJobStatus.Succeeded -> {
-            showToast("Sync: succeeded at ${it.timestamp}")
-            viewModel.updateLastSyncTimestamp()
+            viewModel.handleSuccessSync(it)
           }
           is CurrentSyncJobStatus.Failed -> {
-            showToast("Sync: failed at ${it.timestamp}")
+            viewModel.handleFailedSync(it)
+            viewModel.updateLastSyncTimestamp()
+          }
+          else -> showToast("Sync: unknown state.")
+        }
+      }
+      viewModel.pollPeriodicSyncJobStatus.collect {
+        Timber.d("observerSyncState: pollState Got status $it")
+        when (it.currentSyncJobStatus) {
+          is CurrentSyncJobStatus.Enqueued -> {
+            showSnackBar(this@MainActivity, "Sync started")
+            viewModel.handleStartSync(it.currentSyncJobStatus)
+          }
+          is CurrentSyncJobStatus.Running -> {
+            viewModel.handleInProgressSync(it.currentSyncJobStatus)
+          }
+          is CurrentSyncJobStatus.Succeeded -> {
+            viewModel.handleSuccessSync(it.currentSyncJobStatus)
+          }
+          is CurrentSyncJobStatus.Failed -> {
+            viewModel.handleFailedSync(it.currentSyncJobStatus)
             viewModel.updateLastSyncTimestamp()
           }
           else -> showToast("Sync: unknown state.")

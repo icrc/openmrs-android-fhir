@@ -26,17 +26,30 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.database
+package org.openmrs.android.fhir.viewmodel
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
-import org.openmrs.android.fhir.data.database.model.Identifier
-import org.openmrs.android.fhir.data.database.model.IdentifierType
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
+import javax.inject.Inject
+import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncSession
 
-@Database(entities = [Identifier::class, IdentifierType::class, SyncSession::class], version = 1)
-@TypeConverters(Converters::class)
-abstract class AppDatabase : RoomDatabase() {
-  abstract fun dao(): Dao
+class SyncInfoViewModel
+@Inject
+constructor(
+  private val database: AppDatabase,
+) : ViewModel() {
+
+  val syncSessions: LiveData<List<SyncSession>> = database.dao().getAllSyncSessions().asLiveData()
+
+  fun deleteSyncSession(session: SyncSession) {
+    viewModelScope.launch { database.dao().deleteSyncSession(session.id) }
+  }
+
+  fun clearAllSyncSessions() {
+    viewModelScope.launch { database.dao().clearAllSyncSessions() }
+  }
 }

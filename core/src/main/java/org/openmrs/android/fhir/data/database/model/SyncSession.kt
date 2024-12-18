@@ -26,17 +26,26 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.database
+package org.openmrs.android.fhir.data.database.model
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
-import org.openmrs.android.fhir.data.database.model.Identifier
-import org.openmrs.android.fhir.data.database.model.IdentifierType
-import org.openmrs.android.fhir.data.database.model.SyncSession
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-@Database(entities = [Identifier::class, IdentifierType::class, SyncSession::class], version = 1)
-@TypeConverters(Converters::class)
-abstract class AppDatabase : RoomDatabase() {
-  abstract fun dao(): Dao
+@Entity
+data class SyncSession(
+  @PrimaryKey(autoGenerate = true) val id: Int = 0, // Auto-generated ID for each session
+  val startTime: String, // Format: "2024-12-13 10:00 AM"
+  val downloadedPatients: Int,
+  val totalPatientsToDownload: Int,
+  val uploadedPatients: Int,
+  val totalPatientsToUpload: Int,
+  val completionTime: String?,
+  val status: SyncStatus, // Enum to represent the status
+  val errors: List<String> = emptyList(), // List of errors
+)
+
+enum class SyncStatus {
+  ONGOING,
+  COMPLETED,
+  COMPLETED_WITH_ERRORS,
 }
