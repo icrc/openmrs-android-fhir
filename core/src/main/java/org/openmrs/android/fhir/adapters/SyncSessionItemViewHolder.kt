@@ -79,8 +79,12 @@ class SyncSessionItemViewHolder(
     }
 
     // Delete Button
-    binding.btnDeleteSyncSession.setOnClickListener {
-      onDeleteSession(session) // Callback to delete the session
+    if (session.status == SyncStatus.ONGOING) {
+      binding.btnDeleteSyncSession.isVisible = false
+    } else {
+      binding.btnDeleteSyncSession.setOnClickListener {
+        onDeleteSession(session) // Callback to delete the session
+      }
     }
   }
 }

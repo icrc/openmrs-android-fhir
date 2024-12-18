@@ -199,27 +199,24 @@ constructor(
   /*
   Handle sync
    */
-  fun handleStartSync(state: CurrentSyncJobStatus) {
+  fun handleStartSync() {
     viewModelScope.launch {
       val inProgressSyncSession = database.dao().getInProgressSyncSession()
-      if (inProgressSyncSession != null) {
+      if (inProgressSyncSession == null) {
         database
           .dao()
-          .updateSyncSessionStatus(inProgressSyncSession.id, SyncStatus.COMPLETED_WITH_ERRORS)
+          .insertSyncSession(
+            SyncSession(
+              startTime = LocalDateTime.now().format(formatter).toString(),
+              downloadedPatients = 0,
+              uploadedPatients = 0,
+              totalPatientsToDownload = 0,
+              totalPatientsToUpload = 0,
+              completionTime = null,
+              status = SyncStatus.ONGOING,
+            ),
+          )
       }
-      database
-        .dao()
-        .insertSyncSession(
-          SyncSession(
-            startTime = LocalDateTime.now().format(formatter).toString(),
-            downloadedPatients = 0,
-            uploadedPatients = 0,
-            totalPatientsToDownload = 0,
-            totalPatientsToUpload = 0,
-            completionTime = null,
-            status = SyncStatus.ONGOING,
-          ),
-        )
     }
   }
 
@@ -298,6 +295,12 @@ constructor(
               inProgressSyncSession.id,
               (state as SyncJobStatus.Failed).exceptions.map { it -> it.exception.message }
                 as List<String>,
+            )
+          database
+            .dao()
+            .updateSyncSessionCompletionTime(
+              inProgressSyncSession.id,
+              state.timestamp.format(formatter).toString(),
             )
         }
       }

@@ -22,11 +22,19 @@
         tools:listitem="@layout/item_sync_session"
     />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_clear_all_sync_data"
-        android:layout_width="wrap_content"
+        style="@style/Widget.Material3.Button"
+        android:backgroundTint="@color/dashboard_cardview_textcolor"
+        android:textSize="12sp"
+        android:textColor="@color/white"
+        android:layout_width="match_parent"
+        app:cornerRadius="4dp"
+        app:icon="@drawable/ic_delete"
+        app:iconGravity="textStart"
+        android:layout_marginHorizontal="24dp"
         android:layout_height="wrap_content"
-        android:text="Clear All Data"
+        android:text="Clear Sync Data"
         android:layout_margin="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

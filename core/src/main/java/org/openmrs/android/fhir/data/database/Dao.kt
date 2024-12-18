@@ -69,7 +69,7 @@ interface Dao {
   @Insert(onConflict = OnConflictStrategy.REPLACE)
   suspend fun insertSyncSession(syncSession: SyncSession)
 
-  @Query("SELECT * FROM syncsession ORDER BY startTime DESC")
+  @Query("SELECT * FROM syncsession ORDER BY id DESC")
   fun getAllSyncSessions(): Flow<List<SyncSession>>
 
   @Query("SELECT * FROM syncsession WHERE status='ONGOING' ORDER BY startTime DESC LIMIT 1")
@@ -97,5 +97,6 @@ interface Dao {
   @Query("DELETE FROM syncsession WHERE id = :sessionId")
   suspend fun deleteSyncSession(sessionId: Int)
 
-  @Query("DELETE FROM syncsession") suspend fun clearAllSyncSessions()
+  @Query("DELETE FROM syncsession WHERE status != 'ONGOING'")
+  suspend fun clearAllSyncSessionsExceptOngoing()
 }

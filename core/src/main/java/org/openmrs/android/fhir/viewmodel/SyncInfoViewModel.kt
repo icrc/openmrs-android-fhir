@@ -50,6 +50,6 @@ constructor(
   }
 
   fun clearAllSyncSessions() {
-    viewModelScope.launch { database.dao().clearAllSyncSessions() }
+    viewModelScope.launch { database.dao().clearAllSyncSessionsExceptOngoing() }
   }
 }
