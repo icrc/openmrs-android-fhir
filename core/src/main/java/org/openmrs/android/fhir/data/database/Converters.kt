@@ -28,15 +28,28 @@
 */
 package org.openmrs.android.fhir.data.database
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
-import org.openmrs.android.fhir.data.database.model.Identifier
-import org.openmrs.android.fhir.data.database.model.IdentifierType
-import org.openmrs.android.fhir.data.database.model.SyncSession
+import androidx.room.TypeConverter
+import org.openmrs.android.fhir.data.database.model.SyncStatus
 
-@Database(entities = [Identifier::class, IdentifierType::class, SyncSession::class], version = 1)
-@TypeConverters(Converters::class)
-abstract class AppDatabase : RoomDatabase() {
-  abstract fun dao(): Dao
+class Converters {
+
+  @TypeConverter
+  fun fromStringList(value: String): List<String> {
+    return value.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+  }
+
+  @TypeConverter
+  fun toStringList(list: List<String>): String {
+    return list.joinToString(",")
+  }
+
+  @TypeConverter
+  fun fromSyncStatus(value: SyncStatus): String {
+    return value.name
+  }
+
+  @TypeConverter
+  fun toSyncStatus(value: String): SyncStatus {
+    return SyncStatus.valueOf(value)
+  }
 }

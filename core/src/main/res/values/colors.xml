@@ -31,6 +31,7 @@
     <color name="onPrimary_blue_100">#FFFFFF</color>
     <color name="primaryContainer_blue_90">#D3E3FD</color>
     <color name="onPrimaryContainer_blue_10">#041E49</color>
+    <color name="orange">#FFA500</color>
 
     <color name="secondary_blue_40">#00639B</color>
     <color name="onSecondary_blue_100">#FFFFFF</color>

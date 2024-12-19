@@ -29,16 +29,10 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AnimationUtils
-import android.widget.LinearLayout
-import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
@@ -50,13 +44,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.fhir.sync.CurrentSyncJobStatus
-import com.google.android.fhir.sync.LastSyncJobStatus
-import com.google.android.fhir.sync.PeriodicSyncJobStatus
-import com.google.android.fhir.sync.SyncJobStatus
 import javax.inject.Inject
 import kotlin.getValue
-import kotlin.math.roundToInt
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
@@ -66,8 +55,6 @@ import org.openmrs.android.fhir.adapters.PatientItemRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.FragmentPatientListBinding
-import org.openmrs.android.fhir.extensions.launchAndRepeatStarted
-import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import timber.log.Timber
 
@@ -75,11 +62,6 @@ class PatientListFragment : Fragment() {
 
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
   private val patientListViewModel by viewModels<PatientListViewModel> { viewModelFactory }
-  private val mainActivityViewModel by viewModels<MainActivityViewModel> { viewModelFactory }
-  private lateinit var topBanner: LinearLayout
-  private lateinit var syncStatus: TextView
-  private lateinit var syncPercent: TextView
-  private lateinit var syncProgress: ProgressBar
   private lateinit var patientQuery: String
   private var _binding: FragmentPatientListBinding? = null
   private val binding
@@ -113,11 +95,6 @@ class PatientListFragment : Fragment() {
     patientQuery = binding.patientInputEditText.text.toString()
     addSearchTextChangeListener()
 
-    topBanner = binding.syncStatusContainer.linearLayoutSyncStatus
-    topBanner.visibility = View.GONE
-    syncStatus = binding.syncStatusContainer.tvSyncingStatus
-    syncPercent = binding.syncStatusContainer.tvSyncingPercent
-    syncProgress = binding.syncStatusContainer.progressSyncing
     requireActivity()
       .onBackPressedDispatcher
       .addCallback(
@@ -137,105 +114,11 @@ class PatientListFragment : Fragment() {
     binding.apply { addPatient.setOnClickListener { onAddPatientClick() } }
     setHasOptionsMenu(true)
     (activity as MainActivity).setDrawerEnabled(false)
-    launchAndRepeatStarted(
-      { mainActivityViewModel.pollState.collect(::currentSyncJobStatus) },
-      { mainActivityViewModel.pollPeriodicSyncJobStatus.collect(::periodicSyncJobStatus) },
-    )
   }
 
   private fun addSearchTextChangeListener() {
     binding.patientInputEditText.doOnTextChanged { newText, _, _, _ ->
       patientListViewModel.searchPatientsByName(newText.toString().trim())
-    }
-  }
-
-  private fun currentSyncJobStatus(currentSyncJobStatus: CurrentSyncJobStatus) {
-    when (currentSyncJobStatus) {
-      is CurrentSyncJobStatus.Running -> {
-        Timber.i(
-          "Sync: ${currentSyncJobStatus::class.java.simpleName} with data ${currentSyncJobStatus.inProgressSyncJob}",
-        )
-        fadeInTopBanner(currentSyncJobStatus)
-      }
-      is CurrentSyncJobStatus.Succeeded -> {
-        Timber.i(
-          "Sync: ${currentSyncJobStatus::class.java.simpleName} at ${currentSyncJobStatus.timestamp}",
-        )
-        patientListViewModel.searchPatientsByName(
-          binding.patientInputEditText.text.toString().trim(),
-        )
-        mainActivityViewModel.updateLastSyncTimestamp(currentSyncJobStatus.timestamp)
-        fadeOutTopBanner(currentSyncJobStatus)
-      }
-      is CurrentSyncJobStatus.Failed -> {
-        Timber.i(
-          "Sync: ${currentSyncJobStatus::class.java.simpleName} at ${currentSyncJobStatus.timestamp}",
-        )
-        patientListViewModel.searchPatientsByName(
-          binding.patientInputEditText.text.toString().trim(),
-        )
-        mainActivityViewModel.updateLastSyncTimestamp(currentSyncJobStatus.timestamp)
-        fadeOutTopBanner(currentSyncJobStatus)
-      }
-      is CurrentSyncJobStatus.Enqueued -> {
-        Timber.i("Sync: Enqueued")
-        patientListViewModel.searchPatientsByName(
-          binding.patientInputEditText.text.toString().trim(),
-        )
-        fadeOutTopBanner(currentSyncJobStatus)
-      }
-      is CurrentSyncJobStatus.Cancelled -> {
-        Timber.i("Sync: Cancelled")
-        fadeOutTopBanner(currentSyncJobStatus)
-      }
-      is CurrentSyncJobStatus.Blocked -> {
-        Timber.i("Sync: Blocked")
-        fadeOutTopBanner(currentSyncJobStatus)
-      }
-    }
-  }
-
-  private fun periodicSyncJobStatus(periodicSyncJobStatus: PeriodicSyncJobStatus) {
-    when (periodicSyncJobStatus.currentSyncJobStatus) {
-      is CurrentSyncJobStatus.Running -> {
-        fadeInTopBanner(periodicSyncJobStatus.currentSyncJobStatus)
-      }
-      is CurrentSyncJobStatus.Succeeded -> {
-        val lastSyncTimestamp =
-          (periodicSyncJobStatus.currentSyncJobStatus as CurrentSyncJobStatus.Succeeded).timestamp
-        patientListViewModel.searchPatientsByName(
-          binding.patientInputEditText.text.toString().trim(),
-        )
-        mainActivityViewModel.updateLastSyncTimestamp(lastSyncTimestamp)
-        fadeOutTopBanner(periodicSyncJobStatus.currentSyncJobStatus)
-      }
-      is CurrentSyncJobStatus.Failed -> {
-        val lastSyncTimestamp =
-          (periodicSyncJobStatus.currentSyncJobStatus as CurrentSyncJobStatus.Failed).timestamp
-        Timber.i(
-          "Sync: ${periodicSyncJobStatus.currentSyncJobStatus::class.java.simpleName} at $lastSyncTimestamp}",
-        )
-        patientListViewModel.searchPatientsByName(
-          binding.patientInputEditText.text.toString().trim(),
-        )
-        mainActivityViewModel.updateLastSyncTimestamp(lastSyncTimestamp)
-        fadeOutTopBanner(periodicSyncJobStatus.currentSyncJobStatus)
-      }
-      is CurrentSyncJobStatus.Enqueued -> {
-        Timber.i("Sync: Enqueued")
-        patientListViewModel.searchPatientsByName(
-          binding.patientInputEditText.text.toString().trim(),
-        )
-        fadeOutTopBanner(periodicSyncJobStatus.currentSyncJobStatus)
-      }
-      is CurrentSyncJobStatus.Cancelled -> {
-        Timber.i("Sync: Cancelled")
-        fadeOutTopBanner(periodicSyncJobStatus.currentSyncJobStatus)
-      }
-      is CurrentSyncJobStatus.Blocked -> {
-        Timber.i("Sync: Blocked")
-        fadeOutTopBanner(periodicSyncJobStatus.currentSyncJobStatus)
-      }
     }
   }
 
@@ -275,51 +158,6 @@ class PatientListFragment : Fragment() {
       } else {
         Toast.makeText(context, "Please select a location first", Toast.LENGTH_LONG).show()
       }
-    }
-  }
-
-  private fun fadeInTopBanner(state: CurrentSyncJobStatus) {
-    if (topBanner.visibility != View.VISIBLE) {
-      syncStatus.text = resources.getString(R.string.syncing).uppercase()
-      syncPercent.text = ""
-      syncProgress.progress = 0
-      syncProgress.visibility = View.VISIBLE
-      topBanner.visibility = View.VISIBLE
-      val animation = AnimationUtils.loadAnimation(topBanner.context, R.anim.fade_in)
-      topBanner.startAnimation(animation)
-    } else if (
-      state is CurrentSyncJobStatus.Running && state.inProgressSyncJob is SyncJobStatus.InProgress
-    ) {
-      val inProgressState = state.inProgressSyncJob as? SyncJobStatus.InProgress
-      val progress =
-        inProgressState
-          ?.let { it.completed.toDouble().div(it.total) }
-          ?.let { if (it.isNaN()) 0.0 else it }
-          ?.times(100)
-          ?.roundToInt()
-      "$progress% ${inProgressState?.syncOperation?.name?.lowercase()}ed"
-        .also { syncPercent.text = it }
-      syncProgress.progress = progress ?: 0
-    }
-  }
-
-  private fun fadeOutTopBanner(state: CurrentSyncJobStatus) {
-    fadeOutTopBanner(state::class.java.simpleName.uppercase())
-  }
-
-  private fun fadeOutTopBanner(state: LastSyncJobStatus) {
-    fadeOutTopBanner(state::class.java.simpleName.uppercase())
-  }
-
-  private fun fadeOutTopBanner(statusText: String) {
-    syncPercent.text = ""
-    syncProgress.visibility = View.GONE
-    if (topBanner.visibility == View.VISIBLE) {
-      "${resources.getString(R.string.sync).uppercase()} $statusText".also { syncStatus.text = it }
-
-      val animation = AnimationUtils.loadAnimation(topBanner.context, R.anim.fade_out)
-      topBanner.startAnimation(animation)
-      Handler(Looper.getMainLooper()).postDelayed({ topBanner.visibility = View.GONE }, 2000)
     }
   }
 }

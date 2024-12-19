@@ -33,8 +33,11 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 import org.openmrs.android.fhir.data.database.model.Identifier
 import org.openmrs.android.fhir.data.database.model.IdentifierType
+import org.openmrs.android.fhir.data.database.model.SyncSession
+import org.openmrs.android.fhir.data.database.model.SyncStatus
 
 @Dao
 interface Dao {
@@ -62,4 +65,38 @@ interface Dao {
 
   @Query("DELETE FROM identifier WHERE value = :identifierValue ")
   suspend fun deleteIdentifierByValue(identifierValue: String)
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun insertSyncSession(syncSession: SyncSession)
+
+  @Query("SELECT * FROM syncsession ORDER BY id DESC")
+  fun getAllSyncSessions(): Flow<List<SyncSession>>
+
+  @Query("SELECT * FROM syncsession WHERE status='ONGOING' ORDER BY startTime DESC LIMIT 1")
+  suspend fun getInProgressSyncSession(): SyncSession?
+
+  @Query("UPDATE syncsession SET status = :newStatus WHERE id = :sessionId")
+  suspend fun updateSyncSessionStatus(sessionId: Int, newStatus: SyncStatus)
+
+  @Query(
+    "UPDATE syncsession SET totalPatientsToDownload=:total, downloadedPatients=:completed WHERE id = :sessionId",
+  )
+  suspend fun updateSyncSessionDownloadValues(sessionId: Int, completed: Int, total: Int)
+
+  @Query(
+    "UPDATE syncsession SET totalPatientsToUpload=:total, uploadedPatients=:completed WHERE id = :sessionId",
+  )
+  suspend fun updateSyncSessionUploadValues(sessionId: Int, completed: Int, total: Int)
+
+  @Query("UPDATE syncsession SET completionTime=:completionTime WHERE id = :sessionId")
+  suspend fun updateSyncSessionCompletionTime(sessionId: Int, completionTime: String)
+
+  @Query("UPDATE syncsession SET errors=:errors WHERE id = :sessionId")
+  suspend fun updateSyncSessionErrors(sessionId: Int, errors: List<String>)
+
+  @Query("DELETE FROM syncsession WHERE id = :sessionId")
+  suspend fun deleteSyncSession(sessionId: Int)
+
+  @Query("DELETE FROM syncsession WHERE status != 'ONGOING'")
+  suspend fun clearAllSyncSessionsExceptOngoing()
 }

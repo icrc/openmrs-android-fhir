@@ -26,17 +26,41 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.database
+package org.openmrs.android.fhir.adapters
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
-import org.openmrs.android.fhir.data.database.model.Identifier
-import org.openmrs.android.fhir.data.database.model.IdentifierType
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import org.openmrs.android.fhir.data.database.model.SyncSession
+import org.openmrs.android.fhir.databinding.ItemSyncSessionBinding
 
-@Database(entities = [Identifier::class, IdentifierType::class, SyncSession::class], version = 1)
-@TypeConverters(Converters::class)
-abstract class AppDatabase : RoomDatabase() {
-  abstract fun dao(): Dao
+class SyncSessionsAdapter(
+  private val onDeleteSession: (SyncSession) -> Unit,
+) : ListAdapter<SyncSession, SyncSessionItemViewHolder>(SyncSessionDiffCallback()) {
+
+  override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SyncSessionItemViewHolder {
+    val binding =
+      ItemSyncSessionBinding.inflate(
+        LayoutInflater.from(parent.context),
+        parent,
+        false,
+      )
+    return SyncSessionItemViewHolder(binding, onDeleteSession)
+  }
+
+  override fun onBindViewHolder(holder: SyncSessionItemViewHolder, position: Int) {
+    val session = getItem(position)
+    holder.bind(session)
+  }
+}
+
+class SyncSessionDiffCallback : DiffUtil.ItemCallback<SyncSession>() {
+  override fun areItemsTheSame(oldItem: SyncSession, newItem: SyncSession): Boolean {
+    return oldItem.id == newItem.id
+  }
+
+  override fun areContentsTheSame(oldItem: SyncSession, newItem: SyncSession): Boolean {
+    return oldItem == newItem
+  }
 }

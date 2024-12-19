@@ -29,6 +29,10 @@
             android:id="@+id/action_home_fragment_to_identifierFragment"
             app:destination="@id/identifierFragment"
         />
+    <action
+            android:id="@+id/action_home_fragment_to_syncInfoFragment"
+            app:destination="@id/syncInfoFragment"
+        />
   </fragment>
 
   <fragment
@@ -133,6 +137,12 @@
         android:label="@string/identifier"
         android:name="org.openmrs.android.fhir.fragments.IdentifierFragment"
         tools:layout="@layout/fragment_identifier"
+    />
+  <fragment
+        android:id="@+id/syncInfoFragment"
+        android:label="@string/sync_info"
+        android:name="org.openmrs.android.fhir.fragments.SyncInfoFragment"
+        tools:layout="@layout/fragment_sync_info"
     />
 
 </navigation>

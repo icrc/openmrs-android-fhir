@@ -36,7 +36,6 @@ import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
@@ -45,12 +44,14 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.fhir.sync.CurrentSyncJobStatus
+import com.google.android.fhir.sync.SyncJobStatus
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
+import org.openmrs.android.fhir.extensions.showSnackBar
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import timber.log.Timber
 
@@ -149,29 +150,40 @@ class MainActivity : AppCompatActivity() {
     return false
   }
 
-  private fun showToast(message: String) {
-    Timber.i(message)
-    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-  }
-
   private fun observeSyncState() {
     lifecycleScope.launch {
       viewModel.pollState.collect {
         Timber.d("observerSyncState: pollState Got status $it")
-        when (it) {
-          is CurrentSyncJobStatus.Enqueued -> showToast("Sync: started")
-          is CurrentSyncJobStatus.Running -> showToast("Sync: in progress")
-          is CurrentSyncJobStatus.Succeeded -> {
-            showToast("Sync: succeeded at ${it.timestamp}")
-            viewModel.updateLastSyncTimestamp()
-          }
-          is CurrentSyncJobStatus.Failed -> {
-            showToast("Sync: failed at ${it.timestamp}")
-            viewModel.updateLastSyncTimestamp()
-          }
-          else -> showToast("Sync: unknown state.")
+        handleCurrentSyncJobStatus(it)
+      }
+      viewModel.pollPeriodicSyncJobStatus.collect {
+        Timber.d("observerSyncState: pollState Got status $it")
+        handleCurrentSyncJobStatus(it.currentSyncJobStatus)
+      }
+    }
+  }
+
+  private fun handleCurrentSyncJobStatus(syncJobStatus: CurrentSyncJobStatus) {
+    when (syncJobStatus) {
+      is CurrentSyncJobStatus.Enqueued -> {
+        showSnackBar(this@MainActivity, "Sync Enqueued")
+      }
+      is CurrentSyncJobStatus.Running -> {
+        if (syncJobStatus.inProgressSyncJob is SyncJobStatus.Started) {
+          showSnackBar(this@MainActivity, "Sync started")
+          viewModel.handleStartSync()
+        } else {
+          viewModel.handleInProgressSync(syncJobStatus)
         }
       }
+      is CurrentSyncJobStatus.Succeeded -> {
+        viewModel.handleSuccessSync(syncJobStatus)
+      }
+      is CurrentSyncJobStatus.Failed -> {
+        viewModel.handleFailedSync(syncJobStatus)
+        viewModel.updateLastSyncTimestamp()
+      }
+      else -> showSnackBar(this@MainActivity, "Unknown sync state")
     }
   }
 
