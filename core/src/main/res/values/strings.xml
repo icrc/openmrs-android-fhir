@@ -89,4 +89,6 @@
         name="patient_unsynced_info"
     >Patient information will synchronize with\nPearl next time you are online</string>
     <string name="header_visits">Visit Header</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
 </resources>

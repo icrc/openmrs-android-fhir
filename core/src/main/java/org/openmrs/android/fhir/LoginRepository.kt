@@ -33,6 +33,7 @@ import android.content.Context
 import android.content.Intent
 import com.google.android.fhir.sync.HttpAuthenticationMethod
 import com.google.android.fhir.sync.HttpAuthenticator
+import java.util.Base64
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -55,8 +56,10 @@ import net.openid.appauth.browser.AnyBrowserMatcher
 import net.openid.appauth.browser.BrowserMatcher
 import org.openmrs.android.fhir.auth.AuthConfigUtil
 import org.openmrs.android.fhir.auth.AuthConfiguration
+import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.ConnectionBuilderForTesting
+import org.openmrs.android.fhir.auth.model.BasicAuthState
 import timber.log.Timber
 
 class LoginRepository
@@ -234,7 +237,29 @@ private constructor(
   }
 
   override fun getAuthenticationMethod(): HttpAuthenticationMethod {
-    return HttpAuthenticationMethod.Bearer(getAccessToken())
+    return when(authStateManager.getAuthMethod()) {
+      AuthMethod.BASIC -> {
+        val basicAuth = getBasicAuthCredentials()
+        HttpAuthenticationMethod.Basic(basicAuth.username, basicAuth.password)
+      }
+      AuthMethod.OPENID -> return HttpAuthenticationMethod.Bearer(getAccessToken())
+    }
+  }
+
+  private fun getBasicAuthCredentials() : BasicAuthState {
+    return runBlocking {
+      authStateManager.getBasicAuthState()
+    }
+  }
+
+  fun getBasicAuthEncodedString() : String {
+    return runBlocking {
+      val basicAuth = authStateManager.getBasicAuthState()
+      if(basicAuth.username.isEmpty() || basicAuth.password.isEmpty()) return@runBlocking ""
+      val credentials = "${basicAuth.username}:${basicAuth.password}"
+      val encodedCredentials = Base64.getEncoder().encodeToString(credentials.toByteArray())
+      return@runBlocking encodedCredentials
+    }
   }
 
   fun getAccessToken(): String {

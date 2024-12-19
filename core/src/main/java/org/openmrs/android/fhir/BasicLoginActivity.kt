@@ -28,14 +28,20 @@
 */
 package org.openmrs.android.fhir
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.databinding.ActivityBasicLoginBinding
 import org.openmrs.android.fhir.viewmodel.BasicLoginActivityViewModel
+import org.openmrs.android.fhir.viewmodel.LoginUiState
 
 class BasicLoginActivity : AppCompatActivity() {
 
@@ -49,14 +55,35 @@ class BasicLoginActivity : AppCompatActivity() {
     (this.application as FhirApplication).appComponent.inject(this)
     binding = ActivityBasicLoginBinding.inflate(layoutInflater)
     setContentView(binding.root)
+
+    lifecycleScope.launch {
+      repeatOnLifecycle(Lifecycle.State.STARTED) {
+        viewModel.uiState.collect { state ->
+          when (state) {
+            is LoginUiState.Idle -> {}
+            is LoginUiState.Failure -> {
+              Toast.makeText(this@BasicLoginActivity, state.errorMessage, Toast.LENGTH_SHORT).show()
+            }
+
+            LoginUiState.Loading -> {
+
+            }
+            LoginUiState.LockedOut -> {
+              Toast.makeText(this@BasicLoginActivity, "Locked Out", Toast.LENGTH_SHORT).show()
+            }
+            is LoginUiState.Success -> {
+              startActivity(Intent(this@BasicLoginActivity, MainActivity::class.java))
+              finish()
+            }
+          }
+        }
+      }
+    }
+
     binding.basicLoginButton.setOnClickListener {
       val username = binding.usernameInputText.text.toString()
       val password = binding.passwordInputText.text.toString()
-      if (username.isEmpty() || password.isEmpty()) {
-        Toast.makeText(this, "Either username or password is empty", Toast.LENGTH_SHORT).show()
-      } else {
-        viewModel.handleLogin(this, username, password)
-      }
+      viewModel.login(username, password)
     }
   }
 }

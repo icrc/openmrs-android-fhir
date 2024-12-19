@@ -28,93 +28,78 @@
 */
 package org.openmrs.android.fhir.viewmodel
 
-import android.app.Application
 import android.content.Context
-import android.content.SharedPreferences
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
-import java.util.concurrent.TimeUnit
+import androidx.lifecycle.viewModelScope
+import java.util.Base64
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.LoginRepository
+import org.openmrs.android.fhir.auth.AuthStateManager
+import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.remote.ApiResponse
+import org.openmrs.android.fhir.data.remote.model.SessionResponse
 
-class BasicLoginActivityViewModel @Inject constructor(private val applicationContext: Context) :
+class BasicLoginActivityViewModel @Inject constructor(private val applicationContext: Context, private val apiManager: ApiManager) :
   ViewModel() {
+  private val authStateManager by lazy { AuthStateManager.getInstance(applicationContext) }
 
-  private val sharedPreferences: SharedPreferences =
-    applicationContext.getSharedPreferences("AppPrefs", Application.MODE_PRIVATE)
-  private val MAX_FAILED_ATTEMPTS = 5
-  private val LOCKOUT_TIME_MINUTES = 5L
+  private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
+  val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
-  fun handleLogin(context: Context, username: String, password: String) {
+  fun login(username: String, password: String) = viewModelScope.launch {
+    _uiState.value = LoginUiState.Loading
     if (isLockedOut()) {
-      val waitTime = getRemainingLockoutTime()
-      Toast.makeText(
-          context,
-          "Too many failed attempts. Try again in $waitTime minutes.",
-          Toast.LENGTH_SHORT,
-        )
-        .show()
+      _uiState.value = LoginUiState.LockedOut
+      return@launch
+    }
+
+    validateCredentials(username, password)
+  }
+
+  private suspend fun validateCredentials(username: String, password: String) {
+    if(username.isEmpty() || password.isEmpty()) {
+      _uiState.value = LoginUiState.Failure("Either username or password is empty")
       return
     }
 
-    if (validateCredentials(username, password)) {
-      resetFailedAttempts()
-      saveSessionDuration()
-      Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
-    } else {
-      incrementFailedAttempts()
-      if (getFailedAttempts() >= MAX_FAILED_ATTEMPTS) {
-        lockout()
-        Toast.makeText(
-            context,
-            "Too many failed attempts. Locked out for $LOCKOUT_TIME_MINUTES minutes.",
-            Toast.LENGTH_SHORT,
-          )
-          .show()
-      } else {
-        Toast.makeText(context, "Invalid credentials. Try again.", Toast.LENGTH_SHORT).show()
+    val credentials = "$username:$password"
+    val encodedCredentials = Base64.getEncoder().encodeToString(credentials.toByteArray())
+    when (val response = apiManager.validateSession("Basic $encodedCredentials")) {
+      is ApiResponse.Success<SessionResponse> -> {
+        val authenticated = response.data?.authenticated == true
+        if(!authenticated) {
+          incrementFailedAttempts()
+          _uiState.value = LoginUiState.Failure("Invalid Credentials")
+          return
+        }
+        authStateManager.updateBasicAuthCredentials(username, password)
+        _uiState.value = LoginUiState.Success
+        return
       }
+      is ApiResponse.NoInternetConnection -> {
+        _uiState.value = LoginUiState.Failure("No Internet Connection")
+      }
+      else -> _uiState.value = LoginUiState.Failure("Internal Error")
     }
   }
 
-  private fun validateCredentials(username: String, password: String): Boolean {
-    // Replace with actual validation logic
-    return username == "admin" && password == "password123"
+  private suspend fun incrementFailedAttempts() {
+    authStateManager.incrementFailedAttempts()
   }
 
-  private fun incrementFailedAttempts() {
-    val attempts = getFailedAttempts() + 1
-    sharedPreferences.edit().putInt("failed_attempts", attempts).apply()
+  private suspend fun isLockedOut(): Boolean {
+    return authStateManager.isLockedOut()
   }
+}
 
-  private fun getFailedAttempts(): Int {
-    return sharedPreferences.getInt("failed_attempts", 0)
-  }
-
-  private fun resetFailedAttempts() {
-    sharedPreferences.edit().putInt("failed_attempts", 0).apply()
-  }
-
-  private fun lockout() {
-    val lockoutEndTime =
-      System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(LOCKOUT_TIME_MINUTES)
-    sharedPreferences.edit().putLong("lockout_end_time", lockoutEndTime).apply()
-  }
-
-  private fun isLockedOut(): Boolean {
-    val lockoutEndTime = sharedPreferences.getLong("lockout_end_time", 0L)
-    return System.currentTimeMillis() < lockoutEndTime
-  }
-
-  private fun getRemainingLockoutTime(): Long {
-    val lockoutEndTime = sharedPreferences.getLong("lockout_end_time", 0L)
-    return TimeUnit.MILLISECONDS.toMinutes(lockoutEndTime - System.currentTimeMillis())
-  }
-
-  private fun saveSessionDuration() {
-    val sessionDuration = 2 * 60 * 60 * 1000L // Default to 2 hours
-    sharedPreferences
-      .edit()
-      .putLong("session_end_time", System.currentTimeMillis() + sessionDuration)
-      .apply()
-  }
+sealed class LoginUiState {
+  object Idle : LoginUiState()
+  object LockedOut : LoginUiState()
+  object Loading : LoginUiState()
+  object Success : LoginUiState()
+  data class Failure(val errorMessage: String) : LoginUiState()
 }

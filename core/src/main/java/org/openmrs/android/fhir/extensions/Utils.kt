@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.extensions
 
+import android.util.Base64
 import com.squareup.moshi.Moshi
 
 inline fun <reified T> T.toJson(): String {
@@ -36,4 +37,12 @@ inline fun <reified T> T.toJson(): String {
 
 inline fun <reified T> String.fromJson(): T? {
   return Moshi.Builder().build().adapter(T::class.java).fromJson(this)
+}
+
+fun ByteArray.encodeToString() : String {
+  return Base64.encodeToString(this, Base64.DEFAULT)
+}
+
+fun String.decodeToByteArray() : ByteArray {
+  return Base64.decode(this, Base64.DEFAULT)
 }

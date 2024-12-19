@@ -79,8 +79,8 @@ services:
       KC_HOSTNAME_STRICT: false
       KC_HTTP_ENABLED: true
       KC_HTTP_PORT: 8081
-#      KC_HOSTNAME: 10.0.2.2
-      KC_HOSTNAME: localhost
+      KC_HOSTNAME: 10.0.2.2
+      # KC_HOSTNAME: localhost
     command: ["start-dev"]
 
 volumes:

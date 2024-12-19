@@ -91,6 +91,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
           FhirEngineProvider.getInstance(applicationContext).search(it).map { it.resource }
         }
       }
+    KeystoreHelper.initialize()
   }
 
   private fun initializeRestApiManager(): RestApiManager {
