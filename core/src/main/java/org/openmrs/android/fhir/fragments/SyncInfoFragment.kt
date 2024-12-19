@@ -34,6 +34,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -100,7 +101,16 @@ class SyncInfoFragment : Fragment() {
     // Observe the live data for the sync sessions
     viewModel.syncSessions.observe(
       viewLifecycleOwner,
-      Observer { sessions -> adapter.submitList(sessions) },
+      Observer { sessions ->
+        if (sessions.isNullOrEmpty()) {
+          binding.recyclerViewSyncSessions.isVisible = false
+          binding.emptyStateContainer.isVisible = true
+        } else {
+          binding.recyclerViewSyncSessions.isVisible = true
+          binding.emptyStateContainer.isVisible = false
+        }
+        adapter.submitList(sessions)
+      },
     )
   }
 

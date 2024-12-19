@@ -9,7 +9,7 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_sync_sessions"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:padding="8dp"
@@ -21,6 +21,41 @@
         app:layout_constraintVertical_bias="0.0"
         tools:listitem="@layout/item_sync_session"
     />
+    <LinearLayout
+        android:id="@+id/emptyStateContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+    >
+
+        <!-- Empty State Icon -->
+        <ImageView
+            android:id="@+id/ivEmptyStateIcon"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_baseline_sync_24"
+            app:tint="@color/dashboard_cardview_textcolor"
+        />
+
+        <!-- Empty State Message -->
+        <TextView
+            android:id="@+id/tvEmptyState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="No Sync Info Available"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:gravity="center"
+            android:textStyle="italic"
+        />
+    </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_clear_all_sync_data"
