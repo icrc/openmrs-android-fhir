@@ -32,6 +32,7 @@ import android.app.Activity
 import android.graphics.Color
 import android.view.View
 import com.google.android.material.snackbar.Snackbar
+import android.util.Base64
 import com.squareup.moshi.Moshi
 
 inline fun <reified T> T.toJson(): String {
@@ -58,3 +59,17 @@ fun showSnackBar(
   }
   snackBar.show()
 }
+
+fun ByteArray.encodeToString() : String {
+  return Base64.encodeToString(this, Base64.DEFAULT)
+}
+
+fun String.decodeToByteArray() : ByteArray {
+  return Base64.decode(this, Base64.DEFAULT)
+}
+
+val Int.minutesInMillis: Long
+  get() = this * 60 * 1000L
+
+val Int.hoursInMillis: Long
+  get() = this * 60 * 60 * 1000L

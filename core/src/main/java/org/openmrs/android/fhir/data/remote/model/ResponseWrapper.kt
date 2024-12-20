@@ -73,3 +73,8 @@ data class IdentifierType(
   val required: Boolean,
   val sourceId: String,
 )
+
+@JsonClass(generateAdapter = true)
+data class SessionResponse(
+  val authenticated: Boolean,
+)

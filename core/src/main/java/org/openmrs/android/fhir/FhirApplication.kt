@@ -91,6 +91,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
           FhirEngineProvider.getInstance(applicationContext).search(it).map { it.resource }
         }
       }
+    KeystoreHelper.initialize()
   }
 
   private fun initializeRestApiManager(): RestApiManager {
@@ -118,6 +119,8 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
       (context.applicationContext as FhirApplication).restApiClient
 
     fun fhirBaseURl(context: Context) = context.getString(R.string.fhir_base_url)
+
+    fun authMethod(context: Context) = context.getString(R.string.auth_method)
 
     fun openmrsRestUrl(context: Context) = context.getString(R.string.openmrs_rest_url)
 
