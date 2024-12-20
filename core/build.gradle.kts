@@ -94,10 +94,9 @@ object Versions {
   const val activity = "1.9.1"
   const val recyclerview = "1.3.2"
   const val work = "2.9.1"
-  const val material = "1.4.0"
+  const val material = "1.12.0"
   const val retrofitVersion = "2.9.0"
   const val kotlinStdlibJdk7 = "1.9.22"
-  const val kotlinxSerialization = "1.6.3"
   const val room = "2.6.1"
   const val junit = "4.13.2"
   const val coreTesting = "2.2.0"
@@ -137,7 +136,6 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.coroutines}")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
   implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${Versions.kotlinStdlibJdk7}")
-  implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:${Versions.kotlinxSerialization}")
   implementation("com.jakewharton.timber:timber:${Versions.timber}")
   implementation("net.openid:appauth:${Versions.appauth}")
   implementation("com.auth0.android:jwtdecode:${Versions.jwtdecode}")
