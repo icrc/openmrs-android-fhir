@@ -11,5 +11,10 @@
             android:icon="@drawable/ic_location"
             android:title="@string/no_location_selected"
         />
+  <item
+            android:id="@+id/menu_logout"
+            android:icon="@drawable/ic_logout"
+            android:title="@string/logout"
+        />
 </group>
 </menu>
