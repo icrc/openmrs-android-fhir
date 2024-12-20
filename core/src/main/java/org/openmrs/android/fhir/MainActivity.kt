@@ -40,7 +40,6 @@ import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
@@ -61,6 +60,7 @@ import kotlinx.coroutines.withContext
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
 import org.openmrs.android.fhir.extensions.showSnackBar
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
@@ -81,6 +81,8 @@ class MainActivity : AppCompatActivity() {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
   @Inject lateinit var fhirEngine: FhirEngine
+
+  @Inject lateinit var database: AppDatabase
 
   private val viewModel by viewModels<MainActivityViewModel> { viewModelFactory }
 
@@ -184,14 +186,8 @@ class MainActivity : AppCompatActivity() {
     } else if (isTokenExpired() && viewModel.networkStatus.value) {
       showTokenExpiredDialog()
     } else if (!viewModel.networkStatus.value) {
-      Toast.makeText(this, getString(R.string.sync_device_offline_message), Toast.LENGTH_SHORT)
-        .show()
+      showSnackBar(this@MainActivity, getString(R.string.sync_device_offline_message))
     }
-  }
-
-  private fun showToast(message: String) {
-    Timber.i(message)
-    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
   }
 
   private fun observeSyncState() {
@@ -284,7 +280,7 @@ class MainActivity : AppCompatActivity() {
           isDialogShowing = true
           viewModel.cancelPeriodicSyncWorker(applicationContext)
           viewModel.setStopSync(true)
-          Toast.makeText(this, getString(R.string.sync_terminated), Toast.LENGTH_SHORT).show()
+          showSnackBar(this@MainActivity, getString(R.string.sync_terminated))
           dialog.dismiss()
         }
         .setCancelable(false)
@@ -364,6 +360,7 @@ class MainActivity : AppCompatActivity() {
         WorkManager.getInstance(this@MainActivity).cancelAllWork()
         fhirEngine.clearDatabase()
         demoDataStore.clearAll()
+        database.clearAllTables()
       }
       .invokeOnCompletion {
         authStateManager.endSessionRequest(pendingIntentSuccess, pendingIntentCancel)
