@@ -247,6 +247,21 @@ constructor(
           }
         }
       }
+      if (
+        state is CurrentSyncJobStatus.Running && state.inProgressSyncJob is SyncJobStatus.Failed
+      ) {
+        val inProgressSyncSession = database.dao().getInProgressSyncSession()
+        if (inProgressSyncSession != null) {
+          database
+            .dao()
+            .updateSyncSessionErrors(
+              inProgressSyncSession.id,
+              (state.inProgressSyncJob as SyncJobStatus.Failed).exceptions.map { it ->
+                it.exception.message
+              } as List<String>,
+            )
+        }
+      }
     }
   }
 
@@ -289,13 +304,6 @@ constructor(
           database
             .dao()
             .updateSyncSessionStatus(inProgressSyncSession.id, SyncStatus.COMPLETED_WITH_ERRORS)
-          database
-            .dao()
-            .updateSyncSessionErrors(
-              inProgressSyncSession.id,
-              (state as SyncJobStatus.Failed).exceptions.map { it -> it.exception.message }
-                as List<String>,
-            )
           database
             .dao()
             .updateSyncSessionCompletionTime(
