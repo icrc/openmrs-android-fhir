@@ -38,6 +38,7 @@ import org.openmrs.android.fhir.viewmodel.LocationViewModel
 import org.openmrs.android.fhir.viewmodel.LoginActivityViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
+import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
 
 @Module
 abstract class ViewModelModule {
@@ -70,6 +71,11 @@ abstract class ViewModelModule {
   @IntoMap
   @ViewModelKey(PatientListViewModel::class)
   abstract fun bindPatientListViewModel(viewmodel: PatientListViewModel): ViewModel
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(SyncInfoViewModel::class)
+  abstract fun bindSyncInfoViewModel(viewmodel: SyncInfoViewModel): ViewModel
 
   @Binds
   @IntoMap

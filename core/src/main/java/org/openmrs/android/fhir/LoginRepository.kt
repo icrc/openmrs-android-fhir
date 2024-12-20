@@ -263,23 +263,10 @@ private constructor(
   }
 
   fun getAccessToken(): String {
-    return runBlocking {
-      if (
-        authStateManager.current.needsTokenRefresh and authStateManager.current.isAuthorized &&
-          (authStateManager.current.refreshToken != null)
-      ) {
-        Timber.i("Refreshing access token")
-        refreshAccessToken()
-      }
-      if (authStateManager.current.needsTokenRefresh) {
-        _needLogin.emit(true)
-        Timber.i("Refresh token expired")
-      }
-      authStateManager.current.accessToken ?: ""
-    }
+    return runBlocking { authStateManager.current.accessToken ?: "" }
   }
 
-  private suspend fun refreshAccessToken() {
+  suspend fun refreshAccessToken() {
     return suspendCoroutine { cont ->
       performTokenRequest(authStateManager.current.createTokenRefreshRequest()) {
         tokenResponse: TokenResponse?,

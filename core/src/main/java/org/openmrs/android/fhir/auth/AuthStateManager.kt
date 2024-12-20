@@ -29,6 +29,7 @@
 package org.openmrs.android.fhir.auth
 
 import android.annotation.SuppressLint
+import android.app.PendingIntent
 import android.content.Context
 import android.util.Base64
 import androidx.datastore.core.DataStore
@@ -43,6 +44,8 @@ import kotlinx.coroutines.runBlocking
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
+import net.openid.appauth.AuthorizationService
+import net.openid.appauth.EndSessionRequest
 import net.openid.appauth.TokenResponse
 import org.openmrs.android.fhir.EncryptionHelper
 import org.openmrs.android.fhir.FhirApplication
@@ -97,6 +100,23 @@ class AuthStateManager private constructor(private val context: Context) {
     val current = current
     current.update(response, ex)
     replace(current)
+  }
+
+  fun endSessionRequest(pendingIntentSuccess: PendingIntent, pendingIntentCancel: PendingIntent) {
+    val authConfig = AuthConfiguration.getInstance(context)
+    current.authorizationServiceConfiguration?.let {
+      val endSessionRequest =
+        EndSessionRequest.Builder(it)
+          .setIdTokenHint(current.idToken)
+          .setPostLogoutRedirectUri(authConfig.redirectUri)
+          .build()
+      val authService = AuthorizationService(context)
+      authService.performEndSessionRequest(
+        endSessionRequest,
+        pendingIntentSuccess,
+        pendingIntentCancel,
+      )
+    }
   }
 
   fun getAuthMethod(): AuthMethod {

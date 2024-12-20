@@ -43,6 +43,7 @@ import org.openmrs.android.fhir.fragments.IdentifierFragment
 import org.openmrs.android.fhir.fragments.LocationFragment
 import org.openmrs.android.fhir.fragments.PatientDetailsFragment
 import org.openmrs.android.fhir.fragments.PatientListFragment
+import org.openmrs.android.fhir.fragments.SyncInfoFragment
 
 @Singleton
 @Component(
@@ -79,6 +80,8 @@ interface AppComponent {
   fun inject(fragment: PatientListFragment)
 
   fun inject(fragment: PatientDetailsFragment)
+
+  fun inject(fragment: SyncInfoFragment)
 
   fun inject(activity: LoginActivity)
 

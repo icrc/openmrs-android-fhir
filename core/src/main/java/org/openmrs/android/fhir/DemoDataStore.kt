@@ -32,6 +32,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.android.fhir.sync.DownloadWorkManager
@@ -54,5 +55,23 @@ class DemoDataStore(private val context: Context) {
 
   suspend fun getLasUpdateTimestamp(resourceType: ResourceType): String? {
     return context.dataStorage.data.first()[stringPreferencesKey(resourceType.name)]
+  }
+
+  suspend fun clearAll() {
+    context.dataStorage.edit { it.clear() }
+  }
+
+  suspend fun getTokenExpiryDelay(): Long {
+    return context.dataStorage.data.first()[longPreferencesKey(TOKEN_EXPIRY_DELAY)] ?: (60 * 1000)
+  }
+
+  suspend fun getPeriodicSyncDelay(): Long {
+    return context.dataStorage.data.first()[longPreferencesKey(PERIODIC_SYNC_DELAY)]
+      ?: (15 * 60 * 1000)
+  }
+
+  companion object {
+    const val TOKEN_EXPIRY_DELAY = "token-expiry-delay"
+    const val PERIODIC_SYNC_DELAY = "periodic-sync-delay"
   }
 }
