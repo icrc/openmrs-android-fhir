@@ -37,7 +37,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.openmrs.android.fhir.LoginRepository
+import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ApiResponse
@@ -62,7 +62,7 @@ class BasicLoginActivityViewModel @Inject constructor(private val applicationCon
 
   private suspend fun validateCredentials(username: String, password: String) {
     if(username.isEmpty() || password.isEmpty()) {
-      _uiState.value = LoginUiState.Failure("Either username or password is empty")
+      _uiState.value = LoginUiState.Failure(R.string.username_password_empty)
       return
     }
 
@@ -73,7 +73,7 @@ class BasicLoginActivityViewModel @Inject constructor(private val applicationCon
         val authenticated = response.data?.authenticated == true
         if(!authenticated) {
           incrementFailedAttempts()
-          _uiState.value = LoginUiState.Failure("Invalid Credentials")
+          _uiState.value = LoginUiState.Failure(R.string.invalid_username_password)
           return
         }
         authStateManager.updateBasicAuthCredentials(username, password)
@@ -81,9 +81,9 @@ class BasicLoginActivityViewModel @Inject constructor(private val applicationCon
         return
       }
       is ApiResponse.NoInternetConnection -> {
-        _uiState.value = LoginUiState.Failure("No Internet Connection")
+        _uiState.value = LoginUiState.Failure(R.string.no_internet_connection)
       }
-      else -> _uiState.value = LoginUiState.Failure("Internal Error")
+      else -> _uiState.value = LoginUiState.Failure(R.string.something_went_wrong)
     }
   }
 
@@ -101,5 +101,5 @@ sealed class LoginUiState {
   object LockedOut : LoginUiState()
   object Loading : LoginUiState()
   object Success : LoginUiState()
-  data class Failure(val errorMessage: String) : LoginUiState()
+  data class Failure(val resId: Int) : LoginUiState()
 }

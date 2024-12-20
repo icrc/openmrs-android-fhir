@@ -30,6 +30,8 @@ package org.openmrs.android.fhir
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Message
+import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -62,16 +64,18 @@ class BasicLoginActivity : AppCompatActivity() {
           when (state) {
             is LoginUiState.Idle -> {}
             is LoginUiState.Failure -> {
-              Toast.makeText(this@BasicLoginActivity, state.errorMessage, Toast.LENGTH_SHORT).show()
+              binding.progressIndicator.visibility = View.GONE
+              showToastMessage(getString(state.resId))
             }
-
             LoginUiState.Loading -> {
-
+              binding.progressIndicator.visibility = View.VISIBLE
             }
             LoginUiState.LockedOut -> {
-              Toast.makeText(this@BasicLoginActivity, "Locked Out", Toast.LENGTH_SHORT).show()
+              binding.progressIndicator.visibility = View.GONE
+              showToastMessage(getString(R.string.locked_out_message))
             }
             is LoginUiState.Success -> {
+              binding.progressIndicator.visibility = View.GONE
               startActivity(Intent(this@BasicLoginActivity, MainActivity::class.java))
               finish()
             }
@@ -85,5 +89,9 @@ class BasicLoginActivity : AppCompatActivity() {
       val password = binding.passwordInputText.text.toString()
       viewModel.login(username, password)
     }
+  }
+
+  private fun showToastMessage(message: String) {
+    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
   }
 }

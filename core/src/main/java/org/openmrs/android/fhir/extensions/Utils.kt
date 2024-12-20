@@ -46,3 +46,9 @@ fun ByteArray.encodeToString() : String {
 fun String.decodeToByteArray() : ByteArray {
   return Base64.decode(this, Base64.DEFAULT)
 }
+
+val Int.minutesInMillis: Long
+  get() = this * 60 * 1000L
+
+val Int.hoursInMillis: Long
+  get() = this * 60 * 60 * 1000L

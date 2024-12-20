@@ -52,6 +52,8 @@ import org.openmrs.android.fhir.auth.model.BasicAuthState
 import org.openmrs.android.fhir.extensions.decodeToByteArray
 import org.openmrs.android.fhir.extensions.encodeToString
 import org.openmrs.android.fhir.extensions.fromJson
+import org.openmrs.android.fhir.extensions.hoursInMillis
+import org.openmrs.android.fhir.extensions.minutesInMillis
 import org.openmrs.android.fhir.extensions.toJson
 
 /**
@@ -131,7 +133,7 @@ class AuthStateManager private constructor(private val context: Context) {
       username = encryptedUsername,
       password = encryptedPassword,
       authenticated = true,
-      expiryEpoch = System.currentTimeMillis() + BASIC_AUTH_EXPIRY_HOURS
+      expiryEpoch = System.currentTimeMillis() + BASIC_AUTH_EXPIRY_HOURS.hoursInMillis
     )
     context.dataStore.edit { pref -> pref[basicAuthStateKey] = basicAuthState.toJson() }
     context.dataStore.edit { pref -> pref[usernameIV] = uIV.encodeToString() }
@@ -171,9 +173,9 @@ class AuthStateManager private constructor(private val context: Context) {
 
   suspend fun incrementFailedAttempts() {
     val newFailedAttemptValue = getFailedAttemptValue() + 1
-    context.dataStore.edit { pref -> pref[failedAttemptsKey] = newFailedAttemptValue }
+    updateFailedAttemptValue(newFailedAttemptValue)
     if(newFailedAttemptValue >= MAX_FAILED_ATTEMPTS) {
-      val lockoutEndTime = System.currentTimeMillis() + MAX_LOCKOUT_DURATION
+      val lockoutEndTime = System.currentTimeMillis() + MAX_LOCKOUT_DURATION_MINS.minutesInMillis
       updateLockedOutDuration(lockoutEndTime)
       updateFailedAttemptValue(0 )
     }
@@ -206,15 +208,15 @@ class AuthStateManager private constructor(private val context: Context) {
     @SuppressLint("StaticFieldLeak") private var INSTANCE: AuthStateManager? = null
 
     private const val MAX_FAILED_ATTEMPTS = 5
-    private const val MAX_LOCKOUT_DURATION = 5 * 60 * 1000L
-    private var BASIC_AUTH_EXPIRY_HOURS = 24 * 60 * 1000L
+    private const val MAX_LOCKOUT_DURATION_MINS = 5
+    private var BASIC_AUTH_EXPIRY_HOURS = 24
 
     @Synchronized
     fun getInstance(context: Context): AuthStateManager {
       if (INSTANCE == null) {
         INSTANCE = AuthStateManager(context.applicationContext)
         val expiryAuthExpiryHours = context.applicationContext.resources.getInteger(R.integer.basic_auth_expiry_hours)
-        BASIC_AUTH_EXPIRY_HOURS = expiryAuthExpiryHours * 60 * 1000L
+        BASIC_AUTH_EXPIRY_HOURS = expiryAuthExpiryHours
       }
       return INSTANCE as AuthStateManager
     }
