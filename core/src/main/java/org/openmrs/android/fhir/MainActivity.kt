@@ -44,6 +44,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
@@ -52,18 +53,29 @@ import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.SyncJobStatus
+import java.io.BufferedOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
+import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
+import org.openmrs.android.fhir.extensions.getApplicationLogs
+import org.openmrs.android.fhir.extensions.saveToFile
 import org.openmrs.android.fhir.extensions.showSnackBar
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
+import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
 import timber.log.Timber
 
 const val MAX_RESOURCE_COUNT = 20
@@ -85,6 +97,7 @@ class MainActivity : AppCompatActivity() {
   @Inject lateinit var database: AppDatabase
 
   private val viewModel by viewModels<MainActivityViewModel> { viewModelFactory }
+  private val syncInfoViewModel by viewModels<SyncInfoViewModel> { viewModelFactory }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -174,19 +187,26 @@ class MainActivity : AppCompatActivity() {
       R.id.menu_logout -> {
         showLogoutWarningDialog()
       }
+      R.id.menu_diagnostics -> {
+        showSendDiagnosticReportDialog()
+      }
     }
     binding.drawer.closeDrawer(GravityCompat.START)
     return false
   }
 
   private fun onSyncPress() {
-    if (!isTokenExpired() && viewModel.networkStatus.value) {
-      viewModel.triggerOneTimeSync(applicationContext)
-      binding.drawer.closeDrawer(GravityCompat.START)
-    } else if (isTokenExpired() && viewModel.networkStatus.value) {
-      showTokenExpiredDialog()
-    } else if (!viewModel.networkStatus.value) {
-      showSnackBar(this@MainActivity, getString(R.string.sync_device_offline_message))
+    when {
+      !isTokenExpired() && viewModel.networkStatus.value -> {
+        viewModel.triggerOneTimeSync(applicationContext)
+        binding.drawer.closeDrawer(GravityCompat.START)
+      }
+      isTokenExpired() && viewModel.networkStatus.value -> {
+        showTokenExpiredDialog()
+      }
+      !viewModel.networkStatus.value -> {
+        showSnackBar(this@MainActivity, getString(R.string.sync_device_offline_message))
+      }
     }
   }
 
@@ -365,5 +385,103 @@ class MainActivity : AppCompatActivity() {
       .invokeOnCompletion {
         authStateManager.endSessionRequest(pendingIntentSuccess, pendingIntentCancel)
       }
+  }
+
+  private fun showSendDiagnosticReportDialog() {
+    AlertDialog.Builder(this)
+      .setTitle(getString(R.string.send_diagnostics))
+      .setMessage(getString(R.string.diagnostics_message))
+      .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
+        dialog.dismiss()
+        runBlocking { sendDiagnosticsEmail() }
+      }
+      .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
+      .setCancelable(false)
+      .show()
+  }
+
+  private suspend fun sendDiagnosticsEmail() {
+    val emailIntent =
+      Intent(Intent.ACTION_SEND).apply {
+        type = "application/zip"
+        putExtra(Intent.EXTRA_EMAIL, arrayOf(getString(R.string.support_email)))
+        putExtra(Intent.EXTRA_SUBJECT, "Diagnostic Report")
+        putExtra(Intent.EXTRA_TEXT, "Attached is the diagnostic report.")
+        putExtra(
+          Intent.EXTRA_STREAM,
+          FileProvider.getUriForFile(
+            applicationContext,
+            "${applicationContext.packageName}.provider",
+            createDiagnosticZip(),
+          ),
+        )
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+      }
+    startActivity(Intent.createChooser(emailIntent, "Send Email"))
+  }
+
+  private suspend fun createDiagnosticZip(): File {
+    val zipFile = File(applicationContext.cacheDir, "diagnostics.zip")
+    ZipOutputStream(BufferedOutputStream(FileOutputStream(zipFile))).use { zos ->
+      listOf(getApplicationLogs(applicationContext), getSyncInfoFile()).forEach { file ->
+        FileInputStream(file).use { fis ->
+          zos.putNextEntry(ZipEntry(file?.name))
+          fis.copyTo(zos)
+          zos.closeEntry()
+        }
+      }
+    }
+    return zipFile
+  }
+
+  private suspend fun getSyncInfoFile(): File? {
+    return withContext(Dispatchers.IO) {
+      try {
+        // Fetch all sync session data
+        val syncSessions = syncInfoViewModel.getAllSyncSessions()
+
+        // Prepare file content
+        val fileContent = StringBuilder()
+        fileContent.append("Sync Session Information\n")
+        fileContent.append("========================\n\n")
+
+        fileContent.append(
+          "FHIR Server URL: ${applicationContext.getString(R.string.fhir_base_url)}\n\n",
+        )
+
+        viewModel.lastSyncTimestampLiveData.value?.let {
+          fileContent.append("Last sync: ${it}\n\n")
+        }
+
+        if (syncSessions.isEmpty()) {
+          fileContent.append("No Sync Info Available\n")
+        } else {
+          for (session in syncSessions) {
+            fileContent.append("Start Time: ${session.startTime}\n")
+            fileContent.append(
+              "Downloaded Patients: ${session.downloadedPatients}/${session.totalPatientsToDownload}\n",
+            )
+            fileContent.append(
+              "Uploaded Patients: ${session.uploadedPatients}/${session.totalPatientsToUpload}\n",
+            )
+            fileContent.append("Completion Time: ${session.completionTime ?: "In Progress"}\n")
+            fileContent.append("Status: ${session.status}\n")
+
+            if (session.status == SyncStatus.COMPLETED_WITH_ERRORS && session.errors.isNotEmpty()) {
+              fileContent.append("Errors:\n")
+              session.errors.forEach { error -> fileContent.append("- $error\n") }
+            }
+            fileContent.append("\n")
+          }
+          fileContent.append("========================\n\n")
+        }
+
+        // Save the content to a file
+        saveToFile(applicationContext, "SyncInfo.txt", fileContent.toString())
+      } catch (e: Exception) {
+        e.printStackTrace()
+        null
+      }
+    }
   }
 }

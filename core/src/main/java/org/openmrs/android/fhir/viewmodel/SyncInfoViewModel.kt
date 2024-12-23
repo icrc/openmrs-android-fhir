@@ -34,6 +34,7 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncSession
 
@@ -47,6 +48,10 @@ constructor(
 
   fun deleteSyncSession(session: SyncSession) {
     viewModelScope.launch { database.dao().deleteSyncSession(session.id) }
+  }
+
+  fun getAllSyncSessions(): List<SyncSession> {
+    return runBlocking { database.dao().getAllSyncSessionsAsList() }
   }
 
   fun clearAllSyncSessions() {
