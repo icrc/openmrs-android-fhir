@@ -117,5 +117,5 @@
     <string name="send_diagnostics">Send Diagnostics</string>
     <string
         name="diagnostics_message"
-    >Do you want to send a full application diagnostic report to the developer team.?\nIncludes: Application Logs &amp; Sync Info</string>
+    >Do you want to send a full application diagnostic report to the developer team?\nIncludes: Application Logs &amp; Sync Info</string>
 </resources>
