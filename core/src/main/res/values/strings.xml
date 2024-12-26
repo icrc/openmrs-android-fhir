@@ -134,4 +134,8 @@
         name="periodic_sync_delay_in_minutes"
     >Periodic Sync Delay (in minutes)</string>
     <string name="periodic_sync_delay">Periodic Sync Delay</string>
+    <string name="send_diagnostics">Send Diagnostics</string>
+    <string
+        name="diagnostics_message"
+    >Do you want to send a full application diagnostic report to the developer team?\nIncludes: Application Logs &amp; Sync Info</string>
 </resources>

@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+>
 <group android:checkableBehavior="single">
   <item
             android:id="@+id/menu_sync"
@@ -20,6 +23,12 @@
             android:id="@+id/menu_settings"
             android:icon="@drawable/baseline_settings_24"
             android:title="@string/settings"
+        />
+  <item
+            android:id="@+id/menu_diagnostics"
+            android:title="@string/send_diagnostics"
+            android:icon="@drawable/ic_diagnostics"
+            app:showAsAction="never"
         />
 </group>
 </menu>
