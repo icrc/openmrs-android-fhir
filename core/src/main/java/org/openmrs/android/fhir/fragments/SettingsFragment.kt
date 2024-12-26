@@ -33,6 +33,7 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -65,11 +66,11 @@ class SettingsFragment : Fragment(R.layout.settings_page) {
     super.onViewCreated(view, savedInstanceState)
     setHasOptionsMenu(true)
     dataStore = DemoDataStore(requireContext())
-    setupUI()
+    lifecycleScope.launch { setupUI() }
     observeNetworkConnectivity()
   }
 
-  private fun setupUI() {
+  private suspend fun setupUI() {
     setUpActionBar()
     (activity as? MainActivity)?.setDrawerEnabled(false)
     binding.btnCancelSettings.setOnClickListener {
@@ -81,6 +82,24 @@ class SettingsFragment : Fragment(R.layout.settings_page) {
     binding.checkNetworkSwitch.setOnCheckedChangeListener { _, isChecked ->
       lifecycleScope.launch { dataStore.setCheckNetworkConnectivity(isChecked) }
     }
+    val tokenCheckDelayList = listOf("1", "2", "4", "5", "10")
+    val tokenCheckDelayAdapter =
+      ArrayAdapter(
+        requireContext(),
+        com.google.android.material.R.layout.support_simple_spinner_dropdown_item,
+        tokenCheckDelayList,
+      )
+    val periodicSyncDelayList = listOf("15", "20", "25", "30")
+    val periodicSyncDelayAdapter =
+      ArrayAdapter(
+        requireContext(),
+        com.google.android.material.R.layout.support_simple_spinner_dropdown_item,
+        periodicSyncDelayList,
+      )
+    binding.tokenCheckDelay.setText((dataStore.getTokenExpiryDelay() / 60000).toString())
+    binding.periodicSyncDelay.setText((dataStore.getPeriodicSyncDelay() / 60000).toString())
+    binding.tokenCheckDelay.setAdapter(tokenCheckDelayAdapter)
+    binding.periodicSyncDelay.setAdapter(periodicSyncDelayAdapter)
   }
 
   private fun setUpActionBar() {
@@ -100,7 +119,11 @@ class SettingsFragment : Fragment(R.layout.settings_page) {
 
   private fun saveSettings() {
     lifecycleScope
-      .launch { dataStore.setCheckNetworkConnectivity(binding.checkNetworkSwitch.isChecked) }
+      .launch {
+        dataStore.setCheckNetworkConnectivity(binding.checkNetworkSwitch.isChecked)
+        dataStore.saveTokenExpiryDelay(binding.tokenCheckDelay.text.toString())
+        dataStore.savePeriodicSyncDelay(binding.periodicSyncDelay.text.toString())
+      }
       .invokeOnCompletion {
         Toast.makeText(requireContext(), getString(R.string.settings_saved), Toast.LENGTH_SHORT)
           .show()

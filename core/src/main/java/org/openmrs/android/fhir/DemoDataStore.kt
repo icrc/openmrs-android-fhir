@@ -33,7 +33,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.android.fhir.sync.DownloadWorkManager
@@ -60,21 +59,32 @@ class DemoDataStore(private val context: Context) {
     return context.dataStorage.data.first()[stringPreferencesKey(resourceType.name)]
   }
 
-  suspend fun saveTokenExpiryDelay(time: Long) {
-    context.dataStore.edit { pref -> pref[longPreferencesKey(TOKEN_EXPIRY_DELAY)] = time }
+  suspend fun saveTokenExpiryDelay(time: String) {
+    context.dataStorage.edit { pref -> pref[stringPreferencesKey(TOKEN_EXPIRY_DELAY)] = time }
   }
 
   suspend fun getTokenExpiryDelay(): Long {
-    return context.dataStorage.data.first()[longPreferencesKey(TOKEN_EXPIRY_DELAY)] ?: (60 * 1000)
+    return (context.dataStorage.data
+      .first()[stringPreferencesKey(TOKEN_EXPIRY_DELAY)]
+      ?.toLong()
+      ?.times(60)
+      ?: INITIAL_TOKEN_CHECK_DELAY.times(60)) * 1000
   }
 
   suspend fun clearAll() {
     context.dataStorage.edit { it.clear() }
   }
 
+  suspend fun savePeriodicSyncDelay(time: String) {
+    context.dataStorage.edit { pref -> pref[stringPreferencesKey(PERIODIC_SYNC_DELAY)] = time }
+  }
+
   suspend fun getPeriodicSyncDelay(): Long {
-    return context.dataStorage.data.first()[longPreferencesKey(PERIODIC_SYNC_DELAY)]
-      ?: (15 * 60 * 1000)
+    return (context.dataStorage.data
+      .first()[stringPreferencesKey(PERIODIC_SYNC_DELAY)]
+      ?.toLong()
+      ?.times(60)
+      ?: INITIAL_PERIODIC_SYNC_DELAY.times(60)) * 1000
   }
 
   suspend fun setCheckNetworkConnectivity(isEnabled: Boolean) {
@@ -92,5 +102,7 @@ class DemoDataStore(private val context: Context) {
     const val TOKEN_EXPIRY_DELAY = "token-expiry-delay"
     const val PERIODIC_SYNC_DELAY = "periodic-sync-delay"
     const val CHECK_NETWORK_CONNECTIVITY = "check-network-connectivity"
+    const val INITIAL_TOKEN_CHECK_DELAY: Long = 1
+    const val INITIAL_PERIODIC_SYNC_DELAY: Long = 15
   }
 }

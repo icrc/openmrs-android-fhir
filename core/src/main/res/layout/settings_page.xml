@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 >
@@ -31,7 +32,71 @@
         android:textAppearance="@style/TextAppearance.AppCompat.Widget.Switch"
         app:switchPadding="@dimen/patient_count_start_margin"
     />
-    
+
+    <TextView
+        android:id="@+id/tvTokenDelayCheck"
+        style="@style/TextAppearance.AppCompat.Widget.Switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/patient_count_start_margin"
+        android:layout_marginTop="@dimen/search_patient_cardview_margin_top"
+        android:text="@string/token_check_delay_in_minutes"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/enableNotificationsSwitch"
+    />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tokenCheckDelayElement"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/patient_count_start_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvTokenDelayCheck"
+    >
+
+        <AutoCompleteTextView
+            android:id="@+id/tokenCheckDelay"
+            style="?attr/questionnaireDropDownSelectedTextStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/token_check_delay"
+        />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/textView"
+        style="@style/TextAppearance.AppCompat.Widget.Switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/periodic_sync_delay_in_minutes"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tokenCheckDelayElement"
+        android:layout_marginStart="@dimen/patient_count_start_margin"
+        android:layout_marginTop="@dimen/search_patient_cardview_margin_top"
+    />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/periodicSyncDelayElement"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
+        android:layout_marginStart="@dimen/patient_count_start_margin"
+    >
+
+        <AutoCompleteTextView
+            android:id="@+id/periodicSyncDelay"
+            style="?attr/questionnaireDropDownSelectedTextStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/periodic_sync_delay"
+        />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSaveSettings"
         android:layout_width="wrap_content"
