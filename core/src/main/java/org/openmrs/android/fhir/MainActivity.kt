@@ -392,7 +392,6 @@ class MainActivity : AppCompatActivity() {
       }
   }
 
-
   private fun observeSettings() {
     lifecycleScope.launch {
       demoDataStore.getCheckNetworkConnectivityFlow().collect { isCheckNetworkConnectivityEnabled ->
@@ -404,7 +403,7 @@ class MainActivity : AppCompatActivity() {
       }
     }
   }
-    
+
   private fun showSendDiagnosticReportDialog() {
     AlertDialog.Builder(this)
       .setTitle(getString(R.string.send_diagnostics))

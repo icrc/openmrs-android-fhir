@@ -48,6 +48,7 @@ import org.openmrs.android.fhir.databinding.SettingsPageBinding
 class SettingsFragment : Fragment(R.layout.settings_page) {
 
   private var _binding: SettingsPageBinding? = null
+  private var isNetworkCheckEnabled: Boolean = false
   private val binding
     get() = _binding!!
 
@@ -80,7 +81,8 @@ class SettingsFragment : Fragment(R.layout.settings_page) {
     }
     binding.btnSaveSettings.setOnClickListener { saveSettings() }
     binding.checkNetworkSwitch.setOnCheckedChangeListener { _, isChecked ->
-      lifecycleScope.launch { dataStore.setCheckNetworkConnectivity(isChecked) }
+      //      lifecycleScope.launch { dataStore.setCheckNetworkConnectivity(isChecked) }
+      isNetworkCheckEnabled = isChecked
     }
     val tokenCheckDelayList = listOf("1", "2", "4", "5", "10")
     val tokenCheckDelayAdapter =
@@ -123,6 +125,7 @@ class SettingsFragment : Fragment(R.layout.settings_page) {
         dataStore.setCheckNetworkConnectivity(binding.checkNetworkSwitch.isChecked)
         dataStore.saveTokenExpiryDelay(binding.tokenCheckDelay.text.toString())
         dataStore.savePeriodicSyncDelay(binding.periodicSyncDelay.text.toString())
+        dataStore.setCheckNetworkConnectivity(isNetworkCheckEnabled)
       }
       .invokeOnCompletion {
         Toast.makeText(requireContext(), getString(R.string.settings_saved), Toast.LENGTH_SHORT)
