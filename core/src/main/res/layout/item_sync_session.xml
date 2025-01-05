@@ -1,120 +1,131 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.cardview.widget.CardView
+    android:id="@+id/rootCard"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp"
-    android:layout_margin="4dp"
-    android:background="@drawable/bg_item_sync_session"
->
-
-    <!-- Status Indicator -->
-    <View
-        android:id="@+id/status_indicator"
-        android:layout_width="8dp"
-        android:layout_height="0dp"
-        android:layout_marginEnd="8dp"
-        android:background="@color/orange"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-    />
-
-    <!-- Start Time -->
-    <TextView
-        android:id="@+id/tv_sync_start_time"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        tools:text="Start Time: 2024-12-13 10:00 AM"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:layout_marginStart="8sp"
-        app:layout_constraintStart_toEndOf="@id/status_indicator"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-    />
-
-    <!-- Sync Progress -->
-    <TextView
-        android:id="@+id/tv_sync_progress"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        tools:text="Pulled 10/20 | Pushed 5/10"
-        android:layout_marginStart="8sp"
-        android:textSize="14sp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toEndOf="@id/status_indicator"
-        app:layout_constraintTop_toBottomOf="@id/tv_sync_start_time"
-        app:layout_constraintEnd_toEndOf="parent"
-    />
-
-    <!-- Completion Time -->
-    <TextView
-        android:id="@+id/tv_sync_end_time"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        tools:text="In Progress"
-        android:layout_marginStart="8sp"
-        android:textSize="14sp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toEndOf="@id/status_indicator"
-        app:layout_constraintTop_toBottomOf="@id/tv_sync_progress"
-        app:layout_constraintEnd_toEndOf="parent"
-    />
-
-    <!-- Error Section -->
+    android:layout_marginHorizontal="4dp"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:layout_marginVertical="4dp"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="@dimen/cardView_radius_corner"
+    >
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/error_section"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:layout_marginStart="8sp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintStart_toEndOf="@id/status_indicator"
-        app:layout_constraintTop_toBottomOf="@id/tv_sync_end_time"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:padding="12dp"
+        android:layout_margin="4dp"
+        android:foreground="?android:attr/selectableItemBackground"
     >
 
-        <!-- Total Errors -->
+        <!-- Status Indicator -->
+        <View
+            android:id="@+id/status_indicator"
+            android:layout_width="8dp"
+            android:layout_height="0dp"
+            android:layout_marginEnd="8dp"
+            android:background="@color/orange"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+        />
+
+        <!-- Start Time -->
         <TextView
-            android:id="@+id/tv_total_errors"
+            android:id="@+id/tv_sync_start_time"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            tools:text="Errors: 3"
-            android:textSize="14sp"
+            tools:text="Start Time: 2024-12-13 10:00 AM"
+            android:textSize="16sp"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="8sp"
+            app:layout_constraintStart_toEndOf="@id/status_indicator"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
         />
 
-        <!-- Error Details -->
+        <!-- Sync Progress -->
         <TextView
-            android:id="@+id/tv_error_details"
+            android:id="@+id/tv_sync_progress"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            tools:text="- Error 1\n- Error 2\n- Error 3"
-            android:textSize="12sp"
+            tools:text="Pulled 10/20 | Pushed 5/10"
+            android:layout_marginStart="8sp"
+            android:textSize="14sp"
             android:layout_marginTop="8dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tv_total_errors"
+            app:layout_constraintStart_toEndOf="@id/status_indicator"
+            app:layout_constraintTop_toBottomOf="@id/tv_sync_start_time"
             app:layout_constraintEnd_toEndOf="parent"
         />
+
+        <!-- Completion Time -->
+        <TextView
+            android:id="@+id/tv_sync_end_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            tools:text="In Progress"
+            android:layout_marginStart="8sp"
+            android:textSize="14sp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toEndOf="@id/status_indicator"
+            app:layout_constraintTop_toBottomOf="@id/tv_sync_progress"
+            app:layout_constraintEnd_toEndOf="parent"
+        />
+
+        <!-- Error Section -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/error_section"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_marginStart="8sp"
+            android:layout_marginTop="12dp"
+            app:layout_constraintStart_toEndOf="@id/status_indicator"
+            app:layout_constraintTop_toBottomOf="@id/tv_sync_end_time"
+            app:layout_constraintEnd_toEndOf="parent"
+        >
+
+            <!-- Total Errors -->
+            <TextView
+                android:id="@+id/tv_total_errors"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                tools:text="Errors: 3"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+            />
+
+            <!-- Error Details -->
+            <TextView
+                android:id="@+id/tv_error_details"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                tools:text="- Error 1\n- Error 2\n- Error 3"
+                android:textSize="12sp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_total_errors"
+                app:layout_constraintEnd_toEndOf="parent"
+            />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Delete Button -->
+        <ImageButton
+            android:id="@+id/btn_delete_sync_session"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_delete_button"
+            android:src="@drawable/ic_delete"
+            android:contentDescription="@string/delete"
+            app:tint="@color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+        />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- Delete Button -->
-    <ImageButton
-        android:id="@+id/btn_delete_sync_session"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:background="@drawable/bg_delete_button"
-        android:src="@drawable/ic_delete"
-        android:contentDescription="@string/delete"
-        app:tint="@color/white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-    />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>
