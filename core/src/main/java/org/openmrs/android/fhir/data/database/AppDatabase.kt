@@ -35,7 +35,11 @@ import org.openmrs.android.fhir.data.database.model.Identifier
 import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.data.database.model.SyncSession
 
-@Database(entities = [Identifier::class, IdentifierType::class, SyncSession::class], version = 1, exportSchema = true)
+@Database(
+  entities = [Identifier::class, IdentifierType::class, SyncSession::class],
+  version = 1,
+  exportSchema = true,
+)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
   abstract fun dao(): Dao
