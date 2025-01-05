@@ -53,6 +53,8 @@ android {
   }
 }
 
+ksp { arg("room.schemaLocation", "$projectDir/schemas") }
+
 publishing {
   publications {
     register<MavenPublication>("default") {
