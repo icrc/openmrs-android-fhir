@@ -30,7 +30,6 @@ package org.openmrs.android.fhir
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Message
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -67,10 +66,10 @@ class BasicLoginActivity : AppCompatActivity() {
               binding.progressIndicator.visibility = View.GONE
               showToastMessage(getString(state.resId))
             }
-            LoginUiState.Loading -> {
+            is LoginUiState.Loading -> {
               binding.progressIndicator.visibility = View.VISIBLE
             }
-            LoginUiState.LockedOut -> {
+            is LoginUiState.LockedOut -> {
               binding.progressIndicator.visibility = View.GONE
               showToastMessage(getString(R.string.locked_out_message))
             }

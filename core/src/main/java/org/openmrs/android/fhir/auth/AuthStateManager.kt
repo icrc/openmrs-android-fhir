@@ -31,7 +31,6 @@ package org.openmrs.android.fhir.auth
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Context
-import android.util.Base64
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit

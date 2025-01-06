@@ -29,9 +29,9 @@ object KeystoreHelper {
       KEY_ALIAS,
       KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
     )
-      .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-      .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-      .setKeySize(256)
+      .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+      .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+      .setRandomizedEncryptionRequired(true)
       .build()
 
     keyGenerator.init(keyGenParameterSpec)
