@@ -114,6 +114,10 @@
     <string
         name="sync_device_offline_message"
     >Device Offline. Sync will resume as soon as the device is Online</string>
+    <string name="send_diagnostics">Send Diagnostics</string>
+    <string
+        name="diagnostics_message"
+    >Do you want to send a full application diagnostic report to the developer team?\nIncludes: Application Logs &amp; Sync Info</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="username_password_empty">Username or password cannot be empty.</string>

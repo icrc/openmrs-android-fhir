@@ -29,11 +29,16 @@
 package org.openmrs.android.fhir.extensions
 
 import android.app.Activity
+import android.content.Context
 import android.graphics.Color
+import android.os.Environment
 import android.view.View
 import com.google.android.material.snackbar.Snackbar
 import android.util.Base64
 import com.squareup.moshi.Moshi
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
 inline fun <reified T> T.toJson(): String {
   return Moshi.Builder().build().adapter(T::class.java).toJson(this)
@@ -58,6 +63,27 @@ fun showSnackBar(
     snackBar.setAction(action, actionListener)
   }
   snackBar.show()
+}
+
+fun getApplicationLogs(context: Context): File {
+  val logFile = File(context.cacheDir, "app_logs.txt")
+  Runtime.getRuntime().exec("logcat -d -f ${logFile.absolutePath}")
+  return logFile
+}
+
+fun saveToFile(context: Context, fileName: String, content: String): File? {
+  return try {
+    val fileDir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
+    if (fileDir != null && !fileDir.exists()) {
+      fileDir.mkdirs()
+    }
+    val file = File(fileDir, fileName)
+    FileOutputStream(file).use { outputStream -> outputStream.write(content.toByteArray()) }
+    file
+  } catch (e: IOException) {
+    e.printStackTrace()
+    null
+  }
 }
 
 fun ByteArray.encodeToString() : String {

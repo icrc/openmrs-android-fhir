@@ -22,6 +22,11 @@ Example of how to set fhir_sync_urls:
 
 `fhir_sync_urls=Location?_sort=_lastUpdated&_summary=data,Patient?_sort=_lastUpdated,Encounter?_sort=_lastUpdated,Observation?_sort=_lastUpdated`
 
+**Configuring the Developer Email for Application Diagnostics**
+
+To ensure that application diagnostics are sent to the correct developer email upon user request, update the local property `support_email` with the desired email address.
+
+
 # Common setup issues fixes:
 1. Error 404 on clicking login button
     - Match the discovery_uri's port matches with your keycloak container's port in your file `local.properties`
