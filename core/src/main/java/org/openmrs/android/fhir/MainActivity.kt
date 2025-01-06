@@ -109,7 +109,7 @@ class MainActivity : AppCompatActivity() {
     setContentView(binding.root)
     tokenExpiryHandler = Handler(Looper.getMainLooper())
     demoDataStore = DemoDataStore(this)
-
+    lifecycleScope.launch { viewModel.initPeriodicSyncWorker(demoDataStore.getPeriodicSyncDelay()) }
     initActionBar()
     initNavigationDrawer()
     observeLastSyncTime()
@@ -221,7 +221,7 @@ class MainActivity : AppCompatActivity() {
         Timber.d("observerSyncState: pollState Got status $it")
         handleCurrentSyncJobStatus(it)
       }
-      viewModel.pollPeriodicSyncJobStatus.collect {
+      viewModel.pollPeriodicSyncJobStatus?.collect {
         Timber.d("observerSyncState: pollState Got status $it")
         handleCurrentSyncJobStatus(it.currentSyncJobStatus)
       }
