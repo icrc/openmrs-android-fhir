@@ -43,25 +43,28 @@ import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ApiResponse
 import org.openmrs.android.fhir.data.remote.model.SessionResponse
 
-class BasicLoginActivityViewModel @Inject constructor(private val applicationContext: Context, private val apiManager: ApiManager) :
+class BasicLoginActivityViewModel
+@Inject
+constructor(private val applicationContext: Context, private val apiManager: ApiManager) :
   ViewModel() {
   private val authStateManager by lazy { AuthStateManager.getInstance(applicationContext) }
 
   private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
   val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
-  fun login(username: String, password: String) = viewModelScope.launch {
-    _uiState.value = LoginUiState.Loading
-    if (isLockedOut()) {
-      _uiState.value = LoginUiState.LockedOut
-      return@launch
+  fun login(username: String, password: String) =
+    viewModelScope.launch {
+      _uiState.value = LoginUiState.Loading
+      if (isLockedOut()) {
+        _uiState.value = LoginUiState.LockedOut
+        return@launch
+      }
+
+      validateCredentials(username, password)
     }
 
-    validateCredentials(username, password)
-  }
-
   private suspend fun validateCredentials(username: String, password: String) {
-    if(username.isEmpty() || password.isEmpty()) {
+    if (username.isEmpty() || password.isEmpty()) {
       _uiState.value = LoginUiState.Failure(R.string.username_password_empty)
       return
     }
@@ -71,7 +74,7 @@ class BasicLoginActivityViewModel @Inject constructor(private val applicationCon
     when (val response = apiManager.validateSession("Basic $encodedCredentials")) {
       is ApiResponse.Success<SessionResponse> -> {
         val authenticated = response.data?.authenticated == true
-        if(!authenticated) {
+        if (!authenticated) {
           incrementFailedAttempts()
           _uiState.value = LoginUiState.Failure(R.string.invalid_username_password)
           return
@@ -98,8 +101,12 @@ class BasicLoginActivityViewModel @Inject constructor(private val applicationCon
 
 sealed class LoginUiState {
   object Idle : LoginUiState()
+
   object LockedOut : LoginUiState()
+
   object Loading : LoginUiState()
+
   object Success : LoginUiState()
+
   data class Failure(val resId: Int) : LoginUiState()
 }

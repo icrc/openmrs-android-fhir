@@ -120,9 +120,19 @@
     >Do you want to send a full application diagnostic report to the developer team?\nIncludes: Application Logs &amp; Sync Info</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
-    <string name="username_password_empty">Username or password cannot be empty.</string>
-    <string name="invalid_username_password">Login failed. Please check your credentials.</string>
-    <string name="no_internet_connection">No internet connection. Please check your network and try again.</string>
-    <string name="something_went_wrong">Something went wrong. Please try again.</string>
-    <string name="locked_out_message">Too many failed attempts. Please try again later.</string>
+    <string
+        name="username_password_empty"
+    >Username or password cannot be empty.</string>
+    <string
+        name="invalid_username_password"
+    >Login failed. Please check your credentials.</string>
+    <string
+        name="no_internet_connection"
+    >No internet connection. Please check your network and try again.</string>
+    <string
+        name="something_went_wrong"
+    >Something went wrong. Please try again.</string>
+    <string
+        name="locked_out_message"
+    >Too many failed attempts. Please try again later.</string>
 </resources>

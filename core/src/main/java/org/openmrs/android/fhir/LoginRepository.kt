@@ -237,7 +237,7 @@ private constructor(
   }
 
   override fun getAuthenticationMethod(): HttpAuthenticationMethod {
-    return when(authStateManager.getAuthMethod()) {
+    return when (authStateManager.getAuthMethod()) {
       AuthMethod.BASIC -> {
         val basicAuth = getBasicAuthCredentials()
         HttpAuthenticationMethod.Basic(basicAuth.username, basicAuth.password)
@@ -246,16 +246,14 @@ private constructor(
     }
   }
 
-  private fun getBasicAuthCredentials() : BasicAuthState {
-    return runBlocking {
-      authStateManager.getBasicAuthState()
-    }
+  private fun getBasicAuthCredentials(): BasicAuthState {
+    return runBlocking { authStateManager.getBasicAuthState() }
   }
 
-  fun getBasicAuthEncodedString() : String {
+  fun getBasicAuthEncodedString(): String {
     return runBlocking {
       val basicAuth = authStateManager.getBasicAuthState()
-      if(basicAuth.username.isEmpty() || basicAuth.password.isEmpty()) return@runBlocking ""
+      if (basicAuth.username.isEmpty() || basicAuth.password.isEmpty()) return@runBlocking ""
       val credentials = "${basicAuth.username}:${basicAuth.password}"
       val encodedCredentials = Base64.getEncoder().encodeToString(credentials.toByteArray())
       return@runBlocking encodedCredentials

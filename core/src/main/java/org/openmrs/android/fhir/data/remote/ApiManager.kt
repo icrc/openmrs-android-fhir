@@ -46,7 +46,8 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 
 class ApiManager @Inject constructor(context: Context) : Api {
   private val accessToken = LoginRepository.getInstance(context).getAccessToken()
-  private val basicAuthEncodedString = LoginRepository.getInstance(context).getBasicAuthEncodedString()
+  private val basicAuthEncodedString =
+    LoginRepository.getInstance(context).getBasicAuthEncodedString()
   private val okHttpClientBuilder: OkHttpClient.Builder by lazy {
     val okHttpClientBuilder =
       OkHttpClient.Builder()
@@ -62,7 +63,7 @@ class ApiManager @Inject constructor(context: Context) : Api {
               "Bearer $accessToken",
             )
           }
-          if(basicAuthEncodedString.isNotEmpty()) {
+          if (basicAuthEncodedString.isNotEmpty()) {
             request.addHeader(
               "Authorization",
               "Bearer $basicAuthEncodedString",
@@ -102,5 +103,4 @@ class ApiManager @Inject constructor(context: Context) : Api {
   override suspend fun validateSession(authorization: String): ApiResponse<SessionResponse> {
     return executeApiHelper { apiService.validateSession(authorization) }
   }
-
 }

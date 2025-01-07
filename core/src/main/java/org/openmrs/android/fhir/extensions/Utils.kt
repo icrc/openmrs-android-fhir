@@ -32,9 +32,9 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Color
 import android.os.Environment
+import android.util.Base64
 import android.view.View
 import com.google.android.material.snackbar.Snackbar
-import android.util.Base64
 import com.squareup.moshi.Moshi
 import java.io.File
 import java.io.FileOutputStream
@@ -86,11 +86,11 @@ fun saveToFile(context: Context, fileName: String, content: String): File? {
   }
 }
 
-fun ByteArray.encodeToString() : String {
+fun ByteArray.encodeToString(): String {
   return Base64.encodeToString(this, Base64.DEFAULT)
 }
 
-fun String.decodeToByteArray() : ByteArray {
+fun String.decodeToByteArray(): ByteArray {
   return Base64.decode(this, Base64.DEFAULT)
 }
 

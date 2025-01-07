@@ -123,13 +123,14 @@ class AuthStateManager private constructor(private val context: Context) {
     return AuthMethod.fromValue(authMethod)
   }
 
-  suspend fun isAuthenticated() : Boolean {
+  suspend fun isAuthenticated(): Boolean {
     val authMethod = getAuthMethod()
-    return when(authMethod) {
+    return when (authMethod) {
       AuthMethod.BASIC -> {
         val basicAuthState = getBasicAuthState()
-        val isAuthenticated = basicAuthState.authenticated && basicAuthState.expiryEpoch > System.currentTimeMillis()
-        if(isAuthenticated) return true
+        val isAuthenticated =
+          basicAuthState.authenticated && basicAuthState.expiryEpoch > System.currentTimeMillis()
+        if (isAuthenticated) return true
         resetBasicAuthCredentials()
         return false
       }
@@ -148,12 +149,13 @@ class AuthStateManager private constructor(private val context: Context) {
     val key = KeystoreHelper.getKey()
     val (encryptedUsername, uIV) = EncryptionHelper.encrypt(username, key)
     val (encryptedPassword, pIV) = EncryptionHelper.encrypt(password, key)
-    val basicAuthState = BasicAuthState(
-      username = encryptedUsername,
-      password = encryptedPassword,
-      authenticated = true,
-      expiryEpoch = System.currentTimeMillis() + BASIC_AUTH_EXPIRY_HOURS.hoursInMillis
-    )
+    val basicAuthState =
+      BasicAuthState(
+        username = encryptedUsername,
+        password = encryptedPassword,
+        authenticated = true,
+        expiryEpoch = System.currentTimeMillis() + BASIC_AUTH_EXPIRY_HOURS.hoursInMillis,
+      )
     context.dataStore.edit { pref -> pref[basicAuthStateKey] = basicAuthState.toJson() }
     context.dataStore.edit { pref -> pref[usernameIV] = uIV.encodeToString() }
     context.dataStore.edit { pref -> pref[passwordIV] = pIV.encodeToString() }
@@ -171,38 +173,39 @@ class AuthStateManager private constructor(private val context: Context) {
     if (usernameIV.isEmpty() || passwordIV.isEmpty()) {
       return BasicAuthState()
     }
-    val basicAuthState = basicAuthStateString?.fromJson<BasicAuthState>()
-      ?: return BasicAuthState()
+    val basicAuthState = basicAuthStateString?.fromJson<BasicAuthState>() ?: return BasicAuthState()
     val key = KeystoreHelper.getKey()
     return BasicAuthState(
-      username = EncryptionHelper.decrypt(
-        basicAuthState.username,
-        key,
-        usernameIV.decodeToByteArray()
-      ),
-      password = EncryptionHelper.decrypt(
-        basicAuthState.password,
-        key,
-        passwordIV.decodeToByteArray()
-      ),
+      username =
+        EncryptionHelper.decrypt(
+          basicAuthState.username,
+          key,
+          usernameIV.decodeToByteArray(),
+        ),
+      password =
+        EncryptionHelper.decrypt(
+          basicAuthState.password,
+          key,
+          passwordIV.decodeToByteArray(),
+        ),
       expiryEpoch = basicAuthState.expiryEpoch,
-      authenticated = basicAuthState.authenticated
+      authenticated = basicAuthState.authenticated,
     )
   }
 
   suspend fun incrementFailedAttempts() {
     val newFailedAttemptValue = getFailedAttemptValue() + 1
     updateFailedAttemptValue(newFailedAttemptValue)
-    if(newFailedAttemptValue >= MAX_FAILED_ATTEMPTS) {
+    if (newFailedAttemptValue >= MAX_FAILED_ATTEMPTS) {
       val lockoutEndTime = System.currentTimeMillis() + MAX_LOCKOUT_DURATION_MINS.minutesInMillis
       updateLockedOutDuration(lockoutEndTime)
-      updateFailedAttemptValue(0 )
+      updateFailedAttemptValue(0)
     }
   }
 
   suspend fun isLockedOut(): Boolean {
     val lockedOutDuration = getLockOutDurationValue()
-    if(lockedOutDuration > System.currentTimeMillis()) return true
+    if (lockedOutDuration > System.currentTimeMillis()) return true
     updateLockedOutDuration(System.currentTimeMillis())
     return false
   }
@@ -234,7 +237,8 @@ class AuthStateManager private constructor(private val context: Context) {
     fun getInstance(context: Context): AuthStateManager {
       if (INSTANCE == null) {
         INSTANCE = AuthStateManager(context.applicationContext)
-        val expiryAuthExpiryHours = context.applicationContext.resources.getInteger(R.integer.basic_auth_expiry_hours)
+        val expiryAuthExpiryHours =
+          context.applicationContext.resources.getInteger(R.integer.basic_auth_expiry_hours)
         BASIC_AUTH_EXPIRY_HOURS = expiryAuthExpiryHours
       }
       return INSTANCE as AuthStateManager

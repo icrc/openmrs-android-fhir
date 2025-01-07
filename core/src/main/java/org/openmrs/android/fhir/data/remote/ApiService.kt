@@ -55,6 +55,6 @@ interface ApiService {
 
   @GET("session")
   suspend fun validateSession(
-    @Header("Authorization") authorization: String
+    @Header("Authorization") authorization: String,
   ): Response<SessionResponse>
 }

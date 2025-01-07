@@ -57,8 +57,9 @@ class SplashActivity : AppCompatActivity() {
       if (authStateManager.isAuthenticated()) {
         startActivity(Intent(this@SplashActivity, MainActivity::class.java))
       } else {
-        when(authStateManager.getAuthMethod()) {
-          AuthMethod.BASIC -> startActivity(Intent(this@SplashActivity, BasicLoginActivity::class.java))
+        when (authStateManager.getAuthMethod()) {
+          AuthMethod.BASIC ->
+            startActivity(Intent(this@SplashActivity, BasicLoginActivity::class.java))
           AuthMethod.OPENID -> startActivity(Intent(this@SplashActivity, LoginActivity::class.java))
         }
       }

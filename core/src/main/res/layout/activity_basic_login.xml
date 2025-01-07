@@ -16,7 +16,8 @@
         style="@style/Widget.Material3.LinearProgressIndicator"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+    />
 
     <ImageView
         android:id="@+id/imageView"
@@ -25,7 +26,8 @@
         android:src="@drawable/openmrs_logo"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/progressIndicator" />
+        app:layout_constraintTop_toBottomOf="@+id/progressIndicator"
+    />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/usernameTextField"
@@ -57,13 +59,15 @@
         app:layout_constraintEnd_toEndOf="@+id/usernameTextField"
         app:layout_constraintStart_toStartOf="@+id/usernameTextField"
         app:layout_constraintTop_toBottomOf="@+id/usernameTextField"
-        app:passwordToggleEnabled="true">
+        app:passwordToggleEnabled="true"
+    >
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/passwordInputText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textPassword" />
+            android:inputType="textPassword"
+        />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -75,6 +79,7 @@
         android:text="@string/button_login"
         app:layout_constraintEnd_toEndOf="@+id/passwordTextField"
         app:layout_constraintStart_toStartOf="@+id/passwordTextField"
-        app:layout_constraintTop_toBottomOf="@+id/passwordTextField" />
+        app:layout_constraintTop_toBottomOf="@+id/passwordTextField"
+    />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
