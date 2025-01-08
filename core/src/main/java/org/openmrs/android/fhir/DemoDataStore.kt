@@ -31,13 +31,15 @@ package org.openmrs.android.fhir
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.android.fhir.sync.DownloadWorkManager
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import org.hl7.fhir.r4.model.ResourceType
+import org.openmrs.android.fhir.auth.dataStore
 
 private val Context.dataStorage: DataStore<Preferences> by
   preferencesDataStore(name = "demo_app_storage")
@@ -57,21 +59,50 @@ class DemoDataStore(private val context: Context) {
     return context.dataStorage.data.first()[stringPreferencesKey(resourceType.name)]
   }
 
+  suspend fun saveTokenExpiryDelay(time: String) {
+    context.dataStorage.edit { pref -> pref[stringPreferencesKey(TOKEN_EXPIRY_DELAY)] = time }
+  }
+
+  suspend fun getTokenExpiryDelay(): Long {
+    return (context.dataStorage.data
+      .first()[stringPreferencesKey(TOKEN_EXPIRY_DELAY)]
+      ?.toLong()
+      ?.times(60)
+      ?: INITIAL_TOKEN_CHECK_DELAY.times(60)) * 1000
+  }
+
   suspend fun clearAll() {
     context.dataStorage.edit { it.clear() }
   }
 
-  suspend fun getTokenExpiryDelay(): Long {
-    return context.dataStorage.data.first()[longPreferencesKey(TOKEN_EXPIRY_DELAY)] ?: (60 * 1000)
+  suspend fun savePeriodicSyncDelay(time: String) {
+    context.dataStorage.edit { pref -> pref[stringPreferencesKey(PERIODIC_SYNC_DELAY)] = time }
   }
 
   suspend fun getPeriodicSyncDelay(): Long {
-    return context.dataStorage.data.first()[longPreferencesKey(PERIODIC_SYNC_DELAY)]
-      ?: (15 * 60 * 1000)
+    return (context.dataStorage.data
+      .first()[stringPreferencesKey(PERIODIC_SYNC_DELAY)]
+      ?.toLong()
+      ?.times(60)
+      ?: INITIAL_PERIODIC_SYNC_DELAY.times(60)) * 1000
   }
+
+  suspend fun setCheckNetworkConnectivity(isEnabled: Boolean) {
+    context.dataStore.edit { pref ->
+      pref[booleanPreferencesKey(CHECK_NETWORK_CONNECTIVITY)] = isEnabled
+    }
+  }
+
+  fun getCheckNetworkConnectivityFlow() =
+    context.dataStore.data.map { preferences ->
+      preferences[booleanPreferencesKey(CHECK_NETWORK_CONNECTIVITY)] ?: true
+    }
 
   companion object {
     const val TOKEN_EXPIRY_DELAY = "token-expiry-delay"
     const val PERIODIC_SYNC_DELAY = "periodic-sync-delay"
+    const val CHECK_NETWORK_CONNECTIVITY = "check-network-connectivity"
+    const val INITIAL_TOKEN_CHECK_DELAY: Long = 1
+    const val INITIAL_PERIODIC_SYNC_DELAY: Long = 15
   }
 }

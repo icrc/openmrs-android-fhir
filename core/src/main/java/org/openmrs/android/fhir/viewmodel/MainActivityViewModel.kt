@@ -84,6 +84,10 @@ constructor(
   val apiManager: ApiManager,
   val identifierTypeManager: IdentifierTypeManager,
 ) : ViewModel() {
+  private var _pollPeriodicSyncJobStatus: SharedFlow<PeriodicSyncJobStatus>? = null
+  val pollPeriodicSyncJobStatus
+    get() = _pollPeriodicSyncJobStatus
+
   private var _stopSync: Boolean = false
   val stopSync
     get() = _stopSync
@@ -121,16 +125,18 @@ constructor(
       }
     }
 
-  val pollPeriodicSyncJobStatus: SharedFlow<PeriodicSyncJobStatus> =
-    Sync.periodicSync<FhirSyncWorker>(
-        applicationContext,
-        periodicSyncConfiguration =
-          PeriodicSyncConfiguration(
-            syncConstraints = Constraints.Builder().build(),
-            repeat = RepeatInterval(interval = 15, timeUnit = TimeUnit.MINUTES),
-          ),
-      )
-      .shareIn(viewModelScope, SharingStarted.Eagerly, 10)
+  fun initPeriodicSyncWorker(periodicSyncDelay: Long) {
+    _pollPeriodicSyncJobStatus =
+      Sync.periodicSync<FhirSyncWorker>(
+          applicationContext,
+          periodicSyncConfiguration =
+            PeriodicSyncConfiguration(
+              syncConstraints = Constraints.Builder().build(),
+              repeat = RepeatInterval(interval = periodicSyncDelay, timeUnit = TimeUnit.MINUTES),
+            ),
+        )
+        .shareIn(viewModelScope, SharingStarted.Eagerly, 10)
+  }
 
   val pollState: SharedFlow<CurrentSyncJobStatus> =
     _oneTimeSyncTrigger
@@ -378,6 +384,5 @@ constructor(
   companion object {
     private const val formatString24 = "yyyy-MM-dd HH:mm:ss"
     private const val formatString12 = "yyyy-MM-dd hh:mm:ss a"
-    const val PREFS_NAME = "tokenDialogPrefs"
   }
 }
