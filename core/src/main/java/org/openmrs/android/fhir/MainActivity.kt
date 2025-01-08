@@ -49,6 +49,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.findNavController
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.sync.CurrentSyncJobStatus
@@ -108,7 +109,7 @@ class MainActivity : AppCompatActivity() {
     setContentView(binding.root)
     tokenExpiryHandler = Handler(Looper.getMainLooper())
     demoDataStore = DemoDataStore(this)
-
+    lifecycleScope.launch { viewModel.initPeriodicSyncWorker(demoDataStore.getPeriodicSyncDelay()) }
     initActionBar()
     initNavigationDrawer()
     observeLastSyncTime()
@@ -116,6 +117,7 @@ class MainActivity : AppCompatActivity() {
     observeNetworkConnection()
     viewModel.updateLastSyncTimestamp()
     viewModel.triggerIdentifierTypeSync(applicationContext)
+    observeSettings()
   }
 
   override fun onResume() {
@@ -187,6 +189,9 @@ class MainActivity : AppCompatActivity() {
       R.id.menu_logout -> {
         showLogoutWarningDialog()
       }
+      R.id.menu_settings -> {
+        findNavController(R.id.nav_host_fragment).navigate(R.id.settings_fragment)
+      }
       R.id.menu_diagnostics -> {
         showSendDiagnosticReportDialog()
       }
@@ -216,7 +221,7 @@ class MainActivity : AppCompatActivity() {
         Timber.d("observerSyncState: pollState Got status $it")
         handleCurrentSyncJobStatus(it)
       }
-      viewModel.pollPeriodicSyncJobStatus.collect {
+      viewModel.pollPeriodicSyncJobStatus?.collect {
         Timber.d("observerSyncState: pollState Got status $it")
         handleCurrentSyncJobStatus(it.currentSyncJobStatus)
       }
@@ -385,6 +390,18 @@ class MainActivity : AppCompatActivity() {
       .invokeOnCompletion {
         authStateManager.endSessionRequest(pendingIntentSuccess, pendingIntentCancel)
       }
+  }
+
+  private fun observeSettings() {
+    lifecycleScope.launch {
+      demoDataStore.getCheckNetworkConnectivityFlow().collect { isCheckNetworkConnectivityEnabled ->
+        if (isCheckNetworkConnectivityEnabled) {
+          binding.networkStatusFlag.tvNetworkStatus.visibility = View.VISIBLE
+        } else {
+          binding.networkStatusFlag.tvNetworkStatus.visibility = View.GONE
+        }
+      }
+    }
   }
 
   private fun showSendDiagnosticReportDialog() {

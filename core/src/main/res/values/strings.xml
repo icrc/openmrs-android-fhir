@@ -114,6 +114,26 @@
     <string
         name="sync_device_offline_message"
     >Device Offline. Sync will resume as soon as the device is Online</string>
+    <string name="settings">Settings</string>
+    <string name="save">SAVE</string>
+    <string name="cancel">CANCEL</string>
+    <string
+        name="token_expiry_delay_text"
+    >Delay Before Token Expiry Dialog (in Minutes)</string>
+    <string
+        name="check_network_connectivity"
+    >Check Network Connectivity</string>
+    <string name="enable_notifications">Enable Notifications</string>
+    <string name="settings_discarded">Settings Discarded</string>
+    <string name="settings_saved">Settings Saved</string>
+    <string
+        name="token_check_delay_in_minutes"
+    >Token Check Delay (in minutes)</string>
+    <string name="token_check_delay">Token Check Delay</string>
+    <string
+        name="periodic_sync_delay_in_minutes"
+    >Periodic Sync Delay (in minutes)</string>
+    <string name="periodic_sync_delay">Periodic Sync Delay</string>
     <string name="send_diagnostics">Send Diagnostics</string>
     <string
         name="diagnostics_message"

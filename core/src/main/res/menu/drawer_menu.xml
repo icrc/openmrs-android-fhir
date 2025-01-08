@@ -20,6 +20,11 @@
             android:title="@string/logout"
         />
   <item
+            android:id="@+id/menu_settings"
+            android:icon="@drawable/baseline_settings_24"
+            android:title="@string/settings"
+        />
+  <item
             android:id="@+id/menu_diagnostics"
             android:title="@string/send_diagnostics"
             android:icon="@drawable/ic_diagnostics"
