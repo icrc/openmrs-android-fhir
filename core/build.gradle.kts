@@ -53,6 +53,8 @@ android {
   }
 }
 
+ksp { arg("room.schemaLocation", "$projectDir/schemas") }
+
 publishing {
   publications {
     register<MavenPublication>("default") {
@@ -78,6 +80,7 @@ publishing {
 }
 
 object Versions {
+  const val androidXCore = "1.12.0"
   const val desugar_jdk_libs = "2.1.0"
   const val appauth = "0.11.1"
   const val timber = "5.0.1"
@@ -114,6 +117,7 @@ object Versions {
 
 dependencies {
   coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:${Versions.desugar_jdk_libs}")
+  implementation("androidx.core:core:${Versions.androidXCore}")
   implementation("androidx.activity:activity-ktx:${Versions.activity}")
   implementation("androidx.appcompat:appcompat:${Versions.appcompat}")
   implementation("androidx.constraintlayout:constraintlayout:${Versions.constraintlayout}")

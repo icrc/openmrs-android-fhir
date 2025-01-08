@@ -38,7 +38,7 @@ import org.openmrs.android.fhir.databinding.ItemSyncSessionBinding
 class SyncSessionItemViewHolder(
   private val binding: ItemSyncSessionBinding,
   private val onDeleteSession: (SyncSession) -> Unit,
-) : RecyclerView.ViewHolder(binding.root) {
+) : RecyclerView.ViewHolder(binding.rootCard) {
 
   fun bind(session: SyncSession) {
     // Start time
