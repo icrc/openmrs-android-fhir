@@ -161,7 +161,7 @@ class AuthStateManager private constructor(private val context: Context) {
     context.dataStore.edit { pref -> pref[passwordIV] = pIV.encodeToString() }
   }
 
-  private suspend fun resetBasicAuthCredentials() {
+  suspend fun resetBasicAuthCredentials() {
     val basicAuthState = BasicAuthState()
     context.dataStore.edit { pref -> pref[basicAuthStateKey] = basicAuthState.toJson() }
   }

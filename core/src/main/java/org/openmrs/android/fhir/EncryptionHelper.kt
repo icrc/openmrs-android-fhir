@@ -47,6 +47,7 @@ object EncryptionHelper {
   }
 
   fun decrypt(encryptedData: String, secretKey: SecretKey, iv: ByteArray): String {
+    if (encryptedData.isEmpty()) return ""
     val cipher = Cipher.getInstance(AES_TRANSFORMATION)
     val ivSpec = GCMParameterSpec(GCM_TAG_LENGTH * 8, iv)
     cipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
