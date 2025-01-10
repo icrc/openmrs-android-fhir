@@ -1,64 +1,131 @@
-# Setup
+# Project Setup Guide
 
-Accessing artifacts hosted on GitHub necessitates the use of a GitHub account for downloading purposes:
+Welcome to the project! Follow the instructions below to set up the environment and get started.
 
-- Duplicate the file `local.properties.default` and rename it to `local.properties`.
-- Then, open the "local.properties" file and insert your GitHub account/token details.
-- Other properties ( URLS, oauth2) should be changed only if you use a custom OpenMRS / Keycloak Setup
+---
 
-**To run the OpenMRS Server & Keycloak**
-- Option 1: Use the docker  compose file in the root of this project. **Create the file `.env` from the template `.env.default`**
-- Option 2: Follow the steps & apply change in the note below using the Project: https://github.com/icrc/openmrs-distro-sso/tree/main
+## 🛠️ Setup Instructions
 
-To login, use one of this user: https://github.com/icrc/openmrs-distro-sso/blob/main/keycloak/users.csv
+Accessing artifacts hosted on GitHub requires a GitHub account for downloading purposes. Please follow these steps:
 
-**Configuring fhir sync urls**
+1. **Duplicate and Rename Configuration File:**
+   - Copy the file `local.properties.default` and rename it to `local.properties`.
+   - Open the `local.properties` file and insert your **GitHub account/token details**.
 
-To enable FHIR synchronization, you must set the local property fhir_sync_urls with the required resource URLs. 
+2. **Modify Additional Properties:**
+   - Modify other properties (e.g., URLs, OAuth2) **only if** you are using a custom OpenMRS or Keycloak setup.
 
-Each resource type should be separated by a comma (`,`. 
+---
 
-Example of how to set fhir_sync_urls:
+## 🚀 Running OpenMRS Server & Keycloak
 
-`fhir_sync_urls=Location?_sort=_lastUpdated&_summary=data,Patient?_sort=_lastUpdated,Encounter?_sort=_lastUpdated,Observation?_sort=_lastUpdated`
+You can run the OpenMRS Server and Keycloak using one of the following options:
 
-**Configuring the Developer Email for Application Diagnostics**
+### Option 1: Using Docker Compose
+1. Use the `docker-compose` file available in the root of this project.
+2. **Create a `.env` file** from the provided template `.env.default`.
 
-To ensure that application diagnostics are sent to the correct developer email upon user request, update the local property `support_email` with the desired email address.
+### Option 2: Using OpenMRS Distro SSO Project
+1. Follow the steps provided in the [OpenMRS Distro SSO repository](https://github.com/icrc/openmrs-distro-sso/tree/main).
+2. Apply any necessary changes as per your setup.
 
+#### Keycloak Login
+- To log in using Keycloak, use one of the predefined users listed [here](https://github.com/icrc/openmrs-distro-sso/blob/main/keycloak/users.csv).
 
-# Common setup issues fixes:
-1. Error 404 on clicking login button
-    - Match the discovery_uri's port matches with your keycloak container's port in your file `local.properties`
-2. After successful login sync is failing directly & in logs it's throwing error 404:
-    - Match the BASE_URL's port with your gateway container's port in your file `local.properties`
-3. The first sync is fetching too many resources:
-    - Narrow down the scope of the download sync by modifying the urls [here]("https://github.com/icrc/openmrs-android-fhir/blob/1c0b93cbf14be3b32d12f7d5182d11b17085bc38/app/src/main/java/org/openmrs/android/fhir/data/TimestampBasedDownloadWorkManagerImpl.kt#L35")
+---
 
-# OpenMRS Notes
+## 🔒 Authentication Methods
 
-to logout: http://localhost:8080/realms/main/protocol/openid-connect/logout
-There is an issue with current OpenMRS installation and SSO Logout process.
+This project supports the following authentication methods:
+- **Basic Auth**
+- **OAuth2**
 
-List of Users for OpenMRS: https://github.com/icrc/openmrs-distro-sso/blob/main/keycloak/users.csv
+Update the `auth_method` property in your configuration to:
+- `"basic"` for Basic Auth
+- `"openid"` for OAuth2
 
-# Keycloak and `localhost` vs `10.0.0.2`
+---
 
-Keycloak can be accessed only from one URL but:
-- `localhost` will be used to log into OpenMRS Web application
-- `10.0.0.2` will be used from the android App
+## 🔗 Configuring FHIR Sync URLs
 
-Thus the variable `KC_HOSTNAME` ( see `docker-compose.yml`, line 89) defining Keycloak hostname should be changed accordingly to the use case.
+To enable **FHIR synchronization**, set the `fhir_sync_urls` property with the required resource URLs in your `local.properties` file.
 
-After a modification, Restart Keycloak with `docker compose up -d` that will restart only the service keycloak if you change that variable only or use `docker compose restart keycloak`.
+Each resource type should be separated by a comma (,).
 
-# Development
-See https://github.com/google/android-fhir/tree/openmrs as a custom code is made for openmrs
+### Example:
+```properties
+fhir_sync_urls=Location?_sort=_lastUpdated&_summary=data,Patient?_sort=_lastUpdated,Encounter?_sort=_lastUpdated,Observation?_sort=_lastUpdated
+```
+---
 
+## 📧 Configuring the Developer Email for Application Diagnostics
 
-# Download 
+To ensure application diagnostics are sent to the correct developer email upon user request:
 
+1. Open the `local.properties` file.
+2. Update the `support_email` property with the desired email address.
 
-# Android FHIR SDK with the FHIR Info Gateway
-   - Based on  https://github.com/google/fhir-app-examples/tree/main/demo
-   - See https://github.com/icrc/openmrs-android-fhir
+---
+
+## 📝 OpenMRS Notes
+
+### Logout URL
+To log out of the OpenMRS web application:
+```plaintext
+http://localhost:8080/realms/main/protocol/openid-connect/logout
+```
+**Note:** There is an issue with the current OpenMRS installation and the SSO logout process.
+
+### List of Users
+
+A list of predefined users for OpenMRS can be found here:\
+[Keycloak Users CSV](https://github.com/icrc/openmrs-distro-sso/blob/main/keycloak/users.csv)
+
+* * * * *
+
+🔧 Common Setup Issues and Fixes
+--------------------------------
+
+1.  **Error 404 on clicking login button:**
+
+    -   Ensure that the `discovery_uri`'s port matches your Keycloak container's port in the `local.properties` file.
+2.  **Error 404 after successful login, and sync is failing:**
+
+    -   Verify that the `BASE_URL`'s port matches your Gateway container's port in the `local.properties` file.
+3.  **First sync is fetching too many resources:**
+
+    -   Narrow down the scope of the download sync by modifying the `fhir_sync_urls` property in the `local.properties` file.
+
+* * * * *
+
+🌐 Keycloak and Hostname Configuration (localhost vs 10.0.0.2)
+--------------------------------------------------------------
+
+Keycloak can be accessed through different URLs depending on the use case:
+
+-   **localhost** is used to log into the OpenMRS web application.
+-   **10.0.0.2** is used by the Android app.
+
+To configure this:
+
+1.  Update the `KC_HOSTNAME` variable in `docker-compose.yml` (line 89).
+2.  After modifying, restart using:
+    `docker compose up -d`
+    Alternatively to restart only the Keycloak service, you can use:
+    `docker compose restart keycloak`
+
+* * * * *
+
+🔨 Development Notes
+--------------------
+
+### OpenMRS Development
+
+Refer to the custom code created for OpenMRS:\
+[Google Android FHIR OpenMRS Code](https://github.com/google/android-fhir/tree/openmrs)
+
+### Android FHIR SDK with the FHIR Info Gateway
+
+-   This project is based on [Google FHIR App Examples](https://github.com/google/fhir-app-examples/tree/main/demo).
+-   For more details, see:\
+    [OpenMRS Android FHIR Project](https://github.com/icrc/openmrs-android-fhir)

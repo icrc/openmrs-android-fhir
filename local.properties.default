@@ -11,8 +11,13 @@ gpr.key=<A GitHub token>
 #openmrs_rest_url=http://127.0.0.1:8080/openmrs/ws/rest/v1/
 #check_server_url=http://127.0.0.1:8080/openmrs/ws/rest/v1/session
 
-# oauth2 default values for development setup:
+# Authentication method: basic or openid
+auth_method=openid
 
+# Optional value if selected basic auth method.
+#basic_auth_expiry_hours=48
+
+# oauth2 default values for development setup:
 #auth_authorization_scope=openid
 #auth_client_id=openmrs-fhir
 #auth_redirect_uri_host=org.openmrs.android.fhir
