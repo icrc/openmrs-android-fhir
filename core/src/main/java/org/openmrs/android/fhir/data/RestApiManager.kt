@@ -58,6 +58,8 @@ class RestApiManager private constructor(private val context: Context) {
   }
 
   private suspend fun setSessionLocation(locationId: String) {
+    val accessToken = LoginRepository.getInstance(context).getAccessToken()
+    val basicAuthEncodedString = LoginRepository.getInstance(context).getBasicAuthEncodedString()
     withContext(Dispatchers.IO) {
       sessionCookie = ""
       val url = FhirApplication.checkServerUrl(context)
@@ -68,7 +70,11 @@ class RestApiManager private constructor(private val context: Context) {
           .url(url)
           .addHeader(
             "Authorization",
-            "Bearer " + LoginRepository.getInstance(context).getAccessToken(),
+            when {
+              accessToken.isNotEmpty() -> "Bearer $accessToken"
+              basicAuthEncodedString.isNotEmpty() -> "Basic $basicAuthEncodedString"
+              else -> ""
+            },
           )
           .post(requestBody)
           .build()

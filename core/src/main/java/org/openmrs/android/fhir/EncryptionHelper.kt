@@ -26,55 +26,32 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.remote.model
+package org.openmrs.android.fhir
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import android.util.Base64
+import javax.crypto.Cipher
+import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
 
-@JsonClass(generateAdapter = true)
-data class ResponseWrapper(
-  val results: List<IdentifierResponse>,
-)
+object EncryptionHelper {
 
-@JsonClass(generateAdapter = true)
-data class IdentifierResponse(
-  @Json(name = "identifierType") val identifierType: IdentifierTypeDetails,
-  @Json(name = "automaticGenerationEnabled") val automaticGenerationEnabled: Boolean,
-  val source: SourceDetails?,
-)
+  private const val AES_TRANSFORMATION = "AES/GCM/NoPadding"
+  private const val GCM_TAG_LENGTH = 16
 
-@JsonClass(generateAdapter = true)
-data class IdentifierTypeDetails(
-  val uuid: String,
-  val display: String,
-  val required: Boolean,
-)
+  fun encrypt(data: String, secretKey: SecretKey): Pair<String, ByteArray> {
+    val cipher = Cipher.getInstance(AES_TRANSFORMATION)
+    cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+    val iv = cipher.iv // Save this IV for decryption
+    val encryptedBytes = cipher.doFinal(data.toByteArray(Charsets.UTF_8))
+    return Pair(Base64.encodeToString(encryptedBytes, Base64.DEFAULT), iv)
+  }
 
-@JsonClass(generateAdapter = true)
-data class SourceDetails(
-  val uuid: String,
-)
-
-@JsonClass(generateAdapter = true)
-data class IdentifierWrapper(
-  val identifier: String,
-)
-
-@JsonClass(generateAdapter = true)
-data class SessionLocation(
-  val sessionLocation: String,
-)
-
-@JsonClass(generateAdapter = true)
-data class IdentifierType(
-  val uuid: String,
-  val display: String,
-  val automaticGenerationEnabled: Boolean,
-  val required: Boolean,
-  val sourceId: String,
-)
-
-@JsonClass(generateAdapter = true)
-data class SessionResponse(
-  val authenticated: Boolean,
-)
+  fun decrypt(encryptedData: String, secretKey: SecretKey, iv: ByteArray): String {
+    if (encryptedData.isEmpty()) return ""
+    val cipher = Cipher.getInstance(AES_TRANSFORMATION)
+    val ivSpec = GCMParameterSpec(GCM_TAG_LENGTH * 8, iv)
+    cipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
+    val decryptedBytes = cipher.doFinal(Base64.decode(encryptedData, Base64.DEFAULT))
+    return String(decryptedBytes, Charsets.UTF_8)
+  }
+}

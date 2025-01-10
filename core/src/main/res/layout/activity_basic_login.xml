@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="20dp"
+>
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@id/progressIndicator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        style="@style/Widget.Material3.LinearProgressIndicator"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+    />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:src="@drawable/openmrs_logo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/progressIndicator"
+    />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/usernameTextField"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/username"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageView"
+    >
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/usernameInputText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+        />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/passwordTextField"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/action_button_margin_vertical"
+        android:hint="@string/password"
+        app:layout_constraintEnd_toEndOf="@+id/usernameTextField"
+        app:layout_constraintStart_toStartOf="@+id/usernameTextField"
+        app:layout_constraintTop_toBottomOf="@+id/usernameTextField"
+        app:passwordToggleEnabled="true"
+    >
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/passwordInputText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+        />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/basicLoginButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/action_button_margin_vertical"
+        android:text="@string/button_login"
+        app:layout_constraintEnd_toEndOf="@+id/passwordTextField"
+        app:layout_constraintStart_toStartOf="@+id/passwordTextField"
+        app:layout_constraintTop_toBottomOf="@+id/passwordTextField"
+    />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

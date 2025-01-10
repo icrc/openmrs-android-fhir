@@ -32,6 +32,7 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Color
 import android.os.Environment
+import android.util.Base64
 import android.view.View
 import com.google.android.material.snackbar.Snackbar
 import com.squareup.moshi.Moshi
@@ -84,3 +85,17 @@ fun saveToFile(context: Context, fileName: String, content: String): File? {
     null
   }
 }
+
+fun ByteArray.encodeToString(): String {
+  return Base64.encodeToString(this, Base64.DEFAULT)
+}
+
+fun String.decodeToByteArray(): ByteArray {
+  return Base64.decode(this, Base64.DEFAULT)
+}
+
+val Int.minutesInMillis: Long
+  get() = this * 60 * 1000L
+
+val Int.hoursInMillis: Long
+  get() = this * 60 * 60 * 1000L

@@ -26,55 +26,14 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.remote.model
+package org.openmrs.android.fhir.auth.model
 
-import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class ResponseWrapper(
-  val results: List<IdentifierResponse>,
-)
-
-@JsonClass(generateAdapter = true)
-data class IdentifierResponse(
-  @Json(name = "identifierType") val identifierType: IdentifierTypeDetails,
-  @Json(name = "automaticGenerationEnabled") val automaticGenerationEnabled: Boolean,
-  val source: SourceDetails?,
-)
-
-@JsonClass(generateAdapter = true)
-data class IdentifierTypeDetails(
-  val uuid: String,
-  val display: String,
-  val required: Boolean,
-)
-
-@JsonClass(generateAdapter = true)
-data class SourceDetails(
-  val uuid: String,
-)
-
-@JsonClass(generateAdapter = true)
-data class IdentifierWrapper(
-  val identifier: String,
-)
-
-@JsonClass(generateAdapter = true)
-data class SessionLocation(
-  val sessionLocation: String,
-)
-
-@JsonClass(generateAdapter = true)
-data class IdentifierType(
-  val uuid: String,
-  val display: String,
-  val automaticGenerationEnabled: Boolean,
-  val required: Boolean,
-  val sourceId: String,
-)
-
-@JsonClass(generateAdapter = true)
-data class SessionResponse(
-  val authenticated: Boolean,
+data class BasicAuthState(
+  val username: String = "",
+  val password: String = "",
+  val expiryEpoch: Long = System.currentTimeMillis(),
+  val authenticated: Boolean = false,
 )

@@ -66,6 +66,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -386,9 +387,19 @@ class MainActivity : AppCompatActivity() {
         fhirEngine.clearDatabase()
         demoDataStore.clearAll()
         database.clearAllTables()
+        authStateManager.resetBasicAuthCredentials()
       }
       .invokeOnCompletion {
-        authStateManager.endSessionRequest(pendingIntentSuccess, pendingIntentCancel)
+        when (authStateManager.getAuthMethod()) {
+          AuthMethod.BASIC -> {
+            val basicLoginActivity = Intent(this, BasicLoginActivity::class.java)
+            startActivity(basicLoginActivity)
+            finish()
+          }
+          AuthMethod.OPENID -> {
+            authStateManager.endSessionRequest(pendingIntentSuccess, pendingIntentCancel)
+          }
+        }
       }
   }
 

@@ -34,6 +34,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
 
 class SplashActivity : AppCompatActivity() {
@@ -50,16 +53,17 @@ class SplashActivity : AppCompatActivity() {
       insets
     }
     authStateManager = AuthStateManager.getInstance(applicationContext)
-    // TODO: fix that point for real offline mode
-    // by removing needsTokenRefresh we have an exception later on
-    // net.openid.appauth.AuthState.mRefreshToken being null
-    // in this method:
-    // net.openid.appauth.AuthState.createTokenRefreshRequest(java.util.Map<java.lang.String,java.lang.String>)
-    if (authStateManager.current.isAuthorized && !authStateManager.current.needsTokenRefresh) {
-      startActivity(Intent(this, MainActivity::class.java))
-    } else {
-      startActivity(Intent(this, LoginActivity::class.java))
+    lifecycleScope.launch {
+      if (authStateManager.isAuthenticated()) {
+        startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+      } else {
+        when (authStateManager.getAuthMethod()) {
+          AuthMethod.BASIC ->
+            startActivity(Intent(this@SplashActivity, BasicLoginActivity::class.java))
+          AuthMethod.OPENID -> startActivity(Intent(this@SplashActivity, LoginActivity::class.java))
+        }
+      }
+      finish()
     }
-    finish()
   }
 }

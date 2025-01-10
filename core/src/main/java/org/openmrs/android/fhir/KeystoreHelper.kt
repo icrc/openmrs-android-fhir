@@ -26,55 +26,50 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.remote.model
+package org.openmrs.android.fhir
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
 
-@JsonClass(generateAdapter = true)
-data class ResponseWrapper(
-  val results: List<IdentifierResponse>,
-)
+object KeystoreHelper {
 
-@JsonClass(generateAdapter = true)
-data class IdentifierResponse(
-  @Json(name = "identifierType") val identifierType: IdentifierTypeDetails,
-  @Json(name = "automaticGenerationEnabled") val automaticGenerationEnabled: Boolean,
-  val source: SourceDetails?,
-)
+  private const val KEY_ALIAS = "MyEncryptionKey"
+  private const val ANDROID_KEYSTORE = "AndroidKeyStore"
 
-@JsonClass(generateAdapter = true)
-data class IdentifierTypeDetails(
-  val uuid: String,
-  val display: String,
-  val required: Boolean,
-)
+  fun initialize() {
+    try {
+      val keyStore = java.security.KeyStore.getInstance(ANDROID_KEYSTORE)
+      keyStore.load(null)
 
-@JsonClass(generateAdapter = true)
-data class SourceDetails(
-  val uuid: String,
-)
+      if (!keyStore.containsAlias(KEY_ALIAS)) {
+        generateKey()
+      }
+    } catch (e: Exception) {
+      e.printStackTrace()
+    }
+  }
 
-@JsonClass(generateAdapter = true)
-data class IdentifierWrapper(
-  val identifier: String,
-)
+  private fun generateKey() {
+    val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)
+    val keyGenParameterSpec =
+      KeyGenParameterSpec.Builder(
+          KEY_ALIAS,
+          KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
+        )
+        .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+        .setRandomizedEncryptionRequired(true)
+        .build()
 
-@JsonClass(generateAdapter = true)
-data class SessionLocation(
-  val sessionLocation: String,
-)
+    keyGenerator.init(keyGenParameterSpec)
+    keyGenerator.generateKey()
+  }
 
-@JsonClass(generateAdapter = true)
-data class IdentifierType(
-  val uuid: String,
-  val display: String,
-  val automaticGenerationEnabled: Boolean,
-  val required: Boolean,
-  val sourceId: String,
-)
-
-@JsonClass(generateAdapter = true)
-data class SessionResponse(
-  val authenticated: Boolean,
-)
+  fun getKey(): SecretKey {
+    val keyStore = java.security.KeyStore.getInstance(ANDROID_KEYSTORE)
+    keyStore.load(null)
+    return keyStore.getKey(KEY_ALIAS, null) as SecretKey
+  }
+}
