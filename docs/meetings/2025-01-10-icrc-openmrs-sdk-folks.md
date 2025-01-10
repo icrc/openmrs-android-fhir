@@ -8,7 +8,9 @@
 - ICRC objective is to create a white label application usable by all OpenMRS implementers. ICRC has a private repository to create
 
 # ICRC project Timeline:
-(To be added)..
+- 2025 Q1: Internal tests on Android Application on Geneva HQ only
+- 2025 Q2:  open test and application to ICRC field deployment
+- 2025 Q3: deployment
 
 # Topics Discussed in the meeting
 
@@ -52,7 +54,9 @@
 
 ---
 
-## FHIR Patient Representation in OpenMRS by Ian
+## FHIR Patient and location
+
+Feedback from Ian:
 
 > At least in our FHIR representation, we add the location in Patient.identifier field as an extension (at least for identifier types that are associated with a location). Maybe it's possible to create a "placeholder" identifier with an extension identifying the location.
  
