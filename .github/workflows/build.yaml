@@ -102,5 +102,5 @@
           if: ${{ github.event_name == 'push' }}
           uses: actions/upload-artifact@v4
           with:
-            name: dev3-openmrs-debug
+            name: dev3-openmrs-release
             path: dev3-app/build/outputs/bundle/release/dev3-app-release.aab
