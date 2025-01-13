@@ -12,7 +12,7 @@ gpr.key=<A GitHub token>
 #check_server_url=http://127.0.0.1:8080/openmrs/ws/rest/v1/session
 
 # Authentication method: basic or openid
-auth_method=openid
+# auth_method=openid
 
 # Optional value if selected basic auth method.
 #basic_auth_expiry_hours=48
