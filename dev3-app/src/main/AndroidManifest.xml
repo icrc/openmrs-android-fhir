@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+>
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:name="org.openmrs.android.fhir.FhirApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_openmrs_logo"
+        android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:roundIcon="@drawable/openmrs_logo"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+    >
+        <activity
+            android:name="org.openmrs.android.fhir.SplashActivity"
+            android:exported="true"
+        >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="org.openmrs.android.fhir.LoginActivity"
+            android:exported="false"
+        >
+
+        </activity>
+        <activity
+            android:name="org.openmrs.android.fhir.BasicLoginActivity"
+            android:exported="false"
+        >
+
+        </activity>
+
+        <activity
+            android:name="org.openmrs.android.fhir.MainActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+        >
+        </activity>
+<!--        weird that we should add MissingClass as it's declared in a library-->
+        <activity
+            tools:ignore="MissingClass"
+            android:name="net.openid.appauth.RedirectUriReceiverActivity"
+            android:exported="true"
+        >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="https"
+                    android:host="@string/auth_redirect_uri_host"
+                    android:path="@string/auth_redirect_uri_path"
+                />
+            </intent-filter>
+        </activity>
+
+        <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts"
+        />
+    </application>
+
+
+</manifest>
