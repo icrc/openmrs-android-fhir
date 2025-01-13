@@ -84,3 +84,22 @@
           run: ./gradlew publish
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        - name: Generate dev3 APK
+          if: ${{ github.event_name == 'push' }}
+          run: ./gradlew bundle
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        - name: Upload Dev3 Debug APK
+          if: ${{ github.event_name == 'push' }}
+          uses: actions/upload-artifact@v4
+          with:
+            name: dev3-openmrs-debug
+            path: dev3-app/build/outputs/bundle/debug/dev3-app-debug.aab
+
+        - name: Upload Dev3 Release APK
+          if: ${{ github.event_name == 'push' }}
+          uses: actions/upload-artifact@v4
+          with:
+            name: dev3-openmrs-debug
+            path: dev3-app/build/outputs/bundle/release/dev3-app-release.aab
