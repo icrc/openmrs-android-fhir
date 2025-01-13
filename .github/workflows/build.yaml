@@ -84,9 +84,10 @@
           run: ./gradlew publish
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
         - name: Generate dev3 APK
           if: ${{ github.event_name == 'push' }}
-          run: ./gradlew bundle
+          run: ./gradlew :dev3-app:bundle
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
