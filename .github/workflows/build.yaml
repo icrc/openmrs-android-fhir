@@ -85,22 +85,56 @@
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+
+# Generate release if tag done
+
+        - uses: kaisugi/action-regex-match@v1.0.0
+          id: regex-match
+          with:
+            text: ${{ github.event.head_commit.message }}
+            regex: '^v[0-9]+\.[0-9]+\.[0-9]+$'
+
         - name: Generate dev3 APK
-          if: ${{ github.event_name == 'push' }}
+          if: ${{ steps.regex-match.outputs.match != '' }}
           run: ./gradlew :dev3-app:bundle
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-        - name: Upload Dev3 Debug APK
-          if: ${{ github.event_name == 'push' }}
-          uses: actions/upload-artifact@v4
-          with:
-            name: dev3-openmrs-debug
-            path: dev3-app/build/outputs/bundle/debug/dev3-app-debug.aab
+        - name: Move files
+          if: ${{ steps.regex-match.outputs.match != '' }}
+          run: |
+            mv dev3-app/build/outputs/bundle/debug/dev3-app-debug.aab dev3-app/build/outputs/dev3-app-debug.aab
+            mv dev3-app/build/outputs/bundle/release/dev3-app-release.aab dev3-app/build/outputs/dev3-app-release.aab
+            
 
-        - name: Upload Dev3 Release APK
-          if: ${{ github.event_name == 'push' }}
-          uses: actions/upload-artifact@v4
+        - name: Sign App
+          if: ${{ steps.regex-match.outputs.match != '' }}
+          id: sign_dev3_app
+          uses: ilharp/sign-android-release@v1.0.4
           with:
-            name: dev3-openmrs-release
-            path: dev3-app/build/outputs/bundle/release/dev3-app-release.aab
+            releaseDir: dev3-app/build/outputs
+            signingKey: ${{ secrets.ANDROID_SIGNING_KEY }}
+            keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+            keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+
+
+        - name: Build Changelog
+          if: ${{ steps.regex-match.outputs.match != '' }}
+          id: changelog
+          uses: ardalanamini/auto-changelog@v3
+          with:
+            mention-authors: false
+            mention-new-contributors: false
+            include-compare: false
+            semver: false
+
+        - name: Create Release
+          if: ${{ steps.regex-match.outputs.match != '' }}
+          id: create_release
+          uses: ncipollo/release-action@v1.13.0
+          with:
+            artifacts: "dev3-app/build/outputs/dev3-app-debug-signed.aab, dev3-app/build/outputs/dev3-app-release-signed.aab"
+            body: ${{ steps.changelog.outputs.changelog }}
+            tag: ${{ github.event.head_commit.message }}
+            name: Release ${{ github.event.head_commit.message }}
+            token: ${{ secrets.GITHUB_TOKEN }}
