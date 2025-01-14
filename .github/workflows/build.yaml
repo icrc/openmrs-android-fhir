@@ -144,7 +144,7 @@
           id: create_release
           uses: ncipollo/release-action@v1.13.0
           with:
-            artifacts: "${{ steps.sign_dev3_app.signedReleaseFile0 }},${{ steps.sign_dev3_app.signedReleaseFile1 }}"
+            artifacts: "${{ steps.sign_dev3_app.outputs.signedReleaseFile0 }},${{ steps.sign_dev3_app.outputs.signedReleaseFile1 }}"
             body: ${{ steps.changelog.outputs.changelog }}
             tag: ${{ steps.tag.outputs.version }}
             name: Release ${{ steps.tag.outputs.version }}
