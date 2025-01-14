@@ -144,8 +144,9 @@
           id: create_release
           uses: ncipollo/release-action@v1.13.0
           with:
-            artifacts: "dev3-app/build/outputs/dev3-app-release.aab,dev3-app/build/outputs/dev3-app-debug.aab"
+            artifacts: "dev3-app/build/outputs/dev3-app-release.apk,dev3-app/build/outputs/dev3-app-debug.apk"
             body: ${{ steps.changelog.outputs.changelog }}
             tag: ${{ steps.tag.outputs.version }}
             name: Release ${{ steps.tag.outputs.version }}
             token: ${{ secrets.GITHUB_TOKEN }}
+            allowUpdates: true
