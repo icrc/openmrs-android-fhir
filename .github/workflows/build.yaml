@@ -119,11 +119,11 @@
         - name: Sign App
           if: ${{ startsWith(github.ref, 'refs/tags/') }}
           id: sign_dev3_app
-          uses: ilharp/sign-android-release@v1.0.4
+          uses: r0adkll/sign-android-release@v1
           with:
-            releaseDir: dev3-app/build/outputs
-            signingKey: ${{ secrets.ANDROID_SIGNING_KEY }}
-            keyAlias: ${{ secrets.ANDROID_KEY_ALIAS }}
+            releaseDirectory: dev3-app/build/outputs
+            signingKeyBase64: ${{ secrets.ANDROID_SIGNING_KEY }}
+            alias: ${{ secrets.ANDROID_KEY_ALIAS }}
             keyStorePassword: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           env:
             BUILD_TOOLS_VERSION:  ${{ env.BUILD_TOOL_VERSION }}
@@ -144,7 +144,7 @@
           id: create_release
           uses: ncipollo/release-action@v1.13.0
           with:
-            artifacts: "dev3-app/build/outputs/dev3-app-debug-signed.aab, dev3-app/build/outputs/dev3-app-release-signed.aab"
+            artifacts: "${{ steps.sign_app.signedReleaseFile0 }},${{ steps.sign_app.signedReleaseFile1 }}"
             body: ${{ steps.changelog.outputs.changelog }}
             tag: ${{ steps.tag.outputs.version }}
             name: Release ${{ steps.tag.outputs.version }}
