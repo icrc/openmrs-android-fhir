@@ -105,15 +105,15 @@
 
         - name: Generate dev3 APK
           if: ${{ startsWith(github.ref, 'refs/tags/') }}
-          run: ./gradlew :dev3-app:bundle
+          run: ./gradlew :dev3-app:assemble
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         - name: Move files
           if: ${{ startsWith(github.ref, 'refs/tags/') }}
           run: |
-            mv dev3-app/build/outputs/bundle/debug/dev3-app-debug.aab dev3-app/build/outputs/dev3-app-debug.aab
-            mv dev3-app/build/outputs/bundle/release/dev3-app-release.aab dev3-app/build/outputs/dev3-app-release.aab
+            mv dev3-app/build/outputs/apk/debug/dev3-app-debug.apk dev3-app/build/outputs/dev3-app-debug.apk
+            mv dev3-app/build/outputs/apk/release/dev3-app-release.apk dev3-app/build/outputs/dev3-app-release.apk
             
 
         - name: Sign App
