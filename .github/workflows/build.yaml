@@ -5,6 +5,8 @@
   on:
     push:
       branches: [main]
+      tags:
+        - 'v*'
     pull_request:
       # The branches below must be a subset of the branches above
       branches: [main]
@@ -87,28 +89,28 @@
 
 
 # Generate release if tag done
-
-        - uses: kaisugi/action-regex-match@v1.0.0
-          id: regex-match
-          with:
-            text: ${{ github.event.head_commit.message }}
-            regex: '^v[0-9]+\.[0-9]+\.[0-9]+$'
+        - name: Prepare tag
+          id: tag
+          if: ${{ startsWith(github.ref, 'refs/tags/') }}
+          run: |
+            VERSION="${GITHUB_REF##refs/tags/source/}"
+            echo "version=${VERSION}" >>$GITHUB_OUTPUT
 
         - name: Generate dev3 APK
-          if: ${{ steps.regex-match.outputs.match != '' }}
+          if: ${{ startsWith(github.ref, 'refs/tags/') }}
           run: ./gradlew :dev3-app:bundle
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
         - name: Move files
-          if: ${{ steps.regex-match.outputs.match != '' }}
+          if: ${{ startsWith(github.ref, 'refs/tags/') }}
           run: |
             mv dev3-app/build/outputs/bundle/debug/dev3-app-debug.aab dev3-app/build/outputs/dev3-app-debug.aab
             mv dev3-app/build/outputs/bundle/release/dev3-app-release.aab dev3-app/build/outputs/dev3-app-release.aab
             
 
         - name: Sign App
-          if: ${{ steps.regex-match.outputs.match != '' }}
+          if: ${{ startsWith(github.ref, 'refs/tags/') }}
           id: sign_dev3_app
           uses: ilharp/sign-android-release@v1.0.4
           with:
@@ -119,7 +121,7 @@
 
 
         - name: Build Changelog
-          if: ${{ steps.regex-match.outputs.match != '' }}
+          if: ${{ startsWith(github.ref, 'refs/tags/') }}
           id: changelog
           uses: ardalanamini/auto-changelog@v3
           with:
@@ -135,6 +137,6 @@
           with:
             artifacts: "dev3-app/build/outputs/dev3-app-debug-signed.aab, dev3-app/build/outputs/dev3-app-release-signed.aab"
             body: ${{ steps.changelog.outputs.changelog }}
-            tag: ${{ github.event.head_commit.message }}
-            name: Release ${{ github.event.head_commit.message }}
+            tag: ${{ steps.tag.outputs.version }}
+            name: Release ${{ steps.tag.outputs.version }}
             token: ${{ secrets.GITHUB_TOKEN }}
