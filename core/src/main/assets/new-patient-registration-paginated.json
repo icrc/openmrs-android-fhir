@@ -209,7 +209,8 @@
                   {
                     "language": "sw",
                     "value": "Mwanamke"
-                  }]
+                  }
+                ]
               }
             },
             {
@@ -221,7 +222,8 @@
                   {
                     "language": "sw",
                     "value": "Mwanaume"
-                  }]
+                  }
+                ]
               }
             },
             {
@@ -233,7 +235,8 @@
                   {
                     "language": "sw",
                     "value": "Nyingine"
-                  }]
+                  }
+                ]
               }
             },
             {
@@ -286,7 +289,6 @@
               "linkId": "PR-telecom-value",
               "definition": "http://hl7.org/fhir/StructureDefinition/Patient#Patient.telecom.value",
               "type": "string",
-              "required": true,
               "text": "Phone Number",
               "_text": {
                 "extension": [
@@ -327,7 +329,6 @@
               "linkId": "PR-address-city",
               "definition": "http://hl7.org/fhir/StructureDefinition/Patient#Patient.address.city",
               "type": "string",
-              "required": true,
               "text": "City",
               "_text": {
                 "extension": [
@@ -361,7 +362,6 @@
               "linkId": "PR-address-country",
               "definition": "http://hl7.org/fhir/StructureDefinition/Patient#Patient.address.country",
               "type": "string",
-              "required": true,
               "text": "Country",
               "_text": {
                 "extension": [
@@ -382,39 +382,6 @@
               }
             }
           ]
-        },
-        {
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression",
-              "valueExpression": {
-                "language": "text/fhirpath",
-                "expression": "%client.active",
-                "name": "patientActive"
-              }
-            }
-          ],
-          "linkId": "PR-active",
-          "definition": "http://hl7.org/fhir/StructureDefinition/Patient#Patient.active",
-          "type": "boolean",
-          "text": "Is Active?",
-          "_text": {
-            "extension": [
-              {
-                "extension": [
-                  {
-                    "url": "lang",
-                    "valueCode": "sw"
-                  },
-                  {
-                    "url": "content",
-                    "valueString": "Inatumika?"
-                  }
-                ],
-                "url": "http://hl7.org/fhir/StructureDefinition/translation"
-              }
-            ]
-          }
         }
       ]
     }
