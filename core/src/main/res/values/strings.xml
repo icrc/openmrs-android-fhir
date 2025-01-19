@@ -155,4 +155,7 @@
     <string
         name="locked_out_message"
     >Too many failed attempts. Please try again later.</string>
+    <string
+        name="questionnaire_error_message"
+    >Some error occurred with loading the questionnaire, please sync &amp; try again later!</string>
 </resources>
