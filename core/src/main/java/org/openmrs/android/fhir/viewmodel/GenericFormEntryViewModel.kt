@@ -45,6 +45,7 @@ import java.util.Date
 import java.util.UUID
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import okio.FileNotFoundException
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
@@ -281,10 +282,15 @@ constructor(
     questionnaireJson?.let {
       return it
     }
-    questionnaireJson =
-      applicationContext.readFileFromAssets(
-        state[GenericFormEntryFragment.QUESTIONNAIRE_FILE_PATH_KEY]!!,
-      )
+
+    try {
+      questionnaireJson =
+        applicationContext.readFileFromAssets(
+          state[GenericFormEntryFragment.QUESTIONNAIRE_FILE_PATH_KEY]!!,
+        )
+    } catch (e: FileNotFoundException) {
+      return ""
+    }
     return questionnaireJson!!
   }
 
