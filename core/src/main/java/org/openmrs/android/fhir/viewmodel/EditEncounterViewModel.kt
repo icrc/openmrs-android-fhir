@@ -43,6 +43,7 @@ import com.google.android.fhir.search.search
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import java.io.FileNotFoundException
 import java.util.Date
 import java.util.UUID
 import kotlinx.coroutines.launch
@@ -88,26 +89,32 @@ constructor(
   private lateinit var patientReference: Reference
 
   private suspend fun prepareEditEncounter(): Pair<String, String> {
+    // TODO to be improved: if the asset is not present a message should be displayed.
     val encounter = fhirEngine.get<Encounter>(encounterId)
     observations = getObservationsEncounterId(encounterId)
     contitions = getConditionsEncounterId(encounterId)
     patientReference = encounter.subject
+    try {
+      val questionnaireJson = applicationContext.readFileFromAssets(formResource).trimIndent()
 
-    val questionnaireJson = applicationContext.readFileFromAssets(formResource).trimIndent()
-    val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-    questionnaireResource =
-      parser.parseResource(Questionnaire::class.java, questionnaireJson) as Questionnaire
+      val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+      questionnaireResource =
+        parser.parseResource(Questionnaire::class.java, questionnaireJson) as Questionnaire
 
-    val observationBundle =
-      Bundle().apply {
-        type = Bundle.BundleType.COLLECTION
-        observations.forEach { addEntry().resource = it.apply { id = "Observation/$id" } }
-      }
+      val observationBundle =
+        Bundle().apply {
+          type = Bundle.BundleType.COLLECTION
+          observations.forEach { addEntry().resource = it.apply { id = "Observation/$id" } }
+        }
 
-    val launchContexts = mapOf("observations" to observationBundle)
-    val questionnaireResponse = ResourceMapper.populate(questionnaireResource, launchContexts)
-    val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
-    return questionnaireJson to questionnaireResponseJson
+      val launchContexts = mapOf("observations" to observationBundle)
+      val questionnaireResponse = ResourceMapper.populate(questionnaireResource, launchContexts)
+      val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
+      return questionnaireJson to questionnaireResponseJson
+    } catch (e: FileNotFoundException) {
+      // TODO add log here
+      return Pair("", "")
+    }
   }
 
   fun updateEncounter(questionnaireResponse: QuestionnaireResponse) {
