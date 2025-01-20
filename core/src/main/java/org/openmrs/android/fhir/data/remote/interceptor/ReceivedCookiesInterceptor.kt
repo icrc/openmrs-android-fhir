@@ -41,7 +41,7 @@ class ReceivedCookiesInterceptor(private val context: Context) : Interceptor {
   @Throws(IOException::class)
   override fun intercept(chain: Interceptor.Chain): Response {
     val originalResponse: Response = chain.proceed(chain.request())
-    //only add the jsession cookie from session request.
+    // only add the jsession cookie from session request.
     if (
       chain.request().url.encodedPath.contains("session") and
         originalResponse.headers("Set-Cookie").isNotEmpty()
