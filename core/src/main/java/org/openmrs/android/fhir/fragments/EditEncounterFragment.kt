@@ -117,16 +117,18 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
   }
 
   private fun addQuestionnaireFragment(pair: Pair<String, String>) {
-    lifecycleScope.launch {
-      childFragmentManager.commit {
-        add(
-          R.id.form_entry_container,
-          QuestionnaireFragment.builder()
-            .setQuestionnaire(pair.first)
-            .setQuestionnaireResponse(pair.second)
-            .build(),
-          QUESTIONNAIRE_FRAGMENT_TAG,
-        )
+    if (pair.first.isNotBlank()) {
+      lifecycleScope.launch {
+        childFragmentManager.commit {
+          add(
+            R.id.form_entry_container,
+            QuestionnaireFragment.builder()
+              .setQuestionnaire(pair.first)
+              .setQuestionnaireResponse(pair.second)
+              .build(),
+            QUESTIONNAIRE_FRAGMENT_TAG,
+          )
+        }
       }
     }
   }
