@@ -49,7 +49,9 @@ class AddCookiesInterceptor(private val context: Context) : Interceptor {
         val prefCookies: Set<String> =
           context.dataStore.data.first()[PreferenceKeys.PREF_COOKIES]?.toMutableSet()
             ?: mutableSetOf()
-        builder.addHeader("Cookie", prefCookies.joinToString("; "))
+        for (cookie in prefCookies) {
+          builder.addHeader("Cookie", cookie)
+        }
       }
     }
     return chain.proceed(builder.build())
