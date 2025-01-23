@@ -172,6 +172,7 @@
           "definition": "http://hl7.org/fhir/StructureDefinition/Patient#Patient.gender",
           "type": "choice",
           "text": "Gender",
+          "required": true,
           "extension": [
             {
               "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression",
