@@ -65,12 +65,6 @@ fun showSnackBar(
   snackBar.show()
 }
 
-fun getApplicationLogs(context: Context): File {
-  val logFile = File(context.cacheDir, "app_logs.txt")
-  Runtime.getRuntime().exec("logcat -d -f ${logFile.absolutePath}")
-  return logFile
-}
-
 fun saveToFile(context: Context, fileName: String, content: String): File? {
   return try {
     val fileDir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)

@@ -47,6 +47,7 @@ import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.RestApiManager
 import org.openmrs.android.fhir.di.AppComponent
 import org.openmrs.android.fhir.di.DaggerAppComponent
+import org.openmrs.android.fhir.extensions.FileLoggingTree
 import timber.log.Timber
 
 class FhirApplication : Application(), DataCaptureConfig.Provider {
@@ -61,11 +62,10 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
 
   override fun onCreate() {
     super.onCreate()
-    Timber.e("FHIR Application started. Test Error log. Is Debug " + BuildConfig.DEBUG)
+    Timber.e("FHIR Application started. Test Error log. Is Debug %s", BuildConfig.DEBUG)
     Timber.d("FHIR Application started. Test Debug log")
-    if (BuildConfig.DEBUG) {
-      Timber.plant(Timber.DebugTree())
-    }
+    val loggingMaxFileSize = 5 * 1024 * 1024L // 5MB
+    Timber.plant(FileLoggingTree(this, loggingMaxFileSize))
     FhirEngineProvider.init(
       FhirEngineConfiguration(
         enableEncryptionIfSupported = false,
@@ -76,7 +76,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
           httpLogger =
             HttpLogger(
               HttpLogger.Configuration(
-                if (BuildConfig.DEBUG) HttpLogger.Level.BODY else HttpLogger.Level.BASIC,
+                HttpLogger.Level.BODY,
               ),
             ) {
               Timber.tag("App-HttpLog").d(it)
