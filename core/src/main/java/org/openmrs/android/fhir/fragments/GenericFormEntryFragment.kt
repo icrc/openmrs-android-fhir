@@ -40,6 +40,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
+import ca.uhn.fhir.context.FhirContext
+import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -60,7 +62,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
     super.onViewCreated(view, savedInstanceState)
     setUpActionBar()
     setHasOptionsMenu(true)
-    updateArguments(args.formResource, args.formCode)
+    updateArguments(args.formCode)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     onBackPressed()
     observeResourcesSaveAction()
@@ -91,17 +93,18 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
     }
   }
 
-  private fun updateArguments(formResource: String, encounterId: String) {
-    requireArguments().putString(QUESTIONNAIRE_FILE_PATH_KEY, formResource)
+  private fun updateArguments(encounterId: String) {
     requireArguments().putString("encounter_id", encounterId)
-    //    requireArguments().putString(QUESTIONNAIRE_FILE_PATH_KEY, "screener-questionnaire.json")
+    requireArguments().putString("questionnaire_id", args.questionnaire?.idPart)
   }
 
   private fun addQuestionnaireFragment() {
     childFragmentManager.commit {
+      val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+      val questionnaireJson = parser.encodeResourceToString(args.questionnaire);
       add(
         R.id.form_entry_container,
-        QuestionnaireFragment.builder().setQuestionnaire(viewModel.questionnaire).build(),
+        QuestionnaireFragment.builder().setQuestionnaire(questionnaireJson).build(),
         QUESTIONNAIRE_FRAGMENT_TAG,
       )
     }

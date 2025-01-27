@@ -37,13 +37,20 @@ import android.widget.Button
 import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import org.openmrs.android.fhir.Form
-import org.openmrs.android.fhir.MockConstants.MOCK_FORMS
+import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.search.search
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.hl7.fhir.r4.model.Questionnaire
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.databinding.CreateEncounterFragmentBinding
+import javax.inject.Inject
 
 class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
   private var _binding: CreateEncounterFragmentBinding? = null
@@ -52,8 +59,12 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
 
   private val args: CreateEncountersFragmentArgs by navArgs()
 
+  @Inject
+  lateinit var fhirEngine: FhirEngine
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    (requireActivity().application as FhirApplication).appComponent.inject(this)
     setHasOptionsMenu(true)
   }
 
@@ -77,24 +88,33 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
 
   fun loadFormSchemas(view: View) {
     val buttonContainer = view.findViewById<LinearLayout>(R.id.button_container)
-    for (form in MOCK_FORMS) {
-      setupFormButton(buttonContainer, form)
+
+    lifecycleScope.launch(Dispatchers.IO) {
+      val forms = fhirEngine.search<Questionnaire> {
+      }
+      withContext(Dispatchers.Main) {
+        for (form in forms) {
+          setupFormButton(buttonContainer, form.resource)
+        }
+      }
     }
   }
 
-  private fun setupFormButton(parentView: ViewGroup, form: Form) {
+  private fun setupFormButton(parentView: ViewGroup, form: Questionnaire) {
+    val encounterType = form.code.firstOrNull()?.code
+      ?: throw IllegalArgumentException("No encounter type provided on questionnaire")
     val button =
       Button(context).apply {
-        text = form.display
+        text = form.title
         setOnClickListener {
           findNavController()
             .navigate(
               CreateEncountersFragmentDirections
                 .actionCreateEncounterFragmentToGenericFormEntryFragment(
-                  form.resource,
-                  form.display,
-                  form.code,
+                  form.title,
+                  encounterType,
                   args.patientId,
+                  form
                 ),
             )
         }
