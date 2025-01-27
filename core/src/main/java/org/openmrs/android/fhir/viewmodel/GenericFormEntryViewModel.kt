@@ -33,16 +33,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import ca.uhn.fhir.context.FhirContext
-import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
+import com.google.android.fhir.search.search
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import java.time.ZoneId
-import java.util.Date
-import java.util.UUID
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import okio.FileNotFoundException
@@ -64,11 +60,12 @@ import org.openmrs.android.fhir.MockConstants
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
-import org.openmrs.android.fhir.extensions.readFileFromAssets
-import org.openmrs.android.fhir.fragments.GenericFormEntryFragment
 import org.openmrs.android.helpers.OpenMRSHelper
 import org.openmrs.android.helpers.OpenMRSHelper.MiscHelper
 import org.openmrs.android.helpers.OpenMRSHelper.UserHelper
+import java.time.ZoneId
+import java.util.Date
+import java.util.UUID
 
 /** ViewModel for Generic questionnaire screen {@link GenericFormEntryFragment}. */
 class GenericFormEntryViewModel
@@ -86,17 +83,7 @@ constructor(
     ): GenericFormEntryViewModel
   }
 
-  val questionnaire: String
-    get() = getQuestionnaireJson()
-
   val isResourcesSaved = MutableLiveData<Boolean>()
-
-  private val questionnaireResource: Questionnaire
-    get() =
-      FhirContext.forCached(FhirVersionEnum.R4).newJsonParser().parseResource(questionnaire)
-        as Questionnaire
-
-  private var questionnaireJson: String? = null
 
   suspend fun createWrapperVisit(patientId: String): Encounter {
     val localDate = Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
@@ -146,7 +133,22 @@ constructor(
    */
   fun saveEncounter(questionnaireResponse: QuestionnaireResponse, form: Form, patientId: String) {
     viewModelScope.launch {
-      val bundle = ResourceMapper.extract(questionnaireResource, questionnaireResponse)
+
+      val questionnaireId = state.get<String>("questionnaire_id")
+
+      if (questionnaireId.isNullOrBlank()) {
+        throw IllegalArgumentException("No questionnaire ID provided")
+      }
+
+      val questionnaire = fhirEngine.search<Questionnaire> {
+          filter(Resource.RES_ID, { value = of(questionnaireId) })
+      }.firstOrNull()?.resource
+
+      if (questionnaire == null) {
+        throw IllegalStateException("No questionnaire resource found with ID: $questionnaireId")
+      }
+
+      val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
       val patientReference = Reference("Patient/$patientId")
       val encounterId = generateUuid()
 
@@ -276,22 +278,6 @@ constructor(
 
   private suspend fun saveResourceToDatabase(resource: Resource) {
     fhirEngine.create(resource)
-  }
-
-  private fun getQuestionnaireJson(): String {
-    questionnaireJson?.let {
-      return it
-    }
-
-    try {
-      questionnaireJson =
-        applicationContext.readFileFromAssets(
-          state[GenericFormEntryFragment.QUESTIONNAIRE_FILE_PATH_KEY]!!,
-        )
-    } catch (e: FileNotFoundException) {
-      return ""
-    }
-    return questionnaireJson!!
   }
 
   private fun generateUuid(): String {
