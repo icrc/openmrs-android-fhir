@@ -129,3 +129,13 @@ Refer to the custom code created for OpenMRS:\
 -   This project is based on [Google FHIR App Examples](https://github.com/google/fhir-app-examples/tree/main/demo).
 -   For more details, see:\
     [OpenMRS Android FHIR Project](https://github.com/icrc/openmrs-android-fhir)
+
+
+### Create a release
+
+To initiate the build workflow:
+
+- From Git:  Just create and push a tag `vX.Y.Z`
+- From Web UI:  Create a release and the related tag `vX.Y.Z` and Delete immediately the Realse
+
+the `Build` action should be triggered and it will create a new release containing the apk configured to use dev3.openmrs.org as the OpenMRS Backend.

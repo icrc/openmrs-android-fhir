@@ -73,6 +73,7 @@ import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
+import org.openmrs.android.fhir.extensions.UncaughtExceptionHandler
 import org.openmrs.android.fhir.extensions.getApplicationLogs
 import org.openmrs.android.fhir.extensions.saveToFile
 import org.openmrs.android.fhir.extensions.showSnackBar
@@ -103,6 +104,9 @@ class MainActivity : AppCompatActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    Thread.setDefaultUncaughtExceptionHandler(
+      UncaughtExceptionHandler(this, Thread.getDefaultUncaughtExceptionHandler()),
+    )
     (this.application as FhirApplication).appComponent.inject(this)
     binding = ActivityMainBinding.inflate(layoutInflater)
     loginRepository = LoginRepository.getInstance(applicationContext)
@@ -487,10 +491,10 @@ class MainActivity : AppCompatActivity() {
           for (session in syncSessions) {
             fileContent.append("Start Time: ${session.startTime}\n")
             fileContent.append(
-              "Downloaded Patients: ${session.downloadedPatients}/${session.totalPatientsToDownload}\n",
+              "Downloaded Resources: ${session.downloadedPatients}/${session.totalPatientsToDownload}\n",
             )
             fileContent.append(
-              "Uploaded Patients: ${session.uploadedPatients}/${session.totalPatientsToUpload}\n",
+              "Uploaded Resources: ${session.uploadedPatients}/${session.totalPatientsToUpload}\n",
             )
             fileContent.append("Completion Time: ${session.completionTime ?: "In Progress"}\n")
             fileContent.append("Status: ${session.status}\n")

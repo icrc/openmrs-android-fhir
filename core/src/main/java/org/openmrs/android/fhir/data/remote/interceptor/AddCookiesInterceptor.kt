@@ -42,13 +42,16 @@ import org.openmrs.android.fhir.data.PreferenceKeys
 class AddCookiesInterceptor(private val context: Context) : Interceptor {
   @Throws(IOException::class)
   override fun intercept(chain: Interceptor.Chain): Response {
+    val originalRequest = chain.request()
     val builder: Request.Builder = chain.request().newBuilder()
-    runBlocking {
-      val prefCookies: Set<String> =
-        context.dataStore.data.first()[PreferenceKeys.PREF_COOKIES]?.toMutableSet()
-          ?: mutableSetOf()
-      for (cookie in prefCookies) {
-        builder.addHeader("Cookie", cookie)
+    if (originalRequest.url.toString().contains("idgen")) {
+      runBlocking {
+        val prefCookies: Set<String> =
+          context.dataStore.data.first()[PreferenceKeys.PREF_COOKIES]?.toMutableSet()
+            ?: mutableSetOf()
+        for (cookie in prefCookies) {
+          builder.addHeader("Cookie", cookie)
+        }
       }
     }
     return chain.proceed(builder.build())

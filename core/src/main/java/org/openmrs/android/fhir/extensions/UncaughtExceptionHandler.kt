@@ -26,37 +26,28 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.remote.interceptor
+package org.openmrs.android.fhir.extensions
 
 import android.content.Context
-import androidx.datastore.preferences.core.edit
-import java.io.IOException
-import kotlinx.coroutines.runBlocking
-import okhttp3.Interceptor
-import okhttp3.Response
-import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.PreferenceKeys
+import android.os.Process
+import kotlin.system.exitProcess
+import timber.log.Timber
 
-class ReceivedCookiesInterceptor(private val context: Context) : Interceptor {
-  @Throws(IOException::class)
-  override fun intercept(chain: Interceptor.Chain): Response {
-    val originalResponse: Response = chain.proceed(chain.request())
-    // only add the jsession cookie from session request.
-    if (
-      chain.request().url.encodedPath.contains("session") and
-        originalResponse.headers("Set-Cookie").isNotEmpty()
-    ) {
-      val cookies: MutableSet<String> = mutableSetOf()
-      for (header in originalResponse.headers("Set-Cookie")) {
-        val jsessionId = Regex("JSESSIONID=([^;]+)").find(header)?.value
-        if (jsessionId != null) {
-          cookies.add("$jsessionId;")
-        }
-      }
-      runBlocking {
-        context.dataStore.edit { preferences -> preferences[PreferenceKeys.PREF_COOKIES] = cookies }
-      }
+/*
+Logs the stacktrace of unhandled exception,
+hence it is handled by FileLoggingTree.kt and added to the application log file.
+*/
+class UncaughtExceptionHandler(
+  val context: Context,
+  private val defaultUncaughtHandler: Thread.UncaughtExceptionHandler?,
+) : Thread.UncaughtExceptionHandler {
+  override fun uncaughtException(thread: Thread, exception: Throwable) {
+    Timber.tag("App-ExceptionLog").d(exception.stackTraceToString())
+    if (defaultUncaughtHandler != null) {
+      defaultUncaughtHandler.uncaughtException(thread, exception)
+    } else {
+      Process.killProcess(Process.myPid())
+      exitProcess(0)
     }
-    return originalResponse
   }
 }

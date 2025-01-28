@@ -49,6 +49,7 @@ import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.Form
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.extensions.showSnackBar
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
 
 /** A fragment class to show screener questionnaire screen. */
@@ -100,13 +101,21 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   private fun addQuestionnaireFragment() {
     childFragmentManager.commit {
-      val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-      val questionnaireJson = parser.encodeResourceToString(args.questionnaire);
-      add(
-        R.id.form_entry_container,
-        QuestionnaireFragment.builder().setQuestionnaire(questionnaireJson).build(),
-        QUESTIONNAIRE_FRAGMENT_TAG,
-      )
+      if (args.questionnaire == null) {
+        showSnackBar(
+          requireActivity(),
+          getString(R.string.questionnaire_error_message),
+        )
+        NavHostFragment.findNavController(this@GenericFormEntryFragment).navigateUp()
+      } else {
+          val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+          val questionnaireJson = parser.encodeResourceToString(args.questionnaire);
+          add(
+            R.id.form_entry_container,
+            QuestionnaireFragment.builder().setQuestionnaire(questionnaireJson).build(),
+            QUESTIONNAIRE_FRAGMENT_TAG,
+          )
+      }
     }
   }
 
