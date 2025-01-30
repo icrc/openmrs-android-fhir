@@ -44,7 +44,10 @@ class AddCookiesInterceptor(private val context: Context) : Interceptor {
   override fun intercept(chain: Interceptor.Chain): Response {
     val originalRequest = chain.request()
     val builder: Request.Builder = chain.request().newBuilder()
-    if (originalRequest.url.toString().contains("idgen")) {
+    if (
+      originalRequest.url.toString().contains("idgen") ||
+        originalRequest.url.toString().contains("session")
+    ) {
       runBlocking {
         val prefCookies: Set<String> =
           context.dataStore.data.first()[PreferenceKeys.PREF_COOKIES]?.toMutableSet()
