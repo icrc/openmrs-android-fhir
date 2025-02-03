@@ -111,6 +111,7 @@
     <string name="sync_failed_at">Sync: failed at %1$s</string>
     <string name="sync_unknown_state">Sync: unknown state.</string>
     <string name="sync_terminated">Sync: Terminated</string>
+    <string name="logging_out">Logging out..</string>
     <string
         name="sync_device_offline_message"
     >Device Offline. Sync will resume as soon as the device is Online</string>
