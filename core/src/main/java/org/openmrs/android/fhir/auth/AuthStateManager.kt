@@ -226,6 +226,10 @@ class AuthStateManager private constructor(private val context: Context) {
     context.dataStore.edit { pref -> pref[failedAttemptsKey] = value }
   }
 
+  suspend fun clearAuthDataStore() {
+    context.dataStore.edit { it.clear() }
+  }
+
   companion object {
     @SuppressLint("StaticFieldLeak") private var INSTANCE: AuthStateManager? = null
 

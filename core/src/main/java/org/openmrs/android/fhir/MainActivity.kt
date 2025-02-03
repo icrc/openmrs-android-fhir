@@ -54,6 +54,7 @@ import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.SyncJobStatus
+import com.google.android.material.snackbar.Snackbar
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
@@ -370,41 +371,58 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun navigateToLogin() {
-    val intent = Intent(this, LoginActivity::class.java)
-    val pendingIntentSuccess =
-      PendingIntent.getActivity(
-        this,
-        0,
-        intent,
-        PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-      )
-    val pendingIntentCancel =
-      PendingIntent.getActivity(
-        this,
-        1,
-        intent,
-        PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-      )
+    val loginIntent = Intent(this, LoginActivity::class.java)
+
+    val pendingIntentSuccess = createPendingIntent(loginIntent, 0)
+    val pendingIntentCancel = createPendingIntent(loginIntent, 1)
+    binding.loadingLayout.setBackgroundColor(getColor(R.color.white))
+    binding.progressBar.visibility = View.VISIBLE
+    showSnackBar(
+      this@MainActivity,
+      getString(R.string.logging_out),
+      duration = Snackbar.LENGTH_LONG,
+    )
+
     lifecycleScope
-      .launch(Dispatchers.IO) {
-        WorkManager.getInstance(this@MainActivity).cancelAllWork()
-        fhirEngine.clearDatabase()
-        demoDataStore.clearAll()
-        database.clearAllTables()
-        authStateManager.resetBasicAuthCredentials()
+      .launch(Dispatchers.IO) { clearAppData() }
+      .invokeOnCompletion { handleAuthNavigation(pendingIntentSuccess, pendingIntentCancel) }
+  }
+
+  private fun createPendingIntent(intent: Intent, requestCode: Int): PendingIntent {
+    return PendingIntent.getActivity(
+      this,
+      requestCode,
+      intent,
+      PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+    )
+  }
+
+  /*
+   * Clears app data except AuthStateManager's datastore
+   */
+  private suspend fun clearAppData() {
+    WorkManager.getInstance(this@MainActivity).cancelAllWork()
+    fhirEngine.clearDatabase()
+    demoDataStore.clearAll()
+    database.clearAllTables()
+    authStateManager.resetBasicAuthCredentials()
+  }
+
+  private fun handleAuthNavigation(
+    pendingIntentSuccess: PendingIntent,
+    pendingIntentCancel: PendingIntent,
+  ) {
+    when (authStateManager.getAuthMethod()) {
+      AuthMethod.BASIC -> {
+        lifecycleScope.launch(Dispatchers.IO) { authStateManager.clearAuthDataStore() }
+        startActivity(Intent(this, BasicLoginActivity::class.java))
+        finish()
       }
-      .invokeOnCompletion {
-        when (authStateManager.getAuthMethod()) {
-          AuthMethod.BASIC -> {
-            val basicLoginActivity = Intent(this, BasicLoginActivity::class.java)
-            startActivity(basicLoginActivity)
-            finish()
-          }
-          AuthMethod.OPENID -> {
-            authStateManager.endSessionRequest(pendingIntentSuccess, pendingIntentCancel)
-          }
-        }
+      AuthMethod.OPENID -> {
+        authStateManager.endSessionRequest(pendingIntentSuccess, pendingIntentCancel)
+        lifecycleScope.launch(Dispatchers.IO) { authStateManager.clearAuthDataStore() }
       }
+    }
   }
 
   private fun observeSettings() {
