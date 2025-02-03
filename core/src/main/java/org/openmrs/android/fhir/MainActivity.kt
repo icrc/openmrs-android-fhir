@@ -75,6 +75,7 @@ import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
 import org.openmrs.android.fhir.extensions.UncaughtExceptionHandler
+import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
 import org.openmrs.android.fhir.extensions.getApplicationLogs
 import org.openmrs.android.fhir.extensions.saveToFile
 import org.openmrs.android.fhir.extensions.showSnackBar
@@ -406,6 +407,7 @@ class MainActivity : AppCompatActivity() {
     demoDataStore.clearAll()
     database.clearAllTables()
     authStateManager.resetBasicAuthCredentials()
+    checkAndDeleteLogFile(applicationContext)
   }
 
   private fun handleAuthNavigation(
