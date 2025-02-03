@@ -86,6 +86,13 @@ class FileLoggingTree(context: Context, private val maxFileSize: Long) : Timber.
   }
 }
 
+fun checkAndDeleteLogFile(context: Context) {
+  val logFile = File(context.filesDir, APPLICATION_LOG_FILE_NAME)
+  if (logFile.exists()) {
+    logFile.delete()
+  }
+}
+
 fun getApplicationLogs(context: Context): File {
   val logFile = File(context.filesDir, APPLICATION_LOG_FILE_NAME)
   return logFile

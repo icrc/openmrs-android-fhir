@@ -62,6 +62,22 @@
             app:defaultNavHost="true"
         />
 
+    <FrameLayout
+            android:id="@+id/loading_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+        >
+
+        <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:indeterminateTint="#4285F4"
+                android:visibility="gone"
+            />
+    </FrameLayout>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <com.google.android.material.navigation.NavigationView
