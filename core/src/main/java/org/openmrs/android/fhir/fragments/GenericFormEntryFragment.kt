@@ -101,7 +101,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   private fun addQuestionnaireFragment() {
     childFragmentManager.commit {
-      if (viewModel.questionnaire.isEmpty()) {
+      if (args.questionnaire == null) {
         showSnackBar(
           requireActivity(),
           getString(R.string.questionnaire_error_message),

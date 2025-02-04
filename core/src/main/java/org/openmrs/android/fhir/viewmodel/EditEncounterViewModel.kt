@@ -57,7 +57,6 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
-import org.openmrs.android.fhir.extensions.readFileFromAssets
 
 class EditEncounterViewModel
 @AssistedInject
@@ -77,13 +76,13 @@ constructor(
   private val encounterId: String =
     requireNotNull(state["encounter_id"])
       ?: throw IllegalArgumentException("Encounter ID is required")
-  private val formResource: String =
-    requireNotNull(state["form_resource"])
+  private val encounterType: String =
+    requireNotNull(state["encounter_type"])
       ?: throw IllegalArgumentException("Form resource is required")
   val liveEncounterData = liveData { emit(prepareEditEncounter()) }
   val isResourcesSaved = MutableLiveData<Boolean>()
 
-  private lateinit var questionnaireResource: Questionnaire
+  private lateinit var questionnaire: Questionnaire
   private lateinit var observations: List<Observation>
   private lateinit var contitions: List<Condition>
   private lateinit var patientReference: Reference
@@ -95,11 +94,14 @@ constructor(
     contitions = getConditionsEncounterId(encounterId)
     patientReference = encounter.subject
     try {
-      val questionnaireJson = applicationContext.readFileFromAssets(formResource).trimIndent()
 
       val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-      questionnaireResource =
-        parser.parseResource(Questionnaire::class.java, questionnaireJson) as Questionnaire
+
+      questionnaire = fhirEngine.search<Questionnaire> {}.filter {
+          questionnaire -> questionnaire.resource.code.any { it.code == encounterType }
+      }.first().resource
+
+      val questionnaireJson = parser.encodeResourceToString(questionnaire)
 
       val observationBundle =
         Bundle().apply {
@@ -108,7 +110,7 @@ constructor(
         }
 
       val launchContexts = mapOf("observations" to observationBundle)
-      val questionnaireResponse = ResourceMapper.populate(questionnaireResource, launchContexts)
+      val questionnaireResponse = ResourceMapper.populate(questionnaire, launchContexts)
       val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
       return questionnaireJson to questionnaireResponseJson
     } catch (e: FileNotFoundException) {
@@ -119,7 +121,7 @@ constructor(
 
   fun updateEncounter(questionnaireResponse: QuestionnaireResponse) {
     viewModelScope.launch {
-      val bundle = ResourceMapper.extract(questionnaireResource, questionnaireResponse)
+      val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
       saveResources(bundle)
       isResourcesSaved.value = true
     }
