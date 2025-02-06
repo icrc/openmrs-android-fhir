@@ -199,8 +199,8 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
     val dateTime: String,
     val formCode: String?,
     val formDisplay: String?,
-    val formResource: String?,
     val isSynced: Boolean?,
+    val encounterType: String?,
   ) {
     override fun toString(): String = encounterId ?: type
   }

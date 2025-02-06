@@ -36,6 +36,7 @@ import org.openmrs.android.fhir.BasicLoginActivity
 import org.openmrs.android.fhir.LoginActivity
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.fragments.AddPatientFragment
+import org.openmrs.android.fhir.fragments.CreateEncountersFragment
 import org.openmrs.android.fhir.fragments.EditEncounterFragment
 import org.openmrs.android.fhir.fragments.EditPatientFragment
 import org.openmrs.android.fhir.fragments.GenericFormEntryFragment
@@ -91,4 +92,6 @@ interface AppComponent {
   fun inject(fragment: SettingsFragment)
 
   fun inject(activity: BasicLoginActivity)
+
+  fun inject(fragment: CreateEncountersFragment)
 }
