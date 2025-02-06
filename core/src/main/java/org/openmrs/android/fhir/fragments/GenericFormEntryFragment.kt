@@ -108,13 +108,6 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
         )
         NavHostFragment.findNavController(this@GenericFormEntryFragment).navigateUp()
       } else {
-          val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-          val questionnaireJson = parser.encodeResourceToString(args.questionnaire)
-          add(
-              R.id.form_entry_container,
-              QuestionnaireFragment.builder().setQuestionnaire(questionnaireJson).build(),
-              QUESTIONNAIRE_FRAGMENT_TAG,
-          )
         val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
         val questionnaireJson = parser.encodeResourceToString(args.questionnaire)
         add(
