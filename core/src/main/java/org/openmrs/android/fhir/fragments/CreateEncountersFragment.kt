@@ -43,6 +43,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.search
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -50,7 +51,6 @@ import org.hl7.fhir.r4.model.Questionnaire
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.databinding.CreateEncounterFragmentBinding
-import javax.inject.Inject
 
 class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
   private var _binding: CreateEncounterFragmentBinding? = null
@@ -59,8 +59,7 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
 
   private val args: CreateEncountersFragmentArgs by navArgs()
 
-  @Inject
-  lateinit var fhirEngine: FhirEngine
+  @Inject lateinit var fhirEngine: FhirEngine
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -90,8 +89,7 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     val buttonContainer = view.findViewById<LinearLayout>(R.id.button_container)
 
     lifecycleScope.launch(Dispatchers.IO) {
-      val forms = fhirEngine.search<Questionnaire> {
-      }
+      val forms = fhirEngine.search<Questionnaire> {}
       withContext(Dispatchers.Main) {
         for (form in forms) {
           setupFormButton(buttonContainer, form.resource)
@@ -101,8 +99,9 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
   }
 
   private fun setupFormButton(parentView: ViewGroup, form: Questionnaire) {
-    val encounterType = form.code.firstOrNull()?.code
-      ?: throw IllegalArgumentException("No encounter type provided on questionnaire")
+    val encounterType =
+      form.code.firstOrNull()?.code
+        ?: throw IllegalArgumentException("No encounter type provided on questionnaire")
     val button =
       Button(context).apply {
         text = form.title
@@ -114,7 +113,7 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
                   form.title,
                   encounterType,
                   args.patientId,
-                  form
+                  form,
                 ),
             )
         }

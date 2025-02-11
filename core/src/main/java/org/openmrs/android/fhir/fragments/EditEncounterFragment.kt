@@ -43,6 +43,7 @@ import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import com.google.android.fhir.search.search
+import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Questionnaire
 import org.openmrs.android.fhir.FhirApplication
@@ -50,7 +51,6 @@ import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
-import javax.inject.Inject
 
 /**
  * A fragment representing Edit Encounter screen. This fragment is contained in a [MainActivity].
@@ -58,8 +58,7 @@ import javax.inject.Inject
 class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
   @Inject lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
 
-  @Inject
-  lateinit var fhirEngine: FhirEngine
+  @Inject lateinit var fhirEngine: FhirEngine
 
   private val viewModel: EditEncounterViewModel by viewModels { viewModelSavedStateFactory }
 
@@ -129,12 +128,16 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
   private fun addQuestionnaireFragment(pair: Pair<String, String>) {
     if (pair.first.isNotBlank()) {
       lifecycleScope.launch {
-
         val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
-        val questionnaire = fhirEngine.search<Questionnaire> {}.filter {
-          questionnaire -> questionnaire.resource.code.any { it.code == encounterType }
-        }.firstOrNull()?.resource
+        val questionnaire =
+          fhirEngine
+            .search<Questionnaire> {}
+            .filter { questionnaire ->
+              questionnaire.resource.code.any { it.code == encounterType }
+            }
+            .firstOrNull()
+            ?.resource
 
         val questionnaireJson = parser.encodeResourceToString(questionnaire)
 

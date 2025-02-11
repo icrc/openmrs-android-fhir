@@ -94,12 +94,14 @@ constructor(
     contitions = getConditionsEncounterId(encounterId)
     patientReference = encounter.subject
     try {
-
       val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
-      questionnaire = fhirEngine.search<Questionnaire> {}.filter {
-          questionnaire -> questionnaire.resource.code.any { it.code == encounterType }
-      }.first().resource
+      questionnaire =
+        fhirEngine
+          .search<Questionnaire> {}
+          .filter { questionnaire -> questionnaire.resource.code.any { it.code == encounterType } }
+          .first()
+          .resource
 
       val questionnaireJson = parser.encodeResourceToString(questionnaire)
 

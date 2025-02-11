@@ -196,7 +196,7 @@ constructor(
       encounter.type.getOrNull(0)?.id,
       encounter.type.getOrNull(0)?.text,
       isSynced,
-      encounter.type.getOrNull(0)?.coding?.getOrNull(0)?.code
+      encounter.type.getOrNull(0)?.coding?.getOrNull(0)?.code,
     )
   }
 
