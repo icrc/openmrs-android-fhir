@@ -159,4 +159,8 @@
     <string
         name="questionnaire_error_message"
     >Some error occurred with loading the questionnaire, please sync &amp; try again later!</string>
+    <string name="connection_restored">Connection restored</string>
+    <string
+        name="do_you_want_to_continue_sync"
+    >Do you want to continue sync?</string>
 </resources>
