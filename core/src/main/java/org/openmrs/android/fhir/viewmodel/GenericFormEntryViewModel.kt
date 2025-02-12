@@ -164,7 +164,7 @@ constructor(
         return@launch
       }
 
-      saveResources(bundle, patientReference, form, encounterId, visit.idPart)
+      saveResources(bundle, patientReference, questionnaire, encounterId, visit.idPart)
       isResourcesSaved.value = true
     }
   }
@@ -172,13 +172,20 @@ constructor(
   private suspend fun saveResources(
     bundle: Bundle,
     patientReference: Reference,
-    form: Form,
+    questionnaire: Questionnaire,
     encounterId: String,
     visitId: String,
   ) {
     val encounterReference = Reference("Encounter/$encounterId")
     val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
-
+    val encounterType =
+      questionnaire.code.firstOrNull {
+        it.system == "http://fhir.openmrs.org/code-system/encounter-type"
+      }
+    val omrsForm =
+      questionnaire.code.firstOrNull {
+        it.system == "http://fhir.openmrs.org/core/StructureDefinition/omrs-form"
+      }
     val encounterDate: Date
     if (MockConstants.WRAP_ENCOUNTER) {
       val localDate = Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
@@ -214,9 +221,21 @@ constructor(
               coding =
                 listOf(
                   Coding().apply {
-                    system = "http://fhir.openmrs.org/code-system/encounter-type"
-                    code = form.code
-                    display = form.display
+                    system = encounterType?.system
+                    code = encounterType?.code
+                    display = encounterType?.display
+                  },
+                )
+            },
+          )
+          addType(
+            CodeableConcept().apply {
+              coding =
+                listOf(
+                  Coding().apply {
+                    system = omrsForm?.system
+                    code = omrsForm?.code
+                    display = omrsForm?.display
                   },
                 )
             },
