@@ -203,12 +203,16 @@ class PatientDetailsFragment : Fragment() {
       .show()
   }
 
-  private fun onEditEncounterClick(encounterId: String, formDisplay: String, formResource: String) {
+  private fun onEditEncounterClick(
+    encounterId: String,
+    formDisplay: String,
+    encounterType: String,
+  ) {
     findNavController()
       .navigate(
         PatientDetailsFragmentDirections.actionPatientDetailsToEditEncounterFragment(
           encounterId,
-          formResource,
+          encounterType,
         ),
       )
   }

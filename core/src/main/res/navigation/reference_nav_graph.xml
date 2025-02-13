@@ -78,7 +78,6 @@
         android:label="Generic Form Entry"
         tools:layout="@layout/generic_formentry_fragment"
     >
-    <argument android:name="form_resource" app:argType="string" />
     <argument android:name="form_display" app:argType="string" />
     <argument android:name="form_code" app:argType="string" />
     <argument android:name="patient_id" app:argType="string" />
@@ -86,6 +85,11 @@
             android:name="encounter_id"
             app:argType="string"
             android:defaultValue="@null"
+            app:nullable="true"
+        />
+    <argument
+            android:name="questionnaire"
+            app:argType="org.hl7.fhir.r4.model.Questionnaire"
             app:nullable="true"
         />
   </fragment>
@@ -123,7 +127,7 @@
         tools:layout="@layout/generic_formentry_fragment"
     >
     <argument android:name="encounter_id" app:argType="string" />
-    <argument android:name="form_resource" app:argType="string" />
+    <argument android:name="encounter_type" app:argType="string" />
   </fragment>
 
   <fragment

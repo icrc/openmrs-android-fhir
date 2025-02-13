@@ -284,7 +284,7 @@ class PatientDetailsEncounterItemViewHolder(
         onEditEncounterClick(
           encounter.encounterId ?: "",
           encounter.formDisplay ?: "",
-          encounter.formResource ?: "",
+          encounter.encounterType ?: "",
         )
       }
     }

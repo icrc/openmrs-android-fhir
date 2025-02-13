@@ -195,8 +195,8 @@ constructor(
       visitDate,
       encounter.type.getOrNull(0)?.id,
       encounter.type.getOrNull(0)?.text,
-      "assessment.json",
       isSynced,
+      encounter.type.getOrNull(0)?.coding?.getOrNull(0)?.code,
     )
   }
 

@@ -38,9 +38,14 @@ import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
+import ca.uhn.fhir.context.FhirContext
+import ca.uhn.fhir.context.FhirVersionEnum
+import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.QuestionnaireFragment
+import com.google.android.fhir.search.search
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.Questionnaire
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
@@ -53,7 +58,11 @@ import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
 class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
   @Inject lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
 
+  @Inject lateinit var fhirEngine: FhirEngine
+
   private val viewModel: EditEncounterViewModel by viewModels { viewModelSavedStateFactory }
+
+  private lateinit var encounterType: String
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -64,9 +73,9 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
       requireArguments().getString("encounter_id")
         ?: throw IllegalArgumentException("Encounter ID is required")
 
-    val formResource =
-      requireArguments().getString("form_resource")
-        ?: throw IllegalArgumentException("Encounter ID is required")
+    encounterType =
+      requireArguments().getString("encounter_type")
+        ?: throw IllegalArgumentException("Encounter type is required")
 
     // Initialize the ViewModel using a factory
   }
@@ -119,11 +128,24 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
   private fun addQuestionnaireFragment(pair: Pair<String, String>) {
     if (pair.first.isNotBlank()) {
       lifecycleScope.launch {
+        val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+
+        val questionnaire =
+          fhirEngine
+            .search<Questionnaire> {}
+            .filter { questionnaire ->
+              questionnaire.resource.code.any { it.code == encounterType }
+            }
+            .firstOrNull()
+            ?.resource
+
+        val questionnaireJson = parser.encodeResourceToString(questionnaire)
+
         childFragmentManager.commit {
           add(
             R.id.form_entry_container,
             QuestionnaireFragment.builder()
-              .setQuestionnaire(pair.first)
+              .setQuestionnaire(questionnaireJson)
               .setQuestionnaireResponse(pair.second)
               .build(),
             QUESTIONNAIRE_FRAGMENT_TAG,
