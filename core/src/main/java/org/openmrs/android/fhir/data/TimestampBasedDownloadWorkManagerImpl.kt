@@ -151,10 +151,15 @@ private fun affixLastUpdatedTimestamp(url: String, lastUpdated: String): String 
   // Affix lastUpdate to non-$everything queries as per:
   // https://hl7.org/fhir/operation-patient-everything.html
   if (!downloadUrl.contains("\$everything")) {
-    if (!downloadUrl.contains('?')) {
-      downloadUrl = "$downloadUrl?_lastUpdated=gt$lastUpdated"
+    val lastUpdatedRegex = Regex("([?&])_lastUpdated=gt[^&]*")
+
+    if (downloadUrl.contains("_lastUpdated=")) {
+      // Replace existing _lastUpdated value
+      downloadUrl = downloadUrl.replace(lastUpdatedRegex, "$1_lastUpdated=gt$lastUpdated")
     } else {
-      downloadUrl = "$downloadUrl&_lastUpdated=gt$lastUpdated"
+      // Append _lastUpdated normally
+      val separator = if (downloadUrl.contains('?')) "&" else "?"
+      downloadUrl = "$downloadUrl${separator}_lastUpdated=gt$lastUpdated"
     }
   }
 
