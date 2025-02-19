@@ -31,6 +31,8 @@ package org.openmrs.android.fhir.extensions
 import android.app.Activity
 import android.content.Context
 import android.graphics.Color
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Environment
 import android.util.Base64
 import android.view.View
@@ -86,6 +88,14 @@ fun ByteArray.encodeToString(): String {
 
 fun String.decodeToByteArray(): ByteArray {
   return Base64.decode(this, Base64.DEFAULT)
+}
+
+fun isInternetAvailable(context: Context): Boolean {
+  val connectivityManager =
+    context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+  val network = connectivityManager.activeNetwork ?: return false
+  val networkCapabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+  return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
 }
 
 val Int.minutesInMillis: Long

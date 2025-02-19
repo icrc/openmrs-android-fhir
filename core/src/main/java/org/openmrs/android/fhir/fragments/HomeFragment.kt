@@ -77,7 +77,20 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
       }
     }
     requireView().findViewById<CardView>(R.id.item_patient_list).setOnClickListener {
-      findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToPatientList())
+      lifecycleScope.launch {
+        if (
+          context
+            ?.applicationContext
+            ?.dataStore
+            ?.data
+            ?.first()
+            ?.get(PreferenceKeys.LOCATION_NAME) != null
+        ) {
+          findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToPatientList())
+        } else {
+          Toast.makeText(context, "Please select a location first", Toast.LENGTH_LONG).show()
+        }
+      }
     }
     requireView().findViewById<CardView>(R.id.select_location).setOnClickListener {
       findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToLocationFragment())

@@ -26,39 +26,13 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.remote.interceptor
+package org.openmrs.android.fhir.data.remote
 
-import android.content.Context
-import java.io.IOException
-import kotlin.collections.toMutableSet
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
-import okhttp3.Interceptor
-import okhttp3.Request
-import okhttp3.Response
-import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.PreferenceKeys
+import org.hl7.fhir.r4.model.Bundle
+import retrofit2.Response
+import retrofit2.http.GET
+import retrofit2.http.Url
 
-class AddCookiesInterceptor(private val context: Context) : Interceptor {
-  @Throws(IOException::class)
-  override fun intercept(chain: Interceptor.Chain): Response {
-    val originalRequest = chain.request()
-    val builder: Request.Builder = chain.request().newBuilder()
-    if (
-      originalRequest.url.toString().contains("idgen") ||
-        originalRequest.url.toString().contains("session") ||
-        originalRequest.url.toString().contains(context.resources.getString(R.string.fhir_base_url))
-    ) {
-      runBlocking {
-        val prefCookies: Set<String> =
-          context.dataStore.data.first()[PreferenceKeys.PREF_COOKIES]?.toMutableSet()
-            ?: mutableSetOf()
-        for (cookie in prefCookies) {
-          builder.addHeader("Cookie", cookie)
-        }
-      }
-    }
-    return chain.proceed(builder.build())
-  }
+interface FhirApiService {
+  @GET suspend fun getLocations(@Url url: String): Response<Bundle>
 }

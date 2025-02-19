@@ -39,6 +39,7 @@ import okhttp3.RequestBody
 import okhttp3.Response
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.LoginRepository
+import org.openmrs.android.fhir.extensions.isInternetAvailable
 
 class RestApiManager private constructor(private val context: Context) {
   private val client: OkHttpClient = OkHttpClient.Builder().build()
@@ -54,7 +55,9 @@ class RestApiManager private constructor(private val context: Context) {
   }
 
   suspend fun initialize(locationId: String?) {
-    locationId?.let { updateSessionLocation(it) }
+    if (isInternetAvailable(context) && locationId != null) {
+      updateSessionLocation(locationId)
+    }
   }
 
   private suspend fun setSessionLocation(locationId: String) {

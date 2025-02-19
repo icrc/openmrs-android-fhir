@@ -47,6 +47,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.view.GravityCompat
+import androidx.datastore.preferences.core.edit
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -74,6 +75,8 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncStatus
+import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.remote.model.SessionLocation
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
 import org.openmrs.android.fhir.extensions.UncaughtExceptionHandler
 import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
@@ -103,6 +106,8 @@ class MainActivity : AppCompatActivity() {
 
   @Inject lateinit var database: AppDatabase
 
+  @Inject lateinit var apiManager: ApiManager
+
   private val viewModel by viewModels<MainActivityViewModel> { viewModelFactory }
   private val syncInfoViewModel by viewModels<SyncInfoViewModel> { viewModelFactory }
 
@@ -131,6 +136,13 @@ class MainActivity : AppCompatActivity() {
 
   override fun onResume() {
     super.onResume()
+    // If the user has not selected a location, redirects to the "select location" screen.
+    runBlocking {
+      val selectedLocationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+      if (selectedLocationId == null) {
+        binding.navHostFragment.findNavController().navigate(R.id.locationFragment)
+      }
+    }
     // getting Root View that gets focus
     val rootView = (findViewById<View>(android.R.id.content) as ViewGroup).getChildAt(0)
     rootView.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
@@ -209,9 +221,36 @@ class MainActivity : AppCompatActivity() {
     return false
   }
 
+  /*
+   * Before triggering sync, it checks if the user is assigned to the location.
+   * If not redirects user to the select location screen first and starts the sync.
+   */
   private fun onSyncPress() {
     when {
       !isTokenExpired() && viewModel.networkStatus.value -> {
+        runBlocking {
+          val selectedLocationId =
+            applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+          if (selectedLocationId != null) {
+            apiManager.setLocationSession(SessionLocation(selectedLocationId))
+            val isCurrentLocationValid =
+              viewModel.checkLocationIdAndPurgeUnassignedLocations(
+                applicationContext,
+                selectedLocationId,
+              )
+            if (!isCurrentLocationValid) {
+              applicationContext?.dataStore?.edit { preferences ->
+                preferences.remove(PreferenceKeys.LOCATION_ID)
+                preferences.remove(PreferenceKeys.LOCATION_NAME)
+              }
+              showSnackBar(
+                this@MainActivity,
+                getString(R.string.location_unassigned_select_location),
+              )
+              binding.navHostFragment.findNavController().navigate(R.id.locationFragment)
+            }
+          }
+        }
         viewModel.triggerOneTimeSync(applicationContext)
         binding.drawer.closeDrawer(GravityCompat.START)
       }

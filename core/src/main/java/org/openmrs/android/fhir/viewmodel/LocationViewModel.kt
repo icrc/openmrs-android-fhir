@@ -29,6 +29,7 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -39,30 +40,91 @@ import com.google.android.fhir.search.search
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Location
+import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.remote.ApiResponse
+import org.openmrs.android.fhir.data.remote.model.SessionLocation
+import org.openmrs.android.fhir.extensions.isInternetAvailable
 
-class LocationViewModel @Inject constructor(private val fhirEngine: FhirEngine) : ViewModel() {
+class LocationViewModel
+@Inject
+constructor(
+  private val applicationContext: Context,
+  private val fhirEngine: FhirEngine,
+  private val apiManager: ApiManager,
+) : ViewModel() {
   private var masterLocationsList: MutableList<LocationItem> = mutableListOf()
   var favoriteLocationSet: MutableSet<String>? = null
 
   val locations = MutableLiveData<List<LocationItem>>()
 
-  fun getLocations() {
+  fun getLocations(online: Boolean = true) {
     viewModelScope.launch {
       val locationsList: MutableList<LocationItem> = mutableListOf()
-      fhirEngine
-        .search<Location> {
-          sort(
-            StringClientParam(Location.SP_NAME),
-            Order.ASCENDING,
-          )
+      val selectedLocationID = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+      if (isInternetAvailable(applicationContext) && online) {
+        try {
+          if (selectedLocationID != null) {
+            apiManager.setLocationSession(SessionLocation(selectedLocationID))
+          }
+          apiManager.getLocations(applicationContext).let { response ->
+            when (response) {
+              is ApiResponse.Success<Bundle> -> {
+                var locationsEntry = response.data?.entry ?: emptyList()
+                val locations =
+                  locationsEntry
+                    .mapIndexed { index, entryComponent ->
+                      (entryComponent.resource as Location).toLocationItem(index + 1)
+                    }
+                    .sortedBy { it.name }
+                locationsList.addAll(locations)
+                purgeUnassignedLocations(locationsEntry.map { it.resource as Location })
+              }
+              else -> {
+                getLocations(online = false)
+                return@launch
+              }
+            }
+          }
+        } catch (e: Exception) {
+          getLocations(online = false)
         }
-        .mapIndexed { index, fhirLocation -> fhirLocation.resource.toLocationItem(index + 1) }
-        .let { locationsList.addAll(it) }
+      } else {
+        fhirEngine
+          .search<Location> {
+            sort(
+              StringClientParam(Location.SP_NAME),
+              Order.ASCENDING,
+            )
+          }
+          .mapIndexed { index, fhirLocation -> fhirLocation.resource.toLocationItem(index + 1) }
+          .let { locationsList.addAll(it) }
+      }
       masterLocationsList = locationsList
       locations.value = locationsList
+    }
+  }
+
+  private fun purgeUnassignedLocations(remoteLocations: List<Location>) {
+    viewModelScope.launch {
+      val selectedLocationID = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+      val localLocations = fhirEngine.search<Location> {}.map { it.resource.idPart }.toSet()
+
+      localLocations.forEach { locationId ->
+        if (locationId !in remoteLocations.map { it.idPart }) {
+          if (selectedLocationID != null && locationId == selectedLocationID) {
+            applicationContext.dataStore.edit { preferences ->
+              preferences.remove(PreferenceKeys.LOCATION_ID)
+              preferences.remove(PreferenceKeys.LOCATION_NAME)
+            }
+          }
+          fhirEngine.purge(ResourceType.Location, locationId)
+        }
+      }
     }
   }
 
