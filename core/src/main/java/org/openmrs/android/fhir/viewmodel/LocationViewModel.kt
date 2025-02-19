@@ -65,8 +65,8 @@ constructor(
   fun getLocations(online: Boolean = true) {
     viewModelScope.launch {
       val locationsList: MutableList<LocationItem> = mutableListOf()
-      val selectedLocationID = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
       if (isInternetAvailable(applicationContext) && online) {
+        val selectedLocationID = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
         try {
           if (selectedLocationID != null) {
             apiManager.setLocationSession(SessionLocation(selectedLocationID))
