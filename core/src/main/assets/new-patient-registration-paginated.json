@@ -35,7 +35,7 @@
     }
   ],
   "item": [
-    {
+   {
       "linkId": "PR",
       "type": "group",
       "text": "Client info",
@@ -383,6 +383,12 @@
               }
             }
           ]
+        },
+        {
+          "linkId": "PersonAttribute#Preffered Language",
+          "type": "string",
+          "required": false,
+          "text": "Preferred Language"
         }
       ]
     }
