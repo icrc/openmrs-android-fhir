@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -39,18 +40,25 @@ import com.google.android.fhir.search.search
 import java.time.LocalDate
 import java.time.ZoneOffset
 import javax.inject.Inject
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Patient
+import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.RiskAssessment
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
 import timber.log.Timber
 
 /**
  * The ViewModel helper class for PatientItemRecyclerViewAdapter, that is responsible for preparing
  * data for UI.
  */
-class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngine) : ViewModel() {
+class PatientListViewModel
+@Inject
+constructor(private val applicationContext: Context, private val fhirEngine: FhirEngine) :
+  ViewModel() {
 
   val liveSearchedPatients = MutableLiveData<List<PatientItem>>()
   val patientCount = MutableLiveData<Long>()
@@ -96,7 +104,13 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
     }
   }
 
+  /*
+   * Fetches Patient list filtered by user selected location.
+   * It filters using the location information in the first identifier's extension's reference value.
+   * Note: The patient list screen is only visible if the user has selected a location.
+   */
   private suspend fun getSearchResults(nameQuery: String = ""): List<PatientItem> {
+    val selectLocationID = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
     val patients: MutableList<PatientItem> = mutableListOf()
     fhirEngine
       .search<Patient> {
@@ -112,6 +126,13 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
         sort(Patient.GIVEN, Order.ASCENDING)
         count = 100
         from = 0
+      }
+      .filter {
+        // Filters for patient according to selected location Id.
+        it.resource.identifier.any { identifier ->
+          (identifier.extensionFirstRep.value as Reference).reference.substringAfter("/") ==
+            selectLocationID
+        }
       }
       .mapIndexed { index, fhirPatient -> fhirPatient.resource.toPatientItem(index + 1) }
       .let {

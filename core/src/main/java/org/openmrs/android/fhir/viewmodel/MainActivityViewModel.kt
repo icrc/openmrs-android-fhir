@@ -60,7 +60,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.Bundle
+import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
+import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.FhirSyncWorker
@@ -162,6 +165,29 @@ constructor(
     }
   }
 
+  suspend fun checkLocationIdAndPurgeUnassignedLocations(
+    context: Context,
+    resourceId: String,
+  ): Boolean {
+    val localLocations = fhirEngine.search<Location> {}.map { it.resource.idPart }.toSet()
+
+    apiManager.getLocations(context).let { response ->
+      return when (response) {
+        is ApiResponse.Success<Bundle> -> {
+          val locations =
+            response.data?.entry?.map { it.resource.idPart }?.toMutableSet() ?: emptySet()
+          localLocations.forEach { locationId ->
+            if (locationId !in locations) {
+              fhirEngine.purge(ResourceType.Location, locationId)
+            }
+          }
+          locations.any { it == resourceId }
+        }
+        else -> false
+      }
+    }
+  }
+
   fun triggerIdentifierTypeSync(context: Context) {
     viewModelScope.launch {
       if (!stopSync) {
@@ -197,7 +223,7 @@ constructor(
       fhirEngine
         .search<Patient> { filter(Patient.IDENTIFIER, { value = of("unsynced") }) }
         .map { it.resource }
-        .toMutableList()
+        .toList()
 
     patients.forEach {
       val identifiers = it.identifier

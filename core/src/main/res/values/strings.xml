@@ -163,4 +163,7 @@
     <string
         name="do_you_want_to_continue_sync"
     >Do you want to continue sync?</string>
+    <string
+        name="location_unassigned_select_location"
+    >Location unassigned, please select location again...</string>
 </resources>
