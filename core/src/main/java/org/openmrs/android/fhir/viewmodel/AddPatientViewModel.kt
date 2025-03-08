@@ -38,6 +38,7 @@ import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
+import com.google.android.fhir.db.ResourceNotFoundException
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
@@ -198,11 +199,16 @@ constructor(
     return identifierList
   }
 
-  fun getEmbeddedQuestionnaire(fileName: String) {
+  fun getEmbeddedQuestionnaire(questionnaireName: String) {
     viewModelScope.launch {
       val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-      val questionnaireString = applicationContext.readFileFromAssets(fileName)
-      questionnaire = parser.parseResource(Questionnaire::class.java, questionnaireString)
+      try {
+        questionnaire =
+          fhirEngine.get(ResourceType.Questionnaire, questionnaireName) as Questionnaire
+      } catch (e: ResourceNotFoundException) {
+        val questionnaireString = applicationContext.readFileFromAssets(questionnaireName)
+        questionnaire = parser.parseResource(Questionnaire::class.java, questionnaireString)
+      }
       embeddedQuestionnaire.value =
         parser.encodeResourceToString(embeddIdentifierInQuestionnaire(questionnaire))
     }
