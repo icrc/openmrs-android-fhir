@@ -2,12 +2,15 @@
 <resources>
   <string
         name="fhir_base_url"
-    >http://127.0.0.1:8080/openmrs/ws/fhir2/R4/</string>
+    >http://10.0.2.2:8080/openmrs/ws/fhir2/R4/</string>
   <string
         name="openmrs_rest_url"
-    >http://127.0.0.1:8080/openmrs/ws/rest/v1/</string>
+    >http://10.0.2.2:8080/openmrs/ws/rest/v1/</string>
   <string
         name="check_server_url"
-    >http://127.0.0.1:8080/openmrs/ws/rest/v1/session</string>
+    >http://10.0.2.2:8080/openmrs/ws/rest/v1/session</string>
   <string name="support_email">parthgeek@gmail.com</string>
+  <string
+        name="registration_questionnaire_name"
+    >new-patient-registration-paginated</string>
 </resources>
