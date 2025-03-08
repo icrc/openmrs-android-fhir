@@ -58,7 +58,7 @@ fhir_sync_urls=Location?_sort=_lastUpdated&_summary=data,Patient?_sort=_lastUpda
 ```
 ---
 
-## 🔗 Configuring FHIR Sync URLs
+## 🔗 Configuring Patient Registration Questionnaire
 
 To Configure **Patient Registration Questionnaire**, set the `registration_questionnaire_name` to either of the following: 
 1. `resourceId` of the registration questionnaire synced from the server.
