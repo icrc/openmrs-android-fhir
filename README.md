@@ -60,7 +60,7 @@ fhir_sync_urls=Location?_sort=_lastUpdated&_summary=data,Patient?_sort=_lastUpda
 
 ## 🔗 Configuring Patient Registration Questionnaire
 
-To Configure **Patient Registration Questionnaire**, set the `registration_questionnaire_name` to either of the following: 
+To Configure **Patient Registration Questionnaire**, set the `registration_questionnaire_name` property to either of the following: 
 1. `resourceId` of the registration questionnaire synced from the server.
 2. `file name` of the registration questionnaire in the assets folder.
 
