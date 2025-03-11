@@ -206,7 +206,7 @@ constructor(
         questionnaire =
           fhirEngine.get(ResourceType.Questionnaire, questionnaireName) as Questionnaire
       } catch (e: ResourceNotFoundException) {
-        val questionnaireString = applicationContext.readFileFromAssets(questionnaireName)
+        val questionnaireString = applicationContext.readFileFromAssets("$questionnaireName.json")
         questionnaire = parser.parseResource(Questionnaire::class.java, questionnaireString)
       }
       embeddedQuestionnaire.value =
