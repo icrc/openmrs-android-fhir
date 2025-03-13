@@ -48,6 +48,7 @@
     <string name="location">Location</string>
     <string name="identifier">Identifier</string>
     <string name="sync_info">Sync Info</string>
+    <string name="unsynced_resources">Unsynced Resources</string>
     <string name="select_a_location">Select a Location</string>
     <string name="select_identifier_types">Select Identifier Types</string>
     <string name="submit">Submit</string>
