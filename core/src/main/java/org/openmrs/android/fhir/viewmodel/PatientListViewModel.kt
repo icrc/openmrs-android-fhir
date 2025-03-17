@@ -63,6 +63,8 @@ constructor(private val applicationContext: Context, private val fhirEngine: Fhi
   val liveSearchedPatients = MutableLiveData<List<PatientItem>>()
   val patientCount = MutableLiveData<Long>()
 
+  val isLoading = MutableLiveData<Boolean>()
+
   init {
     updatePatientListAndPatientCount({ getSearchResults() }, { count() })
   }
@@ -110,6 +112,7 @@ constructor(private val applicationContext: Context, private val fhirEngine: Fhi
    * Note: The patient list screen is only visible if the user has selected a location.
    */
   private suspend fun getSearchResults(nameQuery: String = ""): List<PatientItem> {
+    isLoading.value = true
     val selectLocationID = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
     val patients: MutableList<PatientItem> = mutableListOf()
     fhirEngine
@@ -149,6 +152,7 @@ constructor(private val applicationContext: Context, private val fhirEngine: Fhi
         patient.risk = it.prediction?.first()?.qualitativeRisk?.coding?.first()?.code
       }
     }
+    isLoading.value = false
     return patients
   }
 

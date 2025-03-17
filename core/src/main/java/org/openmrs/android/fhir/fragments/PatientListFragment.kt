@@ -83,12 +83,14 @@ class PatientListFragment : Fragment() {
       setDisplayHomeAsUpEnabled(true)
     }
     (requireActivity().application as FhirApplication).appComponent.inject(this)
+    observeLoading()
     val recyclerView: RecyclerView = binding.patientListContainer.patientList
     val adapter = PatientItemRecyclerViewAdapter(this::onPatientItemClicked)
     recyclerView.adapter = adapter
 
     patientListViewModel.liveSearchedPatients.observe(viewLifecycleOwner) {
       Timber.d("Submitting ${it.count()} patient records")
+      binding.emptyStateContainer.visibility = if (it.isEmpty()) View.VISIBLE else View.GONE
       adapter.submitList(it)
     }
 
@@ -119,6 +121,12 @@ class PatientListFragment : Fragment() {
   private fun addSearchTextChangeListener() {
     binding.patientInputEditText.doOnTextChanged { newText, _, _, _ ->
       patientListViewModel.searchPatientsByName(newText.toString().trim())
+    }
+  }
+
+  private fun observeLoading() {
+    patientListViewModel.isLoading.observe(viewLifecycleOwner) {
+      binding.progressBar.visibility = if (it) View.VISIBLE else View.GONE
     }
   }
 
