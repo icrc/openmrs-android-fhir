@@ -9,5 +9,12 @@
   <string
         name="check_server_url"
     >https://dev3.openmrs.org/openmrs/ws/rest/v1/session</string>
+  <string
+        name="fhir_sync_urls"
+    >Location?_sort=_lastUpdated&amp;_summary=data&amp;_tag=Login+Location,Patient?_lastUpdated=gt2025-02-10T13:30:00.000+00:00&amp;_sort=_lastUpdated,Encounter?_lastUpdated=gt2025-02-13T13:30:00.000+00:00&amp;_sort=_lastUpdated,Observation?_lastUpdated=gt2025-02-13T13:30:00.000+00:00&amp;_sort=_lastUpdated,Questionnaire?_sort=_lastUpdated</string>
   <string name="support_email">support@example.com</string>
+  <string
+        name="registration_questionnaire_name"
+    >new-patient-registration-paginated</string>
+
 </resources>

@@ -47,6 +47,7 @@ import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Resource
+import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.readFileFromAssets
 import org.openmrs.android.fhir.fragments.EditPatientFragment
@@ -71,35 +72,36 @@ constructor(
   }
 
   private val patientId: String = requireNotNull(state["patient_id"])
-  val livePatientData = liveData { emit(prepareEditPatient()) }
+  private val registrationQuestionnaireName: String =
+    requireNotNull(state["registration_questionnaire_name"])
+  val livePatientData = liveData { emit(prepareEditPatient(registrationQuestionnaireName)) }
   lateinit var originalPatient: Patient
+  lateinit var questionnaireResource: Questionnaire
 
-  private suspend fun prepareEditPatient(): Pair<String, String> {
+  private suspend fun prepareEditPatient(questionnaireName: String): Pair<String, String> {
     val patient = fhirEngine.get<Patient>(patientId)
     originalPatient = patient
     val launchContexts = mapOf<String, Resource>("client" to patient)
-    val question =
-      applicationContext.readFileFromAssets("new-patient-registration-paginated.json").trimIndent()
     val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-    val questionnaire = parser.parseResource(Questionnaire::class.java, question) as Questionnaire
+
+    val question =
+      try {
+        parser.encodeResourceToString(
+          fhirEngine.get(ResourceType.Questionnaire, questionnaireName) as Questionnaire,
+        )
+      } catch (e: Exception) {
+        applicationContext.readFileFromAssets("$questionnaireName.json")
+      }
+    questionnaireResource =
+      parser.parseResource(Questionnaire::class.java, question) as Questionnaire
 
     val questionnaireResponse: QuestionnaireResponse =
-      ResourceMapper.populate(questionnaire, launchContexts)
+      ResourceMapper.populate(questionnaireResource, launchContexts)
     val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
     return question to questionnaireResponseJson
   }
 
-  private val questionnaire: String
-    get() = getQuestionnaireJson()
-
   val isPatientSaved = MutableLiveData<Boolean>()
-
-  private val questionnaireResource: Questionnaire
-    get() =
-      FhirContext.forCached(FhirVersionEnum.R4).newJsonParser().parseResource(questionnaire)
-        as Questionnaire
-
-  private var questionnaireJson: String? = null
 
   /**
    * Update patient registration questionnaire response into the application database.
@@ -137,16 +139,5 @@ constructor(
 
       isPatientSaved.value = false
     }
-  }
-
-  private fun getQuestionnaireJson(): String {
-    questionnaireJson?.let {
-      return it
-    }
-    questionnaireJson =
-      applicationContext.readFileFromAssets(
-        state[EditPatientFragment.QUESTIONNAIRE_FILE_PATH_KEY]!!,
-      )
-    return questionnaireJson!!
   }
 }
