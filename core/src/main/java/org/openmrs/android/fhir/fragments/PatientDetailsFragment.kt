@@ -236,7 +236,12 @@ class PatientDetailsFragment : Fragment() {
       }
       R.id.menu_patient_edit -> {
         findNavController()
-          .navigate(PatientDetailsFragmentDirections.navigateToEditPatient(args.patientId))
+          .navigate(
+            PatientDetailsFragmentDirections.navigateToEditPatient(
+              args.patientId,
+              getString(R.string.registration_questionnaire_name),
+            ),
+          )
         true
       }
       else -> super.onOptionsItemSelected(item)

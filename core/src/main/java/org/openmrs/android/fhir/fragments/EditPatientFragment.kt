@@ -80,8 +80,6 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
       binding.currentLocationLabel.text =
         selectedLocation ?: getString(R.string.no_location_selected)
     }
-    requireArguments()
-      .putString(QUESTIONNAIRE_FILE_PATH_KEY, "new-patient-registration-paginated.json")
 
     viewModel.livePatientData.observe(viewLifecycleOwner) { addQuestionnaireFragment(it) }
     viewModel.isPatientSaved.observe(viewLifecycleOwner) {
@@ -143,7 +141,6 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
   }
 
   companion object {
-    const val QUESTIONNAIRE_FILE_PATH_KEY = "edit-questionnaire-file-path-key"
     const val QUESTIONNAIRE_FRAGMENT_TAG = "edit-questionnaire-fragment-tag"
   }
 }
