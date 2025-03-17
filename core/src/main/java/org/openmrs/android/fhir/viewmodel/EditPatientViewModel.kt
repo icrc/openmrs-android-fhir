@@ -116,12 +116,21 @@ constructor(
           patient.name[0].hasGiven() &&
           patient.name[0].hasFamily() &&
           patient.hasBirthDate() &&
-          patient.hasTelecom() &&
-          patient.telecom[0].value != null
+          patient.hasGender()
       ) {
-        patient.name[0].id = originalPatient.name[0].id
-        patient.id = patientId
-        fhirEngine.update(patient)
+        originalPatient.name[0].given = patient.name[0].given
+        originalPatient.name[0].family = patient.name[0].family
+        if (originalPatient.name[0].text != null) {
+          originalPatient.name[0].text = patient.name[0].text
+        }
+        originalPatient.birthDate = patient.birthDate
+        originalPatient.gender = patient.gender
+        if (patient.hasTelecom()) originalPatient.telecom[0].value = patient.telecom[0].value
+        if (patient.hasAddress()) {
+          originalPatient.address[0].city = patient.address[0].city
+          originalPatient.address[0].country = patient.address[0].country
+        }
+        fhirEngine.update(originalPatient)
         isPatientSaved.value = true
         return@launch
       }

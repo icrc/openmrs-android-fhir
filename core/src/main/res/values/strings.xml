@@ -166,4 +166,7 @@
     <string
         name="location_unassigned_select_location"
     >Location unassigned, please select location again...</string>
+    <string
+        name="no_patients_available_register_a_new_one_using_the_button_below"
+    >No Patients Available, Register a new one using the button below</string>
 </resources>
