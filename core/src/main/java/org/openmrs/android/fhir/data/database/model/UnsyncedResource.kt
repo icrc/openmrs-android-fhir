@@ -28,31 +28,35 @@
 */
 package org.openmrs.android.fhir.data.database.model
 
+interface UnsyncedResourceModel {
+  val logicalId: String
+}
+
 // Data models
 data class UnsyncedPatient(
-  val id: String,
+  override val logicalId: String,
   val name: String,
   val encounters: List<UnsyncedEncounter> = emptyList(),
   var isExpanded: Boolean = false,
   val isSynced: Boolean = false,
-)
+) : UnsyncedResourceModel
 
 data class UnsyncedEncounter(
-  val id: String,
+  override val logicalId: String,
   val title: String,
   val patientId: String,
   val observations: List<UnsyncedObservation> = emptyList(),
   var isExpanded: Boolean = false,
   val isSynced: Boolean = false,
-)
+) : UnsyncedResourceModel
 
 data class UnsyncedObservation(
-  val id: String,
+  override val logicalId: String,
   val title: String,
   val encounterId: String,
   val patientId: String,
   val isSynced: Boolean = false,
-)
+) : UnsyncedResourceModel
 
 // Combined view item for the RecyclerView
 sealed class UnsyncedResource {

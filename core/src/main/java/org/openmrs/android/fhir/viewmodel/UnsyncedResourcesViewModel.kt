@@ -32,20 +32,23 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.logicalId
 import com.google.android.fhir.search.search
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import okhttp3.internal.toImmutableList
+import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
-import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.data.database.model.UnsyncedEncounter
 import org.openmrs.android.fhir.data.database.model.UnsyncedObservation
 import org.openmrs.android.fhir.data.database.model.UnsyncedPatient
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
+import org.openmrs.android.fhir.data.database.model.UnsyncedResourceModel
 
 class UnsyncedResourcesViewModel
 @Inject
@@ -56,12 +59,15 @@ constructor(
   private val _resources = MutableLiveData<List<UnsyncedResource>>()
   val resources: LiveData<List<UnsyncedResource>> = _resources
 
+  private val _downloadResource = MutableLiveData<String>()
+  val downloadResource: LiveData<String> = _downloadResource
+
   private val _isLoading = MutableLiveData<Boolean>()
   val isLoading: LiveData<Boolean> = _isLoading
 
   private var patients: List<UnsyncedPatient> = emptyList()
 
-  private var unsyncedResourcedIdSet: MutableSet<String> = mutableSetOf()
+  private val jsonParser = FhirContext.forR4Cached().newJsonParser()
 
   init {
     loadUnsyncedResources()
@@ -70,10 +76,7 @@ constructor(
   fun loadUnsyncedResources() {
     _isLoading.value = true
     viewModelScope.launch {
-      // Fetch unsynced resources
-      //            val unsyncedResourcesMap = findUnsyncedResources()
-      //            patients = getPatientsFromUnsyncedResourcesMap(unsyncedResourcesMap)
-      patients = fetchMockData()
+      patients = fetchUnsyncedPatientsWithEncounterAndObservations()
       updateResourcesList()
       _isLoading.value = false
     }
@@ -100,18 +103,18 @@ constructor(
       }
     }
 
-    _resources.value = flattenedList
+    _resources.value = flattenedList.toImmutableList()
   }
 
   fun togglePatientExpansion(patientId: String) {
-    val patient = patients.find { it.id == patientId } ?: return
+    val patient = patients.find { it.logicalId == patientId } ?: return
     patient.isExpanded = !patient.isExpanded
     updateResourcesList()
   }
 
   fun toggleEncounterExpansion(encounterId: String) {
     patients.forEach { patient ->
-      val encounter = patient.encounters.find { it.id == encounterId }
+      val encounter = patient.encounters.find { it.logicalId == encounterId }
       if (encounter != null) {
         encounter.isExpanded = !encounter.isExpanded
         updateResourcesList()
@@ -120,21 +123,52 @@ constructor(
     }
   }
 
+  /*
+   * Code to delete a resource.
+   * NOTE: Deletes only unsynced resources
+   * Handles UI after delete
+   * Purges the resource from the FhirEngine.
+   */
   fun deleteResource(resource: UnsyncedResource) {
+    _isLoading.value = true
     viewModelScope.launch {
+      val resourceIdMap =
+        when (resource) {
+          is UnsyncedResource.PatientItem ->
+            getUnsyncedResourceCurrentAndChildrenResourceId(
+              resource.patient,
+              onlyUnSyncedFlag = true,
+            )
+          is UnsyncedResource.EncounterItem ->
+            getUnsyncedResourceCurrentAndChildrenResourceId(
+              resource.encounter,
+              onlyUnSyncedFlag = true,
+            )
+          is UnsyncedResource.ObservationItem ->
+            getUnsyncedResourceCurrentAndChildrenResourceId(
+              resource.observation,
+              onlyUnSyncedFlag = true,
+            )
+        }
+
+      // Purge all related resources
+      resourceIdMap.forEach { (resourceType, resourceIds) ->
+        fhirEngine.purge(resourceType, resourceIds, forcePurge = true)
+      }
+
+      // Handle UI
       when (resource) {
         is UnsyncedResource.PatientItem -> {
-          // Delete patient and all related resources
-          patients = patients.filter { it.id != resource.patient.id }
+          patients = patients.filter { it.logicalId != resource.patient.logicalId }
         }
         is UnsyncedResource.EncounterItem -> {
-          // Find patient and remove encounter
           val patientId = resource.encounter.patientId
           patients =
             patients.map { patient ->
-              if (patient.id == patientId) {
+              if (patient.logicalId == patientId) {
                 patient.copy(
-                  encounters = patient.encounters.filter { it.id != resource.encounter.id },
+                  encounters =
+                    patient.encounters.filter { it.logicalId != resource.encounter.logicalId },
                 )
               } else {
                 patient
@@ -145,16 +179,17 @@ constructor(
           // Find patient and encounter, then remove observation
           val patientId = resource.observation.patientId
           val encounterId = resource.observation.encounterId
-
           patients =
             patients.map { patient ->
-              if (patient.id == patientId) {
+              if (patient.logicalId == patientId) {
                 val updatedEncounters =
                   patient.encounters.map { encounter ->
-                    if (encounter.id == encounterId) {
+                    if (encounter.logicalId == encounterId) {
                       encounter.copy(
                         observations =
-                          encounter.observations.filter { it.id != resource.observation.id },
+                          encounter.observations.filter {
+                            it.logicalId != resource.observation.logicalId
+                          },
                       )
                     } else {
                       encounter
@@ -168,268 +203,286 @@ constructor(
         }
       }
       updateResourcesList()
+      _isLoading.value = false
     }
   }
 
-  // TODO:
-  fun downloadResource(resource: UnsyncedResource) {
+  /*
+   * Code to download a resource.
+   * NOTE: Downloads only unsynced resources
+   * Downloads the resource from the FhirEngine.
+   */
+  fun downloadResource(unsyncedResource: UnsyncedResource) {
+    _isLoading.value = true
+
+    val bundle =
+      Bundle().apply {
+        type = Bundle.BundleType.COLLECTION
+        entry = mutableListOf()
+      }
+
     viewModelScope.launch {
-      when (resource) {
-        is UnsyncedResource.PatientItem -> {
-          patients = patients.filter { it.id != resource.patient.id }
+      val resourceIdMap =
+        when (unsyncedResource) {
+          is UnsyncedResource.PatientItem ->
+            getUnsyncedResourceCurrentAndChildrenResourceId(
+              unsyncedResource.patient,
+              onlyUnSyncedFlag = true,
+            )
+          is UnsyncedResource.EncounterItem ->
+            getUnsyncedResourceCurrentAndChildrenResourceId(
+              unsyncedResource.encounter,
+              onlyUnSyncedFlag = true,
+            )
+          is UnsyncedResource.ObservationItem ->
+            getUnsyncedResourceCurrentAndChildrenResourceId(
+              unsyncedResource.observation,
+              onlyUnSyncedFlag = true,
+            )
         }
-        is UnsyncedResource.EncounterItem -> {
-          val patientId = resource.encounter.patientId
-          patients =
-            patients.map { patient ->
-              if (patient.id == patientId) {
-                patient.copy(
-                  encounters = patient.encounters.filter { it.id != resource.encounter.id },
-                )
-              } else {
-                patient
-              }
-            }
-        }
-        is UnsyncedResource.ObservationItem -> {
-          val patientId = resource.observation.patientId
-          val encounterId = resource.observation.encounterId
 
-          patients =
-            patients.map { patient ->
-              if (patient.id == patientId) {
-                val updatedEncounters =
-                  patient.encounters.map { encounter ->
-                    if (encounter.id == encounterId) {
-                      encounter.copy(
-                        observations =
-                          encounter.observations.filter { it.id != resource.observation.id },
-                      )
-                    } else {
-                      encounter
-                    }
-                  }
-                patient.copy(encounters = updatedEncounters)
-              } else {
-                patient
-              }
-            }
+      // Bundle all related resources
+      resourceIdMap.forEach { (resourceType, resourceIds) ->
+        resourceIds.forEach {
+          bundle.addEntry(
+            Bundle.BundleEntryComponent().apply { resource = fhirEngine.get(resourceType, it) },
+          )
         }
       }
-      updateResourcesList()
+
+      _downloadResource.value = jsonParser.encodeResourceToString(bundle)
+      _isLoading.value = false
     }
   }
 
-  // TODO
+  /*
+   * Code to download all resources.
+   * NOTE: Downloads only unsynced resources
+   * Downloads all unsynced resources from the FhirEngine.
+   */
   fun downloadAll() {
+    _isLoading.value = true
+
+    val bundle =
+      Bundle().apply {
+        type = Bundle.BundleType.COLLECTION
+        entry = mutableListOf()
+      }
+
     viewModelScope.launch {
-      // Implement actual download all logic here
-      // For now, just clear the list
-      patients = emptyList()
-      updateResourcesList()
+      patients.forEach { patient ->
+        val resourceIdMap =
+          getUnsyncedResourceCurrentAndChildrenResourceId(patient, onlyUnSyncedFlag = true)
+        resourceIdMap.forEach { (resourceType, resourceIds) ->
+          resourceIds.forEach {
+            bundle.addEntry(
+              Bundle.BundleEntryComponent().apply { resource = fhirEngine.get(resourceType, it) },
+            )
+          }
+        }
+      }
+
+      _downloadResource.value = jsonParser.encodeResourceToString(bundle)
+      _isLoading.value = false
     }
   }
 
-  // TODO
+  /*
+   * Code to delete all resources.
+   * NOTE: Deletes only unsynced resources
+   * Purges all unsynced resources from the FhirEngine.
+   */
   fun deleteAll() {
     viewModelScope.launch {
-      // Implement actual delete all logic here
-      patients = emptyList()
-      updateResourcesList()
+      _isLoading.value = true
+      try {
+        patients.forEach { patient ->
+          val resourceIdMap =
+            getUnsyncedResourceCurrentAndChildrenResourceId(patient, onlyUnSyncedFlag = true)
+          resourceIdMap.forEach { (resourceType, resourceIds) ->
+            fhirEngine.purge(resourceType, resourceIds, forcePurge = true)
+          }
+        }
+        patients = emptyList()
+      } catch (_: Exception) {
+        patients = fetchUnsyncedPatientsWithEncounterAndObservations()
+      } finally {
+        updateResourcesList()
+        _isLoading.value = false
+      }
     }
   }
 
   /*
    * Code to fetch Unsynced resources.
-   * @TODO: Refactor
+   * Note: This doesn't handle case where observation has no encounter or encounter has no patient in the FhirEngine.
+   * Since It will not be possible to create the resource for that case.
    */
 
-  private suspend fun findUnsyncedResources(): Map<ResourceType, List<Resource>> {
-    val unsyncedResources = mutableMapOf<ResourceType, MutableList<Resource>>()
+  private suspend fun fetchUnsyncedPatientsWithEncounterAndObservations(): List<UnsyncedPatient> {
+    val unsyncedPatients = mutableListOf<UnsyncedPatient>()
+    val encounterToObservationMap = mutableMapOf<String, MutableList<UnsyncedObservation>>()
+    val patientToEncounterMap = mutableMapOf<String, MutableList<UnsyncedEncounter>>()
 
-    // Initialize empty lists for each resource type
-    unsyncedResources[ResourceType.Patient] = mutableListOf()
-    unsyncedResources[ResourceType.Encounter] = mutableListOf()
-    unsyncedResources[ResourceType.Observation] = mutableListOf()
-
-    // Get all patients and check for local changes
-    val patients = fhirEngine.search<Patient> {}.map { it.resource }
-    for (patient in patients) {
-      val changes = fhirEngine.getLocalChanges(ResourceType.Patient, patient.logicalId)
+    // Get all observations and check for local changes, group by encounter and add to map
+    val observations = fhirEngine.search<Observation> {}.map { it.resource }
+    for (observation in observations) {
+      val changes = fhirEngine.getLocalChanges(ResourceType.Observation, observation.logicalId)
       if (changes.isNotEmpty()) {
-        unsyncedResourcedIdSet.add(patient.logicalId)
-        unsyncedResources[ResourceType.Patient]?.add(patient)
+        encounterToObservationMap
+          .getOrPut(observation.getEncounterId()) { mutableListOf() }
+          .add(observation.toObservationItem())
       }
     }
 
     // Get all encounters and check for local changes
     val encounters = fhirEngine.search<Encounter> {}.map { it.resource }
     for (encounter in encounters) {
-      val changes = fhirEngine.getLocalChanges(ResourceType.Encounter, encounter.id)
+      val changes = fhirEngine.getLocalChanges(ResourceType.Encounter, encounter.logicalId)
       if (changes.isNotEmpty()) {
-        unsyncedResourcedIdSet.add(encounter.id)
-        unsyncedResources[ResourceType.Encounter]?.add(encounter)
+        patientToEncounterMap
+          .getOrPut(encounter.getPatientId()) { mutableListOf() }
+          .add(
+            encounter.toEncounterItem(
+              isSynced = false,
+              encounterToObservationMap[encounter.logicalId] ?: emptyList(),
+            ),
+          )
+        encounterToObservationMap.remove(encounter.logicalId)
+      } else if (encounterToObservationMap.containsKey(encounter.logicalId)) {
+        patientToEncounterMap
+          .getOrPut(encounter.getPatientId()) { mutableListOf() }
+          .add(
+            encounter.toEncounterItem(
+              isSynced = true,
+              encounterToObservationMap[encounter.logicalId] ?: emptyList(),
+            ),
+          )
+        encounterToObservationMap.remove(encounter.logicalId)
       }
     }
 
-    // Get all observations and check for local changes
-    val observations = fhirEngine.search<Observation> {}.map { it.resource }
-    for (observation in observations) {
-      unsyncedResourcedIdSet.add(observation.id)
-      val changes = fhirEngine.getLocalChanges(ResourceType.Observation, observation.id)
+    // Get all patients and check for local changes
+    val patients = fhirEngine.search<Patient> {}.map { it.resource }
+    for (patient in patients) {
+      val changes = fhirEngine.getLocalChanges(ResourceType.Patient, patient.logicalId)
       if (changes.isNotEmpty()) {
-        unsyncedResources[ResourceType.Observation]?.add(observation)
+        unsyncedPatients.add(
+          patient.toPatientItem(
+            isSynced = false,
+            patientToEncounterMap[patient.logicalId] ?: emptyList(),
+          ),
+        )
+        patientToEncounterMap.remove(patient.logicalId)
+      } else if (patientToEncounterMap.containsKey(patient.logicalId)) {
+        unsyncedPatients.add(
+          patient.toPatientItem(
+            isSynced = true,
+            patientToEncounterMap[patient.logicalId] ?: emptyList(),
+          ),
+        )
+        patientToEncounterMap.remove(patient.logicalId)
       }
     }
 
-    return unsyncedResources
-  }
-
-  private fun getPatientsFromUnsyncedResourcesMap(
-    unsyncedResourceMap: Map<ResourceType, List<Resource>>,
-  ): List<UnsyncedPatient> {
-    val unsyncedObservations =
-      unsyncedResourceMap[ResourceType.Observation]?.map { (it as Observation).toObservationItem() }
-        ?: emptyList()
-    val unsyncedEncounters =
-      unsyncedResourceMap[ResourceType.Encounter]?.map {
-        (it as Encounter).toEncounterItem(unsyncedObservations)
-      }
-        ?: emptyList()
-    val unsyncedPatients =
-      unsyncedResourceMap[ResourceType.Patient]?.map {
-        (it as Patient).toPatientItem(unsyncedEncounters)
-      }
-        ?: emptyList()
     return unsyncedPatients
   }
 
-  internal fun Observation.toObservationItem(): UnsyncedObservation {
+  internal fun Observation.getEncounterId(): String {
+    return encounter?.reference?.substringAfterLast("/") ?: ""
+  }
+
+  internal fun Observation.toObservationItem(isSynced: Boolean = false): UnsyncedObservation {
     return UnsyncedObservation(
-      id = id,
-      title = code.coding.firstOrNull()?.display ?: "Observation: ${id.takeLast(5)}",
-      encounterId = encounter.reference.substringAfterLast("/"),
+      logicalId = logicalId,
+      title = code.coding.firstOrNull()?.display ?: "Observation: ${logicalId.takeLast(5)}",
+      encounterId = getEncounterId(),
       patientId = subject.reference.substringAfterLast("/"),
-      isSynced = false,
+      isSynced = isSynced,
     )
+  }
+
+  internal fun Encounter.getPatientId(): String {
+    return subject.reference.substringAfterLast("/")
   }
 
   internal fun Encounter.toEncounterItem(
+    isSynced: Boolean = false,
     unsyncedObservations: List<UnsyncedObservation>,
   ): UnsyncedEncounter {
     return UnsyncedEncounter(
-      id = id,
-      title = type.firstOrNull()?.coding?.firstOrNull()?.display ?: "Encounter: ${id.takeLast(5)}",
-      patientId = subject.reference.substringAfterLast("/"),
-      observations = unsyncedObservations.filter { it.encounterId == id },
+      logicalId = logicalId,
+      title = type.firstOrNull()?.coding?.firstOrNull()?.display
+          ?: "Encounter: ${logicalId.takeLast(5)}",
+      patientId = getPatientId(),
+      observations = unsyncedObservations,
+      isSynced = isSynced,
     )
   }
 
-  internal fun Patient.toPatientItem(unsyncedEncounters: List<UnsyncedEncounter>): UnsyncedPatient {
+  internal fun Patient.toPatientItem(
+    isSynced: Boolean = false,
+    unsyncedEncounters: List<UnsyncedEncounter>,
+  ): UnsyncedPatient {
     return UnsyncedPatient(
-      id = id,
-      name = name.firstOrNull()?.text ?: "Patient: ${id.takeLast(5)}",
+      logicalId = logicalId,
+      name = name.firstOrNull()?.nameAsSingleString ?: "Patient: ${logicalId.takeLast(5)}",
       isExpanded = false,
-      isSynced = false,
-      encounters = unsyncedEncounters.filter { it.patientId == id },
+      isSynced = isSynced,
+      encounters = unsyncedEncounters,
     )
   }
 
-  // Mock data for testing
-  private fun fetchMockData(): List<UnsyncedPatient> {
-    // Create observations
-    val obs1 =
-      UnsyncedObservation(
-        id = "o1",
-        title = "Blood Pressure",
-        encounterId = "e1",
-        patientId = "p1",
-        isSynced = false,
-      )
+  internal fun getUnsyncedResourceCurrentAndChildrenResourceId(
+    unsyncedResource: UnsyncedResourceModel,
+    onlyUnSyncedFlag: Boolean = false,
+  ): Map<ResourceType, Set<String>> {
+    val resourceIds = mutableMapOf<ResourceType, MutableSet<String>>()
 
-    val obs2 =
-      UnsyncedObservation(
-        id = "o2",
-        title = "Temperature",
-        encounterId = "e1",
-        patientId = "p1",
-        isSynced = true,
-      )
-
-    val obs3 =
-      UnsyncedObservation(
-        id = "o3",
-        title = "Heart Rate",
-        encounterId = "e2",
-        patientId = "p1",
-        isSynced = false,
-      )
-
-    val obs4 =
-      UnsyncedObservation(
-        id = "o4",
-        title = "Respiratory Rate",
-        encounterId = "e3",
-        patientId = "p2",
-        isSynced = false,
-      )
-
-    val obs5 =
-      UnsyncedObservation(
-        id = "o5",
-        title = "Weight",
-        encounterId = "e3",
-        patientId = "p2",
-        isSynced = true,
-      )
-
-    // Create encounters with observations
-    val enc1 =
-      UnsyncedEncounter(
-        id = "e1",
-        title = "Check-up Visit",
-        patientId = "p1",
-        observations = listOf(obs1, obs2),
-        isExpanded = false,
-        isSynced = false,
-      )
-
-    val enc2 =
-      UnsyncedEncounter(
-        id = "e2",
-        title = "Emergency Visit",
-        patientId = "p1",
-        observations = listOf(obs3),
-        isExpanded = false,
-        isSynced = true,
-      )
-
-    val enc3 =
-      UnsyncedEncounter(
-        id = "e3",
-        title = "Follow-up Visit",
-        patientId = "p2",
-        observations = listOf(obs4, obs5),
-        isExpanded = false,
-        isSynced = false,
-      )
-
-    // Create patients with encounters
-    return listOf(
-      UnsyncedPatient(
-        id = "p1",
-        name = "John Doe",
-        encounters = listOf(enc1, enc2),
-        isExpanded = false,
-        isSynced = false,
-      ),
-      UnsyncedPatient(
-        id = "p2",
-        name = "Jane Smith",
-        encounters = listOf(enc3),
-        isExpanded = false,
-        isSynced = true,
-      ),
-    )
+    when (unsyncedResource) {
+      is UnsyncedPatient -> {
+        if (!onlyUnSyncedFlag || !unsyncedResource.isSynced) {
+          resourceIds
+            .getOrPut(ResourceType.Patient) { mutableSetOf<String>() }
+            .add(unsyncedResource.logicalId)
+        }
+        unsyncedResource.encounters
+          .filter { !onlyUnSyncedFlag || !it.isSynced }
+          .forEach { encounter ->
+            resourceIds
+              .getOrPut(ResourceType.Encounter) { mutableSetOf<String>() }
+              .add(encounter.logicalId)
+            encounter.observations
+              .filter { !onlyUnSyncedFlag || !it.isSynced }
+              .forEach { observation ->
+                resourceIds
+                  .getOrPut(ResourceType.Observation) { mutableSetOf<String>() }
+                  .add(observation.logicalId)
+              }
+          }
+      }
+      is UnsyncedEncounter -> {
+        if (!onlyUnSyncedFlag || !unsyncedResource.isSynced) {
+          resourceIds
+            .getOrPut(ResourceType.Encounter) { mutableSetOf<String>() }
+            .add(unsyncedResource.logicalId)
+        }
+        unsyncedResource.observations
+          .filter { !onlyUnSyncedFlag || !it.isSynced }
+          .forEach { observation ->
+            resourceIds
+              .getOrPut(ResourceType.Observation) { mutableSetOf<String>() }
+              .add(observation.logicalId)
+          }
+      }
+      is UnsyncedObservation -> {
+        if (!onlyUnSyncedFlag || !unsyncedResource.isSynced) {
+          resourceIds
+            .getOrPut(ResourceType.Observation) { mutableSetOf<String>() }
+            .add(unsyncedResource.logicalId)
+        }
+      }
+    }
+    return resourceIds
   }
 }

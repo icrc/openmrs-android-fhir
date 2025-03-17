@@ -112,12 +112,11 @@ class UnsyncedResourcesAdapter(
       tvPatientName.text = patient.name
 
       // Set expand/collapse icon
-      ivExpandCollapse.setImageResource(
-        if (patient.isExpanded) R.drawable.ic_collapse else R.drawable.ic_expand,
-      )
+      ivExpandCollapse.visibility =
+        if (patient.encounters.isNotEmpty()) View.VISIBLE else View.INVISIBLE
 
       // Set click listeners
-      ivExpandCollapse.setOnClickListener { onToggleExpand(patient.id) }
+      ivExpandCollapse.setOnClickListener { onToggleExpand(patient.logicalId) }
 
       if (patient.isSynced) {
         btnDeletePatient.setImageResource(R.drawable.ic_check_decagram_green)
@@ -143,10 +142,8 @@ class UnsyncedResourcesAdapter(
     fun bind(encounter: UnsyncedEncounter) {
       tvEncounterTitle.text = encounter.title
 
-      // Set expand/collapse icon
-      ivExpandCollapse.setImageResource(
-        if (encounter.isExpanded) R.drawable.ic_collapse else R.drawable.ic_expand,
-      )
+      ivExpandCollapse.visibility =
+        if (encounter.observations.isNotEmpty()) View.VISIBLE else View.INVISIBLE
 
       // Set visibility based on whether there are observations
       ivExpandCollapse.visibility =
@@ -155,7 +152,7 @@ class UnsyncedResourcesAdapter(
       // Set click listeners
       ivExpandCollapse.setOnClickListener {
         if (encounter.observations.isNotEmpty()) {
-          onToggleExpand(encounter.id)
+          onToggleExpand(encounter.logicalId)
         }
       }
 
@@ -204,12 +201,12 @@ class UnsyncedResourcesAdapter(
     override fun areItemsTheSame(oldItem: UnsyncedResource, newItem: UnsyncedResource): Boolean {
       return when {
         oldItem is UnsyncedResource.PatientItem && newItem is UnsyncedResource.PatientItem ->
-          oldItem.patient.id == newItem.patient.id
+          oldItem.patient.logicalId == newItem.patient.logicalId
         oldItem is UnsyncedResource.EncounterItem && newItem is UnsyncedResource.EncounterItem ->
-          oldItem.encounter.id == newItem.encounter.id
+          oldItem.encounter.logicalId == newItem.encounter.logicalId
         oldItem is UnsyncedResource.ObservationItem &&
           newItem is UnsyncedResource.ObservationItem ->
-          oldItem.observation.id == newItem.observation.id
+          oldItem.observation.logicalId == newItem.observation.logicalId
         else -> false
       }
     }

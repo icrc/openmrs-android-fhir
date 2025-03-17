@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -35,6 +36,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
@@ -48,6 +50,7 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.UnsyncedResourcesAdapter
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
 import org.openmrs.android.fhir.databinding.FragmentUnsyncedResourcesBinding
+import org.openmrs.android.fhir.extensions.saveToFile
 import org.openmrs.android.fhir.viewmodel.UnsyncedResourcesViewModel
 
 class UnsyncedResourcesFragment : Fragment() {
@@ -77,12 +80,15 @@ class UnsyncedResourcesFragment : Fragment() {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
+
     // Initialize views
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title = requireContext().getString(R.string.unsynced_resources)
       setDisplayHomeAsUpEnabled(true)
     }
+    observeLoading()
+
     // Setup RecyclerView
     adapter =
       UnsyncedResourcesAdapter(
@@ -112,10 +118,18 @@ class UnsyncedResourcesFragment : Fragment() {
         )
         .show()
     }
-
     // Observe ViewModel
-    viewModel.resources.observe(viewLifecycleOwner) { resources -> adapter.submitList(resources) }
-
+    viewModel.resources.observe(viewLifecycleOwner) { resources ->
+      if (resources.isEmpty()) {
+        binding.emptyStateContainer.visibility = View.VISIBLE
+        binding.rvUnsyncedResources.visibility = View.GONE
+      } else {
+        binding.emptyStateContainer.visibility = View.GONE
+        binding.rvUnsyncedResources.visibility = View.VISIBLE
+      }
+      adapter.submitList(resources)
+    }
+    observeDownloadResources()
     (activity as MainActivity).setDrawerEnabled(false)
   }
 
@@ -163,13 +177,45 @@ class UnsyncedResourcesFragment : Fragment() {
   private fun showDownloadToast(resource: UnsyncedResource) {
     val message =
       when (resource) {
-        is UnsyncedResource.PatientItem -> "Downloading patient data for ${resource.patient.name}"
-        is UnsyncedResource.EncounterItem -> "Downloading encounter: ${resource.encounter.title}"
+        is UnsyncedResource.PatientItem -> "Collecting patient data for ${resource.patient.name}"
+        is UnsyncedResource.EncounterItem ->
+          "Collecting encounter data: ${resource.encounter.title}"
         is UnsyncedResource.ObservationItem ->
-          "Downloading observation: ${resource.observation.title}"
+          "Collecting observation: ${resource.observation.title}"
       }
 
     Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+  }
+
+  private fun observeDownloadResources() {
+    viewModel.downloadResource.observe(viewLifecycleOwner) { resource ->
+      val bundle = saveToFile(requireContext().applicationContext, "bundle.json", resource)
+      if (bundle != null) {
+        val emailIntent =
+          Intent(Intent.ACTION_SEND).apply {
+            type = "application/json"
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(getString(R.string.support_email)))
+            putExtra(Intent.EXTRA_SUBJECT, "Unsynced Resources")
+            putExtra(Intent.EXTRA_TEXT, "Attached are the unsynced resources.")
+            putExtra(
+              Intent.EXTRA_STREAM,
+              FileProvider.getUriForFile(
+                requireContext(),
+                "${requireContext().applicationContext.packageName}.provider",
+                bundle,
+              ),
+            )
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+          }
+        startActivity(Intent.createChooser(emailIntent, "Send Unsynced Resources"))
+      }
+    }
+  }
+
+  private fun observeLoading() {
+    viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+      binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+    }
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
