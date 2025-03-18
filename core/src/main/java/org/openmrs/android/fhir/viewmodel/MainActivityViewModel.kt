@@ -52,12 +52,15 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Bundle
@@ -128,23 +131,26 @@ constructor(
       }
     }
 
+  @ExperimentalCoroutinesApi
   fun initPeriodicSyncWorker(periodicSyncDelay: Long) {
-    _pollPeriodicSyncJobStatus =
-      Sync.periodicSync<FhirSyncWorker>(
-          applicationContext,
-          periodicSyncConfiguration =
-            PeriodicSyncConfiguration(
-              syncConstraints = Constraints.Builder().build(),
-              repeat = RepeatInterval(interval = periodicSyncDelay, timeUnit = TimeUnit.MINUTES),
-            ),
-        )
-        .shareIn(viewModelScope, SharingStarted.Eagerly, 10)
+    viewModelScope.launch {
+      _pollPeriodicSyncJobStatus =
+        Sync.periodicSync<FhirSyncWorker>(
+            applicationContext,
+            periodicSyncConfiguration =
+              PeriodicSyncConfiguration(
+                syncConstraints = Constraints.Builder().build(),
+                repeat = RepeatInterval(interval = periodicSyncDelay, timeUnit = TimeUnit.MINUTES),
+              ),
+          )
+          .shareIn(viewModelScope, SharingStarted.Eagerly, 10)
+    }
   }
 
   val pollState: SharedFlow<CurrentSyncJobStatus> =
     _oneTimeSyncTrigger
       .combine(
-        flow = Sync.oneTimeSync<FhirSyncWorker>(context = applicationContext),
+        flow = flow { emitAll(Sync.oneTimeSync<FhirSyncWorker>(context = applicationContext)) },
       ) { _, syncJobStatus ->
         syncJobStatus
       }
