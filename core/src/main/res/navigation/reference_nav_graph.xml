@@ -33,6 +33,10 @@
             android:id="@+id/action_home_fragment_to_syncInfoFragment"
             app:destination="@id/syncInfoFragment"
         />
+    <action
+            android:id="@+id/action_home_fragment_to_unsyncedResourcesFragment"
+            app:destination="@id/unsyncedResourcesFragment"
+        />
   </fragment>
 
   <fragment
@@ -151,6 +155,12 @@
         android:label="@string/sync_info"
         android:name="org.openmrs.android.fhir.fragments.SyncInfoFragment"
         tools:layout="@layout/fragment_sync_info"
+    />
+  <fragment
+        android:id="@+id/unsyncedResourcesFragment"
+        android:label="@string/sync_info"
+        android:name="org.openmrs.android.fhir.fragments.UnsyncedResourcesFragment"
+        tools:layout="@layout/fragment_unsynced_resources"
     />
 
   <fragment

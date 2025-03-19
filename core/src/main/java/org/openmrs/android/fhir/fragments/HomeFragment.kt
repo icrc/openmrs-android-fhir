@@ -101,6 +101,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     requireView().findViewById<CardView>(R.id.sync_info).setOnClickListener {
       findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSyncInfoFragment())
     }
+    requireView().findViewById<CardView>(R.id.unsynced_resources).setOnClickListener {
+      findNavController()
+        .navigate(HomeFragmentDirections.actionHomeFragmentToUnsyncedResourcesFragment())
+    }
   }
 
   @Deprecated("Deprecated in Java")

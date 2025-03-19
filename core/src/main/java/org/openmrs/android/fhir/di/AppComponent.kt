@@ -46,6 +46,7 @@ import org.openmrs.android.fhir.fragments.PatientDetailsFragment
 import org.openmrs.android.fhir.fragments.PatientListFragment
 import org.openmrs.android.fhir.fragments.SettingsFragment
 import org.openmrs.android.fhir.fragments.SyncInfoFragment
+import org.openmrs.android.fhir.fragments.UnsyncedResourcesFragment
 
 @Singleton
 @Component(
@@ -94,4 +95,6 @@ interface AppComponent {
   fun inject(activity: BasicLoginActivity)
 
   fun inject(fragment: CreateEncountersFragment)
+
+  fun inject(fragment: UnsyncedResourcesFragment)
 }
