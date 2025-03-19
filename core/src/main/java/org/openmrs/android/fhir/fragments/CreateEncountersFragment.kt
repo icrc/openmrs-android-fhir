@@ -42,6 +42,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.extensions.logicalId
 import com.google.android.fhir.search.search
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -89,7 +90,12 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     val buttonContainer = view.findViewById<LinearLayout>(R.id.button_container)
 
     lifecycleScope.launch(Dispatchers.IO) {
-      val forms = fhirEngine.search<Questionnaire> {}
+      val forms =
+        fhirEngine
+          .search<Questionnaire> {}
+          .filter { questionnaire ->
+            questionnaire.resource.logicalId != getString(R.string.registration_questionnaire_name)
+          }
       withContext(Dispatchers.Main) {
         for (form in forms) {
           setupFormButton(buttonContainer, form.resource)
