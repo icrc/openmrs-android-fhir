@@ -123,6 +123,10 @@
         tools:layout="@layout/add_patient_fragment"
     >
     <argument android:name="patient_id" app:argType="string" />
+    <argument
+            android:name="registration_questionnaire_name"
+            app:argType="string"
+        />
   </fragment>
   <fragment
         android:id="@+id/editEncounterFragment"

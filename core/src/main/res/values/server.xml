@@ -15,4 +15,7 @@
         name="check_server_url"
     >http://127.0.0.1:8080/openmrs/ws/rest/v1/session</string>
   <string name="support_email">support@example.com</string>
+  <string
+        name="registration_questionnaire_name"
+    >new-patient-registration-paginated</string>
 </resources>
