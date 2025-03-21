@@ -48,6 +48,7 @@
     <string name="location">Location</string>
     <string name="identifier">Identifier</string>
     <string name="sync_info">Sync Info</string>
+    <string name="unsynced_resources">Unsynced Resources</string>
     <string name="select_a_location">Select a Location</string>
     <string name="select_patient_lists">Select Patient Lists</string>
     <string name="select_identifier_types">Select Identifier Types</string>
@@ -170,4 +171,19 @@
     <string
         name="no_patients_available_register_a_new_one_using_the_button_below"
     >No Patients Available, Register a new one using the button below</string>
+    <string name="observation">Observation</string>
+    <string name="download_observation">Download Observation</string>
+    <string name="delete_observation">Delete Observation</string>
+    <string name="expand">Expand</string>
+    <string name="encounter">Encounter</string>
+    <string name="download_encounter">Download Encounter</string>
+    <string name="delete_encounter">Delete Encounter</string>
+    <string name="download_patient">Download Patient</string>
+    <string name="delete_patient">Delete Patient</string>
+    <string name="empty_state_icon">Empty State Icon</string>
+    <string
+        name="no_unsynced_resources_available"
+    >No Unsynced Resources Available</string>
+    <string name="delete_all">Delete All</string>
+    <string name="download_all">Download All</string>
 </resources>
