@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginTop="1dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+>
+    <TextView
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:id="@+id/selectPatientListItemText"
+        style="?android:attr/dropDownItemStyle"
+        android:textAppearance="?android:attr/textAppearanceLargePopupMenu"
+        android:singleLine="true"
+        android:layout_width="match_parent"
+        android:layout_marginHorizontal="8dp"
+        android:text="Patient List 1"
+        android:layout_height="?android:attr/listPreferredItemHeight"
+        android:ellipsize="marquee"
+    />
+    <CheckBox
+        android:id="@+id/selectPatientListItemCheckbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="@id/selectPatientListItemText"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toBottomOf="@id/selectPatientListItemText"
+    />
+</androidx.constraintlayout.widget.ConstraintLayout>

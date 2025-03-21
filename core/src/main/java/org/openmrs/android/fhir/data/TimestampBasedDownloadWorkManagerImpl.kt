@@ -37,6 +37,8 @@ import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.LinkedList
 import java.util.Locale
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import org.hl7.fhir.exceptions.FHIRException
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.ListResource
@@ -46,6 +48,7 @@ import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.dataStore
 
 class TimestampBasedDownloadWorkManagerImpl(
   private val dataStore: DemoDataStore,
@@ -55,7 +58,27 @@ class TimestampBasedDownloadWorkManagerImpl(
   private val urls = LinkedList(loadUrlsFromProperties())
 
   private fun loadUrlsFromProperties(): List<String> {
-    return context.getString(R.string.fhir_sync_urls).split(',').toList()
+    val urlList = context.getString(R.string.fhir_sync_urls).split(',').toList()
+    return urlList.map { url ->
+      val HAS_GROUP_MEMBER_ID = "_has:Group:member:id="
+      if (url.contains(HAS_GROUP_MEMBER_ID)) {
+        runBlocking {
+          val selectedPatientLists =
+            context.applicationContext.dataStore.data.first()[PreferenceKeys.SELECTED_PATIENT_LISTS]
+
+          if (selectedPatientLists.isNullOrEmpty()) {
+            url.replace("_has:Group:member:id=&", "")
+          } else {
+            url.replace(
+              "?_has:Group:member:id=",
+              "?_has:Group:member:id=" + selectedPatientLists.joinToString(","),
+            )
+          }
+        }
+      } else {
+        url
+      }
+    }
   }
 
   override suspend fun getNextRequest(): DownloadRequest? {

@@ -46,4 +46,6 @@ interface Api {
   suspend fun validateSession(authorization: String): ApiResponse<SessionResponse>
 
   suspend fun getLocations(context: Context): ApiResponse<Bundle>
+
+  suspend fun getPatientLists(context: Context): ApiResponse<Bundle>
 }

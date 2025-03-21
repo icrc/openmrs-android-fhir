@@ -53,14 +53,13 @@ import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Bundle
@@ -114,6 +113,10 @@ constructor(
   val networkStatus: StateFlow<Boolean>
     get() = _networkStatus
 
+  private val _pollState = MutableSharedFlow<CurrentSyncJobStatus>()
+  val pollState: Flow<CurrentSyncJobStatus>
+    get() = _pollState
+
   private var connectivityManager: ConnectivityManager =
     applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
   private var networkCallBack: ConnectivityManager.NetworkCallback =
@@ -147,26 +150,15 @@ constructor(
     }
   }
 
-  val pollState: SharedFlow<CurrentSyncJobStatus> =
-    _oneTimeSyncTrigger
-      .combine(
-        flow = flow { emitAll(Sync.oneTimeSync<FhirSyncWorker>(context = applicationContext)) },
-      ) { _, syncJobStatus ->
-        syncJobStatus
-      }
-      .shareIn(viewModelScope, SharingStarted.Eagerly, 0)
-
   fun triggerOneTimeSync(context: Context) {
     viewModelScope.launch {
       if (!stopSync) {
         fetchIdentifierTypesIfEmpty()
         embeddIdentifierToUnsyncedPatients(context)
         _oneTimeSyncTrigger.value = !_oneTimeSyncTrigger.value
-        _oneTimeSyncTrigger.combine(
-          flow = Sync.oneTimeSync<FhirSyncWorker>(context = applicationContext),
-        ) { _, syncJobStatus ->
-          syncJobStatus
-        }
+        Sync.oneTimeSync<FhirSyncWorker>(applicationContext)
+          .shareIn(this, SharingStarted.Eagerly, 10)
+          .collect { _pollState.emit(it) }
       }
     }
   }

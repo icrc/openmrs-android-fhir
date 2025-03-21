@@ -42,6 +42,7 @@ android {
 
     setResValue(providers, "auth_method", this)
     setResValue(providers, "basic_auth_expiry_hours", this, "integer")
+    setResValue(providers, "registration_questionnaire_name", this)
   }
   buildTypes {
     getByName("release") { signingConfig = signingConfigs.getByName("debug") }

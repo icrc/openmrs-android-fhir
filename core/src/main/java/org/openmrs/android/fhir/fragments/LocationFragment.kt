@@ -42,6 +42,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
@@ -101,7 +102,25 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
       }
     }
 
-    actionBar?.setDisplayHomeAsUpEnabled(true)
+    arguments?.let {
+      val fromLogin = it.getBoolean("from_login")
+      if (fromLogin) {
+        actionBar?.hide()
+        (activity as MainActivity).setDrawerEnabled(true)
+        binding.titleTextView.visibility = View.VISIBLE
+        binding.actionButton.visibility = View.VISIBLE
+        binding.actionButton.setOnClickListener {
+          findNavController()
+            .navigate(
+              LocationFragmentDirections.actionLocationFragmentToSelectPatientListFragment(true),
+            )
+        }
+      } else {
+        actionBar?.setDisplayHomeAsUpEnabled(true)
+        (activity as MainActivity).setDrawerEnabled(false)
+      }
+    }
+
     locationViewModel.getLocations()
     locationViewModel.setFavoriteLocations(context?.applicationContext!!)
 
@@ -124,7 +143,6 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
     }
 
     addSearchTextChangeListener()
-    (activity as MainActivity).setDrawerEnabled(false)
   }
 
   private fun onLocationItemClicked(
@@ -209,6 +227,11 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
       }
       else -> false
     }
+  }
+
+  override fun onPause() {
+    super.onPause()
+    (requireActivity() as AppCompatActivity).supportActionBar?.show()
   }
 
   override fun onDestroyView() {
