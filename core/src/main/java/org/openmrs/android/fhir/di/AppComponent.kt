@@ -33,6 +33,7 @@ import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Singleton
 import org.openmrs.android.fhir.BasicLoginActivity
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.LoginActivity
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.fragments.AddPatientFragment
@@ -44,6 +45,7 @@ import org.openmrs.android.fhir.fragments.IdentifierFragment
 import org.openmrs.android.fhir.fragments.LocationFragment
 import org.openmrs.android.fhir.fragments.PatientDetailsFragment
 import org.openmrs.android.fhir.fragments.PatientListFragment
+import org.openmrs.android.fhir.fragments.SelectPatientListFragment
 import org.openmrs.android.fhir.fragments.SettingsFragment
 import org.openmrs.android.fhir.fragments.SyncInfoFragment
 
@@ -94,4 +96,8 @@ interface AppComponent {
   fun inject(activity: BasicLoginActivity)
 
   fun inject(fragment: CreateEncountersFragment)
+
+  fun inject(fragment: SelectPatientListFragment)
+
+  fun inject(application: FhirApplication)
 }

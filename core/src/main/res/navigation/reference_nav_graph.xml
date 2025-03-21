@@ -26,6 +26,10 @@
             app:destination="@id/locationFragment"
         />
     <action
+            android:id="@+id/action_home_fragment_to_selectPatientListFragment"
+            app:destination="@id/selectPatientListFragment"
+        />
+    <action
             android:id="@+id/action_home_fragment_to_identifierFragment"
             app:destination="@id/identifierFragment"
         />
@@ -139,7 +143,29 @@
         android:label="@string/location"
         android:name="org.openmrs.android.fhir.fragments.LocationFragment"
         tools:layout="@layout/fragment_location"
-    />
+    >
+    <argument android:name="from_login" app:argType="boolean" />
+    <action
+            android:id="@+id/action_locationFragment_to_selectPatientListFragment"
+            app:popUpToInclusive="true"
+            app:popUpTo="@id/locationFragment"
+            app:destination="@id/selectPatientListFragment"
+        />
+  </fragment>
+  <fragment
+        android:id="@+id/selectPatientListFragment"
+        android:label="@string/select_patient_lists"
+        android:name="org.openmrs.android.fhir.fragments.SelectPatientListFragment"
+        tools:layout="@layout/fragment_select_patient_list"
+    >
+    <argument android:name="from_login" app:argType="boolean" />
+    <action
+            android:id="@+id/action_selectPatientListFragment_to_homeFragment"
+            app:popUpToInclusive="true"
+            app:popUpTo="@id/selectPatientListFragment"
+            app:destination="@id/home_fragment"
+        />
+  </fragment>
   <fragment
         android:id="@+id/identifierFragment"
         android:label="@string/identifier"

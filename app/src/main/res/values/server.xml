@@ -9,6 +9,9 @@
   <string
         name="check_server_url"
     >http://127.0.0.1:8080/openmrs/ws/rest/v1/session</string>
+  <string
+        name="fhir_sync_urls"
+    >Location?_sort=_lastUpdated&amp;_summary=data&amp;_tag=Offline,Patient?_has:Group:member:id=&amp;_revinclude=Encounter:patient&amp;_revinclude=Observation:patient&amp;_sort=_lastUpdated,Questionnaire?_sort=_lastUpdated</string>
   <string name="support_email">parthgeek@gmail.com</string>
   <string
         name="registration_questionnaire_name"

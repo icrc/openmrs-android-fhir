@@ -44,11 +44,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Patient
-import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.RiskAssessment
-import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.PreferenceKeys
 import timber.log.Timber
 
 /**
@@ -107,13 +104,10 @@ constructor(private val applicationContext: Context, private val fhirEngine: Fhi
   }
 
   /*
-   * Fetches Patient list filtered by user selected location.
-   * It filters using the location information in the first identifier's extension's reference value.
-   * Note: The patient list screen is only visible if the user has selected a location.
+   * Fetches Patient list
    */
   private suspend fun getSearchResults(nameQuery: String = ""): List<PatientItem> {
     isLoading.value = true
-    val selectLocationID = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
     val patients: MutableList<PatientItem> = mutableListOf()
     fhirEngine
       .search<Patient> {
@@ -129,13 +123,6 @@ constructor(private val applicationContext: Context, private val fhirEngine: Fhi
         sort(Patient.GIVEN, Order.ASCENDING)
         count = 100
         from = 0
-      }
-      .filter {
-        // Filters for patient according to selected location Id.
-        it.resource.identifier.any { identifier ->
-          (identifier.extensionFirstRep.value as Reference).reference.substringAfter("/") ==
-            selectLocationID
-        }
       }
       .mapIndexed { index, fhirPatient -> fhirPatient.resource.toPatientItem(index + 1) }
       .let {

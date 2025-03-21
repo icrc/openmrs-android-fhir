@@ -95,4 +95,15 @@
     <color name="light_grey">#FAFAFA</color>
     <color name="dashboard_cardview_textcolor">#4D4D4D</color>
 
+    <color
+        name="selected_item_background"
+    >#E8F0FE</color> <!-- Light blue background -->
+    <color
+        name="selected_item_border"
+    >#4285F4</color> <!-- Accent blue border -->
+    <color
+        name="default_item_background"
+    >#FFFFFF</color> <!-- White background -->
+    <color name="default_item_border">#E0E0E0</color> <!-- Light gray border -->
+
 </resources>
