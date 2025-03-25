@@ -186,4 +186,6 @@
     >No Unsynced Resources Available</string>
     <string name="delete_all">Delete All</string>
     <string name="download_all">Download All</string>
+    <string name="no_locations_available">No Locations available.</string>
+    <string name="no_patient_list_available">No Patient List available</string>
 </resources>

@@ -34,6 +34,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
 import androidx.datastore.preferences.core.edit
@@ -115,11 +116,23 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
         binding.titleTextView.visibility = View.VISIBLE
         binding.actionButton.visibility = View.VISIBLE
         binding.actionButton.setOnClickListener {
-          (activity as MainActivity).onSyncPress()
-          NavHostFragment.findNavController(this)
-            .navigate(
-              SelectPatientListFragmentDirections.actionSelectPatientListFragmentToHomeFragment(),
-            )
+          if (
+            !selectPatientListAdapter.isAnyPatientListItemSelected() &&
+              !selectPatientListViewModel.selectPatientListItems.value.isNullOrEmpty()
+          ) {
+            AlertDialog.Builder(requireContext()).apply {
+              setTitle("Select Patient List")
+              setMessage("No patient list is selected. Do you want to select one?")
+              setPositiveButton("Yes") { dialog, _ -> dialog.dismiss() }
+              setNegativeButton("No") { dialog, _ ->
+                proceedToHomeFragment()
+                dialog.dismiss()
+              }
+              show()
+            }
+          } else {
+            proceedToHomeFragment()
+          }
         }
       } else {
         actionBar?.setDisplayHomeAsUpEnabled(true)
@@ -132,13 +145,25 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
     selectPatientListViewModel.selectPatientListItems.observe(viewLifecycleOwner) {
       binding.progressBar.visibility = View.GONE
       if (::selectPatientListAdapter.isInitialized) {
-        selectPatientListAdapter.submitList(
-          selectPatientListViewModel.getSelectPatientListItemsListFiltered(),
-        )
+        val selectedPatientList = selectPatientListViewModel.getSelectPatientListItemsListFiltered()
+        if (selectedPatientList.isEmpty()) {
+          binding.emptyStateContainer.visibility = View.VISIBLE
+        } else {
+          binding.emptyStateContainer.visibility = View.GONE
+          selectPatientListAdapter.submitList(
+            selectedPatientList,
+          )
+        }
       }
     }
 
     addSearchTextChangeListener()
+  }
+
+  private fun proceedToHomeFragment() {
+    (activity as MainActivity).onSyncPress()
+    NavHostFragment.findNavController(this)
+      .navigate(SelectPatientListFragmentDirections.actionSelectPatientListFragmentToHomeFragment())
   }
 
   private fun onSelectPatientListItemClicked(

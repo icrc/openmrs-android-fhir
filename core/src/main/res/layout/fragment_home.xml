@@ -7,312 +7,313 @@
     android:layout_marginHorizontal="@dimen/dashboard_margin"
     android:layout_marginTop="@dimen/dashboard_margin"
     android:scrollbars="none"
-    android:fillViewport="true">
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:fillViewport="true"
 >
-
-    <androidx.cardview.widget.CardView
-        android:id="@+id/item_new_patient"
+<LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/cardView_margin_horizontal"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:layout_marginVertical="@dimen/cardView_margin_vertical"
-        app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="@dimen/cardView_radius_corner"
+        android:orientation="vertical"
     >
 
-        <LinearLayout
+    <androidx.cardview.widget.CardView
+            android:id="@+id/item_new_patient"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/new_patient_padding"
-            android:orientation="horizontal"
+            android:layout_marginHorizontal="@dimen/cardView_margin_horizontal"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginVertical="@dimen/cardView_margin_vertical"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="@dimen/cardView_radius_corner"
         >
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_home_new_patient"
-                app:tint="@color/dashboard_cardview_textcolor"
-                android:contentDescription="Task Image"
-            />
-
-            <TextView
+        <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?textAppearanceTitleLarge"
-                android:textSize="@dimen/dashboard_text_fontSize"
-                android:textColor="@color/dashboard_cardview_textcolor"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
-                android:layout_gravity="center"
-                android:text="Register new patient"
-            />
+                android:padding="@dimen/new_patient_padding"
+                android:orientation="horizontal"
+            >
+
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_home_new_patient"
+                    app:tint="@color/dashboard_cardview_textcolor"
+                    android:contentDescription="Task Image"
+                />
+
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?textAppearanceTitleLarge"
+                    android:textSize="@dimen/dashboard_text_fontSize"
+                    android:textColor="@color/dashboard_cardview_textcolor"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
+                    android:layout_gravity="center"
+                    android:text="Register new patient"
+                />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/item_patient_list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/cardView_margin_horizontal"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:layout_marginVertical="@dimen/cardView_margin_vertical"
-        app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="@dimen/cardView_radius_corner"
-    >
-
-        <LinearLayout
+            android:id="@+id/item_patient_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/new_patient_padding"
-            android:orientation="horizontal"
+            android:layout_marginHorizontal="@dimen/cardView_margin_horizontal"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginVertical="@dimen/cardView_margin_vertical"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="@dimen/cardView_radius_corner"
         >
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_home_patient_list"
-                app:tint="@color/dashboard_cardview_textcolor"
-                android:contentDescription="Task Image"
-            />
-
-            <TextView
+        <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?textAppearanceTitleLarge"
-                android:textSize="@dimen/dashboard_text_fontSize"
-                android:textColor="@color/dashboard_cardview_textcolor"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
-                android:layout_gravity="center"
-                android:text="Patient list  "
-            />
+                android:padding="@dimen/new_patient_padding"
+                android:orientation="horizontal"
+            >
+
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_home_patient_list"
+                    app:tint="@color/dashboard_cardview_textcolor"
+                    android:contentDescription="Task Image"
+                />
+
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?textAppearanceTitleLarge"
+                    android:textSize="@dimen/dashboard_text_fontSize"
+                    android:textColor="@color/dashboard_cardview_textcolor"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
+                    android:layout_gravity="center"
+                    android:text="Patient list  "
+                />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/select_location"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/search_patient_cardview_horizontal_margin"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:layout_marginTop="@dimen/search_patient_cardview_margin_top"
-        android:layout_marginVertical="@dimen/search_patient_cardview_vertical_margin"
-        app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="@dimen/cardView_radius_corner"
-    >
-
-        <LinearLayout
+            android:id="@+id/select_location"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/new_patient_padding"
-            android:orientation="horizontal"
+            android:layout_marginHorizontal="@dimen/search_patient_cardview_horizontal_margin"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginTop="@dimen/search_patient_cardview_margin_top"
+            android:layout_marginVertical="@dimen/search_patient_cardview_vertical_margin"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="@dimen/cardView_radius_corner"
         >
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_location"
-                app:tint="@color/dashboard_cardview_textcolor"
-                android:contentDescription="Task Image"
-            />
-            <TextView
+
+        <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?textAppearanceTitleLarge"
-                android:textSize="@dimen/dashboard_text_fontSize"
-                android:textColor="@color/dashboard_cardview_textcolor"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
-                android:layout_gravity="center"
-                android:text="Select Location"
-            />
+                android:padding="@dimen/new_patient_padding"
+                android:orientation="horizontal"
+            >
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_location"
+                    app:tint="@color/dashboard_cardview_textcolor"
+                    android:contentDescription="Task Image"
+                />
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?textAppearanceTitleLarge"
+                    android:textSize="@dimen/dashboard_text_fontSize"
+                    android:textColor="@color/dashboard_cardview_textcolor"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
+                    android:layout_gravity="center"
+                    android:text="Select Location"
+                />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/select_patient_list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/search_patient_cardview_horizontal_margin"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:layout_marginTop="@dimen/search_patient_cardview_margin_top"
-        android:layout_marginVertical="@dimen/search_patient_cardview_vertical_margin"
-        app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="@dimen/cardView_radius_corner"
-    >
-
-        <LinearLayout
+            android:id="@+id/select_patient_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/new_patient_padding"
-            android:orientation="horizontal"
+            android:layout_marginHorizontal="@dimen/search_patient_cardview_horizontal_margin"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginTop="@dimen/search_patient_cardview_margin_top"
+            android:layout_marginVertical="@dimen/search_patient_cardview_vertical_margin"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="@dimen/cardView_radius_corner"
         >
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/cloud_sync_24px"
-                app:tint="@color/dashboard_cardview_textcolor"
-                android:contentDescription="Task Image"
-            />
-            <TextView
+
+        <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?textAppearanceTitleLarge"
-                android:textSize="@dimen/dashboard_text_fontSize"
-                android:textColor="@color/dashboard_cardview_textcolor"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
-                android:layout_gravity="center"
-                android:text="Select Patient List"
-            />
+                android:padding="@dimen/new_patient_padding"
+                android:orientation="horizontal"
+            >
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/cloud_sync_24px"
+                    app:tint="@color/dashboard_cardview_textcolor"
+                    android:contentDescription="Task Image"
+                />
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?textAppearanceTitleLarge"
+                    android:textSize="@dimen/dashboard_text_fontSize"
+                    android:textColor="@color/dashboard_cardview_textcolor"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
+                    android:layout_gravity="center"
+                    android:text="Select Patient List"
+                />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/select_identifier"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/search_patient_cardview_horizontal_margin"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:layout_marginTop="@dimen/search_patient_cardview_margin_top"
-        android:layout_marginVertical="@dimen/search_patient_cardview_vertical_margin"
-        app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="@dimen/cardView_radius_corner"
-    >
-
-        <LinearLayout
+            android:id="@+id/select_identifier"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/new_patient_padding"
-            android:orientation="horizontal"
+            android:layout_marginHorizontal="@dimen/search_patient_cardview_horizontal_margin"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginTop="@dimen/search_patient_cardview_margin_top"
+            android:layout_marginVertical="@dimen/search_patient_cardview_vertical_margin"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="@dimen/cardView_radius_corner"
         >
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_file"
-                app:tint="@color/dashboard_cardview_textcolor"
-                android:contentDescription="Task Image"
-            />
-            <TextView
+
+        <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?textAppearanceTitleLarge"
-                android:textSize="@dimen/dashboard_text_fontSize"
-                android:textColor="@color/dashboard_cardview_textcolor"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
-                android:layout_gravity="center"
-                android:text="Select Identifier"
-            />
+                android:padding="@dimen/new_patient_padding"
+                android:orientation="horizontal"
+            >
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_file"
+                    app:tint="@color/dashboard_cardview_textcolor"
+                    android:contentDescription="Task Image"
+                />
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?textAppearanceTitleLarge"
+                    android:textSize="@dimen/dashboard_text_fontSize"
+                    android:textColor="@color/dashboard_cardview_textcolor"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
+                    android:layout_gravity="center"
+                    android:text="Select Identifier"
+                />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/sync_info"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/search_patient_cardview_horizontal_margin"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:layout_marginTop="@dimen/search_patient_cardview_margin_top"
-        android:layout_marginVertical="@dimen/search_patient_cardview_vertical_margin"
-        app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="@dimen/cardView_radius_corner"
-    >
-
-        <LinearLayout
+            android:id="@+id/sync_info"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/new_patient_padding"
-            android:orientation="horizontal"
+            android:layout_marginHorizontal="@dimen/search_patient_cardview_horizontal_margin"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginTop="@dimen/search_patient_cardview_margin_top"
+            android:layout_marginVertical="@dimen/search_patient_cardview_vertical_margin"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="@dimen/cardView_radius_corner"
         >
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_baseline_sync_24"
-                app:tint="@color/dashboard_cardview_textcolor"
-                android:contentDescription="Task Image"
-            />
-            <TextView
+
+        <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?textAppearanceTitleLarge"
-                android:textSize="@dimen/dashboard_text_fontSize"
-                android:textColor="@color/dashboard_cardview_textcolor"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
-                android:layout_gravity="center"
-                android:text="Sync Info"
-            />
+                android:padding="@dimen/new_patient_padding"
+                android:orientation="horizontal"
+            >
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_baseline_sync_24"
+                    app:tint="@color/dashboard_cardview_textcolor"
+                    android:contentDescription="Task Image"
+                />
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?textAppearanceTitleLarge"
+                    android:textSize="@dimen/dashboard_text_fontSize"
+                    android:textColor="@color/dashboard_cardview_textcolor"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
+                    android:layout_gravity="center"
+                    android:text="Sync Info"
+                />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/unsynced_resources"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/search_patient_cardview_horizontal_margin"
-        android:foreground="?android:attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:layout_marginTop="@dimen/search_patient_cardview_margin_top"
-        android:layout_marginVertical="@dimen/search_patient_cardview_vertical_margin"
-        app:cardBackgroundColor="@color/white"
-        app:cardCornerRadius="@dimen/cardView_radius_corner"
-    >
-
-        <LinearLayout
+            android:id="@+id/unsynced_resources"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/new_patient_padding"
-            android:orientation="horizontal"
+            android:layout_marginHorizontal="@dimen/search_patient_cardview_horizontal_margin"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginTop="@dimen/search_patient_cardview_margin_top"
+            android:layout_marginVertical="@dimen/search_patient_cardview_vertical_margin"
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="@dimen/cardView_radius_corner"
         >
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_offline_resource"
-                app:tint="@color/dashboard_cardview_textcolor"
-                android:contentDescription="Task Image"
-            />
-            <TextView
+
+        <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?textAppearanceTitleLarge"
-                android:textSize="@dimen/dashboard_text_fontSize"
-                android:textColor="@color/dashboard_cardview_textcolor"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
-                android:layout_gravity="center"
-                android:text="Unsynced Resources"
-            />
+                android:padding="@dimen/new_patient_padding"
+                android:orientation="horizontal"
+            >
+            <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_offline_resource"
+                    app:tint="@color/dashboard_cardview_textcolor"
+                    android:contentDescription="Task Image"
+                />
+            <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?textAppearanceTitleLarge"
+                    android:textSize="@dimen/dashboard_text_fontSize"
+                    android:textColor="@color/dashboard_cardview_textcolor"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
+                    android:layout_gravity="center"
+                    android:text="Unsynced Resources"
+                />
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>

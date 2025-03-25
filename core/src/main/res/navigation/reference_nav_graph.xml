@@ -24,6 +24,7 @@
     <action
             android:id="@+id/action_home_fragment_to_locationFragment"
             app:destination="@id/locationFragment"
+            app:launchSingleTop="true"
         />
     <action
             android:id="@+id/action_home_fragment_to_selectPatientListFragment"
@@ -151,8 +152,6 @@
     <argument android:name="from_login" app:argType="boolean" />
     <action
             android:id="@+id/action_locationFragment_to_selectPatientListFragment"
-            app:popUpToInclusive="true"
-            app:popUpTo="@id/locationFragment"
             app:destination="@id/selectPatientListFragment"
         />
   </fragment>
@@ -166,7 +165,7 @@
     <action
             android:id="@+id/action_selectPatientListFragment_to_homeFragment"
             app:popUpToInclusive="true"
-            app:popUpTo="@id/selectPatientListFragment"
+            app:popUpTo="@id/home_fragment"
             app:destination="@id/home_fragment"
         />
   </fragment>

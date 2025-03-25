@@ -28,28 +28,19 @@
 */
 package org.openmrs.android.fhir.viewmodel
 
-import android.content.Context
-import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.search.search
 import javax.inject.Inject
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Group
-import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.PreferenceKeys
-import org.openmrs.android.fhir.data.remote.ApiManager
-import org.openmrs.android.fhir.data.remote.ApiResponse
-import org.openmrs.android.fhir.extensions.isInternetAvailable
-import timber.log.Timber
 
 class SelectPatientListViewModel
 @Inject
 constructor(
-  private val applicationContext: Context,
-  private val apiManager: ApiManager,
+  private val fhirEngine: FhirEngine,
 ) : ViewModel() {
   private var masterSelectPatientListItemList: MutableList<SelectPatientListItem> = mutableListOf()
 
@@ -58,50 +49,12 @@ constructor(
   fun getSelectPatientListItems() {
     viewModelScope.launch {
       val selectPatientListItemList: MutableList<SelectPatientListItem> = mutableListOf()
-      if (isInternetAvailable(applicationContext)) {
-        try {
-          apiManager.getPatientLists(applicationContext).let { response ->
-            when (response) {
-              is ApiResponse.Success<Bundle> -> {
-                var selectPatientListItemEntry = response.data?.entry ?: emptyList()
-                val selectPatientListItems =
-                  selectPatientListItemEntry
-                    .mapIndexed { index, entryComponent ->
-                      (entryComponent.resource as Group).toSelectPatientListItem(index + 1)
-                    }
-                    .sortedBy { it.name }
-                selectPatientListItemList.addAll(selectPatientListItems)
-                purgeUnassignedPatientLists(selectPatientListItemEntry.map { it.resource as Group })
-              }
-              else -> {
-                masterSelectPatientListItemList = selectPatientListItemList
-                selectPatientListItems.value = selectPatientListItemList
-                return@launch
-              }
-            }
-          }
-        } catch (e: Exception) {
-          Timber.e(e.localizedMessage)
-        }
-      }
+      fhirEngine
+        .search<Group> {}
+        .mapIndexed { index, fhirGroup -> fhirGroup.resource.toSelectPatientListItem(index + 1) }
+        .let { selectPatientListItemList.addAll(it) }
       masterSelectPatientListItemList = selectPatientListItemList
       selectPatientListItems.value = selectPatientListItemList
-    }
-  }
-
-  private fun purgeUnassignedPatientLists(remotePatientLists: List<Group>) {
-    viewModelScope.launch {
-      val selectedPatientLists =
-        applicationContext.dataStore.data.first()[PreferenceKeys.SELECTED_PATIENT_LISTS]
-
-      selectedPatientLists?.forEach { patientListId ->
-        if (patientListId !in remotePatientLists.map { it.idPart }) {
-          applicationContext.dataStore.edit { preferences ->
-            preferences[PreferenceKeys.SELECTED_PATIENT_LISTS] =
-              selectedPatientLists.minus(patientListId)
-          }
-        }
-      }
     }
   }
 

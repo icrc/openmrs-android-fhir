@@ -61,6 +61,8 @@ class SelectPatientListItemRecyclerViewAdapter(
     ): Boolean = oldItem == newItem
   }
 
+  fun isAnyPatientListItemSelected(): Boolean = selectedPatientListIds.isNotEmpty()
+
   fun addSelectPatientListItem(selectPatientListId: String) {
     selectedPatientListIds.add(selectPatientListId)
     notifyDataSetChanged()

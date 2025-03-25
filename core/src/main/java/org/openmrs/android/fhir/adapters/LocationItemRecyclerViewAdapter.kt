@@ -60,6 +60,10 @@ class LocationItemRecyclerViewAdapter(
     notifyDataSetChanged()
   }
 
+  fun isLocationSelected(): Boolean {
+    return selectedLocationId != null
+  }
+
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LocationItemViewHolder {
     val binding =
       LocationListItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
