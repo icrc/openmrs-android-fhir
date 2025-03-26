@@ -87,8 +87,6 @@ import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
 import timber.log.Timber
 
-const val MAX_RESOURCE_COUNT = 20
-
 class MainActivity : AppCompatActivity() {
   private lateinit var binding: ActivityMainBinding
   private lateinit var drawerToggle: ActionBarDrawerToggle
@@ -123,7 +121,9 @@ class MainActivity : AppCompatActivity() {
     setContentView(binding.root)
     tokenExpiryHandler = Handler(Looper.getMainLooper())
     demoDataStore = DemoDataStore(this)
-    lifecycleScope.launch { viewModel.initPeriodicSyncWorker(demoDataStore.getPeriodicSyncDelay()) }
+    //    lifecycleScope.launch {
+    // viewModel.initPeriodicSyncWorker(demoDataStore.getPeriodicSyncDelay()) } TODO: Discuss on
+    // periodic sync
     initActionBar()
     initNavigationDrawer()
     observeNetworkConnection(this)
@@ -140,7 +140,8 @@ class MainActivity : AppCompatActivity() {
     runBlocking {
       val selectedLocationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
       if (selectedLocationId == null) {
-        binding.navHostFragment.findNavController().navigate(R.id.locationFragment)
+        val bundle = Bundle().apply { putBoolean("from_login", true) }
+        binding.navHostFragment.findNavController().navigate(R.id.locationFragment, bundle)
       }
     }
     // getting Root View that gets focus
@@ -225,7 +226,7 @@ class MainActivity : AppCompatActivity() {
    * Before triggering sync, it checks if the user is assigned to the location.
    * If not redirects user to the select location screen first and starts the sync.
    */
-  private fun onSyncPress() {
+  fun onSyncPress() {
     when {
       !isTokenExpired() && viewModel.networkStatus.value -> {
         runBlocking {

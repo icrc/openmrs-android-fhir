@@ -34,6 +34,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 class PreferenceKeys {
   companion object {
     val LOCATION_ID = stringPreferencesKey("LOCATION_ID")
+    val SELECTED_PATIENT_LISTS = stringSetPreferencesKey("SELECTED_PATIENT_LISTS")
     val LOCATION_NAME = stringPreferencesKey("LOCATION_NAME")
     val FAVORITE_LOCATIONS = stringSetPreferencesKey("FAVORITE_LOCATIONS")
     val SELECTED_IDENTIFIER_TYPES = stringSetPreferencesKey("SELECTED_IDENTIFIER_TYPES")

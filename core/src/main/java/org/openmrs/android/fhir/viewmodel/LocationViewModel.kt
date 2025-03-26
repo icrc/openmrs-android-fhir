@@ -29,7 +29,6 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
-import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -37,95 +36,56 @@ import ca.uhn.fhir.rest.gclient.StringClientParam
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.Order
 import com.google.android.fhir.search.search
+import com.google.android.fhir.sync.CurrentSyncJobStatus
+import com.google.android.fhir.sync.Sync
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Location
-import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.FirstFhirSyncWorker
 import org.openmrs.android.fhir.data.PreferenceKeys
-import org.openmrs.android.fhir.data.remote.ApiManager
-import org.openmrs.android.fhir.data.remote.ApiResponse
-import org.openmrs.android.fhir.data.remote.model.SessionLocation
-import org.openmrs.android.fhir.extensions.isInternetAvailable
 
 class LocationViewModel
 @Inject
 constructor(
   private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
-  private val apiManager: ApiManager,
 ) : ViewModel() {
   private var masterLocationsList: MutableList<LocationItem> = mutableListOf()
   var favoriteLocationSet: MutableSet<String>? = null
 
   val locations = MutableLiveData<List<LocationItem>>()
+  private val _pollState = MutableSharedFlow<CurrentSyncJobStatus>()
+  val pollState: Flow<CurrentSyncJobStatus>
+    get() = _pollState
 
-  fun getLocations(online: Boolean = true) {
+  fun fetchPreSyncData() {
     viewModelScope.launch {
-      val locationsList: MutableList<LocationItem> = mutableListOf()
-      if (isInternetAvailable(applicationContext) && online) {
-        val selectedLocationID =
-          applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
-        try {
-          if (selectedLocationID != null) {
-            apiManager.setLocationSession(SessionLocation(selectedLocationID))
-          }
-          apiManager.getLocations(applicationContext).let { response ->
-            when (response) {
-              is ApiResponse.Success<Bundle> -> {
-                var locationsEntry = response.data?.entry ?: emptyList()
-                val locations =
-                  locationsEntry
-                    .mapIndexed { index, entryComponent ->
-                      (entryComponent.resource as Location).toLocationItem(index + 1)
-                    }
-                    .sortedBy { it.name }
-                locationsList.addAll(locations)
-                purgeUnassignedLocations(locationsEntry.map { it.resource as Location })
-              }
-              else -> {
-                getLocations(online = false)
-                return@launch
-              }
-            }
-          }
-        } catch (e: Exception) {
-          getLocations(online = false)
-        }
-      } else {
-        fhirEngine
-          .search<Location> {
-            sort(
-              StringClientParam(Location.SP_NAME),
-              Order.ASCENDING,
-            )
-          }
-          .mapIndexed { index, fhirLocation -> fhirLocation.resource.toLocationItem(index + 1) }
-          .let { locationsList.addAll(it) }
-      }
-      masterLocationsList = locationsList
-      locations.value = locationsList
+      Sync.oneTimeSync<FirstFhirSyncWorker>(applicationContext)
+        .shareIn(this, SharingStarted.Eagerly, 10)
+        .collect { _pollState.emit(it) }
     }
   }
 
-  private fun purgeUnassignedLocations(remoteLocations: List<Location>) {
+  fun getLocations() {
     viewModelScope.launch {
-      val selectedLocationID = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
-      val localLocations = fhirEngine.search<Location> {}.map { it.resource.idPart }.toSet()
-
-      localLocations.forEach { locationId ->
-        if (locationId !in remoteLocations.map { it.idPart }) {
-          if (selectedLocationID != null && locationId == selectedLocationID) {
-            applicationContext.dataStore.edit { preferences ->
-              preferences.remove(PreferenceKeys.LOCATION_ID)
-              preferences.remove(PreferenceKeys.LOCATION_NAME)
-            }
-          }
-          fhirEngine.purge(ResourceType.Location, locationId)
+      val locationsList: MutableList<LocationItem> = mutableListOf()
+      fhirEngine
+        .search<Location> {
+          sort(
+            StringClientParam(Location.SP_NAME),
+            Order.ASCENDING,
+          )
         }
-      }
+        .mapIndexed { index, fhirLocation -> fhirLocation.resource.toLocationItem(index + 1) }
+        .let { locationsList.addAll(it) }
+      masterLocationsList = locationsList
+      locations.value = locationsList
     }
   }
 

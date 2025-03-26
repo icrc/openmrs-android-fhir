@@ -60,3 +60,24 @@ class FhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
   override fun getFhirEngine() = FhirEngineProvider.getInstance(applicationContext)
 }
+
+class FirstFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
+  FhirSyncWorker(appContext, workerParams) {
+
+  override fun getDownloadWorkManager(): DownloadWorkManager {
+    return PreSyncDownloadWorkManagerImpl(
+      applicationContext,
+    )
+  }
+
+  override fun getUploadStrategy(): UploadStrategy =
+    UploadStrategy.forIndividualRequest(
+      methodForCreate = HttpCreateMethod.POST,
+      methodForUpdate = HttpUpdateMethod.PATCH,
+      squash = true,
+    )
+
+  override fun getConflictResolver() = AcceptLocalConflictResolver
+
+  override fun getFhirEngine() = FhirEngineProvider.getInstance(applicationContext)
+}

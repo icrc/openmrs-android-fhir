@@ -34,6 +34,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
 import androidx.datastore.preferences.core.edit
@@ -42,7 +43,9 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.fhir.sync.CurrentSyncJobStatus
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -53,6 +56,7 @@ import org.openmrs.android.fhir.adapters.LocationItemRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.FragmentLocationBinding
+import org.openmrs.android.fhir.extensions.isInternetAvailable
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 
 class LocationFragment : Fragment(R.layout.fragment_location) {
@@ -100,9 +104,53 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
         }
       }
     }
+    observePollState()
+    if (isInternetAvailable(requireContext())) {
+      locationViewModel.fetchPreSyncData()
+    } else {
+      locationViewModel.getLocations()
+    }
+    arguments?.let {
+      val fromLogin = it.getBoolean("from_login")
+      if (fromLogin) {
+        actionBar?.hide()
+        (activity as MainActivity).setDrawerEnabled(true)
+        binding.titleTextView.visibility = View.VISIBLE
+        binding.actionButton.visibility = View.VISIBLE
+        binding.actionButton.setOnClickListener {
+          if (
+            ::locationAdapter.isInitialized &&
+              ::favoriteLocationAdapter.isInitialized &&
+              !locationAdapter.isLocationSelected()
+          ) {
+            AlertDialog.Builder(requireContext()).apply {
+              setTitle("Select Location")
+              setMessage("No location is selected. Do you want to select one?")
+              setPositiveButton("Yes") { dialog, _ -> dialog.dismiss() }
+              setNegativeButton("No") { dialog, _ ->
+                findNavController()
+                  .navigate(
+                    LocationFragmentDirections.actionLocationFragmentToSelectPatientListFragment(
+                      true,
+                    ),
+                  )
+                dialog.dismiss()
+              }
+              show()
+            }
+          } else {
+            findNavController()
+              .navigate(
+                LocationFragmentDirections.actionLocationFragmentToSelectPatientListFragment(true),
+              )
+          }
+        }
+      } else {
+        actionBar?.setDisplayHomeAsUpEnabled(true)
+        (activity as MainActivity).setDrawerEnabled(false)
+      }
+    }
 
-    actionBar?.setDisplayHomeAsUpEnabled(true)
-    locationViewModel.getLocations()
     locationViewModel.setFavoriteLocations(context?.applicationContext!!)
 
     val locationRecyclerView: RecyclerView = binding.locationRecyclerView
@@ -117,6 +165,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
 
     locationViewModel.locations.observe(viewLifecycleOwner) {
       binding.progressBar.visibility = View.GONE
+      binding.emptyStateContainer.visibility = if (it.isEmpty()) View.VISIBLE else View.GONE
       if (::locationAdapter.isInitialized && ::favoriteLocationAdapter.isInitialized) {
         locationAdapter.submitList(locationViewModel.getLocationsListFiltered())
         favoriteLocationAdapter.submitList(locationViewModel.getFavoriteLocationsList())
@@ -124,7 +173,6 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
     }
 
     addSearchTextChangeListener()
-    (activity as MainActivity).setDrawerEnabled(false)
   }
 
   private fun onLocationItemClicked(
@@ -146,6 +194,26 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
       }
     } else {
       selectLocationItem(locationItem)
+    }
+  }
+
+  private fun observePollState() {
+    lifecycleScope.launch {
+      locationViewModel.pollState.collect {
+        when (it) {
+          is CurrentSyncJobStatus.Succeeded -> {
+            locationViewModel.getLocations()
+          }
+          is CurrentSyncJobStatus.Failed -> {
+            binding.progressBar.visibility = View.GONE
+            locationViewModel.getLocations()
+            Toast.makeText(context, "Failed to fetch all locations", Toast.LENGTH_SHORT).show()
+          }
+          else -> {
+            binding.progressBar.visibility = View.VISIBLE
+          }
+        }
+      }
     }
   }
 
@@ -209,6 +277,11 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
       }
       else -> false
     }
+  }
+
+  override fun onPause() {
+    super.onPause()
+    (requireActivity() as AppCompatActivity).supportActionBar?.show()
   }
 
   override fun onDestroyView() {

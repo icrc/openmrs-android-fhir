@@ -98,7 +98,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     val restApiManager = RestApiManager.getInstance(applicationContext)
     CoroutineScope(Dispatchers.IO).launch {
       restApiManager.initialize(
-        applicationContext.applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID],
+        applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID],
       )
     }
     return restApiManager
@@ -121,8 +121,6 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     fun fhirBaseURl(context: Context) = context.getString(R.string.fhir_base_url)
 
     fun authMethod(context: Context) = context.getString(R.string.auth_method)
-
-    fun openmrsRestUrl(context: Context) = context.getString(R.string.openmrs_rest_url)
 
     fun checkServerUrl(context: Context) = context.getString(R.string.check_server_url)
   }

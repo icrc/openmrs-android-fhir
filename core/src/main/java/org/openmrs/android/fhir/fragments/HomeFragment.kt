@@ -44,6 +44,7 @@ import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.extensions.isInternetAvailable
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
@@ -93,7 +94,17 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
       }
     }
     requireView().findViewById<CardView>(R.id.select_location).setOnClickListener {
-      findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToLocationFragment())
+      findNavController()
+        .navigate(HomeFragmentDirections.actionHomeFragmentToLocationFragment(false))
+    }
+    requireView().findViewById<CardView>(R.id.select_patient_list).setOnClickListener {
+      if (isInternetAvailable(requireContext())) {
+        findNavController()
+          .navigate(HomeFragmentDirections.actionHomeFragmentToSelectPatientListFragment(false))
+      } else {
+        Toast.makeText(context, "Please connect internet to select patient list", Toast.LENGTH_LONG)
+          .show()
+      }
     }
     requireView().findViewById<CardView>(R.id.select_identifier).setOnClickListener {
       findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToIdentifierFragment())

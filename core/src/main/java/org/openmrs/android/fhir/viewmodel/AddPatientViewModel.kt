@@ -70,6 +70,7 @@ constructor(
   val isPatientSaved = MutableLiveData<Boolean>()
   var questionnaire: Questionnaire = Questionnaire()
   val embeddedQuestionnaire = MutableLiveData<String>()
+  private var saveInProgress = false
 
   /**
    * Saves patient registration questionnaire response into the application database.
@@ -77,7 +78,10 @@ constructor(
    * @param questionnaireResponse patient registration questionnaire response
    */
   fun savePatient(questionnaireResponse: QuestionnaireResponse) {
+    if (saveInProgress) return // To avoid multiple save of patient.
+
     viewModelScope.launch {
+      saveInProgress = true
       if (
         QuestionnaireResponseValidator.validateQuestionnaireResponse(
             questionnaire,
@@ -88,6 +92,7 @@ constructor(
           .flatten()
           .any { it is Invalid }
       ) {
+        saveInProgress = false
         isPatientSaved.value = false
         return@launch
       }
@@ -114,6 +119,7 @@ constructor(
       }
       fhirEngine.create(patient)
       isPatientSaved.value = true
+      saveInProgress = false
     }
   }
 

@@ -44,6 +44,7 @@ import org.openmrs.android.fhir.fragments.IdentifierFragment
 import org.openmrs.android.fhir.fragments.LocationFragment
 import org.openmrs.android.fhir.fragments.PatientDetailsFragment
 import org.openmrs.android.fhir.fragments.PatientListFragment
+import org.openmrs.android.fhir.fragments.SelectPatientListFragment
 import org.openmrs.android.fhir.fragments.SettingsFragment
 import org.openmrs.android.fhir.fragments.SyncInfoFragment
 import org.openmrs.android.fhir.fragments.UnsyncedResourcesFragment
@@ -97,4 +98,6 @@ interface AppComponent {
   fun inject(fragment: CreateEncountersFragment)
 
   fun inject(fragment: UnsyncedResourcesFragment)
+
+  fun inject(fragment: SelectPatientListFragment)
 }
