@@ -62,18 +62,17 @@ class TimestampBasedDownloadWorkManagerImpl(
     return urlList.map { url ->
       val HAS_GROUP_MEMBER_ID = "_has:Group:member:id="
       if (url.contains(HAS_GROUP_MEMBER_ID)) {
-        runBlocking {
-          val selectedPatientLists =
-            context.applicationContext.dataStore.data.first()[PreferenceKeys.SELECTED_PATIENT_LISTS]
+        val selectedPatientLists = runBlocking {
+          context.applicationContext.dataStore.data.first()[PreferenceKeys.SELECTED_PATIENT_LISTS]
+        }
 
-          if (selectedPatientLists.isNullOrEmpty()) {
-            url.replace("_has:Group:member:id=&", "")
-          } else {
-            url.replace(
-              "?_has:Group:member:id=",
-              "?_has:Group:member:id=" + selectedPatientLists.joinToString(","),
-            )
-          }
+        if (selectedPatientLists.isNullOrEmpty()) {
+          url.replace("_has:Group:member:id=&", "")
+        } else {
+          url.replace(
+            "?_has:Group:member:id=",
+            "?_has:Group:member:id=" + selectedPatientLists.joinToString(","),
+          )
         }
       } else {
         url

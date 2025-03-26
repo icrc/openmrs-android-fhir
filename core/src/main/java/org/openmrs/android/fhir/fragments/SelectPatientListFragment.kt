@@ -175,7 +175,7 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
         context?.applicationContext?.dataStore?.edit { preferences ->
           preferences[PreferenceKeys.SELECTED_PATIENT_LISTS] =
             preferences[PreferenceKeys.SELECTED_PATIENT_LISTS]?.minus(
-              setOf(selectPatientListItem.resourceId),
+              selectPatientListItem.resourceId,
             )
               ?: mutableSetOf()
         }
@@ -207,9 +207,9 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
       context?.applicationContext?.dataStore?.edit { preferences ->
         preferences[PreferenceKeys.SELECTED_PATIENT_LISTS] =
           preferences[PreferenceKeys.SELECTED_PATIENT_LISTS]?.plus(
-            setOf(selectPatientListItem.resourceId),
+            selectPatientListItem.resourceId,
           )
-            ?: mutableSetOf()
+            ?: mutableSetOf(selectPatientListItem.resourceId)
       }
       if (::selectPatientListAdapter.isInitialized) {
         selectPatientListAdapter.addSelectPatientListItem(selectPatientListItem.resourceId)
