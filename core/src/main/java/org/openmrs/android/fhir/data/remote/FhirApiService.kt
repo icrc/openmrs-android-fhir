@@ -29,12 +29,13 @@
 package org.openmrs.android.fhir.data.remote
 
 import org.hl7.fhir.r4.model.Bundle
+import org.hl7.fhir.r4.model.Location
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Url
 
 interface FhirApiService {
-  @GET suspend fun getLocations(@Url url: String): Response<Bundle>
+  @GET suspend fun getLocation(@Url url: String): Response<Location>
 
   @GET("Group") suspend fun getPatientLists(): Response<Bundle>
 }

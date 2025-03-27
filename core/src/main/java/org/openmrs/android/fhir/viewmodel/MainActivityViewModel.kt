@@ -39,6 +39,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.extensions.logicalId
 import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.PeriodicSyncConfiguration
@@ -62,7 +63,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
@@ -165,28 +165,22 @@ constructor(
 
   suspend fun checkLocationIdAndPurgeUnassignedLocations(
     context: Context,
-    resourceId: String,
+    locationId: String,
   ): Boolean {
-    val localLocations = fhirEngine.search<Location> {}.map { it.resource.idPart }.toSet()
-
-    apiManager.getLocations(context).let { response ->
+    apiManager.getLocation(context, locationId).let { response ->
       return when (response) {
-        is ApiResponse.Success<Bundle> -> {
-          val locations =
-            response.data?.entry?.map { it.resource.idPart }?.toMutableSet() ?: emptySet()
-          localLocations.forEach { locationId ->
-            if (locationId !in locations) {
-              fhirEngine.purge(ResourceType.Location, locationId)
-            }
-          }
-          locations.any { it == resourceId }
+        is ApiResponse.Success<Location> -> true
+        else -> {
+          val localLocationIds =
+            fhirEngine.search<Location> {}.map { it.resource.logicalId }.toSet()
+          fhirEngine.purge(ResourceType.Location, localLocationIds)
+          false
         }
-        else -> false
       }
     }
   }
 
-  fun triggerIdentifierTypeSync(context: Context) {
+  fun triggerIdentifierTypeSync() {
     viewModelScope.launch {
       if (!stopSync) {
         fetchIdentifierTypesIfEmpty()

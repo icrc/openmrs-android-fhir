@@ -130,7 +130,7 @@ class MainActivity : AppCompatActivity() {
     observeLastSyncTime()
     observeSyncState()
     viewModel.updateLastSyncTimestamp()
-    viewModel.triggerIdentifierTypeSync(applicationContext)
+    viewModel.triggerIdentifierTypeSync()
     observeSettings()
   }
 

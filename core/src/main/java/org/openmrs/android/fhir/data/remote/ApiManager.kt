@@ -34,6 +34,7 @@ import javax.inject.Inject
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.hl7.fhir.r4.model.Bundle
+import org.hl7.fhir.r4.model.Location
 import org.openmrs.android.fhir.LoginRepository
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.remote.interceptor.AddCookiesInterceptor
@@ -106,14 +107,14 @@ class ApiManager @Inject constructor(context: Context) : Api {
     return executeApiHelper { apiService.getIdentifier(idType) }
   }
 
-  override suspend fun getLocations(context: Context): ApiResponse<Bundle> {
+  override suspend fun getLocation(context: Context, locationId: String): ApiResponse<Location> {
     return executeApiHelper {
       val regex =
         Regex("(Location\\?[^,]*)") // Extracts the part containing Location and its parameters
-      val matchResult = regex.find(context.resources.getString(R.string.fhir_sync_urls))
+      val matchResult = regex.find(context.resources.getString(R.string.first_fhir_sync_url))
       val extractedPart = matchResult?.value ?: "Location?_tag=Login+Location"
-      fhirApiService.getLocations(
-        context.resources.getString(R.string.fhir_base_url) + extractedPart,
+      fhirApiService.getLocation(
+        context.resources.getString(R.string.fhir_base_url) + extractedPart + "/$locationId",
       )
     }
   }
