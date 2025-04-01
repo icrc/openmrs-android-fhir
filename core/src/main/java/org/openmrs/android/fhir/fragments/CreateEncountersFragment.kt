@@ -29,128 +29,97 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
-import com.google.android.fhir.FhirEngine
-import com.google.android.fhir.datacapture.extensions.logicalId
-import com.google.android.fhir.search.search
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.hl7.fhir.r4.model.Questionnaire
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.adapters.CreateFormSectionAdapter
+import org.openmrs.android.fhir.data.database.model.FormSection
 import org.openmrs.android.fhir.databinding.CreateEncounterFragmentBinding
+import org.openmrs.android.fhir.viewmodel.CreateEncounterViewModel
 
 class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
+  @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+  private val viewModel by viewModels<CreateEncounterViewModel> { viewModelFactory }
+  private lateinit var recyclerView: RecyclerView
+  private lateinit var progressBar: ProgressBar
+
   private var _binding: CreateEncounterFragmentBinding? = null
+
   private val binding
     get() = _binding!!
 
-  private val args: CreateEncountersFragmentArgs by navArgs()
-
-  @Inject lateinit var fhirEngine: FhirEngine
-
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    (requireActivity().application as FhirApplication).appComponent.inject(this)
     setHasOptionsMenu(true)
-  }
-
-  override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
-    savedInstanceState: Bundle?,
-  ): View {
-    _binding = CreateEncounterFragmentBinding.inflate(inflater, container, false)
-    return binding.root
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
-    setUpActionBar()
-    setHasOptionsMenu(true)
-    updateArguments()
-    onBackPressed()
-    loadFormSchemas(view)
+    _binding = CreateEncounterFragmentBinding.bind(view)
+    (requireActivity() as AppCompatActivity).supportActionBar?.apply {
+      title = requireContext().getString(R.string.new_encounter)
+    }
+    (requireActivity().application as FhirApplication).appComponent.inject(this)
+
+    viewModel.loadFormData()
+    // Initialize views
+    recyclerView = binding.rvFormSections
+    progressBar = binding.progressBar
+
+    // Setup RecyclerView
+    recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+    // Observe data
+    setupObservers()
   }
 
-  fun loadFormSchemas(view: View) {
-    val buttonContainer = view.findViewById<LinearLayout>(R.id.button_container)
+  private fun setupObservers() {
+    viewModel.formData.observe(viewLifecycleOwner) { formData ->
+      formData?.let { setupAdapter(it.formSections) }
+    }
 
-    lifecycleScope.launch(Dispatchers.IO) {
-      val forms =
-        fhirEngine
-          .search<Questionnaire> {}
-          .filter { questionnaire ->
-            questionnaire.resource.logicalId != getString(R.string.registration_questionnaire_name)
-          }
-      withContext(Dispatchers.Main) {
-        for (form in forms) {
-          setupFormButton(buttonContainer, form.resource)
-        }
-      }
+    viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+      progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+    }
+
+    viewModel.error.observe(viewLifecycleOwner) { errorMessage ->
+      errorMessage?.let { Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show() }
     }
   }
 
-  private fun setupFormButton(parentView: ViewGroup, form: Questionnaire) {
-    val encounterType =
-      form.code.firstOrNull()?.code
-        ?: throw IllegalArgumentException("No encounter type provided on questionnaire")
-    val button =
-      Button(context).apply {
-        text = form.title
-        setOnClickListener {
-          findNavController()
-            .navigate(
-              CreateEncountersFragmentDirections
-                .actionCreateEncounterFragmentToGenericFormEntryFragment(
-                  form.title,
-                  encounterType,
-                  args.patientId,
-                  form,
-                ),
-            )
-        }
-      }
-    parentView.addView(button)
+  private fun setupAdapter(formSections: List<FormSection>) {
+    val adapter = CreateFormSectionAdapter(formSections) { formId -> handleFormClick(formId) }
+    recyclerView.adapter = adapter
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
       android.R.id.home -> {
-        NavHostFragment.findNavController(this@CreateEncountersFragment).navigateUp()
+        NavHostFragment.findNavController(this).navigateUp()
         true
       }
-      else -> super.onOptionsItemSelected(item)
+      else -> false
     }
   }
 
-  private fun setUpActionBar() {
-    (requireActivity() as AppCompatActivity).supportActionBar?.apply {
-      setDisplayHomeAsUpEnabled(true)
-    }
+  private fun handleFormClick(formId: String) {
+    // TODO: Handle navigation to form
+    Toast.makeText(requireContext(), "Form clicked: $formId", Toast.LENGTH_SHORT).show()
   }
 
-  private fun updateArguments() {
-    requireArguments().putString(QUESTIONNAIRE_FILE_PATH_KEY, "assessment.json")
-  }
-
-  private fun onBackPressed() {}
-
-  companion object {
-    const val QUESTIONNAIRE_FILE_PATH_KEY = "questionnaire-file-path-key"
-    const val QUESTIONNAIRE_FRAGMENT_TAG = "questionnaire-fragment-tag"
+  override fun onDestroyView() {
+    super.onDestroyView()
+    _binding = null
   }
 }

@@ -1,0 +1,28 @@
+{
+  "formSections": [
+    {
+      "name": "Test Forms",
+      "forms": [
+        "encounter.formAlpha",
+        "encounter.malaria.formBeta",
+        "encounter.cholera.formCharlie"
+      ]
+    },
+    {
+      "name": "Test B Form",
+      "forms": [
+        "encounter.aForm",
+        "encounter.bForm",
+        "encounter.cForm",
+        "encounter.dForm",
+        "encounter.eForm"
+      ]
+    },
+    {
+      "name": "Functioning Form",
+      "forms": [
+        "encounter.oneSingleForm"
+      ]
+    }
+  ]
+}

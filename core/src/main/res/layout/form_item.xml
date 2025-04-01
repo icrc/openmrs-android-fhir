@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="4dp"
+    android:layout_marginHorizontal="1dp"
+    app:cardCornerRadius="4dp"
+    android:backgroundTint="@color/white"
+    android:background="@color/white"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/default_item_border"
+>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+    >
+
+        <TextView
+            android:id="@+id/tv_form_name"
+            android:fontFamily="@font/inter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="16sp"
+            tools:text="Form Name"
+        />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
