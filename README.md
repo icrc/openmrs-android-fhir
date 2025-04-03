@@ -66,6 +66,13 @@ To Configure **Patient Registration Questionnaire**, set the `registration_quest
 
 ---
 
+## 🔗 Configuring Create Encounter Questionnaire
+
+To Configure the questionnaire list on click of **Create Encounter** button in the patient screen, update the `forms_config.json` file with the name of Encounter's questionnaire:
+Similar to registration questionnaire, it either takes the questionnaire from assets folder or after sync from the server.
+
+---
+
 ## 📧 Configuring the Developer Email for Application Diagnostics
 
 To ensure application diagnostics are sent to the correct developer email upon user request:
