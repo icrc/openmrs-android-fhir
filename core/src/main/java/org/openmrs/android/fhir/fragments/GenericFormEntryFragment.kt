@@ -40,8 +40,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
-import ca.uhn.fhir.context.FhirContext
-import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -63,13 +61,15 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
     super.onViewCreated(view, savedInstanceState)
     setUpActionBar()
     setHasOptionsMenu(true)
-    updateArguments(args.formCode)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     onBackPressed()
     observeResourcesSaveAction()
     if (savedInstanceState == null) {
-      addQuestionnaireFragment()
+      viewModel.getEncounterQuestionnaire(
+        args.formId,
+      )
     }
+    observeQuestionnaire()
     childFragmentManager.setFragmentResultListener(
       QuestionnaireFragment.SUBMIT_REQUEST_KEY,
       viewLifecycleOwner,
@@ -94,22 +94,15 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
     }
   }
 
-  private fun updateArguments(encounterId: String) {
-    requireArguments().putString("encounter_id", encounterId)
-    requireArguments().putString("questionnaire_id", args.questionnaire?.idPart)
-  }
-
-  private fun addQuestionnaireFragment() {
+  private fun addQuestionnaireFragment(questionnaireJson: String) {
     childFragmentManager.commit {
-      if (args.questionnaire == null) {
+      if (questionnaireJson.isEmpty()) {
         showSnackBar(
           requireActivity(),
           getString(R.string.questionnaire_error_message),
         )
         NavHostFragment.findNavController(this@GenericFormEntryFragment).navigateUp()
       } else {
-        val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-        val questionnaireJson = parser.encodeResourceToString(args.questionnaire)
         add(
           R.id.form_entry_container,
           QuestionnaireFragment.builder().setQuestionnaire(questionnaireJson).build(),
@@ -125,7 +118,10 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
         childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG) as QuestionnaireFragment
       viewModel.saveEncounter(
         questionnaireFragment.getQuestionnaireResponse(),
-        Form(args.formDisplay, args.formCode),
+        Form(
+          viewModel.questionnaire.title,
+          viewModel.questionnaire.code.firstOrNull()?.code.toString(),
+        ),
         args.patientId,
       )
     }
@@ -166,8 +162,13 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
     }
   }
 
+  private fun observeQuestionnaire() {
+    viewModel.questionnaireJson.observe(viewLifecycleOwner) {
+      it?.let { addQuestionnaireFragment(it) }
+    }
+  }
+
   companion object {
-    const val QUESTIONNAIRE_FILE_PATH_KEY = "questionnaire-file-path-key"
     const val QUESTIONNAIRE_FRAGMENT_TAG = "questionnaire-fragment-tag"
   }
 }

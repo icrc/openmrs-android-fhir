@@ -24,6 +24,7 @@
         <TextView
             android:id="@+id/tv_form_name"
             android:fontFamily="@font/inter"
+            android:textColor="@color/black"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"

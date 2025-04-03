@@ -33,8 +33,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ca.uhn.fhir.context.FhirContext
+import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
+import com.google.android.fhir.db.ResourceNotFoundException
 import com.google.android.fhir.search.search
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -57,11 +60,13 @@ import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
+import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.Form
 import org.openmrs.android.fhir.MockConstants
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
+import org.openmrs.android.fhir.extensions.readFileFromAssets
 import org.openmrs.android.helpers.OpenMRSHelper
 import org.openmrs.android.helpers.OpenMRSHelper.MiscHelper
 import org.openmrs.android.helpers.OpenMRSHelper.UserHelper
@@ -82,7 +87,22 @@ constructor(
     ): GenericFormEntryViewModel
   }
 
+  private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+  var questionnaire: Questionnaire = Questionnaire()
+  val questionnaireJson = MutableLiveData<String>()
   val isResourcesSaved = MutableLiveData<Boolean>()
+
+  fun getEncounterQuestionnaire(questionnaireId: String) {
+    viewModelScope.launch {
+      try {
+        questionnaire = fhirEngine.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire
+      } catch (e: ResourceNotFoundException) {
+        val questionnaireString = applicationContext.readFileFromAssets("$questionnaireId.json")
+        questionnaire = parser.parseResource(Questionnaire::class.java, questionnaireString)
+      }
+      questionnaireJson.value = parser.encodeResourceToString(questionnaire)
+    }
+  }
 
   suspend fun createWrapperVisit(patientId: String): Encounter {
     val localDate = Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()

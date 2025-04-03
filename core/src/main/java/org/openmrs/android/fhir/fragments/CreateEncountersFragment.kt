@@ -38,6 +38,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import javax.inject.Inject
@@ -53,6 +55,8 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
   private val viewModel by viewModels<CreateEncounterViewModel> { viewModelFactory }
   private lateinit var recyclerView: RecyclerView
   private lateinit var progressBar: ProgressBar
+
+  private val args: CreateEncountersFragmentArgs by navArgs()
 
   private var _binding: CreateEncounterFragmentBinding? = null
 
@@ -114,7 +118,13 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
   }
 
   private fun handleFormClick(formId: String) {
-    // TODO: Handle navigation to form
+    findNavController()
+      .navigate(
+        CreateEncountersFragmentDirections.actionCreateEncounterFragmentToGenericFormEntryFragment(
+          patientId = args.patientId,
+          formId = formId,
+        ),
+      )
     Toast.makeText(requireContext(), "Form clicked: $formId", Toast.LENGTH_SHORT).show()
   }
 
