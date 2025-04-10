@@ -40,3 +40,13 @@ data class FormSection(
   val name: String,
   val forms: List<String>,
 )
+
+data class FormSectionItem(
+  val name: String,
+  val forms: List<FormItem>,
+)
+
+data class FormItem(
+  val name: String,
+  val questionnaireId: String,
+)

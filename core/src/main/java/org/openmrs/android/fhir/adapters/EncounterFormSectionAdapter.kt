@@ -35,10 +35,11 @@ import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.data.database.model.FormSection
+import org.openmrs.android.fhir.data.database.model.FormItem
+import org.openmrs.android.fhir.data.database.model.FormSectionItem
 
 class CreateFormSectionAdapter(
-  private val formSections: List<FormSection>,
+  private val formSectionItems: List<FormSectionItem>,
   private val formClickListener: (String) -> Unit,
 ) : RecyclerView.Adapter<CreateFormSectionAdapter.FormSectionViewHolder>() {
 
@@ -49,26 +50,26 @@ class CreateFormSectionAdapter(
   }
 
   override fun onBindViewHolder(holder: FormSectionViewHolder, position: Int) {
-    val formSection = formSections[position]
+    val formSection = formSectionItems[position]
     holder.bind(formSection, formClickListener)
   }
 
-  override fun getItemCount(): Int = formSections.size
+  override fun getItemCount(): Int = formSectionItems.size
 
   class FormSectionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val sectionNameTextView: TextView = itemView.findViewById(R.id.tv_section_name)
     private val formsRecyclerView: RecyclerView = itemView.findViewById(R.id.rv_forms)
 
-    fun bind(formSection: FormSection, formClickListener: (String) -> Unit) {
-      sectionNameTextView.text = formSection.name
+    fun bind(formSectionItem: FormSectionItem, formClickListener: (String) -> Unit) {
+      sectionNameTextView.text = formSectionItem.name
       formsRecyclerView.layoutManager = LinearLayoutManager(itemView.context)
-      formsRecyclerView.adapter = FormAdapter(formSection.forms, formClickListener)
+      formsRecyclerView.adapter = FormAdapter(formSectionItem.forms, formClickListener)
     }
   }
 }
 
 class FormAdapter(
-  private val forms: List<String>,
+  private val forms: List<FormItem>,
   private val formClickListener: (String) -> Unit,
 ) : RecyclerView.Adapter<FormAdapter.FormViewHolder>() {
 
@@ -87,16 +88,13 @@ class FormAdapter(
   class FormViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val formNameTextView: TextView = itemView.findViewById(R.id.tv_form_name)
 
-    fun bind(form: String, formClickListener: (String) -> Unit) {
+    fun bind(formItem: FormItem, formClickListener: (String) -> Unit) {
       // Format the form name for display (remove prefix, replace dots with spaces, etc.)
-      val displayName =
-        form.replaceFirst("encounter.", "").replace(".", " ").split(" ").joinToString(" ") { word ->
-          word.replaceFirstChar { it.uppercase() }
-        }
+      val displayName = formItem.name
 
       formNameTextView.text = displayName
 
-      itemView.setOnClickListener { formClickListener(form) }
+      itemView.setOnClickListener { formClickListener(formItem.questionnaireId) }
     }
   }
 }

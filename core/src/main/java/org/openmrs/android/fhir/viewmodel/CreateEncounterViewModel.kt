@@ -33,20 +33,32 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ca.uhn.fhir.context.FhirContext
+import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.extensions.logicalId
+import com.google.android.fhir.db.ResourceNotFoundException
+import com.google.android.fhir.get
+import com.google.android.fhir.search.search
 import com.squareup.moshi.Moshi
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.Questionnaire
 import org.openmrs.android.fhir.data.database.model.FormData
+import org.openmrs.android.fhir.data.database.model.FormItem
+import org.openmrs.android.fhir.data.database.model.FormSection
+import org.openmrs.android.fhir.data.database.model.FormSectionItem
+import org.openmrs.android.fhir.extensions.getJsonFileNames
 import org.openmrs.android.fhir.extensions.readFileFromAssets
 
 class CreateEncounterViewModel
 @Inject
 constructor(
   private val applicationContext: Context,
+  private val fhirEngine: FhirEngine,
 ) : ViewModel() {
 
-  private val _formData = MutableLiveData<FormData?>()
-  val formData: LiveData<FormData?> = _formData
+  private val _formData = MutableLiveData<List<FormSectionItem>?>()
+  val formData: LiveData<List<FormSectionItem>?> = _formData
 
   private val _isLoading = MutableLiveData<Boolean>()
   val isLoading: LiveData<Boolean> = _isLoading
@@ -54,20 +66,91 @@ constructor(
   private val _error = MutableLiveData<String>()
   val error: LiveData<String> = _error
 
-  fun loadFormData() {
+  private val parser = FhirContext.forR4Cached().newJsonParser()
+
+  /*
+   * Load encounter form data from the config.
+   * Fetch all questionnaire & add to the formItem
+   */
+  fun loadFormData(formDataString: String, encounterTypeSystemUrl: String) {
     viewModelScope.launch {
       _isLoading.value = true
       try {
-        val jsonString = applicationContext.readFileFromAssets("forms_config.json")
         val moshi = Moshi.Builder().build()
-        val adapter = moshi.adapter(FormData::class.java)
-        val formData = adapter.fromJson(jsonString)
-        _formData.value = formData
+        val adapter = moshi.adapter(FormData::class.java).lenient()
+        val formData = adapter.fromJson(formDataString.trim())
+        val questionnaires = fhirEngine.search<Questionnaire> {}.map { it.resource }.toMutableList()
+
+        val assetQuestionnaireFileNames = applicationContext.getJsonFileNames()
+        assetQuestionnaireFileNames.forEach {
+          val questionnaireString = applicationContext.readFileFromAssets(it)
+          if (questionnaireString.isNotEmpty()) {
+            questionnaires.add(parser.parseResource(Questionnaire::class.java, questionnaireString))
+          }
+        }
+
+        val encounterTypeCodeToQuestionnaireIdMap = mutableMapOf<String, String>()
+        questionnaires.forEach { questionnaire ->
+          if (questionnaire.hasCode()) {
+            questionnaire.code.forEach {
+              if (it.hasSystem() and (it.system.toString() == encounterTypeSystemUrl)) {
+                encounterTypeCodeToQuestionnaireIdMap.putIfAbsent(it.code, questionnaire.logicalId)
+              }
+            }
+          }
+        }
+
+        val formSectionItems =
+          formData
+            ?.formSections
+            ?.map { it.toFormSectionItem(encounterTypeCodeToQuestionnaireIdMap) }
+            ?.filter { it.forms.isNotEmpty() }
+            ?: emptyList()
+        _formData.value = formSectionItems
         _isLoading.value = false
       } catch (e: Exception) {
         _error.value = "Failed to load form data: ${e.localizedMessage}"
         _isLoading.value = false
       }
     }
+  }
+
+  /*
+   * Only add forms to the Form Section whose questionaire
+   * are present in local database or in the assets folder.
+   */
+  internal suspend fun FormSection.toFormSectionItem(
+    encounterTypeCodeToQuestionnaireIdMap: Map<String, String>,
+  ): FormSectionItem {
+    val formItems = mutableListOf<FormItem>()
+    forms.forEach { encounterTypeCode ->
+      val questionnaireId =
+        encounterTypeCodeToQuestionnaireIdMap[encounterTypeCode] ?: return@forEach
+      var questionnaire: Questionnaire? = null
+      try {
+        questionnaire = fhirEngine.get<Questionnaire>(questionnaireId)
+      } catch (e: ResourceNotFoundException) {
+        try {
+          val questionnaireString = applicationContext.readFileFromAssets("$questionnaireId.json")
+          if (questionnaireString.isNotEmpty()) {
+            questionnaire = parser.parseResource(Questionnaire::class.java, questionnaireString)
+          }
+        } catch (ignored: Exception) {
+          // Ignored in case of questionnaire is neither synced nor found in Assets folder.
+        }
+      }
+      if (questionnaire != null) {
+        formItems.add(
+          FormItem(
+            name = questionnaire.title ?: "No Name provided",
+            questionnaireId = questionnaireId,
+          ),
+        )
+      }
+    }
+    return FormSectionItem(
+      name = name,
+      forms = formItems,
+    )
   }
 }

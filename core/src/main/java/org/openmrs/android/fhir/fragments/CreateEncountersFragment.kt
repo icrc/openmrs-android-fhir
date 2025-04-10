@@ -46,7 +46,7 @@ import javax.inject.Inject
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.CreateFormSectionAdapter
-import org.openmrs.android.fhir.data.database.model.FormSection
+import org.openmrs.android.fhir.data.database.model.FormSectionItem
 import org.openmrs.android.fhir.databinding.CreateEncounterFragmentBinding
 import org.openmrs.android.fhir.viewmodel.CreateEncounterViewModel
 
@@ -76,7 +76,10 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     }
     (requireActivity().application as FhirApplication).appComponent.inject(this)
 
-    viewModel.loadFormData()
+    viewModel.loadFormData(
+      getString(R.string.forms_config),
+      getString(R.string.encounter_type_system_url),
+    )
     // Initialize views
     recyclerView = binding.rvFormSections
     progressBar = binding.progressBar
@@ -90,7 +93,7 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
 
   private fun setupObservers() {
     viewModel.formData.observe(viewLifecycleOwner) { formData ->
-      formData?.let { setupAdapter(it.formSections) }
+      formData?.let { setupAdapter(it) }
     }
 
     viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
@@ -102,8 +105,8 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     }
   }
 
-  private fun setupAdapter(formSections: List<FormSection>) {
-    val adapter = CreateFormSectionAdapter(formSections) { formId -> handleFormClick(formId) }
+  private fun setupAdapter(formSectionItems: List<FormSectionItem>) {
+    val adapter = CreateFormSectionAdapter(formSectionItems) { formId -> handleFormClick(formId) }
     recyclerView.adapter = adapter
   }
 
@@ -125,7 +128,6 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
           formId = formId,
         ),
       )
-    Toast.makeText(requireContext(), "Form clicked: $formId", Toast.LENGTH_SHORT).show()
   }
 
   override fun onDestroyView() {

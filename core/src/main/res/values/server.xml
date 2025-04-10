@@ -21,4 +21,26 @@
   <string
         name="registration_questionnaire_name"
     >new-patient-registration-paginated</string>
+    <string
+        name="encounter_type_system_url"
+    >http://fhir.openmrs.org/code-system/encounter-type</string>
+  <string name="forms_config">{
+  "formSections": [
+    {
+      \"name\": \"Test Forms\",
+      \"forms\": [
+        \"encounter.type.code\",
+        \"encounter.malaria.formBeta\",
+        \"encounter.cholera.formCharlie\"
+      ]
+    },
+    {
+      \"name\": \"Test B Form\",
+      \"forms\": [
+        \"encounter.bForm\",
+        \"encounter.cForm\"
+      ]
+    }
+  ]
+}</string>
 </resources>
