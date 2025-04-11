@@ -93,7 +93,7 @@ constructor(
         questionnaires.forEach { questionnaire ->
           if (questionnaire.hasCode()) {
             questionnaire.code.forEach {
-              if (it.hasSystem() and (it.system.toString() == encounterTypeSystemUrl)) {
+              if (it.hasSystem() and (it?.system.toString() == encounterTypeSystemUrl)) {
                 encounterTypeCodeToQuestionnaireIdMap.putIfAbsent(it.code, questionnaire.logicalId)
               }
             }

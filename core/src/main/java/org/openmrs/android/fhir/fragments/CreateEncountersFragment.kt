@@ -77,7 +77,7 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     (requireActivity().application as FhirApplication).appComponent.inject(this)
 
     viewModel.loadFormData(
-      getString(R.string.forms_config),
+      getString(R.string.questionnaires),
       getString(R.string.encounter_type_system_url),
     )
     // Initialize views
