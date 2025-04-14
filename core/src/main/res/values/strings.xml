@@ -43,6 +43,7 @@
     <string name="patient_property_gender">Gender</string>
     <string name="register_new_patient">Register new patient</string>
     <string name="edit_patient">Edit Patient</string>
+    <string name="new_encounter">New Encounter</string>
     <string name="create_encounter">Create Encounter</string>
     <string name="edit_encounter">Edit Encounter</string>
     <string name="location">Location</string>
@@ -50,6 +51,9 @@
     <string name="sync_info">Sync Info</string>
     <string name="unsynced_resources">Unsynced Resources</string>
     <string name="select_a_location">Select a Location</string>
+    <string
+        name="create_encounter_fragment_headline"
+    >What form would you like to use?</string>
     <string name="select_patient_lists">Select Patient Lists</string>
     <string name="select_identifier_types">Select Identifier Types</string>
     <string name="submit">Submit</string>

@@ -26,25 +26,27 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+package org.openmrs.android.fhir.data.database.model
 
-package org.openmrs.android.fhir.extensions
+import com.squareup.moshi.JsonClass
 
-import android.content.Context
-import java.io.IOException
+@JsonClass(generateAdapter = true)
+data class FormData(
+  val formSections: List<FormSection>,
+)
 
-fun Context.readFileFromAssets(fileName: String): String =
-  assets.open(fileName).bufferedReader().use { it.readText() }
+@JsonClass(generateAdapter = true)
+data class FormSection(
+  val name: String,
+  val forms: List<String>,
+)
 
-/**
- * Get a list of all JSON file names in the assets folder
- *
- * @return List of JSON file names
- */
-fun Context.getJsonFileNames(): List<String> {
-  return try {
-    assets.list("")?.filter { it.endsWith(".json") } ?: emptyList()
-  } catch (e: IOException) {
-    e.printStackTrace()
-    emptyList()
-  }
-}
+data class FormSectionItem(
+  val name: String,
+  val forms: List<FormItem>,
+)
+
+data class FormItem(
+  val name: String,
+  val questionnaireId: String,
+)
