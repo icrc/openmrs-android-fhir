@@ -68,22 +68,23 @@ To Configure **Patient Registration Questionnaire**, set the `registration_quest
 
 ## 🔗 Configuring Create Encounter Questionnaire
 
-To Configure the questionnaire list on click of **Create Encounter** button in the patient screen, update the `questionnaires` property with the encounter type of Encounter's questionnaire:
+To Configure the questionnaire list on click of **Create Encounter** button in the patient screen, update the `questionnaires` & `encounter_type_system_uri` property with the encounter type of Encounter's questionnaire:
 Similar to registration questionnaire, it either takes the questionnaire from assets folder or after sync from the server.
 
 Note:
-In the `questionnaires` property, write the code for `encounter type` instead of the `questionnaire.id`.
+In the `questionnaires` property, write the code for `encounter type` instead of the `questionnaire.id` & make sure use the correct `url`
+Reference: [Example property](https://github.com/parthfloyd/openmrs-android-fhir/blob/integrate-create-encounter-screen/core/src/main/res/values/server.xml)
 
 ### Example Questionnaire
 ```json
-...
-...
+{
 "code": [
     {
       "system": "http://fhir.openmrs.org/code-system/encounter-type",
       "code": "<This Code value should be part of questionnaire>",
+      "display": "display"
     }
-...
+}
 ```
 ---
 
