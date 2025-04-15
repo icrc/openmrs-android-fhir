@@ -88,7 +88,7 @@
         tools:layout="@layout/generic_formentry_fragment"
     >
     <argument android:name="patient_id" app:argType="string" />
-    <argument android:name="form_id" app:argType="string" />
+    <argument android:name="questionnaire_id" app:argType="string" />
   </fragment>
   <fragment
         android:id="@+id/createEncounterFragment"
