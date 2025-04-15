@@ -120,12 +120,12 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     }
   }
 
-  private fun handleFormClick(formId: String) {
+  private fun handleFormClick(questionnaireId: String) {
     findNavController()
       .navigate(
         CreateEncountersFragmentDirections.actionCreateEncounterFragmentToGenericFormEntryFragment(
           patientId = args.patientId,
-          formId = formId,
+          questionnaireId = questionnaireId,
         ),
       )
   }

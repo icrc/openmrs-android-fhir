@@ -66,7 +66,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
     observeResourcesSaveAction()
     if (savedInstanceState == null) {
       viewModel.getEncounterQuestionnaire(
-        args.formId,
+        args.questionnaireId,
       )
     }
     observeQuestionnaire()
