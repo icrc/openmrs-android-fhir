@@ -110,12 +110,16 @@ class PatientDetailsFragment : Fragment() {
     }
     patientDetailsViewModel.livePatientData.observe(viewLifecycleOwner) {
       adapter.submitList(it)
-      if (!it.isNullOrEmpty()) {
-        editMenuItem?.isEnabled = true
-      }
+      requireActivity().invalidateOptionsMenu()
     }
     patientDetailsViewModel.getPatientDetailData()
     (activity as MainActivity).setDrawerEnabled(false)
+  }
+
+  override fun onPrepareOptionsMenu(menu: Menu) {
+    super.onPrepareOptionsMenu(menu)
+    val editItem = menu.findItem(R.id.menu_patient_edit)
+    editItem?.isEnabled = patientDetailsViewModel.livePatientData.value?.isNotEmpty() == true
   }
 
   private fun onCreateEncounterClick() {
