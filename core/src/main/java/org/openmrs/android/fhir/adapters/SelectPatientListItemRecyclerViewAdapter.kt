@@ -113,7 +113,7 @@ class SelectPatientListItemViewHolder(private val binding: SelectPatientListItem
 
     itemView.setOnClickListener { onItemClicked(selectPatientListItem, isSelected) }
     itemView.setBackgroundResource(
-      if (isSelected) R.drawable.selected_patient_list_item_background else 0,
+      if (isSelected) R.drawable.selected_item_background else 0,
     )
   }
 }

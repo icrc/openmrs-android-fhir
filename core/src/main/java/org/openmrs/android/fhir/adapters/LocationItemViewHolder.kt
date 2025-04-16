@@ -55,7 +55,7 @@ class LocationItemViewHolder(private val binding: LocationListItemViewBinding) :
     favoriteStarIcon.setOnClickListener { onItemClicked(locationItem, true) }
     itemView.setOnClickListener { onItemClicked(locationItem, false) }
 
-    itemView.setBackgroundResource(if (isSelected) R.drawable.selected_location_background else 0)
+    itemView.setBackgroundResource(if (isSelected) R.drawable.selected_item_background else 0)
 
     selectedLocationId = locationItem.resourceId
   }

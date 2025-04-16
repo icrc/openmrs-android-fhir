@@ -43,6 +43,8 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.Address
+import org.hl7.fhir.r4.model.ContactPoint
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
@@ -113,6 +115,7 @@ constructor(
       val entry = ResourceMapper.extract(questionnaireResource, questionnaireResponse).entryFirstRep
       if (entry.resource !is Patient) return@launch
       val patient = entry.resource as Patient
+
       if (
         patient.hasName() &&
           patient.name[0].hasGiven() &&
@@ -120,18 +123,51 @@ constructor(
           patient.hasBirthDate() &&
           patient.hasGender()
       ) {
+        // Name
         originalPatient.name[0].given = patient.name[0].given
         originalPatient.name[0].family = patient.name[0].family
-        if (originalPatient.name[0].text != null) {
+        if (patient.name[0].hasText()) {
           originalPatient.name[0].text = patient.name[0].text
         }
+
+        // Birth date and gender
         originalPatient.birthDate = patient.birthDate
         originalPatient.gender = patient.gender
-        if (patient.hasTelecom()) originalPatient.telecom[0].value = patient.telecom[0].value
-        if (patient.hasAddress()) {
-          originalPatient.address[0].city = patient.address[0].city
-          originalPatient.address[0].country = patient.address[0].country
+
+        // Telecom
+        if (patient.hasTelecom()) {
+          val telecom = patient.telecomFirstRep
+          if (originalPatient.hasTelecom()) {
+            originalPatient.telecomFirstRep.system = telecom.system
+            originalPatient.telecomFirstRep.value = telecom.value
+          } else {
+            originalPatient.telecom =
+              mutableListOf(
+                ContactPoint().apply {
+                  system = telecom.system
+                  value = telecom.value
+                },
+              )
+          }
         }
+
+        // Address
+        if (patient.hasAddress()) {
+          val address = patient.addressFirstRep
+          if (originalPatient.hasAddress()) {
+            originalPatient.addressFirstRep.city = address.city
+            originalPatient.addressFirstRep.country = address.country
+          } else {
+            originalPatient.address =
+              mutableListOf(
+                Address().apply {
+                  city = address.city
+                  country = address.country
+                },
+              )
+          }
+        }
+
         fhirEngine.update(originalPatient)
         isPatientSaved.value = true
         return@launch

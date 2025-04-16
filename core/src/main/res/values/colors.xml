@@ -100,7 +100,7 @@
     >#E8F0FE</color> <!-- Light blue background -->
     <color
         name="selected_item_border"
-    >#4285F4</color> <!-- Accent blue border -->
+    >#96B6EF</color> <!-- Accent blue border -->
     <color
         name="default_item_background"
     >#FFFFFF</color> <!-- White background -->
