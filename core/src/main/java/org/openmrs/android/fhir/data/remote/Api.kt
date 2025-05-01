@@ -30,6 +30,7 @@ package org.openmrs.android.fhir.data.remote
 
 import android.content.Context
 import org.hl7.fhir.r4.model.Bundle
+import org.hl7.fhir.r4.model.Location
 import org.openmrs.android.fhir.data.remote.model.IdentifierWrapper
 import org.openmrs.android.fhir.data.remote.model.ResponseWrapper
 import org.openmrs.android.fhir.data.remote.model.SessionLocation
@@ -45,7 +46,7 @@ interface Api {
 
   suspend fun validateSession(authorization: String): ApiResponse<SessionResponse>
 
-  suspend fun getLocations(context: Context): ApiResponse<Bundle>
+  suspend fun getLocation(context: Context, locationId: String): ApiResponse<Location>
 
   suspend fun getPatientLists(context: Context): ApiResponse<Bundle>
 }
