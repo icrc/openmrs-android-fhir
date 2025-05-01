@@ -149,6 +149,9 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
         R.id.add_patient_container,
         QuestionnaireFragment.builder()
           .setQuestionnaire(questionnaire)
+          .showReviewPageBeforeSubmit(
+            requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
+          )
           .setShowCancelButton(true)
           .setShowSubmitButton(true)
           .showOptionalText(true)

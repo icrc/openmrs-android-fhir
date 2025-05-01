@@ -105,7 +105,12 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
       } else {
         add(
           R.id.form_entry_container,
-          QuestionnaireFragment.builder().setQuestionnaire(questionnaireJson).build(),
+          QuestionnaireFragment.builder()
+            .showReviewPageBeforeSubmit(
+              requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
+            )
+            .setQuestionnaire(questionnaireJson)
+            .build(),
           QUESTIONNAIRE_FRAGMENT_TAG,
         )
       }

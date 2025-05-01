@@ -43,4 +43,5 @@
     }
   ]
 }</string>
+  <bool name="show_review_page_before_submit">true</bool>
 </resources>

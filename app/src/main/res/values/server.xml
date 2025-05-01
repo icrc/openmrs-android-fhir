@@ -19,4 +19,5 @@
   <string
         name="registration_questionnaire_name"
     >new-patient-registration-paginated</string>
+  <bool name="show_review_page_before_submit">true</bool>
 </resources>
