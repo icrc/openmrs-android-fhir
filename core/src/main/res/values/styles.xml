@@ -131,6 +131,8 @@
         name="Questionnaire.questionnaireSubmitButtonStyle"
         parent="Widget.Material3.Button"
     >
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
         <item name="fontFamily">@font/inter</item>
         <item name="cornerRadius">4sp</item>
         <item name="backgroundTint">@color/dashboard_cardview_textcolor</item>
@@ -158,6 +160,10 @@
         <item
             name="questionnaireSubmitButtonStyle"
         >@style/Questionnaire.questionnaireSubmitButtonStyle</item>
+        <item
+            name="questionnaireButtonStyle"
+        >@style/Questionnaire.questionnaireSubmitButtonStyle</item>
+
         <item
             name="questionnaireBottomNavContainerStyle"
         >@style/Questionnaire.questionnaireBottomNavContainerStyle</item>

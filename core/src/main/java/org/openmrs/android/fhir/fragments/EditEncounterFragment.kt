@@ -147,6 +147,9 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
             QuestionnaireFragment.builder()
               .setQuestionnaire(questionnaireJson)
               .setQuestionnaireResponse(pair.second)
+              .showReviewPageBeforeSubmit(
+                requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
+              )
               .build(),
             QUESTIONNAIRE_FRAGMENT_TAG,
           )
