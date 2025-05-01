@@ -217,6 +217,12 @@ class MainActivity : AppCompatActivity() {
       R.id.menu_diagnostics -> {
         showSendDiagnosticReportDialog()
       }
+      R.id.menu_select_identifier -> {
+        findNavController(R.id.nav_host_fragment).navigate(R.id.identifierFragment)
+      }
+      R.id.menu_current_location -> {
+        findNavController(R.id.nav_host_fragment).navigate(R.id.locationFragment)
+      }
     }
     binding.drawer.closeDrawer(GravityCompat.START)
     return false

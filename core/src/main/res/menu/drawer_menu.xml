@@ -15,9 +15,9 @@
             android:title="@string/no_location_selected"
         />
   <item
-            android:id="@+id/menu_logout"
-            android:icon="@drawable/ic_logout"
-            android:title="@string/logout"
+            android:id="@+id/menu_select_identifier"
+            android:icon="@drawable/ic_file"
+            android:title="@string/select_identifier_types"
         />
   <item
             android:id="@+id/menu_settings"
@@ -29,6 +29,11 @@
             android:title="@string/send_diagnostics"
             android:icon="@drawable/ic_diagnostics"
             app:showAsAction="never"
+        />
+  <item
+            android:id="@+id/menu_logout"
+            android:icon="@drawable/ic_logout"
+            android:title="@string/logout"
         />
 </group>
 </menu>
