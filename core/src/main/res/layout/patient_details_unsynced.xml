@@ -30,7 +30,7 @@
             android:src="@android:drawable/ic_dialog_alert"
             app:tint="#b16e1c"
             android:layout_marginTop="4dp"
-            android:contentDescription="Task Image"
+            android:contentDescription="@string/task_image"
         />
         <TextView
             android:layout_width="match_parent"

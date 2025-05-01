@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/inter"
-            android:text="50 years old"
+            android:text="@string/_50_years_old"
             android:textSize="14sp"
             android:textColor="@android:color/darker_gray"
         />
@@ -39,7 +39,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/inter"
-            android:text="Navya Patel"
+            android:text="@string/navya_patel"
             android:textSize="16sp"
             android:layout_marginTop="4dp"
         />
