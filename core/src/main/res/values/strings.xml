@@ -14,7 +14,7 @@
  limitations under the License.
 -->
 <resources>
-    <string name="app_name">OpenMRS</string>
+    <string name="app_name" translatable="false">OpenMRS</string>
     <string name="title_patient_list">Registered Patients</string>
     <string name="title_patient_detail">SamplePatient Detail</string>
     <string name="register_patient">Register Patient</string>
@@ -122,8 +122,8 @@
         name="sync_device_offline_message"
     >Device Offline. Sync will resume as soon as the device is Online</string>
     <string name="settings">Settings</string>
-    <string name="save">SAVE</string>
-    <string name="cancel">CANCEL</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
     <string
         name="token_expiry_delay_text"
     >Delay Before Token Expiry Dialog (in Minutes)</string>
@@ -171,7 +171,7 @@
     >Do you want to continue sync?</string>
     <string
         name="location_unassigned_select_location"
-    >Location unassigned, please select location again...</string>
+    >Location unassigned, please select location again…</string>
     <string
         name="no_patients_available_register_a_new_one_using_the_button_below"
     >No Patients Available, Register a new one using the button below</string>
@@ -192,4 +192,31 @@
     <string name="download_all">Download All</string>
     <string name="no_locations_available">No Locations available.</string>
     <string name="no_patient_list_available">No Patient List available</string>
+    <string name="task_image">Task Image</string>
+    <string name="patient_list">Patient list</string>
+    <string name="select_location">Select Location</string>
+    <string name="select_patient_list">Select Patient List</string>
+    <string name="search_identifier_types">Search Identifier Types</string>
+    <string name="search_a_location">Search a location</string>
+    <string name="next">Next</string>
+    <string name="search_patient_lists">Search patient lists</string>
+    <string name="no_sync_info_available">No Sync Info Available</string>
+    <string name="clear_sync_data">Clear Sync Data</string>
+    <string name="hsu_id" translatable="false">HSU ID</string>
+    <string name="encounter_date">Encounter Date</string>
+    <string name="encounter_name">Encounter Name</string>
+    <string name="location_1">Location 1</string>
+    <string
+        name="this_will_show_observations"
+    >This will show observations.</string>
+    <string name="_50_years_old">50 years old</string>
+    <string name="navya_patel" translatable="false">Navya Patel</string>
+    <string name="patient_list_1">Patient List 1</string>
+    <string name="_0" translatable="false">0 %</string>
+    <string name="start_time">Start Time</string>
+    <string name="downloaded">Downloaded</string>
+    <string name="uploaded">Downloaded</string>
+    <string name="in_progress">In Progress</string>
+    <string name="completed_at">Completed At</string>
+    <string name="errors">Errors</string>
 </resources>
