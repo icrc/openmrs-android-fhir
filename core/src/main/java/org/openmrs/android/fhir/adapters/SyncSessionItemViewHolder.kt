@@ -42,20 +42,21 @@ class SyncSessionItemViewHolder(
 
   fun bind(session: SyncSession) {
     // Start time
-    binding.tvSyncStartTime.text = "Start Time: ${session.startTime}"
+    binding.tvSyncStartTime.text =
+      "${itemView.context.getString(R.string.start_time)}: ${session.startTime}"
 
     // Progress
     val progressText =
-      "Downloaded ${session.downloadedPatients}/${session.totalPatientsToDownload} | " +
-        "Uploaded ${session.uploadedPatients}/${session.totalPatientsToUpload}"
+      "${itemView.context.getString(R.string.downloaded)} ${session.downloadedPatients}/${session.totalPatientsToDownload} | " +
+        "${itemView.context.getString(R.string.uploaded)} ${session.uploadedPatients}/${session.totalPatientsToUpload}"
     binding.tvSyncProgress.text = progressText
 
     // Completion time
     binding.tvSyncEndTime.text =
       if (session.completionTime.isNullOrEmpty()) {
-        "In Progress"
+        itemView.context.getString(R.string.in_progress)
       } else {
-        "Completed At: ${session.completionTime}"
+        "${itemView.context.getString(R.string.completed_at)}: ${session.completionTime}"
       }
 
     // Status Indicator (color)
@@ -70,7 +71,8 @@ class SyncSessionItemViewHolder(
     // Error Section
     if (session.status == SyncStatus.COMPLETED_WITH_ERRORS && session.errors.isNotEmpty()) {
       binding.errorSection.isVisible = true
-      binding.tvTotalErrors.text = "Errors: ${session.errors.size}"
+      binding.tvTotalErrors.text =
+        "${itemView.context.getString(R.string.errors)}: ${session.errors.size}"
 
       val errorDetails = session.errors.joinToString("\n") { error -> "- $error" }
       binding.tvErrorDetails.text = errorDetails

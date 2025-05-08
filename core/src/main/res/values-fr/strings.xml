@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+    <string name="title_patient_list">Patients Enregistrés</string>
+    <string name="title_patient_detail">Détail du Patient Exemple</string>
+    <string name="register_patient">Enregistrer un Patient</string>
+    <string name="menu_about">À Propos de Fhir Engine</string>
+    <string name="menu_sync_resources">Synchroniser les Ressources</string>
+    <string name="menu_patient_edit">@string/edit_patient</string>
+
+    <!-- For display observations in brief, for a patient -->
+    <string
+        name="observation_brief_text"
+    >%1$s : %2$s\nEn vigueur le : %3$s</string>
+    <string
+        name="query_hint_patient_search"
+    >Rechercher par Nom du Patient</string>
+    <string
+        name="cancel_questionnaire_message"
+    >Êtes-vous sûr de vouloir abandonner les réponses ?</string>
+    <string name="patient_id">Identifiant</string>
+    <string name="patient_name">Nom</string>
+    <string name="patient_gender">Genre</string>
+    <string name="patient_dob">DDN</string>
+    <string name="patient_phone_number">Numéro de Téléphone</string>
+    <string name="patient_city">Ville</string>
+    <string name="patient_country">Pays</string>
+    <string name="patient_is_active">Est Actif</string>
+    <string name="patient_property_mobile">Numéro de Portable</string>
+    <string name="patient_property_id">Numéro d\'Identifiant</string>
+    <string name="patient_property_address">Adresse</string>
+    <string name="patient_property_dob">Date de Naissance</string>
+    <string name="patient_property_gender">Genre</string>
+    <string name="register_new_patient">Enregistrer un nouveau patient</string>
+    <string name="edit_patient">Modifier le Patient</string>
+    <string name="new_encounter">Nouvelle Consultation</string>
+    <string name="create_encounter">Créer une Consultation</string>
+    <string name="edit_encounter">Modifier la Consultation</string>
+    <string name="location">Lieu</string>
+    <string name="identifier">Identifiant</string>
+    <string name="sync_info">Infos de Synchronisation</string>
+    <string name="unsynced_resources">Ressources non Synchronisées</string>
+    <string name="select_a_location">Sélectionner un Lieu</string>
+    <string
+        name="create_encounter_fragment_headline"
+    >Quel formulaire souhaitez-vous utiliser ?</string>
+    <string
+        name="select_patient_lists"
+    >Sélectionner des Listes de Patients</string>
+    <string
+        name="select_identifier_types"
+    >Sélectionner les Types d\'Identifiants</string>
+    <string name="submit">Soumettre</string>
+    <string name="message_syncing">Synchronisation\u2026</string>
+
+    <string name="message_patient_updated">Le patient est mis à jour.</string>
+    <string
+        name="message_encounter_updated"
+    >La consultation est mise à jour.</string>
+    <string name="inputs_missing">Champs manquants.</string>
+    <string name="resources_saved">Les ressources sont enregistrées.</string>
+    <string
+        name="response_received"
+    >La réponse au questionnaire a été reçue.</string>
+    <string name="html_text">Statut actuel : <font
+            color="#ddd"
+        >INCONNU</font></string>
+    <string name="header_observation">Observations</string>
+    <string name="header_conditions">Conditions</string>
+    <string name="message_no_datetime">Aucune date/heure d\'effet</string>
+    <string name="complete_survey">Terminer le Questionnaire</string>
+    <string name="risk_status">Statut actuel : </string>
+    <string name="unknown">INCONNU</string>
+    <string name="none">aucun</string>
+    <string name="description_status">Statut</string>
+    <string name="open">Ouvert</string>
+    <string name="close">Fermé</string>
+    <string name="sync_menu">Synchro</string>
+    <string name="last_sync">Dernière synchro</string>
+    <string name="syncing">Synchronisation en cours</string>
+    <string name="sync">Synchroniser</string>
+    <string name="button_login">Se connecter</string>
+    <string name="header_encounters">Consultations</string>
+    <string name="component_nav_heading">Composants</string>
+    <string name="layout_nav_heading">Mises en page</string>
+    <string name="behavior_nav_heading">Comportements</string>
+    <string name="error">Erreur</string>
+    <string name="open_questionnaire">Ouvrir le questionnaire</string>
+    <string name="current_location_label">Lieu Actuel : </string>
+    <string name="no_location_selected">Aucun lieu sélectionné</string>
+    <string
+        name="patient_unsynced_info"
+    >Les informations du patient se synchroniseront avec\nPearl la prochaine fois que vous serez en ligne</string>
+    <string name="header_visits">En-tête de Visite</string>
+    <string name="online">En ligne</string>
+    <string name="offline">Hors ligne</string>
+    <string name="yes">Oui</string>
+    <string name="no">Non</string>
+    <string
+        name="no_and_don_t_ask_me_again"
+    >Non, et ne plus me demander</string>
+    <string name="login_expired">Connexion Expirée</string>
+    <string
+        name="session_expired"
+    >Votre session a expiré. Voulez-vous vous reconnecter ?</string>
+    <string name="logout">Déconnexion</string>
+    <string
+        name="logout_message"
+    >Êtes-vous sûr de vouloir vous déconnecter ? \n\nSi vous continuez, toutes les données de cette application seront supprimées définitivement. \nCela inclut toutes les ressources, les sessions utilisateur, la base de données, etc.</string>
+    <string name="sync_in_progress">Synchro : en cours</string>
+    <string name="sync_started">Synchro : démarrée</string>
+    <string name="sync_succeeded_at">Synchro : réussie à %1$s</string>
+    <string name="sync_failed_at">Synchro : échouée à %1$s</string>
+    <string name="sync_unknown_state">Synchro : état inconnu.</string>
+    <string name="sync_terminated">Synchro : Terminée</string>
+    <string name="logging_out">Déconnexion en cours..</string>
+    <string
+        name="sync_device_offline_message"
+    >Appareil Hors Ligne. La synchronisation reprendra dès que l\'appareil sera en ligne</string>
+    <string name="settings">Paramètres</string>
+    <string name="save">Enregistrer</string>
+    <string name="cancel">Annuler</string>
+    <string
+        name="token_expiry_delay_text"
+    >Délai avant la boîte de dialogue d\'expiration du jeton (en minutes)</string>
+    <string
+        name="check_network_connectivity"
+    >Vérifier la connectivité réseau</string>
+    <string name="enable_notifications">Activer les notifications</string>
+    <string name="settings_discarded">Paramètres annulés</string>
+    <string name="settings_saved">Paramètres enregistrés</string>
+    <string
+        name="token_check_delay_in_minutes"
+    >Délai de vérification du jeton (en minutes)</string>
+    <string name="token_check_delay">Délai de vérification du jeton</string>
+    <string
+        name="periodic_sync_delay_in_minutes"
+    >Délai de synchronisation périodique (en minutes)</string>
+    <string
+        name="periodic_sync_delay"
+    >Délai de synchronisation périodique</string>
+    <string name="send_diagnostics">Envoyer les diagnostics</string>
+    <string
+        name="diagnostics_message"
+    >Voulez-vous envoyer un rapport de diagnostic complet de l\'application à l\'équipe de développement ?\nInclut : Journaux d\'application et Infos de synchronisation</string>
+    <string name="username">Nom d\'utilisateur</string>
+    <string name="password">Mot de passe</string>
+    <string
+        name="username_password_empty"
+    >Le nom d\'utilisateur ou le mot de passe ne peut pas être vide.</string>
+    <string
+        name="invalid_username_password"
+    >Échec de la connexion. Veuillez vérifier vos identifiants.</string>
+    <string
+        name="no_internet_connection"
+    >Pas de connexion Internet. Veuillez vérifier votre réseau et réessayer.</string>
+    <string
+        name="something_went_wrong"
+    >Quelque chose s\'est mal passé. Veuillez réessayer.</string>
+    <string
+        name="locked_out_message"
+    >Trop de tentatives échouées. Veuillez réessayer plus tard.</string>
+    <string
+        name="questionnaire_error_message"
+    >Une erreur s\'est produite lors du chargement du questionnaire, veuillez synchroniser et réessayer plus tard !</string>
+    <string name="connection_restored">Connexion rétablie</string>
+    <string
+        name="do_you_want_to_continue_sync"
+    >Voulez-vous continuer la synchronisation ?</string>
+    <string
+        name="location_unassigned_select_location"
+    >Lieu non attribué, veuillez sélectionner à nouveau le lieu…</string>
+    <string
+        name="no_patients_available_register_a_new_one_using_the_button_below"
+    >Aucun patient disponible, enregistrez-en un nouveau en utilisant le bouton ci-dessous</string>
+    <string name="observation">Observation</string>
+    <string name="download_observation">Télécharger l\'Observation</string>
+    <string name="delete_observation">Supprimer l\'Observation</string>
+    <string name="expand">Développer</string>
+    <string name="encounter">Consultation</string>
+    <string name="download_encounter">Télécharger la Consultation</string>
+    <string name="delete_encounter">Supprimer la Consultation</string>
+    <string name="download_patient">Télécharger le Patient</string>
+    <string name="delete_patient">Supprimer le Patient</string>
+    <string name="empty_state_icon">Icône d\'état vide</string>
+    <string
+        name="no_unsynced_resources_available"
+    >Aucune ressource non synchronisée disponible</string>
+    <string name="delete_all">Tout supprimer</string>
+    <string name="download_all">Tout télécharger</string>
+    <string name="no_locations_available">Aucun lieu disponible.</string>
+    <string
+        name="no_patient_list_available"
+    >Aucune liste de patients disponible</string>
+    <string name="task_image">Image de la tâche</string>
+    <string name="patient_list">Liste de patients</string>
+    <string name="select_location">Sélectionner un lieu</string>
+    <string
+        name="select_patient_list"
+    >Sélectionner une liste de patients</string>
+    <string
+        name="search_identifier_types"
+    >Rechercher des types d\'identifiants</string>
+    <string name="search_a_location">Rechercher un lieu</string>
+    <string name="next">Suivant</string>
+    <string
+        name="search_patient_lists"
+    >Rechercher des listes de patients</string>
+    <string
+        name="no_sync_info_available"
+    >Aucune information de synchronisation disponible</string>
+    <string
+        name="clear_sync_data"
+    >Effacer les données de synchronisation</string>
+    <string name="encounter_date">Date de la Consultation</string>
+    <string name="encounter_name">Nom de la Consultation</string>
+    <string name="location_1">Lieu 1</string>
+    <string
+        name="this_will_show_observations"
+    >Ceci affichera les observations.</string>
+    <string name="_50_years_old">50 ans</string>
+    <string name="patient_list_1">Liste de Patients 1</string>
+    <string name="start_time">Heure de début</string>
+    <string name="downloaded">Téléchargé</string>
+    <string name="uploaded">Téléversé</string>
+    <string name="in_progress">En cours</string>
+    <string name="completed_at">Terminé à</string> <!-- Or "Achevé à" -->
+    <string name="errors">Erreurs</string>
+</resources>
