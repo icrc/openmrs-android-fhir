@@ -16,7 +16,7 @@
         android:singleLine="true"
         android:layout_width="match_parent"
         android:layout_marginHorizontal="8dp"
-        android:text="Location 1"
+        android:text="@string/location_1"
         android:layout_height="?android:attr/listPreferredItemHeight"
         android:ellipsize="marquee"
     />

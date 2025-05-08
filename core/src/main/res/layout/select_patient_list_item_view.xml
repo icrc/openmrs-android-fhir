@@ -16,7 +16,7 @@
         android:singleLine="true"
         android:layout_width="match_parent"
         android:layout_marginHorizontal="8dp"
-        android:text="Patient List 1"
+        android:text="@string/patient_list_1"
         android:layout_height="?android:attr/listPreferredItemHeight"
         android:ellipsize="marquee"
     />

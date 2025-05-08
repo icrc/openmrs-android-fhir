@@ -40,7 +40,7 @@
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_home_new_patient"
                     app:tint="@color/dashboard_cardview_textcolor"
-                    android:contentDescription="Task Image"
+                    android:contentDescription="@string/task_image"
                 />
 
             <TextView
@@ -53,7 +53,7 @@
                     android:maxLines="1"
                     android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
                     android:layout_gravity="center"
-                    android:text="Register new patient"
+                    android:text="@string/register_new_patient"
                 />
         </LinearLayout>
 
@@ -84,7 +84,7 @@
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_home_patient_list"
                     app:tint="@color/dashboard_cardview_textcolor"
-                    android:contentDescription="Task Image"
+                    android:contentDescription="@string/task_image"
                 />
 
             <TextView
@@ -97,7 +97,7 @@
                     android:maxLines="1"
                     android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
                     android:layout_gravity="center"
-                    android:text="Patient list  "
+                    android:text="@string/patient_list"
                 />
         </LinearLayout>
 
@@ -128,7 +128,7 @@
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_location"
                     app:tint="@color/dashboard_cardview_textcolor"
-                    android:contentDescription="Task Image"
+                    android:contentDescription="@string/task_image"
                 />
             <TextView
                     android:layout_width="match_parent"
@@ -140,7 +140,7 @@
                     android:maxLines="1"
                     android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
                     android:layout_gravity="center"
-                    android:text="Select Location"
+                    android:text="@string/select_location"
                 />
         </LinearLayout>
 
@@ -171,7 +171,7 @@
                     android:layout_height="wrap_content"
                     android:src="@drawable/cloud_sync_24px"
                     app:tint="@color/dashboard_cardview_textcolor"
-                    android:contentDescription="Task Image"
+                    android:contentDescription="@string/task_image"
                 />
             <TextView
                     android:layout_width="match_parent"
@@ -183,7 +183,7 @@
                     android:maxLines="1"
                     android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
                     android:layout_gravity="center"
-                    android:text="Select Patient List"
+                    android:text="@string/select_patient_list"
                 />
         </LinearLayout>
 
@@ -214,7 +214,7 @@
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_baseline_sync_24"
                     app:tint="@color/dashboard_cardview_textcolor"
-                    android:contentDescription="Task Image"
+                    android:contentDescription="@string/task_image"
                 />
             <TextView
                     android:layout_width="match_parent"
@@ -226,7 +226,7 @@
                     android:maxLines="1"
                     android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
                     android:layout_gravity="center"
-                    android:text="Sync Info"
+                    android:text="@string/sync_info"
                 />
         </LinearLayout>
 
@@ -257,7 +257,7 @@
                     android:layout_height="wrap_content"
                     android:src="@drawable/ic_offline_resource"
                     app:tint="@color/dashboard_cardview_textcolor"
-                    android:contentDescription="Task Image"
+                    android:contentDescription="@string/task_image"
                 />
             <TextView
                     android:layout_width="match_parent"
@@ -269,7 +269,7 @@
                     android:maxLines="1"
                     android:layout_marginHorizontal="@dimen/new_patient_horizontal_margin"
                     android:layout_gravity="center"
-                    android:text="Unsynced Resources"
+                    android:text="@string/unsynced_resources"
                 />
         </LinearLayout>
 

@@ -9,17 +9,16 @@
 >
   <TextView
         android:id="@+id/current_location_label"
+        app:drawableStartCompat="@drawable/ic_location_small"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/AppTheme.PatientDetails.body2"
         android:text="@string/current_location_label"
-        android:drawableStart="@drawable/ic_location_small"
     />
 
   <androidx.fragment.app.FragmentContainerView
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/add_patient_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
