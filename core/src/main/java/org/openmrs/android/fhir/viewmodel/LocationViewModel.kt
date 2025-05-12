@@ -46,6 +46,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Location
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.FirstFhirSyncWorker
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -57,6 +58,7 @@ constructor(
   private val fhirEngine: FhirEngine,
 ) : ViewModel() {
   private var masterLocationsList: MutableList<LocationItem> = mutableListOf()
+  private val restApiManager = FhirApplication.restApiClient(applicationContext)
   var favoriteLocationSet: MutableSet<String>? = null
 
   val locations = MutableLiveData<List<LocationItem>>()
@@ -87,6 +89,10 @@ constructor(
       masterLocationsList = locationsList
       locations.value = locationsList
     }
+  }
+
+  suspend fun updateSessionLocation(resourceId: String) {
+    restApiManager.updateSessionLocation(resourceId)
   }
 
   fun setFavoriteLocations(context: Context) {

@@ -43,6 +43,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
@@ -162,8 +163,10 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
 
   private fun proceedToHomeFragment() {
     (activity as MainActivity).onSyncPress()
-    NavHostFragment.findNavController(this)
-      .navigate(SelectPatientListFragmentDirections.actionSelectPatientListFragmentToHomeFragment())
+    findNavController()
+      .navigate(
+        SelectPatientListFragmentDirections.actionSelectPatientListFragmentToHomeFragment(),
+      )
   }
 
   private fun onSelectPatientListItemClicked(

@@ -39,5 +39,8 @@ class PreferenceKeys {
     val FAVORITE_LOCATIONS = stringSetPreferencesKey("FAVORITE_LOCATIONS")
     val SELECTED_IDENTIFIER_TYPES = stringSetPreferencesKey("SELECTED_IDENTIFIER_TYPES")
     val PREF_COOKIES = stringSetPreferencesKey("PREF_COOKIES")
+    val USER_UUID = stringPreferencesKey("USER_UUID")
+    val USER_NAME = stringPreferencesKey("USER_NAME")
+    val USER_PROVIDER_UUID = stringPreferencesKey("USER_PROVIDER_UUID")
   }
 }

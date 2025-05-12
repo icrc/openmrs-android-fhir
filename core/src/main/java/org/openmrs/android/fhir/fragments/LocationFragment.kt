@@ -264,6 +264,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
         locationAdapter.setSelectedLocation(locationItem.resourceId)
         favoriteLocationAdapter.setSelectedLocation(locationItem.resourceId)
       }
+      locationViewModel.updateSessionLocation(locationItem.resourceId)
     }
 
     Toast.makeText(context, "Location Updated", Toast.LENGTH_SHORT).show()

@@ -47,7 +47,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.view.GravityCompat
-import androidx.datastore.preferences.core.edit
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -76,7 +75,6 @@ import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.data.remote.ApiManager
-import org.openmrs.android.fhir.data.remote.model.SessionLocation
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
 import org.openmrs.android.fhir.extensions.UncaughtExceptionHandler
 import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
@@ -235,7 +233,7 @@ class MainActivity : AppCompatActivity() {
   fun onSyncPress() {
     when {
       !isTokenExpired() && viewModel.networkStatus.value -> {
-        runBlocking {
+        /*runBlocking {
           val selectedLocationId =
             applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
           if (selectedLocationId != null) {
@@ -257,7 +255,7 @@ class MainActivity : AppCompatActivity() {
               binding.navHostFragment.findNavController().navigate(R.id.locationFragment)
             }
           }
-        }
+        }*/
         viewModel.triggerOneTimeSync(applicationContext)
         binding.drawer.closeDrawer(GravityCompat.START)
       }

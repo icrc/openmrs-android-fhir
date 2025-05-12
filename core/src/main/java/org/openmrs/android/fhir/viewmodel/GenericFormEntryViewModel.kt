@@ -53,7 +53,6 @@ import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Condition
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.Encounter
-import org.hl7.fhir.r4.model.Encounter.EncounterParticipantComponent
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Period
 import org.hl7.fhir.r4.model.Questionnaire
@@ -61,15 +60,12 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
-import org.openmrs.android.fhir.Form
-import org.openmrs.android.fhir.MockConstants
+import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.readFileFromAssets
 import org.openmrs.android.helpers.OpenMRSHelper
-import org.openmrs.android.helpers.OpenMRSHelper.MiscHelper
-import org.openmrs.android.helpers.OpenMRSHelper.UserHelper
 
 /** ViewModel for Generic questionnaire screen {@link GenericFormEntryFragment}. */
 class GenericFormEntryViewModel
@@ -77,14 +73,13 @@ class GenericFormEntryViewModel
 constructor(
   private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
+  private val openMRSHelper: OpenMRSHelper,
   @Assisted val state: SavedStateHandle,
 ) : ViewModel() {
 
   @AssistedFactory
   interface Factory : ViewModelAssistedFactory<GenericFormEntryViewModel> {
-    override fun create(
-      handle: SavedStateHandle,
-    ): GenericFormEntryViewModel
+    override fun create(handle: SavedStateHandle): GenericFormEntryViewModel
   }
 
   private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
@@ -120,10 +115,11 @@ constructor(
             end = visitDate
           },
         )
-        addParticipant(MiscHelper.createParticipant())
+
+        addParticipant(openMRSHelper.createParticipant())
         addLocation(
           Encounter.EncounterLocationComponent().apply {
-            location = Reference("Location/${UserHelper.getCurrentAuthLocation().id}")
+            location = openMRSHelper.getCurrentAuthLocation()
           },
         )
         addType(
@@ -132,7 +128,7 @@ constructor(
               listOf(
                 Coding().apply {
                   system = "http://fhir.openmrs.org/code-system/visit-type"
-                  code = MockConstants.VISIT_TYPE_UUID
+                  code = Constants.VISIT_TYPE_UUID
                   display = "Facility Visit"
                 },
               )
@@ -150,7 +146,7 @@ constructor(
    *
    * @param questionnaireResponse generic encounter questionnaire response
    */
-  fun saveEncounter(questionnaireResponse: QuestionnaireResponse, form: Form, patientId: String) {
+  fun saveEncounter(questionnaireResponse: QuestionnaireResponse, patientId: String) {
     viewModelScope.launch {
       val questionnaireId = state.get<String>("questionnaire_id")
 
@@ -173,10 +169,10 @@ constructor(
       val encounterId = generateUuid()
 
       val visit: Encounter
-      if (MockConstants.WRAP_ENCOUNTER) {
+      if (Constants.WRAP_ENCOUNTER) {
         visit = createWrapperVisit(patientId)
       } else {
-        visit = OpenMRSHelper.VisitHelper.getActiveVisit(fhirEngine, patientId, true)!!
+        visit = openMRSHelper.getActiveVisit(patientId, true)!!
       }
 
       if (isRequiredFieldMissing(bundle)) {
@@ -207,7 +203,7 @@ constructor(
         it.system == "http://fhir.openmrs.org/core/StructureDefinition/omrs-form"
       }
     val encounterDate: Date
-    if (MockConstants.WRAP_ENCOUNTER) {
+    if (Constants.WRAP_ENCOUNTER) {
       val localDate = Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
       val localStartOfDay = localDate.atStartOfDay()
       encounterDate = Date.from(localStartOfDay.atZone(ZoneId.systemDefault()).toInstant())
@@ -229,7 +225,7 @@ constructor(
               end = encounterDate
             },
           )
-          addParticipant(createParticipant())
+          addParticipant(openMRSHelper.createParticipant())
           addLocation(
             Encounter.EncounterLocationComponent().apply {
               location = Reference("Location/$locationId") // Set the location reference
@@ -289,16 +285,6 @@ constructor(
         }
       }
     }
-  }
-
-  fun createParticipant(): EncounterParticipantComponent {
-    // TODO Replace this with method to get the authenticated user's reference
-    val authenticatedUser = MockConstants.AUTHENTICATED_USER
-    val participant = EncounterParticipantComponent()
-    participant.individual = Reference("Practitioner/${authenticatedUser.providerUuid}")
-    participant.individual.display = authenticatedUser.display
-    participant.individual.type = "Practitioner"
-    return participant
   }
 
   private fun isRequiredFieldMissing(bundle: Bundle): Boolean {

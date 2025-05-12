@@ -44,7 +44,6 @@ import com.google.android.fhir.datacapture.QuestionnaireFragment
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.Form
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.showSnackBar
@@ -123,10 +122,6 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
         childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG) as QuestionnaireFragment
       viewModel.saveEncounter(
         questionnaireFragment.getQuestionnaireResponse(),
-        Form(
-          viewModel.questionnaire.title,
-          viewModel.questionnaire.code.firstOrNull()?.code.toString(),
-        ),
         args.patientId,
       )
     }

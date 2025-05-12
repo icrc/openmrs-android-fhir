@@ -39,6 +39,7 @@ import org.openmrs.android.fhir.data.IdentifierTypeManager
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.remote.Api
 import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.helpers.OpenMRSHelper
 
 @Module
 object AppModule {
@@ -78,5 +79,14 @@ object AppModule {
     apiManager: ApiManager,
   ): IdentifierTypeManager {
     return IdentifierTypeManager(context, database, apiManager)
+  }
+
+  @Provides
+  @Singleton
+  fun provideOpenMRSHelper(
+    context: Context,
+    fhirEngine: FhirEngine,
+  ): OpenMRSHelper {
+    return OpenMRSHelper(fhirEngine, context)
   }
 }
