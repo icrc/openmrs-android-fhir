@@ -42,6 +42,7 @@ import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Encounter.EncounterParticipantComponent
 import org.hl7.fhir.r4.model.Period
 import org.hl7.fhir.r4.model.Reference
+import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 
@@ -125,9 +126,9 @@ constructor(
       currentVisit =
         startVisit(
           patientId,
-          "default-visit-type-uuid",
+          Constants.VISIT_TYPE_UUID,
           Date(),
-        ) // Replace with actual visit type UUID
+        )
     }
     return currentVisit
   }
@@ -144,9 +145,7 @@ constructor(
         setPeriod(Period().apply { start = startDate })
         addParticipant(createParticipant())
         addLocation(
-          Encounter.EncounterLocationComponent().apply {
-            location = getCurrentAuthLocation() // Dynamic location
-          },
+          Encounter.EncounterLocationComponent().apply { location = getCurrentAuthLocation() },
         )
         addType(
           CodeableConcept().apply {
