@@ -127,7 +127,7 @@ constructor(
             coding =
               listOf(
                 Coding().apply {
-                  system = "http://fhir.openmrs.org/code-system/visit-type"
+                  system = Constants.VISIT_TYPE_CODE_SYSTEM
                   code = Constants.VISIT_TYPE_UUID
                   display = "Facility Visit"
                 },
@@ -264,15 +264,37 @@ constructor(
       when (val resource = it.resource) {
         is Observation -> {
           if (resource.hasCode() && resource.hasValue()) {
-            resource.apply {
-              id = generateUuid()
-              subject = patientReference
-              encounter = encounterReference
-              status = Observation.ObservationStatus.FINAL
-              effective = DateTimeType(Date())
-              value = resource.value
+            when (val value = resource.value) {
+              is CodeableConcept -> {
+                val codings = value.coding
+                codings.forEach { coding ->
+                  val obs =
+                    Observation().apply {
+                      id = generateUuid()
+                      code = resource.code
+                      subject = patientReference
+                      encounter = encounterReference
+                      status = Observation.ObservationStatus.FINAL
+                      effective = DateTimeType(Date())
+                      this.value = CodeableConcept().addCoding(coding)
+                    }
+                  saveResourceToDatabase(obs)
+                }
+              }
+              else -> {
+                val obs =
+                  Observation().apply {
+                    id = generateUuid()
+                    code = resource.code
+                    subject = patientReference
+                    encounter = encounterReference
+                    status = Observation.ObservationStatus.FINAL
+                    effective = DateTimeType(Date())
+                    this.value = value
+                  }
+                saveResourceToDatabase(obs)
+              }
             }
-            saveResourceToDatabase(resource)
           }
         }
         is Condition -> {

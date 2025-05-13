@@ -54,20 +54,19 @@ constructor(
 ) {
 
   suspend fun getAuthenticatedUserId(): String? {
-    return context.applicationContext.dataStore.data.first().get(PreferenceKeys.USER_UUID)
+    return context.dataStore.data.first().get(PreferenceKeys.USER_UUID)
   }
 
   suspend fun getAuthenticatedUserName(): String? {
-    return context.applicationContext.dataStore.data.first().get(PreferenceKeys.USER_NAME)
+    return context.dataStore.data.first().get(PreferenceKeys.USER_NAME)
   }
 
   suspend fun getAuthenticatedProviderUuid(): String? {
-    return context.applicationContext.dataStore.data.first().get(PreferenceKeys.USER_PROVIDER_UUID)
+    return context.dataStore.data.first().get(PreferenceKeys.USER_PROVIDER_UUID)
   }
 
   suspend fun getCurrentAuthLocation(): Reference {
-    val selectedLocationId =
-      context.applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+    val selectedLocationId = context.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
     return Reference("Location/$selectedLocationId") // Reference to the location
   }
 
@@ -87,9 +86,7 @@ constructor(
     val visitEncounters =
       allEncounters.filter { encounter ->
         encounter.type.any { type ->
-          type.coding.any { coding ->
-            coding.system == "http://fhir.openmrs.org/code-system/visit-type"
-          }
+          type.coding.any { coding -> coding.system == Constants.VISIT_TYPE_CODE_SYSTEM }
         }
       }
 
@@ -114,7 +111,7 @@ constructor(
       encounters.find { encounter: Encounter ->
         val isVisitType =
           encounter.type?.firstOrNull()?.coding?.firstOrNull()?.system ==
-            "http://fhir.openmrs.org/code-system/visit-type"
+            Constants.VISIT_TYPE_CODE_SYSTEM
         val period = encounter.period
         val startDate = period?.start
         val endDate = period?.end
@@ -152,7 +149,7 @@ constructor(
             coding =
               listOf(
                 Coding().apply {
-                  system = "http://fhir.openmrs.org/code-system/visit-type"
+                  system = Constants.VISIT_TYPE_CODE_SYSTEM
                   code = visitTypeId
                   display = "Facility Visit"
                 },
