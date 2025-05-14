@@ -14,7 +14,7 @@
  limitations under the License.
 -->
 <resources>
-    <string name="app_name">OpenMRS</string>
+    <string name="app_name" translatable="false">OpenMRS</string>
     <string name="title_patient_list">Registered Patients</string>
     <string name="title_patient_detail">SamplePatient Detail</string>
     <string name="register_patient">Register Patient</string>
@@ -202,7 +202,7 @@
     <string name="search_patient_lists">Search patient lists</string>
     <string name="no_sync_info_available">No Sync Info Available</string>
     <string name="clear_sync_data">Clear Sync Data</string>
-    <string name="hsu_id">HSU ID</string>
+    <string name="hsu_id" translatable="false">HSU ID</string>
     <string name="encounter_date">Encounter Date</string>
     <string name="encounter_name">Encounter Name</string>
     <string name="location_1">Location 1</string>
@@ -210,7 +210,13 @@
         name="this_will_show_observations"
     >This will show observations.</string>
     <string name="_50_years_old">50 years old</string>
-    <string name="navya_patel">Navya Patel</string>
+    <string name="navya_patel" translatable="false">Navya Patel</string>
     <string name="patient_list_1">Patient List 1</string>
-    <string name="_0">0 %</string>
+    <string name="_0" translatable="false">0 %</string>
+    <string name="start_time">Start Time</string>
+    <string name="downloaded">Downloaded</string>
+    <string name="uploaded">Downloaded</string>
+    <string name="in_progress">In Progress</string>
+    <string name="completed_at">Completed At</string>
+    <string name="errors">Errors</string>
 </resources>
