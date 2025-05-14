@@ -48,9 +48,7 @@ import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
-import org.openmrs.android.fhir.MockConstants
-import org.openmrs.android.fhir.MockConstants.DATE24_FORMATTER
-import org.openmrs.android.fhir.MockConstants.WRAP_ENCOUNTER
+import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.helpers.OpenMRSHelper
@@ -64,6 +62,7 @@ class PatientDetailsViewModel
 constructor(
   private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
+  private val openMRSHelper: OpenMRSHelper,
   @Assisted val state: SavedStateHandle,
 ) : ViewModel() {
 
@@ -92,11 +91,11 @@ constructor(
     val patientResource = searchResult.firstOrNull()?.resource ?: return emptyList()
 
     val data = mutableListOf<PatientDetailData>()
-    val visits = OpenMRSHelper.VisitHelper.getVisits(fhirEngine, patientId)
+    val visits = openMRSHelper.getVisits(patientId)
     data.addPatientDetailData(patientResource)
     data.add(PatientDetailHeader(getString(R.string.header_encounters)))
     visits.forEach { (visit, encounters) ->
-      if (!WRAP_ENCOUNTER) {
+      if (!Constants.WRAP_ENCOUNTER) {
         data.addVisitData(visit, encounters)
       }
 
@@ -134,16 +133,15 @@ constructor(
   }
 
   suspend fun hasActiveVisit(): Boolean {
-    return OpenMRSHelper.VisitHelper.getActiveVisit(fhirEngine, patientId, false) != null
+    return openMRSHelper.getVisits(patientId).isNotEmpty()
   }
 
   fun createVisit(startDate: Date) {
     viewModelScope.launch {
       val visit =
-        OpenMRSHelper.VisitHelper.startVisit(
-          fhirEngine,
+        openMRSHelper.startVisit(
           patientId,
-          MockConstants.VISIT_TYPE_UUID,
+          Constants.VISIT_TYPE_UUID,
           startDate,
         )
     }
@@ -166,9 +164,8 @@ constructor(
 
   private fun createVisitItem(visit: Encounter): PatientListViewModel.VisitItem {
     val visitType = visit.type.firstOrNull()?.coding?.firstOrNull()?.display ?: "Type"
-    val startDate = visit.period?.start?.let { DATE24_FORMATTER.format(it) } ?: ""
-
-    val endDate = visit.period?.end?.let { DATE24_FORMATTER.format(it) } ?: ""
+    val startDate = visit.period?.start?.let { Constants.DATE24_FORMATTER.format(it) } ?: ""
+    val endDate = visit.period?.end?.let { Constants.DATE24_FORMATTER.format(it) } ?: ""
 
     return PatientListViewModel.VisitItem(
       visit.logicalId,
