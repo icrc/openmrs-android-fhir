@@ -48,14 +48,17 @@ import java.util.Date
 import java.util.UUID
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Bundle
+import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Condition
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
+import org.hl7.fhir.r4.model.Quantity
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
+import org.hl7.fhir.r4.model.StringType
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 
 class EditEncounterViewModel
@@ -154,34 +157,82 @@ constructor(
     encounterReference: Reference,
     subjectReference: Reference,
   ) {
-    val existingObservation =
-      observations.find { obs ->
-        obs.code.coding.any { coding -> coding.code == resource.code.codingFirstRep.code }
+    if (!resource.hasCode() || !resource.hasValue()) return
+
+    val matching =
+      observations.filter { obs ->
+        obs.code.coding.any { c -> c.code == resource.code.codingFirstRep.code }
       }
 
-    if (existingObservation != null && existingObservation.value.equalsDeep(resource.value)) {
-      return
-    }
+    when (val value = resource.value) {
+      is StringType,
+      is Quantity, -> {
+        val existing = matching.firstOrNull()
+        if (existing != null) {
+          if (existing.value.equalsDeep(value)) return // same value → do nothing
 
-    existingObservation?.apply {
-      id = existingObservation.id
-      status = Observation.ObservationStatus.AMENDED
-      value = resource.value
-    }
+          // amend
+          existing.status = Observation.ObservationStatus.AMENDED
+          existing.value = value
+          existing.effective = DateTimeType(Date())
+          updateResourceToDatabase(existing)
+        } else {
+          // new resource
+          resource.id = generateUuid()
+          resource.subject = subjectReference
+          resource.encounter = encounterReference
+          resource.status = Observation.ObservationStatus.FINAL
+          resource.effective = DateTimeType(Date())
+          createResourceToDatabase(resource)
+        }
+      }
+      is CodeableConcept -> {
+        val codings = value.coding
 
-    if (existingObservation != null && existingObservation.hasValue()) {
-      updateResourceToDatabase(existingObservation)
-    } else {
-      resource.apply {
-        id = UUID.randomUUID().toString()
-        subject = subjectReference
-        encounter = encounterReference
-        status = Observation.ObservationStatus.FINAL
-        effective = DateTimeType(Date())
+        if (codings.size <= 1) {
+          val existing = matching.firstOrNull()
+          if (existing != null && existing.value.equalsDeep(value)) return
+
+          // amend or create
+          val target = existing ?: Observation()
+          target.id = existing?.id ?: generateUuid()
+          target.code = resource.code
+          target.subject = subjectReference
+          target.encounter = encounterReference
+          target.status =
+            if (existing != null) {
+              Observation.ObservationStatus.AMENDED
+            } else {
+              Observation.ObservationStatus.FINAL
+            }
+          target.effective = DateTimeType(Date())
+          target.value = value
+
+          if (existing != null) {
+            updateResourceToDatabase(target)
+          } else {
+            createResourceToDatabase(target)
+          }
+        } else {
+          // purge all existing and create fresh one-per-coding
+          matching.forEach { fhirEngine.purge(it.resourceType, it.idElement.idPart) }
+
+          codings.forEach { coding ->
+            val obs =
+              Observation().apply {
+                id = generateUuid()
+                code = resource.code
+                subject = subjectReference
+                encounter = encounterReference
+                status = Observation.ObservationStatus.FINAL
+                effective = DateTimeType(Date())
+              }
+            obs.setValue(CodeableConcept().apply { addCoding(coding) })
+            createResourceToDatabase(obs)
+          }
+        }
       }
-      if (resource.hasValue()) {
-        createResourceToDatabase(resource)
-      }
+      else -> {}
     }
   }
 
@@ -227,5 +278,9 @@ constructor(
 
   private suspend fun createResourceToDatabase(resource: Resource) {
     fhirEngine.create(resource)
+  }
+
+  private fun generateUuid(): String {
+    return UUID.randomUUID().toString()
   }
 }
