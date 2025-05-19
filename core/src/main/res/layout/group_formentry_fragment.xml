@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+>
+
+  <!-- Horizontally scrollable patient names -->
+  <HorizontalScrollView
+        android:id="@+id/patientScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        app:layout_constraintTop_toTopOf="parent"
+    >
+    <com.google.android.material.tabs.TabLayout
+            style="@style/Widget.Material3.TabLayout.OnSurface"
+            android:id="@+id/patientTabLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:tabMode="scrollable"
+            app:tabGravity="start"
+            app:tabInlineLabel="true"
+            app:tabPaddingStart="16dp"
+            app:tabPaddingEnd="16dp"
+            app:tabSelectedTextColor="@android:color/black"
+            app:tabTextColor="@android:color/darker_gray"
+            app:tabIndicatorColor="@android:color/holo_blue_dark"
+        />
+  </HorizontalScrollView>
+<FrameLayout
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/patientScrollView"
+        app:layout_constraintBottom_toTopOf="@id/btn_save_all_encounters"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:context="fragments.GenericFormEntryFragment"
+    >
+
+  <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/form_entry_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+        />
+</FrameLayout>
+  <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_save_all_encounters"
+        style="@style/Widget.Material3.Button"
+        android:backgroundTint="@color/primary_blue_40"
+        android:textSize="12sp"
+        android:textColor="@color/white"
+        android:layout_width="match_parent"
+        app:cornerRadius="4dp"
+        app:iconGravity="textStart"
+        android:layout_marginHorizontal="16dp"
+        android:layout_height="wrap_content"
+        android:text="@string/save_all_encounters"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+    />
+</androidx.constraintlayout.widget.ConstraintLayout>

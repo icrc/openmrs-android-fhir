@@ -29,6 +29,7 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -84,8 +85,9 @@ constructor(
 
   private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
   var questionnaire: Questionnaire = Questionnaire()
-  val questionnaireJson = MutableLiveData<String>()
-  val isResourcesSaved = MutableLiveData<Boolean>()
+  private val _questionnaireJson = MutableLiveData<String>()
+  val questionnaireJson: LiveData<String> = _questionnaireJson
+  val isResourcesSaved = MutableLiveData<String>()
 
   fun getEncounterQuestionnaire(questionnaireId: String) {
     viewModelScope.launch {
@@ -95,7 +97,7 @@ constructor(
         val questionnaireString = applicationContext.readFileFromAssets("$questionnaireId.json")
         questionnaire = parser.parseResource(Questionnaire::class.java, questionnaireString)
       }
-      questionnaireJson.value = parser.encodeResourceToString(questionnaire)
+      _questionnaireJson.value = parser.encodeResourceToString(questionnaire)
     }
   }
 
@@ -176,12 +178,12 @@ constructor(
       }
 
       if (isRequiredFieldMissing(bundle)) {
-        isResourcesSaved.value = false
+        isResourcesSaved.value = "ERROR/$patientId"
         return@launch
       }
 
       saveResources(bundle, patientReference, questionnaire, encounterId, visit.idPart)
-      isResourcesSaved.value = true
+      isResourcesSaved.value = "SAVED/$patientId"
     }
   }
 

@@ -121,13 +121,23 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
   }
 
   private fun handleFormClick(questionnaireId: String) {
-    findNavController()
-      .navigate(
-        CreateEncountersFragmentDirections.actionCreateEncounterFragmentToGenericFormEntryFragment(
-          patientId = args.patientId,
-          questionnaireId = questionnaireId,
-        ),
-      )
+    if (args.isGroupEncounter) {
+      findNavController()
+        .navigate(
+          CreateEncountersFragmentDirections.actionCreateEncounterFragmentToGroupFormEntryFragment(
+            questionnaireId = questionnaireId,
+          ),
+        )
+    } else {
+      findNavController()
+        .navigate(
+          CreateEncountersFragmentDirections
+            .actionCreateEncounterFragmentToGenericFormEntryFragment(
+              patientId = args.patientId,
+              questionnaireId = questionnaireId,
+            ),
+        )
+    }
   }
 
   override fun onDestroyView() {

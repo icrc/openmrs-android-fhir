@@ -40,6 +40,7 @@ import org.openmrs.android.fhir.fragments.CreateEncountersFragment
 import org.openmrs.android.fhir.fragments.EditEncounterFragment
 import org.openmrs.android.fhir.fragments.EditPatientFragment
 import org.openmrs.android.fhir.fragments.GenericFormEntryFragment
+import org.openmrs.android.fhir.fragments.GroupFormEntryFragment
 import org.openmrs.android.fhir.fragments.IdentifierFragment
 import org.openmrs.android.fhir.fragments.LocationFragment
 import org.openmrs.android.fhir.fragments.PatientDetailsFragment
@@ -100,4 +101,6 @@ interface AppComponent {
   fun inject(fragment: UnsyncedResourcesFragment)
 
   fun inject(fragment: SelectPatientListFragment)
+
+  fun inject(fragment: GroupFormEntryFragment)
 }

@@ -219,4 +219,12 @@
     <string name="in_progress">En progreso</string>
     <string name="completed_at">Completado a las</string>
     <string name="errors">Errores</string>
+    <string
+        name="inputs_missing_for_patient"
+    >Faltan datos para el paciente:</string>
+    <string name="start_group_encounter">Iniciar Encuentro Grupal</string>
+    <string name="next_patient">Siguiente Paciente</string>
+    <string name="save_all_encounters">Guardar Todos los Encuentros</string>
+    <string name="saved">GUARDADO</string>
+    <string name="group_encounters">Encuentros Grupales</string>
 </resources>

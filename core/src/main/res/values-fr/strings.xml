@@ -225,4 +225,16 @@
     <string name="in_progress">En cours</string>
     <string name="completed_at">Terminé à</string> <!-- Or "Achevé à" -->
     <string name="errors">Erreurs</string>
+    <string
+        name="inputs_missing_for_patient"
+    >Données manquantes pour le patient :</string>
+    <string
+        name="start_group_encounter"
+    >Démarrer la Rencontre de Groupe</string>
+    <string name="next_patient">Patient Suivant</string>
+    <string
+        name="save_all_encounters"
+    >Enregistrer Toutes les Rencontres</string>
+    <string name="saved">ENREGISTRÉ</string>
+    <string name="group_encounters">Rencontres de Groupe</string>
 </resources>

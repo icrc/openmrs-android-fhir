@@ -143,7 +143,8 @@ class PatientDetailsFragment : Fragment() {
     findNavController()
       .navigate(
         PatientDetailsFragmentDirections.actionPatientDetailsToCreateEncounterFragment(
-          args.patientId,
+          patientId = args.patientId,
+          isGroupEncounter = false,
         ),
       )
   }
