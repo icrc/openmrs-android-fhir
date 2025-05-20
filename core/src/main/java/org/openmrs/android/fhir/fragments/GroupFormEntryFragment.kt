@@ -77,6 +77,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     setUpActionBar()
     setHasOptionsMenu(true)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
+    observeLoading()
     groupFormEntryViewModel.getPatients()
     observeResourcesSaveAction()
     if (savedInstanceState == null) {
@@ -88,18 +89,10 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       QuestionnaireFragment.SUBMIT_REQUEST_KEY,
       viewLifecycleOwner,
     ) { _, _ ->
-      val selectedTab = binding.patientTabLayout.selectedTabPosition
-      saveCurrentPatientQuestionnaireResponse(
-        groupFormEntryViewModel.patients.value?.get(selectedTab)?.resourceId,
-      )
-      if (selectedTab < binding.patientTabLayout.tabCount - 1) {
-        binding.patientTabLayout.selectTab(binding.patientTabLayout.getTabAt(selectedTab + 1))
-      } else {
-        saveAllEncounters()
-      }
+      handleSubmitEncounter()
     }
     (activity as MainActivity).setDrawerEnabled(false)
-    binding.btnSaveAllEncounters.setOnClickListener { saveAllEncounters() }
+    binding.btnSaveAllEncounters.setOnClickListener { showSaveAllEncounterDialog() }
     observePatients()
   }
 
@@ -135,22 +128,17 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
             getString(R.string.questionnaire_error_message),
           )
           NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
+          groupFormEntryViewModel.isLoading.value = false
+          return@commit
         } else {
           val questionnaireFragmentBuilder =
             QuestionnaireFragment.builder()
               .showReviewPageBeforeSubmit(
                 requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
               )
-              .setSubmitButtonText(getString(R.string.next_patient))
+              .setSubmitButtonText(getString(R.string.submit))
               .setShowSubmitButton(true)
               .setQuestionnaire(questionnaireJson)
-
-          val patientIndex = groupFormEntryViewModel.getPatientIndexById(patientId)
-          if (patientIndex?.plus(1) == groupFormEntryViewModel.patients.value?.size) {
-            questionnaireFragmentBuilder.setSubmitButtonText(
-              getString(R.string.save_all_encounters),
-            )
-          }
 
           add(
             R.id.form_entry_container,
@@ -160,11 +148,37 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         }
       }
     }
+    view?.post { groupFormEntryViewModel.isLoading.value = false }
+  }
+
+  private fun handleSubmitEncounter() {
+    val selectedTab = binding.patientTabLayout.selectedTabPosition
+    val savedPatients = groupFormEntryViewModel.patientQuestionnaireResponseMap.keys.size
+    val totalPatients = groupFormEntryViewModel.patients.value?.size ?: 0
+    saveCurrentPatientQuestionnaireResponse(
+      groupFormEntryViewModel.patients.value?.get(selectedTab)?.resourceId,
+    )
+    if (selectedTab < binding.patientTabLayout.tabCount - 1) {
+      binding.patientTabLayout.selectTab(binding.patientTabLayout.getTabAt(selectedTab + 1))
+      binding.patientTabLayout.setScrollPosition(selectedTab + 1, 0f, true)
+    }
+
+    if (totalPatients <= savedPatients + 1) {
+      showSnackBar(
+        requireActivity(),
+        getString(R.string.all_patients_have_been_submitted_click_on_save_all_encounters),
+      )
+    }
   }
 
   private fun saveAllEncounters() {
     val savedEncounterPatientId =
       groupFormEntryViewModel.getAllPatientIdsFromPatientQuestionnaireResponse()
+    if (savedEncounterPatientId.isEmpty()) {
+      showSnackBar(requireActivity(), getString(R.string.no_encounters_to_save))
+      return
+    }
+    groupFormEntryViewModel.isLoading.value = true
     for (patientId in savedEncounterPatientId) {
       genericFormEntryViewModel.saveEncounter(
         groupFormEntryViewModel.getPatientQuestionnaireResponse(patientId)!!,
@@ -204,6 +218,9 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   private fun setupPatientTabs(patients: List<PatientListViewModel.PatientItem>) {
+    binding.patientTabLayout.clearOnTabSelectedListeners() // Clear previous listeners if any
+    binding.patientTabLayout.removeAllTabs() // Clear existing tabs before adding new ones
+
     for (patient in patients) {
       binding.patientTabLayout.addTab(binding.patientTabLayout.newTab().setText(patient.name))
     }
@@ -212,12 +229,15 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     binding.patientTabLayout.addOnTabSelectedListener(
       object : TabLayout.OnTabSelectedListener {
         override fun onTabSelected(tab: TabLayout.Tab) {
+          groupFormEntryViewModel.isLoading.value = true
           val patientId = groupFormEntryViewModel.patients.value?.get(tab.position)?.resourceId
           if (patientId != null) {
             addQuestionnaireFragment(
               genericFormEntryViewModel.questionnaireJson.value.toString(),
               patientId,
             )
+          } else {
+            groupFormEntryViewModel.isLoading.value = false
           }
         }
 
@@ -237,33 +257,41 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       val isSaved = it.contains(getString(R.string.saved))
       val patientId = it.substringAfter("/")
       if (!isSaved) {
-        Toast.makeText(
-            requireContext(),
-            "${getString(R.string.inputs_missing_for_patient)} $patientId ",
-            Toast.LENGTH_SHORT,
-          )
-          .show()
+        groupFormEntryViewModel.incrementErrorCount()
         return@observe
       }
-      handleSavedEncounter(patientId)
+      groupFormEntryViewModel.addSavedPatientId(patientId)
+      val errorCount = groupFormEntryViewModel.errorCount.value ?: 0
+      val savedPatientCount = groupFormEntryViewModel.savedPatientIds.value?.size ?: 0
       if (
-        groupFormEntryViewModel.savedCount.value ==
+        errorCount + savedPatientCount ==
           groupFormEntryViewModel.getAllPatientIdsFromPatientQuestionnaireResponse().size
       ) {
-        Toast.makeText(requireContext(), getString(R.string.resources_saved), Toast.LENGTH_SHORT)
-          .show()
-        NavHostFragment.findNavController(this).navigateUp()
+        if (errorCount == 0) {
+          Toast.makeText(requireContext(), getString(R.string.resources_saved), Toast.LENGTH_SHORT)
+            .show()
+          NavHostFragment.findNavController(this).navigateUp()
+        } else {
+          handleUnsavedEncounters()
+        }
       }
     }
   }
 
-  private fun handleSavedEncounter(patientId: String) {
-    groupFormEntryViewModel.incrementSavedCount()
-    val fragment = childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG + patientId)
-    if (fragment != null) {
-      childFragmentManager.commit { remove(fragment) }
+  private fun handleUnsavedEncounters() {
+    val savedPatientIds = groupFormEntryViewModel.savedPatientIds.value
+    savedPatientIds?.forEach { patientId ->
+      val fragment = childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG + patientId)
+      if (fragment != null) {
+        childFragmentManager.commit { remove(fragment) }
+      }
     }
-    // TODO: handle deleting patient from list & tab
+    if (savedPatientIds != null) {
+      groupFormEntryViewModel.removePatientsFromList(savedPatientIds)
+    }
+    groupFormEntryViewModel.resetSavedPatientId()
+    groupFormEntryViewModel.resetErrorCount()
+    binding.groupProgressBar.visibility = View.GONE
   }
 
   private fun observeQuestionnaire() {
@@ -273,6 +301,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
           ?.get(binding.patientTabLayout.selectedTabPosition)
           ?.resourceId
       if (patientId != null) {
+        groupFormEntryViewModel.isLoading.value = true
         it?.let {
           addQuestionnaireFragment(
             questionnaireJson = it,
@@ -290,6 +319,26 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         observeQuestionnaire()
       }
     }
+  }
+
+  private fun observeLoading() {
+    groupFormEntryViewModel.isLoading.observe(viewLifecycleOwner) {
+      binding.groupProgressBar.visibility = if (it) View.VISIBLE else View.GONE
+      binding.btnSaveAllEncounters.visibility = if (it) View.GONE else View.VISIBLE
+    }
+  }
+
+  private fun showSaveAllEncounterDialog() {
+    AlertDialog.Builder(requireContext())
+      .setTitle(getString(R.string.save_all_submitted_encounters))
+      .setMessage(getString(R.string.do_you_want_to_save_all_submitted_encounters))
+      .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
+        dialog.dismiss()
+        saveAllEncounters()
+      }
+      .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
+      .setCancelable(false)
+      .show()
   }
 
   companion object {

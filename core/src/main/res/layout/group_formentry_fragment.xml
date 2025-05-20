@@ -6,35 +6,21 @@
     android:layout_height="match_parent"
 >
 
-  <!-- Horizontally scrollable patient names -->
-  <HorizontalScrollView
-        android:id="@+id/patientScrollView"
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/patientTabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:scrollbars="none"
+        style="@style/CustomPatientTabLayout"
+        app:tabMode="scrollable"
+        app:tabGravity="start"
         app:layout_constraintTop_toTopOf="parent"
-    >
-    <com.google.android.material.tabs.TabLayout
-            style="@style/Widget.Material3.TabLayout.OnSurface"
-            android:id="@+id/patientTabLayout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:tabMode="scrollable"
-            app:tabGravity="start"
-            app:tabInlineLabel="true"
-            app:tabPaddingStart="16dp"
-            app:tabPaddingEnd="16dp"
-            app:tabSelectedTextColor="@android:color/black"
-            app:tabTextColor="@android:color/darker_gray"
-            app:tabIndicatorColor="@android:color/holo_blue_dark"
-        />
-  </HorizontalScrollView>
+    />
 <FrameLayout
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/patientScrollView"
+        app:layout_constraintTop_toBottomOf="@id/patientTabLayout"
         app:layout_constraintBottom_toTopOf="@id/btn_save_all_encounters"
         app:layout_constraintEnd_toEndOf="parent"
         tools:context="fragments.GenericFormEntryFragment"
@@ -59,6 +45,17 @@
         android:layout_height="wrap_content"
         android:text="@string/save_all_encounters"
         android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+    />
+    <ProgressBar
+        android:id="@+id/groupProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateTint="#4285F4"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

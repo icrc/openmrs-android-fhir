@@ -237,4 +237,16 @@
     >Enregistrer Toutes les Rencontres</string>
     <string name="saved">ENREGISTRÉ</string>
     <string name="group_encounters">Rencontres de Groupe</string>
+    <string
+        name="save_all_submitted_encounters"
+    >Enregistrer Toutes les Rencontres Soumises</string>
+    <string
+        name="do_you_want_to_save_all_submitted_encounters"
+    >Voulez-vous enregistrer toutes les rencontres soumises ?</string>
+    <string
+        name="no_encounters_to_save"
+    >Aucune rencontre à enregistrer !</string>
+    <string
+        name="all_patients_have_been_submitted_click_on_save_all_encounters"
+    >Tous les patients ont été soumis, cliquez sur Enregistrer Toutes les Rencontres</string>
 </resources>

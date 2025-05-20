@@ -32,7 +32,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.search
 import javax.inject.Inject
@@ -49,26 +48,28 @@ constructor(
   val patients: LiveData<List<PatientListViewModel.PatientItem>> = _patients
   val patientQuestionnaireResponseMap = mutableMapOf<String, QuestionnaireResponse>()
 
-  private val _savedCount = MutableLiveData<Int>(0)
-  val savedCount: LiveData<Int> = _savedCount
+  private val _savedPatientId = MutableLiveData<MutableSet<String>>(mutableSetOf())
+  val savedPatientIds: LiveData<MutableSet<String>> = _savedPatientId
+  private val _errorCount = MutableLiveData<Int>(0)
+  val errorCount: LiveData<Int> = _errorCount
 
-  private val patientIdToIndexMap = mutableMapOf<String, Int>()
+  val isLoading = MutableLiveData<Boolean>()
 
   fun getPatients() {
+    isLoading.value = true
     viewModelScope.launch {
       _patients.value =
         fhirEngine
           .search<Patient> {}
-          .mapIndexed { index, fhirPatient ->
-            val patientItem = fhirPatient.resource.toPatientItem(index + 1)
-            patientIdToIndexMap[patientItem.resourceId] = index
-            patientItem
-          }
+          .mapIndexed { index, fhirPatient -> fhirPatient.resource.toPatientItem(index + 1) }
+      isLoading.value = false
     }
   }
 
-  fun getPatientIndexById(patientId: String): Int? {
-    return patientIdToIndexMap[patientId]
+  fun removePatientsFromList(patientIds: Set<String>) {
+    val patientList = _patients.value?.toMutableList()
+    patientList?.removeIf { it.resourceId in patientIds }
+    _patients.value = patientList?.toList()
   }
 
   fun getPatientQuestionnaireResponse(patientId: String?): QuestionnaireResponse? {
@@ -87,7 +88,19 @@ constructor(
     return patientQuestionnaireResponseMap.keys.toList()
   }
 
-  fun incrementSavedCount() {
-    _savedCount.value = _savedCount.value?.plus(1)
+  fun addSavedPatientId(patientId: String) {
+    _savedPatientId.value?.add(patientId)
+  }
+
+  fun incrementErrorCount() {
+    _errorCount.value = _errorCount.value?.plus(1)
+  }
+
+  fun resetErrorCount() {
+    _errorCount.value = 0
+  }
+
+  fun resetSavedPatientId() {
+    _savedPatientId.value = mutableSetOf()
   }
 }

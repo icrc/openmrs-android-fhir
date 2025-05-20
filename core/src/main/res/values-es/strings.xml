@@ -227,4 +227,16 @@
     <string name="save_all_encounters">Guardar Todos los Encuentros</string>
     <string name="saved">GUARDADO</string>
     <string name="group_encounters">Encuentros Grupales</string>
+    <string
+        name="save_all_submitted_encounters"
+    >Guardar Todos los Encuentros Enviados</string>
+    <string
+        name="do_you_want_to_save_all_submitted_encounters"
+    >¿Desea guardar todos los encuentros enviados?</string>
+    <string
+        name="no_encounters_to_save"
+    >¡No hay encuentros para guardar!</string>
+    <string
+        name="all_patients_have_been_submitted_click_on_save_all_encounters"
+    >Todos los pacientes han sido enviados, haga clic en Guardar Todos los Encuentros</string>
 </resources>

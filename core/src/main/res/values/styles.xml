@@ -168,4 +168,42 @@
             name="questionnaireBottomNavContainerStyle"
         >@style/Questionnaire.questionnaireBottomNavContainerStyle</item>
     </style>
+
+    <style name="CustomPatientTabLayout" parent="Widget.Material3.TabLayout">
+        <!-- Set the TabLayout background to transparent so individual tab backgrounds are visible -->
+        <item name="android:background">@android:color/transparent</item>
+
+        <!-- Custom background for each tab item -->
+        <item name="tabBackground">@drawable/tab_background_selector</item>
+
+        <!-- Indicator color and height -->
+        <item name="tabIndicatorColor">@color/tab_indicator_color_blue</item>
+        <item name="tabIndicatorHeight">3dp</item>
+        <item
+            name="tabIndicatorFullWidth"
+        >false</item> <!-- Indicator only under the text -->
+        <item name="tabIndicatorGravity">bottom</item>
+
+        <!-- Text colors -->
+        <item name="tabSelectedTextColor">@color/tab_text_color_primary</item>
+        <item
+            name="tabTextColor"
+        >@color/tab_text_color_primary</item> <!-- Same color for unselected text as in image -->
+
+        <!-- Tab padding -->
+        <item name="tabPaddingStart">16dp</item>
+        <item name="tabPaddingEnd">16dp</item>
+        <item name="tabPaddingTop">8dp</item>
+        <item name="tabPaddingBottom">8dp</item>
+
+        <!-- Other properties -->
+        <item name="tabMode">scrollable</item>
+        <item name="tabGravity">start</item>
+        <item name="tabInlineLabel">true</item>
+        <item name="textAllCaps">false</item>
+        <item
+            name="tabRippleColor"
+        >?attr/colorControlHighlight</item> <!-- Ripple effect color -->
+
+    </style>
 </resources>

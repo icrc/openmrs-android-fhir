@@ -227,4 +227,14 @@
     <string name="save_all_encounters">Save All Encounters</string>
     <string name="saved">SAVED</string>
     <string name="group_encounters">Group Encounters</string>
+    <string
+        name="save_all_submitted_encounters"
+    >Save All Submitted Encounters</string>
+    <string
+        name="do_you_want_to_save_all_submitted_encounters"
+    >Do you want to save all submitted encounters?</string>
+    <string name="no_encounters_to_save">No Encounters to save!</string>
+    <string
+        name="all_patients_have_been_submitted_click_on_save_all_encounters"
+    >All patients have been submitted, click on Save All encounters</string>
 </resources>
