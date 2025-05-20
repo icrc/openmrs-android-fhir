@@ -104,6 +104,7 @@ class RestApiManager private constructor(private val context: Context) {
           preferences[PreferenceKeys.USER_UUID] = parsed.user?.uuid ?: ""
           preferences[PreferenceKeys.USER_NAME] = parsed.user?.display ?: ""
           preferences[PreferenceKeys.USER_PROVIDER_UUID] = parsed.currentProvider?.uuid ?: ""
+          preferences[PreferenceKeys.USER_PROVIDER_NAME] = parsed.user?.person?.display ?: ""
           preferences[PreferenceKeys.LOCATION_ID] = parsed.sessionLocation?.uuid ?: ""
           preferences[PreferenceKeys.LOCATION_NAME] = parsed.sessionLocation?.display ?: ""
         }

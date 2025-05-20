@@ -86,10 +86,18 @@ data class SessionResponse(
 data class User(
   val uuid: String,
   val display: String,
+  val person: Person,
 )
 
 @JsonClass(generateAdapter = true)
 data class Provider(
+  val display: String,
+  val uuid: String,
+)
+
+@JsonClass(generateAdapter = true)
+data class Person(
+  val display: String,
   val uuid: String,
 )
 

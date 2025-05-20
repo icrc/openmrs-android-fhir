@@ -42,5 +42,6 @@ class PreferenceKeys {
     val USER_UUID = stringPreferencesKey("USER_UUID")
     val USER_NAME = stringPreferencesKey("USER_NAME")
     val USER_PROVIDER_UUID = stringPreferencesKey("USER_PROVIDER_UUID")
+    val USER_PROVIDER_NAME = stringPreferencesKey("USER_PROVIDER_NAME")
   }
 }
