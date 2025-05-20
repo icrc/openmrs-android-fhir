@@ -72,7 +72,12 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     super.onViewCreated(view, savedInstanceState)
     _binding = CreateEncounterFragmentBinding.bind(view)
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
-      title = requireContext().getString(R.string.new_encounter)
+      title =
+        if (args.isGroupEncounter) {
+          requireContext().getString(R.string.create_group_encounter)
+        } else {
+          requireContext().getString(R.string.create_encounter)
+        }
     }
     (requireActivity().application as FhirApplication).appComponent.inject(this)
 

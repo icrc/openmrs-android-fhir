@@ -54,6 +54,7 @@ class PatientSelectionDialogFragment : DialogFragment() {
     get() = _binding!!
 
   private lateinit var patientSelectionAdapter: PatientSelectionAdapter
+  private var isProgrammaticallyChangingSelectAll = false
 
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
   private val viewModel: PatientListViewModel by
@@ -75,23 +76,32 @@ class PatientSelectionDialogFragment : DialogFragment() {
 
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     setupRecyclerView()
+    setupListeners()
     observeViewModel()
+  }
 
+  private fun setupRecyclerView() {
+    patientSelectionAdapter = PatientSelectionAdapter { updateUiBasedOnSelection() }
+    binding.patientsRecyclerView.apply {
+      adapter = patientSelectionAdapter
+      layoutManager = LinearLayoutManager(requireContext())
+    }
+  }
+
+  private fun setupListeners() {
     binding.buttonCancel.setOnClickListener { dismiss() }
 
     binding.buttonStartEncounter.setOnClickListener {
       val selectedIds = patientSelectionAdapter.getSelectedPatientIds()
-      if (selectedIds.isEmpty()) {
+      if (selectedIds.isEmpty()) { // Should be prevented by button enabled state
         Toast.makeText(
             requireContext(),
-            getString(R.string.please_select_at_least_one_patient),
+            R.string.please_select_at_least_one_patient,
             Toast.LENGTH_SHORT,
           )
           .show()
         return@setOnClickListener
       }
-
-      // Navigate directly to GroupFormEntryFragment
       val action =
         PatientSelectionDialogFragmentDirections
           .actionPatientSelectionDialogFragmentToGroupFormEntryFragment(
@@ -100,21 +110,50 @@ class PatientSelectionDialogFragment : DialogFragment() {
           )
       findNavController().navigate(action)
     }
-  }
 
-  private fun setupRecyclerView() {
-    patientSelectionAdapter = PatientSelectionAdapter()
-    binding.patientsRecyclerView.apply {
-      adapter = patientSelectionAdapter
-      layoutManager = LinearLayoutManager(requireContext())
+    binding.checkboxSelectAll.setOnCheckedChangeListener { _, isChecked ->
+      if (isProgrammaticallyChangingSelectAll) return@setOnCheckedChangeListener
+
+      val currentPatients = viewModel.liveSearchedPatients.value ?: emptyList()
+      if (isChecked) {
+        patientSelectionAdapter.selectAll(currentPatients)
+      } else {
+        patientSelectionAdapter.deselectAll()
+      }
+      // The adapter's onSelectionChanged callback will call updateUiBasedOnSelection()
     }
   }
 
   private fun observeViewModel() {
     viewModel.liveSearchedPatients.observe(
       viewLifecycleOwner,
-      Observer { patients -> patients?.let { patientSelectionAdapter.submitList(it) } },
+      Observer { patients ->
+        patientSelectionAdapter.submitList(patients ?: emptyList())
+        updateUiBasedOnSelection(patients ?: emptyList())
+      },
     )
+  }
+
+  private fun updateUiBasedOnSelection(
+    currentPatientList: List<PatientListViewModel.PatientItem>? = null,
+  ) {
+    val patients = currentPatientList ?: viewModel.liveSearchedPatients.value ?: emptyList()
+    val selectedCount = patientSelectionAdapter.getSelectedPatientIds().size
+
+    // Update "Start Encounter" button
+    binding.buttonStartEncounter.isEnabled = selectedCount > 0
+
+    // Update "Select All" checkbox state
+    binding.checkboxSelectAll.isEnabled = patients.isNotEmpty()
+    if (patients.isNotEmpty()) {
+      isProgrammaticallyChangingSelectAll = true
+      binding.checkboxSelectAll.isChecked = patientSelectionAdapter.isAllSelected(patients)
+      isProgrammaticallyChangingSelectAll = false
+    } else {
+      isProgrammaticallyChangingSelectAll = true
+      binding.checkboxSelectAll.isChecked = false // No items to select
+      isProgrammaticallyChangingSelectAll = false
+    }
   }
 
   override fun onStart() {

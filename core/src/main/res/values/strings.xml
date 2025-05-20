@@ -45,6 +45,7 @@
     <string name="edit_patient">Edit Patient</string>
     <string name="new_encounter">New Encounter</string>
     <string name="create_encounter">Create Encounter</string>
+    <string name="create_group_encounter">Create Group Encounter</string>
     <string name="edit_encounter">Edit Encounter</string>
     <string name="location">Location</string>
     <string name="identifier">Identifier</string>
@@ -240,4 +241,8 @@
     <string
         name="please_select_at_least_one_patient"
     >Please select at least one patient.</string>
+    <string
+        name="select_patients_for_group_encounter"
+    >Select Patients for Group Encounter</string>
+    <string name="select_all_patients">Select All Patients</string>
 </resources>

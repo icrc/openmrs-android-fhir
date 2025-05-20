@@ -242,4 +242,10 @@
     <string
         name="please_select_at_least_one_patient"
     >Por favor, seleccione al menos un paciente.</string>
+    <string
+        name="select_patients_for_group_encounter"
+    >Seleccionar pacientes para el encuentro grupal</string>
+    <string name="select_all_patients">Seleccionar todos los pacientes</string>
+    <string name="create_group_encounter">Crear encuentro grupal</string>
+
 </resources>

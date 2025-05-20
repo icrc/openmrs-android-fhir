@@ -36,7 +36,9 @@ import androidx.recyclerview.widget.RecyclerView
 import org.openmrs.android.fhir.databinding.ItemPatientSelectableBinding
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 
-class PatientSelectionAdapter :
+class PatientSelectionAdapter(
+  private val onSelectionChanged: () -> Unit,
+) :
   ListAdapter<PatientListViewModel.PatientItem, PatientSelectionAdapter.PatientViewHolder>(
     PatientDiffCallback(),
   ) {
@@ -45,6 +47,29 @@ class PatientSelectionAdapter :
 
   fun getSelectedPatientIds(): List<String> {
     return selectedPatientIds.toList()
+  }
+
+  fun selectAll(patients: List<PatientListViewModel.PatientItem>) {
+    val changed = patients.any { selectedPatientIds.add(it.resourceId) }
+    if (changed || selectedPatientIds.size != patients.size) {
+      selectedPatientIds.clear()
+      patients.forEach { selectedPatientIds.add(it.resourceId) }
+      notifyDataSetChanged()
+      onSelectionChanged()
+    }
+  }
+
+  fun deselectAll() {
+    if (selectedPatientIds.isNotEmpty()) {
+      selectedPatientIds.clear()
+      notifyDataSetChanged()
+      onSelectionChanged()
+    }
+  }
+
+  fun isAllSelected(currentPatientList: List<PatientListViewModel.PatientItem>): Boolean {
+    if (currentPatientList.isEmpty()) return false
+    return currentPatientList.all { selectedPatientIds.contains(it.resourceId) }
   }
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PatientViewHolder {
@@ -69,17 +94,19 @@ class PatientSelectionAdapter :
       binding.textviewPatientName.text = patient.name
       binding.checkboxPatientSelect.isChecked = isSelected
 
-      binding.checkboxPatientSelect.setOnCheckedChangeListener { _, checked ->
-        if (checked) {
+      binding.root.setOnClickListener {
+        // Toggle selection
+        val currentlyChecked = binding.checkboxPatientSelect.isChecked
+        if (!currentlyChecked) { // If it's about to be checked
           selectedPatientIds.add(patient.resourceId)
-        } else {
+        } else { // If it's about to be unchecked
           selectedPatientIds.remove(patient.resourceId)
         }
+        binding.checkboxPatientSelect.isChecked = !currentlyChecked // Update UI
+        onSelectionChanged() // Notify fragment
       }
-      // Allow clicking the whole item to toggle checkbox
-      binding.root.setOnClickListener {
-        binding.checkboxPatientSelect.isChecked = !binding.checkboxPatientSelect.isChecked
-      }
+      // Prevent CheckBox from consuming click if root handles it
+      binding.checkboxPatientSelect.isClickable = false
     }
   }
 }

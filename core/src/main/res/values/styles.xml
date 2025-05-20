@@ -206,4 +206,32 @@
         >?attr/colorControlHighlight</item> <!-- Ripple effect color -->
 
     </style>
+    <!-- Style for the filled rectangular button -->
+    <style
+        name="App.Button.Rectangular"
+        parent="Widget.MaterialComponents.Button"
+    >
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="cornerRadius">4dp</item>
+        <item
+            name="android:paddingTop"
+        >12dp</item> <!-- Adjust padding for desired button height -->
+        <item name="android:paddingBottom">12dp</item>
+        <!-- You can also set a minHeight if padding isn't enough -->
+        <!-- <item name="android:minHeight">52dp</item> -->
+    </style>
+
+    <!-- Style for the outlined rectangular button -->
+    <style
+        name="App.Button.Outlined.Rectangular"
+        parent="Widget.MaterialComponents.Button.OutlinedButton"
+    >
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="cornerRadius">4dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <!-- <item name="android:minHeight">52dp</item> -->
+    </style>
 </resources>
