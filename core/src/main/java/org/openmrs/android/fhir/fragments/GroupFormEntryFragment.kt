@@ -324,7 +324,6 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   private fun observeLoading() {
     groupFormEntryViewModel.isLoading.observe(viewLifecycleOwner) {
       binding.groupProgressBar.visibility = if (it) View.VISIBLE else View.GONE
-      binding.btnSaveAllEncounters.visibility = if (it) View.GONE else View.VISIBLE
     }
   }
 
