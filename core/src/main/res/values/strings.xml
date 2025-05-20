@@ -245,4 +245,6 @@
         name="select_patients_for_group_encounter"
     >Select Patients for Group Encounter</string>
     <string name="select_all_patients">Select All Patients</string>
+    <string name="patient_is_saved">Patient is saved.</string>
+    <string name="inputs_are_missing">Inputs are missing.</string>
 </resources>

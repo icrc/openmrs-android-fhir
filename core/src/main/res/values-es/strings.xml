@@ -247,5 +247,6 @@
     >Seleccionar pacientes para el encuentro grupal</string>
     <string name="select_all_patients">Seleccionar todos los pacientes</string>
     <string name="create_group_encounter">Crear encuentro grupal</string>
-
+    <string name="patient_is_saved">El paciente ha sido guardado.</string>
+    <string name="inputs_are_missing">Faltan datos.</string>
 </resources>

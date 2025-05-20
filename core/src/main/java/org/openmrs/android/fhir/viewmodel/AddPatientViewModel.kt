@@ -72,6 +72,8 @@ constructor(
   val embeddedQuestionnaire = MutableLiveData<String>()
   private var saveInProgress = false
 
+  val isLoading = MutableLiveData<Boolean>()
+
   /**
    * Saves patient registration questionnaire response into the application database.
    *
@@ -79,7 +81,6 @@ constructor(
    */
   fun savePatient(questionnaireResponse: QuestionnaireResponse) {
     if (saveInProgress) return // To avoid multiple save of patient.
-
     viewModelScope.launch {
       saveInProgress = true
       if (
