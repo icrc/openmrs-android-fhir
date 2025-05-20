@@ -249,4 +249,7 @@
     <string
         name="all_patients_have_been_submitted_click_on_save_all_encounters"
     >Tous les patients ont été soumis, cliquez sur Enregistrer Toutes les Rencontres</string>
+    <string
+        name="please_select_at_least_one_patient"
+    >Veuillez sélectionner au moins un patient.</string>
 </resources>

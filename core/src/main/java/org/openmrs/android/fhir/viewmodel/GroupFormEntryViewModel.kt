@@ -55,12 +55,13 @@ constructor(
 
   val isLoading = MutableLiveData<Boolean>()
 
-  fun getPatients() {
+  fun getPatients(patientIds: Set<String>) {
     isLoading.value = true
     viewModelScope.launch {
       _patients.value =
         fhirEngine
           .search<Patient> {}
+          .filter { patientIds.contains(it.resource.idElement.idPart) }
           .mapIndexed { index, fhirPatient -> fhirPatient.resource.toPatientItem(index + 1) }
       isLoading.value = false
     }

@@ -237,4 +237,7 @@
     <string
         name="all_patients_have_been_submitted_click_on_save_all_encounters"
     >All patients have been submitted, click on Save All encounters</string>
+    <string
+        name="please_select_at_least_one_patient"
+    >Please select at least one patient.</string>
 </resources>

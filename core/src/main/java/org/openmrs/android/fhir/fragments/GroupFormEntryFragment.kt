@@ -78,7 +78,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     setHasOptionsMenu(true)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     observeLoading()
-    groupFormEntryViewModel.getPatients()
+    groupFormEntryViewModel.getPatients(args.patientIds.toSet())
     observeResourcesSaveAction()
     if (savedInstanceState == null) {
       genericFormEntryViewModel.getEncounterQuestionnaire(

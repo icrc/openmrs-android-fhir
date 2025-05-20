@@ -122,18 +122,18 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
 
   private fun handleFormClick(questionnaireId: String) {
     if (args.isGroupEncounter) {
-      findNavController()
-        .navigate(
-          CreateEncountersFragmentDirections.actionCreateEncounterFragmentToGroupFormEntryFragment(
-            questionnaireId = questionnaireId,
-          ),
-        )
+      // Navigate to the patient selection dialog
+      val action =
+        CreateEncountersFragmentDirections
+          .actionCreateEncounterFragmentToPatientSelectionDialogFragment(questionnaireId)
+      findNavController().navigate(action)
     } else {
       findNavController()
         .navigate(
           CreateEncountersFragmentDirections
             .actionCreateEncounterFragmentToGenericFormEntryFragment(
-              patientId = args.patientId,
+              patientId = args.patientId
+                  ?: "", // Ensure patientId is not null or handle appropriately
               questionnaireId = questionnaireId,
             ),
         )

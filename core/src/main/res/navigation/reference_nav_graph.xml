@@ -100,8 +100,21 @@
         android:label="Group Form Entry"
         tools:layout="@layout/group_formentry_fragment"
     >
+    <argument android:name="patientIds" app:argType="string[]" />
     <argument android:name="questionnaire_id" app:argType="string" />
   </fragment>
+  <dialog
+        android:id="@+id/patientSelectionDialogFragment"
+        android:name="org.openmrs.android.fhir.fragments.PatientSelectionDialogFragment"
+        android:label="Select Patients"
+        tools:layout="@layout/dialog_patient_selection"
+    >
+    <argument android:name="questionnaireId" app:argType="string" />
+    <action
+            android:id="@+id/action_patientSelectionDialogFragment_to_groupFormEntryFragment"
+            app:destination="@id/groupFormEntryFragment"
+        />
+  </dialog>
   <fragment
         android:id="@+id/createEncounterFragment"
         android:name="org.openmrs.android.fhir.fragments.CreateEncountersFragment"
@@ -117,6 +130,10 @@
     <action
             android:id="@+id/action_createEncounterFragment_to_groupFormEntryFragment"
             app:destination="@id/groupFormEntryFragment"
+        />
+    <action
+            android:id="@+id/action_createEncounterFragment_to_patientSelectionDialogFragment"
+            app:destination="@id/patientSelectionDialogFragment"
         />
   </fragment>
   <fragment
