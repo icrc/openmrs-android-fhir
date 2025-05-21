@@ -21,7 +21,7 @@
         android:layout_height="0dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/patientTabLayout"
-        app:layout_constraintBottom_toTopOf="@id/btn_save_all_encounters"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:context="fragments.GenericFormEntryFragment"
     >
@@ -32,23 +32,6 @@
             android:layout_height="match_parent"
         />
 </FrameLayout>
-  <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_save_all_encounters"
-        style="@style/Widget.Material3.Button"
-        android:backgroundTint="@color/primary_blue_40"
-        android:textSize="12sp"
-        android:textColor="@color/white"
-        android:layout_width="match_parent"
-        app:cornerRadius="4dp"
-        app:iconGravity="textStart"
-        android:layout_marginHorizontal="16dp"
-        android:layout_height="wrap_content"
-        android:text="@string/save_all_encounters"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-    />
     <ProgressBar
         android:id="@+id/groupProgressBar"
         android:layout_width="wrap_content"

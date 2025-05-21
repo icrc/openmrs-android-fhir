@@ -32,6 +32,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.search
 import javax.inject.Inject
@@ -46,14 +47,11 @@ constructor(
 ) : ViewModel() {
   private val _patients = MutableLiveData<List<PatientListViewModel.PatientItem>>()
   val patients: LiveData<List<PatientListViewModel.PatientItem>> = _patients
-  val patientQuestionnaireResponseMap = mutableMapOf<String, QuestionnaireResponse>()
-
-  private val _savedPatientId = MutableLiveData<MutableSet<String>>(mutableSetOf())
-  val savedPatientIds: LiveData<MutableSet<String>> = _savedPatientId
-  private val _errorCount = MutableLiveData<Int>(0)
-  val errorCount: LiveData<Int> = _errorCount
+  val patientQuestionnaireResponseMap = mutableMapOf<String, String>()
 
   val isLoading = MutableLiveData<Boolean>()
+
+  val parser = FhirContext.forR4Cached().newJsonParser()
 
   fun getPatients(patientIds: Set<String>) {
     isLoading.value = true
@@ -67,41 +65,7 @@ constructor(
     }
   }
 
-  fun removePatientsFromList(patientIds: Set<String>) {
-    val patientList = _patients.value?.toMutableList()
-    patientList?.removeIf { it.resourceId in patientIds }
-    _patients.value = patientList?.toList()
-  }
-
-  fun getPatientQuestionnaireResponse(patientId: String?): QuestionnaireResponse? {
-    if (patientId == null) {
-      return null
-    }
-
-    return patientQuestionnaireResponseMap[patientId]
-  }
-
   fun setPatientQuestionnaireResponse(patientId: String, response: QuestionnaireResponse) {
-    patientQuestionnaireResponseMap[patientId] = response
-  }
-
-  fun getAllPatientIdsFromPatientQuestionnaireResponse(): List<String> {
-    return patientQuestionnaireResponseMap.keys.toList()
-  }
-
-  fun addSavedPatientId(patientId: String) {
-    _savedPatientId.value?.add(patientId)
-  }
-
-  fun incrementErrorCount() {
-    _errorCount.value = _errorCount.value?.plus(1)
-  }
-
-  fun resetErrorCount() {
-    _errorCount.value = 0
-  }
-
-  fun resetSavedPatientId() {
-    _savedPatientId.value = mutableSetOf()
+    patientQuestionnaireResponseMap[patientId] = parser.encodeResourceToString(response)
   }
 }

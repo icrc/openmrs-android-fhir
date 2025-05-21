@@ -247,9 +247,6 @@
         name="no_encounters_to_save"
     >Aucune rencontre à enregistrer !</string>
     <string
-        name="all_patients_have_been_submitted_click_on_save_all_encounters"
-    >Tous les patients ont été soumis, cliquez sur Enregistrer Toutes les Rencontres</string>
-    <string
         name="please_select_at_least_one_patient"
     >Veuillez sélectionner au moins un patient.</string>
     <string
@@ -259,4 +256,12 @@
     <string name="create_group_encounter">Créer une rencontre de groupe</string>
     <string name="patient_is_saved">Le patient est enregistré.</string>
     <string name="inputs_are_missing">Des informations sont manquantes.</string>
+    <string name="start">Démarrer</string>
+    <string
+        name="all_encounter_for_group_session_have_been_saved"
+    >Toutes les rencontres de la session de groupe ont été enregistrées</string>
+    <string name="do_you_want_to_exit">Voulez-vous quitter ?</string>
+    <string
+        name="all_patients_have_been_submitted"
+    >Tous les patients ont été soumis</string>
 </resources>

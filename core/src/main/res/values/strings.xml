@@ -236,8 +236,8 @@
     >Do you want to save all submitted encounters?</string>
     <string name="no_encounters_to_save">No Encounters to save!</string>
     <string
-        name="all_patients_have_been_submitted_click_on_save_all_encounters"
-    >All patients have been submitted, click on Save All encounters</string>
+        name="all_patients_have_been_submitted"
+    >All patients have been submitted</string>
     <string
         name="please_select_at_least_one_patient"
     >Please select at least one patient.</string>
@@ -247,4 +247,9 @@
     <string name="select_all_patients">Select All Patients</string>
     <string name="patient_is_saved">Patient is saved.</string>
     <string name="inputs_are_missing">Inputs are missing.</string>
+    <string name="start">Start</string>
+    <string
+        name="all_encounter_for_group_session_have_been_saved"
+    >All encounter for Group Session have been saved</string>
+    <string name="do_you_want_to_exit">Do you want to exit?</string>
 </resources>

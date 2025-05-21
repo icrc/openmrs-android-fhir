@@ -59,25 +59,33 @@
         android:layout_marginTop="24dp"
     >
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_cancel"
-            style="@style/App.Button.Outlined.Rectangular"
+            style="@style/Widget.Material3.Button"
+            android:backgroundTint="@color/dashboard_cardview_textcolor"
+            android:textSize="12sp"
+            android:textColor="@color/white"
+            app:cornerRadius="4dp"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:text="@string/cancel"
-            android:layout_marginEnd="8dp"
         />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/button_start_encounter"
-            style="@style/App.Button.Rectangular"
+            style="@style/Widget.Material3.Button"
+            android:backgroundTint="@color/dashboard_cardview_textcolor"
+            android:textSize="12sp"
+            android:textColor="@color/white"
             android:layout_width="0dp"
+            app:cornerRadius="4dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/start_group_encounter"
             android:layout_marginStart="8dp"
+            android:layout_weight="1"
             android:enabled="false"
+            android:text="@string/start"
         />
     </LinearLayout>
 

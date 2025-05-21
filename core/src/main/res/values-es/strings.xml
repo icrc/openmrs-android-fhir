@@ -237,9 +237,6 @@
         name="no_encounters_to_save"
     >¡No hay encuentros para guardar!</string>
     <string
-        name="all_patients_have_been_submitted_click_on_save_all_encounters"
-    >Todos los pacientes han sido enviados, haga clic en Guardar Todos los Encuentros</string>
-    <string
         name="please_select_at_least_one_patient"
     >Por favor, seleccione al menos un paciente.</string>
     <string
@@ -249,4 +246,12 @@
     <string name="create_group_encounter">Crear encuentro grupal</string>
     <string name="patient_is_saved">El paciente ha sido guardado.</string>
     <string name="inputs_are_missing">Faltan datos.</string>
+    <string name="start">Iniciar</string>
+    <string
+        name="all_encounter_for_group_session_have_been_saved"
+    >Todos los encuentros de la sesión de grupo se han guardado</string>
+    <string name="do_you_want_to_exit">¿Desea salir?</string>
+    <string
+        name="all_patients_have_been_submitted"
+    >Todos los pacientes han sido enviados</string>
 </resources>
