@@ -151,7 +151,8 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   private fun observeResourcesSaveAction() {
     viewModel.isResourcesSaved.observe(viewLifecycleOwner) {
-      if (!it) {
+      val isSaved = it.contains("SAVED")
+      if (!isSaved) {
         Toast.makeText(requireContext(), getString(R.string.inputs_missing), Toast.LENGTH_SHORT)
           .show()
         return@observe
