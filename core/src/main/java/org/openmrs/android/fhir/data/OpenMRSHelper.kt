@@ -61,6 +61,10 @@ constructor(
     return context.dataStore.data.first().get(PreferenceKeys.USER_NAME)
   }
 
+  suspend fun getAuthenticatedProviderName(): String? {
+    return context.dataStore.data.first().get(PreferenceKeys.USER_PROVIDER_NAME)
+  }
+
   suspend fun getAuthenticatedProviderUuid(): String? {
     return context.dataStore.data.first().get(PreferenceKeys.USER_PROVIDER_UUID)
   }
@@ -140,7 +144,7 @@ constructor(
         subject = Reference("Patient/$patientId")
         status = Encounter.EncounterStatus.INPROGRESS
         setPeriod(Period().apply { start = startDate })
-        addParticipant(createParticipant())
+        addParticipant(createVisitParticipant())
         addLocation(
           Encounter.EncounterLocationComponent().apply { location = getCurrentAuthLocation() },
         )
@@ -173,10 +177,18 @@ constructor(
     return encounter
   }
 
-  suspend fun createParticipant(): EncounterParticipantComponent {
+  suspend fun createEncounterParticipant(): EncounterParticipantComponent {
     val participant = EncounterParticipantComponent()
     participant.individual = Reference("Practitioner/${getAuthenticatedProviderUuid()}")
-    participant.individual.display = getAuthenticatedUserName()
+    participant.individual.display = getAuthenticatedProviderName()
+    participant.individual.type = "Practitioner"
+    return participant
+  }
+
+  suspend fun createVisitParticipant(): EncounterParticipantComponent {
+    val participant = EncounterParticipantComponent()
+    participant.individual = Reference("Practitioner/${getAuthenticatedUserId()}")
+    participant.individual.display = getAuthenticatedProviderName()
     participant.individual.type = "Practitioner"
     return participant
   }

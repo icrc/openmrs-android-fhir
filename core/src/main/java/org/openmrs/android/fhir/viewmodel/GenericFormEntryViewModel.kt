@@ -118,7 +118,7 @@ constructor(
           },
         )
 
-        addParticipant(openMRSHelper.createParticipant())
+        addParticipant(openMRSHelper.createVisitParticipant())
         addLocation(
           Encounter.EncounterLocationComponent().apply {
             location = openMRSHelper.getCurrentAuthLocation()
@@ -227,10 +227,10 @@ constructor(
               end = encounterDate
             },
           )
-          addParticipant(openMRSHelper.createParticipant())
+          addParticipant(openMRSHelper.createEncounterParticipant())
           addLocation(
             Encounter.EncounterLocationComponent().apply {
-              location = Reference("Location/$locationId") // Set the location reference
+              location = Reference("Location/$locationId")
             },
           )
 
