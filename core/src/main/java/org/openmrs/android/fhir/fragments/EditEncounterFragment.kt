@@ -38,14 +38,10 @@ import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
-import ca.uhn.fhir.context.FhirContext
-import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.QuestionnaireFragment
-import com.google.android.fhir.search.search
 import javax.inject.Inject
 import kotlinx.coroutines.launch
-import org.hl7.fhir.r4.model.Questionnaire
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
@@ -63,21 +59,20 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
   private val viewModel: EditEncounterViewModel by viewModels { viewModelSavedStateFactory }
 
   private lateinit var encounterType: String
+  private lateinit var encounterId: String
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setHasOptionsMenu(true)
 
     // Retrieve the encounter_id from arguments
-    val encounterId =
+    encounterId =
       requireArguments().getString("encounter_id")
         ?: throw IllegalArgumentException("Encounter ID is required")
 
     encounterType =
       requireArguments().getString("encounter_type")
         ?: throw IllegalArgumentException("Encounter type is required")
-
-    // Initialize the ViewModel using a factory
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -86,8 +81,8 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title = requireContext().getString(R.string.edit_encounter)
     }
-
-    viewModel.liveEncounterData.observe(viewLifecycleOwner) { addQuestionnaireFragment(it) }
+    viewModel.prepareEditEncounter(encounterId, encounterType)
+    viewModel.encounterDataPair.observe(viewLifecycleOwner) { addQuestionnaireFragment(it) }
     viewModel.isResourcesSaved.observe(viewLifecycleOwner) {
       if (!it) {
         Toast.makeText(requireContext(), R.string.inputs_missing, Toast.LENGTH_SHORT).show()
@@ -128,18 +123,7 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
   private fun addQuestionnaireFragment(pair: Pair<String, String>) {
     if (pair.first.isNotBlank()) {
       lifecycleScope.launch {
-        val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-
-        val questionnaire =
-          fhirEngine
-            .search<Questionnaire> {}
-            .filter { questionnaire ->
-              questionnaire.resource.code.any { it.code == encounterType }
-            }
-            .firstOrNull()
-            ?.resource
-
-        val questionnaireJson = parser.encodeResourceToString(questionnaire)
+        val questionnaireJson = pair.first
 
         childFragmentManager.commit {
           add(
@@ -164,12 +148,12 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
         childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG) as QuestionnaireFragment
       viewModel.updateEncounter(
         questionnaireFragment.getQuestionnaireResponse(),
+        encounterId,
       )
     }
   }
 
   companion object {
-    const val QUESTIONNAIRE_FILE_PATH_KEY = "edit-questionnaire-file-path-key"
     const val QUESTIONNAIRE_FRAGMENT_TAG = "edit-questionnaire-fragment-tag"
   }
 }

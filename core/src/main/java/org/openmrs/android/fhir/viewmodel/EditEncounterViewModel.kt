@@ -28,11 +28,10 @@
 */
 package org.openmrs.android.fhir.viewmodel
 
-import android.content.Context
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
@@ -64,7 +63,6 @@ import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 class EditEncounterViewModel
 @AssistedInject
 constructor(
-  private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
   @Assisted val state: SavedStateHandle,
 ) : ViewModel() {
@@ -76,76 +74,72 @@ constructor(
     ): EditEncounterViewModel
   }
 
-  private val encounterId: String =
-    requireNotNull(state["encounter_id"])
-      ?: throw IllegalArgumentException("Encounter ID is required")
-  private val encounterType: String =
-    requireNotNull(state["encounter_type"])
-      ?: throw IllegalArgumentException("Form resource is required")
-  val liveEncounterData = liveData { emit(prepareEditEncounter()) }
+  private val _encounterDataPair = MutableLiveData<Pair<String, String>>()
+  val encounterDataPair: LiveData<Pair<String, String>> = _encounterDataPair
+
   val isResourcesSaved = MutableLiveData<Boolean>()
 
   private lateinit var questionnaire: Questionnaire
-  private lateinit var observations: List<Observation>
-  private lateinit var contitions: List<Condition>
   private lateinit var patientReference: Reference
 
-  private suspend fun prepareEditEncounter(): Pair<String, String> {
-    // TODO to be improved: if the asset is not present a message should be displayed.
-    val encounter = fhirEngine.get<Encounter>(encounterId)
-    observations = getObservationsEncounterId(encounterId)
-    contitions = getConditionsEncounterId(encounterId)
-    patientReference = encounter.subject
-    try {
-      val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+  fun prepareEditEncounter(encounterId: String, encounterType: String) {
+    viewModelScope.launch {
+      // TODO to be improved: if the asset is not present a message should be displayed.
+      val encounter = fhirEngine.get<Encounter>(encounterId)
+      val observations = getObservationsEncounterId(encounterId)
+      patientReference = encounter.subject
+      try {
+        val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
-      questionnaire =
-        fhirEngine
-          .search<Questionnaire> {}
-          .filter { questionnaire -> questionnaire.resource.code.any { it.code == encounterType } }
-          .first()
-          .resource
+        questionnaire =
+          fhirEngine
+            .search<Questionnaire> {}
+            .first { questionnaire -> questionnaire.resource.code.any { it.code == encounterType } }
+            .resource
 
-      val questionnaireJson = parser.encodeResourceToString(questionnaire)
+        val questionnaireJson = parser.encodeResourceToString(questionnaire)
 
-      val observationBundle =
-        Bundle().apply {
-          type = Bundle.BundleType.COLLECTION
-          observations.forEach { addEntry().resource = it.apply { id = "Observation/$id" } }
-        }
+        val observationBundle =
+          Bundle().apply {
+            type = Bundle.BundleType.COLLECTION
+            observations.forEach { addEntry().resource = it.apply { id = "Observation/$id" } }
+          }
 
-      val launchContexts = mapOf("observations" to observationBundle)
-      val questionnaireResponse = ResourceMapper.populate(questionnaire, launchContexts)
-      val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
-      return questionnaireJson to questionnaireResponseJson
-    } catch (e: FileNotFoundException) {
-      // TODO add log here
-      return Pair("", "")
+        val launchContexts = mapOf("observations" to observationBundle)
+        val questionnaireResponse = ResourceMapper.populate(questionnaire, launchContexts)
+        val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
+        _encounterDataPair.value = questionnaireJson to questionnaireResponseJson
+      } catch (e: FileNotFoundException) {
+        // TODO add log here
+        _encounterDataPair.value = Pair("", "")
+      }
     }
   }
 
-  fun updateEncounter(questionnaireResponse: QuestionnaireResponse) {
+  fun updateEncounter(questionnaireResponse: QuestionnaireResponse, encounterId: String) {
     viewModelScope.launch {
       val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
-      saveResources(bundle)
+      saveResources(encounterId, bundle)
       isResourcesSaved.value = true
     }
   }
 
-  private suspend fun saveResources(bundle: Bundle) {
+  private suspend fun saveResources(encounterId: String, bundle: Bundle) {
     val encounterReference = Reference("Encounter/$encounterId")
     val encounterSubject = fhirEngine.get<Encounter>(encounterId).subject
+    val observations = getObservationsEncounterId(encounterId)
+    val conditions = getConditionsEncounterId(encounterId)
 
     bundle.entry.forEach {
       when (val resource = it.resource) {
         is Observation -> {
           if (resource.hasCode()) {
-            handleObservation(resource, encounterReference, patientReference)
+            handleObservation(resource, encounterReference, patientReference, observations)
           }
         }
         is Condition -> {
           if (resource.hasCode()) {
-            handleCondition(resource, encounterReference, encounterSubject)
+            handleCondition(resource, encounterReference, encounterSubject, conditions)
           }
         }
       }
@@ -156,6 +150,7 @@ constructor(
     resource: Observation,
     encounterReference: Reference,
     subjectReference: Reference,
+    observations: List<Observation>,
   ) {
     if (!resource.hasCode() || !resource.hasValue()) return
 
@@ -240,9 +235,10 @@ constructor(
     resource: Condition,
     encounterReference: Reference,
     subjectReference: Reference,
+    conditions: List<Condition>,
   ) {
     val existingCondition =
-      contitions.find { cond ->
+      conditions.find { cond ->
         cond.code.coding.any { coding -> coding.code == resource.code.codingFirstRep.code }
       }
     if (existingCondition != null) {
