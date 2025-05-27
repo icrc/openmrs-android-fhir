@@ -41,6 +41,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.datacapture.QuestionnaireFragment
+import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
@@ -123,6 +124,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
       viewModel.saveEncounter(
         questionnaireFragment.getQuestionnaireResponse(),
         args.patientId,
+        UUID.randomUUID().toString(),
       )
     }
   }

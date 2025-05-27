@@ -80,14 +80,11 @@ constructor(
   val isResourcesSaved = MutableLiveData<Boolean>()
 
   private lateinit var questionnaire: Questionnaire
-  private lateinit var patientReference: Reference
 
   fun prepareEditEncounter(encounterId: String, encounterType: String) {
     viewModelScope.launch {
       // TODO to be improved: if the asset is not present a message should be displayed.
-      val encounter = fhirEngine.get<Encounter>(encounterId)
       val observations = getObservationsEncounterId(encounterId)
-      patientReference = encounter.subject
       try {
         val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
@@ -134,7 +131,7 @@ constructor(
       when (val resource = it.resource) {
         is Observation -> {
           if (resource.hasCode()) {
-            handleObservation(resource, encounterReference, patientReference, observations)
+            handleObservation(resource, encounterReference, encounterSubject, observations)
           }
         }
         is Condition -> {

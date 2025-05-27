@@ -32,13 +32,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.search
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Patient
-import org.hl7.fhir.r4.model.QuestionnaireResponse
 
 class GroupFormEntryViewModel
 @Inject
@@ -47,11 +45,10 @@ constructor(
 ) : ViewModel() {
   private val _patients = MutableLiveData<List<PatientListViewModel.PatientItem>>()
   val patients: LiveData<List<PatientListViewModel.PatientItem>> = _patients
-  val patientQuestionnaireResponseMap = mutableMapOf<String, String>()
+
+  private val patientIdToEncounterIdMap = mutableMapOf<String, String>()
 
   val isLoading = MutableLiveData<Boolean>()
-
-  val parser = FhirContext.forR4Cached().newJsonParser()
 
   fun getPatients(patientIds: Set<String>) {
     isLoading.value = true
@@ -65,7 +62,20 @@ constructor(
     }
   }
 
-  fun setPatientQuestionnaireResponse(patientId: String, response: QuestionnaireResponse) {
-    patientQuestionnaireResponseMap[patientId] = parser.encodeResourceToString(response)
+  fun getPatientName(patientId: String): String {
+    val patient = _patients.value?.find { it.resourceId == patientId }
+    return patient?.name ?: ""
+  }
+
+  fun setPatientIdToEncounterIdMap(patientId: String, encounterId: String) {
+    patientIdToEncounterIdMap[patientId] = encounterId
+  }
+
+  fun getPatientIdToEncounterIdMap(): Map<String, String> {
+    return patientIdToEncounterIdMap.toMap()
+  }
+
+  fun getEncounterIdForPatientId(patientId: String): String? {
+    return patientIdToEncounterIdMap[patientId]
   }
 }

@@ -43,6 +43,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import com.google.android.material.tabs.TabLayout
+import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
@@ -51,6 +52,7 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.databinding.GroupFormentryFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.showSnackBar
+import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
 import org.openmrs.android.fhir.viewmodel.GroupFormEntryViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
@@ -62,8 +64,13 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   private val genericFormEntryViewModel: GenericFormEntryViewModel by viewModels {
     viewModelSavedStateFactory
   }
-  private val groupFormEntryViewModel: GroupFormEntryViewModel by
+  private val viewModel: GroupFormEntryViewModel by
     viewModels<GroupFormEntryViewModel> { viewModelFactory }
+
+  private val editEncounterViewModel: EditEncounterViewModel by viewModels {
+    viewModelSavedStateFactory
+  }
+
   private val args: GroupFormEntryFragmentArgs by navArgs()
 
   private var _binding: GroupFormentryFragmentBinding? = null
@@ -78,7 +85,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     setHasOptionsMenu(true)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     observeLoading()
-    groupFormEntryViewModel.getPatients(args.patientIds.toSet())
+    viewModel.getPatients(args.patientIds.toSet())
     observeResourcesSaveAction()
     if (savedInstanceState == null) {
       genericFormEntryViewModel.getEncounterQuestionnaire(
@@ -133,7 +140,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
             getString(R.string.questionnaire_error_message),
           )
           NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
-          groupFormEntryViewModel.isLoading.value = false
+          viewModel.isLoading.value = false
           return@commit
         } else {
           val questionnaireFragmentBuilder =
@@ -153,14 +160,14 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         }
       }
     }
-    view?.post { groupFormEntryViewModel.isLoading.value = false }
+    view?.post { viewModel.isLoading.value = false }
   }
 
   private fun handleSubmitEncounter(selectedTab: Int) {
-    val patientId = groupFormEntryViewModel.patients.value?.get(selectedTab)?.resourceId
+    val patientId = viewModel.patients.value?.get(selectedTab)?.resourceId
 
     if (patientId != null) {
-      groupFormEntryViewModel.isLoading.value = true
+      viewModel.isLoading.value = true
       lifecycleScope.launch {
         try {
           val questionnaireFragment =
@@ -168,24 +175,24 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
               as QuestionnaireFragment
           val questionnaireResponse = questionnaireFragment.getQuestionnaireResponse()
 
-          //          TODO: Handle case when it's submitted with same data.
-          //          if (groupFormEntryViewModel.patientQuestionnaireResponseMap[patientId] ==
-          // groupFormEntryViewModel.parser.encodeResourceToString(questionnaireResponse.setExtension(null))) {
-          //            groupFormEntryViewModel.isLoading.value = false
-          //            return@launch
-          //          }
-
-          genericFormEntryViewModel.saveEncounter(
-            questionnaireResponse,
-            patientId,
-          )
-          groupFormEntryViewModel.setPatientQuestionnaireResponse(
-            patientId,
-            questionnaireResponse,
-          )
+          var encounterId = viewModel.getEncounterIdForPatientId(patientId)
+          if (encounterId != null) {
+            editEncounterViewModel.updateEncounter(
+              questionnaireResponse,
+              encounterId,
+            )
+          } else {
+            encounterId = UUID.randomUUID().toString()
+            genericFormEntryViewModel.saveEncounter(
+              questionnaireResponse,
+              patientId,
+              encounterId,
+            )
+            viewModel.setPatientIdToEncounterIdMap(patientId, encounterId)
+          }
         } catch (exception: Exception) {
           print(exception)
-          groupFormEntryViewModel.isLoading.value = false
+          viewModel.isLoading.value = false
           return@launch
         }
       }
@@ -220,15 +227,15 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     binding.patientTabLayout.addOnTabSelectedListener(
       object : TabLayout.OnTabSelectedListener {
         override fun onTabSelected(tab: TabLayout.Tab) {
-          groupFormEntryViewModel.isLoading.value = true
-          val patientId = groupFormEntryViewModel.patients.value?.get(tab.position)?.resourceId
+          viewModel.isLoading.value = true
+          val patientId = viewModel.patients.value?.get(tab.position)?.resourceId
           if (patientId != null) {
             addQuestionnaireFragment(
               genericFormEntryViewModel.questionnaireJson.value.toString(),
               patientId,
             )
           } else {
-            groupFormEntryViewModel.isLoading.value = false
+            viewModel.isLoading.value = false
           }
         }
 
@@ -252,24 +259,35 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
           .show()
         return@observe
       }
-      //      TODO: Implement handling case when it's partially saved.
-      //      val savedPatients = groupFormEntryViewModel.patientQuestionnaireResponseMap.keys.size
-      //      val totalPatients = groupFormEntryViewModel.patients.value?.size ?: 0
-      //
-      //      if (totalPatients <= savedPatients) {
-      //        showSavedAllExitDialog()
-      //      }
+      val savedPatients = viewModel.getPatientIdToEncounterIdMap().keys.size
+      val totalPatients = viewModel.patients.value?.size ?: 0
+
+      if (totalPatients <= savedPatients) {
+        showSavedAllExitDialog()
+      }
+
+      val patientId = it.split("/")[1]
+      val patientName = viewModel.getPatientName(patientId)
+      Toast.makeText(requireContext(), "Encounter for $patientName saved", Toast.LENGTH_SHORT)
+        .show()
+    }
+    editEncounterViewModel.isResourcesSaved.observe(viewLifecycleOwner) {
+      val isSaved = it
+      if (!isSaved) {
+        Toast.makeText(requireContext(), getString(R.string.inputs_missing), Toast.LENGTH_SHORT)
+          .show()
+        return@observe
+      }
+      Toast.makeText(requireContext(), "Encounter updated!", Toast.LENGTH_SHORT).show()
     }
   }
 
   private fun observeQuestionnaire() {
     genericFormEntryViewModel.questionnaireJson.observe(viewLifecycleOwner) {
       val patientId =
-        groupFormEntryViewModel.patients.value
-          ?.get(binding.patientTabLayout.selectedTabPosition)
-          ?.resourceId
+        viewModel.patients.value?.get(binding.patientTabLayout.selectedTabPosition)?.resourceId
       if (patientId != null) {
-        groupFormEntryViewModel.isLoading.value = true
+        viewModel.isLoading.value = true
         it?.let {
           addQuestionnaireFragment(
             questionnaireJson = it,
@@ -281,7 +299,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   private fun observePatients() {
-    groupFormEntryViewModel.patients.observe(viewLifecycleOwner) {
+    viewModel.patients.observe(viewLifecycleOwner) {
       it?.let {
         setupPatientTabs(it)
         observeQuestionnaire()
@@ -290,7 +308,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   private fun observeLoading() {
-    groupFormEntryViewModel.isLoading.observe(viewLifecycleOwner) {
+    viewModel.isLoading.observe(viewLifecycleOwner) {
       binding.groupProgressBar.visibility = if (it) View.VISIBLE else View.GONE
     }
   }
