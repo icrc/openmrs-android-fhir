@@ -41,11 +41,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
+import ca.uhn.fhir.context.FhirContext
+import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import com.google.android.material.tabs.TabLayout
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
@@ -72,11 +75,17 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   private val args: GroupFormEntryFragmentArgs by navArgs()
+  private lateinit var encounterType: String
 
   private var _binding: GroupFormentryFragmentBinding? = null
 
   private val binding
     get() = _binding!!
+
+  // Keep track of current questionnaire fragment
+  private var currentQuestionnaireFragment: QuestionnaireFragment? = null
+  private var currentPatientId: String? = null
+  private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     _binding = GroupFormentryFragmentBinding.bind(view)
@@ -111,7 +120,12 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
       android.R.id.home -> {
-        showCancelScreenerQuestionnaireAlertDialog()
+        val savedPatients = viewModel.getPatientIdToEncounterIdMap().keys.size
+        val totalPatients = viewModel.patients.value?.size ?: 0
+
+        if (totalPatients > savedPatients) {
+          showCancelScreenerQuestionnaireAlertDialog()
+        }
         true
       }
       else -> super.onOptionsItemSelected(item)
@@ -126,40 +140,48 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   private fun addQuestionnaireFragment(questionnaireJson: String, patientId: String) {
-    childFragmentManager.fragments.forEach { childFragmentManager.commit { hide(it) } }
-
-    val questionnaireFragment =
-      childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG + patientId)
-    if (questionnaireFragment != null) {
-      childFragmentManager.commit { show(questionnaireFragment) }
-    } else {
-      childFragmentManager.commit {
-        if (questionnaireJson.isEmpty()) {
-          showSnackBar(
-            requireActivity(),
-            getString(R.string.questionnaire_error_message),
-          )
-          NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
-          viewModel.isLoading.value = false
-          return@commit
-        } else {
-          val questionnaireFragmentBuilder =
-            QuestionnaireFragment.builder()
-              .showReviewPageBeforeSubmit(
-                requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
-              )
-              .setSubmitButtonText(getString(R.string.submit))
-              .setShowSubmitButton(true)
-              .setQuestionnaire(questionnaireJson)
-
-          add(
-            R.id.form_entry_container,
-            questionnaireFragmentBuilder.build(),
-            QUESTIONNAIRE_FRAGMENT_TAG + patientId,
-          )
-        }
-      }
+    // Save current fragment's data before switching
+    lifecycleScope.launch {
+      saveCurrentQuestionnaireResponse(currentQuestionnaireFragment?.getQuestionnaireResponse())
     }
+
+    childFragmentManager.fragments.forEach { childFragmentManager.commit { remove(it) } }
+
+    if (questionnaireJson.isEmpty()) {
+      showSnackBar(
+        requireActivity(),
+        getString(R.string.questionnaire_error_message),
+      )
+      NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
+      viewModel.isLoading.value = false
+      return
+    }
+
+    val questionnaireFragmentBuilder =
+      QuestionnaireFragment.builder()
+        .showReviewPageBeforeSubmit(
+          requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
+        )
+        .setSubmitButtonText(getString(R.string.submit))
+        .setShowSubmitButton(true)
+        .setQuestionnaire(questionnaireJson)
+
+    // Restore previous response if exists
+    viewModel.patientResponses[patientId]?.let { savedResponse ->
+      questionnaireFragmentBuilder.setQuestionnaireResponse(savedResponse)
+    }
+    val newFragment = questionnaireFragmentBuilder.build()
+    childFragmentManager.commit {
+      add(
+        R.id.form_entry_container,
+        newFragment,
+        QUESTIONNAIRE_FRAGMENT_TAG + patientId,
+      )
+    }
+
+    currentQuestionnaireFragment = newFragment
+    currentPatientId = patientId
+
     view?.post { viewModel.isLoading.value = false }
   }
 
@@ -176,10 +198,12 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
           val questionnaireResponse = questionnaireFragment.getQuestionnaireResponse()
 
           var encounterId = viewModel.getEncounterIdForPatientId(patientId)
-          if (encounterId != null) {
+          val encounterType = genericFormEntryViewModel.encounterType
+          if (encounterId != null && encounterType != null) {
             editEncounterViewModel.updateEncounter(
               questionnaireResponse,
               encounterId,
+              encounterType,
             )
           } else {
             encounterId = UUID.randomUUID().toString()
@@ -251,6 +275,19 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     )
   }
 
+  private fun saveCurrentQuestionnaireResponse(questionnaireResponse: QuestionnaireResponse?) {
+    questionnaireResponse?.let { questionnaireResponse ->
+      currentPatientId?.let { patientId ->
+        try {
+          viewModel.patientResponses[patientId] =
+            parser.encodeResourceToString(questionnaireResponse)
+        } catch (e: Exception) {
+          // Handle exception
+        }
+      }
+    }
+  }
+
   private fun observeResourcesSaveAction() {
     genericFormEntryViewModel.isResourcesSaved.observe(viewLifecycleOwner) {
       val isSaved = it.contains("SAVED")
@@ -258,12 +295,6 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         Toast.makeText(requireContext(), getString(R.string.inputs_missing), Toast.LENGTH_SHORT)
           .show()
         return@observe
-      }
-      val savedPatients = viewModel.getPatientIdToEncounterIdMap().keys.size
-      val totalPatients = viewModel.patients.value?.size ?: 0
-
-      if (totalPatients <= savedPatients) {
-        showSavedAllExitDialog()
       }
 
       val patientId = it.split("/")[1]
@@ -313,17 +344,15 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     }
   }
 
-  private fun showSavedAllExitDialog() {
-    AlertDialog.Builder(requireContext())
-      .setTitle(getString(R.string.all_encounter_for_group_session_have_been_saved))
-      .setMessage(getString(R.string.do_you_want_to_exit))
-      .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
-        dialog.dismiss()
-        NavHostFragment.findNavController(this).navigateUp()
-      }
-      .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
-      .setCancelable(false)
-      .show()
+  override fun onDestroyView() {
+    // Clean up
+    lifecycleScope.launch {
+      saveCurrentQuestionnaireResponse(currentQuestionnaireFragment?.getQuestionnaireResponse())
+    }
+    currentQuestionnaireFragment = null
+    currentPatientId = null
+    viewModel.patientResponses.clear()
+    super.onDestroyView()
   }
 
   companion object {

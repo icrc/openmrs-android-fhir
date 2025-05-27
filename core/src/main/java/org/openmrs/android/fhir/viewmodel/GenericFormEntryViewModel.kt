@@ -39,7 +39,6 @@ import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.google.android.fhir.db.ResourceNotFoundException
-import com.google.android.fhir.search.search
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -88,6 +87,7 @@ constructor(
   private val _questionnaireJson = MutableLiveData<String>()
   val questionnaireJson: LiveData<String> = _questionnaireJson
   val isResourcesSaved = MutableLiveData<String>()
+  val encounterType = getEncounterTypeValue()
 
   fun getEncounterQuestionnaire(questionnaireId: String) {
     viewModelScope.launch {
@@ -97,8 +97,15 @@ constructor(
         val questionnaireString = applicationContext.readFileFromAssets("$questionnaireId.json")
         questionnaire = parser.parseResource(Questionnaire::class.java, questionnaireString)
       }
+
       _questionnaireJson.value = parser.encodeResourceToString(questionnaire)
     }
+  }
+
+  fun getEncounterTypeValue(): String? {
+    return questionnaire.code
+      .firstOrNull { it.system == "http://fhir.openmrs.org/code-system/encounter-type" }
+      ?.code
   }
 
   suspend fun createWrapperVisit(patientId: String): Encounter {
@@ -148,7 +155,11 @@ constructor(
    *
    * @param questionnaireResponse generic encounter questionnaire response
    */
-  fun saveEncounter(questionnaireResponse: QuestionnaireResponse, patientId: String) {
+  fun saveEncounter(
+    questionnaireResponse: QuestionnaireResponse,
+    patientId: String,
+    encounterId: String,
+  ) {
     viewModelScope.launch {
       val questionnaireId = state.get<String>("questionnaire_id")
 
@@ -156,19 +167,19 @@ constructor(
         throw IllegalArgumentException("No questionnaire ID provided")
       }
 
-      val questionnaire =
-        fhirEngine
-          .search<Questionnaire> { filter(Resource.RES_ID, { value = of(questionnaireId) }) }
-          .firstOrNull()
-          ?.resource
-
+      var questionnaire: Questionnaire? = null
+      try {
+        questionnaire = fhirEngine.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire
+      } catch (e: ResourceNotFoundException) {
+        val questionnaireString = applicationContext.readFileFromAssets("$questionnaireId.json")
+        questionnaire = parser.parseResource(Questionnaire::class.java, questionnaireString)
+      }
       if (questionnaire == null) {
         throw IllegalStateException("No questionnaire resource found with ID: $questionnaireId")
       }
 
       val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
       val patientReference = Reference("Patient/$patientId")
-      val encounterId = generateUuid()
 
       val visit: Encounter
       if (Constants.WRAP_ENCOUNTER) {

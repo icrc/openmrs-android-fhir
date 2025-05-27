@@ -149,6 +149,7 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
       viewModel.updateEncounter(
         questionnaireFragment.getQuestionnaireResponse(),
         encounterId,
+        encounterType,
       )
     }
   }

@@ -47,7 +47,7 @@ constructor(
   val patients: LiveData<List<PatientListViewModel.PatientItem>> = _patients
 
   private val patientIdToEncounterIdMap = mutableMapOf<String, String>()
-
+  val patientResponses = mutableMapOf<String, String>()
   val isLoading = MutableLiveData<Boolean>()
 
   fun getPatients(patientIds: Set<String>) {

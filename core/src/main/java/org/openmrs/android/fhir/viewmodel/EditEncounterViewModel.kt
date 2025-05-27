@@ -79,8 +79,6 @@ constructor(
 
   val isResourcesSaved = MutableLiveData<Boolean>()
 
-  private lateinit var questionnaire: Questionnaire
-
   fun prepareEditEncounter(encounterId: String, encounterType: String) {
     viewModelScope.launch {
       // TODO to be improved: if the asset is not present a message should be displayed.
@@ -88,7 +86,7 @@ constructor(
       try {
         val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
-        questionnaire =
+        val questionnaire =
           fhirEngine
             .search<Questionnaire> {}
             .first { questionnaire -> questionnaire.resource.code.any { it.code == encounterType } }
@@ -113,8 +111,18 @@ constructor(
     }
   }
 
-  fun updateEncounter(questionnaireResponse: QuestionnaireResponse, encounterId: String) {
+  fun updateEncounter(
+    questionnaireResponse: QuestionnaireResponse,
+    encounterId: String,
+    encounterType: String,
+  ) {
     viewModelScope.launch {
+      val questionnaire =
+        fhirEngine
+          .search<Questionnaire> {}
+          .first { questionnaire -> questionnaire.resource.code.any { it.code == encounterType } }
+          .resource
+
       val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
       saveResources(encounterId, bundle)
       isResourcesSaved.value = true
