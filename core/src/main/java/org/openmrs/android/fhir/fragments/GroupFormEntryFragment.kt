@@ -59,6 +59,7 @@ import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
 import org.openmrs.android.fhir.viewmodel.GroupFormEntryViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
+import timber.log.Timber
 
 class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -140,12 +141,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   private fun addQuestionnaireFragment(questionnaireJson: String, patientId: String) {
-    // Save current fragment's data before switching
-    lifecycleScope.launch {
-      saveCurrentQuestionnaireResponse(currentQuestionnaireFragment?.getQuestionnaireResponse())
-    }
-
-    childFragmentManager.fragments.forEach { childFragmentManager.commit { remove(it) } }
+    childFragmentManager.fragments.forEach { childFragmentManager.commit { hide(it) } }
 
     if (questionnaireJson.isEmpty()) {
       showSnackBar(
@@ -215,7 +211,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
             viewModel.setPatientIdToEncounterIdMap(patientId, encounterId)
           }
         } catch (exception: Exception) {
-          print(exception)
+          Timber.e(exception.localizedMessage)
           viewModel.isLoading.value = false
           return@launch
         }
@@ -290,26 +286,37 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
 
   private fun observeResourcesSaveAction() {
     genericFormEntryViewModel.isResourcesSaved.observe(viewLifecycleOwner) {
+      viewModel.isLoading.value = false
       val isSaved = it.contains("SAVED")
       if (!isSaved) {
         Toast.makeText(requireContext(), getString(R.string.inputs_missing), Toast.LENGTH_SHORT)
           .show()
         return@observe
       }
-
+      removeHiddenFragments()
       val patientId = it.split("/")[1]
       val patientName = viewModel.getPatientName(patientId)
       Toast.makeText(requireContext(), "Encounter for $patientName saved", Toast.LENGTH_SHORT)
         .show()
     }
     editEncounterViewModel.isResourcesSaved.observe(viewLifecycleOwner) {
+      viewModel.isLoading.value = false
       val isSaved = it
       if (!isSaved) {
         Toast.makeText(requireContext(), getString(R.string.inputs_missing), Toast.LENGTH_SHORT)
           .show()
         return@observe
       }
+      removeHiddenFragments()
       Toast.makeText(requireContext(), "Encounter updated!", Toast.LENGTH_SHORT).show()
+    }
+  }
+
+  private fun removeHiddenFragments() {
+    childFragmentManager.fragments.forEach { fragment ->
+      if (fragment != currentQuestionnaireFragment) {
+        childFragmentManager.commit { remove(fragment) }
+      }
     }
   }
 
