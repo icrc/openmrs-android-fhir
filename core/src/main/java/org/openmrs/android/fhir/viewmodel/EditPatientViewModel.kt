@@ -88,13 +88,17 @@ constructor(
     val question =
       fhirEngine.getQuestionnaireOrFromAssetsAsString(questionnaireId, applicationContext, parser)
 
-    questionnaireResource =
-      parser.parseResource(Questionnaire::class.java, question) as Questionnaire
+    return if (question.isNotEmpty()) {
+      questionnaireResource =
+        parser.parseResource(Questionnaire::class.java, question) as Questionnaire
 
-    val questionnaireResponse: QuestionnaireResponse =
-      ResourceMapper.populate(questionnaireResource, launchContexts)
-    val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
-    return question to questionnaireResponseJson
+      val questionnaireResponse: QuestionnaireResponse =
+        ResourceMapper.populate(questionnaireResource, launchContexts)
+      val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
+      question to questionnaireResponseJson
+    } else {
+      "" to ""
+    }
   }
 
   val isPatientSaved = MutableLiveData<Boolean>()

@@ -167,7 +167,17 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   private fun observeQuestionnaire() {
     viewModel.questionnaireJson.observe(viewLifecycleOwner) {
-      it?.let { addQuestionnaireFragment(it) }
+      if (it.isNotEmpty()) {
+        it?.let { addQuestionnaireFragment(it) }
+      } else {
+        Toast.makeText(
+            requireContext(),
+            getString(R.string.questionnaire_error_message),
+            Toast.LENGTH_SHORT,
+          )
+          .show()
+        NavHostFragment.findNavController(this).navigateUp()
+      }
     }
   }
 

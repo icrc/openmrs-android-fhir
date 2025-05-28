@@ -81,7 +81,7 @@ constructor(
   }
 
   private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-  var questionnaire: Questionnaire = Questionnaire()
+  var questionnaire: Questionnaire? = Questionnaire()
   private val _questionnaireJson = MutableLiveData<String>()
   val questionnaireJson: LiveData<String> = _questionnaireJson
   val isResourcesSaved = MutableLiveData<String>()
@@ -95,13 +95,18 @@ constructor(
           applicationContext,
           parser,
         )
-      _questionnaireJson.value = parser.encodeResourceToString(questionnaire)
+      if (questionnaire == null) {
+        _questionnaireJson.value = ""
+      } else {
+        _questionnaireJson.value = parser.encodeResourceToString(questionnaire)
+      }
     }
   }
 
   fun getEncounterTypeValue(): String? {
-    return questionnaire.code
-      .firstOrNull { it.system == "http://fhir.openmrs.org/code-system/encounter-type" }
+    return questionnaire
+      ?.code
+      ?.firstOrNull { it.system == "http://fhir.openmrs.org/code-system/encounter-type" }
       ?.code
   }
 

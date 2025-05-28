@@ -67,7 +67,7 @@ constructor(
 
   var locationId: String? = null
   val isPatientSaved = MutableLiveData<Boolean>()
-  var questionnaire: Questionnaire = Questionnaire()
+  var questionnaire: Questionnaire? = Questionnaire()
   val embeddedQuestionnaire = MutableLiveData<String>()
   private var saveInProgress = false
 
@@ -84,7 +84,7 @@ constructor(
       saveInProgress = true
       if (
         QuestionnaireResponseValidator.validateQuestionnaireResponse(
-            questionnaire,
+            questionnaire!!,
             questionnaireResponse,
             applicationContext,
           )
@@ -99,7 +99,7 @@ constructor(
 
       val entry =
         ResourceMapper.extract(
-            questionnaire,
+            questionnaire!!,
             questionnaireResponse,
           )
           .entryFirstRep
@@ -210,8 +210,12 @@ constructor(
       val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
       questionnaire =
         fhirEngine.getQuestionnaireOrFromAssets(questionnaireName, applicationContext, parser)
-      embeddedQuestionnaire.value =
-        parser.encodeResourceToString(embeddIdentifierInQuestionnaire(questionnaire))
+      if (questionnaire != null) {
+        embeddedQuestionnaire.value =
+          parser.encodeResourceToString(embeddIdentifierInQuestionnaire(questionnaire!!))
+      } else {
+        embeddedQuestionnaire.value = ""
+      }
     }
   }
 

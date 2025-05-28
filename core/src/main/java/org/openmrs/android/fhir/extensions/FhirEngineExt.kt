@@ -30,7 +30,6 @@ package org.openmrs.android.fhir.extensions
 
 import android.content.Context
 import ca.uhn.fhir.parser.IParser
-import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException
 import com.google.android.fhir.FhirEngine
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.ResourceType
@@ -39,12 +38,16 @@ suspend fun FhirEngine.getQuestionnaireOrFromAssets(
   questionnaireId: String,
   applicationContext: Context,
   parser: IParser,
-): Questionnaire {
+): Questionnaire? {
   return try {
     this.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire
-  } catch (e: ResourceNotFoundException) {
-    val questionnaireString = applicationContext.readFileFromAssets("$questionnaireId.json")
-    parser.parseResource(Questionnaire::class.java, questionnaireString)
+  } catch (e: Exception) {
+    try {
+      val questionnaireString = applicationContext.readFileFromAssets("$questionnaireId.json")
+      parser.parseResource(Questionnaire::class.java, questionnaireString)
+    } catch (e: Exception) {
+      null
+    }
   }
 }
 
@@ -56,7 +59,11 @@ suspend fun FhirEngine.getQuestionnaireOrFromAssetsAsString(
   return try {
     val questionnaire = this.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire
     parser.encodeResourceToString(questionnaire)
-  } catch (e: ResourceNotFoundException) {
-    applicationContext.readFileFromAssets("$questionnaireId.json")
+  } catch (e: Exception) {
+    try {
+      applicationContext.readFileFromAssets("$questionnaireId.json")
+    } catch (e: Exception) {
+      ""
+    }
   }
 }
