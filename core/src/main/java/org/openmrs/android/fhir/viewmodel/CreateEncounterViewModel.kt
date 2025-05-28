@@ -36,8 +36,6 @@ import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.logicalId
-import com.google.android.fhir.db.ResourceNotFoundException
-import com.google.android.fhir.get
 import com.google.android.fhir.search.search
 import com.squareup.moshi.Moshi
 import javax.inject.Inject
@@ -48,6 +46,7 @@ import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.FormSection
 import org.openmrs.android.fhir.data.database.model.FormSectionItem
 import org.openmrs.android.fhir.extensions.getJsonFileNames
+import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.readFileFromAssets
 
 class CreateEncounterViewModel
@@ -80,7 +79,7 @@ constructor(
         val adapter = moshi.adapter(FormData::class.java).lenient()
         val formData = adapter.fromJson(formDataString.trim())
         val questionnaires = fhirEngine.search<Questionnaire> {}.map { it.resource }.toMutableList()
-
+        // This code can be refactored once there's possiblity to add assets file to fhirEngine.
         val assetQuestionnaireFileNames = applicationContext.getJsonFileNames()
         assetQuestionnaireFileNames.forEach {
           val questionnaireString = applicationContext.readFileFromAssets(it)
@@ -126,19 +125,8 @@ constructor(
     forms.forEach { encounterTypeCode ->
       val questionnaireId =
         encounterTypeCodeToQuestionnaireIdMap[encounterTypeCode] ?: return@forEach
-      var questionnaire: Questionnaire? = null
-      try {
-        questionnaire = fhirEngine.get<Questionnaire>(questionnaireId)
-      } catch (e: ResourceNotFoundException) {
-        try {
-          val questionnaireString = applicationContext.readFileFromAssets("$questionnaireId.json")
-          if (questionnaireString.isNotEmpty()) {
-            questionnaire = parser.parseResource(Questionnaire::class.java, questionnaireString)
-          }
-        } catch (ignored: Exception) {
-          // Ignored in case of questionnaire is neither synced nor found in Assets folder.
-        }
-      }
+      val questionnaire: Questionnaire? =
+        fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
       if (questionnaire != null) {
         formItems.add(
           FormItem(

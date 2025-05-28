@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -42,7 +43,6 @@ import com.google.android.fhir.search.search
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import java.io.FileNotFoundException
 import java.util.Date
 import java.util.UUID
 import kotlinx.coroutines.launch
@@ -59,10 +59,14 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.StringType
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
+import org.openmrs.android.fhir.extensions.getJsonFileNames
+import org.openmrs.android.fhir.extensions.readFileFromAssets
+import timber.log.Timber
 
 class EditEncounterViewModel
 @AssistedInject
 constructor(
+  private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
   @Assisted val state: SavedStateHandle,
 ) : ViewModel() {
@@ -81,16 +85,36 @@ constructor(
 
   fun prepareEditEncounter(encounterId: String, encounterType: String) {
     viewModelScope.launch {
-      // TODO to be improved: if the asset is not present a message should be displayed.
       val observations = getObservationsEncounterId(encounterId)
       try {
         val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
-        val questionnaire =
+        var questionnaire =
           fhirEngine
             .search<Questionnaire> {}
-            .first { questionnaire -> questionnaire.resource.code.any { it.code == encounterType } }
-            .resource
+            .firstOrNull { questionnaire ->
+              questionnaire.resource.code.any { it.code == encounterType }
+            }
+            ?.resource
+        if (questionnaire == null) {
+          // Look into assets folder
+          val assetQuestionnaireFileNames = applicationContext.getJsonFileNames()
+          assetQuestionnaireFileNames.forEach {
+            val questionnaireString = applicationContext.readFileFromAssets(it)
+            if (questionnaireString.isNotEmpty()) {
+              val assetsQuestionnaire =
+                parser.parseResource(Questionnaire::class.java, questionnaireString)
+              if (assetsQuestionnaire.hasCode()) {
+                assetsQuestionnaire.code.forEach {
+                  if (it.hasSystem() and (it?.system.toString() == encounterType)) {
+                    questionnaire = assetsQuestionnaire
+                    return@forEach
+                  }
+                }
+              }
+            }
+          }
+        }
 
         val questionnaireJson = parser.encodeResourceToString(questionnaire)
 
@@ -101,11 +125,15 @@ constructor(
           }
 
         val launchContexts = mapOf("observations" to observationBundle)
-        val questionnaireResponse = ResourceMapper.populate(questionnaire, launchContexts)
+        val questionnaireResponse =
+          ResourceMapper.populate(
+            questionnaire!!,
+            launchContexts,
+          ) // if questionnaire is null it'll throw exception while encoding to string.
         val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
         _encounterDataPair.value = questionnaireJson to questionnaireResponseJson
-      } catch (e: FileNotFoundException) {
-        // TODO add log here
+      } catch (e: Exception) {
+        Timber.e(e.localizedMessage)
         _encounterDataPair.value = Pair("", "")
       }
     }

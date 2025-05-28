@@ -82,7 +82,19 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
       title = requireContext().getString(R.string.edit_encounter)
     }
     viewModel.prepareEditEncounter(encounterId, encounterType)
-    viewModel.encounterDataPair.observe(viewLifecycleOwner) { addQuestionnaireFragment(it) }
+    viewModel.encounterDataPair.observe(viewLifecycleOwner) {
+      if (it.first.isBlank()) {
+        Toast.makeText(
+            requireContext(),
+            getString(R.string.encounter_questionnaire_not_found_try_again_later),
+            Toast.LENGTH_SHORT,
+          )
+          .show()
+        NavHostFragment.findNavController(this).navigateUp()
+        return@observe
+      }
+      addQuestionnaireFragment(it)
+    }
     viewModel.isResourcesSaved.observe(viewLifecycleOwner) {
       if (!it) {
         Toast.makeText(requireContext(), R.string.inputs_missing, Toast.LENGTH_SHORT).show()

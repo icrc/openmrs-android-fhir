@@ -264,4 +264,7 @@
     <string
         name="all_patients_have_been_submitted"
     >Tous les patients ont été soumis</string>
+    <string
+        name="encounter_questionnaire_not_found_try_again_later"
+    >Questionnaire de la rencontre introuvable, réessayez plus tard</string>
 </resources>
