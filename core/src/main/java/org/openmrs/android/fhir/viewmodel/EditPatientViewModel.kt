@@ -49,9 +49,8 @@ import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Resource
-import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
-import org.openmrs.android.fhir.extensions.readFileFromAssets
+import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssetsAsString
 import org.openmrs.android.fhir.fragments.EditPatientFragment
 
 /**
@@ -80,27 +79,26 @@ constructor(
   lateinit var originalPatient: Patient
   lateinit var questionnaireResource: Questionnaire
 
-  private suspend fun prepareEditPatient(questionnaireName: String): Pair<String, String> {
+  private suspend fun prepareEditPatient(questionnaireId: String): Pair<String, String> {
     val patient = fhirEngine.get<Patient>(patientId)
     originalPatient = patient
     val launchContexts = mapOf<String, Resource>("client" to patient)
     val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
     val question =
-      try {
-        parser.encodeResourceToString(
-          fhirEngine.get(ResourceType.Questionnaire, questionnaireName) as Questionnaire,
-        )
-      } catch (e: Exception) {
-        applicationContext.readFileFromAssets("$questionnaireName.json")
-      }
-    questionnaireResource =
-      parser.parseResource(Questionnaire::class.java, question) as Questionnaire
+      fhirEngine.getQuestionnaireOrFromAssetsAsString(questionnaireId, applicationContext, parser)
 
-    val questionnaireResponse: QuestionnaireResponse =
-      ResourceMapper.populate(questionnaireResource, launchContexts)
-    val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
-    return question to questionnaireResponseJson
+    return if (question.isNotEmpty()) {
+      questionnaireResource =
+        parser.parseResource(Questionnaire::class.java, question) as Questionnaire
+
+      val questionnaireResponse: QuestionnaireResponse =
+        ResourceMapper.populate(questionnaireResource, launchContexts)
+      val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
+      question to questionnaireResponseJson
+    } else {
+      "" to ""
+    }
   }
 
   val isPatientSaved = MutableLiveData<Boolean>()

@@ -106,6 +106,16 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
           .show()
       }
     }
+
+    requireView().findViewById<CardView>(R.id.item_group_encounter).setOnClickListener {
+      findNavController()
+        .navigate(
+          HomeFragmentDirections.actionHomeFragmentToCreateEncounterFragment(
+            patientId = "",
+            isGroupEncounter = true,
+          ),
+        )
+    }
     requireView().findViewById<CardView>(R.id.sync_info).setOnClickListener {
       findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSyncInfoFragment())
     }

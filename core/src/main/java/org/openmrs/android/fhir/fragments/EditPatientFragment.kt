@@ -118,6 +118,12 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
   }
 
   private fun addQuestionnaireFragment(pair: Pair<String, String>) {
+    if (pair.first.isEmpty()) {
+      Toast.makeText(requireContext(), R.string.questionnaire_error_message, Toast.LENGTH_SHORT)
+        .show()
+      NavHostFragment.findNavController(this).navigateUp()
+      return
+    }
     lifecycleScope.launch {
       childFragmentManager.commit {
         add(

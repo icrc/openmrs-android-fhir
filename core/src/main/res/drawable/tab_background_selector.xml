@@ -1,0 +1,20 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true">
+        <inset
+            android:drawable="@drawable/tab_selected_bg"
+            android:insetLeft="4dp"
+            android:insetRight="4dp"
+            android:insetTop="2dp"
+            android:insetBottom="2dp"
+        />
+    </item>
+    <item> <!-- Default/Unselected -->
+        <inset
+            android:drawable="@drawable/tab_unselected_bg"
+            android:insetLeft="4dp"
+            android:insetRight="4dp"
+            android:insetTop="2dp"
+            android:insetBottom="2dp"
+        />
+    </item>
+</selector>

@@ -41,6 +41,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.datacapture.QuestionnaireFragment
+import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
@@ -123,6 +124,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
       viewModel.saveEncounter(
         questionnaireFragment.getQuestionnaireResponse(),
         args.patientId,
+        UUID.randomUUID().toString(),
       )
     }
   }
@@ -151,7 +153,8 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   private fun observeResourcesSaveAction() {
     viewModel.isResourcesSaved.observe(viewLifecycleOwner) {
-      if (!it) {
+      val isSaved = it.contains("SAVED")
+      if (!isSaved) {
         Toast.makeText(requireContext(), getString(R.string.inputs_missing), Toast.LENGTH_SHORT)
           .show()
         return@observe
@@ -164,7 +167,17 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   private fun observeQuestionnaire() {
     viewModel.questionnaireJson.observe(viewLifecycleOwner) {
-      it?.let { addQuestionnaireFragment(it) }
+      if (it.isNotEmpty()) {
+        it?.let { addQuestionnaireFragment(it) }
+      } else {
+        Toast.makeText(
+            requireContext(),
+            getString(R.string.questionnaire_error_message),
+            Toast.LENGTH_SHORT,
+          )
+          .show()
+        NavHostFragment.findNavController(this).navigateUp()
+      }
     }
   }
 

@@ -29,6 +29,7 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -37,8 +38,6 @@ import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
-import com.google.android.fhir.db.ResourceNotFoundException
-import com.google.android.fhir.search.search
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -59,12 +58,11 @@ import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
-import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
-import org.openmrs.android.fhir.extensions.readFileFromAssets
+import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.helpers.OpenMRSHelper
 
 /** ViewModel for Generic questionnaire screen {@link GenericFormEntryFragment}. */
@@ -83,20 +81,33 @@ constructor(
   }
 
   private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-  var questionnaire: Questionnaire = Questionnaire()
-  val questionnaireJson = MutableLiveData<String>()
-  val isResourcesSaved = MutableLiveData<Boolean>()
+  var questionnaire: Questionnaire? = Questionnaire()
+  private val _questionnaireJson = MutableLiveData<String>()
+  val questionnaireJson: LiveData<String> = _questionnaireJson
+  val isResourcesSaved = MutableLiveData<String>()
+  val encounterType = getEncounterTypeValue()
 
   fun getEncounterQuestionnaire(questionnaireId: String) {
     viewModelScope.launch {
-      try {
-        questionnaire = fhirEngine.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire
-      } catch (e: ResourceNotFoundException) {
-        val questionnaireString = applicationContext.readFileFromAssets("$questionnaireId.json")
-        questionnaire = parser.parseResource(Questionnaire::class.java, questionnaireString)
+      questionnaire =
+        fhirEngine.getQuestionnaireOrFromAssets(
+          questionnaireId,
+          applicationContext,
+          parser,
+        )
+      if (questionnaire == null) {
+        _questionnaireJson.value = ""
+      } else {
+        _questionnaireJson.value = parser.encodeResourceToString(questionnaire)
       }
-      questionnaireJson.value = parser.encodeResourceToString(questionnaire)
     }
+  }
+
+  fun getEncounterTypeValue(): String? {
+    return questionnaire
+      ?.code
+      ?.firstOrNull { it.system == "http://fhir.openmrs.org/code-system/encounter-type" }
+      ?.code
   }
 
   suspend fun createWrapperVisit(patientId: String): Encounter {
@@ -146,7 +157,11 @@ constructor(
    *
    * @param questionnaireResponse generic encounter questionnaire response
    */
-  fun saveEncounter(questionnaireResponse: QuestionnaireResponse, patientId: String) {
+  fun saveEncounter(
+    questionnaireResponse: QuestionnaireResponse,
+    patientId: String,
+    encounterId: String,
+  ) {
     viewModelScope.launch {
       val questionnaireId = state.get<String>("questionnaire_id")
 
@@ -154,11 +169,12 @@ constructor(
         throw IllegalArgumentException("No questionnaire ID provided")
       }
 
-      val questionnaire =
-        fhirEngine
-          .search<Questionnaire> { filter(Resource.RES_ID, { value = of(questionnaireId) }) }
-          .firstOrNull()
-          ?.resource
+      val questionnaire: Questionnaire? =
+        fhirEngine.getQuestionnaireOrFromAssets(
+          questionnaireId,
+          applicationContext,
+          parser,
+        )
 
       if (questionnaire == null) {
         throw IllegalStateException("No questionnaire resource found with ID: $questionnaireId")
@@ -166,7 +182,6 @@ constructor(
 
       val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
       val patientReference = Reference("Patient/$patientId")
-      val encounterId = generateUuid()
 
       val visit: Encounter
       if (Constants.WRAP_ENCOUNTER) {
@@ -176,12 +191,12 @@ constructor(
       }
 
       if (isRequiredFieldMissing(bundle)) {
-        isResourcesSaved.value = false
+        isResourcesSaved.value = "ERROR/$patientId"
         return@launch
       }
 
       saveResources(bundle, patientReference, questionnaire, encounterId, visit.idPart)
-      isResourcesSaved.value = true
+      isResourcesSaved.value = "SAVED/$patientId"
     }
   }
 

@@ -38,7 +38,6 @@ import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
-import com.google.android.fhir.db.ResourceNotFoundException
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
@@ -55,7 +54,7 @@ import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
-import org.openmrs.android.fhir.extensions.readFileFromAssets
+import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 
 /** ViewModel for patient registration screen {@link AddPatientFragment}. */
 class AddPatientViewModel
@@ -68,9 +67,11 @@ constructor(
 
   var locationId: String? = null
   val isPatientSaved = MutableLiveData<Boolean>()
-  var questionnaire: Questionnaire = Questionnaire()
+  var questionnaire: Questionnaire? = Questionnaire()
   val embeddedQuestionnaire = MutableLiveData<String>()
   private var saveInProgress = false
+
+  val isLoading = MutableLiveData<Boolean>()
 
   /**
    * Saves patient registration questionnaire response into the application database.
@@ -79,12 +80,11 @@ constructor(
    */
   fun savePatient(questionnaireResponse: QuestionnaireResponse) {
     if (saveInProgress) return // To avoid multiple save of patient.
-
     viewModelScope.launch {
       saveInProgress = true
       if (
         QuestionnaireResponseValidator.validateQuestionnaireResponse(
-            questionnaire,
+            questionnaire!!,
             questionnaireResponse,
             applicationContext,
           )
@@ -99,7 +99,7 @@ constructor(
 
       val entry =
         ResourceMapper.extract(
-            questionnaire,
+            questionnaire!!,
             questionnaireResponse,
           )
           .entryFirstRep
@@ -208,15 +208,14 @@ constructor(
   fun getEmbeddedQuestionnaire(questionnaireName: String) {
     viewModelScope.launch {
       val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-      try {
-        questionnaire =
-          fhirEngine.get(ResourceType.Questionnaire, questionnaireName) as Questionnaire
-      } catch (e: ResourceNotFoundException) {
-        val questionnaireString = applicationContext.readFileFromAssets("$questionnaireName.json")
-        questionnaire = parser.parseResource(Questionnaire::class.java, questionnaireString)
+      questionnaire =
+        fhirEngine.getQuestionnaireOrFromAssets(questionnaireName, applicationContext, parser)
+      if (questionnaire != null) {
+        embeddedQuestionnaire.value =
+          parser.encodeResourceToString(embeddIdentifierInQuestionnaire(questionnaire!!))
+      } else {
+        embeddedQuestionnaire.value = ""
       }
-      embeddedQuestionnaire.value =
-        parser.encodeResourceToString(embeddIdentifierInQuestionnaire(questionnaire))
     }
   }
 
@@ -224,7 +223,7 @@ constructor(
     val questionnaireItems = questionnaire.item
     val selectedIdentifiers =
       applicationContext.dataStore.data.first()[PreferenceKeys.SELECTED_IDENTIFIER_TYPES]
-    val filteredIdentifiers: MutableList<String>
+    val filteredIdentifiers: List<String>
     if (selectedIdentifiers != null) {
       filteredIdentifiers =
         selectedIdentifiers
