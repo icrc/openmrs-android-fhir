@@ -126,6 +126,8 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
 
         if (totalPatients > savedPatients) {
           showCancelScreenerQuestionnaireAlertDialog()
+        } else {
+          NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
         }
         true
       }
