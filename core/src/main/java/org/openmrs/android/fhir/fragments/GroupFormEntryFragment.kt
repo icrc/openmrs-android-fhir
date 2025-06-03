@@ -212,6 +212,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
             )
             viewModel.setPatientIdToEncounterIdMap(patientId, encounterId)
           }
+          saveCurrentQuestionnaireResponse(questionnaireResponse)
         } catch (exception: Exception) {
           Timber.e(exception.localizedMessage)
           viewModel.isLoading.value = false
