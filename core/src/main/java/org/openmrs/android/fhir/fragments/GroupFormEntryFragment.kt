@@ -301,6 +301,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       val patientName = viewModel.getPatientName(patientId)
       Toast.makeText(requireContext(), "Encounter for $patientName saved", Toast.LENGTH_SHORT)
         .show()
+      handleAllEncountersSaved()
     }
     editEncounterViewModel.isResourcesSaved.observe(viewLifecycleOwner) {
       viewModel.isLoading.value = false
@@ -312,6 +313,25 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       }
       removeHiddenFragments()
       Toast.makeText(requireContext(), "Encounter updated!", Toast.LENGTH_SHORT).show()
+      handleAllEncountersSaved()
+    }
+  }
+
+  private fun handleAllEncountersSaved() {
+    if (viewModel.patients.value?.size == viewModel.getPatientIdToEncounterIdMap().size) {
+      val alertDialog: AlertDialog? =
+        activity?.let {
+          val builder = AlertDialog.Builder(it)
+          builder.apply {
+            setMessage("All encounters saved! Do you want to exit?")
+            setPositiveButton(getString(android.R.string.yes)) { _, _ ->
+              NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
+            }
+            setNegativeButton(getString(android.R.string.no)) { _, _ -> }
+          }
+          builder.create()
+        }
+      alertDialog?.show()
     }
   }
 
