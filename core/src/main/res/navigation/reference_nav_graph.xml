@@ -24,6 +24,11 @@
     <action
             android:id="@+id/action_home_fragment_to_locationFragment"
             app:destination="@id/locationFragment"
+            app:launchSingleTop="true"
+        />
+    <action
+            android:id="@+id/action_home_fragment_to_selectPatientListFragment"
+            app:destination="@id/selectPatientListFragment"
         />
     <action
             android:id="@+id/action_home_fragment_to_identifierFragment"
@@ -32,6 +37,14 @@
     <action
             android:id="@+id/action_home_fragment_to_syncInfoFragment"
             app:destination="@id/syncInfoFragment"
+        />
+    <action
+            android:id="@+id/action_home_fragment_to_unsyncedResourcesFragment"
+            app:destination="@id/unsyncedResourcesFragment"
+        />
+    <action
+            android:id="@+id/action_home_fragment_to_createEncounterFragment"
+            app:destination="@id/createEncounterFragment"
         />
   </fragment>
 
@@ -78,21 +91,30 @@
         android:label="Generic Form Entry"
         tools:layout="@layout/generic_formentry_fragment"
     >
-    <argument android:name="form_display" app:argType="string" />
-    <argument android:name="form_code" app:argType="string" />
     <argument android:name="patient_id" app:argType="string" />
-    <argument
-            android:name="encounter_id"
-            app:argType="string"
-            android:defaultValue="@null"
-            app:nullable="true"
-        />
-    <argument
-            android:name="questionnaire"
-            app:argType="org.hl7.fhir.r4.model.Questionnaire"
-            app:nullable="true"
-        />
+    <argument android:name="questionnaire_id" app:argType="string" />
   </fragment>
+  <fragment
+        android:id="@+id/groupFormEntryFragment"
+        android:name="org.openmrs.android.fhir.fragments.GroupFormEntryFragment"
+        android:label="Group Form Entry"
+        tools:layout="@layout/group_formentry_fragment"
+    >
+    <argument android:name="patientIds" app:argType="string[]" />
+    <argument android:name="questionnaire_id" app:argType="string" />
+  </fragment>
+  <dialog
+        android:id="@+id/patientSelectionDialogFragment"
+        android:name="org.openmrs.android.fhir.fragments.PatientSelectionDialogFragment"
+        android:label="Select Patients"
+        tools:layout="@layout/dialog_patient_selection"
+    >
+    <argument android:name="questionnaireId" app:argType="string" />
+    <action
+            android:id="@+id/action_patientSelectionDialogFragment_to_groupFormEntryFragment"
+            app:destination="@id/groupFormEntryFragment"
+        />
+  </dialog>
   <fragment
         android:id="@+id/createEncounterFragment"
         android:name="org.openmrs.android.fhir.fragments.CreateEncountersFragment"
@@ -100,9 +122,18 @@
         tools:layout="@layout/create_encounter_fragment"
     >
     <argument android:name="patient_id" app:argType="string" />
+    <argument android:name="is_group_encounter" app:argType="boolean" />
     <action
             android:id="@+id/action_createEncounterFragment_to_genericFormEntryFragment"
             app:destination="@id/genericFormEntryFragment"
+        />
+    <action
+            android:id="@+id/action_createEncounterFragment_to_groupFormEntryFragment"
+            app:destination="@id/groupFormEntryFragment"
+        />
+    <action
+            android:id="@+id/action_createEncounterFragment_to_patientSelectionDialogFragment"
+            app:destination="@id/patientSelectionDialogFragment"
         />
   </fragment>
   <fragment
@@ -119,6 +150,10 @@
         tools:layout="@layout/add_patient_fragment"
     >
     <argument android:name="patient_id" app:argType="string" />
+    <argument
+            android:name="registration_questionnaire_name"
+            app:argType="string"
+        />
   </fragment>
   <fragment
         android:id="@+id/editEncounterFragment"
@@ -135,7 +170,27 @@
         android:label="@string/location"
         android:name="org.openmrs.android.fhir.fragments.LocationFragment"
         tools:layout="@layout/fragment_location"
-    />
+    >
+    <argument android:name="from_login" app:argType="boolean" />
+    <action
+            android:id="@+id/action_locationFragment_to_selectPatientListFragment"
+            app:destination="@id/selectPatientListFragment"
+        />
+  </fragment>
+  <fragment
+        android:id="@+id/selectPatientListFragment"
+        android:label="@string/select_patient_lists"
+        android:name="org.openmrs.android.fhir.fragments.SelectPatientListFragment"
+        tools:layout="@layout/fragment_select_patient_list"
+    >
+    <argument android:name="from_login" app:argType="boolean" />
+    <action
+            android:id="@+id/action_selectPatientListFragment_to_homeFragment"
+            app:popUpToInclusive="true"
+            app:popUpTo="@id/home_fragment"
+            app:destination="@id/home_fragment"
+        />
+  </fragment>
   <fragment
         android:id="@+id/identifierFragment"
         android:label="@string/identifier"
@@ -147,6 +202,12 @@
         android:label="@string/sync_info"
         android:name="org.openmrs.android.fhir.fragments.SyncInfoFragment"
         tools:layout="@layout/fragment_sync_info"
+    />
+  <fragment
+        android:id="@+id/unsyncedResourcesFragment"
+        android:label="@string/sync_info"
+        android:name="org.openmrs.android.fhir.fragments.UnsyncedResourcesFragment"
+        tools:layout="@layout/fragment_unsynced_resources"
     />
 
   <fragment

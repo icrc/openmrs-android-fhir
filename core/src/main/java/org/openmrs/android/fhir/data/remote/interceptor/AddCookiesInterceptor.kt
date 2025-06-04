@@ -36,6 +36,7 @@ import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
+import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 
@@ -46,7 +47,8 @@ class AddCookiesInterceptor(private val context: Context) : Interceptor {
     val builder: Request.Builder = chain.request().newBuilder()
     if (
       originalRequest.url.toString().contains("idgen") ||
-        originalRequest.url.toString().contains("session")
+        originalRequest.url.toString().contains("session") ||
+        originalRequest.url.toString().contains(context.resources.getString(R.string.fhir_base_url))
     ) {
       runBlocking {
         val prefCookies: Set<String> =

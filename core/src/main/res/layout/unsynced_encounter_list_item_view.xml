@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingHorizontal="16dp"
+    android:layout_marginHorizontal="2dp"
+    android:paddingVertical="8dp"
+    android:background="#F5F5F5"
+>
+
+    <ImageView
+        android:id="@+id/ivExpandCollapse"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="24dp"
+        android:src="@drawable/ic_expand"
+        android:contentDescription="@string/expand"
+    />
+
+    <TextView
+        android:id="@+id/tvEncounterTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:text="@string/encounter"
+        android:textSize="14sp"
+    />
+
+    <ImageButton
+        android:id="@+id/btnDownloadEncounter"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginEnd="2dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/download_encounter"
+        android:src="@drawable/ic_download"
+    />
+
+    <ImageButton
+        android:id="@+id/btnDeleteEncounter"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/delete_encounter"
+        android:src="@drawable/ic_delete"
+    />
+</LinearLayout>

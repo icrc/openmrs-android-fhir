@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -39,6 +40,7 @@ import com.google.android.fhir.search.search
 import java.time.LocalDate
 import java.time.ZoneOffset
 import javax.inject.Inject
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Patient
@@ -50,10 +52,15 @@ import timber.log.Timber
  * The ViewModel helper class for PatientItemRecyclerViewAdapter, that is responsible for preparing
  * data for UI.
  */
-class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngine) : ViewModel() {
+class PatientListViewModel
+@Inject
+constructor(private val applicationContext: Context, private val fhirEngine: FhirEngine) :
+  ViewModel() {
 
   val liveSearchedPatients = MutableLiveData<List<PatientItem>>()
   val patientCount = MutableLiveData<Long>()
+
+  val isLoading = MutableLiveData<Boolean>()
 
   init {
     updatePatientListAndPatientCount({ getSearchResults() }, { count() })
@@ -96,7 +103,11 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
     }
   }
 
+  /*
+   * Fetches Patient list
+   */
   private suspend fun getSearchResults(nameQuery: String = ""): List<PatientItem> {
+    isLoading.value = true
     val patients: MutableList<PatientItem> = mutableListOf()
     fhirEngine
       .search<Patient> {
@@ -128,6 +139,7 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
         patient.risk = it.prediction?.first()?.qualitativeRisk?.coding?.first()?.code
       }
     }
+    isLoading.value = false
     return patients
   }
 

@@ -29,13 +29,17 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ca.uhn.fhir.context.FhirContext
+import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
-import com.google.android.fhir.search.search
+import com.google.android.fhir.datacapture.validation.Invalid
+import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -50,21 +54,18 @@ import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Condition
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.Encounter
-import org.hl7.fhir.r4.model.Encounter.EncounterParticipantComponent
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Period
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
-import org.openmrs.android.fhir.Form
-import org.openmrs.android.fhir.MockConstants
+import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
+import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.helpers.OpenMRSHelper
-import org.openmrs.android.helpers.OpenMRSHelper.MiscHelper
-import org.openmrs.android.helpers.OpenMRSHelper.UserHelper
 
 /** ViewModel for Generic questionnaire screen {@link GenericFormEntryFragment}. */
 class GenericFormEntryViewModel
@@ -72,17 +73,45 @@ class GenericFormEntryViewModel
 constructor(
   private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
+  private val openMRSHelper: OpenMRSHelper,
   @Assisted val state: SavedStateHandle,
 ) : ViewModel() {
 
   @AssistedFactory
   interface Factory : ViewModelAssistedFactory<GenericFormEntryViewModel> {
-    override fun create(
-      handle: SavedStateHandle,
-    ): GenericFormEntryViewModel
+    override fun create(handle: SavedStateHandle): GenericFormEntryViewModel
   }
 
-  val isResourcesSaved = MutableLiveData<Boolean>()
+  private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+  private val _questionnaire = MutableLiveData<Questionnaire>()
+  val questionnaire: LiveData<Questionnaire> = _questionnaire
+  private val _questionnaireJson = MutableLiveData<String>()
+  val questionnaireJson: LiveData<String> = _questionnaireJson
+  val isResourcesSaved = MutableLiveData<String>()
+  val encounterType = getEncounterTypeValue()
+
+  fun getEncounterQuestionnaire(questionnaireId: String) {
+    viewModelScope.launch {
+      _questionnaire.value =
+        fhirEngine.getQuestionnaireOrFromAssets(
+          questionnaireId,
+          applicationContext,
+          parser,
+        )
+      if (questionnaire == null) {
+        _questionnaireJson.value = ""
+      } else {
+        _questionnaireJson.value = parser.encodeResourceToString(_questionnaire.value)
+      }
+    }
+  }
+
+  fun getEncounterTypeValue(): String? {
+    return _questionnaire.value
+      ?.code
+      ?.firstOrNull { it.system == "http://fhir.openmrs.org/code-system/encounter-type" }
+      ?.code
+  }
 
   suspend fun createWrapperVisit(patientId: String): Encounter {
     val localDate = Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
@@ -100,10 +129,11 @@ constructor(
             end = visitDate
           },
         )
-        addParticipant(MiscHelper.createParticipant())
+
+        addParticipant(openMRSHelper.createVisitParticipant())
         addLocation(
           Encounter.EncounterLocationComponent().apply {
-            location = Reference("Location/${UserHelper.getCurrentAuthLocation().id}")
+            location = openMRSHelper.getCurrentAuthLocation()
           },
         )
         addType(
@@ -111,8 +141,8 @@ constructor(
             coding =
               listOf(
                 Coding().apply {
-                  system = "http://fhir.openmrs.org/code-system/visit-type"
-                  code = MockConstants.VISIT_TYPE_UUID
+                  system = Constants.VISIT_TYPE_CODE_SYSTEM
+                  code = Constants.VISIT_TYPE_UUID
                   display = "Facility Visit"
                 },
               )
@@ -130,7 +160,11 @@ constructor(
    *
    * @param questionnaireResponse generic encounter questionnaire response
    */
-  fun saveEncounter(questionnaireResponse: QuestionnaireResponse, form: Form, patientId: String) {
+  fun saveEncounter(
+    questionnaireResponse: QuestionnaireResponse,
+    patientId: String,
+    encounterId: String,
+  ) {
     viewModelScope.launch {
       val questionnaireId = state.get<String>("questionnaire_id")
 
@@ -138,34 +172,43 @@ constructor(
         throw IllegalArgumentException("No questionnaire ID provided")
       }
 
-      val questionnaire =
-        fhirEngine
-          .search<Questionnaire> { filter(Resource.RES_ID, { value = of(questionnaireId) }) }
-          .firstOrNull()
-          ?.resource
+      val questionnaire: Questionnaire? =
+        fhirEngine.getQuestionnaireOrFromAssets(
+          questionnaireId,
+          applicationContext,
+          parser,
+        )
 
       if (questionnaire == null) {
         throw IllegalStateException("No questionnaire resource found with ID: $questionnaireId")
       }
 
-      val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
-      val patientReference = Reference("Patient/$patientId")
-      val encounterId = generateUuid()
-
-      val visit: Encounter
-      if (MockConstants.WRAP_ENCOUNTER) {
-        visit = createWrapperVisit(patientId)
-      } else {
-        visit = OpenMRSHelper.VisitHelper.getActiveVisit(fhirEngine, patientId, true)!!
-      }
-
-      if (isRequiredFieldMissing(bundle)) {
-        isResourcesSaved.value = false
+      if (
+        QuestionnaireResponseValidator.validateQuestionnaireResponse(
+            questionnaire,
+            questionnaireResponse,
+            applicationContext,
+          )
+          .values
+          .flatten()
+          .any { it is Invalid }
+      ) {
+        isResourcesSaved.value = "MISSING/$patientId"
         return@launch
       }
 
+      val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
+      val patientReference = Reference("Patient/$patientId")
+
+      val visit: Encounter
+      if (Constants.WRAP_ENCOUNTER) {
+        visit = createWrapperVisit(patientId)
+      } else {
+        visit = openMRSHelper.getActiveVisit(patientId, true)!!
+      }
+
       saveResources(bundle, patientReference, questionnaire, encounterId, visit.idPart)
-      isResourcesSaved.value = true
+      isResourcesSaved.value = "SAVED/$patientId"
     }
   }
 
@@ -187,7 +230,7 @@ constructor(
         it.system == "http://fhir.openmrs.org/core/StructureDefinition/omrs-form"
       }
     val encounterDate: Date
-    if (MockConstants.WRAP_ENCOUNTER) {
+    if (Constants.WRAP_ENCOUNTER) {
       val localDate = Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
       val localStartOfDay = localDate.atStartOfDay()
       encounterDate = Date.from(localStartOfDay.atZone(ZoneId.systemDefault()).toInstant())
@@ -209,10 +252,10 @@ constructor(
               end = encounterDate
             },
           )
-          addParticipant(createParticipant())
+          addParticipant(openMRSHelper.createEncounterParticipant())
           addLocation(
             Encounter.EncounterLocationComponent().apply {
-              location = Reference("Location/$locationId") // Set the location reference
+              location = Reference("Location/$locationId")
             },
           )
 
@@ -248,15 +291,37 @@ constructor(
       when (val resource = it.resource) {
         is Observation -> {
           if (resource.hasCode() && resource.hasValue()) {
-            resource.apply {
-              id = generateUuid()
-              subject = patientReference
-              encounter = encounterReference
-              status = Observation.ObservationStatus.FINAL
-              effective = DateTimeType(Date())
-              value = resource.value
+            when (val value = resource.value) {
+              is CodeableConcept -> {
+                val codings = value.coding
+                codings.forEach { coding ->
+                  val obs =
+                    Observation().apply {
+                      id = generateUuid()
+                      code = resource.code
+                      subject = patientReference
+                      encounter = encounterReference
+                      status = Observation.ObservationStatus.FINAL
+                      effective = DateTimeType(Date())
+                      this.value = CodeableConcept().addCoding(coding)
+                    }
+                  saveResourceToDatabase(obs)
+                }
+              }
+              else -> {
+                val obs =
+                  Observation().apply {
+                    id = generateUuid()
+                    code = resource.code
+                    subject = patientReference
+                    encounter = encounterReference
+                    status = Observation.ObservationStatus.FINAL
+                    effective = DateTimeType(Date())
+                    this.value = value
+                  }
+                saveResourceToDatabase(obs)
+              }
             }
-            saveResourceToDatabase(resource)
           }
         }
         is Condition -> {
@@ -269,30 +334,6 @@ constructor(
         }
       }
     }
-  }
-
-  fun createParticipant(): EncounterParticipantComponent {
-    // TODO Replace this with method to get the authenticated user's reference
-    val authenticatedUser = MockConstants.AUTHENTICATED_USER
-    val participant = EncounterParticipantComponent()
-    participant.individual = Reference("Practitioner/${authenticatedUser.providerUuid}")
-    participant.individual.display = authenticatedUser.display
-    participant.individual.type = "Practitioner"
-    return participant
-  }
-
-  private fun isRequiredFieldMissing(bundle: Bundle): Boolean {
-    bundle.entry.forEach {
-      when (val resource = it.resource) {
-        is Observation -> {
-          if (resource.hasValueQuantity() && !resource.valueQuantity.hasValueElement()) {
-            return true
-          }
-        }
-      // TODO check other resources inputs
-      }
-    }
-    return false
   }
 
   private suspend fun saveResourceToDatabase(resource: Resource) {

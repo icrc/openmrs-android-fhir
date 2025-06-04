@@ -30,6 +30,21 @@
 package org.openmrs.android.fhir.extensions
 
 import android.content.Context
+import java.io.IOException
 
 fun Context.readFileFromAssets(fileName: String): String =
   assets.open(fileName).bufferedReader().use { it.readText() }
+
+/**
+ * Get a list of all JSON file names in the assets folder
+ *
+ * @return List of JSON file names
+ */
+fun Context.getJsonFileNames(): List<String> {
+  return try {
+    assets.list("")?.filter { it.endsWith(".json") } ?: emptyList()
+  } catch (e: IOException) {
+    e.printStackTrace()
+    emptyList()
+  }
+}

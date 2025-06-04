@@ -43,12 +43,14 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.Address
+import org.hl7.fhir.r4.model.ContactPoint
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Resource
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
-import org.openmrs.android.fhir.extensions.readFileFromAssets
+import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssetsAsString
 import org.openmrs.android.fhir.fragments.EditPatientFragment
 
 /**
@@ -71,35 +73,35 @@ constructor(
   }
 
   private val patientId: String = requireNotNull(state["patient_id"])
-  val livePatientData = liveData { emit(prepareEditPatient()) }
+  private val registrationQuestionnaireName: String =
+    requireNotNull(state["registration_questionnaire_name"])
+  val livePatientData = liveData { emit(prepareEditPatient(registrationQuestionnaireName)) }
   lateinit var originalPatient: Patient
+  lateinit var questionnaireResource: Questionnaire
 
-  private suspend fun prepareEditPatient(): Pair<String, String> {
+  private suspend fun prepareEditPatient(questionnaireId: String): Pair<String, String> {
     val patient = fhirEngine.get<Patient>(patientId)
     originalPatient = patient
     val launchContexts = mapOf<String, Resource>("client" to patient)
-    val question =
-      applicationContext.readFileFromAssets("new-patient-registration-paginated.json").trimIndent()
     val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-    val questionnaire = parser.parseResource(Questionnaire::class.java, question) as Questionnaire
 
-    val questionnaireResponse: QuestionnaireResponse =
-      ResourceMapper.populate(questionnaire, launchContexts)
-    val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
-    return question to questionnaireResponseJson
+    val question =
+      fhirEngine.getQuestionnaireOrFromAssetsAsString(questionnaireId, applicationContext, parser)
+
+    return if (question.isNotEmpty()) {
+      questionnaireResource =
+        parser.parseResource(Questionnaire::class.java, question) as Questionnaire
+
+      val questionnaireResponse: QuestionnaireResponse =
+        ResourceMapper.populate(questionnaireResource, launchContexts)
+      val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
+      question to questionnaireResponseJson
+    } else {
+      "" to ""
+    }
   }
 
-  private val questionnaire: String
-    get() = getQuestionnaireJson()
-
   val isPatientSaved = MutableLiveData<Boolean>()
-
-  private val questionnaireResource: Questionnaire
-    get() =
-      FhirContext.forCached(FhirVersionEnum.R4).newJsonParser().parseResource(questionnaire)
-        as Questionnaire
-
-  private var questionnaireJson: String? = null
 
   /**
    * Update patient registration questionnaire response into the application database.
@@ -111,33 +113,65 @@ constructor(
       val entry = ResourceMapper.extract(questionnaireResource, questionnaireResponse).entryFirstRep
       if (entry.resource !is Patient) return@launch
       val patient = entry.resource as Patient
+
       if (
         patient.hasName() &&
           patient.name[0].hasGiven() &&
           patient.name[0].hasFamily() &&
           patient.hasBirthDate() &&
-          patient.hasTelecom() &&
-          patient.telecom[0].value != null
+          patient.hasGender()
       ) {
-        patient.name[0].id = originalPatient.name[0].id
-        patient.id = patientId
-        fhirEngine.update(patient)
+        // Name
+        originalPatient.name[0].given = patient.name[0].given
+        originalPatient.name[0].family = patient.name[0].family
+        if (patient.name[0].hasText()) {
+          originalPatient.name[0].text = patient.name[0].text
+        }
+
+        // Birth date and gender
+        originalPatient.birthDate = patient.birthDate
+        originalPatient.gender = patient.gender
+
+        // Telecom
+        if (patient.hasTelecom()) {
+          val telecom = patient.telecomFirstRep
+          if (originalPatient.hasTelecom()) {
+            originalPatient.telecomFirstRep.system = telecom.system
+            originalPatient.telecomFirstRep.value = telecom.value
+          } else {
+            originalPatient.telecom =
+              mutableListOf(
+                ContactPoint().apply {
+                  system = telecom.system
+                  value = telecom.value
+                },
+              )
+          }
+        }
+
+        // Address
+        if (patient.hasAddress()) {
+          val address = patient.addressFirstRep
+          if (originalPatient.hasAddress()) {
+            originalPatient.addressFirstRep.city = address.city
+            originalPatient.addressFirstRep.country = address.country
+          } else {
+            originalPatient.address =
+              mutableListOf(
+                Address().apply {
+                  city = address.city
+                  country = address.country
+                },
+              )
+          }
+        }
+
+        fhirEngine.update(originalPatient)
         isPatientSaved.value = true
         return@launch
       }
 
       isPatientSaved.value = false
     }
-  }
-
-  private fun getQuestionnaireJson(): String {
-    questionnaireJson?.let {
-      return it
-    }
-    questionnaireJson =
-      applicationContext.readFileFromAssets(
-        state[EditPatientFragment.QUESTIONNAIRE_FILE_PATH_KEY]!!,
-      )
-    return questionnaireJson!!
   }
 }

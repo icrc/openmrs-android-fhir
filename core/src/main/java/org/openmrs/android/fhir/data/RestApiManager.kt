@@ -29,6 +29,8 @@
 package org.openmrs.android.fhir.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.edit
+import com.squareup.moshi.Moshi
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -39,6 +41,9 @@ import okhttp3.RequestBody
 import okhttp3.Response
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.LoginRepository
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.remote.model.SessionResponse
+import org.openmrs.android.fhir.extensions.isInternetAvailable
 
 class RestApiManager private constructor(private val context: Context) {
   private val client: OkHttpClient = OkHttpClient.Builder().build()
@@ -54,7 +59,9 @@ class RestApiManager private constructor(private val context: Context) {
   }
 
   suspend fun initialize(locationId: String?) {
-    locationId?.let { updateSessionLocation(it) }
+    if (isInternetAvailable(context) && locationId != null) {
+      updateSessionLocation(locationId)
+    }
   }
 
   private suspend fun setSessionLocation(locationId: String) {
@@ -86,6 +93,20 @@ class RestApiManager private constructor(private val context: Context) {
         val cookies = response.headers("Set-Cookie")
         if (cookies.isNotEmpty()) {
           sessionCookie = cookies[0]
+        }
+
+        val bodyStr = response.body?.string() ?: throw IOException("Empty body")
+        val moshi = Moshi.Builder().build()
+        val adapter = moshi.adapter(SessionResponse::class.java)
+        val parsed = adapter.fromJson(bodyStr) ?: throw IOException("Malformed response")
+
+        context.applicationContext.dataStore.edit { preferences ->
+          preferences[PreferenceKeys.USER_UUID] = parsed.user?.uuid ?: ""
+          preferences[PreferenceKeys.USER_NAME] = parsed.user?.display ?: ""
+          preferences[PreferenceKeys.USER_PROVIDER_UUID] = parsed.currentProvider?.uuid ?: ""
+          preferences[PreferenceKeys.USER_PROVIDER_NAME] = parsed.user?.person?.display ?: ""
+          preferences[PreferenceKeys.LOCATION_ID] = parsed.sessionLocation?.uuid ?: ""
+          preferences[PreferenceKeys.LOCATION_NAME] = parsed.sessionLocation?.display ?: ""
         }
       }
     }

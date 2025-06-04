@@ -17,6 +17,9 @@ gpr.key=<A GitHub token>
 # Optional value if selected basic auth method.
 #basic_auth_expiry_hours=48
 
+# flag to show review page before submitting questionnaire
+show_review_page_before_submit=true
+
 # oauth2 default values for development setup:
 #auth_authorization_scope=openid
 #auth_client_id=openmrs-fhir

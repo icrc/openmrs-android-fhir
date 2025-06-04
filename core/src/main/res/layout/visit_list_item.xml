@@ -12,7 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/inter"
-        android:text="Encounter Name"
+        android:text="@string/encounter_name"
         android:textSize="16sp"
         android:layout_marginBottom="4dp"
     />
@@ -22,7 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:fontFamily="@font/inter"
-        android:text="Encounter Date"
+        android:text="@string/encounter_date"
         android:textSize="14sp"
         android:textColor="@android:color/darker_gray"
     />

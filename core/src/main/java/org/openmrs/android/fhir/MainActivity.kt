@@ -74,6 +74,7 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncStatus
+import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
 import org.openmrs.android.fhir.extensions.UncaughtExceptionHandler
 import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
@@ -83,8 +84,6 @@ import org.openmrs.android.fhir.extensions.showSnackBar
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
 import timber.log.Timber
-
-const val MAX_RESOURCE_COUNT = 20
 
 class MainActivity : AppCompatActivity() {
   private lateinit var binding: ActivityMainBinding
@@ -103,6 +102,8 @@ class MainActivity : AppCompatActivity() {
 
   @Inject lateinit var database: AppDatabase
 
+  @Inject lateinit var apiManager: ApiManager
+
   private val viewModel by viewModels<MainActivityViewModel> { viewModelFactory }
   private val syncInfoViewModel by viewModels<SyncInfoViewModel> { viewModelFactory }
 
@@ -118,19 +119,29 @@ class MainActivity : AppCompatActivity() {
     setContentView(binding.root)
     tokenExpiryHandler = Handler(Looper.getMainLooper())
     demoDataStore = DemoDataStore(this)
-    lifecycleScope.launch { viewModel.initPeriodicSyncWorker(demoDataStore.getPeriodicSyncDelay()) }
+    //    lifecycleScope.launch {
+    // viewModel.initPeriodicSyncWorker(demoDataStore.getPeriodicSyncDelay()) } TODO: Discuss on
+    // periodic sync
     initActionBar()
     initNavigationDrawer()
     observeNetworkConnection(this)
     observeLastSyncTime()
     observeSyncState()
     viewModel.updateLastSyncTimestamp()
-    viewModel.triggerIdentifierTypeSync(applicationContext)
+    viewModel.triggerIdentifierTypeSync()
     observeSettings()
   }
 
   override fun onResume() {
     super.onResume()
+    // If the user has not selected a location, redirects to the "select location" screen.
+    runBlocking {
+      val selectedLocationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+      if (selectedLocationId == null) {
+        val bundle = Bundle().apply { putBoolean("from_login", true) }
+        binding.navHostFragment.findNavController().navigate(R.id.locationFragment, bundle)
+      }
+    }
     // getting Root View that gets focus
     val rootView = (findViewById<View>(android.R.id.content) as ViewGroup).getChildAt(0)
     rootView.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
@@ -204,14 +215,47 @@ class MainActivity : AppCompatActivity() {
       R.id.menu_diagnostics -> {
         showSendDiagnosticReportDialog()
       }
+      R.id.menu_select_identifier -> {
+        findNavController(R.id.nav_host_fragment).navigate(R.id.identifierFragment)
+      }
+      R.id.menu_current_location -> {
+        findNavController(R.id.nav_host_fragment).navigate(R.id.locationFragment)
+      }
     }
     binding.drawer.closeDrawer(GravityCompat.START)
     return false
   }
 
-  private fun onSyncPress() {
+  /*
+   * Before triggering sync, it checks if the user is assigned to the location.
+   * If not redirects user to the select location screen first and starts the sync.
+   */
+  fun onSyncPress() {
     when {
       !isTokenExpired() && viewModel.networkStatus.value -> {
+        /*runBlocking {
+          val selectedLocationId =
+            applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+          if (selectedLocationId != null) {
+            apiManager.setLocationSession(SessionLocation(selectedLocationId))
+            val isCurrentLocationValid =
+              viewModel.checkLocationIdAndPurgeUnassignedLocations(
+                applicationContext,
+                selectedLocationId,
+              )
+            if (!isCurrentLocationValid) {
+              applicationContext?.dataStore?.edit { preferences ->
+                preferences.remove(PreferenceKeys.LOCATION_ID)
+                preferences.remove(PreferenceKeys.LOCATION_NAME)
+              }
+              showSnackBar(
+                this@MainActivity,
+                getString(R.string.location_unassigned_select_location),
+              )
+              binding.navHostFragment.findNavController().navigate(R.id.locationFragment)
+            }
+          }
+        }*/
         viewModel.triggerOneTimeSync(applicationContext)
         binding.drawer.closeDrawer(GravityCompat.START)
       }

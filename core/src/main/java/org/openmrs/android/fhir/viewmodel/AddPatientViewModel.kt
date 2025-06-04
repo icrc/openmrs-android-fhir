@@ -56,7 +56,7 @@ import org.hl7.fhir.r4.model.Type
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
-import org.openmrs.android.fhir.extensions.readFileFromAssets
+import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 
 /** ViewModel for patient registration screen {@link AddPatientFragment}. */
 class AddPatientViewModel
@@ -69,8 +69,11 @@ constructor(
 
   var locationId: String? = null
   val isPatientSaved = MutableLiveData<Boolean>()
-  var questionnaire: Questionnaire = Questionnaire()
+  var questionnaire: Questionnaire? = Questionnaire()
   val embeddedQuestionnaire = MutableLiveData<String>()
+  private var saveInProgress = false
+
+  val isLoading = MutableLiveData<Boolean>()
 
   /**
    * Saves patient registration questionnaire response into the application database.
@@ -78,10 +81,12 @@ constructor(
    * @param questionnaireResponse patient registration questionnaire response
    */
   fun savePatient(questionnaireResponse: QuestionnaireResponse) {
+    if (saveInProgress) return // To avoid multiple save of patient.
     viewModelScope.launch {
+      saveInProgress = true
       if (
         QuestionnaireResponseValidator.validateQuestionnaireResponse(
-            questionnaire,
+            questionnaire!!,
             questionnaireResponse,
             applicationContext,
           )
@@ -89,13 +94,14 @@ constructor(
           .flatten()
           .any { it is Invalid }
       ) {
+        saveInProgress = false
         isPatientSaved.value = false
         return@launch
       }
 
       val entry =
         ResourceMapper.extract(
-            questionnaire,
+            questionnaire!!,
             questionnaireResponse,
           )
           .entryFirstRep
@@ -124,6 +130,7 @@ constructor(
 
       fhirEngine.create(patient)
       isPatientSaved.value = true
+      saveInProgress = false
     }
   }
 
@@ -288,13 +295,17 @@ constructor(
     return identifierList
   }
 
-  fun getEmbeddedQuestionnaire(fileName: String) {
+  fun getEmbeddedQuestionnaire(questionnaireName: String) {
     viewModelScope.launch {
       val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-      val questionnaireString = applicationContext.readFileFromAssets(fileName)
-      questionnaire = parser.parseResource(Questionnaire::class.java, questionnaireString)
-      embeddedQuestionnaire.value =
-        parser.encodeResourceToString(embeddIdentifierInQuestionnaire(questionnaire))
+      questionnaire =
+        fhirEngine.getQuestionnaireOrFromAssets(questionnaireName, applicationContext, parser)
+      if (questionnaire != null) {
+        embeddedQuestionnaire.value =
+          parser.encodeResourceToString(embeddIdentifierInQuestionnaire(questionnaire!!))
+      } else {
+        embeddedQuestionnaire.value = ""
+      }
     }
   }
 
@@ -302,7 +313,7 @@ constructor(
     val questionnaireItems = questionnaire.item
     val selectedIdentifiers =
       applicationContext.dataStore.data.first()[PreferenceKeys.SELECTED_IDENTIFIER_TYPES]
-    val filteredIdentifiers: MutableList<String>
+    val filteredIdentifiers: List<String>
     if (selectedIdentifiers != null) {
       filteredIdentifiers =
         selectedIdentifiers

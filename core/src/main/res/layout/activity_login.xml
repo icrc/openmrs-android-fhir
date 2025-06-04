@@ -27,7 +27,7 @@
 
       <ImageView
                 android:layout_width="300sp"
-                android:layout_height="300px"
+                android:layout_height="140sp"
                 android:layout_marginBottom="100sp"
                 android:src="@drawable/openmrs_logo"
             />

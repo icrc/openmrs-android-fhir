@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+    <plurals name="ageYear">
+        <item quantity="one">%d año</item>
+        <item quantity="other">%d años</item>
+    </plurals>
+    <plurals name="ageMonth">
+        <item quantity="one">%d mes</item>
+        <item quantity="other">%d meses</item>
+    </plurals>
+    <plurals name="ageDay">
+        <item quantity="one">%d día</item>
+        <item quantity="other">%d días</item>
+    </plurals>
+</resources>

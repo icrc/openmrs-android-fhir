@@ -52,19 +52,21 @@ import java.util.*
 import javax.inject.Inject
 import kotlin.getValue
 import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
-import org.openmrs.android.fhir.MockConstants
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.PatientDetailsRecyclerViewAdapter
 import org.openmrs.android.fhir.databinding.PatientDetailBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
-import org.openmrs.android.helpers.OpenMRSHelper.VisitHelper.endVisit
+import org.openmrs.android.helpers.OpenMRSHelper
 
 class PatientDetailsFragment : Fragment() {
 
   @Inject lateinit var fhirEngine: FhirEngine
+
+  @Inject lateinit var openMRSHelper: OpenMRSHelper
 
   @Inject lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
   private val patientDetailsViewModel: PatientDetailsViewModel by viewModels {
@@ -110,18 +112,22 @@ class PatientDetailsFragment : Fragment() {
     }
     patientDetailsViewModel.livePatientData.observe(viewLifecycleOwner) {
       adapter.submitList(it)
-      if (!it.isNullOrEmpty()) {
-        editMenuItem?.isEnabled = true
-      }
+      requireActivity().invalidateOptionsMenu()
     }
     patientDetailsViewModel.getPatientDetailData()
     (activity as MainActivity).setDrawerEnabled(false)
   }
 
+  override fun onPrepareOptionsMenu(menu: Menu) {
+    super.onPrepareOptionsMenu(menu)
+    val editItem = menu.findItem(R.id.menu_patient_edit)
+    editItem?.isEnabled = patientDetailsViewModel.livePatientData.value?.isNotEmpty() == true
+  }
+
   private fun onCreateEncounterClick() {
     lifecycleScope.launch {
       val hasActiveVisit = patientDetailsViewModel.hasActiveVisit()
-      if (MockConstants.WRAP_ENCOUNTER) {
+      if (Constants.WRAP_ENCOUNTER) {
         navigateToCreateEncounter()
       } else {
         if (hasActiveVisit) {
@@ -137,7 +143,8 @@ class PatientDetailsFragment : Fragment() {
     findNavController()
       .navigate(
         PatientDetailsFragmentDirections.actionPatientDetailsToCreateEncounterFragment(
-          args.patientId,
+          patientId = args.patientId,
+          isGroupEncounter = false,
         ),
       )
   }
@@ -219,7 +226,9 @@ class PatientDetailsFragment : Fragment() {
 
   private fun onEditVisitClick(visitId: String) {
     context?.let { ctx ->
-      showEndVisitDialog(ctx, visitId) { id -> lifecycleScope.launch { endVisit(fhirEngine, id) } }
+      showEndVisitDialog(ctx, visitId) { id ->
+        lifecycleScope.launch { openMRSHelper.endVisit(id) }
+      }
     }
   }
 
@@ -236,7 +245,12 @@ class PatientDetailsFragment : Fragment() {
       }
       R.id.menu_patient_edit -> {
         findNavController()
-          .navigate(PatientDetailsFragmentDirections.navigateToEditPatient(args.patientId))
+          .navigate(
+            PatientDetailsFragmentDirections.navigateToEditPatient(
+              args.patientId,
+              getString(R.string.registration_questionnaire_name),
+            ),
+          )
         true
       }
       else -> super.onOptionsItemSelected(item)

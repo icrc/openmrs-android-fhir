@@ -34,11 +34,15 @@ import dagger.Module
 import dagger.multibindings.IntoMap
 import org.openmrs.android.fhir.viewmodel.AddPatientViewModel
 import org.openmrs.android.fhir.viewmodel.BasicLoginActivityViewModel
+import org.openmrs.android.fhir.viewmodel.CreateEncounterViewModel
+import org.openmrs.android.fhir.viewmodel.GroupFormEntryViewModel
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 import org.openmrs.android.fhir.viewmodel.LoginActivityViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
+import org.openmrs.android.fhir.viewmodel.SelectPatientListViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
+import org.openmrs.android.fhir.viewmodel.UnsyncedResourcesViewModel
 
 @Module
 abstract class ViewModelModule {
@@ -56,6 +60,11 @@ abstract class ViewModelModule {
   @IntoMap
   @ViewModelKey(LocationViewModel::class)
   abstract fun bindLocationViewModel(viewmodel: LocationViewModel): ViewModel
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(SelectPatientListViewModel::class)
+  abstract fun bindSelectPatientListViewModel(viewmodel: SelectPatientListViewModel): ViewModel
 
   @Binds
   @IntoMap
@@ -79,6 +88,21 @@ abstract class ViewModelModule {
 
   @Binds
   @IntoMap
+  @ViewModelKey(UnsyncedResourcesViewModel::class)
+  abstract fun bindUnsyncedResourcesViewModel(viewmodel: UnsyncedResourcesViewModel): ViewModel
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(CreateEncounterViewModel::class)
+  abstract fun bindCreateEncounterViewModel(viewmodel: CreateEncounterViewModel): ViewModel
+
+  @Binds
+  @IntoMap
   @ViewModelKey(BasicLoginActivityViewModel::class)
   abstract fun bindBasicLoginActivityViewModel(viewmodel: BasicLoginActivityViewModel): ViewModel
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(GroupFormEntryViewModel::class)
+  abstract fun bindGroupFormEntryViewModel(viewmodel: GroupFormEntryViewModel): ViewModel
 }

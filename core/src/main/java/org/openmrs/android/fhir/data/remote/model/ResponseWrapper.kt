@@ -77,4 +77,32 @@ data class IdentifierType(
 @JsonClass(generateAdapter = true)
 data class SessionResponse(
   val authenticated: Boolean,
+  val user: User?,
+  val currentProvider: Provider?,
+  val sessionLocation: Location?,
+)
+
+@JsonClass(generateAdapter = true)
+data class User(
+  val uuid: String,
+  val display: String,
+  val person: Person,
+)
+
+@JsonClass(generateAdapter = true)
+data class Provider(
+  val display: String,
+  val uuid: String,
+)
+
+@JsonClass(generateAdapter = true)
+data class Person(
+  val display: String,
+  val uuid: String,
+)
+
+@JsonClass(generateAdapter = true)
+data class Location(
+  val uuid: String,
+  val display: String,
 )

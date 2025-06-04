@@ -36,18 +36,43 @@ import ca.uhn.fhir.rest.gclient.StringClientParam
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.Order
 import com.google.android.fhir.search.search
+import com.google.android.fhir.sync.CurrentSyncJobStatus
+import com.google.android.fhir.sync.Sync
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Location
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.FirstFhirSyncWorker
 import org.openmrs.android.fhir.data.PreferenceKeys
 
-class LocationViewModel @Inject constructor(private val fhirEngine: FhirEngine) : ViewModel() {
+class LocationViewModel
+@Inject
+constructor(
+  private val applicationContext: Context,
+  private val fhirEngine: FhirEngine,
+) : ViewModel() {
   private var masterLocationsList: MutableList<LocationItem> = mutableListOf()
+  private val restApiManager = FhirApplication.restApiClient(applicationContext)
   var favoriteLocationSet: MutableSet<String>? = null
 
   val locations = MutableLiveData<List<LocationItem>>()
+  private val _pollState = MutableSharedFlow<CurrentSyncJobStatus>()
+  val pollState: Flow<CurrentSyncJobStatus>
+    get() = _pollState
+
+  fun fetchPreSyncData() {
+    viewModelScope.launch {
+      Sync.oneTimeSync<FirstFhirSyncWorker>(applicationContext)
+        .shareIn(this, SharingStarted.Eagerly, 10)
+        .collect { _pollState.emit(it) }
+    }
+  }
 
   fun getLocations() {
     viewModelScope.launch {
@@ -64,6 +89,10 @@ class LocationViewModel @Inject constructor(private val fhirEngine: FhirEngine) 
       masterLocationsList = locationsList
       locations.value = locationsList
     }
+  }
+
+  suspend fun updateSessionLocation(resourceId: String) {
+    restApiManager.updateSessionLocation(resourceId)
   }
 
   fun setFavoriteLocations(context: Context) {

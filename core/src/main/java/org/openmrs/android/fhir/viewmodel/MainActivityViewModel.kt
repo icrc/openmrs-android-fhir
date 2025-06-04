@@ -39,6 +39,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.extensions.logicalId
 import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.PeriodicSyncConfiguration
@@ -52,15 +53,19 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
+import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.FhirSyncWorker
@@ -108,6 +113,10 @@ constructor(
   val networkStatus: StateFlow<Boolean>
     get() = _networkStatus
 
+  private val _pollState = MutableSharedFlow<CurrentSyncJobStatus>()
+  val pollState: Flow<CurrentSyncJobStatus>
+    get() = _pollState
+
   private var connectivityManager: ConnectivityManager =
     applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
   private var networkCallBack: ConnectivityManager.NetworkCallback =
@@ -125,27 +134,21 @@ constructor(
       }
     }
 
+  @ExperimentalCoroutinesApi
   fun initPeriodicSyncWorker(periodicSyncDelay: Long) {
-    _pollPeriodicSyncJobStatus =
-      Sync.periodicSync<FhirSyncWorker>(
-          applicationContext,
-          periodicSyncConfiguration =
-            PeriodicSyncConfiguration(
-              syncConstraints = Constraints.Builder().build(),
-              repeat = RepeatInterval(interval = periodicSyncDelay, timeUnit = TimeUnit.MINUTES),
-            ),
-        )
-        .shareIn(viewModelScope, SharingStarted.Eagerly, 10)
+    viewModelScope.launch {
+      _pollPeriodicSyncJobStatus =
+        Sync.periodicSync<FhirSyncWorker>(
+            applicationContext,
+            periodicSyncConfiguration =
+              PeriodicSyncConfiguration(
+                syncConstraints = Constraints.Builder().build(),
+                repeat = RepeatInterval(interval = periodicSyncDelay, timeUnit = TimeUnit.MINUTES),
+              ),
+          )
+          .shareIn(viewModelScope, SharingStarted.Eagerly, 10)
+    }
   }
-
-  val pollState: SharedFlow<CurrentSyncJobStatus> =
-    _oneTimeSyncTrigger
-      .combine(
-        flow = Sync.oneTimeSync<FhirSyncWorker>(context = applicationContext),
-      ) { _, syncJobStatus ->
-        syncJobStatus
-      }
-      .shareIn(viewModelScope, SharingStarted.Eagerly, 0)
 
   fun triggerOneTimeSync(context: Context) {
     viewModelScope.launch {
@@ -153,16 +156,31 @@ constructor(
         fetchIdentifierTypesIfEmpty()
         embeddIdentifierToUnsyncedPatients(context)
         _oneTimeSyncTrigger.value = !_oneTimeSyncTrigger.value
-        _oneTimeSyncTrigger.combine(
-          flow = Sync.oneTimeSync<FhirSyncWorker>(context = applicationContext),
-        ) { _, syncJobStatus ->
-          syncJobStatus
+        Sync.oneTimeSync<FhirSyncWorker>(applicationContext)
+          .shareIn(this, SharingStarted.Eagerly, 10)
+          .collect { _pollState.emit(it) }
+      }
+    }
+  }
+
+  suspend fun checkLocationIdAndPurgeUnassignedLocations(
+    context: Context,
+    locationId: String,
+  ): Boolean {
+    apiManager.getLocation(context, locationId).let { response ->
+      return when (response) {
+        is ApiResponse.Success<Location> -> true
+        else -> {
+          val localLocationIds =
+            fhirEngine.search<Location> {}.map { it.resource.logicalId }.toSet()
+          fhirEngine.purge(ResourceType.Location, localLocationIds)
+          false
         }
       }
     }
   }
 
-  fun triggerIdentifierTypeSync(context: Context) {
+  fun triggerIdentifierTypeSync() {
     viewModelScope.launch {
       if (!stopSync) {
         fetchIdentifierTypesIfEmpty()
@@ -197,7 +215,7 @@ constructor(
       fhirEngine
         .search<Patient> { filter(Patient.IDENTIFIER, { value = of("unsynced") }) }
         .map { it.resource }
-        .toMutableList()
+        .toList()
 
     patients.forEach {
       val identifiers = it.identifier

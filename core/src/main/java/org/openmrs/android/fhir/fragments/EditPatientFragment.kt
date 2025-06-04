@@ -80,8 +80,6 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
       binding.currentLocationLabel.text =
         selectedLocation ?: getString(R.string.no_location_selected)
     }
-    requireArguments()
-      .putString(QUESTIONNAIRE_FILE_PATH_KEY, "new-patient-registration-paginated.json")
 
     viewModel.livePatientData.observe(viewLifecycleOwner) { addQuestionnaireFragment(it) }
     viewModel.isPatientSaved.observe(viewLifecycleOwner) {
@@ -120,6 +118,12 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
   }
 
   private fun addQuestionnaireFragment(pair: Pair<String, String>) {
+    if (pair.first.isEmpty()) {
+      Toast.makeText(requireContext(), R.string.questionnaire_error_message, Toast.LENGTH_SHORT)
+        .show()
+      NavHostFragment.findNavController(this).navigateUp()
+      return
+    }
     lifecycleScope.launch {
       childFragmentManager.commit {
         add(
@@ -127,6 +131,9 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
           QuestionnaireFragment.builder()
             .setQuestionnaire(pair.first)
             .setQuestionnaireResponse(pair.second)
+            .showReviewPageBeforeSubmit(
+              requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
+            )
             .build(),
           QUESTIONNAIRE_FRAGMENT_TAG,
         )
@@ -143,7 +150,6 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
   }
 
   companion object {
-    const val QUESTIONNAIRE_FILE_PATH_KEY = "edit-questionnaire-file-path-key"
     const val QUESTIONNAIRE_FRAGMENT_TAG = "edit-questionnaire-fragment-tag"
   }
 }

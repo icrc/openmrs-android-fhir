@@ -78,7 +78,6 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
     super.onViewCreated(view, savedInstanceState)
     setUpActionBar()
     setHasOptionsMenu(true)
-    updateArguments()
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     lifecycleScope.launch {
       val selectedLocation =
@@ -103,10 +102,10 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
             PreferenceKeys.LOCATION_ID,
           )
     }
+    observeLoading()
     if (savedInstanceState == null) {
       viewModel.getEmbeddedQuestionnaire(
-        requireArguments()
-          .getString(QUESTIONNAIRE_FILE_PATH_KEY, "new-patient-registration-paginated.json"),
+        getString(R.string.registration_questionnaire_name),
       )
     }
     observeQuestionnaire()
@@ -145,17 +144,15 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
     }
   }
 
-  private fun updateArguments() {
-    requireArguments()
-      .putString(QUESTIONNAIRE_FILE_PATH_KEY, "new-patient-registration-paginated.json")
-  }
-
   private fun addQuestionnaireFragment(questionnaire: String) {
     childFragmentManager.commit {
       add(
         R.id.add_patient_container,
         QuestionnaireFragment.builder()
           .setQuestionnaire(questionnaire)
+          .showReviewPageBeforeSubmit(
+            requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
+          )
           .setShowCancelButton(true)
           .setShowSubmitButton(true)
           .showOptionalText(true)
@@ -167,6 +164,7 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
   }
 
   private fun onSubmitAction() {
+    viewModel.isLoading.value = true
     lifecycleScope.launch {
       val questionnaireFragment =
         childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG) as QuestionnaireFragment
@@ -180,23 +178,47 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
 
   private fun observePatientSaveAction() {
     viewModel.isPatientSaved.observe(viewLifecycleOwner) {
+      viewModel.isLoading.value = false
       if (!it) {
-        Toast.makeText(requireContext(), "Inputs are missing.", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), getString(R.string.inputs_are_missing), Toast.LENGTH_SHORT)
+          .show()
         return@observe
       }
-      Toast.makeText(requireContext(), "Patient is saved.", Toast.LENGTH_SHORT).show()
+      Toast.makeText(requireContext(), getString(R.string.patient_is_saved), Toast.LENGTH_SHORT)
+        .show()
       NavHostFragment.findNavController(this).navigateUp()
     }
   }
 
   private fun observeQuestionnaire() {
     viewModel.embeddedQuestionnaire.observe(viewLifecycleOwner) {
-      it?.let { addQuestionnaireFragment(it) }
+      if (it.isNotEmpty()) {
+        it?.let { addQuestionnaireFragment(it) }
+      } else {
+        Toast.makeText(
+            requireContext(),
+            getString(R.string.questionnaire_error_message),
+            Toast.LENGTH_SHORT,
+          )
+          .show()
+        NavHostFragment.findNavController(this).navigateUp()
+      }
+    }
+  }
+
+  private fun observeLoading() {
+    viewModel.isLoading.observe(viewLifecycleOwner) {
+      if (it) {
+        binding.progressBar.visibility = View.VISIBLE
+        binding.touchBlockerView.visibility = View.VISIBLE // Show the blocker
+      } else {
+        binding.progressBar.visibility = View.GONE
+        binding.touchBlockerView.visibility = View.GONE // Hide the blocker
+      }
     }
   }
 
   companion object {
-    const val QUESTIONNAIRE_FILE_PATH_KEY = "questionnaire-file-path-key"
     const val QUESTIONNAIRE_FRAGMENT_TAG = "questionnaire-fragment-tag"
   }
 }

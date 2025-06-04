@@ -15,7 +15,7 @@
         android:singleLine="true"
         android:layout_width="match_parent"
         android:layout_marginHorizontal="8dp"
-        android:text="HSU ID"
+        android:text="@string/hsu_id"
         android:layout_height="?android:attr/listPreferredItemHeight"
         android:ellipsize="marquee"
     />

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+    <plurals name="ageYear">
+        <item quantity="one">%d an</item>
+        <item quantity="other">%d ans</item>
+    </plurals>
+    <plurals name="ageMonth">
+        <item quantity="one">%d mois</item>
+        <item
+            quantity="other"
+        >%d mois</item> <!-- Note: "mois" is invariable in French -->
+    </plurals>
+    <plurals name="ageDay">
+        <item quantity="one">%d jour</item>
+        <item quantity="other">%d jours</item>
+    </plurals>
+</resources>

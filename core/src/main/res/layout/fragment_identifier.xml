@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="12dp"
-        android:hint="Search Identifier Types"
+        android:hint="@string/search_identifier_types"
         app:hintTextColor="@color/outline_neutral_variant_60"
         app:boxStrokeColor="@color/outline_neutral_variant_60"
         app:endIconMode="custom"
