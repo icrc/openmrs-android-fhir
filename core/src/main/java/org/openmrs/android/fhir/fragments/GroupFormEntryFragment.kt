@@ -200,7 +200,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
           val questionnaireResponse = questionnaireFragment.getQuestionnaireResponse()
 
           var encounterId = viewModel.getEncounterIdForPatientId(patientId)
-          val encounterType = genericFormEntryViewModel.encounterType
+          val encounterType = genericFormEntryViewModel.getEncounterTypeValue()
           if (encounterId != null && encounterType != null) {
             editEncounterViewModel.updateEncounter(
               questionnaireResponse,
@@ -315,7 +315,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
 
     val questionnaireResponse = questionnaireFragment.getQuestionnaireResponse()
     return viewModel.isValidQuestionnaireResponse(
-      genericFormEntryViewModel.questionnaire!!,
+      genericFormEntryViewModel.questionnaire.value!!,
       questionnaireResponse,
       requireContext(),
     )
