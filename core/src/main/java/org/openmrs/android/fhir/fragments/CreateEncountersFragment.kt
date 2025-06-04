@@ -72,7 +72,12 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     super.onViewCreated(view, savedInstanceState)
     _binding = CreateEncounterFragmentBinding.bind(view)
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
-      title = requireContext().getString(R.string.new_encounter)
+      title =
+        if (args.isGroupEncounter) {
+          requireContext().getString(R.string.create_group_encounter)
+        } else {
+          requireContext().getString(R.string.create_encounter)
+        }
     }
     (requireActivity().application as FhirApplication).appComponent.inject(this)
 
@@ -121,13 +126,23 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
   }
 
   private fun handleFormClick(questionnaireId: String) {
-    findNavController()
-      .navigate(
-        CreateEncountersFragmentDirections.actionCreateEncounterFragmentToGenericFormEntryFragment(
-          patientId = args.patientId,
-          questionnaireId = questionnaireId,
-        ),
-      )
+    if (args.isGroupEncounter) {
+      // Navigate to the patient selection dialog
+      val action =
+        CreateEncountersFragmentDirections
+          .actionCreateEncounterFragmentToPatientSelectionDialogFragment(questionnaireId)
+      findNavController().navigate(action)
+    } else {
+      findNavController()
+        .navigate(
+          CreateEncountersFragmentDirections
+            .actionCreateEncounterFragmentToGenericFormEntryFragment(
+              patientId = args.patientId
+                  ?: "", // Ensure patientId is not null or handle appropriately
+              questionnaireId = questionnaireId,
+            ),
+        )
+    }
   }
 
   override fun onDestroyView() {

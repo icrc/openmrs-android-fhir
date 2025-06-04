@@ -225,4 +225,56 @@
     <string name="in_progress">En cours</string>
     <string name="completed_at">Terminé à</string> <!-- Or "Achevé à" -->
     <string name="errors">Erreurs</string>
+    <string
+        name="inputs_missing_for_patient"
+    >Données manquantes pour le patient :</string>
+    <string
+        name="start_group_encounter"
+    >Démarrer la Rencontre de Groupe</string>
+    <string name="next_patient">Patient Suivant</string>
+    <string
+        name="save_all_encounters"
+    >Enregistrer Toutes les Rencontres</string>
+    <string name="saved">ENREGISTRÉ</string>
+    <string name="group_encounters">Rencontres de Groupe</string>
+    <string
+        name="save_all_submitted_encounters"
+    >Enregistrer Toutes les Rencontres Soumises</string>
+    <string
+        name="do_you_want_to_save_all_submitted_encounters"
+    >Voulez-vous enregistrer toutes les rencontres soumises ?</string>
+    <string
+        name="no_encounters_to_save"
+    >Aucune rencontre à enregistrer !</string>
+    <string
+        name="please_select_at_least_one_patient"
+    >Veuillez sélectionner au moins un patient.</string>
+    <string
+        name="select_patients_for_group_encounter"
+    >Sélectionner les patients pour la rencontre de groupe</string>
+    <string name="select_all_patients">Sélectionner tous les patients</string>
+    <string name="create_group_encounter">Créer une rencontre de groupe</string>
+    <string name="patient_is_saved">Le patient est enregistré.</string>
+    <string name="inputs_are_missing">Des informations sont manquantes.</string>
+    <string name="start">Démarrer</string>
+    <string
+        name="all_encounter_for_group_session_have_been_saved"
+    >Toutes les rencontres de la session de groupe ont été enregistrées</string>
+    <string name="do_you_want_to_exit">Voulez-vous quitter ?</string>
+    <string
+        name="all_patients_have_been_submitted"
+    >Tous les patients ont été soumis</string>
+    <string
+        name="encounter_questionnaire_not_found_try_again_later"
+    >Questionnaire de la rencontre introuvable, réessayez plus tard</string>
+    <string
+        name="please_complete_the_required_fields_first"
+    >Veuillez d\'abord remplir les champs obligatoires !</string>
+    <string
+        name="encounter_saved_for_patient"
+    >Consultation pour %1$s enregistrée</string>
+    <string name="encounter_updated">Consultation mise à jour !</string>
+    <string
+        name="all_encounters_saved_do_you_want_to_exit"
+    >Toutes les consultations enregistrées ! Voulez-vous quitter ?</string>
 </resources>

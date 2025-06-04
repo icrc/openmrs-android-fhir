@@ -45,6 +45,7 @@
     <string name="edit_patient">Edit Patient</string>
     <string name="new_encounter">New Encounter</string>
     <string name="create_encounter">Create Encounter</string>
+    <string name="create_group_encounter">Create Group Encounter</string>
     <string name="edit_encounter">Edit Encounter</string>
     <string name="location">Location</string>
     <string name="identifier">Identifier</string>
@@ -62,6 +63,9 @@
     <string name="message_patient_updated">Patient is updated.</string>
     <string name="message_encounter_updated">Encounter is updated.</string>
     <string name="inputs_missing">Inputs are missing.</string>
+    <string
+        name="inputs_missing_for_patient"
+    >Inputs are missing for patient:</string>
     <string name="resources_saved">Resources are saved.</string>
     <string
         name="response_received"
@@ -219,4 +223,44 @@
     <string name="in_progress">In Progress</string>
     <string name="completed_at">Completed At</string>
     <string name="errors">Errors</string>
+    <string name="start_group_encounter">Start Group Encounter</string>
+    <string name="next_patient">Next Patient</string>
+    <string name="save_all_encounters">Save All Encounters</string>
+    <string name="saved">SAVED</string>
+    <string name="group_encounters">Group Encounters</string>
+    <string
+        name="save_all_submitted_encounters"
+    >Save All Submitted Encounters</string>
+    <string
+        name="do_you_want_to_save_all_submitted_encounters"
+    >Do you want to save all submitted encounters?</string>
+    <string name="no_encounters_to_save">No Encounters to save!</string>
+    <string
+        name="all_patients_have_been_submitted"
+    >All patients have been submitted</string>
+    <string
+        name="please_select_at_least_one_patient"
+    >Please select at least one patient.</string>
+    <string
+        name="select_patients_for_group_encounter"
+    >Select Patients for Group Encounter</string>
+    <string name="select_all_patients">Select All Patients</string>
+    <string name="patient_is_saved">Patient is saved.</string>
+    <string name="inputs_are_missing">Inputs are missing.</string>
+    <string name="start">Start</string>
+    <string
+        name="all_encounter_for_group_session_have_been_saved"
+    >All encounter for Group Session have been saved</string>
+    <string name="do_you_want_to_exit">Do you want to exit?</string>
+    <string
+        name="encounter_questionnaire_not_found_try_again_later"
+    >Encounter questionnaire not found, try again later</string>
+    <string
+        name="please_complete_the_required_fields_first"
+    >Please complete the required fields first!</string>
+    <string name="encounter_saved_for_patient">Encounter for %1$s saved</string>
+    <string name="encounter_updated">Encounter updated!</string>
+    <string
+        name="all_encounters_saved_do_you_want_to_exit"
+    >All encounters saved! Do you want to exit?</string>
 </resources>

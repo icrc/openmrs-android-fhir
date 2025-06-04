@@ -29,23 +29,25 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
+import com.google.android.fhir.datacapture.validation.Invalid
+import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import com.google.android.fhir.get
 import com.google.android.fhir.search.search
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import java.io.FileNotFoundException
 import java.util.Date
 import java.util.UUID
+import kotlin.collections.forEach
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
@@ -60,6 +62,9 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.StringType
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
+import org.openmrs.android.fhir.extensions.getJsonFileNames
+import org.openmrs.android.fhir.extensions.readFileFromAssets
+import timber.log.Timber
 
 class EditEncounterViewModel
 @AssistedInject
@@ -76,79 +81,161 @@ constructor(
     ): EditEncounterViewModel
   }
 
-  private val encounterId: String =
-    requireNotNull(state["encounter_id"])
-      ?: throw IllegalArgumentException("Encounter ID is required")
-  private val encounterType: String =
-    requireNotNull(state["encounter_type"])
-      ?: throw IllegalArgumentException("Form resource is required")
-  val liveEncounterData = liveData { emit(prepareEditEncounter()) }
-  val isResourcesSaved = MutableLiveData<Boolean>()
+  private val _encounterDataPair = MutableLiveData<Pair<String, String>>()
+  val encounterDataPair: LiveData<Pair<String, String>> = _encounterDataPair
 
-  private lateinit var questionnaire: Questionnaire
-  private lateinit var observations: List<Observation>
-  private lateinit var contitions: List<Condition>
-  private lateinit var patientReference: Reference
+  val isResourcesSaved = MutableLiveData<String>()
+  val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
-  private suspend fun prepareEditEncounter(): Pair<String, String> {
-    // TODO to be improved: if the asset is not present a message should be displayed.
-    val encounter = fhirEngine.get<Encounter>(encounterId)
-    observations = getObservationsEncounterId(encounterId)
-    contitions = getConditionsEncounterId(encounterId)
-    patientReference = encounter.subject
-    try {
-      val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-
-      questionnaire =
-        fhirEngine
-          .search<Questionnaire> {}
-          .filter { questionnaire -> questionnaire.resource.code.any { it.code == encounterType } }
-          .first()
-          .resource
-
-      val questionnaireJson = parser.encodeResourceToString(questionnaire)
-
-      val observationBundle =
-        Bundle().apply {
-          type = Bundle.BundleType.COLLECTION
-          observations.forEach { addEntry().resource = it.apply { id = "Observation/$id" } }
-        }
-
-      val launchContexts = mapOf("observations" to observationBundle)
-      val questionnaireResponse = ResourceMapper.populate(questionnaire, launchContexts)
-      val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
-      return questionnaireJson to questionnaireResponseJson
-    } catch (e: FileNotFoundException) {
-      // TODO add log here
-      return Pair("", "")
-    }
-  }
-
-  fun updateEncounter(questionnaireResponse: QuestionnaireResponse) {
+  fun prepareEditEncounter(encounterId: String, encounterType: String) {
     viewModelScope.launch {
-      val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
-      saveResources(bundle)
-      isResourcesSaved.value = true
-    }
-  }
-
-  private suspend fun saveResources(bundle: Bundle) {
-    val encounterReference = Reference("Encounter/$encounterId")
-    val encounterSubject = fhirEngine.get<Encounter>(encounterId).subject
-
-    bundle.entry.forEach {
-      when (val resource = it.resource) {
-        is Observation -> {
-          if (resource.hasCode()) {
-            handleObservation(resource, encounterReference, patientReference)
+      val observations = getObservationsEncounterId(encounterId)
+      try {
+        var questionnaire =
+          fhirEngine
+            .search<Questionnaire> {}
+            .firstOrNull { questionnaire ->
+              questionnaire.resource.code.any { it.code == encounterType }
+            }
+            ?.resource
+        if (questionnaire == null) {
+          // Look into assets folder
+          val assetQuestionnaireFileNames = applicationContext.getJsonFileNames()
+          assetQuestionnaireFileNames.forEach {
+            val questionnaireString = applicationContext.readFileFromAssets(it)
+            if (questionnaireString.isNotEmpty()) {
+              val assetsQuestionnaire =
+                parser.parseResource(Questionnaire::class.java, questionnaireString)
+              if (assetsQuestionnaire.hasCode()) {
+                assetsQuestionnaire.code.forEach {
+                  if (
+                    it.hasSystem() and
+                      (it?.system.toString() ==
+                        "http://fhir.openmrs.org/code-system/encounter-type") and
+                      it.hasCode() and
+                      (it.code == encounterType)
+                  ) {
+                    questionnaire = assetsQuestionnaire
+                    return@forEach
+                  }
+                }
+              }
+            }
           }
         }
-        is Condition -> {
-          if (resource.hasCode()) {
-            handleCondition(resource, encounterReference, encounterSubject)
+
+        val questionnaireJson = parser.encodeResourceToString(questionnaire)
+
+        val observationBundle =
+          Bundle().apply {
+            type = Bundle.BundleType.COLLECTION
+            observations.forEach { addEntry().resource = it.apply { id = "Observation/$id" } }
+          }
+
+        val launchContexts = mapOf("observations" to observationBundle)
+        val questionnaireResponse =
+          ResourceMapper.populate(
+            questionnaire!!,
+            launchContexts,
+          ) // if questionnaire is null it'll throw exception while encoding to string.
+        val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
+        _encounterDataPair.value = questionnaireJson to questionnaireResponseJson
+      } catch (e: Exception) {
+        Timber.e(e.localizedMessage)
+        _encounterDataPair.value = Pair("", "")
+      }
+    }
+  }
+
+  fun updateEncounter(
+    questionnaireResponse: QuestionnaireResponse,
+    encounterId: String,
+    encounterType: String,
+  ) {
+    viewModelScope.launch {
+      var questionnaire =
+        fhirEngine
+          .search<Questionnaire> {}
+          .firstOrNull { questionnaire ->
+            questionnaire.resource.code.any { it.code == encounterType }
+          }
+          ?.resource
+      if (questionnaire == null) {
+        // Look into assets folder
+        val assetQuestionnaireFileNames = applicationContext.getJsonFileNames()
+        assetQuestionnaireFileNames.forEach {
+          val questionnaireString = applicationContext.readFileFromAssets(it)
+          if (questionnaireString.isNotEmpty()) {
+            val assetsQuestionnaire =
+              parser.parseResource(Questionnaire::class.java, questionnaireString)
+            if (assetsQuestionnaire.hasCode()) {
+              assetsQuestionnaire.code.forEach {
+                if (
+                  it.hasSystem() and
+                    (it?.system.toString() ==
+                      "http://fhir.openmrs.org/code-system/encounter-type") and
+                    it.hasCode() and
+                    (it.code == encounterType)
+                ) {
+                  questionnaire = assetsQuestionnaire
+                  return@forEach
+                }
+              }
+            }
           }
         }
       }
+
+      if (questionnaire == null) {
+        isResourcesSaved.value = "ERROR"
+        return@launch
+      }
+
+      val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
+
+      if (
+        QuestionnaireResponseValidator.validateQuestionnaireResponse(
+            questionnaire,
+            questionnaireResponse,
+            applicationContext,
+          )
+          .values
+          .flatten()
+          .any { it is Invalid }
+      ) {
+        isResourcesSaved.value = "MISSING"
+        return@launch
+      }
+
+      saveResources(encounterId, bundle)
+    }
+  }
+
+  private suspend fun saveResources(encounterId: String, bundle: Bundle) {
+    try {
+      val encounterReference = Reference("Encounter/$encounterId")
+      val encounterSubject = fhirEngine.get<Encounter>(encounterId).subject
+      val observations = getObservationsEncounterId(encounterId)
+      val conditions = getConditionsEncounterId(encounterId)
+
+      bundle.entry.forEach {
+        when (val resource = it.resource) {
+          is Observation -> {
+            if (resource.hasCode()) {
+              handleObservation(resource, encounterReference, encounterSubject, observations)
+            }
+          }
+          is Condition -> {
+            if (resource.hasCode()) {
+              handleCondition(resource, encounterReference, encounterSubject, conditions)
+            }
+          }
+        }
+      }
+      isResourcesSaved.value = "SAVED"
+    } catch (e: Exception) {
+      Timber.e(e.localizedMessage)
+      isResourcesSaved.value = "MISSING"
     }
   }
 
@@ -156,6 +243,7 @@ constructor(
     resource: Observation,
     encounterReference: Reference,
     subjectReference: Reference,
+    observations: List<Observation>,
   ) {
     if (!resource.hasCode() || !resource.hasValue()) return
 
@@ -240,9 +328,10 @@ constructor(
     resource: Condition,
     encounterReference: Reference,
     subjectReference: Reference,
+    conditions: List<Condition>,
   ) {
     val existingCondition =
-      contitions.find { cond ->
+      conditions.find { cond ->
         cond.code.coding.any { coding -> coding.code == resource.code.codingFirstRep.code }
       }
     if (existingCondition != null) {

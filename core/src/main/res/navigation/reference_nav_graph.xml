@@ -42,6 +42,10 @@
             android:id="@+id/action_home_fragment_to_unsyncedResourcesFragment"
             app:destination="@id/unsyncedResourcesFragment"
         />
+    <action
+            android:id="@+id/action_home_fragment_to_createEncounterFragment"
+            app:destination="@id/createEncounterFragment"
+        />
   </fragment>
 
   <fragment
@@ -91,15 +95,45 @@
     <argument android:name="questionnaire_id" app:argType="string" />
   </fragment>
   <fragment
+        android:id="@+id/groupFormEntryFragment"
+        android:name="org.openmrs.android.fhir.fragments.GroupFormEntryFragment"
+        android:label="Group Form Entry"
+        tools:layout="@layout/group_formentry_fragment"
+    >
+    <argument android:name="patientIds" app:argType="string[]" />
+    <argument android:name="questionnaire_id" app:argType="string" />
+  </fragment>
+  <dialog
+        android:id="@+id/patientSelectionDialogFragment"
+        android:name="org.openmrs.android.fhir.fragments.PatientSelectionDialogFragment"
+        android:label="Select Patients"
+        tools:layout="@layout/dialog_patient_selection"
+    >
+    <argument android:name="questionnaireId" app:argType="string" />
+    <action
+            android:id="@+id/action_patientSelectionDialogFragment_to_groupFormEntryFragment"
+            app:destination="@id/groupFormEntryFragment"
+        />
+  </dialog>
+  <fragment
         android:id="@+id/createEncounterFragment"
         android:name="org.openmrs.android.fhir.fragments.CreateEncountersFragment"
         android:label="createEncounterFragment"
         tools:layout="@layout/create_encounter_fragment"
     >
     <argument android:name="patient_id" app:argType="string" />
+    <argument android:name="is_group_encounter" app:argType="boolean" />
     <action
             android:id="@+id/action_createEncounterFragment_to_genericFormEntryFragment"
             app:destination="@id/genericFormEntryFragment"
+        />
+    <action
+            android:id="@+id/action_createEncounterFragment_to_groupFormEntryFragment"
+            app:destination="@id/groupFormEntryFragment"
+        />
+    <action
+            android:id="@+id/action_createEncounterFragment_to_patientSelectionDialogFragment"
+            app:destination="@id/patientSelectionDialogFragment"
         />
   </fragment>
   <fragment
