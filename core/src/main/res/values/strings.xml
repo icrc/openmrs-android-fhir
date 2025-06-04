@@ -255,4 +255,12 @@
     <string
         name="encounter_questionnaire_not_found_try_again_later"
     >Encounter questionnaire not found, try again later</string>
+    <string
+        name="please_complete_the_required_fields_first"
+    >Please complete the required fields first!</string>
+    <string name="encounter_saved_for_patient">Encounter for %1$s saved</string>
+    <string name="encounter_updated">Encounter updated!</string>
+    <string
+        name="all_encounters_saved_do_you_want_to_exit"
+    >All encounters saved! Do you want to exit?</string>
 </resources>

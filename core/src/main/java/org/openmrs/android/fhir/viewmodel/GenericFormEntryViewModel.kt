@@ -38,6 +38,8 @@ import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
+import com.google.android.fhir.datacapture.validation.Invalid
+import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -180,6 +182,20 @@ constructor(
         throw IllegalStateException("No questionnaire resource found with ID: $questionnaireId")
       }
 
+      if (
+        QuestionnaireResponseValidator.validateQuestionnaireResponse(
+            questionnaire,
+            questionnaireResponse,
+            applicationContext,
+          )
+          .values
+          .flatten()
+          .any { it is Invalid }
+      ) {
+        isResourcesSaved.value = "MISSING/$patientId"
+        return@launch
+      }
+
       val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
       val patientReference = Reference("Patient/$patientId")
 
@@ -188,11 +204,6 @@ constructor(
         visit = createWrapperVisit(patientId)
       } else {
         visit = openMRSHelper.getActiveVisit(patientId, true)!!
-      }
-
-      if (isRequiredFieldMissing(bundle)) {
-        isResourcesSaved.value = "ERROR/$patientId"
-        return@launch
       }
 
       saveResources(bundle, patientReference, questionnaire, encounterId, visit.idPart)
@@ -322,20 +333,6 @@ constructor(
         }
       }
     }
-  }
-
-  private fun isRequiredFieldMissing(bundle: Bundle): Boolean {
-    bundle.entry.forEach {
-      when (val resource = it.resource) {
-        is Observation -> {
-          if (resource.hasValueQuantity() && !resource.valueQuantity.hasValueElement()) {
-            return true
-          }
-        }
-      // TODO check other resources inputs
-      }
-    }
-    return false
   }
 
   private suspend fun saveResourceToDatabase(resource: Resource) {

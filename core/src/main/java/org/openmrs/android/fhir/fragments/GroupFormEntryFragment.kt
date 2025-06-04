@@ -76,7 +76,6 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   private val args: GroupFormEntryFragmentArgs by navArgs()
-  private lateinit var encounterType: String
 
   private var _binding: GroupFormentryFragmentBinding? = null
 
@@ -87,6 +86,10 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   private var currentQuestionnaireFragment: QuestionnaireFragment? = null
   private var currentPatientId: String? = null
   private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+
+  // Track the currently selected tab and prevent recursive tab changes
+  private var currentSelectedTabPosition = 0
+  private var isTabChanging = false
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     _binding = GroupFormentryFragmentBinding.bind(view)
@@ -250,15 +253,41 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     binding.patientTabLayout.addOnTabSelectedListener(
       object : TabLayout.OnTabSelectedListener {
         override fun onTabSelected(tab: TabLayout.Tab) {
-          viewModel.isLoading.value = true
-          val patientId = viewModel.patients.value?.get(tab.position)?.resourceId
-          if (patientId != null) {
-            addQuestionnaireFragment(
-              genericFormEntryViewModel.questionnaireJson.value.toString(),
-              patientId,
-            )
-          } else {
-            viewModel.isLoading.value = false
+          if (isTabChanging) return
+
+          val newTabPosition = tab.position
+          val previousTabPosition = currentSelectedTabPosition
+
+          // If it's the same tab, just load the questionnaire
+          if (newTabPosition == previousTabPosition) {
+            loadQuestionnaireForTab(newTabPosition)
+            return
+          }
+
+          // Validate the previous tab before switching
+          lifecycleScope.launch {
+            val canSwitchTab = validateCurrentForm(previousTabPosition)
+
+            if (canSwitchTab) {
+              // Allow tab switch
+              currentSelectedTabPosition = newTabPosition
+              loadQuestionnaireForTab(newTabPosition)
+            } else {
+              // Prevent tab switch - revert to previous tab
+              isTabChanging = true
+              binding.patientTabLayout.selectTab(
+                binding.patientTabLayout.getTabAt(previousTabPosition),
+              )
+              isTabChanging = false
+
+              // Show validation error message
+              Toast.makeText(
+                  requireContext(),
+                  getString(R.string.please_complete_the_required_fields_first),
+                  Toast.LENGTH_SHORT,
+                )
+                .show()
+            }
           }
         }
 
@@ -272,6 +301,36 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         }
       },
     )
+  }
+
+  private suspend fun validateCurrentForm(tabPosition: Int): Boolean {
+    val patientId = viewModel.patients.value?.get(tabPosition)?.resourceId ?: return true
+
+    val questionnaireFragment =
+      childFragmentManager.findFragmentByTag(
+        QUESTIONNAIRE_FRAGMENT_TAG + patientId,
+      ) as? QuestionnaireFragment
+        ?: return true
+
+    val questionnaireResponse = questionnaireFragment.getQuestionnaireResponse()
+    return viewModel.isValidQuestionnaireResponse(
+      genericFormEntryViewModel.questionnaire!!,
+      questionnaireResponse,
+      requireContext(),
+    )
+  }
+
+  private fun loadQuestionnaireForTab(tabPosition: Int) {
+    viewModel.isLoading.value = true
+    val patientId = viewModel.patients.value?.get(tabPosition)?.resourceId
+    if (patientId != null) {
+      addQuestionnaireFragment(
+        genericFormEntryViewModel.questionnaireJson.value.toString(),
+        patientId,
+      )
+    } else {
+      viewModel.isLoading.value = false
+    }
   }
 
   private fun saveCurrentQuestionnaireResponse(questionnaireResponse: QuestionnaireResponse?) {
@@ -290,30 +349,41 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   private fun observeResourcesSaveAction() {
     genericFormEntryViewModel.isResourcesSaved.observe(viewLifecycleOwner) {
       viewModel.isLoading.value = false
-      val isSaved = it.contains("SAVED")
-      if (!isSaved) {
+      val isError = it.contains("ERROR")
+      if (isError) {
         Toast.makeText(requireContext(), getString(R.string.inputs_missing), Toast.LENGTH_SHORT)
           .show()
         return@observe
       }
-      removeHiddenFragments()
-      val patientId = it.split("/")[1]
-      val patientName = viewModel.getPatientName(patientId)
-      Toast.makeText(requireContext(), "Encounter for $patientName saved", Toast.LENGTH_SHORT)
-        .show()
-      handleAllEncountersSaved()
+      val isSaved = it.contains("SAVED")
+      if (isSaved) {
+        removeHiddenFragments()
+        val patientId = it.split("/")[1]
+        val patientName = viewModel.getPatientName(patientId)
+        Toast.makeText(
+            requireContext(),
+            getString(R.string.encounter_saved_for_patient, patientName),
+            Toast.LENGTH_SHORT,
+          )
+          .show()
+        handleAllEncountersSaved()
+      }
     }
     editEncounterViewModel.isResourcesSaved.observe(viewLifecycleOwner) {
       viewModel.isLoading.value = false
-      val isSaved = it
-      if (!isSaved) {
+      val isError = it.contains("ERROR")
+      if (isError) {
         Toast.makeText(requireContext(), getString(R.string.inputs_missing), Toast.LENGTH_SHORT)
           .show()
         return@observe
       }
-      removeHiddenFragments()
-      Toast.makeText(requireContext(), "Encounter updated!", Toast.LENGTH_SHORT).show()
-      handleAllEncountersSaved()
+      val isSaved = it.contains("SAVED")
+      if (isSaved) {
+        removeHiddenFragments()
+        Toast.makeText(requireContext(), getString(R.string.encounter_updated), Toast.LENGTH_SHORT)
+          .show()
+        handleAllEncountersSaved()
+      }
     }
   }
 
@@ -323,7 +393,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         activity?.let {
           val builder = AlertDialog.Builder(it)
           builder.apply {
-            setMessage("All encounters saved! Do you want to exit?")
+            setMessage(getString(R.string.all_encounters_saved_do_you_want_to_exit))
             setPositiveButton(getString(android.R.string.yes)) { _, _ ->
               NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
             }

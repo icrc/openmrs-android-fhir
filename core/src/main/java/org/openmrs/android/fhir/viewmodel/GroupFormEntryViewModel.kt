@@ -28,15 +28,20 @@
 */
 package org.openmrs.android.fhir.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.validation.Invalid
+import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import com.google.android.fhir.search.search
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Patient
+import org.hl7.fhir.r4.model.Questionnaire
+import org.hl7.fhir.r4.model.QuestionnaireResponse
 
 class GroupFormEntryViewModel
 @Inject
@@ -77,5 +82,20 @@ constructor(
 
   fun getEncounterIdForPatientId(patientId: String): String? {
     return patientIdToEncounterIdMap[patientId]
+  }
+
+  suspend fun isValidQuestionnaireResponse(
+    questionnaire: Questionnaire,
+    questionnaireResponse: QuestionnaireResponse,
+    applicationContext: Context,
+  ): Boolean {
+    return !QuestionnaireResponseValidator.validateQuestionnaireResponse(
+        questionnaire,
+        questionnaireResponse,
+        applicationContext,
+      )
+      .values
+      .flatten()
+      .any { it is Invalid }
   }
 }

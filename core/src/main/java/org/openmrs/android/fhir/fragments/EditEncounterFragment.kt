@@ -96,7 +96,8 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
       addQuestionnaireFragment(it)
     }
     viewModel.isResourcesSaved.observe(viewLifecycleOwner) {
-      if (!it) {
+      val isSaved = it == "SAVED"
+      if (!isSaved) {
         Toast.makeText(requireContext(), R.string.inputs_missing, Toast.LENGTH_SHORT).show()
         return@observe
       }

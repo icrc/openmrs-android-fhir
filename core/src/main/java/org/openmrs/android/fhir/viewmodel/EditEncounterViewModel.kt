@@ -38,6 +38,8 @@ import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
+import com.google.android.fhir.datacapture.validation.Invalid
+import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import com.google.android.fhir.get
 import com.google.android.fhir.search.search
 import dagger.assisted.Assisted
@@ -81,7 +83,7 @@ constructor(
   private val _encounterDataPair = MutableLiveData<Pair<String, String>>()
   val encounterDataPair: LiveData<Pair<String, String>> = _encounterDataPair
 
-  val isResourcesSaved = MutableLiveData<Boolean>()
+  val isResourcesSaved = MutableLiveData<String>()
 
   fun prepareEditEncounter(encounterId: String, encounterType: String) {
     viewModelScope.launch {
@@ -152,8 +154,23 @@ constructor(
           .resource
 
       val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
+
+      if (
+        QuestionnaireResponseValidator.validateQuestionnaireResponse(
+            questionnaire,
+            questionnaireResponse,
+            applicationContext,
+          )
+          .values
+          .flatten()
+          .any { it is Invalid }
+      ) {
+        isResourcesSaved.value = "MISSING"
+        return@launch
+      }
+
       saveResources(encounterId, bundle)
-      isResourcesSaved.value = true
+      isResourcesSaved.value = "SAVED"
     }
   }
 

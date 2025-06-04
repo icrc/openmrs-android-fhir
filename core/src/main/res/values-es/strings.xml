@@ -257,4 +257,14 @@
     <string
         name="encounter_questionnaire_not_found_try_again_later"
     >Cuestionario del encuentro no encontrado, inténtelo más tarde</string>
+    <string
+        name="please_complete_the_required_fields_first"
+    >¡Por favor, completa los campos obligatorios primero!</string>
+    <string
+        name="encounter_saved_for_patient"
+    >Consulta de %1$s guardada</string>
+    <string name="encounter_updated">¡Consulta actualizada!</string>
+    <string
+        name="all_encounters_saved_do_you_want_to_exit"
+    >¡Todas las consultas guardadas! ¿Quieres salir?</string>
 </resources>
