@@ -52,6 +52,7 @@ import org.hl7.fhir.r4.model.Questionnaire.QuestionnaireItemComponent
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.ResourceType
+import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.Type
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -121,7 +122,7 @@ constructor(
       }
 
       val personAttributeExtensions =
-        extractPersonAttributeFromQuestionnaireResponse(questionnaire, questionnaireResponse)
+        extractPersonAttributeFromQuestionnaireResponse(questionnaire!!, questionnaireResponse)
 
       if (patient.hasExtension()) {
         personAttributeExtensions.toMutableList().addAll(0, patient.extension)
@@ -186,7 +187,11 @@ constructor(
       extension =
         listOf(
           Extension().apply {
-            url = "${OPENMRS_PERSON_ATTRIBUTE_TYPE_URL}/${linkId.substringAfter("#")}"
+            url = OPENMRS_PERSON_ATTRIBUTE_TYPE_URL
+            value = StringType(linkId.substringAfter("#"))
+          },
+          Extension().apply {
+            url = OPENMRS_PERSON_ATTRIBUTE_VALUE_URL
             value = extensionValue
           },
         )
@@ -357,5 +362,7 @@ constructor(
     private val OPENMRS_PERSON_ATTRIBUTE_URL = "http://fhir.openmrs.org/ext/person-attribute"
     private val OPENMRS_PERSON_ATTRIBUTE_TYPE_URL =
       "http://fhir.openmrs.org/ext/person-attribute-type"
+    private val OPENMRS_PERSON_ATTRIBUTE_VALUE_URL =
+      "http://fhir.openmrs.org/ext/person-attribute-value"
   }
 }
