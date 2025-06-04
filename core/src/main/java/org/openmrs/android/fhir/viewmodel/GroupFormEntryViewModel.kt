@@ -54,6 +54,7 @@ constructor(
   private val patientIdToEncounterIdMap = mutableMapOf<String, String>()
   val patientResponses = mutableMapOf<String, String>()
   val isLoading = MutableLiveData<Boolean>()
+  var submittedSet = mutableSetOf<Int>()
 
   fun getPatients(patientIds: Set<String>) {
     isLoading.value = true

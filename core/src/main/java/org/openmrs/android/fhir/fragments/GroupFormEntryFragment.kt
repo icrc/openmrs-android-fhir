@@ -110,6 +110,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       viewLifecycleOwner,
     ) { _, _ ->
       val selectedTab = binding.patientTabLayout.selectedTabPosition
+      viewModel.submittedSet.add(selectedTab)
       if (selectedTab < binding.patientTabLayout.tabCount - 1) {
         binding.patientTabLayout.selectTab(binding.patientTabLayout.getTabAt(selectedTab + 1))
         binding.patientTabLayout.setScrollPosition(selectedTab + 1, 0f, true)
@@ -388,7 +389,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   private fun handleAllEncountersSaved() {
-    if (viewModel.patients.value?.size == viewModel.getPatientIdToEncounterIdMap().size) {
+    if (viewModel.patients.value?.size == viewModel.submittedSet.size) {
       val alertDialog: AlertDialog? =
         activity?.let {
           val builder = AlertDialog.Builder(it)
