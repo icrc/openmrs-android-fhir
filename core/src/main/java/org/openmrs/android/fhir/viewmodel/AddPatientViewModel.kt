@@ -158,8 +158,10 @@ constructor(
       items?.forEach { item ->
         // Add the current item's ID
         if (item.linkId != null && personAttributeQuestionnaireLinkIds.contains(item.linkId)) {
-          var extensionValue = item.answer[0].value
-          extensionList.add(getPersonAttributeExtension(extensionValue, item.linkId))
+          if (item.answer.isNotEmpty()) {
+            var extensionValue = item.answer[0].value
+            extensionList.add(getPersonAttributeExtension(extensionValue, item.linkId))
+          }
         }
 
         // Recursively process child items
