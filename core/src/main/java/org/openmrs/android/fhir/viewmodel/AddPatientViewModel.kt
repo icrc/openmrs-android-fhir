@@ -51,10 +51,13 @@ import org.hl7.fhir.r4.model.Questionnaire.QuestionnaireItemComponent
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.ResourceType
+import org.openmrs.android.fhir.Constants.PATIENT_IDENTIFIER_DEFINITION_URL
+import org.openmrs.android.fhir.Constants.PATIENT_LOCATION_IDENTIFIER_URL
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
+import org.openmrs.android.helpers.OpenMRSHelper
 
 /** ViewModel for patient registration screen {@link AddPatientFragment}. */
 class AddPatientViewModel
@@ -63,6 +66,7 @@ constructor(
   private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
   private val database: AppDatabase,
+  private val openMRSHelper: OpenMRSHelper,
 ) : ViewModel() {
 
   var locationId: String? = null
@@ -117,6 +121,18 @@ constructor(
         identifiers.add(0, createUnsyncedIdentifier(location))
         patient.identifier = identifiers
       }
+
+      val personAttributeExtensions =
+        openMRSHelper.extractPersonAttributeFromQuestionnaireResponse(
+          questionnaire!!,
+          questionnaireResponse,
+        )
+
+      if (patient.hasExtension()) {
+        personAttributeExtensions.toMutableList().addAll(0, patient.extension)
+      }
+      patient.extension = personAttributeExtensions
+
       fhirEngine.create(patient)
       isPatientSaved.value = true
       saveInProgress = false
@@ -256,12 +272,5 @@ constructor(
 
   private fun generateUuid(): String {
     return UUID.randomUUID().toString()
-  }
-
-  companion object {
-    private val PATIENT_LOCATION_IDENTIFIER_URL =
-      "http://fhir.openmrs.org/ext/patient/identifier#location"
-    private val PATIENT_IDENTIFIER_DEFINITION_URL =
-      "http://hl7.org/fhir/StructureDefinition/Patient#Patient.identifier"
   }
 }
