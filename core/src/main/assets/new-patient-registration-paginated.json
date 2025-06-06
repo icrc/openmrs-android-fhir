@@ -35,7 +35,7 @@
     }
   ],
   "item": [
-   {
+    {
       "linkId": "PR",
       "type": "group",
       "text": "Client info",
@@ -102,40 +102,6 @@
                   "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression",
                   "valueExpression": {
                     "language": "text/fhirpath",
-                    "expression": "%client.name.given[1]",
-                    "name": "patientMiddleName"
-                  }
-                }
-              ],
-              "linkId": "PR-name-middle",
-              "definition": "http://hl7.org/fhir/StructureDefinition/Patient#Patient.name.given",
-              "type": "string",
-              "required": false,
-              "text": "Middle Name",
-              "_text": {
-                "extension": [
-                  {
-                    "extension": [
-                      {
-                        "url": "lang",
-                        "valueCode": "sw"
-                      },
-                      {
-                        "url": "content",
-                        "valueString": "Jina la kati"
-                      }
-                    ],
-                    "url": "http://hl7.org/fhir/StructureDefinition/translation"
-                  }
-                ]
-              }
-            },
-            {
-              "extension": [
-                {
-                  "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression",
-                  "valueExpression": {
-                    "language": "text/fhirpath",
                     "expression": "%client.name.family",
                     "name": "patientFamily"
                   }
@@ -163,12 +129,6 @@
                   }
                 ]
               }
-            },
-            {
-              "linkId": "PersonAttribute#registration.nameIn.localLanguage",
-              "type": "string",
-              "required": false,
-              "text": "Name in local language"
             }
           ]
         },
@@ -317,12 +277,6 @@
               ]
             },
             {
-              "linkId": "PersonAttribute#email",
-              "type": "string",
-              "required": false,
-              "text": "Email"
-            },
-            {
               "extension": [
                 {
                   "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression",
@@ -336,7 +290,7 @@
               "linkId": "PR-telecom-value",
               "definition": "http://hl7.org/fhir/StructureDefinition/Patient#Patient.telecom.value",
               "type": "string",
-              "text": "Telephone Number",
+              "text": "Phone Number",
               "_text": {
                 "extension": [
                   {
@@ -427,45 +381,8 @@
                   }
                 ]
               }
-            },
-            {
-              "linkId": "PersonAttribute#civil status",
-              "type": "string",
-              "required": false,
-              "text": "Civil status"
             }
           ]
-        },
-        {
-          "linkId": "PersonAttribute#languages spoken",
-          "type": "string",
-          "required": false,
-          "text": "Languages Spoken"
-        },
-        {
-          "linkId": "PersonAttribute#Preffered Language",
-          "type": "string",
-          "required": false,
-          "text": "Preferred Language"
-        }
-      ]
-    },
-    {
-      "linkId": "PR-HSU",
-      "type": "group",
-      "text": "HSU Person of Contact",
-      "item": [
-        {
-          "linkId": "PersonAttribute#icrc.patient.hsuSecondaryPhoneNumberName",
-          "type": "string",
-          "required": false,
-          "text": "Name"
-        },
-        {
-          "linkId": "PersonAttribute#registrationapp.patient.hsuSecondaryPhoneNumber",
-          "type": "string",
-          "required": false,
-          "text": "Phone Number"
         }
       ]
     }
