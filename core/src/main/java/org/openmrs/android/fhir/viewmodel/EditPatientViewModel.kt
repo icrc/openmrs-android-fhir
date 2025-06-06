@@ -49,9 +49,15 @@ import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Resource
+import org.hl7.fhir.r4.model.Type
+import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_TYPE_URL
+import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_URL
+import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_VALUE_URL
+import org.openmrs.android.fhir.Constants.PERSON_ATTRIBUTE_LINK_ID_PREFIX
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssetsAsString
 import org.openmrs.android.fhir.fragments.EditPatientFragment
+import org.openmrs.android.helpers.OpenMRSHelper
 
 /**
  * The ViewModel helper class for [EditPatientFragment], that is responsible for preparing data for
@@ -63,6 +69,7 @@ constructor(
   private val applicationContext: Context,
   @Assisted val state: SavedStateHandle,
   private val fhirEngine: FhirEngine,
+  private val openMRSHelper: OpenMRSHelper,
 ) : ViewModel() {
 
   @AssistedFactory
@@ -78,6 +85,7 @@ constructor(
   val livePatientData = liveData { emit(prepareEditPatient(registrationQuestionnaireName)) }
   lateinit var originalPatient: Patient
   lateinit var questionnaireResource: Questionnaire
+  val isPatientSaved = MutableLiveData<Boolean>()
 
   private suspend fun prepareEditPatient(questionnaireId: String): Pair<String, String> {
     val patient = fhirEngine.get<Patient>(patientId)
@@ -93,7 +101,10 @@ constructor(
         parser.parseResource(Questionnaire::class.java, question) as Questionnaire
 
       val questionnaireResponse: QuestionnaireResponse =
-        ResourceMapper.populate(questionnaireResource, launchContexts)
+        getQuestionnaireResponseWithPersonAttribute(
+          ResourceMapper.populate(questionnaireResource, launchContexts),
+          patient,
+        )
       val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
       question to questionnaireResponseJson
     } else {
@@ -101,7 +112,57 @@ constructor(
     }
   }
 
-  val isPatientSaved = MutableLiveData<Boolean>()
+  private fun getQuestionnaireResponseWithPersonAttribute(
+    questionnaireResponse: QuestionnaireResponse,
+    patient: Patient,
+  ): QuestionnaireResponse {
+    val personAttributeValueMap = mutableMapOf<String, Type>()
+    patient.extension
+      .filter { it.url == OPENMRS_PERSON_ATTRIBUTE_URL }
+      .forEach {
+        val linkId =
+          PERSON_ATTRIBUTE_LINK_ID_PREFIX +
+            it.extension
+              .firstOrNull { it.url == OPENMRS_PERSON_ATTRIBUTE_TYPE_URL }
+              ?.value
+              ?.toString()
+        personAttributeValueMap[linkId] =
+          it.extension.firstOrNull { it.url == OPENMRS_PERSON_ATTRIBUTE_VALUE_URL }?.value as Type
+      }
+
+    // Process items recursively
+    fillPersonAttributeQuestionnaireItemRecursively(
+      questionnaireResponse.item,
+      personAttributeValueMap,
+    )
+
+    return questionnaireResponse
+  }
+
+  private fun fillPersonAttributeQuestionnaireItemRecursively(
+    items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>,
+    personAttributeValueMap: Map<String, Type>,
+  ) {
+    items.forEach { item ->
+      // Process current item
+      if (item.linkId.contains(PERSON_ATTRIBUTE_LINK_ID_PREFIX)) {
+        if (personAttributeValueMap.containsKey(item.linkId)) {
+          item.answer.add(
+            QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent().apply {
+              value = personAttributeValueMap[item.linkId]
+            },
+          )
+        } else {
+          item.answer.clear()
+        }
+      }
+
+      // Recursively process nested items if they exist
+      if (item.item.isNotEmpty()) {
+        fillPersonAttributeQuestionnaireItemRecursively(item.item, personAttributeValueMap)
+      }
+    }
+  }
 
   /**
    * Update patient registration questionnaire response into the application database.
@@ -165,6 +226,19 @@ constructor(
               )
           }
         }
+
+        val personAttributeExtensions =
+          openMRSHelper.extractPersonAttributeFromQuestionnaireResponse(
+            questionnaireResource,
+            questionnaireResponse,
+          )
+
+        if (patient.hasExtension()) {
+          personAttributeExtensions
+            .toMutableList()
+            .addAll(0, patient.extension.filterNot { it.url == OPENMRS_PERSON_ATTRIBUTE_URL })
+        }
+        originalPatient.extension = personAttributeExtensions
 
         fhirEngine.update(originalPatient)
         isPatientSaved.value = true

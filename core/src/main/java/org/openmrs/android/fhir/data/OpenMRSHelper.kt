@@ -35,14 +35,25 @@ import com.google.android.fhir.search.search
 import java.util.Date
 import java.util.LinkedList
 import javax.inject.Inject
+import kotlin.collections.forEach
 import kotlinx.coroutines.flow.first
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Encounter.EncounterParticipantComponent
+import org.hl7.fhir.r4.model.Extension
 import org.hl7.fhir.r4.model.Period
+import org.hl7.fhir.r4.model.Questionnaire
+import org.hl7.fhir.r4.model.Questionnaire.QuestionnaireItemComponent
+import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
+import org.hl7.fhir.r4.model.StringType
+import org.hl7.fhir.r4.model.Type
 import org.openmrs.android.fhir.Constants
+import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_TYPE_URL
+import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_URL
+import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_VALUE_URL
+import org.openmrs.android.fhir.Constants.PERSON_ATTRIBUTE_LINK_ID_PREFIX
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 
@@ -191,5 +202,90 @@ constructor(
     participant.individual.display = getAuthenticatedProviderName()
     participant.individual.type = "Practitioner"
     return participant
+  }
+
+  /**
+   * Extracts person attributes from a QuestionnaireResponse based on the provided Questionnaire.
+   * This function identifies questionnaire items related to person attributes (identified by the
+   * PERSON_ATTRIBUTE_LINK_ID_PREFIX), extracts their values from the QuestionnaireResponse, and
+   * converts them into FHIR Extensions.
+   *
+   * @param questionnaire The Questionnaire containing person attribute definitions
+   * @param questionnaireResponse The QuestionnaireResponse containing submitted values
+   * @return List of Extensions representing the person attributes found in the response
+   */
+  fun extractPersonAttributeFromQuestionnaireResponse(
+    questionnaire: Questionnaire,
+    questionnaireResponse: QuestionnaireResponse,
+  ): List<Extension> {
+    val personAttributeQuestionnaireLinkIds = extractAllItemLinkIds(questionnaire)
+    val extensionList = mutableListOf<Extension>()
+
+    fun traverseQuestionnaireResponseItems(
+      items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>?,
+    ) {
+      items?.forEach { item ->
+        // Add the current item's ID
+        if (item.linkId != null && personAttributeQuestionnaireLinkIds.contains(item.linkId)) {
+          if (item.answer.isNotEmpty()) {
+            var extensionValue = item.answer[0].value
+            extensionList.add(getPersonAttributeExtension(extensionValue, item.linkId))
+          }
+        }
+
+        // Recursively process child items
+        traverseQuestionnaireResponseItems(item.item)
+      }
+    }
+
+    traverseQuestionnaireResponseItems(questionnaireResponse.item)
+
+    return extensionList
+  }
+
+  /**
+   * Creates a FHIR Extension for a person attribute with the appropriate structure. This function
+   * builds a nested extension structure where the main extension uses the OpenMRS person attribute
+   * URL, and contains a child extension with the specific attribute type URL and value.
+   *
+   * @param extensionValue The value of the person attribute (as a FHIR Type)
+   * @param personAttributeQuestionnaireItem The questionnaire item containing attribute metadata
+   * @return A properly structured FHIR Extension for the person attribute
+   */
+  fun getPersonAttributeExtension(extensionValue: Type, linkId: String): Extension {
+    return Extension().apply {
+      url = OPENMRS_PERSON_ATTRIBUTE_URL
+      extension =
+        listOf(
+          Extension().apply {
+            url = OPENMRS_PERSON_ATTRIBUTE_TYPE_URL
+            value = StringType(linkId.substringAfter("#"))
+          },
+          Extension().apply {
+            url = OPENMRS_PERSON_ATTRIBUTE_VALUE_URL
+            value = extensionValue
+          },
+        )
+    }
+  }
+
+  private fun extractAllItemLinkIds(questionnaire: Questionnaire): Set<String> {
+    val linkIds = mutableSetOf<String>()
+
+    // Helper function for recursive traversal
+    fun traverseQuestionnaireItems(items: List<QuestionnaireItemComponent>?) {
+      items?.forEach { item ->
+        // Add the current item's ID
+        item.linkId?.let { if (it.contains(PERSON_ATTRIBUTE_LINK_ID_PREFIX)) linkIds.add(it) }
+
+        // Recursively process child items
+        traverseQuestionnaireItems(item.item)
+      }
+    }
+
+    // Start traversal with top-level items
+    traverseQuestionnaireItems(questionnaire.item)
+
+    return linkIds
   }
 }
