@@ -37,6 +37,7 @@ import java.util.LinkedList
 import javax.inject.Inject
 import kotlin.collections.forEach
 import kotlinx.coroutines.flow.first
+import org.hl7.fhir.r4.model.BooleanType
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Encounter
@@ -264,6 +265,14 @@ constructor(
           Extension().apply {
             url = OPENMRS_PERSON_ATTRIBUTE_VALUE_URL
             value = extensionValue
+            value =
+              when (val v = extensionValue) {
+                is CodeableConcept -> v
+                is Coding -> CodeableConcept().addCoding(v)
+                is BooleanType -> v
+                is StringType -> v
+                else -> null
+              }
           },
         )
     }

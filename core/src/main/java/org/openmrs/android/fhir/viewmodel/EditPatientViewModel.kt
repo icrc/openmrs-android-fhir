@@ -44,6 +44,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Address
+import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.ContactPoint
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
@@ -126,8 +127,14 @@ constructor(
               .firstOrNull { it.url == OPENMRS_PERSON_ATTRIBUTE_TYPE_URL }
               ?.value
               ?.toString()
-        personAttributeValueMap[linkId] =
+
+        var extensionValue =
           it.extension.firstOrNull { it.url == OPENMRS_PERSON_ATTRIBUTE_VALUE_URL }?.value as Type
+
+        if (extensionValue is CodeableConcept) {
+          extensionValue = extensionValue.coding.firstOrNull() as Type
+        }
+        personAttributeValueMap[linkId] = extensionValue
       }
 
     // Process items recursively
