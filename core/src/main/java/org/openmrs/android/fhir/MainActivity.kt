@@ -92,7 +92,6 @@ class MainActivity : AppCompatActivity() {
   private var tokenExpiryHandler: Handler? = null
   private var tokenCheckRunnable: Runnable? = null
   private var isDialogShowing = false
-  private var triggeredSyncFlag = false
   private lateinit var loginRepository: LoginRepository
   private lateinit var demoDataStore: DemoDataStore
 
@@ -289,24 +288,20 @@ class MainActivity : AppCompatActivity() {
       is CurrentSyncJobStatus.Running -> {
         if (syncJobStatus.inProgressSyncJob is SyncJobStatus.Started) {
           showSnackBar(this@MainActivity, "Sync started")
-          viewModel.handleStartSync()
-          triggeredSyncFlag = true
         } else {
           viewModel.handleInProgressSync(syncJobStatus)
         }
       }
       is CurrentSyncJobStatus.Succeeded -> {
         viewModel.handleSuccessSync(syncJobStatus)
-        triggeredSyncFlag = false
       }
       is CurrentSyncJobStatus.Failed -> {
         viewModel.handleFailedSync(syncJobStatus)
         viewModel.updateLastSyncTimestamp()
-        triggeredSyncFlag = false
       }
       else -> {
         showSnackBar(this@MainActivity, "Unknown sync state")
-        triggeredSyncFlag = false
+        viewModel.toggleSyncFlagToFalse()
       }
     }
   }
@@ -386,7 +381,7 @@ class MainActivity : AppCompatActivity() {
       viewModel.networkStatus.collect { isNetworkAvailable ->
         if (isNetworkAvailable) {
           binding.networkStatusFlag.tvNetworkStatus.text = getString(R.string.online)
-          if (triggeredSyncFlag) {
+          if (viewModel.isSyncing.value == true) {
             AlertDialog.Builder(context)
               .setTitle(getString(R.string.connection_restored))
               .setMessage(getString(R.string.do_you_want_to_continue_sync))

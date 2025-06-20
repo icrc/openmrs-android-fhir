@@ -48,7 +48,6 @@ import com.google.android.fhir.sync.RepeatInterval
 import com.google.android.fhir.sync.Sync
 import com.google.android.fhir.sync.SyncJobStatus
 import com.google.android.fhir.sync.SyncOperation
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
@@ -63,6 +62,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
@@ -72,7 +73,6 @@ import org.openmrs.android.fhir.data.FhirSyncWorker
 import org.openmrs.android.fhir.data.IdentifierTypeManager
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
-import org.openmrs.android.fhir.data.database.model.SyncSession
 import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ApiResponse
@@ -101,7 +101,11 @@ constructor(
   val lastSyncTimestampLiveData: LiveData<String>
     get() = _lastSyncTimestampLiveData
 
-  private val _oneTimeSyncTrigger = MutableStateFlow(false)
+  private val _isSyncing = MutableLiveData<Boolean>(false)
+  val isSyncing: LiveData<Boolean> = _isSyncing
+
+  private val syncMutex = Mutex()
+
   private val formatter =
     DateTimeFormatter.ofPattern(
       if (DateFormat.is24HourFormat(applicationContext)) formatString24 else formatString12,
@@ -152,10 +156,21 @@ constructor(
 
   fun triggerOneTimeSync(context: Context) {
     viewModelScope.launch {
-      if (!stopSync) {
+      val shouldSync =
+        syncMutex.withLock {
+          if (!stopSync && (_isSyncing.value != true)) {
+            _isSyncing.postValue(true)
+            database.dao().getOrCreateInProgressSyncSession(formatter)
+            true // Signal that we should proceed with sync
+          } else {
+            false // Don't sync
+          }
+        }
+
+      if (shouldSync) {
+        // Actual sync work happens outside the mutex
         fetchIdentifierTypesIfEmpty()
         embeddIdentifierToUnsyncedPatients(context)
-        _oneTimeSyncTrigger.value = !_oneTimeSyncTrigger.value
         Sync.oneTimeSync<FhirSyncWorker>(applicationContext)
           .shareIn(this, SharingStarted.Eagerly, 10)
           .collect { _pollState.emit(it) }
@@ -261,25 +276,9 @@ constructor(
   /*
   Handle sync
    */
-  fun handleStartSync() {
-    viewModelScope.launch {
-      val inProgressSyncSession = database.dao().getInProgressSyncSession()
-      if (inProgressSyncSession == null) {
-        database
-          .dao()
-          .insertSyncSession(
-            SyncSession(
-              startTime = LocalDateTime.now().format(formatter).toString(),
-              downloadedPatients = 0,
-              uploadedPatients = 0,
-              totalPatientsToDownload = 0,
-              totalPatientsToUpload = 0,
-              completionTime = null,
-              status = SyncStatus.ONGOING,
-            ),
-          )
-      }
-    }
+
+  fun toggleSyncFlagToFalse() {
+    _isSyncing.postValue(false)
   }
 
   fun handleInProgressSync(state: CurrentSyncJobStatus) {
@@ -353,6 +352,7 @@ constructor(
               inProgressSyncSession.id,
               state.timestamp.format(formatter).toString(),
             )
+          _isSyncing.postValue(false)
         }
       }
     }
@@ -373,6 +373,7 @@ constructor(
               state.timestamp.format(formatter).toString(),
             )
         }
+        _isSyncing.postValue(false)
       }
     }
   }

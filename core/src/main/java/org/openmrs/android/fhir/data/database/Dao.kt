@@ -33,6 +33,9 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.Flow
 import org.openmrs.android.fhir.data.database.model.Identifier
 import org.openmrs.android.fhir.data.database.model.IdentifierType
@@ -101,4 +104,25 @@ interface Dao {
 
   @Query("DELETE FROM syncsession WHERE status != 'ONGOING'")
   suspend fun clearAllSyncSessionsExceptOngoing()
+
+  @Transaction
+  suspend fun getOrCreateInProgressSyncSession(formatter: DateTimeFormatter): SyncSession {
+    val existing = getInProgressSyncSession()
+    if (existing != null) {
+      return existing
+    }
+
+    val newSession =
+      SyncSession(
+        startTime = LocalDateTime.now().format(formatter).toString(),
+        downloadedPatients = 0,
+        uploadedPatients = 0,
+        totalPatientsToDownload = 0,
+        totalPatientsToUpload = 0,
+        completionTime = null,
+        status = SyncStatus.ONGOING,
+      )
+    insertSyncSession(newSession)
+    return newSession
+  }
 }
