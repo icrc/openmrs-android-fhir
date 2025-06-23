@@ -89,6 +89,7 @@ constructor(
   val questionnaireJson: LiveData<String> = _questionnaireJson
   val isResourcesSaved = MutableLiveData<String>()
   val encounterType = getEncounterTypeValue()
+  val isLoading = MutableLiveData<Boolean>()
 
   fun getEncounterQuestionnaire(questionnaireId: String) {
     viewModelScope.launch {

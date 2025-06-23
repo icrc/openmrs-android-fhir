@@ -29,8 +29,10 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -46,6 +48,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.databinding.GenericFormentryFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.showSnackBar
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
@@ -56,6 +59,20 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
   @Inject lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
   private val viewModel: GenericFormEntryViewModel by viewModels { viewModelSavedStateFactory }
   private val args: GenericFormEntryFragmentArgs by navArgs()
+
+  private var _binding: GenericFormentryFragmentBinding? = null
+
+  private val binding
+    get() = _binding!!
+
+  override fun onCreateView(
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?,
+  ): View {
+    _binding = GenericFormentryFragmentBinding.inflate(inflater, container, false)
+    return binding.root
+  }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
@@ -69,6 +86,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
         args.questionnaireId,
       )
     }
+    observeLoading()
     observeQuestionnaire()
     childFragmentManager.setFragmentResultListener(
       QuestionnaireFragment.SUBMIT_REQUEST_KEY,
@@ -118,6 +136,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
   }
 
   private fun onSubmitAction() {
+    viewModel.isLoading.value = true
     lifecycleScope.launch {
       val questionnaireFragment =
         childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG) as QuestionnaireFragment
@@ -153,6 +172,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   private fun observeResourcesSaveAction() {
     viewModel.isResourcesSaved.observe(viewLifecycleOwner) {
+      viewModel.isLoading.value = false
       val isSaved = it.contains("SAVED")
       if (!isSaved) {
         Toast.makeText(requireContext(), getString(R.string.inputs_missing), Toast.LENGTH_SHORT)
@@ -177,6 +197,18 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
           )
           .show()
         NavHostFragment.findNavController(this).navigateUp()
+      }
+    }
+  }
+
+  private fun observeLoading() {
+    viewModel.isLoading.observe(viewLifecycleOwner) {
+      if (it) {
+        binding.progressBar.visibility = View.VISIBLE
+        binding.touchBlockerView.visibility = View.VISIBLE // Show the blocker
+      } else {
+        binding.progressBar.visibility = View.GONE
+        binding.touchBlockerView.visibility = View.GONE // Hide the blocker
       }
     }
   }
