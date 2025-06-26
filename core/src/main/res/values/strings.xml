@@ -279,4 +279,15 @@
     <string name="syncing_resources">Syncing resources</string>
     <string name="syncing_patient_data">Syncing patient data</string>
     <string name="get_started">Get started</string>
+    <string name="please_try_again_later">Please try again later.</string>
+    <string name="unknown_sync_state">Unknown sync state</string>
+    <string name="sync_failed">Sync Failed</string>
+    <string name="sync_completed">Sync Completed</string>
+    <string
+        name="all_data_synchronized_successfully"
+    >All data synchronized successfully!</string>
+    <string
+        name="patient_resources_are_being_synchronized"
+    >Patient resources are being synchronized…</string>
+    <string name="progress">Progress</string>
 </resources>

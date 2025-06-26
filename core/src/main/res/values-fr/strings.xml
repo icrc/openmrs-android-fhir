@@ -295,4 +295,15 @@
         name="syncing_patient_data"
     >Synchronisation des données patient</string>
     <string name="get_started">Commencer</string>
+    <string name="please_try_again_later">Veuillez réessayer plus tard.</string>
+    <string name="unknown_sync_state">État de synchronisation inconnu</string>
+    <string name="sync_failed">Échec de la synchronisation</string>
+    <string name="sync_completed">Synchronisation terminée</string>
+    <string
+        name="all_data_synchronized_successfully"
+    >Toutes les données ont été synchronisées avec succès !</string>
+    <string
+        name="patient_resources_are_being_synchronized"
+    >Les ressources patient sont en cours de synchronisation…</string>
+    <string name="progress">Progression</string>
 </resources>

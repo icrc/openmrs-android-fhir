@@ -35,6 +35,7 @@ import javax.inject.Singleton
 import org.openmrs.android.fhir.BasicLoginActivity
 import org.openmrs.android.fhir.LoginActivity
 import org.openmrs.android.fhir.MainActivity
+import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.fragments.AddPatientFragment
 import org.openmrs.android.fhir.fragments.CreateEncountersFragment
 import org.openmrs.android.fhir.fragments.EditEncounterFragment
@@ -106,4 +107,6 @@ interface AppComponent {
   fun inject(fragment: GroupFormEntryFragment)
 
   fun inject(fragment: PatientSelectionDialogFragment)
+
+  fun notificationHelper(): NotificationHelper
 }

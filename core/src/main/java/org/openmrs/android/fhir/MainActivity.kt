@@ -76,6 +76,9 @@ import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
+import org.openmrs.android.fhir.extensions.NotificationHelper
+import org.openmrs.android.fhir.extensions.PermissionHelper
+import org.openmrs.android.fhir.extensions.PermissionHelperFactory
 import org.openmrs.android.fhir.extensions.UncaughtExceptionHandler
 import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
 import org.openmrs.android.fhir.extensions.getApplicationLogs
@@ -103,6 +106,12 @@ class MainActivity : AppCompatActivity() {
 
   @Inject lateinit var apiManager: ApiManager
 
+  @Inject lateinit var notificationHelper: NotificationHelper
+
+  @Inject lateinit var permissionHelperFactory: PermissionHelperFactory
+
+  private lateinit var permissionHelper: PermissionHelper
+
   private val viewModel by viewModels<MainActivityViewModel> { viewModelFactory }
   private val syncInfoViewModel by viewModels<SyncInfoViewModel> { viewModelFactory }
 
@@ -118,6 +127,7 @@ class MainActivity : AppCompatActivity() {
     setContentView(binding.root)
     tokenExpiryHandler = Handler(Looper.getMainLooper())
     demoDataStore = DemoDataStore(this)
+    permissionHelper = PermissionHelperFactory().create(this)
     //    lifecycleScope.launch {
     // viewModel.initPeriodicSyncWorker(demoDataStore.getPeriodicSyncDelay()) } TODO: Discuss on
     // periodic sync
@@ -255,6 +265,11 @@ class MainActivity : AppCompatActivity() {
             }
           }
         }*/
+        permissionHelper.checkAndRequestNotificationPermission { granted ->
+          if (granted) {
+            notificationHelper.showSyncStarted()
+          }
+        }
         showSyncTasksScreen()
         viewModel.triggerOneTimeSync(applicationContext)
         binding.drawer.closeDrawer(GravityCompat.START)
@@ -307,15 +322,25 @@ class MainActivity : AppCompatActivity() {
       }
       is CurrentSyncJobStatus.Succeeded -> {
         hideSyncTasksScreen()
+        permissionHelper.checkAndRequestNotificationPermission { granted ->
+          if (granted) {
+            notificationHelper.showSyncCompleted()
+          }
+        }
         viewModel.handleSuccessSync(syncJobStatus)
       }
       is CurrentSyncJobStatus.Failed -> {
         hideSyncTasksScreen()
+        permissionHelper.checkAndRequestNotificationPermission { granted ->
+          if (granted) {
+            notificationHelper.showSyncFailed(getString(R.string.please_try_again_later))
+          }
+        }
         viewModel.handleFailedSync(syncJobStatus)
         viewModel.updateLastSyncTimestamp()
       }
       else -> {
-        showSnackBar(this@MainActivity, "Unknown sync state")
+        showSnackBar(this@MainActivity, getString(R.string.unknown_sync_state))
         hideSyncTasksScreen()
         viewModel.toggleSyncFlagToFalse()
       }
