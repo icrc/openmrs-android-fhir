@@ -160,7 +160,6 @@ constructor(
         syncMutex.withLock {
           if (!stopSync && (_isSyncing.value != true)) {
             _isSyncing.postValue(true)
-            database.dao().getOrCreateInProgressSyncSession(formatter)
             true // Signal that we should proceed with sync
           } else {
             false // Don't sync
@@ -231,7 +230,6 @@ constructor(
         .search<Patient> { filter(Patient.IDENTIFIER, { value = of("unsynced") }) }
         .map { it.resource }
         .toList()
-
     patients.forEach {
       val identifiers = it.identifier
       identifiers.forEach { identifier ->
@@ -281,6 +279,10 @@ constructor(
     _isSyncing.postValue(false)
   }
 
+  fun handleSyncStarted() {
+    viewModelScope.launch { database.dao().getOrCreateInProgressSyncSession(formatter) }
+  }
+
   fun handleInProgressSync(state: CurrentSyncJobStatus) {
     viewModelScope.launch {
       if (
@@ -290,6 +292,7 @@ constructor(
         if (inProgressSyncSession != null) {
           val inProgressState = state.inProgressSyncJob as SyncJobStatus.InProgress
           if (inProgressState.syncOperation == SyncOperation.UPLOAD) {
+            // Adding case if there's nothing to sync then it will delete the sync record.
             database
               .dao()
               .updateSyncSessionUploadValues(
@@ -352,9 +355,9 @@ constructor(
               inProgressSyncSession.id,
               state.timestamp.format(formatter).toString(),
             )
-          _isSyncing.postValue(false)
         }
       }
+      _isSyncing.postValue(false)
     }
   }
 
@@ -373,8 +376,8 @@ constructor(
               state.timestamp.format(formatter).toString(),
             )
         }
-        _isSyncing.postValue(false)
       }
+      _isSyncing.postValue(false)
     }
   }
 

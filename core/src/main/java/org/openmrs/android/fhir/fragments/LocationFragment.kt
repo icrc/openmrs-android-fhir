@@ -113,6 +113,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
     arguments?.let {
       val fromLogin = it.getBoolean("from_login")
       if (fromLogin) {
+        showSyncTasksScreen()
         actionBar?.hide()
         (activity as MainActivity).setDrawerEnabled(true)
         binding.titleTextView.visibility = View.VISIBLE
@@ -164,6 +165,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
     binding.progressBar.visibility = View.VISIBLE
 
     locationViewModel.locations.observe(viewLifecycleOwner) {
+      showLocationScreen()
       binding.progressBar.visibility = View.GONE
       binding.emptyStateContainer.visibility = if (it.isEmpty()) View.VISIBLE else View.GONE
       if (::locationAdapter.isInitialized && ::favoriteLocationAdapter.isInitialized) {
@@ -173,6 +175,16 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
     }
 
     addSearchTextChangeListener()
+  }
+
+  private fun showSyncTasksScreen() {
+    binding.syncTasksContainer.visibility = View.VISIBLE
+    binding.locationContainer.visibility = View.GONE
+  }
+
+  private fun showLocationScreen() {
+    binding.syncTasksContainer.visibility = View.GONE
+    binding.locationContainer.visibility = View.VISIBLE
   }
 
   private fun onLocationItemClicked(
@@ -202,10 +214,12 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
       locationViewModel.pollState.collect {
         when (it) {
           is CurrentSyncJobStatus.Succeeded -> {
+            showLocationScreen()
             locationViewModel.getLocations()
           }
           is CurrentSyncJobStatus.Failed -> {
             binding.progressBar.visibility = View.GONE
+            showLocationScreen()
             locationViewModel.getLocations()
             Toast.makeText(context, "Failed to fetch all locations", Toast.LENGTH_SHORT).show()
           }

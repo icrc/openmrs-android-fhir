@@ -255,6 +255,7 @@ class MainActivity : AppCompatActivity() {
             }
           }
         }*/
+        showSyncTasksScreen()
         viewModel.triggerOneTimeSync(applicationContext)
         binding.drawer.closeDrawer(GravityCompat.START)
       }
@@ -265,6 +266,17 @@ class MainActivity : AppCompatActivity() {
         showSnackBar(this@MainActivity, getString(R.string.sync_device_offline_message))
       }
     }
+  }
+
+  fun showSyncTasksScreen() {
+    binding.syncTasksContainer.visibility = View.VISIBLE
+    binding.coordinatorLayoutContainer.visibility = View.GONE
+    binding.btnSyncTasks.setOnClickListener { hideSyncTasksScreen() }
+  }
+
+  fun hideSyncTasksScreen() {
+    binding.syncTasksContainer.visibility = View.GONE
+    binding.coordinatorLayoutContainer.visibility = View.VISIBLE
   }
 
   private fun observeSyncState() {
@@ -287,20 +299,24 @@ class MainActivity : AppCompatActivity() {
       }
       is CurrentSyncJobStatus.Running -> {
         if (syncJobStatus.inProgressSyncJob is SyncJobStatus.Started) {
+          viewModel.handleSyncStarted()
           showSnackBar(this@MainActivity, "Sync started")
         } else {
           viewModel.handleInProgressSync(syncJobStatus)
         }
       }
       is CurrentSyncJobStatus.Succeeded -> {
+        hideSyncTasksScreen()
         viewModel.handleSuccessSync(syncJobStatus)
       }
       is CurrentSyncJobStatus.Failed -> {
+        hideSyncTasksScreen()
         viewModel.handleFailedSync(syncJobStatus)
         viewModel.updateLastSyncTimestamp()
       }
       else -> {
         showSnackBar(this@MainActivity, "Unknown sync state")
+        hideSyncTasksScreen()
         viewModel.toggleSyncFlagToFalse()
       }
     }

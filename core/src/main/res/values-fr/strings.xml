@@ -277,4 +277,22 @@
     <string
         name="all_encounters_saved_do_you_want_to_exit"
     >Toutes les consultations enregistrées ! Voulez-vous quitter ?</string>
+    <string name="close_this_window">Fermer cette fenêtre</string>
+    <string
+        name="you_can_do_other_things_on_the_device_while_it_syncs"
+    >Vous pouvez faire d\'autres choses sur l\'appareil pendant la synchronisation.</string>
+    <string
+        name="leave_the_device_in_a_location_with_good_internet_reception"
+    >Laissez l\'appareil dans un endroit avec une bonne réception Internet</string>
+    <string
+        name="stay_connected_to_wi_fi_or_data"
+    >Restez connecté au Wi-Fi ou aux données mobiles</string>
+    <string
+        name="this_can_take_up_to_10_minutes_depending_on_your_internet_connection"
+    >Cela peut prendre jusqu\'à 10 minutes en fonction de votre connexion Internet</string>
+    <string name="syncing_resources">Synchronisation des ressources</string>
+    <string
+        name="syncing_patient_data"
+    >Synchronisation des données patient</string>
+    <string name="get_started">Commencer</string>
 </resources>
