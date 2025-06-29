@@ -300,4 +300,10 @@
         name="patient_resources_are_being_synchronized"
     >Sincronizando recursos del paciente…</string>
     <string name="progress">Progreso</string>
+    <string
+        name="Downloading_patient_data"
+    >Téléchargement des données du patient</string>
+    <string
+        name="uploading_patient_data"
+    >Mise en ligne des données du patient</string>
 </resources>

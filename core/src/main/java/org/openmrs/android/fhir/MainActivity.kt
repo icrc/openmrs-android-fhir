@@ -51,10 +51,9 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
-import com.google.android.fhir.sync.CurrentSyncJobStatus
-import com.google.android.fhir.sync.SyncJobStatus
 import com.google.android.material.snackbar.Snackbar
 import java.io.BufferedOutputStream
 import java.io.File
@@ -77,8 +76,6 @@ import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
 import org.openmrs.android.fhir.extensions.NotificationHelper
-import org.openmrs.android.fhir.extensions.PermissionHelper
-import org.openmrs.android.fhir.extensions.PermissionHelperFactory
 import org.openmrs.android.fhir.extensions.UncaughtExceptionHandler
 import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
 import org.openmrs.android.fhir.extensions.getApplicationLogs
@@ -86,6 +83,7 @@ import org.openmrs.android.fhir.extensions.saveToFile
 import org.openmrs.android.fhir.extensions.showSnackBar
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
+import org.openmrs.android.fhir.worker.SyncInfoDatabaseWriterWorker
 import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
@@ -108,10 +106,6 @@ class MainActivity : AppCompatActivity() {
 
   @Inject lateinit var notificationHelper: NotificationHelper
 
-  @Inject lateinit var permissionHelperFactory: PermissionHelperFactory
-
-  private lateinit var permissionHelper: PermissionHelper
-
   private val viewModel by viewModels<MainActivityViewModel> { viewModelFactory }
   private val syncInfoViewModel by viewModels<SyncInfoViewModel> { viewModelFactory }
 
@@ -127,7 +121,6 @@ class MainActivity : AppCompatActivity() {
     setContentView(binding.root)
     tokenExpiryHandler = Handler(Looper.getMainLooper())
     demoDataStore = DemoDataStore(this)
-    permissionHelper = PermissionHelperFactory().create(this)
     //    lifecycleScope.launch {
     // viewModel.initPeriodicSyncWorker(demoDataStore.getPeriodicSyncDelay()) } TODO: Discuss on
     // periodic sync
@@ -265,12 +258,7 @@ class MainActivity : AppCompatActivity() {
             }
           }
         }*/
-        permissionHelper.checkAndRequestNotificationPermission { granted ->
-          if (granted) {
-            notificationHelper.showSyncStarted()
-          }
-        }
-        showSyncTasksScreen()
+
         viewModel.triggerOneTimeSync(applicationContext)
         binding.drawer.closeDrawer(GravityCompat.START)
       }
@@ -296,53 +284,46 @@ class MainActivity : AppCompatActivity() {
 
   private fun observeSyncState() {
     lifecycleScope.launch {
-      viewModel.pollState.collect {
-        Timber.d("observerSyncState: pollState Got status $it")
-        handleCurrentSyncJobStatus(it)
-      }
+      viewModel.syncProgress.observeForever { handleSyncStatus(it) }
       viewModel.pollPeriodicSyncJobStatus?.collect {
         Timber.d("observerSyncState: pollState Got status $it")
-        handleCurrentSyncJobStatus(it.currentSyncJobStatus)
+        //        handleCurrentSyncJobStatus(it.currentSyncJobStatus)
       }
     }
   }
 
-  private fun handleCurrentSyncJobStatus(syncJobStatus: CurrentSyncJobStatus) {
-    when (syncJobStatus) {
-      is CurrentSyncJobStatus.Enqueued -> {
-        showSnackBar(this@MainActivity, "Sync Enqueued")
-      }
-      is CurrentSyncJobStatus.Running -> {
-        if (syncJobStatus.inProgressSyncJob is SyncJobStatus.Started) {
-          viewModel.handleSyncStarted()
-          showSnackBar(this@MainActivity, "Sync started")
-        } else {
-          viewModel.handleInProgressSync(syncJobStatus)
+  private fun handleSyncStatus(workInfos: List<WorkInfo>) {
+    val workInfo = workInfos.firstOrNull()
+
+    if (workInfo == null) {
+      return
+    }
+
+    when {
+      workInfo.state == WorkInfo.State.RUNNING -> {
+        val progress = workInfo.progress
+
+        if (progress.getString(SyncInfoDatabaseWriterWorker.PROGRESS_STATUS) == "STARTED") {
+          showSyncTasksScreen()
+          showSnackBar(this@MainActivity, getString(R.string.sync_started))
+        } else if (progress.getString(SyncInfoDatabaseWriterWorker.PROGRESS_STATUS) == "FAILED") {
+          hideSyncTasksScreen()
+          viewModel.updateLastSyncTimestamp()
+        } else if (
+          progress.getString(SyncInfoDatabaseWriterWorker.PROGRESS_STATUS) == "SUCCEEDED"
+        ) {
+          hideSyncTasksScreen()
         }
       }
-      is CurrentSyncJobStatus.Succeeded -> {
+      workInfo.state == WorkInfo.State.SUCCEEDED -> {
         hideSyncTasksScreen()
-        permissionHelper.checkAndRequestNotificationPermission { granted ->
-          if (granted) {
-            notificationHelper.showSyncCompleted()
-          }
-        }
-        viewModel.handleSuccessSync(syncJobStatus)
-      }
-      is CurrentSyncJobStatus.Failed -> {
-        hideSyncTasksScreen()
-        permissionHelper.checkAndRequestNotificationPermission { granted ->
-          if (granted) {
-            notificationHelper.showSyncFailed(getString(R.string.please_try_again_later))
-          }
-        }
-        viewModel.handleFailedSync(syncJobStatus)
         viewModel.updateLastSyncTimestamp()
+        showSnackBar(this@MainActivity, getString(R.string.sync_completed))
       }
-      else -> {
-        showSnackBar(this@MainActivity, getString(R.string.unknown_sync_state))
+      workInfo.state == WorkInfo.State.FAILED -> {
         hideSyncTasksScreen()
-        viewModel.toggleSyncFlagToFalse()
+        viewModel.updateLastSyncTimestamp()
+        showSnackBar(this@MainActivity, getString(R.string.sync_failed))
       }
     }
   }

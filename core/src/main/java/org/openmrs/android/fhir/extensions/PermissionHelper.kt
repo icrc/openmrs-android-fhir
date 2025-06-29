@@ -29,6 +29,7 @@
 package org.openmrs.android.fhir.extensions
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
@@ -38,7 +39,41 @@ import androidx.core.content.ContextCompat
 import javax.inject.Inject
 import javax.inject.Singleton
 
-class PermissionHelper(private val activity: AppCompatActivity) {
+/**
+ * Worker-compatible permission checker that only checks permission status without requesting
+ * permissions (which requires UI interaction)
+ */
+class PermissionChecker(private val context: Context) {
+
+  fun checkNotificationPermissionStatus(): Boolean {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      ContextCompat.checkSelfPermission(
+        context,
+        Manifest.permission.POST_NOTIFICATIONS,
+      ) == PackageManager.PERMISSION_GRANTED
+    } else {
+      // Permission not required for older versions
+      true
+    }
+  }
+
+  fun checkNotificationPermissionStatus(callback: (isGranted: Boolean) -> Unit) {
+    callback(checkNotificationPermissionStatus())
+  }
+
+  fun isNotificationPermissionRequired(): Boolean {
+    return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+  }
+}
+
+/**
+ * Activity-based permission helper that can both check and request permissions This should only be
+ * used in UI contexts (Activities/Fragments)
+ */
+class PermissionHelper(
+  private val activity: AppCompatActivity,
+  private val permissionChecker: PermissionChecker = PermissionChecker(activity),
+) {
 
   private var onPermissionResult: ((Boolean) -> Unit)? = null
 
@@ -50,12 +85,9 @@ class PermissionHelper(private val activity: AppCompatActivity) {
   fun checkAndRequestNotificationPermission(callback: (Boolean) -> Unit) {
     onPermissionResult = callback
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    if (permissionChecker.isNotificationPermissionRequired()) {
       when {
-        ContextCompat.checkSelfPermission(
-          activity,
-          Manifest.permission.POST_NOTIFICATIONS,
-        ) == PackageManager.PERMISSION_GRANTED -> {
+        permissionChecker.checkNotificationPermissionStatus() -> {
           callback(true)
         }
         else -> {
@@ -66,12 +98,42 @@ class PermissionHelper(private val activity: AppCompatActivity) {
       callback(true) // Permission not required for older versions
     }
   }
+
+  fun checkNotificationPermissionStatus(callback: (isGranted: Boolean) -> Unit) {
+    permissionChecker.checkNotificationPermissionStatus(callback)
+  }
+
+  fun checkNotificationPermissionStatus(): Boolean {
+    return permissionChecker.checkNotificationPermissionStatus()
+  }
 }
 
 @Singleton
-class PermissionHelperFactory @Inject constructor() {
+class PermissionCheckerFactory @Inject constructor() {
+
+  fun create(context: Context): PermissionChecker {
+    return PermissionChecker(context)
+  }
+}
+
+@Singleton
+class PermissionHelperFactory
+@Inject
+constructor(
+  private val permissionCheckerFactory: PermissionCheckerFactory,
+) {
 
   fun create(activity: AppCompatActivity): PermissionHelper {
-    return PermissionHelper(activity)
+    val permissionChecker = permissionCheckerFactory.create(activity)
+    return PermissionHelper(activity, permissionChecker)
   }
+}
+
+/** Extension functions for easier usage */
+fun Context.createPermissionChecker(): PermissionChecker {
+  return PermissionChecker(this)
+}
+
+fun AppCompatActivity.createPermissionHelper(): PermissionHelper {
+  return PermissionHelper(this)
 }

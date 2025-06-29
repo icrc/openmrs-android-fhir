@@ -278,6 +278,8 @@
     >This can take up to 10 minutes depending on your internet connection</string>
     <string name="syncing_resources">Syncing resources</string>
     <string name="syncing_patient_data">Syncing patient data</string>
+    <string name="Downloading_patient_data">Downloading patient data</string>
+    <string name="uploading_patient_data">Uploading patient data</string>
     <string name="get_started">Get started</string>
     <string name="please_try_again_later">Please try again later.</string>
     <string name="unknown_sync_state">Unknown sync state</string>

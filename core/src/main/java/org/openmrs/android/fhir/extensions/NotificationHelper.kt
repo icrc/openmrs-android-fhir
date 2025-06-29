@@ -95,14 +95,23 @@ constructor(
   }
 
   @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-  fun updateSyncProgress(progress: Int, maxProgress: Int = 100) {
+  fun updateSyncProgress(progress: Int, maxProgress: Int = 100, isDownload: Boolean = true) {
     val notification =
-      createBaseNotification(
-          title = "Syncing Tasks",
-          message = "${context.getString(R.string.progress)}: $progress%",
-          ongoing = true,
-        )
-        .setProgress(maxProgress, progress, false)
+      if (isDownload) {
+        createBaseNotification(
+            title = context.getString(R.string.syncing_patient_data),
+            message = "${context.getString(R.string.downloaded)}: $progress/$maxProgress",
+            ongoing = true,
+          )
+          .setProgress(maxProgress, progress, false)
+      } else {
+        createBaseNotification(
+            title = context.getString(R.string.uploading_patient_data),
+            message = "${context.getString(R.string.uploaded)}: $progress/$maxProgress",
+            ongoing = true,
+          )
+          .setProgress(maxProgress, progress, false)
+      }
 
     NotificationManagerCompat.from(context).notify(SYNC_NOTIFICATION_ID, notification.build())
   }

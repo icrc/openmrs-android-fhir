@@ -37,24 +37,20 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.logicalId
 import com.google.android.fhir.search.search
-import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.PeriodicSyncConfiguration
 import com.google.android.fhir.sync.PeriodicSyncJobStatus
 import com.google.android.fhir.sync.RepeatInterval
 import com.google.android.fhir.sync.Sync
-import com.google.android.fhir.sync.SyncJobStatus
-import com.google.android.fhir.sync.SyncOperation
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -73,11 +69,11 @@ import org.openmrs.android.fhir.data.FhirSyncWorker
 import org.openmrs.android.fhir.data.IdentifierTypeManager
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
-import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ApiResponse
 import org.openmrs.android.fhir.data.remote.model.IdentifierWrapper
 import org.openmrs.android.fhir.data.remote.model.SessionLocation
+import org.openmrs.android.fhir.worker.SyncInfoDatabaseWriterWorker
 
 /** View model for [MainActivity]. */
 class MainActivityViewModel
@@ -117,10 +113,6 @@ constructor(
   val networkStatus: StateFlow<Boolean>
     get() = _networkStatus
 
-  private val _pollState = MutableSharedFlow<CurrentSyncJobStatus>()
-  val pollState: Flow<CurrentSyncJobStatus>
-    get() = _pollState
-
   private var connectivityManager: ConnectivityManager =
     applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
   private var networkCallBack: ConnectivityManager.NetworkCallback =
@@ -137,6 +129,11 @@ constructor(
         _networkStatus.value = false
       }
     }
+
+  private val workManager = WorkManager.getInstance(applicationContext)
+
+  val syncProgress: LiveData<List<WorkInfo>> =
+    workManager.getWorkInfosForUniqueWorkLiveData(SyncInfoDatabaseWriterWorker.WORK_NAME)
 
   @ExperimentalCoroutinesApi
   fun initPeriodicSyncWorker(periodicSyncDelay: Long) {
@@ -170,9 +167,7 @@ constructor(
         // Actual sync work happens outside the mutex
         fetchIdentifierTypesIfEmpty()
         embeddIdentifierToUnsyncedPatients(context)
-        Sync.oneTimeSync<FhirSyncWorker>(applicationContext)
-          .shareIn(this, SharingStarted.Eagerly, 10)
-          .collect { _pollState.emit(it) }
+        SyncInfoDatabaseWriterWorker.enqueue(applicationContext)
       }
     }
   }
@@ -269,116 +264,6 @@ constructor(
     _lastSyncTimestampLiveData.value =
       lastSync?.let { it.toLocalDateTime()?.format(formatter) ?: "" }
         ?: Sync.getLastSyncTimestamp(applicationContext)?.toLocalDateTime()?.format(formatter) ?: ""
-  }
-
-  /*
-  Handle sync
-   */
-
-  fun toggleSyncFlagToFalse() {
-    _isSyncing.postValue(false)
-  }
-
-  fun handleSyncStarted() {
-    viewModelScope.launch { database.dao().getOrCreateInProgressSyncSession(formatter) }
-  }
-
-  fun handleInProgressSync(state: CurrentSyncJobStatus) {
-    viewModelScope.launch {
-      if (
-        state is CurrentSyncJobStatus.Running && state.inProgressSyncJob is SyncJobStatus.InProgress
-      ) {
-        val inProgressSyncSession = database.dao().getInProgressSyncSession()
-        if (inProgressSyncSession != null) {
-          val inProgressState = state.inProgressSyncJob as SyncJobStatus.InProgress
-          if (inProgressState.syncOperation == SyncOperation.UPLOAD) {
-            // Adding case if there's nothing to sync then it will delete the sync record.
-            database
-              .dao()
-              .updateSyncSessionUploadValues(
-                sessionId = inProgressSyncSession.id,
-                completed = inProgressState.completed,
-                total = inProgressState.total,
-              )
-          } else {
-            database
-              .dao()
-              .updateSyncSessionDownloadValues(
-                sessionId = inProgressSyncSession.id,
-                completed = inProgressState.completed,
-                total = inProgressState.total,
-              )
-          }
-        }
-      }
-      if (
-        state is CurrentSyncJobStatus.Running && state.inProgressSyncJob is SyncJobStatus.Failed
-      ) {
-        val inProgressSyncSession = database.dao().getInProgressSyncSession()
-        if (inProgressSyncSession != null) {
-          database
-            .dao()
-            .updateSyncSessionErrors(
-              inProgressSyncSession.id,
-              (state.inProgressSyncJob as SyncJobStatus.Failed).exceptions.map { it ->
-                it.exception.message
-              } as List<String>,
-            )
-        }
-      }
-    }
-  }
-
-  fun handleSuccessSync(state: CurrentSyncJobStatus) {
-    viewModelScope.launch {
-      if (state is CurrentSyncJobStatus.Succeeded) {
-        val inProgressSyncSession = database.dao().getInProgressSyncSession()
-        if (inProgressSyncSession != null) {
-          database
-            .dao()
-            .updateSyncSessionUploadValues(
-              sessionId = inProgressSyncSession.id,
-              completed = inProgressSyncSession.totalPatientsToUpload,
-              total = inProgressSyncSession.totalPatientsToUpload,
-            )
-          database
-            .dao()
-            .updateSyncSessionDownloadValues(
-              sessionId = inProgressSyncSession.id,
-              completed = inProgressSyncSession.totalPatientsToDownload,
-              total = inProgressSyncSession.totalPatientsToDownload,
-            )
-          database.dao().updateSyncSessionStatus(inProgressSyncSession.id, SyncStatus.COMPLETED)
-          database
-            .dao()
-            .updateSyncSessionCompletionTime(
-              inProgressSyncSession.id,
-              state.timestamp.format(formatter).toString(),
-            )
-        }
-      }
-      _isSyncing.postValue(false)
-    }
-  }
-
-  fun handleFailedSync(state: CurrentSyncJobStatus) {
-    viewModelScope.launch {
-      if (state is CurrentSyncJobStatus.Failed) {
-        val inProgressSyncSession = database.dao().getInProgressSyncSession()
-        if (inProgressSyncSession != null) {
-          database
-            .dao()
-            .updateSyncSessionStatus(inProgressSyncSession.id, SyncStatus.COMPLETED_WITH_ERRORS)
-          database
-            .dao()
-            .updateSyncSessionCompletionTime(
-              inProgressSyncSession.id,
-              state.timestamp.format(formatter).toString(),
-            )
-        }
-      }
-      _isSyncing.postValue(false)
-    }
   }
 
   fun registerNetworkCallback() {
