@@ -39,6 +39,8 @@ import org.openmrs.android.fhir.data.IdentifierTypeManager
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.remote.Api
 import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.extensions.NotificationHelper
+import org.openmrs.android.fhir.extensions.PermissionChecker
 import org.openmrs.android.helpers.OpenMRSHelper
 
 @Module
@@ -88,5 +90,17 @@ object AppModule {
     fhirEngine: FhirEngine,
   ): OpenMRSHelper {
     return OpenMRSHelper(fhirEngine, context)
+  }
+
+  @Provides
+  @Singleton
+  fun provideNotificationHelper(context: Context): NotificationHelper {
+    return NotificationHelper(context)
+  }
+
+  @Provides
+  @Singleton
+  fun providePermissionChecker(context: Context): PermissionChecker {
+    return PermissionChecker(context)
   }
 }

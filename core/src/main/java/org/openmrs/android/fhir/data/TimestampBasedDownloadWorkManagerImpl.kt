@@ -54,7 +54,7 @@ class TimestampBasedDownloadWorkManagerImpl(
   private val dataStore: DemoDataStore,
   private val context: Context,
 ) : DownloadWorkManager {
-  private val resourceTypeList = ResourceType.values().map { it.name }
+  private val resourceTypeList = ResourceType.entries.map { it.name }
   private val urls = LinkedList(loadUrlsFromProperties())
 
   private fun loadUrlsFromProperties(): List<String> {
@@ -92,9 +92,23 @@ class TimestampBasedDownloadWorkManagerImpl(
   }
 
   override suspend fun getSummaryRequestUrls(): Map<ResourceType, String> {
-    return urls.associate {
-      ResourceType.fromCode(it.substringBefore("?")) to
-        it.plus("&${SyncDataParams.SUMMARY_KEY}=${SyncDataParams.SUMMARY_COUNT_VALUE}")
+    return urls.associate { url ->
+      val resourceType = ResourceType.fromCode(url.substringBefore("?"))
+      val lastUpdated = dataStore.getLasUpdateTimestamp(resourceType)
+
+      var baseUrl =
+        if (lastUpdated.isNullOrEmpty()) {
+          url
+        } else {
+          affixLastUpdatedTimestamp(url, lastUpdated)
+        }
+
+      baseUrl = removeSummaryParameter(baseUrl)
+
+      val summaryUrl =
+        baseUrl + "&${SyncDataParams.SUMMARY_KEY}=${SyncDataParams.SUMMARY_COUNT_VALUE}"
+
+      resourceType to summaryUrl
     }
   }
 
@@ -112,7 +126,7 @@ class TimestampBasedDownloadWorkManagerImpl(
     if (response is ListResource) {
       for (entry in response.entry) {
         val reference = Reference(entry.item.reference)
-        if (reference.referenceElement.resourceType.equals("Patient")) {
+        if (reference.referenceElement.resourceType == "Patient") {
           val patientUrl = "${entry.item.reference}/\$everything"
           urls.add(patientUrl)
         }
@@ -198,4 +212,8 @@ private fun Date.toTimeZoneString(): String {
     DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.getDefault())
       .withZone(ZoneId.systemDefault())
   return simpleDateFormat.format(this.toInstant())
+}
+
+private fun removeSummaryParameter(url: String): String {
+  return url.replace(Regex("&_summary=[^&]*"), "")
 }

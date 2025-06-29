@@ -35,6 +35,9 @@ import javax.inject.Singleton
 import org.openmrs.android.fhir.BasicLoginActivity
 import org.openmrs.android.fhir.LoginActivity
 import org.openmrs.android.fhir.MainActivity
+import org.openmrs.android.fhir.data.database.AppDatabase
+import org.openmrs.android.fhir.extensions.NotificationHelper
+import org.openmrs.android.fhir.extensions.PermissionChecker
 import org.openmrs.android.fhir.fragments.AddPatientFragment
 import org.openmrs.android.fhir.fragments.CreateEncountersFragment
 import org.openmrs.android.fhir.fragments.EditEncounterFragment
@@ -67,6 +70,12 @@ interface AppComponent {
   interface Factory {
     fun create(@BindsInstance applicationContext: Context): AppComponent
   }
+
+  fun notificationHelper(): NotificationHelper
+
+  fun permissionChecker(): PermissionChecker
+
+  fun database(): AppDatabase
 
   /*
    * Fragments & Activities

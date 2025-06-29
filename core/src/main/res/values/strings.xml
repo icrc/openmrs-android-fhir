@@ -219,7 +219,7 @@
     <string name="_0" translatable="false">0 %</string>
     <string name="start_time">Start Time</string>
     <string name="downloaded">Downloaded</string>
-    <string name="uploaded">Downloaded</string>
+    <string name="uploaded">Uploaded</string>
     <string name="in_progress">In Progress</string>
     <string name="completed_at">Completed At</string>
     <string name="errors">Errors</string>
@@ -263,4 +263,33 @@
     <string
         name="all_encounters_saved_do_you_want_to_exit"
     >All encounters saved! Do you want to exit?</string>
+    <string name="close_this_window">Close this window</string>
+    <string
+        name="you_can_do_other_things_on_the_device_while_it_syncs"
+    >You can do other things on the device while it syncs.</string>
+    <string
+        name="leave_the_device_in_a_location_with_good_internet_reception"
+    >Leave the device in a location with good internet reception</string>
+    <string
+        name="stay_connected_to_wi_fi_or_data"
+    >Stay connected to Wi-Fi or data</string>
+    <string
+        name="this_can_take_up_to_10_minutes_depending_on_your_internet_connection"
+    >This can take up to 10 minutes depending on your internet connection</string>
+    <string name="syncing_resources">Syncing resources</string>
+    <string name="syncing_patient_data">Syncing patient data</string>
+    <string name="Downloading_patient_data">Downloading patient data</string>
+    <string name="uploading_patient_data">Uploading patient data</string>
+    <string name="get_started">Get started</string>
+    <string name="please_try_again_later">Please try again later.</string>
+    <string name="unknown_sync_state">Unknown sync state</string>
+    <string name="sync_failed">Sync Failed</string>
+    <string name="sync_completed">Sync Completed</string>
+    <string
+        name="all_data_synchronized_successfully"
+    >All data synchronized successfully!</string>
+    <string
+        name="patient_resources_are_being_synchronized"
+    >Patient resources are being synchronized…</string>
+    <string name="progress">Progress</string>
 </resources>
