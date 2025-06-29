@@ -234,29 +234,34 @@ class SyncInfoDatabaseWriterWorker(
   private suspend fun handleSuccessSync(state: CurrentSyncJobStatus.Succeeded) {
     val inProgressSyncSession = database.dao().getInProgressSyncSession()
     if (inProgressSyncSession != null) {
-      database
-        .dao()
-        .updateSyncSessionUploadValues(
-          sessionId = inProgressSyncSession.id,
-          completed = inProgressSyncSession.uploadedPatients,
-          total =
-            inProgressSyncSession
-              .uploadedPatients, // TODO: Make this total once total sync number is accurate
-        )
-      database
-        .dao()
-        .updateSyncSessionDownloadValues(
-          sessionId = inProgressSyncSession.id,
-          completed = inProgressSyncSession.downloadedPatients,
-          total = inProgressSyncSession.downloadedPatients, // TODO: Same as above, make this total
-        )
-      database.dao().updateSyncSessionStatus(inProgressSyncSession.id, SyncStatus.COMPLETED)
-      database
-        .dao()
-        .updateSyncSessionCompletionTime(
-          inProgressSyncSession.id,
-          state.timestamp.format(formatter).toString(),
-        )
+      if (inProgressSyncSession.downloadedPatients + inProgressSyncSession.uploadedPatients == 0) {
+        database.dao().deleteSyncSession(inProgressSyncSession.id)
+      } else {
+        database
+          .dao()
+          .updateSyncSessionUploadValues(
+            sessionId = inProgressSyncSession.id,
+            completed = inProgressSyncSession.uploadedPatients,
+            total =
+              inProgressSyncSession
+                .uploadedPatients, // TODO: Make this total once total sync number is accurate
+          )
+        database
+          .dao()
+          .updateSyncSessionDownloadValues(
+            sessionId = inProgressSyncSession.id,
+            completed = inProgressSyncSession.downloadedPatients,
+            total =
+              inProgressSyncSession.downloadedPatients, // TODO: Same as above, make this total
+          )
+        database.dao().updateSyncSessionStatus(inProgressSyncSession.id, SyncStatus.COMPLETED)
+        database
+          .dao()
+          .updateSyncSessionCompletionTime(
+            inProgressSyncSession.id,
+            state.timestamp.format(formatter).toString(),
+          )
+      }
     }
   }
 
