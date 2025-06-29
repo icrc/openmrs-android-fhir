@@ -239,14 +239,16 @@ class SyncInfoDatabaseWriterWorker(
         .updateSyncSessionUploadValues(
           sessionId = inProgressSyncSession.id,
           completed = inProgressSyncSession.uploadedPatients,
-          total = inProgressSyncSession.totalPatientsToUpload,
+          total =
+            inProgressSyncSession
+              .uploadedPatients, // TODO: Make this total once total sync number is accurate
         )
       database
         .dao()
         .updateSyncSessionDownloadValues(
           sessionId = inProgressSyncSession.id,
           completed = inProgressSyncSession.downloadedPatients,
-          total = inProgressSyncSession.totalPatientsToDownload,
+          total = inProgressSyncSession.downloadedPatients, // TODO: Same as above, make this total
         )
       database.dao().updateSyncSessionStatus(inProgressSyncSession.id, SyncStatus.COMPLETED)
       database

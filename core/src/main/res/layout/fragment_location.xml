@@ -51,21 +51,17 @@
                 android:background="#E0E0E0"
                 android:layout_marginBottom="32dp"
             >
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="#1976D2"
+                <ProgressBar
+                    android:id="@+id/locationSyncProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="4dp"
+                    android:layout_marginBottom="32dp"
+                    android:progressTint="#1976D2"
+                    android:progressBackgroundTint="#E0E0E0"
+                    android:max="100"
+                    android:progress="3"
                 />
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="2"
-                    android:background="@color/transparent"
-                />
-
             </LinearLayout>
 
             <!-- Main title -->

@@ -67,20 +67,18 @@
                 android:background="#E0E0E0"
                 android:layout_marginBottom="32dp"
             >
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:background="#1976D2"
+                <ProgressBar
+                    android:id="@+id/syncProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="4dp"
+                    android:layout_marginBottom="32dp"
+                    android:progressTint="#1976D2"
+                    android:progressBackgroundTint="#E0E0E0"
+                    android:max="100"
+                    android:progress="3"
                 />
 
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="2"
-                    android:background="@color/transparent"
-                />
 
             </LinearLayout>
 
@@ -204,20 +202,19 @@
 
             </LinearLayout>
             <!-- Sync button -->
-            <androidx.appcompat.widget.AppCompatButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSyncTasks"
+                style="@style/Widget.Material3.Button"
+                android:backgroundTint="@color/dashboard_cardview_textcolor"
+                android:textSize="12sp"
+                android:textColor="@color/white"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                app:cornerRadius="4dp"
+                android:layout_marginHorizontal="24dp"
+                android:layout_height="wrap_content"
                 android:text="@string/close_this_window"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:background="@drawable/rounded_blue_button"
-                android:drawablePadding="12dp"
-                android:gravity="center"
-                android:paddingStart="24dp"
-                android:paddingEnd="24dp"
-            />
+                android:layout_margin="16dp"
+                />
 
         </LinearLayout>
 

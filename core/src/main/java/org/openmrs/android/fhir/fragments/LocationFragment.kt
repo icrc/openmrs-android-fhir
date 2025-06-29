@@ -46,6 +46,8 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.fhir.sync.CurrentSyncJobStatus
+import com.google.android.fhir.sync.SyncJobStatus
+import com.google.android.fhir.sync.SyncOperation
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -66,9 +68,10 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
   private var _binding: FragmentLocationBinding? = null
   private lateinit var locationAdapter: LocationItemRecyclerViewAdapter
   private lateinit var favoriteLocationAdapter: LocationItemRecyclerViewAdapter
-
   private val binding
     get() = _binding!!
+
+  private var fromLogin = false
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -111,7 +114,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
       locationViewModel.getLocations()
     }
     arguments?.let {
-      val fromLogin = it.getBoolean("from_login")
+      fromLogin = it.getBoolean("from_login")
       if (fromLogin) {
         showSyncTasksScreen()
         actionBar?.hide()
@@ -217,14 +220,25 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
             showLocationScreen()
             locationViewModel.getLocations()
           }
+          is CurrentSyncJobStatus.Running -> {
+            if (fromLogin) {
+              binding.progressBar.visibility = View.GONE
+            }
+            if (it.inProgressSyncJob is SyncJobStatus.InProgress) {
+              val inProgressState = it.inProgressSyncJob as SyncJobStatus.InProgress
+              if (inProgressState.syncOperation == SyncOperation.DOWNLOAD) {
+                binding.locationSyncProgressBar.progress = inProgressState.completed
+                binding.locationSyncProgressBar.max = inProgressState.total
+              }
+            }
+          }
           is CurrentSyncJobStatus.Failed -> {
-            binding.progressBar.visibility = View.GONE
             showLocationScreen()
             locationViewModel.getLocations()
             Toast.makeText(context, "Failed to fetch all locations", Toast.LENGTH_SHORT).show()
           }
           else -> {
-            binding.progressBar.visibility = View.VISIBLE
+            showLocationScreen()
           }
         }
       }

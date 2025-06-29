@@ -35,6 +35,7 @@ import android.text.format.DateFormat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
 import androidx.work.WorkInfo
@@ -69,6 +70,7 @@ import org.openmrs.android.fhir.data.FhirSyncWorker
 import org.openmrs.android.fhir.data.IdentifierTypeManager
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
+import org.openmrs.android.fhir.data.database.model.SyncSession
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ApiResponse
 import org.openmrs.android.fhir.data.remote.model.IdentifierWrapper
@@ -258,6 +260,9 @@ constructor(
       identifierTypeManager.fetchIdentifiers()
     }
   }
+
+  val inProgressSyncSession: LiveData<SyncSession> =
+    database.dao().getInProgressSyncSessionAsFlow().asLiveData()
 
   /** Emits last sync time. */
   fun updateLastSyncTimestamp(lastSync: OffsetDateTime? = null) {

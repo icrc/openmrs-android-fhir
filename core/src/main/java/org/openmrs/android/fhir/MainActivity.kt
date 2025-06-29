@@ -76,6 +76,8 @@ import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
 import org.openmrs.android.fhir.extensions.NotificationHelper
+import org.openmrs.android.fhir.extensions.PermissionHelper
+import org.openmrs.android.fhir.extensions.PermissionHelperFactory
 import org.openmrs.android.fhir.extensions.UncaughtExceptionHandler
 import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
 import org.openmrs.android.fhir.extensions.getApplicationLogs
@@ -106,6 +108,10 @@ class MainActivity : AppCompatActivity() {
 
   @Inject lateinit var notificationHelper: NotificationHelper
 
+  private lateinit var permissionHelper: PermissionHelper
+
+  @Inject lateinit var permissionHelperFactory: PermissionHelperFactory
+
   private val viewModel by viewModels<MainActivityViewModel> { viewModelFactory }
   private val syncInfoViewModel by viewModels<SyncInfoViewModel> { viewModelFactory }
 
@@ -115,6 +121,7 @@ class MainActivity : AppCompatActivity() {
       UncaughtExceptionHandler(this, Thread.getDefaultUncaughtExceptionHandler()),
     )
     (this.application as FhirApplication).appComponent.inject(this)
+    permissionHelper = permissionHelperFactory.create(this)
     binding = ActivityMainBinding.inflate(layoutInflater)
     loginRepository = LoginRepository.getInstance(applicationContext)
     authStateManager = AuthStateManager.getInstance(applicationContext)
@@ -191,6 +198,10 @@ class MainActivity : AppCompatActivity() {
     setLocationInDrawer()
   }
 
+  private fun checkNotificationPermission() {
+    permissionHelper.checkAndRequestNotificationPermission {}
+  }
+
   private fun setLocationInDrawer() {
     lifecycleScope.launch {
       binding.navigationView.menu.findItem(R.id.menu_current_location).title =
@@ -258,7 +269,7 @@ class MainActivity : AppCompatActivity() {
             }
           }
         }*/
-
+        checkNotificationPermission()
         viewModel.triggerOneTimeSync(applicationContext)
         binding.drawer.closeDrawer(GravityCompat.START)
       }
@@ -285,6 +296,14 @@ class MainActivity : AppCompatActivity() {
   private fun observeSyncState() {
     lifecycleScope.launch {
       viewModel.syncProgress.observeForever { handleSyncStatus(it) }
+
+      viewModel.inProgressSyncSession.observe(this@MainActivity) {
+        if (it != null) {
+          binding.syncProgressBar.max = it.totalPatientsToDownload + it.totalPatientsToUpload
+          binding.syncProgressBar.progress = it.uploadedPatients + it.downloadedPatients
+        }
+      }
+
       viewModel.pollPeriodicSyncJobStatus?.collect {
         Timber.d("observerSyncState: pollState Got status $it")
         //        handleCurrentSyncJobStatus(it.currentSyncJobStatus)
