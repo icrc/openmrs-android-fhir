@@ -289,6 +289,10 @@ constructor(
       .cancelUniqueWork("${FhirSyncWorker::class.java.name}-periodicSync")
   }
 
+  fun setIsSyncing(isSyncing: Boolean) {
+    _isSyncing.postValue(isSyncing)
+  }
+
   fun setStopSync(stopSync: Boolean) {
     this._stopSync = stopSync
   }

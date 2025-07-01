@@ -325,23 +325,18 @@ class MainActivity : AppCompatActivity() {
         if (progress.getString(SyncInfoDatabaseWriterWorker.PROGRESS_STATUS) == "STARTED") {
           showSyncTasksScreen()
           showSnackBar(this@MainActivity, getString(R.string.sync_started))
-        } else if (progress.getString(SyncInfoDatabaseWriterWorker.PROGRESS_STATUS) == "FAILED") {
-          hideSyncTasksScreen()
-          viewModel.updateLastSyncTimestamp()
-        } else if (
-          progress.getString(SyncInfoDatabaseWriterWorker.PROGRESS_STATUS) == "SUCCEEDED"
-        ) {
-          hideSyncTasksScreen()
         }
       }
       workInfo.state == WorkInfo.State.SUCCEEDED -> {
         hideSyncTasksScreen()
         viewModel.updateLastSyncTimestamp()
         showSnackBar(this@MainActivity, getString(R.string.sync_completed))
+        viewModel.setIsSyncing(false)
       }
       workInfo.state == WorkInfo.State.FAILED -> {
         hideSyncTasksScreen()
         viewModel.updateLastSyncTimestamp()
+        viewModel.setIsSyncing(false)
         showSnackBar(this@MainActivity, getString(R.string.sync_failed))
       }
     }
