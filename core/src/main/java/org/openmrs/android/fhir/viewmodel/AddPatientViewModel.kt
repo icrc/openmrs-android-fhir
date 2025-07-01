@@ -46,6 +46,7 @@ import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
+import org.hl7.fhir.r4.model.Quantity
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.Questionnaire.QuestionnaireItemComponent
 import org.hl7.fhir.r4.model.QuestionnaireResponse
@@ -113,6 +114,14 @@ constructor(
 
       val patient = entry.resource as Patient
       patient.id = generateUuid()
+
+      if (patient.birthDate == null) {
+        val estimatedAge =
+          questionnaireResponse.findItemByLinkId("estimatedDateOfBirth")?.answerFirstRep?.value
+            as? Quantity
+        patient.birthDateElement = estimatedAge?.let { openMRSHelper.getDateDiffByQuantity(it) }
+      }
+
       val location = locationId?.let { fhirEngine.get(ResourceType.Location, it) } as Location?
       if (location != null) {
         val identifiers =
@@ -268,6 +277,22 @@ constructor(
     }
     questionnaire.setItem(questionnaireItems)
     return questionnaire
+  }
+
+  fun QuestionnaireResponse.findItemByLinkId(
+    linkId: String,
+  ): QuestionnaireResponse.QuestionnaireResponseItemComponent? {
+    fun recurse(
+      items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>,
+    ): QuestionnaireResponse.QuestionnaireResponseItemComponent? {
+      for (item in items) {
+        if (item.linkId == linkId) return item
+        val nested = recurse(item.item)
+        if (nested != null) return nested
+      }
+      return null
+    }
+    return recurse(this.item)
   }
 
   private fun generateUuid(): String {

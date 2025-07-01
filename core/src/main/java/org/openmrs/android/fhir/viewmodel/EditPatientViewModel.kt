@@ -36,17 +36,24 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.google.android.fhir.get
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.ZoneId
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Address
+import org.hl7.fhir.r4.model.BooleanType
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.ContactPoint
+import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.Patient
+import org.hl7.fhir.r4.model.Quantity
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Resource
@@ -106,6 +113,9 @@ constructor(
           ResourceMapper.populate(questionnaireResource, launchContexts),
           patient,
         )
+
+      prefillEstimatedAgeIfDobUnknown(questionnaireResponse, patient)
+
       val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
       question to questionnaireResponseJson
     } else {
@@ -186,7 +196,6 @@ constructor(
         patient.hasName() &&
           patient.name[0].hasGiven() &&
           patient.name[0].hasFamily() &&
-          patient.hasBirthDate() &&
           patient.hasGender()
       ) {
         // Name
@@ -197,7 +206,7 @@ constructor(
         }
 
         // Birth date and gender
-        originalPatient.birthDate = patient.birthDate
+        originalPatient.birthDateElement = calculatePatientBirthDate(questionnaireResponse)
         originalPatient.gender = patient.gender
 
         // Telecom
@@ -253,6 +262,106 @@ constructor(
       }
 
       isPatientSaved.value = false
+    }
+  }
+
+  fun calculatePatientBirthDate(response: QuestionnaireResponse): DateType? {
+    val dob = response.findItemByLinkId("patient-0-birth-date")?.answerFirstRep?.value as? DateType
+    val dobKnown = response.findItemByLinkId("dobKnown")?.answerFirstRep?.value as? BooleanType
+    val estimatedAge =
+      response.findItemByLinkId("estimatedDateOfBirth")?.answerFirstRep?.value as? Quantity
+
+    val isDobUnknown = dobKnown?.booleanValue() == false
+    if (dob != null && !isDobUnknown) return dob
+
+    if (isDobUnknown && estimatedAge != null) {
+      return openMRSHelper.getDateDiffByQuantity(estimatedAge)
+    }
+
+    return null
+  }
+
+  fun QuestionnaireResponse.findItemByLinkId(
+    linkId: String,
+  ): QuestionnaireResponse.QuestionnaireResponseItemComponent? {
+    fun recurse(
+      items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>,
+    ): QuestionnaireResponse.QuestionnaireResponseItemComponent? {
+      for (item in items) {
+        if (item.linkId == linkId) return item
+        val nested = recurse(item.item)
+        if (nested != null) return nested
+      }
+      return null
+    }
+    return recurse(this.item)
+  }
+
+  private fun prefillEstimatedAgeIfDobUnknown(
+    response: QuestionnaireResponse,
+    patient: Patient,
+  ) {
+    val dobKnownItem = response.findItemByLinkId("dobKnown")
+    val estimatedAgeItem = response.findItemByLinkId("estimatedDateOfBirth") ?: return
+    if (!patient.hasBirthDateElement()) return
+
+    val birthDateElement = patient.birthDateElement
+    val birthDate = birthDateElement.value.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+    val now = LocalDate.now()
+
+    when (birthDateElement.precision) {
+      TemporalPrecisionEnum.DAY -> {
+        dobKnownItem?.let {
+          it.answer.clear()
+          it.answer.add(
+            QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent().apply {
+              value = BooleanType(true)
+            },
+          )
+        }
+        return
+      }
+      TemporalPrecisionEnum.YEAR,
+      TemporalPrecisionEnum.MONTH, -> {
+        val quantity =
+          Quantity().apply {
+            system = "http://unitsofmeasure.org"
+            when (birthDateElement.precision) {
+              TemporalPrecisionEnum.YEAR -> {
+                value = BigDecimal.valueOf((now.year - birthDate.year).toLong())
+                unit = "years"
+                code = "y"
+              }
+              TemporalPrecisionEnum.MONTH -> {
+                val months =
+                  (now.year - birthDate.year) * 12 + (now.monthValue - birthDate.monthValue)
+                value = BigDecimal.valueOf(months.toLong())
+                unit = "months"
+                code = "m"
+              }
+              else -> return
+            }
+          }
+
+        estimatedAgeItem.answer.apply {
+          clear()
+          add(
+            QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent().apply {
+              value = quantity
+            },
+          )
+        }
+
+        dobKnownItem?.let {
+          it.answer.clear()
+          it.answer.add(
+            QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent().apply {
+              value = BooleanType(false)
+            },
+          )
+        }
+      }
+      else -> return
     }
   }
 }
