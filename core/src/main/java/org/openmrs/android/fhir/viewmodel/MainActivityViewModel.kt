@@ -35,27 +35,23 @@ import android.text.format.DateFormat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.work.Constraints
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.logicalId
 import com.google.android.fhir.search.search
-import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.PeriodicSyncConfiguration
 import com.google.android.fhir.sync.PeriodicSyncJobStatus
 import com.google.android.fhir.sync.RepeatInterval
 import com.google.android.fhir.sync.Sync
-import com.google.android.fhir.sync.SyncJobStatus
-import com.google.android.fhir.sync.SyncOperation
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -63,6 +59,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
@@ -73,11 +71,11 @@ import org.openmrs.android.fhir.data.IdentifierTypeManager
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncSession
-import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ApiResponse
 import org.openmrs.android.fhir.data.remote.model.IdentifierWrapper
 import org.openmrs.android.fhir.data.remote.model.SessionLocation
+import org.openmrs.android.fhir.worker.SyncInfoDatabaseWriterWorker
 
 /** View model for [MainActivity]. */
 class MainActivityViewModel
@@ -101,7 +99,11 @@ constructor(
   val lastSyncTimestampLiveData: LiveData<String>
     get() = _lastSyncTimestampLiveData
 
-  private val _oneTimeSyncTrigger = MutableStateFlow(false)
+  private val _isSyncing = MutableLiveData<Boolean>(false)
+  val isSyncing: LiveData<Boolean> = _isSyncing
+
+  private val syncMutex = Mutex()
+
   private val formatter =
     DateTimeFormatter.ofPattern(
       if (DateFormat.is24HourFormat(applicationContext)) formatString24 else formatString12,
@@ -112,10 +114,6 @@ constructor(
   private val _networkStatus = MutableStateFlow(false)
   val networkStatus: StateFlow<Boolean>
     get() = _networkStatus
-
-  private val _pollState = MutableSharedFlow<CurrentSyncJobStatus>()
-  val pollState: Flow<CurrentSyncJobStatus>
-    get() = _pollState
 
   private var connectivityManager: ConnectivityManager =
     applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -133,6 +131,11 @@ constructor(
         _networkStatus.value = false
       }
     }
+
+  private val workManager = WorkManager.getInstance(applicationContext)
+
+  val syncProgress: LiveData<List<WorkInfo>> =
+    workManager.getWorkInfosForUniqueWorkLiveData(SyncInfoDatabaseWriterWorker.WORK_NAME)
 
   @ExperimentalCoroutinesApi
   fun initPeriodicSyncWorker(periodicSyncDelay: Long) {
@@ -152,13 +155,21 @@ constructor(
 
   fun triggerOneTimeSync(context: Context) {
     viewModelScope.launch {
-      if (!stopSync) {
+      val shouldSync =
+        syncMutex.withLock {
+          if (!stopSync && (_isSyncing.value != true)) {
+            _isSyncing.postValue(true)
+            true // Signal that we should proceed with sync
+          } else {
+            false // Don't sync
+          }
+        }
+
+      if (shouldSync) {
+        // Actual sync work happens outside the mutex
         fetchIdentifierTypesIfEmpty()
         embeddIdentifierToUnsyncedPatients(context)
-        _oneTimeSyncTrigger.value = !_oneTimeSyncTrigger.value
-        Sync.oneTimeSync<FhirSyncWorker>(applicationContext)
-          .shareIn(this, SharingStarted.Eagerly, 10)
-          .collect { _pollState.emit(it) }
+        SyncInfoDatabaseWriterWorker.enqueue(applicationContext)
       }
     }
   }
@@ -216,7 +227,6 @@ constructor(
         .search<Patient> { filter(Patient.IDENTIFIER, { value = of("unsynced") }) }
         .map { it.resource }
         .toList()
-
     patients.forEach {
       val identifiers = it.identifier
       identifiers.forEach { identifier ->
@@ -251,130 +261,14 @@ constructor(
     }
   }
 
+  val inProgressSyncSession: LiveData<SyncSession> =
+    database.dao().getInProgressSyncSessionAsFlow().asLiveData()
+
   /** Emits last sync time. */
   fun updateLastSyncTimestamp(lastSync: OffsetDateTime? = null) {
     _lastSyncTimestampLiveData.value =
       lastSync?.let { it.toLocalDateTime()?.format(formatter) ?: "" }
         ?: Sync.getLastSyncTimestamp(applicationContext)?.toLocalDateTime()?.format(formatter) ?: ""
-  }
-
-  /*
-  Handle sync
-   */
-  fun handleStartSync() {
-    viewModelScope.launch {
-      val inProgressSyncSession = database.dao().getInProgressSyncSession()
-      if (inProgressSyncSession == null) {
-        database
-          .dao()
-          .insertSyncSession(
-            SyncSession(
-              startTime = LocalDateTime.now().format(formatter).toString(),
-              downloadedPatients = 0,
-              uploadedPatients = 0,
-              totalPatientsToDownload = 0,
-              totalPatientsToUpload = 0,
-              completionTime = null,
-              status = SyncStatus.ONGOING,
-            ),
-          )
-      }
-    }
-  }
-
-  fun handleInProgressSync(state: CurrentSyncJobStatus) {
-    viewModelScope.launch {
-      if (
-        state is CurrentSyncJobStatus.Running && state.inProgressSyncJob is SyncJobStatus.InProgress
-      ) {
-        val inProgressSyncSession = database.dao().getInProgressSyncSession()
-        if (inProgressSyncSession != null) {
-          val inProgressState = state.inProgressSyncJob as SyncJobStatus.InProgress
-          if (inProgressState.syncOperation == SyncOperation.UPLOAD) {
-            database
-              .dao()
-              .updateSyncSessionUploadValues(
-                sessionId = inProgressSyncSession.id,
-                completed = inProgressState.completed,
-                total = inProgressState.total,
-              )
-          } else {
-            database
-              .dao()
-              .updateSyncSessionDownloadValues(
-                sessionId = inProgressSyncSession.id,
-                completed = inProgressState.completed,
-                total = inProgressState.total,
-              )
-          }
-        }
-      }
-      if (
-        state is CurrentSyncJobStatus.Running && state.inProgressSyncJob is SyncJobStatus.Failed
-      ) {
-        val inProgressSyncSession = database.dao().getInProgressSyncSession()
-        if (inProgressSyncSession != null) {
-          database
-            .dao()
-            .updateSyncSessionErrors(
-              inProgressSyncSession.id,
-              (state.inProgressSyncJob as SyncJobStatus.Failed).exceptions.map { it ->
-                it.exception.message
-              } as List<String>,
-            )
-        }
-      }
-    }
-  }
-
-  fun handleSuccessSync(state: CurrentSyncJobStatus) {
-    viewModelScope.launch {
-      if (state is CurrentSyncJobStatus.Succeeded) {
-        val inProgressSyncSession = database.dao().getInProgressSyncSession()
-        if (inProgressSyncSession != null) {
-          database
-            .dao()
-            .updateSyncSessionUploadValues(
-              sessionId = inProgressSyncSession.id,
-              completed = inProgressSyncSession.totalPatientsToUpload,
-              total = inProgressSyncSession.totalPatientsToUpload,
-            )
-          database
-            .dao()
-            .updateSyncSessionDownloadValues(
-              sessionId = inProgressSyncSession.id,
-              completed = inProgressSyncSession.totalPatientsToDownload,
-              total = inProgressSyncSession.totalPatientsToDownload,
-            )
-          database.dao().updateSyncSessionStatus(inProgressSyncSession.id, SyncStatus.COMPLETED)
-          database
-            .dao()
-            .updateSyncSessionCompletionTime(
-              inProgressSyncSession.id,
-              state.timestamp.format(formatter).toString(),
-            )
-        }
-      }
-    }
-  }
-
-  fun handleFailedSync(state: CurrentSyncJobStatus) {
-    viewModelScope.launch {
-      if (state is CurrentSyncJobStatus.Failed) {
-        val inProgressSyncSession = database.dao().getInProgressSyncSession()
-        if (inProgressSyncSession != null) {
-          database
-            .dao()
-            .updateSyncSessionStatus(inProgressSyncSession.id, SyncStatus.COMPLETED_WITH_ERRORS)
-          database
-            .dao()
-            .updateSyncSessionCompletionTime(
-              inProgressSyncSession.id,
-              state.timestamp.format(formatter).toString(),
-            )
-        }
-      }
-    }
   }
 
   fun registerNetworkCallback() {
@@ -393,6 +287,10 @@ constructor(
   fun cancelPeriodicSyncWorker(context: Context) {
     WorkManager.getInstance(context)
       .cancelUniqueWork("${FhirSyncWorker::class.java.name}-periodicSync")
+  }
+
+  fun setIsSyncing(isSyncing: Boolean) {
+    _isSyncing.postValue(isSyncing)
   }
 
   fun setStopSync(stopSync: Boolean) {

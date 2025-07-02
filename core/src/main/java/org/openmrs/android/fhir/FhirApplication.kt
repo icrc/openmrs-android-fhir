@@ -33,6 +33,7 @@ import android.content.Context
 import com.google.android.fhir.DatabaseErrorStrategy.RECREATE_AT_OPEN
 import com.google.android.fhir.FhirEngineConfiguration
 import com.google.android.fhir.FhirEngineProvider
+import com.google.android.fhir.NetworkConfiguration
 import com.google.android.fhir.ServerConfiguration
 import com.google.android.fhir.datacapture.DataCaptureConfig
 import com.google.android.fhir.datacapture.XFhirQueryResolver
@@ -81,6 +82,13 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
             ) {
               Timber.tag("App-HttpLog").d(it)
             },
+          networkConfiguration =
+            NetworkConfiguration(
+              connectionTimeOut = 120,
+              readTimeOut = 120,
+              writeTimeOut = 120,
+              uploadWithGzip = true,
+            ),
         ),
       ),
     )
