@@ -38,6 +38,7 @@ import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.google.android.fhir.get
 import dagger.assisted.Assisted
@@ -45,6 +46,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.Period
 import java.time.ZoneId
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Address
@@ -268,14 +270,16 @@ constructor(
   fun calculatePatientBirthDate(response: QuestionnaireResponse): DateType? {
     val dob = response.findItemByLinkId("patient-0-birth-date")?.answerFirstRep?.value as? DateType
     val dobKnown = response.findItemByLinkId("dobKnown")?.answerFirstRep?.value as? BooleanType
-    val estimatedAge =
-      response.findItemByLinkId("estimatedDateOfBirth")?.answerFirstRep?.value as? Quantity
+    val estimatedYears =
+      response.findItemByLinkId("estimatedDateOfBirthYears")?.answerFirstRep?.value as? Quantity
+    val estimatedMonths =
+      response.findItemByLinkId("estimatedDateOfBirthMonths")?.answerFirstRep?.value as? Quantity
 
     val isDobUnknown = dobKnown?.booleanValue() == false
     if (dob != null && !isDobUnknown) return dob
 
-    if (isDobUnknown && estimatedAge != null) {
-      return openMRSHelper.getDateDiffByQuantity(estimatedAge)
+    if (isDobUnknown && estimatedYears != null) {
+      return openMRSHelper.getDateDiffByQuantity(estimatedYears, estimatedMonths)
     }
 
     return null
@@ -284,84 +288,73 @@ constructor(
   fun QuestionnaireResponse.findItemByLinkId(
     linkId: String,
   ): QuestionnaireResponse.QuestionnaireResponseItemComponent? {
-    fun recurse(
-      items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>,
-    ): QuestionnaireResponse.QuestionnaireResponseItemComponent? {
-      for (item in items) {
-        if (item.linkId == linkId) return item
-        val nested = recurse(item.item)
-        if (nested != null) return nested
-      }
-      return null
-    }
-    return recurse(this.item)
+    return this.allItems.firstOrNull { it.linkId == linkId }
   }
 
   private fun prefillEstimatedAgeIfDobUnknown(
     response: QuestionnaireResponse,
     patient: Patient,
   ) {
-    val dobKnownItem = response.findItemByLinkId("dobKnown")
-    val estimatedAgeItem = response.findItemByLinkId("estimatedDateOfBirth") ?: return
     if (!patient.hasBirthDateElement()) return
-
     val birthDateElement = patient.birthDateElement
+
+    val dobKnownItem = response.findItemByLinkId("dobKnown")
+    val estimatedAgeYearsItem = response.findItemByLinkId("estimatedDateOfBirthYears") ?: return
+    val estimatedAgeMonthsItem = response.findItemByLinkId("estimatedDateOfBirthMonths")
+
     val birthDate = birthDateElement.value.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
     val now = LocalDate.now()
 
     when (birthDateElement.precision) {
       TemporalPrecisionEnum.DAY -> {
-        dobKnownItem?.let {
-          it.answer.clear()
-          it.answer.add(
-            QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent().apply {
-              value = BooleanType(true)
-            },
-          )
-        }
-        return
+        dobKnownItem?.setBooleanAnswer(true)
       }
-      TemporalPrecisionEnum.YEAR,
-      TemporalPrecisionEnum.MONTH, -> {
-        val quantity =
-          Quantity().apply {
-            system = "http://unitsofmeasure.org"
-            when (birthDateElement.precision) {
-              TemporalPrecisionEnum.YEAR -> {
-                value = BigDecimal.valueOf((now.year - birthDate.year).toLong())
-                unit = "years"
-                code = "y"
-              }
-              TemporalPrecisionEnum.MONTH -> {
-                val months =
-                  (now.year - birthDate.year) * 12 + (now.monthValue - birthDate.monthValue)
-                value = BigDecimal.valueOf(months.toLong())
-                unit = "months"
-                code = "m"
-              }
-              else -> return
-            }
-          }
-
-        estimatedAgeItem.answer.apply {
-          clear()
-          add(
-            QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent().apply {
-              value = quantity
-            },
-          )
-        }
-
-        dobKnownItem?.let {
-          it.answer.clear()
-          it.answer.add(
-            QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent().apply {
-              value = BooleanType(false)
-            },
-          )
-        }
+      TemporalPrecisionEnum.YEAR -> {
+        dobKnownItem?.setBooleanAnswer(false)
+        estimatedAgeYearsItem.setQuantityAnswer(
+          (now.year - birthDate.year).toBigDecimal(),
+          "years",
+          "y",
+        )
+      }
+      TemporalPrecisionEnum.MONTH -> {
+        val period = Period.between(birthDate, now)
+        dobKnownItem?.setBooleanAnswer(false)
+        estimatedAgeYearsItem.setQuantityAnswer(period.years.toBigDecimal(), "years", "y")
+        estimatedAgeMonthsItem?.setQuantityAnswer(period.months.toBigDecimal(), "months", "m")
       }
       else -> return
     }
+  }
+
+  // Extension functions for cleaner syntax
+  private fun QuestionnaireResponse.QuestionnaireResponseItemComponent.setBooleanAnswer(
+    value: Boolean,
+  ) {
+    answer.clear()
+    answer.add(
+      QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent().apply {
+        this.value = BooleanType(value)
+      },
+    )
+  }
+
+  private fun QuestionnaireResponse.QuestionnaireResponseItemComponent.setQuantityAnswer(
+    value: BigDecimal,
+    unit: String,
+    code: String,
+  ) {
+    answer.clear()
+    answer.add(
+      QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent().apply {
+        this.value =
+          Quantity().apply {
+            system = "http://unitsofmeasure.org"
+            this.value = value
+            this.unit = unit
+            this.code = code
+          }
+      },
+    )
   }
 }
