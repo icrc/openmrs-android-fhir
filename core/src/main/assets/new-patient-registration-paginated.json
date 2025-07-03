@@ -133,39 +133,121 @@
           ]
         },
         {
-
-          "extension": [
-            {
-              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression",
-              "valueExpression": {
-                "language": "text/fhirpath",
-                "expression": "%client.birthDate",
-                "name": "patientBirthDate"
-              }
-            }
-          ],
+          "linkId": "dobKnown",
+          "text": "Date of Birth Known?",
+          "type": "boolean",
+          "required": true
+        },
+        {
           "linkId": "patient-0-birth-date",
           "definition": "http://hl7.org/fhir/StructureDefinition/Patient#Patient.birthDate",
           "type": "date",
           "required": true,
           "text": "Date of Birth",
-          "_text": {
-            "extension": [
-              {
-                "extension": [
-                  {
-                    "url": "lang",
-                    "valueCode": "sw"
-                  },
-                  {
-                    "url": "content",
-                    "valueString": "Tarehe ya kuzaliwa"
-                  }
-                ],
-                "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          "enableWhen": [
+            {
+              "question": "dobKnown",
+              "operator": "=",
+              "answerBoolean": true
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression",
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "%client.birthDate"
               }
-            ]
-          }
+            }
+          ]
+        },
+        {
+          "linkId": "estimatedDateOfBirthYears",
+          "text": "Estimated age in years",
+          "type": "quantity",
+          "required": true,
+          "initial" : [
+            {
+              "valueQuantity": {
+                "value": 0,
+                "unit": "Years",
+                "code": "y"
+              }
+            }
+          ],
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unitOption",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "y",
+                "display": "Years"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueQuantity": {
+                "value": 0,
+                "system": "http://unitsofmeasure.org",
+                "code": "y"
+              }
+            }
+          ],
+          "enableWhen": [
+            {
+              "question": "dobKnown",
+              "operator": "=",
+              "answerBoolean": false
+            }
+          ]
+        },
+        {
+          "linkId": "estimatedDateOfBirthMonths",
+          "text": "Estimated age in months",
+          "type": "quantity",
+          "required": true,
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-unitOption",
+              "valueCoding": {
+                "system": "http://unitsofmeasure.org",
+                "code": "m",
+                "display": "Months"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-enableWhenExpression",
+              "valueExpression": {
+                "language": "text/fhirpath",
+                "expression": "%resource.repeat(item).where(linkId='dobKnown').answer.first().value = false and %resource.repeat(item).where(linkId='estimatedDateOfBirthYears').answer.first().value < 6 'y'"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/minValue",
+              "valueQuantity": {
+                "value": 0,
+                "system": "http://unitsofmeasure.org",
+                "code": "m"
+              }
+            },
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/maxValue",
+              "valueQuantity": {
+                "value": 11,
+                "system": "http://unitsofmeasure.org",
+                "code": "m"
+              }
+            }
+          ],
+          "initial" : [
+            {
+              "valueQuantity": {
+                "value": 0,
+                "unit": "Months",
+                "code": "m"
+              }
+            }
+          ]
         },
         {
           "linkId": "patient-0-gender",

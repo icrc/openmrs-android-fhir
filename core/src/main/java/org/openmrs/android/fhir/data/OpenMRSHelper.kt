@@ -29,9 +29,12 @@
 package org.openmrs.android.helpers
 
 import android.content.Context
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.get
 import com.google.android.fhir.search.search
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Date
 import java.util.LinkedList
 import javax.inject.Inject
@@ -40,10 +43,12 @@ import kotlinx.coroutines.flow.first
 import org.hl7.fhir.r4.model.BooleanType
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
+import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Encounter.EncounterParticipantComponent
 import org.hl7.fhir.r4.model.Extension
 import org.hl7.fhir.r4.model.Period
+import org.hl7.fhir.r4.model.Quantity
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.Questionnaire.QuestionnaireItemComponent
 import org.hl7.fhir.r4.model.QuestionnaireResponse
@@ -291,10 +296,21 @@ constructor(
         traverseQuestionnaireItems(item.item)
       }
     }
-
     // Start traversal with top-level items
     traverseQuestionnaireItems(questionnaire.item)
 
     return linkIds
+  }
+
+  fun getDateDiffByQuantity(estimatedAgeYear: Quantity, estimatedAgeMonth: Quantity?): DateType {
+    val now = LocalDate.now()
+    val year = estimatedAgeYear.value.toLong()
+    val month = estimatedAgeMonth?.value?.toLong()
+    val date = now.minusYears(year).minusMonths(month ?: 0)
+    val precision = if (month != null) TemporalPrecisionEnum.MONTH else TemporalPrecisionEnum.YEAR
+
+    return DateType(Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant())).apply {
+      this.precision = precision
+    }
   }
 }
