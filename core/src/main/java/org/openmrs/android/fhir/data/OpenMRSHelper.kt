@@ -302,15 +302,12 @@ constructor(
     return linkIds
   }
 
-  fun getDateDiffByQuantity(estimatedAge: Quantity): DateType {
+  fun getDateDiffByQuantity(estimatedAgeYear: Quantity, estimatedAgeMonth: Quantity?): DateType {
     val now = LocalDate.now()
-    val amount = estimatedAge.value.toLong()
-    val (date, precision) =
-      when (estimatedAge.code) {
-        "y" -> now.minusYears(amount) to TemporalPrecisionEnum.YEAR
-        "m" -> now.minusMonths(amount) to TemporalPrecisionEnum.MONTH
-        else -> now.minusYears(amount) to TemporalPrecisionEnum.DAY
-      }
+    val year = estimatedAgeYear.value.toLong()
+    val month = estimatedAgeMonth?.value?.toLong()
+    val date = now.minusYears(year).minusMonths(month ?: 0)
+    val precision = if (month != null) TemporalPrecisionEnum.MONTH else TemporalPrecisionEnum.YEAR
 
     return DateType(Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant())).apply {
       this.precision = precision

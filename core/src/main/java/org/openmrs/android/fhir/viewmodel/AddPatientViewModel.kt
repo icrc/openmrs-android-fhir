@@ -35,6 +35,7 @@ import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
@@ -116,10 +117,23 @@ constructor(
       patient.id = generateUuid()
 
       if (patient.birthDate == null) {
-        val estimatedAge =
-          questionnaireResponse.findItemByLinkId("estimatedDateOfBirth")?.answerFirstRep?.value
-            as? Quantity
-        patient.birthDateElement = estimatedAge?.let { openMRSHelper.getDateDiffByQuantity(it) }
+        val estimatedMonths =
+          questionnaireResponse.allItems
+            .firstOrNull { it.linkId == "estimatedDateOfBirthMonths" }
+            ?.answerFirstRep
+            ?.value as? Quantity
+        val estimatedYears =
+          questionnaireResponse.allItems
+            .firstOrNull { it.linkId == "estimatedDateOfBirthYears" }
+            ?.answerFirstRep
+            ?.value as? Quantity
+        patient.birthDateElement =
+          estimatedYears?.let {
+            openMRSHelper.getDateDiffByQuantity(
+              estimatedAgeYear = estimatedYears,
+              estimatedAgeMonth = estimatedMonths,
+            )
+          }
       }
 
       val location = locationId?.let { fhirEngine.get(ResourceType.Location, it) } as Location?
