@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
@@ -311,6 +312,7 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
+  @SuppressLint("MissingPermission")
   private fun handleSyncStatus(workInfos: List<WorkInfo>) {
     val workInfo = workInfos.firstOrNull()
 
@@ -323,6 +325,11 @@ class MainActivity : AppCompatActivity() {
         val progress = workInfo.progress
 
         if (progress.getString(SyncInfoDatabaseWriterWorker.PROGRESS_STATUS) == "STARTED") {
+          permissionHelper.checkNotificationPermissionStatus { isGranted ->
+            if (isGranted) {
+              notificationHelper.showSyncStarted()
+            }
+          }
           showSyncTasksScreen()
           showSnackBar(this@MainActivity, getString(R.string.sync_started))
         }
