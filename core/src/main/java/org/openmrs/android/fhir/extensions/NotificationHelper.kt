@@ -102,6 +102,7 @@ constructor(
             title = context.getString(R.string.syncing_patient_data),
             message = "${context.getString(R.string.downloaded)}: $progress/$maxProgress",
             ongoing = true,
+            setSilent = true,
           )
           .setProgress(maxProgress, progress, false)
       } else {
@@ -109,6 +110,7 @@ constructor(
             title = context.getString(R.string.uploading_patient_data),
             message = "${context.getString(R.string.uploaded)}: $progress/$maxProgress",
             ongoing = true,
+            setSilent = true,
           )
           .setProgress(maxProgress, progress, false)
       }
@@ -145,6 +147,7 @@ constructor(
     message: String,
     ongoing: Boolean = false,
     autoCancel: Boolean = false,
+    setSilent: Boolean = false,
   ): NotificationCompat.Builder {
     val intent =
       Intent(context, MainActivity::class.java).apply {
@@ -166,5 +169,6 @@ constructor(
       .setContentIntent(pendingIntent)
       .setOngoing(ongoing)
       .setAutoCancel(autoCancel)
+      .setSilent(setSilent)
   }
 }
