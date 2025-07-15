@@ -84,7 +84,7 @@ constructor(
    *
    * @param questionnaireResponse patient registration questionnaire response
    */
-  fun savePatient(questionnaireResponse: QuestionnaireResponse) {
+  fun savePatient(questionnaireResponse: QuestionnaireResponse, fetchIdentifiers: Boolean = true) {
     if (saveInProgress) return // To avoid multiple save of patient.
     viewModelScope.launch {
       saveInProgress = true
@@ -140,8 +140,10 @@ constructor(
       if (location != null) {
         val identifiers =
           extractLocationIdentifiersFromQuestionnaireResponse(questionnaireResponse, location)
-        identifiers.addAll(createLocationIdentifiers(location))
-        identifiers.add(0, createUnsyncedIdentifier(location))
+        identifiers.addAll(createLocationIdentifiers(location, fetchIdentifiers))
+        if (fetchIdentifiers) {
+          identifiers.add(0, createUnsyncedIdentifier(location))
+        }
         patient.identifier = identifiers
       }
 
@@ -162,7 +164,10 @@ constructor(
     }
   }
 
-  private suspend fun createLocationIdentifiers(location: Location): List<Identifier> {
+  private suspend fun createLocationIdentifiers(
+    location: Location,
+    fetchIdentifiers: Boolean = true,
+  ): List<Identifier> {
     val identifierList: MutableList<Identifier> = mutableListOf()
     val selectedIdentifierTypes =
       applicationContext.dataStore.data.first()[PreferenceKeys.SELECTED_IDENTIFIER_TYPES]?.toList()
@@ -180,7 +185,7 @@ constructor(
           Identifier().apply {
             id = generateUuid()
             use = Identifier.IdentifierUse.OFFICIAL
-            value = identifierType?.uuid
+            value = if (fetchIdentifiers) identifierType?.uuid else null
             type = CodeableConcept().apply { text = identifierType?.display }
           }
         identifier.addExtension(
