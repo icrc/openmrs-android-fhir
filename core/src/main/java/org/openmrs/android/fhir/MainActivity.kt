@@ -271,7 +271,8 @@ class MainActivity : AppCompatActivity() {
           }
         }*/
         checkNotificationPermission()
-        viewModel.triggerOneTimeSync(applicationContext)
+        val fetchIdentifiers = applicationContext.resources.getBoolean(R.bool.fetch_identifiers)
+        viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers)
         binding.drawer.closeDrawer(GravityCompat.START)
       }
       isTokenExpired() && viewModel.networkStatus.value -> {
@@ -425,12 +426,13 @@ class MainActivity : AppCompatActivity() {
         if (isNetworkAvailable) {
           binding.networkStatusFlag.tvNetworkStatus.text = getString(R.string.online)
           if (viewModel.isSyncing.value == true) {
+            val fetchIdentifiers = applicationContext.resources.getBoolean(R.bool.fetch_identifiers)
             AlertDialog.Builder(context)
               .setTitle(getString(R.string.connection_restored))
               .setMessage(getString(R.string.do_you_want_to_continue_sync))
               .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
                 dialog.dismiss()
-                viewModel.triggerOneTimeSync(applicationContext)
+                viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers)
               }
               .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
               .setCancelable(false)

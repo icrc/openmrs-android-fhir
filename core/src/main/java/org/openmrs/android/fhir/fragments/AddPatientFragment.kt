@@ -173,7 +173,9 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
   }
 
   private fun savePatient(questionnaireResponse: QuestionnaireResponse) {
-    viewModel.savePatient(questionnaireResponse)
+    val fetchIdentifiers =
+      requireContext().applicationContext.resources.getBoolean(R.bool.fetch_identifiers)
+    viewModel.savePatient(questionnaireResponse, fetchIdentifiers)
   }
 
   private fun observePatientSaveAction() {

@@ -153,7 +153,7 @@ constructor(
     }
   }
 
-  fun triggerOneTimeSync(context: Context) {
+  fun triggerOneTimeSync(context: Context, fetchIdentifiers: Boolean = true) {
     viewModelScope.launch {
       val shouldSync =
         syncMutex.withLock {
@@ -167,8 +167,10 @@ constructor(
 
       if (shouldSync) {
         // Actual sync work happens outside the mutex
-        fetchIdentifierTypesIfEmpty()
-        embeddIdentifierToUnsyncedPatients(context)
+        if (fetchIdentifiers) {
+          fetchIdentifierTypesIfEmpty()
+          embeddIdentifierToUnsyncedPatients(context)
+        }
         SyncInfoDatabaseWriterWorker.enqueue(applicationContext)
       }
     }

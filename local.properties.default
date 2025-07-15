@@ -20,6 +20,9 @@ gpr.key=<A GitHub token>
 # flag to show review page before submitting questionnaire
 show_review_page_before_submit=true
 
+#Flag to fetch identifiers on android side
+fetch_identifiers=true
+
 # oauth2 default values for development setup:
 #auth_authorization_scope=openid
 #auth_client_id=openmrs-fhir
