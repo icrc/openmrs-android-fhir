@@ -32,6 +32,7 @@ import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
+import android.util.Base64
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -49,6 +50,10 @@ import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import java.security.KeyStore
+import javax.crypto.Cipher
+import javax.crypto.SecretKey
+import javax.crypto.spec.IvParameterSpec
 
 class SplashActivity : AppCompatActivity() {
 
@@ -93,7 +98,20 @@ class SplashActivity : AppCompatActivity() {
 
           override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
             super.onAuthenticationSucceeded(result)
-            navigateToMainActivity()
+
+            val cipher = result.cryptoObject?.cipher
+            if (cipher != null) {
+              val decryptedToken = decryptSessionToken(cipher) // ← decrypt and proceed
+              if (decryptedToken != null) {
+                navigateToMainActivity()
+              } else {
+                Toast.makeText(applicationContext, "Invalid session", Toast.LENGTH_SHORT).show()
+                finish()
+              }
+            } else {
+              Toast.makeText(applicationContext, "Failed to retrieve cipher", Toast.LENGTH_SHORT).show()
+              finish()
+            }
           }
 
           override fun onAuthenticationFailed() {
@@ -109,7 +127,7 @@ class SplashActivity : AppCompatActivity() {
         .setTitle("Offline Device Authentication")
         .setSubtitle("Use your biometric credential or device PIN/pattern/password")
         .setAllowedAuthenticators(
-          BiometricManager.Authenticators.BIOMETRIC_WEAK or
+          BiometricManager.Authenticators.BIOMETRIC_STRONG or
             BiometricManager.Authenticators.DEVICE_CREDENTIAL,
         )
         .build()
@@ -163,16 +181,17 @@ class SplashActivity : AppCompatActivity() {
 
   private fun promptBiometricAuthentication() {
     val biometricManager = BiometricManager.from(this)
-
+    val cipher = getCipher()
+    val cryptoObject = BiometricPrompt.CryptoObject(cipher)
     // Check for biometric + device credential (PIN/pattern/password)
     when (
       biometricManager.canAuthenticate(
-        BiometricManager.Authenticators.BIOMETRIC_WEAK or
+        BiometricManager.Authenticators.BIOMETRIC_STRONG or
           BiometricManager.Authenticators.DEVICE_CREDENTIAL,
       )
     ) {
       BiometricManager.BIOMETRIC_SUCCESS -> {
-        biometricPrompt.authenticate(promptInfo)
+        biometricPrompt.authenticate(promptInfo, cryptoObject)
       }
       BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
         // Check if device credential is available as fallback
@@ -180,7 +199,7 @@ class SplashActivity : AppCompatActivity() {
           biometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL) ==
             BiometricManager.BIOMETRIC_SUCCESS
         ) {
-          biometricPrompt.authenticate(promptInfo)
+          biometricPrompt.authenticate(promptInfo, cryptoObject)
         } else {
           Toast.makeText(this, "No authentication method available", Toast.LENGTH_SHORT).show()
           navigateToMainActivity()
@@ -192,7 +211,7 @@ class SplashActivity : AppCompatActivity() {
           biometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL) ==
             BiometricManager.BIOMETRIC_SUCCESS
         ) {
-          biometricPrompt.authenticate(promptInfo)
+          biometricPrompt.authenticate(promptInfo, cryptoObject)
         } else {
           Toast.makeText(
               this,
@@ -209,7 +228,7 @@ class SplashActivity : AppCompatActivity() {
           biometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL) ==
             BiometricManager.BIOMETRIC_SUCCESS
         ) {
-          biometricPrompt.authenticate(promptInfo)
+          biometricPrompt.authenticate(promptInfo, cryptoObject)
         } else {
           Toast.makeText(
               this,
@@ -263,4 +282,45 @@ class SplashActivity : AppCompatActivity() {
     startActivity(Intent(this@SplashActivity, MainActivity::class.java))
     finish()
   }
+
+  fun getCipher(): Cipher {
+    val keyStore = KeyStore.getInstance("AndroidKeyStore")
+    keyStore.load(null)
+    val secretKey = keyStore.getKey("biometric_key", null) as SecretKey
+    val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
+    cipher.init(Cipher.ENCRYPT_MODE, secretKey) // or DECRYPT_MODE when decrypting
+    return cipher
+  }
+
+  fun decryptSessionToken(cipher: Cipher): String? {
+    // Load IV and encrypted data from secure storage (e.g., SharedPreferences or EncryptedSharedPrefs)
+    val iv = loadIV()
+    val encryptedToken = loadEncryptedToken()
+
+    cipher.init(Cipher.DECRYPT_MODE, getSecretKey(), IvParameterSpec(iv))
+    val decryptedBytes = cipher.doFinal(encryptedToken)
+    return String(decryptedBytes, Charsets.UTF_8)
+  }
+
+  fun getSecretKey(): SecretKey {
+    val keyStore = KeyStore.getInstance("AndroidKeyStore")
+    keyStore.load(null)
+    return keyStore.getKey("biometric_key", null) as SecretKey
+  }
+
+  fun loadIV(): ByteArray {
+    val sharedPreferences = getSharedPreferences("secure_prefs", MODE_PRIVATE)
+    val ivBase64 = sharedPreferences.getString("encrypted_iv", null)
+      ?: throw IllegalStateException("IV not found")
+    return Base64.decode(ivBase64, Base64.DEFAULT)
+  }
+
+  fun loadEncryptedToken(): ByteArray {
+    val sharedPreferences = getSharedPreferences("secure_prefs", MODE_PRIVATE)
+    val tokenBase64 = sharedPreferences.getString("encrypted_token", null)
+      ?: throw IllegalStateException("Encrypted token not found")
+    return Base64.decode(tokenBase64, Base64.DEFAULT)
+  }
+
+
 }
