@@ -40,20 +40,21 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import java.security.KeyStore
 import java.util.concurrent.Executor
+import javax.crypto.Cipher
+import javax.crypto.SecretKey
+import javax.crypto.spec.IvParameterSpec
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
-import java.security.KeyStore
-import javax.crypto.Cipher
-import javax.crypto.SecretKey
-import javax.crypto.spec.IvParameterSpec
 
 class SplashActivity : AppCompatActivity() {
 
@@ -66,6 +67,9 @@ class SplashActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
     setContentView(R.layout.activity_splash)
+
+    resetBiometricKeyIfNeeded() // Reset key if biometric state changed
+
     ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
       val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
       v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -100,16 +104,34 @@ class SplashActivity : AppCompatActivity() {
             super.onAuthenticationSucceeded(result)
 
             val cipher = result.cryptoObject?.cipher
-            if (cipher != null) {
-              val decryptedToken = decryptSessionToken(cipher) // ← decrypt and proceed
+            if (cipher == null) {
+              // Device credential only — fallback login
+              navigateToMainActivity()
+              return
+            }
+
+            try {
+              val decryptedToken = decryptSessionToken(cipher)
+
               if (decryptedToken != null) {
+                // ✅ Check if secure_prefs is empty — user added biometric later
+                val prefs = getSharedPreferences("secure_prefs", MODE_PRIVATE)
+                if (!prefs.contains("encrypted_token")) {
+                  // First time biometric available, store token again
+                  val currentToken = authStateManager.current.accessToken
+                  if (!currentToken.isNullOrBlank()) {
+                    encryptAndSaveToken(currentToken, cipher)
+                  }
+                }
+
                 navigateToMainActivity()
               } else {
                 Toast.makeText(applicationContext, "Invalid session", Toast.LENGTH_SHORT).show()
                 finish()
               }
-            } else {
-              Toast.makeText(applicationContext, "Failed to retrieve cipher", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+              e.printStackTrace()
+              Toast.makeText(applicationContext, "Decryption failed", Toast.LENGTH_SHORT).show()
               finish()
             }
           }
@@ -181,82 +203,70 @@ class SplashActivity : AppCompatActivity() {
 
   private fun promptBiometricAuthentication() {
     val biometricManager = BiometricManager.from(this)
-    val cipher = getCipher()
-    val cryptoObject = BiometricPrompt.CryptoObject(cipher)
-    // Check for biometric + device credential (PIN/pattern/password)
-    when (
-      biometricManager.canAuthenticate(
-        BiometricManager.Authenticators.BIOMETRIC_STRONG or
-          BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+
+    val canUseStrongBiometric =
+      biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) ==
+        BiometricManager.BIOMETRIC_SUCCESS
+
+    val canUseDeviceCredential =
+      biometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL) ==
+        BiometricManager.BIOMETRIC_SUCCESS
+
+    val promptBuilder =
+      BiometricPrompt.PromptInfo.Builder().setTitle("Offline Device Authentication")
+
+    if (canUseStrongBiometric) {
+      val cipher = getDecryptionCipher()
+
+      if (cipher != null) {
+        promptBuilder
+          .setSubtitle("Use your biometric credential")
+          .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+          .setNegativeButtonText("Cancel") // ✅ OK for strong biometric only
+
+        biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
+        return
+      }
+    }
+
+    if (canUseDeviceCredential) {
+      promptBuilder
+        .setSubtitle("Use your device PIN/pattern/password")
+        .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+
+      biometricPrompt.authenticate(promptBuilder.build())
+      return
+    }
+
+    Toast.makeText(
+        this,
+        "No supported authentication method available",
+        Toast.LENGTH_LONG,
       )
-    ) {
-      BiometricManager.BIOMETRIC_SUCCESS -> {
-        biometricPrompt.authenticate(promptInfo, cryptoObject)
-      }
-      BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
-        // Check if device credential is available as fallback
-        if (
-          biometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL) ==
-            BiometricManager.BIOMETRIC_SUCCESS
-        ) {
-          biometricPrompt.authenticate(promptInfo, cryptoObject)
-        } else {
-          Toast.makeText(this, "No authentication method available", Toast.LENGTH_SHORT).show()
-          navigateToMainActivity()
-        }
-      }
-      BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
-        // Check if device credential is available as fallback
-        if (
-          biometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL) ==
-            BiometricManager.BIOMETRIC_SUCCESS
-        ) {
-          biometricPrompt.authenticate(promptInfo, cryptoObject)
-        } else {
-          Toast.makeText(
-              this,
-              "Authentication features are currently unavailable",
-              Toast.LENGTH_SHORT,
-            )
-            .show()
-          navigateToMainActivity()
-        }
-      }
-      BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
-        // Check if device credential is available as fallback
-        if (
-          biometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL) ==
-            BiometricManager.BIOMETRIC_SUCCESS
-        ) {
-          biometricPrompt.authenticate(promptInfo, cryptoObject)
-        } else {
-          Toast.makeText(
-              this,
-              "No authentication method set up. Please set up biometric or screen lock",
-              Toast.LENGTH_SHORT,
-            )
-            .show()
-          navigateToMainActivity()
-        }
-      }
-      BiometricManager.BIOMETRIC_ERROR_SECURITY_UPDATE_REQUIRED -> {
-        Toast.makeText(this, "Security update required for authentication", Toast.LENGTH_SHORT)
-          .show()
-        navigateToMainActivity()
-      }
-      BiometricManager.BIOMETRIC_ERROR_UNSUPPORTED -> {
-        Toast.makeText(this, "Authentication not supported on this device", Toast.LENGTH_SHORT)
-          .show()
-        navigateToMainActivity()
-      }
-      BiometricManager.BIOMETRIC_STATUS_UNKNOWN -> {
-        Toast.makeText(this, "Authentication status unknown", Toast.LENGTH_SHORT).show()
-        navigateToMainActivity()
-      }
-      else -> {
-        Toast.makeText(this, "Authentication not available", Toast.LENGTH_SHORT).show()
-        navigateToMainActivity()
-      }
+      .show()
+    navigateToMainActivity()
+  }
+
+  fun getDecryptionCipher(): Cipher? {
+    return try {
+      val keyStore = KeyStore.getInstance("AndroidKeyStore")
+      keyStore.load(null)
+      val secretKey = keyStore.getKey("biometric_key", null) as? SecretKey ?: return null
+
+      val sharedPreferences = getSharedPreferences("secure_prefs", MODE_PRIVATE)
+      val ivBase64 = sharedPreferences.getString("encrypted_iv", null) ?: return null
+      val iv = Base64.decode(ivBase64, Base64.DEFAULT)
+
+      val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
+      cipher.init(Cipher.DECRYPT_MODE, secretKey, IvParameterSpec(iv))
+      cipher
+    } catch (e: android.security.keystore.KeyPermanentlyInvalidatedException) {
+      e.printStackTrace()
+      deleteBiometricKey()
+      null
+    } catch (e: Exception) {
+      e.printStackTrace()
+      null
     }
   }
 
@@ -283,44 +293,74 @@ class SplashActivity : AppCompatActivity() {
     finish()
   }
 
-  fun getCipher(): Cipher {
-    val keyStore = KeyStore.getInstance("AndroidKeyStore")
-    keyStore.load(null)
-    val secretKey = keyStore.getKey("biometric_key", null) as SecretKey
-    val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
-    cipher.init(Cipher.ENCRYPT_MODE, secretKey) // or DECRYPT_MODE when decrypting
-    return cipher
-  }
-
   fun decryptSessionToken(cipher: Cipher): String? {
-    // Load IV and encrypted data from secure storage (e.g., SharedPreferences or EncryptedSharedPrefs)
-    val iv = loadIV()
-    val encryptedToken = loadEncryptedToken()
-
-    cipher.init(Cipher.DECRYPT_MODE, getSecretKey(), IvParameterSpec(iv))
-    val decryptedBytes = cipher.doFinal(encryptedToken)
-    return String(decryptedBytes, Charsets.UTF_8)
+    return try {
+      val sharedPreferences = getSharedPreferences("secure_prefs", MODE_PRIVATE)
+      val tokenBase64 = sharedPreferences.getString("encrypted_token", null) ?: return null
+      val encryptedToken = Base64.decode(tokenBase64, Base64.DEFAULT)
+      val decryptedBytes = cipher.doFinal(encryptedToken)
+      String(decryptedBytes, Charsets.UTF_8)
+    } catch (e: Exception) {
+      e.printStackTrace()
+      null
+    }
   }
 
-  fun getSecretKey(): SecretKey {
-    val keyStore = KeyStore.getInstance("AndroidKeyStore")
-    keyStore.load(null)
-    return keyStore.getKey("biometric_key", null) as SecretKey
-  }
+  fun encryptAndSaveToken(token: String, cipher: Cipher) {
+    val encryptedBytes = cipher.doFinal(token.toByteArray(Charsets.UTF_8))
+    val iv = cipher.iv
 
-  fun loadIV(): ByteArray {
     val sharedPreferences = getSharedPreferences("secure_prefs", MODE_PRIVATE)
-    val ivBase64 = sharedPreferences.getString("encrypted_iv", null)
-      ?: throw IllegalStateException("IV not found")
-    return Base64.decode(ivBase64, Base64.DEFAULT)
+    sharedPreferences.edit {
+      putString("encrypted_token", Base64.encodeToString(encryptedBytes, Base64.DEFAULT))
+        .putString("encrypted_iv", Base64.encodeToString(iv, Base64.DEFAULT))
+    }
   }
 
-  fun loadEncryptedToken(): ByteArray {
-    val sharedPreferences = getSharedPreferences("secure_prefs", MODE_PRIVATE)
-    val tokenBase64 = sharedPreferences.getString("encrypted_token", null)
-      ?: throw IllegalStateException("Encrypted token not found")
-    return Base64.decode(tokenBase64, Base64.DEFAULT)
+  private fun isBiometricEnrolled(): Boolean {
+    val biometricManager = BiometricManager.from(this)
+    return biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) ==
+      BiometricManager.BIOMETRIC_SUCCESS
   }
 
+  private fun hasBiometricStateChanged(): Boolean {
+    val prefs = getSharedPreferences("secure_prefs", MODE_PRIVATE)
+    val previousState = prefs.getBoolean("biometric_enrolled", false)
+    val currentState = isBiometricEnrolled()
+    return previousState != currentState
+  }
 
+  private fun updateBiometricEnrollmentState(current: Boolean) {
+    val prefs = getSharedPreferences("secure_prefs", MODE_PRIVATE)
+    prefs.edit { putBoolean("biometric_enrolled", current) }
+  }
+
+  private fun resetBiometricKeyIfNeeded() {
+    if (hasBiometricStateChanged()) {
+      try {
+        val keyStore = KeyStore.getInstance("AndroidKeyStore")
+        keyStore.load(null)
+        keyStore.deleteEntry("biometric_key")
+      } catch (e: Exception) {
+        e.printStackTrace()
+      } finally {
+        updateBiometricEnrollmentState(isBiometricEnrolled())
+      }
+    }
+  }
+
+  fun deleteBiometricKey() {
+    try {
+      val keyStore = KeyStore.getInstance("AndroidKeyStore")
+      keyStore.load(null)
+      keyStore.deleteEntry("biometric_key")
+
+      // Optional: Clear encrypted data if needed
+      getSharedPreferences("secure_prefs", MODE_PRIVATE).edit {
+        remove("encrypted_token").remove("encrypted_iv")
+      }
+    } catch (e: Exception) {
+      e.printStackTrace()
+    }
+  }
 }

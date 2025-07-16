@@ -1,11 +1,46 @@
+/*
+* BSD 3-Clause License
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this
+*    list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice,
+*    this list of conditions and the following disclaimer in the documentation
+*    and/or other materials provided with the distribution.
+*
+* 3. Neither the name of the copyright holder nor the names of its
+*    contributors may be used to endorse or promote products derived from
+*    this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
-import androidx.lifecycle.ViewModel
 import android.util.Base64
+import androidx.biometric.BiometricManager
+import androidx.core.content.edit
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import java.security.KeyStore
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,11 +50,7 @@ import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ApiResponse
 import org.openmrs.android.fhir.data.remote.model.SessionResponse
-import java.security.KeyStore
-import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
-import javax.inject.Inject
+import timber.log.Timber
 
 class BasicLoginActivityViewModel
 @Inject
@@ -31,15 +62,19 @@ constructor(private val applicationContext: Context, private val apiManager: Api
   private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
   val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
-  fun login(username: String, password: String) = viewModelScope.launch {
-    _uiState.value = LoginUiState.Loading
-    if (isLockedOut()) {
-      _uiState.value = LoginUiState.LockedOut
-      return@launch
-    }
+  // Temporary store for token after login success
+  var sessionTokenToEncrypt: String? = null
 
-    validateCredentials(username, password)
-  }
+  fun login(username: String, password: String) =
+    viewModelScope.launch {
+      _uiState.value = LoginUiState.Loading
+      if (isLockedOut()) {
+        _uiState.value = LoginUiState.LockedOut
+        return@launch
+      }
+
+      validateCredentials(username, password)
+    }
 
   private suspend fun validateCredentials(username: String, password: String) {
     if (username.isEmpty() || password.isEmpty()) {
@@ -58,16 +93,15 @@ constructor(private val applicationContext: Context, private val apiManager: Api
           _uiState.value = LoginUiState.Failure(R.string.invalid_username_password)
           return
         }
+
         authStateManager.updateBasicAuthCredentials(username, password)
-        createBiometricKey()
-        encryptAndSaveToken(encodedCredentials) // Store Basic token securely
+        createBiometricKeyIfPossible()
+        sessionTokenToEncrypt = encodedCredentials // wait for biometric to encrypt
         _uiState.value = LoginUiState.Success
       }
-
       is ApiResponse.NoInternetConnection -> {
         _uiState.value = LoginUiState.Failure(R.string.no_internet_connection)
       }
-
       else -> {
         _uiState.value = LoginUiState.Failure(R.string.something_went_wrong)
       }
@@ -82,28 +116,42 @@ constructor(private val applicationContext: Context, private val apiManager: Api
     return authStateManager.isLockedOut()
   }
 
-  // ---- Security Functions for Biometric Key ----
+  // ---- Biometric Key Setup and Secure Token Storage ----
 
-  private fun createBiometricKey() {
-    val keyGenerator = KeyGenerator.getInstance(
-      KeyProperties.KEY_ALGORITHM_AES,
-      "AndroidKeyStore"
-    )
-    val keyGenParameterSpec = KeyGenParameterSpec.Builder(
-      "biometric_key",
-      KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-    )
-      .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-      .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-      .setUserAuthenticationRequired(false)
-      .setInvalidatedByBiometricEnrollment(true)
-      .setUserAuthenticationValidityDurationSeconds(-1)
-      .build()
+  fun createBiometricKeyIfPossible() {
+    val biometricManager = BiometricManager.from(applicationContext)
+    val canUseBiometric =
+      biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+
+    if (canUseBiometric != BiometricManager.BIOMETRIC_SUCCESS) {
+      // Skip key creation if no biometric enrolled
+      Timber.w("Biometric not enrolled or not available, skipping key creation")
+      return
+    }
+
+    val keyGenerator =
+      KeyGenerator.getInstance(
+        KeyProperties.KEY_ALGORITHM_AES,
+        "AndroidKeyStore",
+      )
+
+    val keyGenParameterSpec =
+      KeyGenParameterSpec.Builder(
+          "biometric_key",
+          KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
+        )
+        .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
+        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+        .setUserAuthenticationRequired(true)
+        .setInvalidatedByBiometricEnrollment(true)
+        .setUserAuthenticationValidityDurationSeconds(-1)
+        .build()
+
     keyGenerator.init(keyGenParameterSpec)
     keyGenerator.generateKey()
   }
 
-  private fun getCipher(): Cipher {
+  fun getEncryptionCipher(): Cipher {
     val keyStore = KeyStore.getInstance("AndroidKeyStore")
     keyStore.load(null)
     val secretKey = keyStore.getKey("biometric_key", null) as SecretKey
@@ -112,26 +160,27 @@ constructor(private val applicationContext: Context, private val apiManager: Api
     return cipher
   }
 
-  private fun encryptAndSaveToken(token: String) {
-    val cipher = getCipher()
+  fun encryptAndSaveToken(token: String, cipher: Cipher) {
     val encryptedBytes = cipher.doFinal(token.toByteArray(Charsets.UTF_8))
     val iv = cipher.iv
 
-    val sharedPreferences = getSharedPrefs()
-    sharedPreferences.edit()
-      .putString("encrypted_token", Base64.encodeToString(encryptedBytes, Base64.DEFAULT))
-      .putString("encrypted_iv", Base64.encodeToString(iv, Base64.DEFAULT))
-      .apply()
+    val sharedPreferences =
+      applicationContext.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
+    sharedPreferences.edit {
+      putString("encrypted_token", Base64.encodeToString(encryptedBytes, Base64.DEFAULT))
+        .putString("encrypted_iv", Base64.encodeToString(iv, Base64.DEFAULT))
+    }
   }
-
-  private fun getSharedPrefs() =
-    applicationContext.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
 }
 
 sealed class LoginUiState {
   object Idle : LoginUiState()
+
   object LockedOut : LoginUiState()
+
   object Loading : LoginUiState()
+
   object Success : LoginUiState()
+
   data class Failure(val resId: Int) : LoginUiState()
 }
