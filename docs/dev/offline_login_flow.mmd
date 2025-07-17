@@ -1,0 +1,23 @@
+flowchart TD
+    A[App Launch] --> B{user_uuid exists?}
+    B -- No --> C{Internet available?}
+    C -- No --> Z[Show No Internet Dialog → Retry or Exit]
+    C -- Yes --> D[Redirect to AuthFlow]
+    
+    B -- Yes --> E{Currently Authenticated?}
+    E -- Yes --> F[Prompt Biometric]
+    E -- No --> G{Internet available?}
+    
+    G -- Yes --> D
+    G -- No --> F
+    
+    F --> H{Biometric Success?}
+    H -- Yes --> I[Navigate to MainActivity]
+    H -- No --> J[Redirect to AuthFlow or Exit]
+    
+    D --> K[LoginActivity or BasicLoginActivity]
+    K --> L[On Success → Save user_uuid]
+    L --> I
+    
+    Z -->|Exit| X[App Exit]
+    J --> X
