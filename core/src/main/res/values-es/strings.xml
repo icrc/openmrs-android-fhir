@@ -306,4 +306,19 @@
     <string
         name="uploading_patient_data"
     >Mise en ligne des données du patient</string>
+    <string
+        name="biometric_prompt_title"
+    >Autenticación del dispositivo sin conexión</string>
+    <string
+        name="biometric_prompt_subtitle"
+    >Use sus credenciales biométricas</string>
+    <string
+        name="use_device_credential"
+    >Use su PIN/patrón/contraseña del dispositivo</string>
+    <string name="auth_error">Error de autenticación: %1$s</string>
+    <string name="auth_failed">Autenticación fallida</string>
+    <string name="invalid_session">Sesión inválida</string>
+    <string
+        name="no_supported_auth_method"
+    >No hay métodos de autenticación compatibles disponibles</string>
 </resources>

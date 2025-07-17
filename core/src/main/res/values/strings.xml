@@ -292,4 +292,17 @@
         name="patient_resources_are_being_synchronized"
     >Patient resources are being synchronized…</string>
     <string name="progress">Progress</string>
+    <string name="biometric_prompt_title">Offline Device Authentication</string>
+    <string
+        name="biometric_prompt_subtitle"
+    >Use your biometric credential</string>
+    <string
+        name="use_device_credential"
+    >Use your device PIN/pattern/password</string>
+    <string name="auth_error">Authentication error: %1$s</string>
+    <string name="auth_failed">Authentication failed</string>
+    <string name="invalid_session">Invalid session</string>
+    <string
+        name="no_supported_auth_method"
+    >No supported authentication method available</string>
 </resources>

@@ -60,7 +60,7 @@ class BasicLoginActivity : AppCompatActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    (this.application as FhirApplication).appComponent.inject(this)
+    (application as FhirApplication).appComponent.inject(this)
     binding = ActivityBasicLoginBinding.inflate(layoutInflater)
     setContentView(binding.root)
 
@@ -99,7 +99,7 @@ class BasicLoginActivity : AppCompatActivity() {
       repeatOnLifecycle(Lifecycle.State.STARTED) {
         viewModel.uiState.collect { state ->
           when (state) {
-            is LoginUiState.Idle -> {}
+            is LoginUiState.Idle -> Unit
             is LoginUiState.Failure -> {
               binding.progressIndicator.visibility = View.GONE
               showToastMessage(getString(state.resId))
@@ -139,53 +139,29 @@ class BasicLoginActivity : AppCompatActivity() {
         BiometricManager.BIOMETRIC_SUCCESS
 
     val promptBuilder =
-      BiometricPrompt.PromptInfo.Builder().setTitle("Authenticate to complete login")
+      BiometricPrompt.PromptInfo.Builder().setTitle(getString(R.string.biometric_prompt_title))
 
     if (canUseStrongBiometric) {
       promptBuilder
-        .setSubtitle("Use biometric sensor to protect credentials")
+        .setSubtitle(getString(R.string.biometric_prompt_subtitle))
         .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+        .setNegativeButtonText(getString(R.string.cancel))
 
-      val promptBuilder =
-        BiometricPrompt.PromptInfo.Builder().setTitle("Authenticate to complete login")
-
-      if (canUseStrongBiometric) {
-        promptBuilder
-          .setSubtitle("Use biometric sensor to protect credentials")
-          .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-          .setNegativeButtonText("Cancel") // REQUIRED for BIOMETRIC_STRONG
-
-        val cipher = viewModel.getEncryptionCipher()
+      val cipher = viewModel.getEncryptionCipher()
+      if (cipher != null) {
         biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
-      } else if (canUseDeviceCredential) {
-        promptBuilder
-          .setSubtitle("Use device credentials to complete login")
-          .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
-        // DO NOT call .setNegativeButtonText()
-
-        biometricPrompt.authenticate(promptBuilder.build()) // no CryptoObject
       } else {
-        Toast.makeText(
-            this,
-            "No supported authentication method available on this device",
-            Toast.LENGTH_LONG,
-          )
-          .show()
+        Toast.makeText(this, "Encryption not available", Toast.LENGTH_LONG).show()
         navigateToMain()
       }
     } else if (canUseDeviceCredential) {
       promptBuilder
-        .setSubtitle("Use device credentials to complete login")
+        .setSubtitle(getString(R.string.use_device_credential))
         .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
 
-      biometricPrompt.authenticate(promptBuilder.build()) // no CryptoObject
+      biometricPrompt.authenticate(promptBuilder.build())
     } else {
-      Toast.makeText(
-          this,
-          "No supported authentication method available on this device",
-          Toast.LENGTH_LONG,
-        )
-        .show()
+      Toast.makeText(this, getString(R.string.no_supported_auth_method), Toast.LENGTH_LONG).show()
       navigateToMain()
     }
   }

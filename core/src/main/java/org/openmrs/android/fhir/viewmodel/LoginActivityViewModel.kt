@@ -30,23 +30,23 @@ package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
 import android.content.Intent
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyProperties
 import android.util.Base64
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
-import java.security.KeyStore
-import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.inject.Inject
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
+import org.openmrs.android.fhir.EncryptionHelper
 import org.openmrs.android.fhir.LoginRepository
+import org.openmrs.android.fhir.extensions.BiometricUtils
 import timber.log.Timber
 
-class LoginActivityViewModel @Inject constructor(private val applicationContext: Context) :
-  ViewModel() {
+class LoginActivityViewModel
+@Inject
+constructor(
+  private val applicationContext: Context,
+) : ViewModel() {
 
   private val loginRepository by lazy { LoginRepository.getInstance(applicationContext) }
 
@@ -68,96 +68,41 @@ class LoginActivityViewModel @Inject constructor(private val applicationContext:
     when {
       response?.authorizationCode != null -> {
         loginRepository.exchangeCodeForToken(response, ex)
-
         try {
-          createBiometricKeyIfNotExists()
-          val sessionToken = loginRepository.getAccessToken()
-          if (sessionToken.isNotBlank()) {
-            encryptAndSaveToken(sessionToken)
+          BiometricUtils.createBiometricKeyIfNotExists()
+          val token = loginRepository.getAccessToken()
+          if (token.isNotBlank()) {
+            encryptAndStoreToken(token)
           }
         } catch (e: Exception) {
           Timber.e("Biometric key error: ${e.message}")
         }
       }
-      ex != null -> {
-        Timber.e("Authorization flow failed: " + ex.message)
+      ex != null -> Timber.e("Authorization flow failed: ${ex.message}")
+      else -> Timber.e("No authorization state retained - reauthorization required")
+    }
+  }
+
+  private fun encryptAndStoreToken(token: String) {
+    val secretKey: SecretKey? =
+      try {
+        BiometricUtils.getSecretKey()
+      } catch (e: Exception) {
+        Timber.e("SecretKey fetch failed: ${e.message}")
+        BiometricUtils.deleteBiometricKey(applicationContext)
+        null
       }
-      else -> {
-        Timber.e("No authorization state retained - reauthorization required")
-      }
-    }
-  }
 
-  private fun createBiometricKeyIfNotExists() {
-    val keyStore = KeyStore.getInstance("AndroidKeyStore")
-    keyStore.load(null)
+    if (secretKey == null) return
 
-    if (!keyStore.containsAlias("biometric_key")) {
-      val keyGenerator =
-        KeyGenerator.getInstance(
-          KeyProperties.KEY_ALGORITHM_AES,
-          "AndroidKeyStore",
-        )
-      val keyGenParameterSpec =
-        KeyGenParameterSpec.Builder(
-            "biometric_key",
-            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
-          )
-          .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-          .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
-          .setUserAuthenticationRequired(true)
-          .setUserAuthenticationValidityDurationSeconds(-1)
-          .setInvalidatedByBiometricEnrollment(true)
-          .build()
-      keyGenerator.init(keyGenParameterSpec)
-      keyGenerator.generateKey()
-    }
-  }
-
-  private fun getCipher(): Cipher? {
-    return try {
-      val keyStore = KeyStore.getInstance("AndroidKeyStore")
-      keyStore.load(null)
-      val secretKey = keyStore.getKey("biometric_key", null) as? SecretKey ?: return null
-
-      val cipher = Cipher.getInstance("AES/CBC/PKCS7Padding")
-      cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-      cipher
-    } catch (e: android.security.keystore.KeyPermanentlyInvalidatedException) {
-      Timber.e("Key invalidated: ${e.message}")
-      deleteBiometricKey()
-      null
-    } catch (e: Exception) {
-      Timber.e("Cipher creation failed: ${e.message}")
-      null
-    }
-  }
-
-  private fun encryptAndSaveToken(token: String) {
-    val cipher = getCipher() ?: return
-
-    val encryptedBytes = cipher.doFinal(token.toByteArray(Charsets.UTF_8))
-    val iv = cipher.iv
-
-    val sharedPreferences = getSharedPrefs()
-    sharedPreferences.edit {
-      putString("encrypted_token", Base64.encodeToString(encryptedBytes, Base64.DEFAULT))
-        .putString("encrypted_iv", Base64.encodeToString(iv, Base64.DEFAULT))
-    }
-  }
-
-  private fun deleteBiometricKey() {
     try {
-      val keyStore = KeyStore.getInstance("AndroidKeyStore")
-      keyStore.load(null)
-      keyStore.deleteEntry("biometric_key")
-
-      getSharedPrefs().edit { remove("encrypted_token").remove("encrypted_iv") }
+      val (encryptedToken, iv) = EncryptionHelper.encrypt(token, secretKey)
+      BiometricUtils.getSharedPrefs(applicationContext).edit {
+        putString("encrypted_token", encryptedToken)
+        putString("encrypted_iv", Base64.encodeToString(iv, Base64.DEFAULT))
+      }
     } catch (e: Exception) {
-      Timber.e("Failed to delete biometric key: ${e.message}")
+      Timber.e("Token encryption failed: ${e.message}")
     }
   }
-
-  private fun getSharedPrefs() =
-    applicationContext.getSharedPreferences("secure_prefs", Context.MODE_PRIVATE)
 }

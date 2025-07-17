@@ -312,4 +312,19 @@
     <string
         name="uploading_patient_data"
     >Mise en ligne des données du patient</string>
+    <string
+        name="biometric_prompt_title"
+    >Authentification de l\'appareil hors ligne</string>
+    <string
+        name="biometric_prompt_subtitle"
+    >Utilisez vos données biométriques</string>
+    <string
+        name="use_device_credential"
+    >Utilisez votre code PIN/motif/mot de passe</string>
+    <string name="auth_error">Erreur d\'authentification : %1$s</string>
+    <string name="auth_failed">Échec de l\'authentification</string>
+    <string name="invalid_session">Session invalide</string>
+    <string
+        name="no_supported_auth_method"
+    >Aucune méthode d\'authentification prise en charge disponible</string>
 </resources>
