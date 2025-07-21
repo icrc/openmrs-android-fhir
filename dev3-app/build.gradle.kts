@@ -19,6 +19,7 @@ android {
     manifestPlaceholders["appAuthRedirectScheme"] = applicationId!!
     buildFeatures.buildConfig = true
     versionCode = 1
+    versionName = "0.1.1"
 
     //    server
     setResValue(providers, "fhir_base_url", this)

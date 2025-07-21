@@ -29,9 +29,10 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
+import android.util.Base64
+import androidx.biometric.BiometricManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import java.util.Base64
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,19 +43,26 @@ import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ApiResponse
 import org.openmrs.android.fhir.data.remote.model.SessionResponse
+import org.openmrs.android.fhir.extensions.BiometricUtils
 
 class BasicLoginActivityViewModel
 @Inject
-constructor(private val applicationContext: Context, private val apiManager: ApiManager) :
-  ViewModel() {
+constructor(
+  private val applicationContext: Context,
+  private val apiManager: ApiManager,
+) : ViewModel() {
+
   private val authStateManager by lazy { AuthStateManager.getInstance(applicationContext) }
 
   private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
   val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
+  var sessionTokenToEncrypt: String? = null
+
   fun login(username: String, password: String) =
     viewModelScope.launch {
       _uiState.value = LoginUiState.Loading
+
       if (isLockedOut()) {
         _uiState.value = LoginUiState.LockedOut
         return@launch
@@ -70,7 +78,8 @@ constructor(private val applicationContext: Context, private val apiManager: Api
     }
 
     val credentials = "$username:$password"
-    val encodedCredentials = Base64.getEncoder().encodeToString(credentials.toByteArray())
+    val encodedCredentials = Base64.encodeToString(credentials.toByteArray(), Base64.NO_WRAP)
+
     when (val response = apiManager.validateSession("Basic $encodedCredentials")) {
       is ApiResponse.Success<SessionResponse> -> {
         val authenticated = response.data?.authenticated == true
@@ -79,14 +88,26 @@ constructor(private val applicationContext: Context, private val apiManager: Api
           _uiState.value = LoginUiState.Failure(R.string.invalid_username_password)
           return
         }
+
         authStateManager.updateBasicAuthCredentials(username, password)
+
+        val biometricAvailable =
+          BiometricManager.from(applicationContext)
+            .canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+
+        if (biometricAvailable == BiometricManager.BIOMETRIC_SUCCESS) {
+          BiometricUtils.createBiometricKeyIfNotExists()
+        }
+
+        sessionTokenToEncrypt = encodedCredentials
         _uiState.value = LoginUiState.Success
-        return
       }
       is ApiResponse.NoInternetConnection -> {
         _uiState.value = LoginUiState.Failure(R.string.no_internet_connection)
       }
-      else -> _uiState.value = LoginUiState.Failure(R.string.something_went_wrong)
+      else -> {
+        _uiState.value = LoginUiState.Failure(R.string.something_went_wrong)
+      }
     }
   }
 
@@ -96,6 +117,14 @@ constructor(private val applicationContext: Context, private val apiManager: Api
 
   private suspend fun isLockedOut(): Boolean {
     return authStateManager.isLockedOut()
+  }
+
+  fun getEncryptionCipher(): javax.crypto.Cipher? {
+    return BiometricUtils.getEncryptionCipher()
+  }
+
+  fun encryptAndSaveToken(token: String, cipher: javax.crypto.Cipher) {
+    BiometricUtils.encryptAndSaveToken(token, cipher, applicationContext)
   }
 }
 
