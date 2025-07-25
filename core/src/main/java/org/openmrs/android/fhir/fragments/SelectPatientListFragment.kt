@@ -55,6 +55,7 @@ import org.openmrs.android.fhir.adapters.SelectPatientListItemRecyclerViewAdapte
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.FragmentSelectPatientListBinding
+import org.openmrs.android.fhir.extensions.isInternetAvailable
 import org.openmrs.android.fhir.viewmodel.SelectPatientListViewModel
 
 class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list) {
@@ -135,14 +136,19 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
             proceedToHomeFragment()
           }
         }
+        selectPatientListViewModel.getSelectPatientListItems()
       } else {
+        if(isInternetAvailable(requireContext())) {
+          selectPatientListViewModel.fetchPatientListItems()
+        } else {
+          selectPatientListViewModel.getSelectPatientListItems()
+        }
         actionBar?.setDisplayHomeAsUpEnabled(true)
         (activity as MainActivity).setDrawerEnabled(false)
       }
     }
 
     binding.progressBar.visibility = View.VISIBLE
-    selectPatientListViewModel.getSelectPatientListItems()
     selectPatientListViewModel.selectPatientListItems.observe(viewLifecycleOwner) {
       binding.progressBar.visibility = View.GONE
       if (::selectPatientListAdapter.isInitialized) {
