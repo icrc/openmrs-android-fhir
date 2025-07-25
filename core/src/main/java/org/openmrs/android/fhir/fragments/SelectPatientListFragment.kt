@@ -138,7 +138,7 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
         }
         selectPatientListViewModel.getSelectPatientListItems()
       } else {
-        if(isInternetAvailable(requireContext())) {
+        if (isInternetAvailable(requireContext())) {
           selectPatientListViewModel.fetchPatientListItems()
         } else {
           selectPatientListViewModel.getSelectPatientListItems()
