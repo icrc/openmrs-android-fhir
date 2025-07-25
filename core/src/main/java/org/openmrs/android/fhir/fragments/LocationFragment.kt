@@ -108,15 +108,15 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
       }
     }
     observePollState()
-    if (isInternetAvailable(requireContext())) {
-      locationViewModel.fetchPreSyncData()
-    } else {
-      locationViewModel.getLocations()
-    }
     arguments?.let {
       fromLogin = it.getBoolean("from_login")
       if (fromLogin) {
         showSyncTasksScreen()
+        if (isInternetAvailable(requireContext())) {
+          locationViewModel.fetchPreSyncData()
+        } else {
+          locationViewModel.getLocations()
+        }
         actionBar?.hide()
         (activity as MainActivity).setDrawerEnabled(true)
         binding.titleTextView.visibility = View.VISIBLE
@@ -150,6 +150,11 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
           }
         }
       } else {
+        if (isInternetAvailable(requireContext())) {
+          locationViewModel.fetchLocations()
+        } else {
+          locationViewModel.getLocations()
+        }
         actionBar?.setDisplayHomeAsUpEnabled(true)
         (activity as MainActivity).setDrawerEnabled(false)
       }

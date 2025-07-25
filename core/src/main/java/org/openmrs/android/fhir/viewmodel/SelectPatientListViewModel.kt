@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -35,12 +36,17 @@ import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.search
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Group
+import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.remote.ApiResponse
 
 class SelectPatientListViewModel
 @Inject
 constructor(
   private val fhirEngine: FhirEngine,
+  private val apiManager: ApiManager,
+  private val applicationContext: Context,
 ) : ViewModel() {
   private var masterSelectPatientListItemList: MutableList<SelectPatientListItem> = mutableListOf()
 
@@ -55,6 +61,36 @@ constructor(
         .let { selectPatientListItemList.addAll(it) }
       masterSelectPatientListItemList = selectPatientListItemList
       selectPatientListItems.value = selectPatientListItemList
+    }
+  }
+
+  fun fetchPatientListItems() {
+    viewModelScope.launch {
+      val groupList: MutableList<SelectPatientListItem> = mutableListOf()
+      try {
+        apiManager.getPatientLists(applicationContext).let { response ->
+          when (response) {
+            is ApiResponse.Success<Bundle> -> {
+              var groupEntry = response.data?.entry ?: emptyList()
+              val responseGroup =
+                groupEntry
+                  .mapIndexed { index, entryComponent ->
+                    (entryComponent.resource as Group).toSelectPatientListItem(index + 1)
+                  }
+                  .sortedBy { it.name }
+              groupList.addAll(responseGroup)
+              masterSelectPatientListItemList = groupList
+              selectPatientListItems.value = groupList
+            }
+            else -> {
+              getSelectPatientListItems()
+              return@launch
+            }
+          }
+        }
+      } catch (e: Exception) {
+        getSelectPatientListItems()
+      }
     }
   }
 
