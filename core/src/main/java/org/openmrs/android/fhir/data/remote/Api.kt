@@ -49,4 +49,6 @@ interface Api {
   suspend fun getLocation(context: Context, locationId: String): ApiResponse<Location>
 
   suspend fun getPatientLists(context: Context): ApiResponse<Bundle>
+
+  suspend fun getLocations(context: Context): ApiResponse<Bundle>
 }

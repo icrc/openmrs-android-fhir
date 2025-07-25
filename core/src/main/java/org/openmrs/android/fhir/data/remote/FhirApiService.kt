@@ -37,5 +37,7 @@ import retrofit2.http.Url
 interface FhirApiService {
   @GET suspend fun getLocation(@Url url: String): Response<Location>
 
+  @GET suspend fun getLocations(@Url url: String): Response<Bundle>
+
   @GET("Group") suspend fun getPatientLists(): Response<Bundle>
 }

@@ -119,6 +119,18 @@ class ApiManager @Inject constructor(context: Context) : Api {
     }
   }
 
+  override suspend fun getLocations(context: Context): ApiResponse<Bundle> {
+    return executeApiHelper {
+      val regex =
+        Regex("(Location\\?[^,]*)") // Extracts the part containing Location and its parameters
+      val matchResult = regex.find(context.resources.getString(R.string.fhir_sync_urls))
+      val extractedPart = matchResult?.value ?: "Location?_tag=Login+Location"
+      fhirApiService.getLocations(
+        context.resources.getString(R.string.fhir_base_url) + extractedPart,
+      )
+    }
+  }
+
   override suspend fun getPatientLists(context: Context): ApiResponse<Bundle> {
     return executeApiHelper { fhirApiService.getPatientLists() }
   }
