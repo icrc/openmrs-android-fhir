@@ -45,6 +45,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.fhir.sync.CurrentSyncJobStatus
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -68,6 +69,8 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
 
   private val binding
     get() = _binding!!
+
+  var fromLogin = false
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -109,9 +112,9 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
         }
       }
     }
-
+    observePollState()
     arguments?.let {
-      val fromLogin = it.getBoolean("from_login")
+      fromLogin = it.getBoolean("from_login")
       if (fromLogin) {
         actionBar?.hide()
         (activity as MainActivity).setDrawerEnabled(true)
@@ -225,6 +228,31 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
       }
 
       Toast.makeText(context, "Added Patient List to Sync", Toast.LENGTH_SHORT).show()
+    }
+  }
+
+  private fun observePollState() {
+    lifecycleScope.launch {
+      selectPatientListViewModel.pollState.collect {
+        when (it) {
+          is CurrentSyncJobStatus.Succeeded -> {
+            selectPatientListViewModel.getSelectPatientListItems()
+          }
+          is CurrentSyncJobStatus.Running,
+          CurrentSyncJobStatus.Enqueued, -> {
+            if (fromLogin) {
+              binding.progressBar.visibility = View.GONE
+            }
+          }
+          is CurrentSyncJobStatus.Failed -> {
+            selectPatientListViewModel.getSelectPatientListItems()
+            Toast.makeText(context, "Failed to fetch all patient lists", Toast.LENGTH_SHORT).show()
+          }
+          else -> {
+            selectPatientListViewModel.getSelectPatientListItems()
+          }
+        }
+      }
     }
   }
 

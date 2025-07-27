@@ -55,9 +55,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.data.FhirSyncWorker
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncStatus
+import org.openmrs.android.fhir.data.sync.FhirSyncWorker
 import org.openmrs.android.fhir.di.DaggerWorkerComponent
 import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.extensions.PermissionChecker

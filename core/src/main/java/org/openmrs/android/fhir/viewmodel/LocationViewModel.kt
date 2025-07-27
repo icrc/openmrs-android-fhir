@@ -45,21 +45,18 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Location
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.FirstFhirSyncWorker
 import org.openmrs.android.fhir.data.PreferenceKeys
-import org.openmrs.android.fhir.data.remote.ApiManager
-import org.openmrs.android.fhir.data.remote.ApiResponse
+import org.openmrs.android.fhir.data.sync.FirstFhirSyncWorker
+import org.openmrs.android.fhir.data.sync.LocationFhirSyncWorker
 
 class LocationViewModel
 @Inject
 constructor(
   private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
-  private val apiManager: ApiManager,
 ) : ViewModel() {
   private var masterLocationsList: MutableList<LocationItem> = mutableListOf()
   private val restApiManager = FhirApplication.restApiClient(applicationContext)
@@ -80,31 +77,9 @@ constructor(
 
   fun fetchLocations() {
     viewModelScope.launch {
-      val locationsList: MutableList<LocationItem> = mutableListOf()
-      try {
-        apiManager.getLocations(applicationContext).let { response ->
-          when (response) {
-            is ApiResponse.Success<Bundle> -> {
-              var locationsEntry = response.data?.entry ?: emptyList()
-              val responseLocations =
-                locationsEntry
-                  .mapIndexed { index, entryComponent ->
-                    (entryComponent.resource as Location).toLocationItem(index + 1)
-                  }
-                  .sortedBy { it.name }
-              locationsList.addAll(responseLocations)
-              masterLocationsList = locationsList
-              locations.value = locationsList
-            }
-            else -> {
-              getLocations()
-              return@launch
-            }
-          }
-        }
-      } catch (e: Exception) {
-        getLocations()
-      }
+      Sync.oneTimeSync<LocationFhirSyncWorker>(applicationContext)
+        .shareIn(this, SharingStarted.Eagerly, 10)
+        .collect { _pollState.emit(it) }
     }
   }
 

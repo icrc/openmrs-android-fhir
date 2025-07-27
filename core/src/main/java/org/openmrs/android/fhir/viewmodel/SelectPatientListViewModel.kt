@@ -34,23 +34,29 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.search
+import com.google.android.fhir.sync.CurrentSyncJobStatus
+import com.google.android.fhir.sync.Sync
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Group
-import org.openmrs.android.fhir.data.remote.ApiManager
-import org.openmrs.android.fhir.data.remote.ApiResponse
+import org.openmrs.android.fhir.data.sync.GroupFhirSyncWorker
 
 class SelectPatientListViewModel
 @Inject
 constructor(
   private val fhirEngine: FhirEngine,
-  private val apiManager: ApiManager,
   private val applicationContext: Context,
 ) : ViewModel() {
   private var masterSelectPatientListItemList: MutableList<SelectPatientListItem> = mutableListOf()
 
   val selectPatientListItems = MutableLiveData<List<SelectPatientListItem>>()
+  private val _pollState = MutableSharedFlow<CurrentSyncJobStatus>()
+  val pollState: Flow<CurrentSyncJobStatus>
+    get() = _pollState
 
   fun getSelectPatientListItems() {
     viewModelScope.launch {
@@ -66,31 +72,9 @@ constructor(
 
   fun fetchPatientListItems() {
     viewModelScope.launch {
-      val groupList: MutableList<SelectPatientListItem> = mutableListOf()
-      try {
-        apiManager.getPatientLists(applicationContext).let { response ->
-          when (response) {
-            is ApiResponse.Success<Bundle> -> {
-              var groupEntry = response.data?.entry ?: emptyList()
-              val responseGroup =
-                groupEntry
-                  .mapIndexed { index, entryComponent ->
-                    (entryComponent.resource as Group).toSelectPatientListItem(index + 1)
-                  }
-                  .sortedBy { it.name }
-              groupList.addAll(responseGroup)
-              masterSelectPatientListItemList = groupList
-              selectPatientListItems.value = groupList
-            }
-            else -> {
-              getSelectPatientListItems()
-              return@launch
-            }
-          }
-        }
-      } catch (e: Exception) {
-        getSelectPatientListItems()
-      }
+      Sync.oneTimeSync<GroupFhirSyncWorker>(applicationContext)
+        .shareIn(this, SharingStarted.Eagerly, 10)
+        .collect { _pollState.emit(it) }
     }
   }
 
