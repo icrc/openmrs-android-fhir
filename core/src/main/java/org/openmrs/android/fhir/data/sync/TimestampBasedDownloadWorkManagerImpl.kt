@@ -26,7 +26,7 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data
+package org.openmrs.android.fhir.data.sync
 
 import android.content.Context
 import com.google.android.fhir.sync.DownloadWorkManager
@@ -49,6 +49,7 @@ import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
 
 class TimestampBasedDownloadWorkManagerImpl(
   private val dataStore: DemoDataStore,
@@ -63,7 +64,8 @@ class TimestampBasedDownloadWorkManagerImpl(
       val HAS_GROUP_MEMBER_ID = "_has:Group:member:id="
       if (url.contains(HAS_GROUP_MEMBER_ID)) {
         val selectedPatientLists = runBlocking {
-          context.applicationContext.dataStore.data.first()[PreferenceKeys.SELECTED_PATIENT_LISTS]
+          context.applicationContext.dataStore.data
+            .first()[PreferenceKeys.Companion.SELECTED_PATIENT_LISTS]
         }
 
         if (selectedPatientLists.isNullOrEmpty()) {
@@ -88,7 +90,7 @@ class TimestampBasedDownloadWorkManagerImpl(
     dataStore.getLasUpdateTimestamp(resourceTypeToDownload)?.let {
       url = affixLastUpdatedTimestamp(url, it)
     }
-    return DownloadRequest.of(url)
+    return DownloadRequest.Companion.of(url)
   }
 
   override suspend fun getSummaryRequestUrls(): Map<ResourceType, String> {

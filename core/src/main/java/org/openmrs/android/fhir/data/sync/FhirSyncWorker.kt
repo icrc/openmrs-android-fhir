@@ -26,18 +26,41 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.remote
+package org.openmrs.android.fhir.data.sync
 
-import org.hl7.fhir.r4.model.Bundle
-import org.hl7.fhir.r4.model.Location
-import retrofit2.Response
-import retrofit2.http.GET
-import retrofit2.http.Url
+import android.content.Context
+import androidx.work.WorkerParameters
+import com.google.android.fhir.sync.DownloadWorkManager
+import org.openmrs.android.fhir.FhirApplication
 
-interface FhirApiService {
-  @GET suspend fun getLocation(@Url url: String): Response<Location>
+class FhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
+  BaseFhirSyncWorker(appContext, workerParams) {
 
-  @GET suspend fun getLocations(@Url url: String): Response<Bundle>
+  override fun getDownloadWorkManager(): DownloadWorkManager {
+    return TimestampBasedDownloadWorkManagerImpl(
+      FhirApplication.dataStore(applicationContext),
+      applicationContext,
+    )
+  }
+}
 
-  @GET("Group") suspend fun getPatientLists(): Response<Bundle>
+class FirstFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
+  BaseFhirSyncWorker(appContext, workerParams) {
+
+  override fun getDownloadWorkManager(): DownloadWorkManager =
+    PreSyncDownloadWorkManagerImpl(applicationContext)
+}
+
+class LocationFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
+  BaseFhirSyncWorker(appContext, workerParams) {
+
+  override fun getDownloadWorkManager(): DownloadWorkManager =
+    LocationDownloadWorkManagerImpl(applicationContext)
+}
+
+class GroupFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
+  BaseFhirSyncWorker(appContext, workerParams) {
+
+  override fun getDownloadWorkManager(): DownloadWorkManager =
+    GroupDownloadWorkManagerImpl(applicationContext)
 }

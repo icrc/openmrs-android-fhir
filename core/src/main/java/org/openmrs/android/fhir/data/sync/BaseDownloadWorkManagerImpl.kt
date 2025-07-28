@@ -26,7 +26,7 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data
+package org.openmrs.android.fhir.data.sync
 
 import android.content.Context
 import com.google.android.fhir.sync.DownloadWorkManager
@@ -38,53 +38,40 @@ import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.OperationOutcome
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
-import org.openmrs.android.fhir.R
 
-class PreSyncDownloadWorkManagerImpl(
-  private val context: Context,
+abstract class BaseDownloadWorkManagerImpl(
+  protected val context: Context,
 ) : DownloadWorkManager {
-  private val urls = LinkedList(loadUrlsFromProperties())
 
-  private fun loadUrlsFromProperties(): List<String> {
-    return context.getString(R.string.first_fhir_sync_url).split(',').toList()
-  }
+  protected val urls = LinkedList(loadInitialUrls())
+
+  protected abstract fun loadInitialUrls(): List<String>
 
   override suspend fun getNextRequest(): DownloadRequest? {
-    var url = urls.poll() ?: return null
-
+    val url = urls.poll() ?: return null
     return DownloadRequest.Companion.of(url)
   }
 
   override suspend fun getSummaryRequestUrls(): Map<ResourceType, String> {
     return urls.associate {
-      ResourceType.fromCode(it.substringBefore("?")) to
-        it.plus("&${SyncDataParams.SUMMARY_KEY}=${SyncDataParams.SUMMARY_COUNT_VALUE}")
+      val resourceType = ResourceType.fromCode(it.substringBefore("?"))
+      val summaryUrl = it + "&${SyncDataParams.SUMMARY_KEY}=${SyncDataParams.SUMMARY_COUNT_VALUE}"
+      resourceType to summaryUrl
     }
   }
 
   override suspend fun processResponse(response: Resource): Collection<Resource> {
-    // As per FHIR documentation :
-    // If the search fails (cannot be executed, not that there are no matches), the
-    // return value SHALL be a status code 4xx or 5xx with an OperationOutcome.
-    // See https://www.hl7.org/fhir/http.html#search for more details.
     if (response is OperationOutcome) {
       throw FHIRException(response.issueFirstRep.diagnostics)
     }
 
-    // If the resource returned is a Bundle, check to see if there is a "next" relation referenced
-    // in the Bundle.link component, if so, append the URL referenced to list of URLs to download.
     if (response is Bundle) {
-      val nextUrl = response.link.firstOrNull { component -> component.relation == "next" }?.url
-      if (nextUrl != null) {
-        urls.add(nextUrl)
+      response.link.firstOrNull { it.relation == "next" }?.url?.let { urls.add(it) }
+      if (response.type == Bundle.BundleType.SEARCHSET) {
+        return response.entry.map { it.resource }
       }
     }
 
-    // Finally, extract the downloaded resources from the bundle.
-    var bundleCollection: Collection<Resource> = mutableListOf()
-    if (response is Bundle && response.type == Bundle.BundleType.SEARCHSET) {
-      bundleCollection = response.entry.map { it.resource }
-    }
-    return bundleCollection
+    return emptyList()
   }
 }

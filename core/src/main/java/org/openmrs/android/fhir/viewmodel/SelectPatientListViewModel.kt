@@ -28,23 +28,35 @@
 */
 package org.openmrs.android.fhir.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.search
+import com.google.android.fhir.sync.CurrentSyncJobStatus
+import com.google.android.fhir.sync.Sync
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Group
+import org.openmrs.android.fhir.data.sync.GroupFhirSyncWorker
 
 class SelectPatientListViewModel
 @Inject
 constructor(
   private val fhirEngine: FhirEngine,
+  private val applicationContext: Context,
 ) : ViewModel() {
   private var masterSelectPatientListItemList: MutableList<SelectPatientListItem> = mutableListOf()
 
   val selectPatientListItems = MutableLiveData<List<SelectPatientListItem>>()
+  private val _pollState = MutableSharedFlow<CurrentSyncJobStatus>()
+  val pollState: Flow<CurrentSyncJobStatus>
+    get() = _pollState
 
   fun getSelectPatientListItems() {
     viewModelScope.launch {
@@ -55,6 +67,14 @@ constructor(
         .let { selectPatientListItemList.addAll(it) }
       masterSelectPatientListItemList = selectPatientListItemList
       selectPatientListItems.value = selectPatientListItemList
+    }
+  }
+
+  fun fetchPatientListItems() {
+    viewModelScope.launch {
+      Sync.oneTimeSync<GroupFhirSyncWorker>(applicationContext)
+        .shareIn(this, SharingStarted.Eagerly, 10)
+        .collect { _pollState.emit(it) }
     }
   }
 

@@ -48,8 +48,9 @@ import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Location
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.FirstFhirSyncWorker
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.sync.FirstFhirSyncWorker
+import org.openmrs.android.fhir.data.sync.LocationFhirSyncWorker
 
 class LocationViewModel
 @Inject
@@ -69,6 +70,14 @@ constructor(
   fun fetchPreSyncData() {
     viewModelScope.launch {
       Sync.oneTimeSync<FirstFhirSyncWorker>(applicationContext)
+        .shareIn(this, SharingStarted.Eagerly, 10)
+        .collect { _pollState.emit(it) }
+    }
+  }
+
+  fun fetchLocations() {
+    viewModelScope.launch {
+      Sync.oneTimeSync<LocationFhirSyncWorker>(applicationContext)
         .shareIn(this, SharingStarted.Eagerly, 10)
         .collect { _pollState.emit(it) }
     }

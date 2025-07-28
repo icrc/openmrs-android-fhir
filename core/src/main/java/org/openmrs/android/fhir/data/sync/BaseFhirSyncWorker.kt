@@ -26,52 +26,24 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data
+package org.openmrs.android.fhir.data.sync
 
 import android.content.Context
 import androidx.work.WorkerParameters
 import com.google.android.fhir.FhirEngineProvider
 import com.google.android.fhir.sync.AcceptLocalConflictResolver
-import com.google.android.fhir.sync.DownloadWorkManager
 import com.google.android.fhir.sync.FhirSyncWorker
 import com.google.android.fhir.sync.upload.HttpCreateMethod
 import com.google.android.fhir.sync.upload.HttpUpdateMethod
 import com.google.android.fhir.sync.upload.UploadStrategy
-import org.openmrs.android.fhir.FhirApplication
 
-class FhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
-  FhirSyncWorker(appContext, workerParams) {
-
-  override fun getDownloadWorkManager(): DownloadWorkManager {
-    return TimestampBasedDownloadWorkManagerImpl(
-      FhirApplication.dataStore(applicationContext),
-      applicationContext,
-    )
-  }
+abstract class BaseFhirSyncWorker(
+  appContext: Context,
+  workerParams: WorkerParameters,
+) : FhirSyncWorker(appContext, workerParams) {
 
   override fun getUploadStrategy(): UploadStrategy =
-    UploadStrategy.forIndividualRequest(
-      methodForCreate = HttpCreateMethod.POST,
-      methodForUpdate = HttpUpdateMethod.PATCH,
-      squash = true,
-    )
-
-  override fun getConflictResolver() = AcceptLocalConflictResolver
-
-  override fun getFhirEngine() = FhirEngineProvider.getInstance(applicationContext)
-}
-
-class FirstFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
-  FhirSyncWorker(appContext, workerParams) {
-
-  override fun getDownloadWorkManager(): DownloadWorkManager {
-    return PreSyncDownloadWorkManagerImpl(
-      applicationContext,
-    )
-  }
-
-  override fun getUploadStrategy(): UploadStrategy =
-    UploadStrategy.forIndividualRequest(
+    UploadStrategy.Companion.forIndividualRequest(
       methodForCreate = HttpCreateMethod.POST,
       methodForUpdate = HttpUpdateMethod.PATCH,
       squash = true,

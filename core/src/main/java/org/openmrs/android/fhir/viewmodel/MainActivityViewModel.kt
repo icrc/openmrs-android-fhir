@@ -66,7 +66,6 @@ import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.FhirSyncWorker
 import org.openmrs.android.fhir.data.IdentifierTypeManager
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
@@ -75,6 +74,7 @@ import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ApiResponse
 import org.openmrs.android.fhir.data.remote.model.IdentifierWrapper
 import org.openmrs.android.fhir.data.remote.model.SessionLocation
+import org.openmrs.android.fhir.data.sync.FhirSyncWorker
 import org.openmrs.android.fhir.worker.SyncInfoDatabaseWriterWorker
 
 /** View model for [MainActivity]. */

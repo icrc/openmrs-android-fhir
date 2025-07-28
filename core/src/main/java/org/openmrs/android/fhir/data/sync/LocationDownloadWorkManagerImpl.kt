@@ -26,18 +26,16 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.remote
+package org.openmrs.android.fhir.data.sync
 
-import org.hl7.fhir.r4.model.Bundle
-import org.hl7.fhir.r4.model.Location
-import retrofit2.Response
-import retrofit2.http.GET
-import retrofit2.http.Url
+import android.content.Context
+import org.openmrs.android.fhir.R
 
-interface FhirApiService {
-  @GET suspend fun getLocation(@Url url: String): Response<Location>
-
-  @GET suspend fun getLocations(@Url url: String): Response<Bundle>
-
-  @GET("Group") suspend fun getPatientLists(): Response<Bundle>
+class LocationDownloadWorkManagerImpl(context: Context) : BaseDownloadWorkManagerImpl(context) {
+  override fun loadInitialUrls(): List<String> {
+    val regex = Regex("(Location\\?[^,]*)")
+    val matchResult = regex.find(context.getString(R.string.fhir_sync_urls))
+    val extractedPart = matchResult?.value ?: "Location?_tag=Login+Location"
+    return listOf(extractedPart)
+  }
 }
