@@ -139,7 +139,7 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
 
   private fun setUpActionBar() {
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
-      title = requireContext().getString(R.string.register_new_patient)
+      title = requireContext().getString(R.string.register_patient)
       setDisplayHomeAsUpEnabled(true)
     }
   }

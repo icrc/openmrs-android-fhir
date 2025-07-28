@@ -139,7 +139,7 @@
   <fragment
         android:id="@+id/addPatientFragment"
         android:name="org.openmrs.android.fhir.fragments.AddPatientFragment"
-        android:label="@string/register_new_patient"
+        android:label="@string/register_patient"
         tools:layout="@layout/add_patient_fragment"
     />
 

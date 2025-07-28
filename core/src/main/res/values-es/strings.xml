@@ -1,5 +1,30 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <resources>
+    <string name="section_patient_management">GESTIÓN DE PACIENTES</string>
+    <string name="title_add_patient">Agregar paciente</string>
+    <string name="subtitle_add_patient">Registrar un nuevo paciente</string>
+    <string name="title_search_patient">Buscar paciente</string>
+    <string name="subtitle_search_patient">Ver y gestionar pacientes</string>
+    <string name="title_custom_patient_list">Lista(s) de pacientes</string>
+    <string
+        name="subtitle_custom_patient_list"
+    >Cargar una lista de pacientes guardada</string>
+    <string name="section_encounters">ENCUENTROS</string>
+    <string name="title_group_encounter">Iniciar sesión grupal/familiar</string>
+    <string
+        name="subtitle_group_encounter"
+    >Iniciar sesión con varios pacientes</string>
+    <string name="section_system">SISTEMA</string>
+    <string name="title_sync_info">Información de sincronización</string>
+    <string name="sync_info">Información de sincronización</string>
+    <string
+        name="subtitle_sync_info"
+    >Ver recursos pendientes de sincronización</string>
+    <string name="title_unsynced_resources">Recursos no sincronizados</string>
+    <string
+        name="subtitle_unsynced_resources"
+    >Ver procesos de sincronización</string>
+
     <string name="title_patient_list">Pacientes Registrados</string>
     <string name="title_patient_detail">Detalle del Paciente de Muestra</string>
     <string name="register_patient">Registrar Paciente</string>
@@ -24,19 +49,15 @@
     <string name="patient_country">País</string>
     <string name="patient_is_active">Activo</string>
     <string name="patient_property_mobile">Número de Móvil</string>
-    <string name="patient_property_id">Número de ID</string>
     <string name="patient_property_address">Dirección</string>
     <string name="patient_property_dob">Fecha de Nacimiento</string>
     <string name="patient_property_gender">Género</string>
-    <string name="register_new_patient">Registrar nuevo paciente</string>
     <string name="edit_patient">Editar Paciente</string>
     <string name="new_encounter">Nuevo Encuentro</string>
     <string name="create_encounter">Crear Encuentro</string>
     <string name="edit_encounter">Editar Encuentro</string>
     <string name="location">Ubicación</string>
     <string name="identifier">Identificador</string>
-    <string name="sync_info">Información de Sincronización</string>
-    <string name="unsynced_resources">Recursos no Sincronizados</string>
     <string name="select_a_location">Seleccionar una Ubicación</string>
     <string
         name="create_encounter_fragment_headline"

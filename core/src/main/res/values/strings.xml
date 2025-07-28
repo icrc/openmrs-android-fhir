@@ -14,6 +14,31 @@
  limitations under the License.
 -->
 <resources>
+    <string name="section_patient_management">PATIENT MANAGEMENT</string>
+    <string name="title_add_patient">Add patient</string>
+    <string name="subtitle_add_patient">Register a new patient record</string>
+    <string name="title_search_patient">Search patient</string>
+    <string name="subtitle_search_patient">View and manage patients</string>
+    <string name="title_custom_patient_list">Patient list(s)</string>
+    <string
+        name="subtitle_custom_patient_list"
+    >Load a saved patient list</string>
+    <string name="section_encounters">ENCOUNTERS</string>
+    <string name="title_group_encounter">Start Group/Family session</string>
+    <string
+        name="subtitle_group_encounter"
+    >Start session with multiple patients</string>
+    <string name="section_system">SYSTEM</string>
+    <string name="title_sync_info">Sync info</string>
+    <string name="sync_info">Sync info</string>
+    <string
+        name="subtitle_sync_info"
+    >View pending synchronization resources</string>
+    <string name="title_unsynced_resources">Unsynced resources</string>
+    <string
+        name="subtitle_unsynced_resources"
+    >View synchronization processes</string>
+
     <string name="app_name" translatable="false">OpenMRS</string>
     <string name="title_patient_list">Registered Patients</string>
     <string name="title_patient_detail">SamplePatient Detail</string>
@@ -37,11 +62,9 @@
     <string name="patient_country">Country</string>
     <string name="patient_is_active">Is Active</string>
     <string name="patient_property_mobile">Mobile Number</string>
-    <string name="patient_property_id">ID Number</string>
     <string name="patient_property_address">Address</string>
     <string name="patient_property_dob">Date of Birth</string>
     <string name="patient_property_gender">Gender</string>
-    <string name="register_new_patient">Register new patient</string>
     <string name="edit_patient">Edit Patient</string>
     <string name="new_encounter">New Encounter</string>
     <string name="create_encounter">Create Encounter</string>
@@ -49,8 +72,6 @@
     <string name="edit_encounter">Edit Encounter</string>
     <string name="location">Location</string>
     <string name="identifier">Identifier</string>
-    <string name="sync_info">Sync Info</string>
-    <string name="unsynced_resources">Unsynced Resources</string>
     <string name="select_a_location">Select a Location</string>
     <string
         name="create_encounter_fragment_headline"

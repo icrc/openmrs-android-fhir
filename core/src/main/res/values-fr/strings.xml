@@ -1,5 +1,39 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <resources>
+    <string name="section_patient_management">GESTION DES PATIENTS</string>
+    <string name="title_add_patient">Ajouter un patient</string>
+    <string name="subtitle_add_patient">Enregistrer un nouveau patient</string>
+
+    <string name="title_search_patient">Rechercher un patient</string>
+    <string name="subtitle_search_patient">Voir et gérer les patients</string>
+
+    <string name="title_custom_patient_list">Liste(s) de patients</string>
+    <string
+        name="subtitle_custom_patient_list"
+    >Charger une liste de patients enregistrée</string>
+
+    <string name="section_encounters">RENCONTRES</string>
+    <string
+        name="title_group_encounter"
+    >Démarrer une session de groupe/famille</string>
+    <string
+        name="subtitle_group_encounter"
+    >Démarrer une session avec plusieurs patients</string>
+
+    <string name="section_system">SYSTÈME</string>
+    <string name="title_sync_info">Infos de synchronisation</string>
+    <string name="sync_info">Infos de synchronisation</string>
+    <string
+        name="subtitle_sync_info"
+    >Voir les ressources en attente de synchronisation</string>
+
+    <string
+        name="title_unsynced_resources"
+    >Ressources non synchronisées</string>
+    <string
+        name="subtitle_unsynced_resources"
+    >Voir les processus de synchronisation</string>
+
     <string name="title_patient_list">Patients Enregistrés</string>
     <string name="title_patient_detail">Détail du Patient Exemple</string>
     <string name="register_patient">Enregistrer un Patient</string>
@@ -37,8 +71,6 @@
     <string name="edit_encounter">Modifier la Consultation</string>
     <string name="location">Lieu</string>
     <string name="identifier">Identifiant</string>
-    <string name="sync_info">Infos de Synchronisation</string>
-    <string name="unsynced_resources">Ressources non Synchronisées</string>
     <string name="select_a_location">Sélectionner un Lieu</string>
     <string
         name="create_encounter_fragment_headline"
