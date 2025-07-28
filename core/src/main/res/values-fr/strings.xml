@@ -60,11 +60,9 @@
     <string name="patient_country">Pays</string>
     <string name="patient_is_active">Est Actif</string>
     <string name="patient_property_mobile">Numéro de Portable</string>
-    <string name="patient_property_id">Numéro d\'Identifiant</string>
     <string name="patient_property_address">Adresse</string>
     <string name="patient_property_dob">Date de Naissance</string>
     <string name="patient_property_gender">Genre</string>
-    <string name="register_new_patient">Enregistrer un nouveau patient</string>
     <string name="edit_patient">Modifier le Patient</string>
     <string name="new_encounter">Nouvelle Consultation</string>
     <string name="create_encounter">Créer une Consultation</string>
