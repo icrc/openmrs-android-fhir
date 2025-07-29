@@ -1,0 +1,31 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "screener-questionnaire-template",
+  "status": "active",
+  "title": "Health Screener Questionnaire",
+  "name": "HealthScreener",
+  "description": "A general health screening questionnaire template",
+  "date": "2025-07-29",
+  "publisher": "ICRC",
+  "subjectType": ["Patient"],
+  "item": [
+    {
+      "linkId": "1",
+      "text": "Do you have any existing medical conditions?",
+      "type": "boolean",
+      "required": true
+    },
+    {
+      "linkId": "2",
+      "text": "What is your current temperature (in °F)?",
+      "type": "decimal",
+      "required": false
+    },
+    {
+      "linkId": "3",
+      "text": "Please describe any symptoms you're experiencing.",
+      "type": "string",
+      "required": false
+    }
+  ]
+}
