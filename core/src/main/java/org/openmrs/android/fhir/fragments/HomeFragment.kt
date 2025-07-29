@@ -26,7 +26,6 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
@@ -60,7 +59,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
   }
 
   private fun setOnClicks() {
-    requireView().findViewById<CardView>(R.id.item_new_patient).setOnClickListener {
+    requireView().findViewById<CardView>(R.id.card_new_patient).setOnClickListener {
       lifecycleScope.launch {
         if (
           context
@@ -77,7 +76,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
       }
     }
-    requireView().findViewById<CardView>(R.id.item_patient_list).setOnClickListener {
+
+    requireView().findViewById<CardView>(R.id.card_patient_list).setOnClickListener {
       lifecycleScope.launch {
         if (
           context
@@ -93,21 +93,20 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
       }
     }
-    requireView().findViewById<CardView>(R.id.select_location).setOnClickListener {
-      findNavController()
-        .navigate(HomeFragmentDirections.actionHomeFragmentToLocationFragment(false))
-    }
-    requireView().findViewById<CardView>(R.id.select_patient_list).setOnClickListener {
+
+    requireView().findViewById<CardView>(R.id.card_custom_patient_list).setOnClickListener {
       if (isInternetAvailable(requireContext())) {
         findNavController()
-          .navigate(HomeFragmentDirections.actionHomeFragmentToSelectPatientListFragment(false))
+          .navigate(
+            HomeFragmentDirections.actionHomeFragmentToSelectPatientListFragment(false),
+          )
       } else {
         Toast.makeText(context, "Please connect internet to select patient list", Toast.LENGTH_LONG)
           .show()
       }
     }
 
-    requireView().findViewById<CardView>(R.id.item_group_encounter).setOnClickListener {
+    requireView().findViewById<CardView>(R.id.card_group_encounter).setOnClickListener {
       findNavController()
         .navigate(
           HomeFragmentDirections.actionHomeFragmentToCreateEncounterFragment(
@@ -116,10 +115,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
           ),
         )
     }
-    requireView().findViewById<CardView>(R.id.sync_info).setOnClickListener {
+    requireView().findViewById<CardView>(R.id.card_sync_info).setOnClickListener {
       findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSyncInfoFragment())
     }
-    requireView().findViewById<CardView>(R.id.unsynced_resources).setOnClickListener {
+    requireView().findViewById<CardView>(R.id.card_unsynced_resources).setOnClickListener {
       findNavController()
         .navigate(HomeFragmentDirections.actionHomeFragmentToUnsyncedResourcesFragment())
     }

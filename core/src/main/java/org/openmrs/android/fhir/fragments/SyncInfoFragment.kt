@@ -78,7 +78,7 @@ class SyncInfoFragment : Fragment() {
     super.onViewCreated(view, savedInstanceState)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
-      title = requireContext().getString(R.string.sync_info)
+      title = requireContext().getString(R.string.title_sync_info)
       setDisplayHomeAsUpEnabled(true)
     }
     setupRecyclerView()
