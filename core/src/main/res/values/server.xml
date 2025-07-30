@@ -50,47 +50,6 @@
     }
   ]
 }</string>
-  <string name="group_session_screener_questionnaire" translatable="false">
-    {
-  "specificQuestions": [
-    {
-      "forms": [
-        "{{form_id_1}}",
-        "{{form_id_2}}"
-      ],
-      "questionId": "{{question_id_1}}"
-    },
-    {
-      "forms": [
-        "{{form_id_2}}",
-        "{{form_id_3}}"
-      ],
-      "questionId": "{{question_id_2}}"
-    },
-    {
-      "forms": [
-        "{{form_id_1}}",
-        "{{form_id_2}}"
-      ],
-      "questionId": "{{question_id_3}}"
-    },
-    {
-      "forms": [
-        "{{form_id_1}}",
-        "{{form_id_2}}"
-      ],
-      "questionId": "{{question_id_4}}"
-    },
-    {
-      "forms": [
-        "{{form_id_1}}",
-        "{{form_id_2}}"
-      ],
-      "questionId": "{{question_id_5}}"
-    }
-  ]
-}
-  </string>
   <bool name="show_review_page_before_submit">true</bool>
   <bool name="fetch_identifiers">true</bool>
 </resources>
