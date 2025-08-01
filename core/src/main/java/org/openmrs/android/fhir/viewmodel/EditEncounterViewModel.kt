@@ -62,6 +62,9 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.StringType
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
+import org.openmrs.android.fhir.extensions.convertDateAnswersToDateTime
+import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
+import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getJsonFileNames
 import org.openmrs.android.fhir.extensions.readFileFromAssets
 import timber.log.Timber
@@ -133,11 +136,12 @@ constructor(
           }
 
         val launchContexts = mapOf("observations" to observationBundle)
-        val questionnaireResponse =
+        var questionnaireResponse =
           ResourceMapper.populate(
             questionnaire!!,
             launchContexts,
           ) // if questionnaire is null it'll throw exception while encoding to string.
+        convertDateTimeAnswersToDate(questionnaireResponse)
         val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
         _encounterDataPair.value = questionnaireJson to questionnaireResponseJson
       } catch (e: Exception) {
@@ -191,11 +195,12 @@ constructor(
         return@launch
       }
 
-      val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
+      convertDateAnswersToDateTime(questionnaireResponse)
+      val bundle = ResourceMapper.extract(questionnaire as Questionnaire, questionnaireResponse)
 
       if (
         QuestionnaireResponseValidator.validateQuestionnaireResponse(
-            questionnaire,
+            questionnaire as Questionnaire,
             questionnaireResponse,
             applicationContext,
           )
@@ -367,9 +372,5 @@ constructor(
 
   private suspend fun createResourceToDatabase(resource: Resource) {
     fhirEngine.create(resource)
-  }
-
-  private fun generateUuid(): String {
-    return UUID.randomUUID().toString()
   }
 }
