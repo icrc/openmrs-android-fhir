@@ -208,6 +208,16 @@ class MainActivity : AppCompatActivity() {
       binding.navigationView.menu.findItem(R.id.menu_current_location).title =
         applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.LOCATION_NAME)
           ?: getString(R.string.no_location_selected)
+
+      val versionName =
+        try {
+          val packageInfo = packageManager.getPackageInfo(packageName, 0)
+          packageInfo.versionName
+        } catch (e: Exception) {
+          "N/A"
+        }
+
+      binding.navigationView.menu.findItem(R.id.menu_version).title = "App Version: $versionName"
     }
   }
 

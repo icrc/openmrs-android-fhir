@@ -113,6 +113,7 @@ object Versions {
   const val eventBus = "3.3.1"
   const val moshi = "1.14.0"
   const val loggingInterceptor = "5.0.0-alpha.2"
+  const val biometric = "1.1.0"
 }
 
 dependencies {
@@ -145,7 +146,7 @@ dependencies {
   implementation("com.auth0.android:jwtdecode:${Versions.jwtdecode}")
   implementation("com.google.android.fhir:engine:${Versions.fhirEngine}")
   implementation("com.google.android.fhir:data-capture:${Versions.fhirDataCapture}")
-
+  implementation("androidx.biometric:biometric:${Versions.biometric}")
   implementation("androidx.room:room-runtime:${Versions.room}")
   implementation("androidx.room:room-ktx:${Versions.room}")
   ksp("androidx.room:room-compiler:${Versions.room}")
