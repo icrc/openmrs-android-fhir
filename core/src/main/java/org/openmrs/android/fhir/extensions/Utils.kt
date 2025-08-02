@@ -36,11 +36,16 @@ import android.net.NetworkCapabilities
 import android.os.Environment
 import android.util.Base64
 import android.view.View
+import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.material.snackbar.Snackbar
 import com.squareup.moshi.Moshi
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.util.UUID
+import org.hl7.fhir.r4.model.DateTimeType
+import org.hl7.fhir.r4.model.DateType
+import org.hl7.fhir.r4.model.QuestionnaireResponse
 
 inline fun <reified T> T.toJson(): String {
   return Moshi.Builder().build().adapter(T::class.java).toJson(this)
@@ -103,3 +108,29 @@ val Int.minutesInMillis: Long
 
 val Int.hoursInMillis: Long
   get() = this * 60 * 60 * 1000L
+
+fun generateUuid(): String {
+  return UUID.randomUUID().toString()
+}
+
+fun convertDateTimeAnswersToDate(response: QuestionnaireResponse) {
+  response.allItems.forEach { item ->
+    item.answer.forEach { answer ->
+      if (answer.value is DateTimeType) {
+        val date = (answer.value as DateTimeType).value
+        answer.value = DateType(date)
+      }
+    }
+  }
+}
+
+fun convertDateAnswersToDateTime(response: QuestionnaireResponse) {
+  response.allItems.forEach { item ->
+    item.answer.forEach { answer ->
+      if (answer.value is DateType) {
+        val date = (answer.value as DateType).value
+        answer.value = DateTimeType(date)
+      }
+    }
+  }
+}
