@@ -344,4 +344,9 @@ constructor(
   private fun generateUuid(): String {
     return UUID.randomUUID().toString()
   }
+
+  fun updateQuestionnaire(updated: Questionnaire) {
+    _questionnaire.value = updated
+    _questionnaireJson.value = parser.encodeResourceToString(updated)
+  }
 }

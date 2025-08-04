@@ -17,12 +17,6 @@
     },
     {
       "linkId": "2",
-      "text": "What is your current temperature (in °F)?",
-      "type": "decimal",
-      "required": false
-    },
-    {
-      "linkId": "3",
       "text": "Please describe any symptoms you're experiencing.",
       "type": "string",
       "required": false

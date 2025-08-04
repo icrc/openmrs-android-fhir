@@ -45,4 +45,6 @@ object Constants {
   val OPENMRS_PERSON_ATTRIBUTE_URL = "http://fhir.openmrs.org/ext/person-attribute"
   val OPENMRS_PERSON_ATTRIBUTE_TYPE_URL = "http://fhir.openmrs.org/ext/person-attribute-type"
   val OPENMRS_PERSON_ATTRIBUTE_VALUE_URL = "http://fhir.openmrs.org/ext/person-attribute-value"
+  val SHOW_SCREENER_EXTENSION_URL = "https://openmrs.org/ext/show-screener"
+  val GROUP_SESSION_OBSERVATION_CODE = "group-session-id"
 }
