@@ -329,5 +329,9 @@
     >Aucune méthode d\'authentification prise en charge disponible</string>
     <string name="version">Version</string>
     <string name="encryption_not_available">Chiffrement non disponible</string>
-
+    <string
+        name="please_connect_to_the_internet_to_continue_with_authentication"
+    >Veuillez vous connecter à Internet pour continuer l\'authentification.</string>
+    <string name="retry">Réessayer</string>
+    <string name="exit">Quitter</string>
 </resources>

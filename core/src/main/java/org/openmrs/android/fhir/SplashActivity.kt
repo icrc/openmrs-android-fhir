@@ -209,10 +209,14 @@ class SplashActivity : AppCompatActivity() {
 
   private fun showNoInternetDialog() {
     AlertDialog.Builder(this)
-      .setTitle("No Internet Connection")
-      .setMessage("Please connect to the internet to continue with authentication.")
-      .setPositiveButton("Retry") { _, _ -> lifecycleScope.launch { handleAuthenticationFlow() } }
-      .setNegativeButton("Exit") { _, _ -> finish() }
+      .setTitle(getString(R.string.no_internet_connection))
+      .setMessage(
+        getString(R.string.please_connect_to_the_internet_to_continue_with_authentication),
+      )
+      .setPositiveButton(getString(R.string.retry)) { _, _ ->
+        lifecycleScope.launch { handleAuthenticationFlow() }
+      }
+      .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
       .setCancelable(false)
       .show()
   }

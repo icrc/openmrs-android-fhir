@@ -323,4 +323,9 @@
     >No hay métodos de autenticación compatibles disponibles</string>
     <string name="version">Versión</string>
     <string name="encryption_not_available">Cifrado no disponible</string>
+    <string
+        name="please_connect_to_the_internet_to_continue_with_authentication"
+    >Por favor, conéctate a internet para continuar con la autenticación.</string>
+    <string name="retry">Reintentar</string>
+    <string name="exit">Salir</string>
 </resources>
