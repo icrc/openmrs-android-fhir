@@ -91,6 +91,11 @@ class LoginActivity : AppCompatActivity() {
         object : BiometricPrompt.AuthenticationCallback() {
           override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
             super.onAuthenticationSucceeded(result)
+            val cipher = result.cryptoObject?.cipher
+            val token = viewModel.tokenToEncrypt
+            if (cipher != null && token != null) {
+              BiometricUtils.encryptAndSaveToken(token, cipher, applicationContext)
+            }
             startActivity(Intent(this@LoginActivity, MainActivity::class.java))
             finish()
           }
@@ -164,6 +169,7 @@ class LoginActivity : AppCompatActivity() {
       if (cipher != null) {
         biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
       } else {
+        Toast.makeText(this, getString(R.string.encryption_not_available), Toast.LENGTH_LONG).show()
         startActivity(Intent(this, MainActivity::class.java))
         finish()
       }

@@ -306,4 +306,5 @@
         name="no_supported_auth_method"
     >No supported authentication method available</string>
     <string name="version">Version</string>
+    <string name="encryption_not_available">Encryption not available</string>
 </resources>

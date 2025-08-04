@@ -30,14 +30,10 @@ package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
 import android.content.Intent
-import android.util.Base64
-import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
-import javax.crypto.SecretKey
 import javax.inject.Inject
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
-import org.openmrs.android.fhir.EncryptionHelper
 import org.openmrs.android.fhir.LoginRepository
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import timber.log.Timber
@@ -49,6 +45,8 @@ constructor(
 ) : ViewModel() {
 
   private val loginRepository by lazy { LoginRepository.getInstance(applicationContext) }
+
+  var tokenToEncrypt: String? = null
 
   suspend fun createIntent(): Intent? {
     loginRepository.updateAuthIfConfigurationChanged()
@@ -72,7 +70,7 @@ constructor(
           BiometricUtils.createBiometricKeyIfNotExists()
           val token = loginRepository.getAccessToken()
           if (token.isNotBlank()) {
-            encryptAndStoreToken(token)
+            tokenToEncrypt = token
           }
         } catch (e: Exception) {
           Timber.e("Biometric key error: ${e.message}")
@@ -80,29 +78,6 @@ constructor(
       }
       ex != null -> Timber.e("Authorization flow failed: ${ex.message}")
       else -> Timber.e("No authorization state retained - reauthorization required")
-    }
-  }
-
-  private fun encryptAndStoreToken(token: String) {
-    val secretKey: SecretKey? =
-      try {
-        BiometricUtils.getSecretKey()
-      } catch (e: Exception) {
-        Timber.e("SecretKey fetch failed: ${e.message}")
-        BiometricUtils.deleteBiometricKey(applicationContext)
-        null
-      }
-
-    if (secretKey == null) return
-
-    try {
-      val (encryptedToken, iv) = EncryptionHelper.encrypt(token, secretKey)
-      BiometricUtils.getSharedPrefs(applicationContext).edit {
-        putString("encrypted_token", encryptedToken)
-        putString("encrypted_iv", Base64.encodeToString(iv, Base64.DEFAULT))
-      }
-    } catch (e: Exception) {
-      Timber.e("Token encryption failed: ${e.message}")
     }
   }
 }

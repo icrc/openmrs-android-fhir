@@ -328,4 +328,6 @@
         name="no_supported_auth_method"
     >Aucune méthode d\'authentification prise en charge disponible</string>
     <string name="version">Version</string>
+    <string name="encryption_not_available">Chiffrement non disponible</string>
+
 </resources>

@@ -322,4 +322,5 @@
         name="no_supported_auth_method"
     >No hay métodos de autenticación compatibles disponibles</string>
     <string name="version">Versión</string>
+    <string name="encryption_not_available">Cifrado no disponible</string>
 </resources>
