@@ -35,11 +35,18 @@ import javax.inject.Inject
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 import org.openmrs.android.fhir.LoginRepository
+import org.openmrs.android.fhir.extensions.BiometricUtils
 import timber.log.Timber
 
-class LoginActivityViewModel @Inject constructor(private val applicationContext: Context) :
-  ViewModel() {
+class LoginActivityViewModel
+@Inject
+constructor(
+  private val applicationContext: Context,
+) : ViewModel() {
+
   private val loginRepository by lazy { LoginRepository.getInstance(applicationContext) }
+
+  var tokenToEncrypt: String? = null
 
   suspend fun createIntent(): Intent? {
     loginRepository.updateAuthIfConfigurationChanged()
@@ -51,22 +58,26 @@ class LoginActivityViewModel @Inject constructor(private val applicationContext:
     return loginRepository.getLastConfigurationError()
   }
 
-  suspend fun isAuthAlreadyEstablished() = loginRepository.isAuthEstablished()
-
   suspend fun handleLoginResponse(response: AuthorizationResponse?, ex: AuthorizationException?) {
     if (response != null || ex != null) {
       loginRepository.updateAfterAuthorization(response, ex)
     }
+
     when {
       response?.authorizationCode != null -> {
         loginRepository.exchangeCodeForToken(response, ex)
+        try {
+          BiometricUtils.createBiometricKeyIfNotExists()
+          val token = loginRepository.getAccessToken()
+          if (token.isNotBlank()) {
+            tokenToEncrypt = token
+          }
+        } catch (e: Exception) {
+          Timber.e("Biometric key error: ${e.message}")
+        }
       }
-      ex != null -> {
-        Timber.e("Authorization flow failed: " + ex.message)
-      }
-      else -> {
-        Timber.e("No authorization state retained - reauthorization required")
-      }
+      ex != null -> Timber.e("Authorization flow failed: ${ex.message}")
+      else -> Timber.e("No authorization state retained - reauthorization required")
     }
   }
 }

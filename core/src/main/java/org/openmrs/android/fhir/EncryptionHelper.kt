@@ -54,4 +54,11 @@ object EncryptionHelper {
     val decryptedBytes = cipher.doFinal(Base64.decode(encryptedData, Base64.DEFAULT))
     return String(decryptedBytes, Charsets.UTF_8)
   }
+
+  fun getDecryptionCipher(secretKey: SecretKey, iv: ByteArray): Cipher {
+    val cipher = Cipher.getInstance(AES_TRANSFORMATION)
+    val gcmSpec = GCMParameterSpec(16 * 8, iv)
+    cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmSpec)
+    return cipher
+  }
 }

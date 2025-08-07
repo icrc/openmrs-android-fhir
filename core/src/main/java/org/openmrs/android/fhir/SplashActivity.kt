@@ -29,41 +29,207 @@
 package org.openmrs.android.fhir
 
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import java.util.concurrent.Executor
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.extensions.BiometricUtils
 
 class SplashActivity : AppCompatActivity() {
 
   private lateinit var authStateManager: AuthStateManager
+  private lateinit var executor: Executor
+  private lateinit var biometricPrompt: BiometricPrompt
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
     setContentView(R.layout.activity_splash)
-    ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-      val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-      v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-      insets
-    }
+
     authStateManager = AuthStateManager.getInstance(applicationContext)
-    lifecycleScope.launch {
-      if (authStateManager.isAuthenticated()) {
-        startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+    executor = ContextCompat.getMainExecutor(this)
+
+    resetBiometricKeyIfNeeded()
+    setupBiometricPrompt()
+
+    lifecycleScope.launch { handleAuthenticationFlow() }
+  }
+
+  private suspend fun handleAuthenticationFlow() {
+    val userUuid = getUserUuid()
+
+    if (userUuid == null) {
+      if (isInternetAvailable()) {
+        redirectToAuthFlow()
       } else {
-        when (authStateManager.getAuthMethod()) {
-          AuthMethod.BASIC ->
-            startActivity(Intent(this@SplashActivity, BasicLoginActivity::class.java))
-          AuthMethod.OPENID -> startActivity(Intent(this@SplashActivity, LoginActivity::class.java))
-        }
+        showNoInternetDialog()
       }
-      finish()
+    } else {
+      if (authStateManager.isAuthenticated()) {
+        promptBiometricAuthentication()
+      } else if (isInternetAvailable()) {
+        redirectToAuthFlow()
+      } else {
+        promptBiometricAuthentication()
+      }
     }
+  }
+
+  private suspend fun getUserUuid(): String? {
+    return try {
+      applicationContext.dataStore.data.first()[PreferenceKeys.USER_UUID]
+    } catch (e: Exception) {
+      null
+    }
+  }
+
+  private fun isInternetAvailable(): Boolean {
+    val connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+    val network = connectivityManager.activeNetwork ?: return false
+    val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+
+    return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+      capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+      capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+  }
+
+  private fun promptBiometricAuthentication() {
+    val biometricManager = BiometricManager.from(this)
+
+    val canUseBiometric =
+      biometricManager.canAuthenticate(
+        BiometricManager.Authenticators.BIOMETRIC_STRONG,
+      ) == BiometricManager.BIOMETRIC_SUCCESS
+
+    val canUseCredential =
+      biometricManager.canAuthenticate(
+        BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+      ) == BiometricManager.BIOMETRIC_SUCCESS
+
+    val promptBuilder =
+      BiometricPrompt.PromptInfo.Builder().setTitle(getString(R.string.biometric_prompt_title))
+
+    if (canUseBiometric) {
+      val cipher = BiometricUtils.getDecryptionCipher(this)
+      if (cipher != null) {
+        promptBuilder
+          .setSubtitle(getString(R.string.biometric_prompt_subtitle))
+          .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+          .setNegativeButtonText(getString(R.string.cancel))
+
+        biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
+        return
+      }
+    }
+
+    if (canUseCredential) {
+      promptBuilder
+        .setSubtitle(getString(R.string.use_device_credential))
+        .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+
+      biometricPrompt.authenticate(promptBuilder.build())
+    } else {
+      showToast(R.string.no_supported_auth_method)
+      navigateToMainActivity()
+    }
+  }
+
+  private fun setupBiometricPrompt() {
+    biometricPrompt =
+      BiometricPrompt(
+        this,
+        executor,
+        object : BiometricPrompt.AuthenticationCallback() {
+          override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+            super.onAuthenticationError(errorCode, errString)
+            showToast(R.string.auth_error, errString.toString())
+            finish()
+          }
+
+          override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+            super.onAuthenticationSucceeded(result)
+            val cipher = result.cryptoObject?.cipher
+            if (cipher != null) {
+              val token = BiometricUtils.decryptToken(cipher, this@SplashActivity)
+              if (token != null) {
+                val prefs = BiometricUtils.getSharedPrefs(this@SplashActivity)
+                if (!prefs.contains("encrypted_token")) {
+                  val currentToken = authStateManager.current.accessToken
+                  if (!currentToken.isNullOrBlank()) {
+                    BiometricUtils.saveToken(cipher, currentToken, this@SplashActivity)
+                  }
+                }
+                navigateToMainActivity()
+              } else {
+                showToast(R.string.invalid_session)
+                finish()
+              }
+            } else {
+              navigateToMainActivity()
+            }
+          }
+
+          override fun onAuthenticationFailed() {
+            super.onAuthenticationFailed()
+            showToast(R.string.auth_failed)
+            finish()
+          }
+        },
+      )
+  }
+
+  private fun navigateToMainActivity() {
+    startActivity(Intent(this, MainActivity::class.java))
+    finish()
+  }
+
+  private fun redirectToAuthFlow() {
+    val intent =
+      when (authStateManager.getAuthMethod()) {
+        AuthMethod.BASIC -> Intent(this, BasicLoginActivity::class.java)
+        AuthMethod.OPENID -> Intent(this, LoginActivity::class.java)
+      }
+    startActivity(intent)
+    finish()
+  }
+
+  private fun showNoInternetDialog() {
+    AlertDialog.Builder(this)
+      .setTitle(getString(R.string.no_internet_connection))
+      .setMessage(
+        getString(R.string.please_connect_to_the_internet_to_continue_with_authentication),
+      )
+      .setPositiveButton(getString(R.string.retry)) { _, _ ->
+        lifecycleScope.launch { handleAuthenticationFlow() }
+      }
+      .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
+      .setCancelable(false)
+      .show()
+  }
+
+  private fun resetBiometricKeyIfNeeded() {
+    if (BiometricUtils.hasBiometricStateChanged(this)) {
+      BiometricUtils.deleteBiometricKey(this)
+      BiometricUtils.updateBiometricEnrollmentState(this)
+    }
+  }
+
+  private fun showToast(resId: Int, arg: String? = null) {
+    val msg = arg?.let { getString(resId, it) } ?: getString(resId)
+    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
   }
 }
