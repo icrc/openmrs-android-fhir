@@ -68,8 +68,7 @@ class TimestampBasedDownloadWorkManagerImpl(
     }
 
     return urlList.map { url ->
-      val HAS_GROUP_MEMBER_ID = "_has:Group:member:id="
-      if (url.contains(HAS_GROUP_MEMBER_ID)) {
+      if (url.contains("_has:Group:member:id=")) {
         val selectedPatientLists = runBlocking {
           context.applicationContext.dataStore.data
             .first()[PreferenceKeys.Companion.SELECTED_PATIENT_LISTS]
