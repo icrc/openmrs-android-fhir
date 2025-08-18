@@ -41,6 +41,7 @@ import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import java.util.UUID
@@ -181,7 +182,9 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
       }
       Toast.makeText(requireContext(), getString(R.string.resources_saved), Toast.LENGTH_SHORT)
         .show()
-      NavHostFragment.findNavController(this).navigateUp()
+
+      findNavController()
+        .navigate(GenericFormEntryFragmentDirections.actionGenericFormEntryFragmentToPatientList())
     }
   }
 

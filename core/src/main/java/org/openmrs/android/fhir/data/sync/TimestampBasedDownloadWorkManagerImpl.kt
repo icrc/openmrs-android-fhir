@@ -59,13 +59,13 @@ class TimestampBasedDownloadWorkManagerImpl(
   private val urls = LinkedList(loadUrlsFromProperties())
 
   private fun loadUrlsFromProperties(): List<String> {
-
     val syncUrls = context.getString(R.string.fhir_sync_urls).split(',')
     val firstTimeUrls = context.getString(R.string.first_fhir_sync_url).split(',')
 
-    val urlList = (firstTimeUrls + syncUrls).distinctBy { url ->
-      resourceTypeList.find { resourceType -> url.startsWith(resourceType, ignoreCase = true) }
-    }
+    val urlList =
+      (firstTimeUrls + syncUrls).distinctBy { url ->
+        resourceTypeList.find { resourceType -> url.startsWith(resourceType, ignoreCase = true) }
+      }
 
     return urlList.map { url ->
       if (url.contains("_has:Group:member:id=")) {
