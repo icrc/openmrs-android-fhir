@@ -263,7 +263,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
               encounterId,
             )
             viewModel.setPatientIdToEncounterIdMap(patientId, encounterId)
-            viewModel.createSessionObservation(patientId, encounterId)
+            viewModel.createInternalObservations(patientId, encounterId)
           }
           saveCurrentQuestionnaireResponse(questionnaireResponse)
         } catch (exception: Exception) {

@@ -10,16 +10,28 @@
   "subjectType": ["Patient"],
   "item": [
     {
-      "linkId": "1",
-      "text": "Do you have any existing medical conditions?",
-      "type": "boolean",
+      "linkId": "e2559620-900b-4f66-ae41-0b9c4adfb654",
+      "text": "Session Name",
+      "type": "string",
       "required": true
     },
     {
-      "linkId": "2",
-      "text": "Please describe any symptoms you're experiencing.",
+      "linkId": "f1a2d58c-1a0e-4148-931a-aac224649fdc",
+      "text": "Practitioner Name",
       "type": "string",
-      "required": false
+      "required": true
+    },
+    {
+      "linkId": "ceaca505-6dff-4940-8a43-8c060a0924d7",
+      "text": "Session Date",
+      "type": "date",
+      "required": true
+    },
+    {
+      "linkId": "fa8fedc0-c066-4da3-8dc1-2ad8621fc480",
+      "text": "Session Notes",
+      "type": "string",
+      "required": true
     }
   ]
 }

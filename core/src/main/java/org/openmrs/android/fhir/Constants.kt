@@ -46,5 +46,9 @@ object Constants {
   val OPENMRS_PERSON_ATTRIBUTE_TYPE_URL = "http://fhir.openmrs.org/ext/person-attribute-type"
   val OPENMRS_PERSON_ATTRIBUTE_VALUE_URL = "http://fhir.openmrs.org/ext/person-attribute-value"
   val SHOW_SCREENER_EXTENSION_URL = "https://openmrs.org/ext/show-screener"
-  val GROUP_SESSION_OBSERVATION_CODE = "group-session-id"
+
+  // Screener questionnaire internal observation ids.
+  val SESSION_IDENTIFIER_UUID = "6a803908-8a5b-4598-adea-19358c83529a"
+  val COHORT_IDENTIFIER_UUID = "5461f231-7e59-4be8-93a4-6d49fd13c00a"
+  val COHORT_NAME_UUID = "6029f289-92a6-4a68-80f1-3078d0152449"
 }
