@@ -45,7 +45,6 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import java.time.ZoneId
 import java.util.Date
-import java.util.UUID
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Bundle
@@ -64,6 +63,8 @@ import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
+import org.openmrs.android.fhir.extensions.convertDateAnswersToDateTime
+import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.helpers.OpenMRSHelper
 
@@ -198,6 +199,7 @@ constructor(
         return@launch
       }
 
+      convertDateAnswersToDateTime(questionnaireResponse)
       val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
       val patientReference = Reference("Patient/$patientId")
 

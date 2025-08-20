@@ -34,10 +34,14 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import java.util.concurrent.Executor
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.databinding.ActivityBasicLoginBinding
@@ -51,17 +55,51 @@ class BasicLoginActivity : AppCompatActivity() {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
   private val viewModel by viewModels<BasicLoginActivityViewModel> { viewModelFactory }
 
+  private lateinit var biometricPrompt: BiometricPrompt
+  private lateinit var executor: Executor
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    (this.application as FhirApplication).appComponent.inject(this)
+    (application as FhirApplication).appComponent.inject(this)
     binding = ActivityBasicLoginBinding.inflate(layoutInflater)
     setContentView(binding.root)
+
+    executor = ContextCompat.getMainExecutor(this)
+
+    biometricPrompt =
+      BiometricPrompt(
+        this,
+        executor,
+        object : BiometricPrompt.AuthenticationCallback() {
+          override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+            super.onAuthenticationSucceeded(result)
+            val cipher = result.cryptoObject?.cipher
+            val sessionToken = viewModel.sessionTokenToEncrypt
+
+            if (cipher != null && sessionToken != null) {
+              viewModel.encryptAndSaveToken(sessionToken, cipher)
+            }
+
+            navigateToMain()
+          }
+
+          override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+            Toast.makeText(this@BasicLoginActivity, "Auth error: $errString", Toast.LENGTH_SHORT)
+              .show()
+          }
+
+          override fun onAuthenticationFailed() {
+            Toast.makeText(this@BasicLoginActivity, "Authentication failed", Toast.LENGTH_SHORT)
+              .show()
+          }
+        },
+      )
 
     lifecycleScope.launch {
       repeatOnLifecycle(Lifecycle.State.STARTED) {
         viewModel.uiState.collect { state ->
           when (state) {
-            is LoginUiState.Idle -> {}
+            is LoginUiState.Idle -> Unit
             is LoginUiState.Failure -> {
               binding.progressIndicator.visibility = View.GONE
               showToastMessage(getString(state.resId))
@@ -75,8 +113,7 @@ class BasicLoginActivity : AppCompatActivity() {
             }
             is LoginUiState.Success -> {
               binding.progressIndicator.visibility = View.GONE
-              startActivity(Intent(this@BasicLoginActivity, MainActivity::class.java))
-              finish()
+              promptBiometricEncryption()
             }
           }
         }
@@ -88,6 +125,50 @@ class BasicLoginActivity : AppCompatActivity() {
       val password = binding.passwordInputText.text.toString()
       viewModel.login(username, password)
     }
+  }
+
+  private fun promptBiometricEncryption() {
+    val biometricManager = BiometricManager.from(this)
+
+    val canUseStrongBiometric =
+      biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) ==
+        BiometricManager.BIOMETRIC_SUCCESS
+
+    val canUseDeviceCredential =
+      biometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL) ==
+        BiometricManager.BIOMETRIC_SUCCESS
+
+    val promptBuilder =
+      BiometricPrompt.PromptInfo.Builder().setTitle(getString(R.string.biometric_prompt_title))
+
+    if (canUseStrongBiometric) {
+      promptBuilder
+        .setSubtitle(getString(R.string.biometric_prompt_subtitle))
+        .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+        .setNegativeButtonText(getString(R.string.cancel))
+
+      val cipher = viewModel.getEncryptionCipher()
+      if (cipher != null) {
+        biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
+      } else {
+        Toast.makeText(this, "Encryption not available", Toast.LENGTH_LONG).show()
+        navigateToMain()
+      }
+    } else if (canUseDeviceCredential) {
+      promptBuilder
+        .setSubtitle(getString(R.string.use_device_credential))
+        .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+
+      biometricPrompt.authenticate(promptBuilder.build())
+    } else {
+      Toast.makeText(this, getString(R.string.no_supported_auth_method), Toast.LENGTH_LONG).show()
+      navigateToMain()
+    }
+  }
+
+  private fun navigateToMain() {
+    startActivity(Intent(this@BasicLoginActivity, MainActivity::class.java))
+    finish()
   }
 
   private fun showToastMessage(message: String) {

@@ -35,5 +35,10 @@
             android:icon="@drawable/ic_logout"
             android:title="@string/logout"
         />
+  <item
+            android:id="@+id/menu_version"
+            android:icon="@drawable/ic_version_24"
+            android:title="@string/version"
+        />
 </group>
 </menu>

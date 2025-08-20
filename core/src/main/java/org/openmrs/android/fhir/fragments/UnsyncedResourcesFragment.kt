@@ -84,7 +84,7 @@ class UnsyncedResourcesFragment : Fragment() {
     // Initialize views
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
-      title = requireContext().getString(R.string.unsynced_resources)
+      title = requireContext().getString(R.string.title_unsynced_resources)
       setDisplayHomeAsUpEnabled(true)
     }
     observeLoading()
