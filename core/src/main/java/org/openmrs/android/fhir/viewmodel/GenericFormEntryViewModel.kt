@@ -67,7 +67,6 @@ import org.openmrs.android.fhir.extensions.convertDateAnswersToDateTime
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.helpers.OpenMRSHelper
-import java.util.UUID
 
 /** ViewModel for Generic questionnaire screen {@link GenericFormEntryFragment}. */
 class GenericFormEntryViewModel
@@ -342,10 +341,6 @@ constructor(
 
   private suspend fun saveResourceToDatabase(resource: Resource) {
     fhirEngine.create(resource)
-  }
-
-  private fun generateUuid(): String {
-    return UUID.randomUUID().toString()
   }
 
   fun updateQuestionnaire(updated: Questionnaire) {

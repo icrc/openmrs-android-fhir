@@ -168,8 +168,14 @@ constructor(
       answerMap.forEach { (linkId, answers) ->
         if (!screenerEncounterLinkIds.contains(linkId)) {
           val qItem = itemMap[linkId]
+          val code: String =
+            if (qItem?.code?.isNotEmpty() == true) {
+              qItem.codeFirstRep.code ?: ""
+            } else {
+              linkId
+            }
           answers.forEach { ans ->
-            createObservation(patientId, encounterId, linkId, ans.value, qItem?.text)
+            createObservation(patientId, encounterId, code.toString(), ans.value, qItem?.text)
           }
         }
       }
