@@ -36,12 +36,14 @@ import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import com.google.android.fhir.delete
 import com.google.android.fhir.get
 import com.google.android.fhir.search.Operation
 import com.google.android.fhir.search.search
+import java.util.Date
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
@@ -83,6 +85,7 @@ constructor(
   private var screenerQuestionnaire: Questionnaire? = null
   private val screenerEncounterLinkIds = mutableSetOf<String>()
   val sessionId: String = UUID.randomUUID().toString()
+  var sessionDate: Date? = null
   private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
   fun getPatients(patientIds: Set<String>) {
@@ -180,6 +183,18 @@ constructor(
         }
       }
     }
+  }
+
+  fun setSessionDate(response: QuestionnaireResponse) {
+    val linkId =
+      screenerQuestionnaire
+        ?.item
+        ?.find { it.codeFirstRep.code == Constants.SESSION_DATE_UUID }
+        ?.linkId
+
+    val answer = linkId?.let { id -> response.allItems.firstOrNull { it.linkId == id }?.answer }
+
+    sessionDate = (answer as? Date)
   }
 
   fun plugAnswersToEncounter(response: QuestionnaireResponse) {

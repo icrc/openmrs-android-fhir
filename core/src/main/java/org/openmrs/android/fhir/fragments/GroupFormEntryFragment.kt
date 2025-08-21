@@ -133,6 +133,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
           val screenerFragment = currentQuestionnaireFragment as QuestionnaireFragment
           val response = screenerFragment.getQuestionnaireResponse()
           viewModel.plugAnswersToEncounter(response)
+          viewModel.setSessionDate(response)
           isScreenerCompleted = true
           binding.patientTabLayout.visibility = View.VISIBLE
           observeQuestionnaire()
@@ -261,6 +262,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
               questionnaireResponse,
               patientId,
               encounterId,
+              viewModel.sessionDate,
             )
             viewModel.setPatientIdToEncounterIdMap(patientId, encounterId)
             viewModel.createInternalObservations(patientId, encounterId)

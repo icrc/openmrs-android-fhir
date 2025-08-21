@@ -166,6 +166,7 @@ constructor(
     questionnaireResponse: QuestionnaireResponse,
     patientId: String,
     encounterId: String,
+    sessionDate: Date? = null,
   ) {
     viewModelScope.launch {
       val questionnaireId = state.get<String>("questionnaire_id")
@@ -210,7 +211,7 @@ constructor(
         visit = openMRSHelper.getActiveVisit(patientId, true)!!
       }
 
-      saveResources(bundle, patientReference, questionnaire, encounterId, visit.idPart)
+      saveResources(bundle, patientReference, questionnaire, encounterId, visit.idPart, sessionDate)
       isResourcesSaved.value = "SAVED/$patientId"
     }
   }
@@ -221,6 +222,7 @@ constructor(
     questionnaire: Questionnaire,
     encounterId: String,
     visitId: String,
+    sessionDate: Date? = null,
   ) {
     val encounterReference = Reference("Encounter/$encounterId")
     val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
@@ -232,8 +234,10 @@ constructor(
       questionnaire.code.firstOrNull {
         it.system == "http://fhir.openmrs.org/core/StructureDefinition/omrs-form"
       }
-    val encounterDate: Date
-    if (Constants.WRAP_ENCOUNTER) {
+    var encounterDate: Date
+    if (sessionDate != null) {
+      encounterDate = sessionDate
+    } else if (Constants.WRAP_ENCOUNTER) {
       val localDate = Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
       val localStartOfDay = localDate.atStartOfDay()
       encounterDate = Date.from(localStartOfDay.atZone(ZoneId.systemDefault()).toInstant())
