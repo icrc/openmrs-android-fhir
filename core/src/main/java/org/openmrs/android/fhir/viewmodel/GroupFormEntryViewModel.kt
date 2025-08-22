@@ -63,6 +63,7 @@ import org.hl7.fhir.r4.model.Type
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 
 class GroupFormEntryViewModel
@@ -192,9 +193,13 @@ constructor(
         ?.find { it.codeFirstRep.code == Constants.SESSION_DATE_UUID }
         ?.linkId
 
-    val answer = linkId?.let { id -> response.allItems.firstOrNull { it.linkId == id }?.answer }
-
-    sessionDate = (answer as? Date)
+    sessionDate =
+      response.allItems
+        .firstOrNull { it.linkId == linkId }
+        ?.answer
+        ?.firstOrNull()
+        ?.valueDateTimeType
+        ?.value
   }
 
   fun plugAnswersToEncounter(response: QuestionnaireResponse) {
@@ -279,7 +284,7 @@ constructor(
     val patientRef = Reference("Patient/$patientId")
     val obs =
       Observation().apply {
-        id = UUID.randomUUID().toString()
+        id = generateUuid()
         status = Observation.ObservationStatus.FINAL
         code =
           CodeableConcept()

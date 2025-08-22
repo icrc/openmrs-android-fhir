@@ -45,7 +45,6 @@ import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import com.google.android.material.tabs.TabLayout
-import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Questionnaire
@@ -55,6 +54,7 @@ import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.databinding.GroupFormentryFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.showSnackBar
 import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
@@ -256,7 +256,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
               encounterType,
             )
           } else {
-            encounterId = UUID.randomUUID().toString()
+            encounterId = generateUuid()
             pendingSaveEncounterId = encounterId
             genericFormEntryViewModel.saveEncounter(
               questionnaireResponse,
@@ -265,7 +265,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
               viewModel.sessionDate,
             )
             viewModel.setPatientIdToEncounterIdMap(patientId, encounterId)
-            viewModel.createInternalObservations(patientId, encounterId)
+            // ⚠️ removed direct createInternalObservations call here
           }
           saveCurrentQuestionnaireResponse(questionnaireResponse)
         } catch (exception: Exception) {
@@ -414,6 +414,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         val encounterId = viewModel.getEncounterIdForPatientId(patientId)
         if (encounterId != null) {
           viewModel.saveScreenerObservations(patientId, encounterId)
+          viewModel.createInternalObservations(patientId, encounterId)
         }
         val patientName = viewModel.getPatientName(patientId)
         Toast.makeText(
@@ -503,7 +504,6 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   override fun onDestroyView() {
-    // Clean up
     lifecycleScope.launch {
       saveCurrentQuestionnaireResponse(currentQuestionnaireFragment?.getQuestionnaireResponse())
     }
