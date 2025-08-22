@@ -45,13 +45,14 @@ import java.util.Locale
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.hl7.fhir.r4.model.Encounter
+import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
-import org.openmrs.android.helpers.OpenMRSHelper
 
 /**
  * The ViewModel helper class for PatientItemRecyclerViewAdapter, that is responsible for preparing
@@ -96,12 +97,11 @@ constructor(
     data.add(PatientDetailHeader(getString(R.string.header_encounters)))
     visits.forEach { (visit, encounters) ->
       if (!Constants.WRAP_ENCOUNTER) {
-        data.addVisitData(visit, encounters)
+        data.addVisitData(visit)
       }
 
       encounters.forEach { encounter ->
-        val isSynced =
-          fhirEngine.getLocalChanges(ResourceType.Encounter, encounter.logicalId).isEmpty()
+        val isSynced = isEncounterSynced(encounter)
         data.addEncounterData(encounter, isSynced)
       }
     }
@@ -114,6 +114,23 @@ constructor(
         else -> true
       }
     }
+  }
+
+  private suspend fun isEncounterSynced(encounter: Encounter): Boolean {
+    val observations =
+      fhirEngine.search<Observation> {
+        filter(Observation.ENCOUNTER, { value = encounter.logicalId })
+      }
+    observations.forEach { observation ->
+      val isObservationSynced =
+        fhirEngine
+          .getLocalChanges(ResourceType.Observation, observation.resource.logicalId)
+          .isEmpty()
+      if (!isObservationSynced) {
+        return false
+      }
+    }
+    return fhirEngine.getLocalChanges(ResourceType.Encounter, encounter.logicalId).isEmpty()
   }
 
   private fun MutableList<PatientDetailData>.addPatientDetailData(
@@ -138,18 +155,16 @@ constructor(
 
   fun createVisit(startDate: Date) {
     viewModelScope.launch {
-      val visit =
-        openMRSHelper.startVisit(
-          patientId,
-          Constants.VISIT_TYPE_UUID,
-          startDate,
-        )
+      openMRSHelper.startVisit(
+        patientId,
+        Constants.VISIT_TYPE_UUID,
+        startDate,
+      )
     }
   }
 
   private fun MutableList<PatientDetailData>.addVisitData(
     visit: Encounter,
-    encounters: List<Encounter>?,
   ) {
     val visitItem = createVisitItem(visit)
     add(PatientDetailVisit(visitItem))
