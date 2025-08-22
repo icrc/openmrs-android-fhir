@@ -1,0 +1,49 @@
+{
+  "resourceType": "Questionnaire",
+  "id": "screener-questionnaire-template",
+  "status": "active",
+  "title": "Health Screener Questionnaire",
+  "name": "HealthScreener",
+  "description": "A general health screening questionnaire template",
+  "date": "2025-07-29",
+  "publisher": "ICRC",
+  "subjectType": ["Patient"],
+  "item": [
+    {
+      "linkId": "1",
+      "text": "Session Name",
+      "type": "string",
+      "required": true,
+      "code": [{
+        "code": "e2559620-900b-4f66-ae41-0b9c4adfb654"
+      }]
+    },
+    {
+      "linkId": "2",
+      "text": "Practitioner Name",
+      "type": "string",
+      "required": true,
+      "code": [{
+        "code": "f1a2d58c-1a0e-4148-931a-aac224649fdc"
+      }]
+    },
+    {
+      "linkId": "3",
+      "text": "Session Date",
+      "type": "dateTime",
+      "required": true,
+      "code": [{
+        "code": "ceaca505-6dff-4940-8a43-8c060a0924d7"
+      }]
+    },
+    {
+      "linkId": "4",
+      "text": "Session Notes",
+      "type": "string",
+      "required": true,
+      "code": [{
+        "code": "fa8fedc0-c066-4da3-8dc1-2ad8621fc480"
+      }]
+    }
+  ]
+}

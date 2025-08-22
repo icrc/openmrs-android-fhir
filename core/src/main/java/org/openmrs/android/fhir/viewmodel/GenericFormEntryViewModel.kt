@@ -115,12 +115,7 @@ constructor(
       ?.code
   }
 
-  suspend fun createWrapperVisit(patientId: String): Encounter {
-    val localDate = Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-    val localStartOfDay = localDate.atStartOfDay()
-
-    val visitDate = Date.from(localStartOfDay.atZone(ZoneId.systemDefault()).toInstant())
-
+  suspend fun createWrapperVisit(patientId: String, visitDate: Date): Encounter {
     val visit =
       Encounter().apply {
         subject = Reference("Patient/$patientId")
@@ -166,6 +161,7 @@ constructor(
     questionnaireResponse: QuestionnaireResponse,
     patientId: String,
     encounterId: String,
+    sessionDate: Date? = null,
   ) {
     viewModelScope.launch {
       val questionnaireId = state.get<String>("questionnaire_id")
@@ -203,14 +199,30 @@ constructor(
       val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
       val patientReference = Reference("Patient/$patientId")
 
+      val encounterDate =
+        if (Constants.WRAP_ENCOUNTER) {
+          val localDate =
+            (sessionDate ?: Date()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+          Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
+        } else {
+          sessionDate ?: Date()
+        }
+
       val visit: Encounter
       if (Constants.WRAP_ENCOUNTER) {
-        visit = createWrapperVisit(patientId)
+        visit = createWrapperVisit(patientId, encounterDate)
       } else {
         visit = openMRSHelper.getActiveVisit(patientId, true)!!
       }
 
-      saveResources(bundle, patientReference, questionnaire, encounterId, visit.idPart)
+      saveResources(
+        bundle,
+        patientReference,
+        questionnaire,
+        encounterId,
+        visit.idPart,
+        encounterDate,
+      )
       isResourcesSaved.value = "SAVED/$patientId"
     }
   }
@@ -221,6 +233,7 @@ constructor(
     questionnaire: Questionnaire,
     encounterId: String,
     visitId: String,
+    encounterDate: Date,
   ) {
     val encounterReference = Reference("Encounter/$encounterId")
     val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
@@ -232,14 +245,6 @@ constructor(
       questionnaire.code.firstOrNull {
         it.system == "http://fhir.openmrs.org/core/StructureDefinition/omrs-form"
       }
-    val encounterDate: Date
-    if (Constants.WRAP_ENCOUNTER) {
-      val localDate = Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-      val localStartOfDay = localDate.atStartOfDay()
-      encounterDate = Date.from(localStartOfDay.atZone(ZoneId.systemDefault()).toInstant())
-    } else {
-      encounterDate = Date()
-    }
 
     bundle.entry
       .mapNotNull { it.resource as? Encounter }
@@ -341,5 +346,10 @@ constructor(
 
   private suspend fun saveResourceToDatabase(resource: Resource) {
     fhirEngine.create(resource)
+  }
+
+  fun updateQuestionnaire(updated: Questionnaire) {
+    _questionnaire.value = updated
+    _questionnaireJson.value = parser.encodeResourceToString(updated)
   }
 }
