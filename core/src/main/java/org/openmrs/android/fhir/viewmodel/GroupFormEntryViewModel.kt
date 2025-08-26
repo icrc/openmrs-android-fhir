@@ -51,7 +51,6 @@ import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.CodeType
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
-import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
@@ -65,6 +64,7 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
+import org.openmrs.android.fhir.extensions.nowUtcDateTime
 
 class GroupFormEntryViewModel
 @Inject
@@ -294,7 +294,7 @@ constructor(
             .setText(display)
         subject = patientRef
         encounter = encounterRef
-        effective = DateTimeType(java.util.Date())
+        effective = nowUtcDateTime()
         value = observationValue
       }
     viewModelScope.launch {

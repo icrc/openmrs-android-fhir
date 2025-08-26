@@ -36,12 +36,18 @@ import android.net.NetworkCapabilities
 import android.os.Environment
 import android.util.Base64
 import android.view.View
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum
 import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.material.snackbar.Snackbar
 import com.squareup.moshi.Moshi
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import java.util.UUID
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.DateType
@@ -133,4 +139,17 @@ fun convertDateAnswersToDateTime(response: QuestionnaireResponse) {
       }
     }
   }
+}
+
+fun nowUtcDateTime(): DateTimeType =
+  DateTimeType(Date(), TemporalPrecisionEnum.SECOND, TimeZone.getTimeZone("UTC"))
+
+/** Format a Date in the device's local time zone. */
+fun Date.toLocalString(
+  pattern: String = "dd MM yyyy",
+  zone: ZoneId = ZoneId.systemDefault(),
+  locale: Locale = Locale.getDefault(),
+): String {
+  val fmt = DateTimeFormatter.ofPattern(pattern, locale).withZone(zone)
+  return fmt.format(this.toInstant())
 }

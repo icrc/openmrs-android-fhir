@@ -39,9 +39,7 @@ import com.google.android.fhir.search.search
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.hl7.fhir.r4.model.Encounter
@@ -53,6 +51,7 @@ import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
+import org.openmrs.android.fhir.extensions.toLocalString
 
 /**
  * The ViewModel helper class for PatientItemRecyclerViewAdapter, that is responsible for preparing
@@ -195,11 +194,7 @@ constructor(
     isSynced: Boolean,
   ): PatientListViewModel.EncounterItem {
     val visitType = encounter.type.firstOrNull()?.coding?.firstOrNull()?.display ?: "Type"
-    val visitDate =
-      encounter.period?.start?.let {
-        SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(it)
-      }
-        ?: "Date"
+    val visitDate = encounter.period?.start?.toLocalString() ?: "Date"
 
     return PatientListViewModel.EncounterItem(
       encounter.logicalId,
