@@ -56,10 +56,10 @@ import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.Constants.PATIENT_IDENTIFIER_DEFINITION_URL
 import org.openmrs.android.fhir.Constants.PATIENT_LOCATION_IDENTIFIER_URL
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
-import org.openmrs.android.helpers.OpenMRSHelper
 
 /** ViewModel for patient registration screen {@link AddPatientFragment}. */
 class AddPatientViewModel

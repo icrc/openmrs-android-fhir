@@ -57,10 +57,10 @@ import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.PatientDetailsRecyclerViewAdapter
+import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.databinding.PatientDetailBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
-import org.openmrs.android.helpers.OpenMRSHelper
 
 class PatientDetailsFragment : Fragment() {
 
