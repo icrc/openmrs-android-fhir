@@ -131,6 +131,8 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
           QuestionnaireFragment.builder()
             .setQuestionnaire(pair.first)
             .setQuestionnaireResponse(pair.second)
+            .showOptionalText(true)
+            .showRequiredText(false)
             .showReviewPageBeforeSubmit(
               requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
             )

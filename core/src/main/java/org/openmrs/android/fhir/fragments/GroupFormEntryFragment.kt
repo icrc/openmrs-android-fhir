@@ -98,8 +98,8 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     _binding = GroupFormentryFragmentBinding.bind(view)
     super.onViewCreated(view, savedInstanceState)
-    setUpActionBar()
     setHasOptionsMenu(true)
+    setUpActionBar()
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     observeLoading()
     binding.patientTabLayout.visibility = View.GONE
@@ -186,6 +186,8 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         )
         .setSubmitButtonText(getString(R.string.submit))
         .setShowSubmitButton(true)
+        .showOptionalText(true)
+        .showRequiredText(false)
         .setQuestionnaire(questionnaireJson)
         .build()
     childFragmentManager.commit {
@@ -212,6 +214,8 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         )
         .setSubmitButtonText(getString(R.string.submit))
         .setShowSubmitButton(true)
+        .showOptionalText(true)
+        .showRequiredText(false)
         .setQuestionnaire(questionnaireJson)
 
     // Restore previous response if exists

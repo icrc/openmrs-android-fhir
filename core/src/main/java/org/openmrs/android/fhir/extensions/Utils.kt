@@ -144,6 +144,9 @@ fun convertDateAnswersToDateTime(response: QuestionnaireResponse) {
 fun nowUtcDateTime(): DateTimeType =
   DateTimeType(Date(), TemporalPrecisionEnum.SECOND, TimeZone.getTimeZone("UTC"))
 
+fun nowLocalDateTime(): DateTimeType =
+  DateTimeType(Date(), TemporalPrecisionEnum.SECOND, TimeZone.getDefault())
+
 /** Format a Date in the device's local time zone. */
 fun Date.toLocalString(
   pattern: String = "dd MM yyyy",

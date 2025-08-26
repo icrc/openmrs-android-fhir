@@ -128,6 +128,8 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
             .showReviewPageBeforeSubmit(
               requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
             )
+            .showOptionalText(true)
+            .showRequiredText(false)
             .setQuestionnaire(questionnaireJson)
             .build(),
           QUESTIONNAIRE_FRAGMENT_TAG,
