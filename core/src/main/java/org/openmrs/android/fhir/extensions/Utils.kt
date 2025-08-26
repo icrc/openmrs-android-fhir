@@ -45,6 +45,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -124,18 +125,20 @@ fun convertDateTimeAnswersToDate(response: QuestionnaireResponse) {
     item.answer.forEach { answer ->
       if (answer.value is DateTimeType) {
         val date = (answer.value as DateTimeType).value
-        answer.value = DateType(date)
+        val calendar: Calendar =
+          Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { time = date }
+        answer.value = DateType(calendar)
       }
     }
   }
 }
 
-fun convertDateAnswersToDateTime(response: QuestionnaireResponse) {
+fun convertDateAnswersToUtcDateTime(response: QuestionnaireResponse) {
   response.allItems.forEach { item ->
     item.answer.forEach { answer ->
       if (answer.value is DateType) {
         val date = (answer.value as DateType).value
-        answer.value = DateTimeType(date)
+        answer.value = DateTimeType(date, TemporalPrecisionEnum.SECOND, TimeZone.getTimeZone("UTC"))
       }
     }
   }

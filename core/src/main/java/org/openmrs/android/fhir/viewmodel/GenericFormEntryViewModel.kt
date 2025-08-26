@@ -43,7 +43,6 @@ import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValid
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import java.time.ZoneId
 import java.util.Date
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -51,7 +50,6 @@ import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Condition
-import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Period
@@ -64,9 +62,10 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
-import org.openmrs.android.fhir.extensions.convertDateAnswersToDateTime
+import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
+import org.openmrs.android.fhir.extensions.nowUtcDateTime
 
 /** ViewModel for Generic questionnaire screen {@link GenericFormEntryFragment}. */
 class GenericFormEntryViewModel
@@ -100,7 +99,7 @@ constructor(
           applicationContext,
           parser,
         )
-      if (questionnaire == null) {
+      if (_questionnaire.value == null) {
         _questionnaireJson.value = ""
       } else {
         _questionnaireJson.value = parser.encodeResourceToString(_questionnaire.value)
@@ -195,25 +194,19 @@ constructor(
         return@launch
       }
 
-      convertDateAnswersToDateTime(questionnaireResponse)
+      convertDateAnswersToUtcDateTime(questionnaireResponse)
       val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
       val patientReference = Reference("Patient/$patientId")
 
-      val encounterDate =
-        if (Constants.WRAP_ENCOUNTER) {
-          val localDate =
-            (sessionDate ?: Date()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-          Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant())
-        } else {
-          sessionDate ?: Date()
-        }
+      val encounterDate = sessionDate ?: Date()
 
       val visit: Encounter
-      if (Constants.WRAP_ENCOUNTER) {
-        visit = createWrapperVisit(patientId, encounterDate)
-      } else {
-        visit = openMRSHelper.getActiveVisit(patientId, true)!!
-      }
+      visit =
+        if (Constants.WRAP_ENCOUNTER) {
+          createWrapperVisit(patientId, encounterDate)
+        } else {
+          openMRSHelper.getActiveVisit(patientId, true)!!
+        }
 
       saveResources(
         bundle,
@@ -310,7 +303,7 @@ constructor(
                       subject = patientReference
                       encounter = encounterReference
                       status = Observation.ObservationStatus.FINAL
-                      effective = DateTimeType(Date())
+                      effective = nowUtcDateTime()
                       this.value = CodeableConcept().addCoding(coding)
                     }
                   saveResourceToDatabase(obs)
@@ -324,7 +317,7 @@ constructor(
                     subject = patientReference
                     encounter = encounterReference
                     status = Observation.ObservationStatus.FINAL
-                    effective = DateTimeType(Date())
+                    effective = nowUtcDateTime()
                     this.value = value
                   }
                 saveResourceToDatabase(obs)

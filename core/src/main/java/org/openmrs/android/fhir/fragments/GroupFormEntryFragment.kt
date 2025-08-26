@@ -32,6 +32,7 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -150,6 +151,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         }
       }
     }
+    addBackPressedListener()
     (activity as MainActivity).setDrawerEnabled(false)
     observePatients()
   }
@@ -157,17 +159,34 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
       android.R.id.home -> {
-        val savedPatients = viewModel.getPatientIdToEncounterIdMap().keys.size
-        val totalPatients = viewModel.patients.value?.size ?: 0
-
-        if (totalPatients > savedPatients) {
-          showCancelScreenerQuestionnaireAlertDialog()
-        } else {
-          NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
-        }
+        onBackPressed()
         true
       }
       else -> super.onOptionsItemSelected(item)
+    }
+  }
+
+  private fun addBackPressedListener() {
+    requireActivity()
+      .onBackPressedDispatcher
+      .addCallback(
+        viewLifecycleOwner,
+        object : OnBackPressedCallback(true) {
+          override fun handleOnBackPressed() {
+            onBackPressed()
+          }
+        },
+      )
+  }
+
+  private fun onBackPressed() {
+    val savedPatients = viewModel.getPatientIdToEncounterIdMap().keys.size
+    val totalPatients = viewModel.patients.value?.size ?: 0
+
+    if (totalPatients > savedPatients) {
+      showCancelScreenerQuestionnaireAlertDialog()
+    } else {
+      NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
     }
   }
 
