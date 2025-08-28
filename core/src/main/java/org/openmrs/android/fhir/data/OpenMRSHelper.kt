@@ -26,12 +26,13 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.helpers
+package org.openmrs.android.fhir.data
 
 import android.content.Context
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.get
+import com.google.android.fhir.search.Order
 import com.google.android.fhir.search.search
 import java.time.LocalDate
 import java.time.ZoneId
@@ -61,7 +62,6 @@ import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_URL
 import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_VALUE_URL
 import org.openmrs.android.fhir.Constants.PERSON_ATTRIBUTE_LINK_ID_PREFIX
 import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.PreferenceKeys
 
 class OpenMRSHelper
 @Inject
@@ -100,7 +100,10 @@ constructor(
     val allEncounters = LinkedList<Encounter>()
 
     fhirEngine
-      .search<Encounter> { filter(Encounter.SUBJECT, { value = "Patient/$patientId" }) }
+      .search<Encounter> {
+        filter(Encounter.SUBJECT, { value = "Patient/$patientId" })
+        sort(Encounter.DATE, Order.DESCENDING)
+      }
       .map { it.resource }
       .let { allEncounters.addAll(it) }
 

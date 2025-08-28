@@ -34,6 +34,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -128,6 +129,8 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
             .showReviewPageBeforeSubmit(
               requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
             )
+            .showOptionalText(true)
+            .showRequiredText(false)
             .setQuestionnaire(questionnaireJson)
             .build(),
           QUESTIONNAIRE_FRAGMENT_TAG,
@@ -166,9 +169,16 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
   }
 
   private fun onBackPressed() {
-    //    activity?.onBackPressedDispatcher?.addCallback(viewLifecycleOwner) {
-    //      showCancelScreenerQuestionnaireAlertDialog()
-    //    }
+    requireActivity()
+      .onBackPressedDispatcher
+      .addCallback(
+        viewLifecycleOwner,
+        object : OnBackPressedCallback(true) {
+          override fun handleOnBackPressed() {
+            showCancelScreenerQuestionnaireAlertDialog()
+          }
+        },
+      )
   }
 
   private fun observeResourcesSaveAction() {

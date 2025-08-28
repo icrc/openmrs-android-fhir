@@ -45,14 +45,12 @@ import com.google.android.fhir.search.search
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import java.util.Date
 import java.util.UUID
 import kotlin.collections.forEach
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Condition
-import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Quantity
@@ -62,10 +60,11 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.StringType
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
-import org.openmrs.android.fhir.extensions.convertDateAnswersToDateTime
+import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getJsonFileNames
+import org.openmrs.android.fhir.extensions.nowUtcDateTime
 import org.openmrs.android.fhir.extensions.readFileFromAssets
 import timber.log.Timber
 
@@ -195,7 +194,7 @@ constructor(
         return@launch
       }
 
-      convertDateAnswersToDateTime(questionnaireResponse)
+      convertDateAnswersToUtcDateTime(questionnaireResponse)
       val bundle = ResourceMapper.extract(questionnaire as Questionnaire, questionnaireResponse)
 
       if (
@@ -267,7 +266,7 @@ constructor(
           // amend
           existing.status = Observation.ObservationStatus.AMENDED
           existing.value = value
-          existing.effective = DateTimeType(Date())
+          existing.effective = nowUtcDateTime()
           updateResourceToDatabase(existing)
         } else {
           // new resource
@@ -275,7 +274,7 @@ constructor(
           resource.subject = subjectReference
           resource.encounter = encounterReference
           resource.status = Observation.ObservationStatus.FINAL
-          resource.effective = DateTimeType(Date())
+          resource.effective = nowUtcDateTime()
           createResourceToDatabase(resource)
         }
       }
@@ -298,7 +297,7 @@ constructor(
             } else {
               Observation.ObservationStatus.FINAL
             }
-          target.effective = DateTimeType(Date())
+          target.effective = nowUtcDateTime()
           target.value = value
 
           if (existing != null) {
@@ -318,7 +317,7 @@ constructor(
                 subject = subjectReference
                 encounter = encounterReference
                 status = Observation.ObservationStatus.FINAL
-                effective = DateTimeType(Date())
+                effective = nowUtcDateTime()
               }
             obs.setValue(CodeableConcept().apply { addCoding(coding) })
             createResourceToDatabase(obs)

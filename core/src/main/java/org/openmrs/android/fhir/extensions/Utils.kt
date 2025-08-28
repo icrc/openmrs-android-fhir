@@ -36,12 +36,19 @@ import android.net.NetworkCapabilities
 import android.os.Environment
 import android.util.Base64
 import android.view.View
+import ca.uhn.fhir.model.api.TemporalPrecisionEnum
 import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.material.snackbar.Snackbar
 import com.squareup.moshi.Moshi
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import java.util.UUID
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.DateType
@@ -118,19 +125,37 @@ fun convertDateTimeAnswersToDate(response: QuestionnaireResponse) {
     item.answer.forEach { answer ->
       if (answer.value is DateTimeType) {
         val date = (answer.value as DateTimeType).value
-        answer.value = DateType(date)
+        val calendar: Calendar =
+          Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply { time = date }
+        answer.value = DateType(calendar)
       }
     }
   }
 }
 
-fun convertDateAnswersToDateTime(response: QuestionnaireResponse) {
+fun convertDateAnswersToUtcDateTime(response: QuestionnaireResponse) {
   response.allItems.forEach { item ->
     item.answer.forEach { answer ->
       if (answer.value is DateType) {
         val date = (answer.value as DateType).value
-        answer.value = DateTimeType(date)
+        answer.value = DateTimeType(date, TemporalPrecisionEnum.SECOND, TimeZone.getTimeZone("UTC"))
       }
     }
   }
+}
+
+fun nowUtcDateTime(): DateTimeType =
+  DateTimeType(Date(), TemporalPrecisionEnum.SECOND, TimeZone.getTimeZone("UTC"))
+
+fun nowLocalDateTime(): DateTimeType =
+  DateTimeType(Date(), TemporalPrecisionEnum.SECOND, TimeZone.getDefault())
+
+/** Format a Date in the device's local time zone. */
+fun Date.toLocalString(
+  pattern: String = "dd MM yyyy",
+  zone: ZoneId = ZoneId.systemDefault(),
+  locale: Locale = Locale.getDefault(),
+): String {
+  val fmt = DateTimeFormatter.ofPattern(pattern, locale).withZone(zone)
+  return fmt.format(this.toInstant())
 }

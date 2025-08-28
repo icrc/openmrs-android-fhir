@@ -78,6 +78,7 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
         } else {
           requireContext().getString(R.string.create_encounter)
         }
+      setDisplayHomeAsUpEnabled(true)
     }
     (requireActivity().application as FhirApplication).appComponent.inject(this)
 
