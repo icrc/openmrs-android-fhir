@@ -30,6 +30,8 @@ package org.openmrs.android.fhir.extensions
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
@@ -40,43 +42,79 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import org.openmrs.android.fhir.EncryptionHelper
+import org.openmrs.android.fhir.viewmodel.LegacyAuthFlow
 import timber.log.Timber
 
 object BiometricUtils {
 
   private const val KEY_ALIAS = "biometric_key"
   private const val PREFS_NAME = "secure_prefs"
-  private const val TOKEN_KEY = "encrypted_token"
+  const val TOKEN_KEY = "encrypted_token"
   private const val IV_KEY = "encrypted_iv"
   private const val BIOMETRIC_ENROLLED_KEY = "biometric_enrolled"
 
   /** Creates a biometric key in the AndroidKeyStore if it does not already exist. */
-  fun createBiometricKeyIfNotExists() {
+  fun createBiometricKeyIfNotExists(
+    context: Context,
+    legacyFlow: LegacyAuthFlow = LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW,
+    validityWindowSeconds: Int = 30,
+  ) {
     try {
-      val keyStore = KeyStore.getInstance("AndroidKeyStore")
-      keyStore.load(null)
-      if (!keyStore.containsAlias(KEY_ALIAS)) {
-        val keyGenerator =
-          KeyGenerator.getInstance(
-            KeyProperties.KEY_ALGORITHM_AES,
-            "AndroidKeyStore",
+      val ks = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+      if (ks.containsAlias(KEY_ALIAS)) return
+
+      val kg = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
+      val builder =
+        KeyGenParameterSpec.Builder(
+            KEY_ALIAS,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
           )
-        val keyGenParameterSpec =
-          KeyGenParameterSpec.Builder(
-              KEY_ALIAS,
-              KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
-            )
-            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-            .setUserAuthenticationRequired(true)
-            .setUserAuthenticationValidityDurationSeconds(-1)
-            .setInvalidatedByBiometricEnrollment(true)
-            .build()
-        keyGenerator.init(keyGenParameterSpec)
-        keyGenerator.generateKey()
+          .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+          .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+          .setUserAuthenticationRequired(true)
+
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        builder.setUnlockedDeviceRequired(true)
       }
+
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        // API 30+: real per-use with biometric OR device credential
+        builder.setUserAuthenticationParameters(
+          0,
+          KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL,
+        )
+        builder.setInvalidatedByBiometricEnrollment(true)
+      } else {
+        // API 23–29: pick behavior via parameter
+        when (legacyFlow) {
+          LegacyAuthFlow.BIOMETRIC_PER_USE -> {
+            // Keep per-use via CryptoObject (biometric only).
+            // No validity window; prompt must be biometrics-only.
+            // NOTE: device credential cannot be enforced per-use here.
+            // (No extra builder call needed.)
+          }
+          LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW -> {
+            // Allow device credential by using a short validity window for security.
+            builder.setUserAuthenticationValidityDurationSeconds(validityWindowSeconds)
+          }
+        }
+      }
+
+      if (
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
+          context.packageManager.hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE)
+      ) {
+        try {
+          builder.setIsStrongBoxBacked(true)
+        } catch (_: Exception) {
+          builder.setIsStrongBoxBacked(false)
+        }
+      }
+
+      kg.init(builder.build())
+      kg.generateKey()
     } catch (e: Exception) {
-      Timber.e("Error creating biometric key: ${e.message}")
+      Timber.e(e, "Error creating biometric key")
     }
   }
 

@@ -45,6 +45,7 @@ import java.util.concurrent.Executor
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.databinding.ActivityBasicLoginBinding
+import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.viewmodel.BasicLoginActivityViewModel
 import org.openmrs.android.fhir.viewmodel.LoginUiState
 
@@ -147,10 +148,11 @@ class BasicLoginActivity : AppCompatActivity() {
         .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
         .setNegativeButtonText(getString(R.string.cancel))
 
-      val cipher = viewModel.getEncryptionCipher()
+      val cipher = BiometricUtils.getEncryptionCipher()
       if (cipher != null) {
         biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
       } else {
+        // TODO: add dialog encryption issue, try setting up biometric auth later in settings.
         Toast.makeText(this, "Encryption not available", Toast.LENGTH_LONG).show()
         navigateToMain()
       }
@@ -158,8 +160,12 @@ class BasicLoginActivity : AppCompatActivity() {
       promptBuilder
         .setSubtitle(getString(R.string.use_device_credential))
         .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
-
-      biometricPrompt.authenticate(promptBuilder.build())
+      val cipher = BiometricUtils.getEncryptionCipher() // init with your keystore key
+      if (cipher != null) {
+        biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
+      } else {
+        biometricPrompt.authenticate(promptBuilder.build())
+      }
     } else {
       Toast.makeText(this, getString(R.string.no_supported_auth_method), Toast.LENGTH_LONG).show()
       navigateToMain()

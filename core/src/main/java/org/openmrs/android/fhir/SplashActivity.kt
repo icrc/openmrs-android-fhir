@@ -128,11 +128,15 @@ class SplashActivity : AppCompatActivity() {
       if (cipher != null) {
         promptBuilder
           .setSubtitle(getString(R.string.biometric_prompt_subtitle))
-          .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-          .setNegativeButtonText(getString(R.string.cancel))
+          .setAllowedAuthenticators(
+            BiometricManager.Authenticators.BIOMETRIC_STRONG or
+              BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+          )
 
         biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
         return
+      } else {
+        showToast(R.string.auth_failed)
       }
     }
 
@@ -141,10 +145,14 @@ class SplashActivity : AppCompatActivity() {
         .setSubtitle(getString(R.string.use_device_credential))
         .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
 
-      biometricPrompt.authenticate(promptBuilder.build())
+      val cipher = BiometricUtils.getDecryptionCipher(this)
+      if (cipher != null) {
+        biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
+      } else {
+        biometricPrompt.authenticate(promptBuilder.build())
+      }
     } else {
-      showToast(R.string.no_supported_auth_method)
-      navigateToMainActivity()
+      loginWithInternetOrExit()
     }
   }
 
@@ -167,26 +175,17 @@ class SplashActivity : AppCompatActivity() {
               val token = BiometricUtils.decryptToken(cipher, this@SplashActivity)
               if (token != null) {
                 val prefs = BiometricUtils.getSharedPrefs(this@SplashActivity)
-                if (!prefs.contains("encrypted_token")) {
+                if (!prefs.contains(BiometricUtils.TOKEN_KEY)) {
+                  // TODO: update logic for basic auth
                   val currentToken = authStateManager.current.accessToken
                   if (!currentToken.isNullOrBlank()) {
                     BiometricUtils.saveToken(cipher, currentToken, this@SplashActivity)
                   }
                 }
                 navigateToMainActivity()
-              } else {
-                showToast(R.string.invalid_session)
-                finish()
               }
-            } else {
-              navigateToMainActivity()
             }
-          }
-
-          override fun onAuthenticationFailed() {
-            super.onAuthenticationFailed()
-            showToast(R.string.auth_failed)
-            finish()
+            loginWithInternetOrExit()
           }
         },
       )
@@ -216,6 +215,18 @@ class SplashActivity : AppCompatActivity() {
       .setPositiveButton(getString(R.string.retry)) { _, _ ->
         lifecycleScope.launch { handleAuthenticationFlow() }
       }
+      .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
+      .setCancelable(false)
+      .show()
+  }
+
+  private fun loginWithInternetOrExit() {
+    AlertDialog.Builder(this)
+      .setTitle("Offline login unavailable!")
+      .setMessage(
+        "Connect to internet to login and setup a Biometric/pin login on device",
+      )
+      .setPositiveButton("Login") { _, _ -> lifecycleScope.launch { handleAuthenticationFlow() } }
       .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
       .setCancelable(false)
       .show()

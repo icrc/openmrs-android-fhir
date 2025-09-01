@@ -67,7 +67,7 @@ constructor(
       response?.authorizationCode != null -> {
         loginRepository.exchangeCodeForToken(response, ex)
         try {
-          BiometricUtils.createBiometricKeyIfNotExists()
+          BiometricUtils.createBiometricKeyIfNotExists(applicationContext)
           val token = loginRepository.getAccessToken()
           if (token.isNotBlank()) {
             tokenToEncrypt = token

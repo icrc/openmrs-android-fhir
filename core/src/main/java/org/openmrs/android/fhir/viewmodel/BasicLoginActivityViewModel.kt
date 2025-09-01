@@ -29,6 +29,7 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
+import android.os.Build
 import android.util.Base64
 import androidx.biometric.BiometricManager
 import androidx.lifecycle.ViewModel
@@ -91,12 +92,41 @@ constructor(
 
         authStateManager.updateBasicAuthCredentials(username, password)
 
-        val biometricAvailable =
-          BiometricManager.from(applicationContext)
-            .canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+        val bm = BiometricManager.from(applicationContext)
 
-        if (biometricAvailable == BiometricManager.BIOMETRIC_SUCCESS) {
-          BiometricUtils.createBiometricKeyIfNotExists()
+        val canBioStrong = bm.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+        val canBioOrCred =
+          bm.canAuthenticate(
+            BiometricManager.Authenticators.BIOMETRIC_STRONG or
+              BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+          )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+          // API 30+: always use per-use with biometrics or device credential
+          if (canBioOrCred == BiometricManager.BIOMETRIC_SUCCESS) {
+            BiometricUtils.createBiometricKeyIfNotExists(applicationContext)
+          } else {
+            // TODO: Add intent for device credential setup
+            // handle no-credential/no-biometrics case (fallback UI, PIN setup, etc.)
+          }
+        } else {
+          // API 23–29: pick the flow
+          val legacyFlow =
+            when {
+              // If strong biometrics present, prefer per-use biometrics (CryptoObject path)
+              canBioStrong == BiometricManager.BIOMETRIC_SUCCESS -> LegacyAuthFlow.BIOMETRIC_PER_USE
+
+              // If (bio OR device PIN) is available, use validity window so PIN works
+              canBioOrCred == BiometricManager.BIOMETRIC_SUCCESS ->
+                LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW
+              else -> LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW // conservative fallback
+            }
+
+          BiometricUtils.createBiometricKeyIfNotExists(
+            applicationContext,
+            legacyFlow = legacyFlow,
+            validityWindowSeconds = 30, // tune to your UX
+          )
         }
 
         sessionTokenToEncrypt = encodedCredentials
@@ -119,10 +149,6 @@ constructor(
     return authStateManager.isLockedOut()
   }
 
-  fun getEncryptionCipher(): javax.crypto.Cipher? {
-    return BiometricUtils.getEncryptionCipher()
-  }
-
   fun encryptAndSaveToken(token: String, cipher: javax.crypto.Cipher) {
     BiometricUtils.encryptAndSaveToken(token, cipher, applicationContext)
   }
@@ -138,4 +164,9 @@ sealed class LoginUiState {
   object Success : LoginUiState()
 
   data class Failure(val resId: Int) : LoginUiState()
+}
+
+enum class LegacyAuthFlow {
+  BIOMETRIC_PER_USE, // per-use auth via CryptoObject (biometrics only)
+  DEVICE_CRED_VALIDITY_WINDOW, // allow device credential by using a validity window
 }
