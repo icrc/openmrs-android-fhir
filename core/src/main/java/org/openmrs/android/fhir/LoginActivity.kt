@@ -92,7 +92,7 @@ class LoginActivity : AppCompatActivity() {
           override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
             super.onAuthenticationSucceeded(result)
             val cipher = result.cryptoObject?.cipher
-            val token = viewModel.tokenToEncrypt
+            val token = viewModel.sessionTokenToEncrypt
             if (cipher != null && token != null) {
               BiometricUtils.encryptAndSaveToken(token, cipher, applicationContext)
             }
@@ -169,7 +169,9 @@ class LoginActivity : AppCompatActivity() {
       if (cipher != null) {
         biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
       } else {
-        Toast.makeText(this, getString(R.string.encryption_not_available), Toast.LENGTH_LONG).show()
+        // TODO: add dialog encryption issue, try setting up biometric auth later in settings.
+        Toast.makeText(this, "Error encountered while setting offline login", Toast.LENGTH_LONG)
+          .show()
         startActivity(Intent(this, MainActivity::class.java))
         finish()
       }
@@ -177,8 +179,12 @@ class LoginActivity : AppCompatActivity() {
       promptBuilder
         .setSubtitle(getString(R.string.use_device_credential))
         .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
-
-      biometricPrompt.authenticate(promptBuilder.build())
+      val cipher = BiometricUtils.getEncryptionCipher() // init with your keystore key
+      if (cipher != null) {
+        biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
+      } else {
+        biometricPrompt.authenticate(promptBuilder.build())
+      }
     } else {
       Toast.makeText(this, getString(R.string.no_supported_offline_auth_method), Toast.LENGTH_LONG)
         .show()

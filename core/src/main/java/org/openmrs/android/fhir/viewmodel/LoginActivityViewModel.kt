@@ -30,6 +30,8 @@ package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import androidx.biometric.BiometricManager
 import androidx.lifecycle.ViewModel
 import javax.inject.Inject
 import net.openid.appauth.AuthorizationException
@@ -46,7 +48,7 @@ constructor(
 
   private val loginRepository by lazy { LoginRepository.getInstance(applicationContext) }
 
-  var tokenToEncrypt: String? = null
+  var sessionTokenToEncrypt: String? = null
 
   suspend fun createIntent(): Intent? {
     loginRepository.updateAuthIfConfigurationChanged()
@@ -67,10 +69,46 @@ constructor(
       response?.authorizationCode != null -> {
         loginRepository.exchangeCodeForToken(response, ex)
         try {
-          BiometricUtils.createBiometricKeyIfNotExists(applicationContext)
+          val bm = BiometricManager.from(applicationContext)
+
+          val canBioStrong = bm.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+          val canBioOrCred =
+            bm.canAuthenticate(
+              BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+            )
+
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // API 30+: always use per-use with biometrics or device credential
+            if (canBioOrCred == BiometricManager.BIOMETRIC_SUCCESS) {
+              BiometricUtils.createBiometricKeyIfNotExists(applicationContext)
+            } else {
+              // TODO: Add intent for device credential setup
+              // handle no-credential/no-biometrics case (fallback UI, PIN setup, etc.)
+            }
+          } else {
+            // API 23–29: pick the flow
+            val legacyFlow =
+              when {
+                // If strong biometrics present, prefer per-use biometrics (CryptoObject path)
+                canBioStrong == BiometricManager.BIOMETRIC_SUCCESS ->
+                  LegacyAuthFlow.BIOMETRIC_PER_USE
+
+                // If (bio OR device PIN) is available, use validity window so PIN works
+                canBioOrCred == BiometricManager.BIOMETRIC_SUCCESS ->
+                  LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW
+                else -> LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW // conservative fallback
+              }
+
+            BiometricUtils.createBiometricKeyIfNotExists(
+              applicationContext,
+              legacyFlow = legacyFlow,
+              validityWindowSeconds = 30,
+            )
+          }
           val token = loginRepository.getAccessToken()
           if (token.isNotBlank()) {
-            tokenToEncrypt = token
+            sessionTokenToEncrypt = token
           }
         } catch (e: Exception) {
           Timber.e("Biometric key error: ${e.message}")

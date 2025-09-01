@@ -125,7 +125,7 @@ constructor(
           BiometricUtils.createBiometricKeyIfNotExists(
             applicationContext,
             legacyFlow = legacyFlow,
-            validityWindowSeconds = 30, // tune to your UX
+            validityWindowSeconds = 30,
           )
         }
 

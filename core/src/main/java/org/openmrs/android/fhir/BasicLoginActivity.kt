@@ -80,7 +80,6 @@ class BasicLoginActivity : AppCompatActivity() {
             if (cipher != null && sessionToken != null) {
               viewModel.encryptAndSaveToken(sessionToken, cipher)
             }
-
             navigateToMain()
           }
 
@@ -153,7 +152,8 @@ class BasicLoginActivity : AppCompatActivity() {
         biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
       } else {
         // TODO: add dialog encryption issue, try setting up biometric auth later in settings.
-        Toast.makeText(this, "Encryption not available", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "Error encountered while setting offline login", Toast.LENGTH_LONG)
+          .show()
         navigateToMain()
       }
     } else if (canUseDeviceCredential) {
