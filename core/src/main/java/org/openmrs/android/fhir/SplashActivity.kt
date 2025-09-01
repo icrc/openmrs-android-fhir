@@ -145,14 +145,18 @@ class SplashActivity : AppCompatActivity() {
         .setSubtitle(getString(R.string.use_device_credential))
         .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
 
-      val cipher = BiometricUtils.getDecryptionCipher(this)
+      val cipher = BiometricUtils.getEncryptionCipher()
       if (cipher != null) {
         biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
       } else {
         biometricPrompt.authenticate(promptBuilder.build())
       }
     } else {
-      loginWithInternetOrExit()
+      if (isInternetAvailable()) {
+        redirectToAuthFlow()
+      } else {
+        loginWithInternetOrExit()
+      }
     }
   }
 
@@ -183,9 +187,14 @@ class SplashActivity : AppCompatActivity() {
                   }
                 }
                 navigateToMainActivity()
+                return
               }
             }
-            loginWithInternetOrExit()
+            if (isInternetAvailable()) {
+              redirectToAuthFlow()
+            } else {
+              loginWithInternetOrExit()
+            }
           }
         },
       )
@@ -224,9 +233,9 @@ class SplashActivity : AppCompatActivity() {
     AlertDialog.Builder(this)
       .setTitle("Offline login unavailable!")
       .setMessage(
-        "Connect to internet to login and setup a Biometric/pin login on device",
+        "Try logging in with active Internet connection",
       )
-      .setPositiveButton("Login") { _, _ -> lifecycleScope.launch { handleAuthenticationFlow() } }
+      .setPositiveButton("Login") { _, _ -> lifecycleScope.launch { redirectToAuthFlow() } }
       .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
       .setCancelable(false)
       .show()

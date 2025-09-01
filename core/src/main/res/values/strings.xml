@@ -324,8 +324,8 @@
     <string name="auth_failed">Authentication failed</string>
     <string name="invalid_session">Invalid session</string>
     <string
-        name="no_supported_auth_method"
-    >No supported authentication method available</string>
+        name="no_supported_offline_auth_method"
+    >No supported offline authentication method available</string>
     <string name="version">Version</string>
     <string name="encryption_not_available">Encryption not available</string>
     <string

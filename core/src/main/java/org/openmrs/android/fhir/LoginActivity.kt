@@ -180,7 +180,8 @@ class LoginActivity : AppCompatActivity() {
 
       biometricPrompt.authenticate(promptBuilder.build())
     } else {
-      Toast.makeText(this, getString(R.string.no_supported_auth_method), Toast.LENGTH_LONG).show()
+      Toast.makeText(this, getString(R.string.no_supported_offline_auth_method), Toast.LENGTH_LONG)
+        .show()
       startActivity(Intent(this, MainActivity::class.java))
       finish()
     }

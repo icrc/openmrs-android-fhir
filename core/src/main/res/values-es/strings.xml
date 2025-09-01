@@ -340,8 +340,8 @@
     <string name="auth_failed">Autenticación fallida</string>
     <string name="invalid_session">Sesión inválida</string>
     <string
-        name="no_supported_auth_method"
-    >No hay métodos de autenticación compatibles disponibles</string>
+        name="no_supported_offline_auth_method"
+    >No hay ningún método de autenticación sin conexión compatible disponible</string>
     <string name="version">Versión</string>
     <string name="encryption_not_available">Cifrado no disponible</string>
     <string

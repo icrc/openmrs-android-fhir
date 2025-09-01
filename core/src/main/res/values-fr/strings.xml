@@ -355,8 +355,8 @@
     <string name="auth_failed">Échec de l\'authentification</string>
     <string name="invalid_session">Session invalide</string>
     <string
-        name="no_supported_auth_method"
-    >Aucune méthode d\'authentification prise en charge disponible</string>
+        name="no_supported_offline_auth_method"
+    >Aucune méthode d\'authentification hors ligne prise en charge n\'est disponible</string>
     <string name="version">Version</string>
     <string name="encryption_not_available">Chiffrement non disponible</string>
     <string
