@@ -11,7 +11,7 @@ plugins {
 
 android {
   namespace = "org.openmrs.android.fhir.app"
-  compileSdk = 34
+  compileSdk = 36
   defaultConfig {
     applicationId = "org.openmrs.android.fhir.app"
     minSdk = 26

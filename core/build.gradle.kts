@@ -9,7 +9,7 @@ plugins {
 
 android {
   namespace = "org.openmrs.android.fhir"
-  compileSdk = 34
+  compileSdk = 36
   defaultConfig {
     minSdk = 26
     testInstrumentationRunner = "androidx.test.runner.Android JUnitRunner"
