@@ -28,7 +28,9 @@
 */
 package org.openmrs.android.fhir
 
+import android.app.KeyguardManager
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -76,6 +78,27 @@ class LoginActivity : AppCompatActivity() {
       }
     }
 
+  private val confirmCredLauncher =
+    registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+      if (res.resultCode == RESULT_OK) {
+        // Inside validity window: build ENCRYPT cipher and save token
+        val sessionToken = viewModel.sessionTokenToEncrypt
+        val enc = BiometricUtils.getEncryptionCipher()
+        if (!sessionToken.isNullOrBlank() && enc != null) {
+          BiometricUtils.encryptAndSaveToken(sessionToken, enc, applicationContext)
+        } else {
+          Toast.makeText(
+              this,
+              getString(R.string.no_supported_offline_auth_method),
+              Toast.LENGTH_LONG,
+            )
+            .show()
+        }
+      }
+      // Continue regardless (online login already succeeded)
+      navigateToMain()
+    }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     (application as FhirApplication).appComponent.inject(this)
@@ -96,8 +119,7 @@ class LoginActivity : AppCompatActivity() {
             if (cipher != null && token != null) {
               BiometricUtils.encryptAndSaveToken(token, cipher, applicationContext)
             }
-            startActivity(Intent(this@LoginActivity, MainActivity::class.java))
-            finish()
+            navigateToMain()
           }
 
           override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
@@ -168,28 +190,57 @@ class LoginActivity : AppCompatActivity() {
       val cipher = BiometricUtils.getEncryptionCipher()
       if (cipher != null) {
         biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
+        return
       } else {
         // TODO: add dialog encryption issue, try setting up biometric auth later in settings.
         Toast.makeText(this, "Error encountered while setting offline login", Toast.LENGTH_LONG)
           .show()
-        startActivity(Intent(this, MainActivity::class.java))
-        finish()
+        navigateToMain()
       }
     } else if (canUseDeviceCredential) {
       promptBuilder
         .setSubtitle(getString(R.string.use_device_credential))
         .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
       val cipher = BiometricUtils.getEncryptionCipher() // init with your keystore key
-      if (cipher != null) {
-        biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
+      if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
+        if (cipher != null) {
+          biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
+          return
+        }
       } else {
         biometricPrompt.authenticate(promptBuilder.build())
+        return
       }
-    } else {
-      Toast.makeText(this, getString(R.string.no_supported_offline_auth_method), Toast.LENGTH_LONG)
-        .show()
-      startActivity(Intent(this, MainActivity::class.java))
-      finish()
     }
+    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+      val km = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+      if (!km.isDeviceSecure) {
+        Toast.makeText(
+            this,
+            getString(R.string.no_supported_offline_auth_method),
+            Toast.LENGTH_LONG,
+          )
+          .show()
+        navigateToMain()
+        return
+      }
+      val intent =
+        km.createConfirmDeviceCredentialIntent(
+          getString(R.string.biometric_prompt_title),
+          getString(R.string.use_device_credential),
+        )
+      if (intent != null) {
+        confirmCredLauncher.launch(intent)
+        return
+      }
+    }
+    Toast.makeText(this, getString(R.string.no_supported_offline_auth_method), Toast.LENGTH_LONG)
+      .show()
+    navigateToMain()
+  }
+
+  private fun navigateToMain() {
+    startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+    finish()
   }
 }

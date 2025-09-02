@@ -28,12 +28,15 @@
 */
 package org.openmrs.android.fhir
 
+import android.app.KeyguardManager
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
@@ -48,12 +51,31 @@ import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.extensions.BiometricUtils
+import timber.log.Timber
 
 class SplashActivity : AppCompatActivity() {
 
   private lateinit var authStateManager: AuthStateManager
   private lateinit var executor: Executor
   private lateinit var biometricPrompt: BiometricPrompt
+
+  private val confirmCredLauncher =
+    registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+      if (res.resultCode == RESULT_OK) {
+        val dec = BiometricUtils.getDecryptionCipher(this)
+        if (dec != null) {
+          val token = BiometricUtils.decryptToken(dec, this)
+          if (token != null) {
+            navigateToMainActivity()
+            return@registerForActivityResult
+          }
+        }
+      } else if (isInternetAvailable()) {
+        redirectToAuthFlow()
+      } else {
+        loginWithInternetOrExit()
+      }
+    }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -129,34 +151,48 @@ class SplashActivity : AppCompatActivity() {
         promptBuilder
           .setSubtitle(getString(R.string.biometric_prompt_subtitle))
           .setAllowedAuthenticators(
-            BiometricManager.Authenticators.BIOMETRIC_STRONG or
-              BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+            BiometricManager.Authenticators.BIOMETRIC_STRONG,
           )
+          .setNegativeButtonText(getString(R.string.cancel))
 
         biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
         return
       } else {
-        showToast(R.string.auth_failed)
+        Timber.i(getString(R.string.auth_failed))
       }
-    }
-
-    if (canUseCredential) {
+    } else if (canUseCredential) {
       promptBuilder
         .setSubtitle(getString(R.string.use_device_credential))
         .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
 
       val cipher = BiometricUtils.getEncryptionCipher()
-      if (cipher != null) {
-        biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
+      // For api > 30, use cryptoObject, else authenticate without cryptoobject (relies on timeout)
+      if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
+        if (cipher != null) {
+          biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
+        }
       } else {
         biometricPrompt.authenticate(promptBuilder.build())
       }
-    } else {
-      if (isInternetAvailable()) {
-        redirectToAuthFlow()
-      } else {
-        loginWithInternetOrExit()
+    } else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+      val km = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+      if (km.isDeviceSecure) {
+        val intent =
+          km.createConfirmDeviceCredentialIntent(
+            getString(R.string.biometric_prompt_title),
+            getString(R.string.use_device_credential),
+          )
+        if (intent != null) {
+          confirmCredLauncher.launch(intent)
+          return
+        }
       }
+    }
+
+    if (isInternetAvailable()) {
+      redirectToAuthFlow()
+    } else {
+      loginWithInternetOrExit()
     }
   }
 
