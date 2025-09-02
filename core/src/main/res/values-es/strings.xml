@@ -367,5 +367,20 @@
     <string
         name="password_changed"
     >Parece que el bloqueo de pantalla o la contraseña de tu cuenta ha cambiado. Por tu seguridad, el inicio de sesión sin conexión se desactivó. Inicia sesión en línea para volver a habilitar el acceso sin conexión.</string>
+    <string
+        name="try_logging_in_with_active_internet_connection"
+    >Intenta iniciar sesión con una conexión a Internet activa</string>
+    <string
+        name="offline_login_unavailable"
+    >¡Inicio de sesión sin conexión no disponible!</string>
+    <string
+        name="error_encountered_while_setting_offline_login"
+    >Se produjo un error al configurar el inicio de sesión sin conexión</string>
+    <string
+        name="auth_error_offline_login"
+    >Error de autenticación: No se puede configurar el inicio de sesión sin conexión ahora, inténtelo de nuevo más tarde</string>
+    <string
+        name="auth_failed_offline_login"
+    >¡Autenticación fallida! No se puede configurar el inicio de sesión sin conexión ahora</string>
 
 </resources>

@@ -266,11 +266,13 @@ class SplashActivity : AppCompatActivity() {
 
   private fun loginWithInternetOrExit() {
     AlertDialog.Builder(this)
-      .setTitle("Offline login unavailable!")
+      .setTitle(getString(R.string.offline_login_unavailable))
       .setMessage(
-        "Try logging in with active Internet connection",
+        getString(R.string.try_logging_in_with_active_internet_connection),
       )
-      .setPositiveButton("Login") { _, _ -> lifecycleScope.launch { redirectToAuthFlow() } }
+      .setPositiveButton(R.string.button_login) { _, _ ->
+        lifecycleScope.launch { redirectToAuthFlow() }
+      }
       .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
       .setCancelable(false)
       .show()

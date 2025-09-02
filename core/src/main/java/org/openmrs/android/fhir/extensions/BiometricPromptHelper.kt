@@ -74,14 +74,12 @@ object BiometricPromptHelper {
         .setNegativeButtonText(activity.getString(R.string.cancel))
 
       val cipher = BiometricUtils.getEncryptionCipher(activity)
-      if (cipher != null) {
+      return if (cipher != null) {
         biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
-        return
       } else {
         // TODO: add dialog encryption issue, try setting up biometric auth later in settings.
-        showToast("Error encountered while setting offline login")
+        showToast(activity.getString(R.string.error_encountered_while_setting_offline_login))
         navigateToMain()
-        return
       }
     } else if (canUseDeviceCredential) {
       promptBuilder
@@ -176,7 +174,7 @@ object BiometricPromptHelper {
         override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
           Toast.makeText(
               activity,
-              "Auth error: Unable to setup offline login now, please try again later",
+              activity.getString(R.string.auth_error_offline_login),
               Toast.LENGTH_SHORT,
             )
             .show()
@@ -186,7 +184,7 @@ object BiometricPromptHelper {
         override fun onAuthenticationFailed() {
           Toast.makeText(
               activity,
-              "Authentication failed! Unable to setup offline login now",
+              activity.getString(R.string.auth_failed_offline_login),
               Toast.LENGTH_SHORT,
             )
             .show()

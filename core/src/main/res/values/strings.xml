@@ -349,5 +349,19 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="password_changed">
         It looks like your screen lock or account password has changed. For your security, offline login was disabled. Please sign in online to re-enable offline access.
     </string>
+    <string
+        name="try_logging_in_with_active_internet_connection"
+    >Try logging in with active Internet connection</string>
+    <string name="offline_login_unavailable">Offline login unavailable!</string>
+    <string
+        name="error_encountered_while_setting_offline_login"
+    >Error encountered while setting offline login</string>
+    <string
+        name="auth_error_offline_login"
+    >Auth error: Unable to setup offline login now, please try again later</string>
+    <string
+        name="auth_failed_offline_login"
+    >Authentication failed! Unable to setup offline login now</string>
+
 
 </resources>

@@ -382,5 +382,19 @@
     <string
         name="password_changed"
     >Il semble que votre verrouillage d’écran ou le mot de passe de votre compte ait changé. Pour votre sécurité, la connexion hors ligne a été désactivée. Veuillez vous connecter en ligne pour réactiver l’accès hors ligne.</string>
-
+    <string
+        name="try_logging_in_with_active_internet_connection"
+    >Essayez de vous connecter avec une connexion Internet active</string>
+    <string
+        name="offline_login_unavailable"
+    >Connexion hors ligne indisponible !</string>
+    <string
+        name="error_encountered_while_setting_offline_login"
+    >Une erreur s\'est produite lors de la configuration de la connexion hors ligne</string>
+    <string
+        name="auth_error_offline_login"
+    >Erreur d\'authentification : Impossible de configurer la connexion hors ligne pour le moment, veuillez réessayer plus tard</string>
+    <string
+        name="auth_failed_offline_login"
+    >Échec de l\'authentification ! Impossible de configurer la connexion hors ligne pour le moment</string>
 </resources>
