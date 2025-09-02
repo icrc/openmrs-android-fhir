@@ -148,10 +148,6 @@ constructor(
   private suspend fun isLockedOut(): Boolean {
     return authStateManager.isLockedOut()
   }
-
-  fun encryptAndSaveToken(token: String, cipher: javax.crypto.Cipher) {
-    BiometricUtils.encryptAndSaveToken(token, cipher, applicationContext)
-  }
 }
 
 sealed class LoginUiState {

@@ -205,7 +205,11 @@ class SplashActivity : AppCompatActivity() {
           override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
             super.onAuthenticationError(errorCode, errString)
             showToast(R.string.auth_error, errString.toString())
-            finish()
+            if (isInternetAvailable()) {
+              redirectToAuthFlow()
+            } else {
+              loginWithInternetOrExit()
+            }
           }
 
           override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
@@ -214,14 +218,6 @@ class SplashActivity : AppCompatActivity() {
             if (cipher != null) {
               val token = BiometricUtils.decryptToken(cipher, this@SplashActivity)
               if (token != null) {
-                val prefs = BiometricUtils.getSharedPrefs(this@SplashActivity)
-                if (!prefs.contains(BiometricUtils.TOKEN_KEY)) {
-                  // TODO: update logic for basic auth
-                  val currentToken = authStateManager.current.accessToken
-                  if (!currentToken.isNullOrBlank()) {
-                    BiometricUtils.saveToken(cipher, currentToken, this@SplashActivity)
-                  }
-                }
                 navigateToMainActivity()
                 return
               }
