@@ -58,6 +58,7 @@ class SplashActivity : AppCompatActivity() {
   private lateinit var authStateManager: AuthStateManager
   private lateinit var executor: Executor
   private lateinit var biometricPrompt: BiometricPrompt
+  private var isBiometricReset = false
 
   private val confirmCredLauncher =
     registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
@@ -70,7 +71,9 @@ class SplashActivity : AppCompatActivity() {
             return@registerForActivityResult
           }
         }
-      } else if (isInternetAvailable()) {
+      }
+
+      if (isInternetAvailable()) {
         redirectToAuthFlow()
       } else {
         loginWithInternetOrExit()
@@ -94,7 +97,7 @@ class SplashActivity : AppCompatActivity() {
   private suspend fun handleAuthenticationFlow() {
     val userUuid = getUserUuid()
 
-    if (userUuid == null) {
+    if (userUuid == null || isBiometricReset) {
       if (isInternetAvailable()) {
         redirectToAuthFlow()
       } else {
@@ -146,7 +149,7 @@ class SplashActivity : AppCompatActivity() {
       BiometricPrompt.PromptInfo.Builder().setTitle(getString(R.string.biometric_prompt_title))
 
     if (canUseBiometric) {
-      val cipher = BiometricUtils.getDecryptionCipher(this)
+      val cipher = BiometricUtils.getEncryptionCipher(this)
       if (cipher != null) {
         promptBuilder
           .setSubtitle(getString(R.string.biometric_prompt_subtitle))
@@ -165,7 +168,7 @@ class SplashActivity : AppCompatActivity() {
         .setSubtitle(getString(R.string.use_device_credential))
         .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
 
-      val cipher = BiometricUtils.getEncryptionCipher()
+      val cipher = BiometricUtils.getEncryptionCipher(this)
       // For api > 30, use cryptoObject, else authenticate without cryptoobject (relies on timeout)
       if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
         if (cipher != null) {
@@ -277,11 +280,13 @@ class SplashActivity : AppCompatActivity() {
     if (BiometricUtils.hasBiometricStateChanged(this)) {
       BiometricUtils.deleteBiometricKey(this)
       BiometricUtils.updateBiometricEnrollmentState(this)
+      isBiometricReset = true
+      showToast(R.string.password_changed, length = Toast.LENGTH_LONG)
     }
   }
 
-  private fun showToast(resId: Int, arg: String? = null) {
+  private fun showToast(resId: Int, arg: String? = null, length: Int = Toast.LENGTH_SHORT) {
     val msg = arg?.let { getString(resId, it) } ?: getString(resId)
-    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+    Toast.makeText(this, msg, length).show()
   }
 }

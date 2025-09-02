@@ -364,4 +364,23 @@
     >Veuillez vous connecter à Internet pour continuer l\'authentification.</string>
     <string name="retry">Réessayer</string>
     <string name="exit">Quitter</string>
+    <string
+        name="enable_offline_login_title"
+    >Activer la connexion hors ligne ?</string>
+    <string name="enable_offline_login_body">
+        Activez la connexion hors ligne pour déverrouiller l’application avec la biométrie de votre appareil (visage ou empreinte digitale), même sans connexion Internet.
+
+        Remarques:
+        • La biométrie doit être déjà configurée sur cet appareil.
+        • Si vous modifiez ou supprimez votre biométrie ou le verrouillage d’écran ultérieurement, la connexion hors ligne sera désactivée et vous devrez vous reconnecter en ligne.
+    </string>
+    <string name="enable_offline_login_positive">Activer</string>
+    <string name="enable_offline_login_negative">Pas maintenant</string>
+    <string
+        name="setup_biometrics_to_enable_offline_login"
+    >Configurez la biométrie (visage/empreinte) dans les paramètres pour activer la connexion hors ligne.</string>
+    <string
+        name="password_changed"
+    >Il semble que votre verrouillage d’écran ou le mot de passe de votre compte ait changé. Pour votre sécurité, la connexion hors ligne a été désactivée. Veuillez vous connecter en ligne pour réactiver l’accès hors ligne.</string>
+
 </resources>

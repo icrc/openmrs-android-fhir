@@ -349,4 +349,23 @@
     >Por favor, conéctate a internet para continuar con la autenticación.</string>
     <string name="retry">Reintentar</string>
     <string name="exit">Salir</string>
+    <string
+        name="enable_offline_login_title"
+    >¿Activar el inicio de sesión sin conexión?</string>
+    <string name="enable_offline_login_body">
+        Activa el inicio de sesión sin conexión para abrir la app con la biometría de tu dispositivo (rostro o huella) incluso sin internet.
+
+        Notas:
+        • La biometría debe estar configurada previamente en este dispositivo.
+        • Si cambias o eliminas tu biometría o el bloqueo de pantalla más adelante, el inicio de sesión sin conexión se desactivará y tendrás que iniciar sesión en línea de nuevo.
+    </string>
+    <string name="enable_offline_login_positive">Activar</string>
+    <string name="enable_offline_login_negative">Ahora no</string>
+    <string
+        name="setup_biometrics_to_enable_offline_login"
+    >Configura la biometría (rostro/huella) en Ajustes para habilitar el inicio de sesión sin conexión.</string>
+    <string
+        name="password_changed"
+    >Parece que el bloqueo de pantalla o la contraseña de tu cuenta ha cambiado. Por tu seguridad, el inicio de sesión sin conexión se desactivó. Inicia sesión en línea para volver a habilitar el acceso sin conexión.</string>
+
 </resources>

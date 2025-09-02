@@ -104,7 +104,7 @@ constructor(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
           // API 30+: always use per-use with biometrics or device credential
           if (canBioOrCred == BiometricManager.BIOMETRIC_SUCCESS) {
-            BiometricUtils.createBiometricKeyIfNotExists(applicationContext)
+            BiometricUtils.createBiometricKeyIfNotExists(applicationContext, canBioStrong = true)
           } else {
             // TODO: Add intent for device credential setup
             // handle no-credential/no-biometrics case (fallback UI, PIN setup, etc.)

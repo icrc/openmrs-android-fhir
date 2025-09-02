@@ -45,6 +45,7 @@ import java.util.concurrent.Executor
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.databinding.ActivityBasicLoginBinding
+import org.openmrs.android.fhir.extensions.AuthDialogs
 import org.openmrs.android.fhir.extensions.BiometricPromptHelper
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.viewmodel.BasicLoginActivityViewModel
@@ -66,7 +67,7 @@ class BasicLoginActivity : AppCompatActivity() {
         activity = this,
         result = res,
         sessionTokenProvider = { viewModel.sessionTokenToEncrypt },
-        cipherProvider = { BiometricUtils.getEncryptionCipher() },
+        cipherProvider = { BiometricUtils.getEncryptionCipher(this) },
         onNavigate = { navigateToMain() },
       )
     }
@@ -105,7 +106,13 @@ class BasicLoginActivity : AppCompatActivity() {
             }
             is LoginUiState.Success -> {
               binding.progressIndicator.visibility = View.GONE
-              promptBiometricEncryption()
+              // After successful online login, instead of calling promptBiometricEncryption()
+              // directly:
+              AuthDialogs.showOfflineLoginOptIn(
+                activity = this@BasicLoginActivity,
+                onProceedWithBiometric = { promptBiometricEncryption() },
+                navigateToMain = { navigateToMain() },
+              )
             }
           }
         }

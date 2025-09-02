@@ -333,4 +333,21 @@
     >Please connect to the internet to continue with authentication.</string>
     <string name="retry">Retry</string>
     <string name="exit">Exit</string>
+    <string name="enable_offline_login_title">Enable offline login?</string>
+    <string name="enable_offline_login_body">
+Enable offline login to unlock the app with your device biometrics (face or fingerprint) even without internet.
+
+\nNotes:
+\n• Biometrics must already be set up on this device.
+\n• If you change/remove your biometrics or screen lock later, offline login will be disabled and you’ll need to sign in online again.
+</string>
+    <string name="enable_offline_login_positive">Enable</string>
+    <string name="enable_offline_login_negative">Not now</string>
+    <string name="setup_biometrics_to_enable_offline_login">
+Set up biometrics (face/fingerprint) in Settings to enable offline login.
+</string>
+    <string name="password_changed">
+        It looks like your screen lock or account password has changed. For your security, offline login was disabled. Please sign in online to re-enable offline access.
+    </string>
+
 </resources>

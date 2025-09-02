@@ -46,6 +46,7 @@ import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 import org.openmrs.android.fhir.databinding.ActivityLoginBinding
+import org.openmrs.android.fhir.extensions.AuthDialogs
 import org.openmrs.android.fhir.extensions.BiometricPromptHelper
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.viewmodel.LoginActivityViewModel
@@ -70,7 +71,11 @@ class LoginActivity : AppCompatActivity() {
             val response = result.data?.let { AuthorizationResponse.fromIntent(it) }
             val ex = AuthorizationException.fromIntent(result.data)
             viewModel.handleLoginResponse(response, ex)
-            promptBiometricEncryption() // Prompt biometric after login success
+            AuthDialogs.showOfflineLoginOptIn(
+              activity = this@LoginActivity,
+              onProceedWithBiometric = { promptBiometricEncryption() },
+              navigateToMain = { navigateToMain() },
+            )
           }
         }
       }
@@ -82,7 +87,7 @@ class LoginActivity : AppCompatActivity() {
         activity = this,
         result = res,
         sessionTokenProvider = { viewModel.sessionTokenToEncrypt },
-        cipherProvider = { BiometricUtils.getEncryptionCipher() },
+        cipherProvider = { BiometricUtils.getEncryptionCipher(this) },
         onNavigate = { navigateToMain() },
       )
     }

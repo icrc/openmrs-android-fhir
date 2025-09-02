@@ -73,7 +73,7 @@ object BiometricPromptHelper {
         .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
         .setNegativeButtonText(activity.getString(R.string.cancel))
 
-      val cipher = BiometricUtils.getEncryptionCipher()
+      val cipher = BiometricUtils.getEncryptionCipher(activity)
       if (cipher != null) {
         biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
         return
@@ -88,7 +88,7 @@ object BiometricPromptHelper {
         .setSubtitle(activity.getString(R.string.use_device_credential))
         .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
 
-      val cipher = BiometricUtils.getEncryptionCipher()
+      val cipher = BiometricUtils.getEncryptionCipher(activity)
       if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
         if (cipher != null) {
           biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
@@ -176,19 +176,21 @@ object BiometricPromptHelper {
         override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
           Toast.makeText(
               activity,
-              "Auth error: $errString",
+              "Auth error: Unable to setup offline login now, please try again later",
               Toast.LENGTH_SHORT,
             )
             .show()
+          onNavigate()
         }
 
         override fun onAuthenticationFailed() {
           Toast.makeText(
               activity,
-              "Authentication failed",
+              "Authentication failed! Unable to setup offline login now",
               Toast.LENGTH_SHORT,
             )
             .show()
+          onNavigate()
         }
       },
     )
