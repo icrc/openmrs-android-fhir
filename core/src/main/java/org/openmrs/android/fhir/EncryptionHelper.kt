@@ -43,7 +43,7 @@ object EncryptionHelper {
     cipher.init(Cipher.ENCRYPT_MODE, secretKey)
     val iv = cipher.iv // Save this IV for decryption
     val encryptedBytes = cipher.doFinal(data.toByteArray(Charsets.UTF_8))
-    return Pair(Base64.encodeToString(encryptedBytes, Base64.DEFAULT), iv)
+    return Pair(Base64.encodeToString(encryptedBytes, Base64.NO_WRAP), iv)
   }
 
   fun decrypt(encryptedData: String, secretKey: SecretKey, iv: ByteArray): String {
@@ -51,7 +51,7 @@ object EncryptionHelper {
     val cipher = Cipher.getInstance(AES_TRANSFORMATION)
     val ivSpec = GCMParameterSpec(GCM_TAG_LENGTH * 8, iv)
     cipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
-    val decryptedBytes = cipher.doFinal(Base64.decode(encryptedData, Base64.DEFAULT))
+    val decryptedBytes = cipher.doFinal(Base64.decode(encryptedData, Base64.NO_WRAP))
     return String(decryptedBytes, Charsets.UTF_8)
   }
 

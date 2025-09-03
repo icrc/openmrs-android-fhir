@@ -66,7 +66,8 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     Timber.e("FHIR Application started. Test Error log. Is Debug %s", BuildConfig.DEBUG)
     Timber.d("FHIR Application started. Test Debug log")
     val loggingMaxFileSize = 5 * 1024 * 1024L // 5MB
-    Timber.plant(FileLoggingTree(this, loggingMaxFileSize))
+    val loggingPassword = getString(R.string.diagnostics_password)
+    Timber.plant(FileLoggingTree(this, loggingMaxFileSize, loggingPassword))
     FhirEngineProvider.init(
       FhirEngineConfiguration(
         enableEncryptionIfSupported = false,

@@ -16,6 +16,7 @@
         name="fhir_sync_urls"
     >Location?_sort=_lastUpdated&amp;_summary=data&amp;_tag=Login+Location,Patient?_has:Group:member:id=&amp;_revinclude=Encounter:patient&amp;_revinclude=Observation:patient&amp;_sort=_lastUpdated</string>
   <string name="support_email">support@example.com</string>
+  <string name="diagnostics_password" translatable="false">changeit</string>
   <string
         name="registration_questionnaire_name"
     >new-patient-registration-paginated</string>

@@ -143,6 +143,7 @@ object BiometricUtils {
       getSharedPrefs(context).edit {
         remove(TOKEN_KEY)
         remove(IV_KEY)
+        remove(BIOMETRIC_ENROLLED_KEY)
       }
     } catch (e: Exception) {
       Timber.e("Failed to delete biometric key: ${e.message}")
