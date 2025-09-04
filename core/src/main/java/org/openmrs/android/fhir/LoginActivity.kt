@@ -45,6 +45,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
+import org.openmrs.android.fhir.auth.OfflineAuthMethod
 import org.openmrs.android.fhir.databinding.ActivityLoginBinding
 import org.openmrs.android.fhir.extensions.AuthDialogs
 import org.openmrs.android.fhir.extensions.BiometricPromptHelper
@@ -61,6 +62,7 @@ class LoginActivity : AppCompatActivity() {
 
   private lateinit var biometricPrompt: BiometricPrompt
   private lateinit var executor: Executor
+  private var offlineAuthMethod: OfflineAuthMethod? = null
 
   private val getContent =
     registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -89,6 +91,7 @@ class LoginActivity : AppCompatActivity() {
         sessionTokenProvider = { viewModel.sessionTokenToEncrypt },
         cipherProvider = { BiometricUtils.getEncryptionCipher(this) },
         onNavigate = { navigateToMain() },
+        onSaved = { offlineAuthMethod?.let { BiometricUtils.setOfflineAuthMethod(this, it) } },
       )
     }
 
@@ -106,6 +109,7 @@ class LoginActivity : AppCompatActivity() {
         executor = executor,
         sessionTokenProvider = { viewModel.sessionTokenToEncrypt },
         onNavigate = { navigateToMain() },
+        onSaved = { offlineAuthMethod?.let { BiometricUtils.setOfflineAuthMethod(this, it) } },
       )
 
     lifecycleScope.launch {
@@ -140,6 +144,7 @@ class LoginActivity : AppCompatActivity() {
       confirmCredLauncher = confirmCredLauncher,
       navigateToMain = { navigateToMain() },
       showToast = { msg -> Toast.makeText(this, msg, Toast.LENGTH_LONG).show() },
+      onMethodSelected = { method -> offlineAuthMethod = method },
     )
   }
 

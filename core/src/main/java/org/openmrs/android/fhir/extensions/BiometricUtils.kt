@@ -43,6 +43,7 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import org.openmrs.android.fhir.EncryptionHelper
+import org.openmrs.android.fhir.auth.OfflineAuthMethod
 import org.openmrs.android.fhir.viewmodel.LegacyAuthFlow
 import timber.log.Timber
 
@@ -53,6 +54,7 @@ object BiometricUtils {
   const val TOKEN_KEY = "encrypted_token"
   private const val IV_KEY = "encrypted_iv"
   private const val BIOMETRIC_ENROLLED_KEY = "biometric_enrolled"
+  private const val OFFLINE_AUTH_METHOD_KEY = "offline_auth_method"
 
   /** Creates a biometric key in the AndroidKeyStore if it does not already exist. */
   fun createBiometricKeyIfNotExists(
@@ -144,6 +146,7 @@ object BiometricUtils {
         remove(TOKEN_KEY)
         remove(IV_KEY)
         remove(BIOMETRIC_ENROLLED_KEY)
+        remove(OFFLINE_AUTH_METHOD_KEY)
       }
     } catch (e: Exception) {
       Timber.e("Failed to delete biometric key: ${e.message}")
@@ -170,6 +173,15 @@ object BiometricUtils {
   fun updateBiometricEnrollmentState(context: Context) {
     val current = isBiometricEnrolled(context)
     getSharedPrefs(context).edit { putBoolean(BIOMETRIC_ENROLLED_KEY, current) }
+  }
+
+  fun setOfflineAuthMethod(context: Context, method: OfflineAuthMethod) {
+    getSharedPrefs(context).edit { putString(OFFLINE_AUTH_METHOD_KEY, method.value) }
+  }
+
+  fun getOfflineAuthMethod(context: Context): OfflineAuthMethod? {
+    val value = getSharedPrefs(context).getString(OFFLINE_AUTH_METHOD_KEY, null)
+    return OfflineAuthMethod.fromValue(value)
   }
 
   fun decryptToken(cipher: Cipher, context: Context): String? {

@@ -43,6 +43,7 @@ import androidx.fragment.app.FragmentActivity
 import java.util.concurrent.Executor
 import javax.crypto.Cipher
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.OfflineAuthMethod
 
 object BiometricPromptHelper {
 
@@ -52,6 +53,7 @@ object BiometricPromptHelper {
     confirmCredLauncher: ActivityResultLauncher<Intent>?,
     navigateToMain: () -> Unit,
     showToast: (String) -> Unit,
+    onMethodSelected: (OfflineAuthMethod) -> Unit = {},
   ) {
     val biometricManager = BiometricManager.from(activity)
 
@@ -68,6 +70,7 @@ object BiometricPromptHelper {
         .setTitle(activity.getString(R.string.biometric_prompt_title))
 
     if (canUseStrongBiometric) {
+      onMethodSelected(OfflineAuthMethod.BIOMETRIC)
       promptBuilder
         .setSubtitle(activity.getString(R.string.biometric_prompt_subtitle))
         .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
@@ -82,6 +85,7 @@ object BiometricPromptHelper {
         navigateToMain()
       }
     } else if (canUseDeviceCredential) {
+      onMethodSelected(OfflineAuthMethod.DEVICE_CREDENTIAL)
       promptBuilder
         .setSubtitle(activity.getString(R.string.use_device_credential))
         .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
@@ -111,6 +115,7 @@ object BiometricPromptHelper {
           activity.getString(R.string.use_device_credential),
         )
       if (intent != null) {
+        onMethodSelected(OfflineAuthMethod.DEVICE_CREDENTIAL)
         confirmCredLauncher?.launch(intent)
         return
       }
@@ -156,6 +161,7 @@ object BiometricPromptHelper {
     executor: Executor,
     sessionTokenProvider: () -> String?,
     onNavigate: () -> Unit,
+    onSaved: (() -> Unit)? = null,
   ): BiometricPrompt {
     return BiometricPrompt(
       activity,
@@ -167,6 +173,7 @@ object BiometricPromptHelper {
           val token = sessionTokenProvider()
           if (cipher != null && token != null) {
             BiometricUtils.encryptAndSaveToken(token, cipher, activity.applicationContext)
+            onSaved?.invoke()
           }
           onNavigate()
         }

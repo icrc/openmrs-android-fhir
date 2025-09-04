@@ -48,10 +48,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
+import org.openmrs.android.fhir.auth.OfflineAuthMethod
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.extensions.BiometricUtils
-import timber.log.Timber
 
 class SplashActivity : AppCompatActivity() {
 
@@ -90,7 +90,7 @@ class SplashActivity : AppCompatActivity() {
 
     lifecycleScope.launch {
       val userUuid = getUserUuid()
-      if (userUuid != null) {
+      if (userUuid != null && BiometricUtils.getOfflineAuthMethod(this@SplashActivity) != null) {
         resetBiometricKeyIfNeeded()
       }
       setupBiometricPrompt()
@@ -100,7 +100,8 @@ class SplashActivity : AppCompatActivity() {
 
   private suspend fun handleAuthenticationFlow() {
     val userUuid = getUserUuid()
-    if (userUuid == null || isBiometricReset) {
+    val offlineAuthMethod = BiometricUtils.getOfflineAuthMethod(this)
+    if (userUuid == null || isBiometricReset || offlineAuthMethod == null) {
       if (isInternetAvailable()) {
         redirectToAuthFlow()
       } else {
@@ -108,11 +109,11 @@ class SplashActivity : AppCompatActivity() {
       }
     } else {
       if (authStateManager.isAuthenticated()) {
-        promptBiometricAuthentication()
+        promptBiometricAuthentication(offlineAuthMethod)
       } else if (isInternetAvailable()) {
         redirectToAuthFlow()
       } else {
-        promptBiometricAuthentication()
+        promptBiometricAuthentication(offlineAuthMethod)
       }
     }
   }
@@ -135,62 +136,67 @@ class SplashActivity : AppCompatActivity() {
       capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
   }
 
-  private fun promptBiometricAuthentication() {
+  private fun promptBiometricAuthentication(method: OfflineAuthMethod) {
     val biometricManager = BiometricManager.from(this)
-
-    val canUseBiometric =
-      biometricManager.canAuthenticate(
-        BiometricManager.Authenticators.BIOMETRIC_STRONG,
-      ) == BiometricManager.BIOMETRIC_SUCCESS
-
-    val canUseCredential =
-      biometricManager.canAuthenticate(
-        BiometricManager.Authenticators.DEVICE_CREDENTIAL,
-      ) == BiometricManager.BIOMETRIC_SUCCESS
-
     val promptBuilder =
       BiometricPrompt.PromptInfo.Builder().setTitle(getString(R.string.biometric_prompt_title))
 
-    if (canUseBiometric) {
-      val cipher = BiometricUtils.getEncryptionCipher(this)
-      if (cipher != null) {
-        promptBuilder
-          .setSubtitle(getString(R.string.biometric_prompt_subtitle))
-          .setAllowedAuthenticators(
-            BiometricManager.Authenticators.BIOMETRIC_STRONG,
-          )
-          .setNegativeButtonText(getString(R.string.cancel))
-
-        biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
-        return
-      } else {
-        Timber.i(getString(R.string.auth_failed))
-      }
-    } else if (canUseCredential) {
-      promptBuilder
-        .setSubtitle(getString(R.string.use_device_credential))
-        .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
-
-      val cipher = BiometricUtils.getEncryptionCipher(this)
-      // For api > 30, use cryptoObject, else authenticate without cryptoobject (relies on timeout)
-      if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
-        if (cipher != null) {
-          biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
+    when (method) {
+      OfflineAuthMethod.BIOMETRIC -> {
+        if (
+          biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) ==
+            BiometricManager.BIOMETRIC_SUCCESS
+        ) {
+          val cipher = BiometricUtils.getEncryptionCipher(this)
+          if (cipher != null) {
+            promptBuilder
+              .setSubtitle(getString(R.string.biometric_prompt_subtitle))
+              .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+              .setNegativeButtonText(getString(R.string.cancel))
+            biometricPrompt.authenticate(
+              promptBuilder.build(),
+              BiometricPrompt.CryptoObject(cipher),
+            )
+            return
+          }
         }
-      } else {
-        biometricPrompt.authenticate(promptBuilder.build())
       }
-    } else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
-      val km = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
-      if (km.isDeviceSecure) {
-        val intent =
-          km.createConfirmDeviceCredentialIntent(
-            getString(R.string.biometric_prompt_title),
-            getString(R.string.use_device_credential),
-          )
-        if (intent != null) {
-          confirmCredLauncher.launch(intent)
+      OfflineAuthMethod.DEVICE_CREDENTIAL -> {
+        if (
+          biometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL) ==
+            BiometricManager.BIOMETRIC_SUCCESS
+        ) {
+          promptBuilder
+            .setSubtitle(getString(R.string.use_device_credential))
+            .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+
+          val cipher = BiometricUtils.getEncryptionCipher(this)
+          if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
+            if (cipher != null) {
+              biometricPrompt.authenticate(
+                promptBuilder.build(),
+                BiometricPrompt.CryptoObject(cipher),
+              )
+              return
+            }
+          } else {
+            biometricPrompt.authenticate(promptBuilder.build())
+            return
+          }
           return
+        } else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+          val km = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+          if (km.isDeviceSecure) {
+            val intent =
+              km.createConfirmDeviceCredentialIntent(
+                getString(R.string.biometric_prompt_title),
+                getString(R.string.use_device_credential),
+              )
+            if (intent != null) {
+              confirmCredLauncher.launch(intent)
+              return
+            }
+          }
         }
       }
     }
