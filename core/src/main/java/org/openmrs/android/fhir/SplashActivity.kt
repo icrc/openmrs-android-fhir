@@ -88,15 +88,18 @@ class SplashActivity : AppCompatActivity() {
     authStateManager = AuthStateManager.getInstance(applicationContext)
     executor = ContextCompat.getMainExecutor(this)
 
-    resetBiometricKeyIfNeeded()
-    setupBiometricPrompt()
-
-    lifecycleScope.launch { handleAuthenticationFlow() }
+    lifecycleScope.launch {
+      val userUuid = getUserUuid()
+      if (userUuid != null) {
+        resetBiometricKeyIfNeeded()
+      }
+      setupBiometricPrompt()
+      handleAuthenticationFlow()
+    }
   }
 
   private suspend fun handleAuthenticationFlow() {
     val userUuid = getUserUuid()
-
     if (userUuid == null || isBiometricReset) {
       if (isInternetAvailable()) {
         redirectToAuthFlow()

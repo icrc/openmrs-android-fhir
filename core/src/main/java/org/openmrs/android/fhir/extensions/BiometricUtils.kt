@@ -87,7 +87,7 @@ object BiometricUtils {
           if (canBioStrong) {
             KeyProperties.AUTH_BIOMETRIC_STRONG
           } else {
-            KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL
+            KeyProperties.AUTH_DEVICE_CREDENTIAL
           },
         )
       } else {
