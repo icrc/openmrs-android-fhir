@@ -164,8 +164,7 @@ object BiometricUtils {
   }
 
   fun hasBiometricStateChanged(context: Context): Boolean {
-    val prefs = getSharedPrefs(context)
-    val previous = prefs.getBoolean(BIOMETRIC_ENROLLED_KEY, false)
+    val previous = getOfflineAuthMethod(context) == OfflineAuthMethod.BIOMETRIC
     val current = isBiometricEnrolled(context)
     return previous != current
   }
