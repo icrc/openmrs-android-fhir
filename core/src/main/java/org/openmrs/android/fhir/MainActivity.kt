@@ -521,7 +521,6 @@ class MainActivity : AppCompatActivity() {
     demoDataStore.clearAll()
     database.clearAllTables()
     authStateManager.resetBasicAuthCredentials()
-    applicationContext.dataStore.edit { preferences -> preferences.clear() }
     BiometricUtils.deleteBiometricKey(applicationContext)
     checkAndDeleteLogFile(applicationContext)
     clearApplicationFiles()
@@ -543,13 +542,19 @@ class MainActivity : AppCompatActivity() {
   ) {
     when (authStateManager.getAuthMethod()) {
       AuthMethod.BASIC -> {
-        lifecycleScope.launch(Dispatchers.IO) { authStateManager.clearAuthDataStore() }
+        lifecycleScope.launch(Dispatchers.IO) {
+          authStateManager.clearAuthDataStore()
+          applicationContext.dataStore.edit { preferences -> preferences.clear() }
+        }
         startActivity(Intent(this, BasicLoginActivity::class.java))
         finish()
       }
       AuthMethod.OPENID -> {
         authStateManager.endSessionRequest(pendingIntentSuccess, pendingIntentCancel)
-        lifecycleScope.launch(Dispatchers.IO) { authStateManager.clearAuthDataStore() }
+        lifecycleScope.launch(Dispatchers.IO) {
+          authStateManager.clearAuthDataStore()
+          applicationContext.dataStore.edit { preferences -> preferences.clear() }
+        }
       }
     }
   }
