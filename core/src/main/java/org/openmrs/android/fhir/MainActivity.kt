@@ -48,6 +48,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.view.GravityCompat
+import androidx.datastore.preferences.core.edit
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -520,6 +521,7 @@ class MainActivity : AppCompatActivity() {
     demoDataStore.clearAll()
     database.clearAllTables()
     authStateManager.resetBasicAuthCredentials()
+    applicationContext.dataStore.edit { preferences -> preferences.clear() }
     BiometricUtils.deleteBiometricKey(applicationContext)
     checkAndDeleteLogFile(applicationContext)
     clearApplicationFiles()
