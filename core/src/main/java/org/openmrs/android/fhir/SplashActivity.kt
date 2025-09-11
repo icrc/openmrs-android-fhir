@@ -28,12 +28,15 @@
 */
 package org.openmrs.android.fhir
 
+import android.app.KeyguardManager
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
@@ -45,6 +48,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
+import org.openmrs.android.fhir.auth.OfflineAuthMethod
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.extensions.BiometricUtils
@@ -54,6 +58,27 @@ class SplashActivity : AppCompatActivity() {
   private lateinit var authStateManager: AuthStateManager
   private lateinit var executor: Executor
   private lateinit var biometricPrompt: BiometricPrompt
+  private var isBiometricReset = false
+
+  private val confirmCredLauncher =
+    registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+      if (res.resultCode == RESULT_OK) {
+        val dec = BiometricUtils.getDecryptionCipher(this)
+        if (dec != null) {
+          val token = BiometricUtils.decryptToken(dec, this)
+          if (token != null) {
+            navigateToMainActivity()
+            return@registerForActivityResult
+          }
+        }
+      }
+
+      if (isInternetAvailable()) {
+        redirectToAuthFlow()
+      } else {
+        loginWithInternetOrExit()
+      }
+    }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -63,16 +88,20 @@ class SplashActivity : AppCompatActivity() {
     authStateManager = AuthStateManager.getInstance(applicationContext)
     executor = ContextCompat.getMainExecutor(this)
 
-    resetBiometricKeyIfNeeded()
-    setupBiometricPrompt()
-
-    lifecycleScope.launch { handleAuthenticationFlow() }
+    lifecycleScope.launch {
+      val userUuid = getUserUuid()
+      if (userUuid != null && BiometricUtils.getOfflineAuthMethod(this@SplashActivity) != null) {
+        resetBiometricKeyIfNeeded()
+      }
+      setupBiometricPrompt()
+      handleAuthenticationFlow()
+    }
   }
 
   private suspend fun handleAuthenticationFlow() {
     val userUuid = getUserUuid()
-
-    if (userUuid == null) {
+    val offlineAuthMethod = BiometricUtils.getOfflineAuthMethod(this)
+    if (userUuid == null || isBiometricReset || offlineAuthMethod == null) {
       if (isInternetAvailable()) {
         redirectToAuthFlow()
       } else {
@@ -80,11 +109,11 @@ class SplashActivity : AppCompatActivity() {
       }
     } else {
       if (authStateManager.isAuthenticated()) {
-        promptBiometricAuthentication()
+        promptBiometricAuthentication(offlineAuthMethod)
       } else if (isInternetAvailable()) {
         redirectToAuthFlow()
       } else {
-        promptBiometricAuthentication()
+        promptBiometricAuthentication(offlineAuthMethod)
       }
     }
   }
@@ -107,44 +136,75 @@ class SplashActivity : AppCompatActivity() {
       capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
   }
 
-  private fun promptBiometricAuthentication() {
+  private fun promptBiometricAuthentication(method: OfflineAuthMethod) {
     val biometricManager = BiometricManager.from(this)
-
-    val canUseBiometric =
-      biometricManager.canAuthenticate(
-        BiometricManager.Authenticators.BIOMETRIC_STRONG,
-      ) == BiometricManager.BIOMETRIC_SUCCESS
-
-    val canUseCredential =
-      biometricManager.canAuthenticate(
-        BiometricManager.Authenticators.DEVICE_CREDENTIAL,
-      ) == BiometricManager.BIOMETRIC_SUCCESS
-
     val promptBuilder =
       BiometricPrompt.PromptInfo.Builder().setTitle(getString(R.string.biometric_prompt_title))
 
-    if (canUseBiometric) {
-      val cipher = BiometricUtils.getDecryptionCipher(this)
-      if (cipher != null) {
-        promptBuilder
-          .setSubtitle(getString(R.string.biometric_prompt_subtitle))
-          .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-          .setNegativeButtonText(getString(R.string.cancel))
+    when (method) {
+      OfflineAuthMethod.BIOMETRIC -> {
+        if (
+          biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) ==
+            BiometricManager.BIOMETRIC_SUCCESS
+        ) {
+          val cipher = BiometricUtils.getEncryptionCipher(this)
+          if (cipher != null) {
+            promptBuilder
+              .setSubtitle(getString(R.string.biometric_prompt_subtitle))
+              .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+              .setNegativeButtonText(getString(R.string.cancel))
+            biometricPrompt.authenticate(
+              promptBuilder.build(),
+              BiometricPrompt.CryptoObject(cipher),
+            )
+            return
+          }
+        }
+      }
+      OfflineAuthMethod.DEVICE_CREDENTIAL -> {
+        if (
+          biometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL) ==
+            BiometricManager.BIOMETRIC_SUCCESS
+        ) {
+          promptBuilder
+            .setSubtitle(getString(R.string.use_device_credential))
+            .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
 
-        biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
-        return
+          val cipher = BiometricUtils.getEncryptionCipher(this)
+          if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {
+            if (cipher != null) {
+              biometricPrompt.authenticate(
+                promptBuilder.build(),
+                BiometricPrompt.CryptoObject(cipher),
+              )
+              return
+            }
+          } else {
+            biometricPrompt.authenticate(promptBuilder.build())
+            return
+          }
+          return
+        } else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+          val km = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+          if (km.isDeviceSecure) {
+            val intent =
+              km.createConfirmDeviceCredentialIntent(
+                getString(R.string.biometric_prompt_title),
+                getString(R.string.use_device_credential),
+              )
+            if (intent != null) {
+              confirmCredLauncher.launch(intent)
+              return
+            }
+          }
+        }
       }
     }
 
-    if (canUseCredential) {
-      promptBuilder
-        .setSubtitle(getString(R.string.use_device_credential))
-        .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
-
-      biometricPrompt.authenticate(promptBuilder.build())
+    if (isInternetAvailable()) {
+      redirectToAuthFlow()
     } else {
-      showToast(R.string.no_supported_auth_method)
-      navigateToMainActivity()
+      loginWithInternetOrExit()
     }
   }
 
@@ -157,7 +217,11 @@ class SplashActivity : AppCompatActivity() {
           override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
             super.onAuthenticationError(errorCode, errString)
             showToast(R.string.auth_error, errString.toString())
-            finish()
+            if (isInternetAvailable()) {
+              redirectToAuthFlow()
+            } else {
+              loginWithInternetOrExit()
+            }
           }
 
           override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
@@ -166,27 +230,15 @@ class SplashActivity : AppCompatActivity() {
             if (cipher != null) {
               val token = BiometricUtils.decryptToken(cipher, this@SplashActivity)
               if (token != null) {
-                val prefs = BiometricUtils.getSharedPrefs(this@SplashActivity)
-                if (!prefs.contains("encrypted_token")) {
-                  val currentToken = authStateManager.current.accessToken
-                  if (!currentToken.isNullOrBlank()) {
-                    BiometricUtils.saveToken(cipher, currentToken, this@SplashActivity)
-                  }
-                }
                 navigateToMainActivity()
-              } else {
-                showToast(R.string.invalid_session)
-                finish()
+                return
               }
-            } else {
-              navigateToMainActivity()
             }
-          }
-
-          override fun onAuthenticationFailed() {
-            super.onAuthenticationFailed()
-            showToast(R.string.auth_failed)
-            finish()
+            if (isInternetAvailable()) {
+              redirectToAuthFlow()
+            } else {
+              loginWithInternetOrExit()
+            }
           }
         },
       )
@@ -221,15 +273,31 @@ class SplashActivity : AppCompatActivity() {
       .show()
   }
 
+  private fun loginWithInternetOrExit() {
+    AlertDialog.Builder(this)
+      .setTitle(getString(R.string.offline_login_unavailable))
+      .setMessage(
+        getString(R.string.try_logging_in_with_active_internet_connection),
+      )
+      .setPositiveButton(R.string.button_login) { _, _ ->
+        lifecycleScope.launch { redirectToAuthFlow() }
+      }
+      .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
+      .setCancelable(false)
+      .show()
+  }
+
   private fun resetBiometricKeyIfNeeded() {
     if (BiometricUtils.hasBiometricStateChanged(this)) {
       BiometricUtils.deleteBiometricKey(this)
       BiometricUtils.updateBiometricEnrollmentState(this)
+      isBiometricReset = true
+      showToast(R.string.password_changed, length = Toast.LENGTH_LONG)
     }
   }
 
-  private fun showToast(resId: Int, arg: String? = null) {
+  private fun showToast(resId: Int, arg: String? = null, length: Int = Toast.LENGTH_SHORT) {
     val msg = arg?.let { getString(resId, it) } ?: getString(resId)
-    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+    Toast.makeText(this, msg, length).show()
   }
 }

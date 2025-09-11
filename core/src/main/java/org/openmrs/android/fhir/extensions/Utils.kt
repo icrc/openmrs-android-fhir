@@ -33,7 +33,6 @@ import android.content.Context
 import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.os.Environment
 import android.util.Base64
 import android.view.View
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum
@@ -81,8 +80,8 @@ fun showSnackBar(
 
 fun saveToFile(context: Context, fileName: String, content: String): File? {
   return try {
-    val fileDir = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
-    if (fileDir != null && !fileDir.exists()) {
+    val fileDir = File(context.filesDir, "Documents")
+    if (!fileDir.exists()) {
       fileDir.mkdirs()
     }
     val file = File(fileDir, fileName)
@@ -95,11 +94,11 @@ fun saveToFile(context: Context, fileName: String, content: String): File? {
 }
 
 fun ByteArray.encodeToString(): String {
-  return Base64.encodeToString(this, Base64.DEFAULT)
+  return Base64.encodeToString(this, Base64.NO_WRAP)
 }
 
 fun String.decodeToByteArray(): ByteArray {
-  return Base64.decode(this, Base64.DEFAULT)
+  return Base64.decode(this, Base64.NO_WRAP)
 }
 
 fun isInternetAvailable(context: Context): Boolean {

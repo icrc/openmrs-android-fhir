@@ -34,15 +34,26 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
+import java.security.MessageDigest
+import javax.crypto.spec.SecretKeySpec
+import org.openmrs.android.fhir.EncryptionHelper
 import org.openmrs.android.fhir.extensions.FileLoggingTree.Companion.APPLICATION_LOG_FILE_NAME
 import timber.log.Timber
 
-class FileLoggingTree(context: Context, private val maxFileSize: Long) : Timber.Tree() {
+class FileLoggingTree(context: Context, private val maxFileSize: Long, password: String) :
+  Timber.Tree() {
 
   private val logFile: File = File(context.filesDir, APPLICATION_LOG_FILE_NAME)
+  private val secretKey =
+    SecretKeySpec(MessageDigest.getInstance("SHA-256").digest(password.toByteArray()), "AES")
 
   override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-    writeLogToFile("$priority/$tag: $message")
+    writeLogToFile(encrypt("$priority/$tag: $message"))
+  }
+
+  private fun encrypt(log: String): String {
+    val (cipherText, iv) = EncryptionHelper.encrypt(log, secretKey)
+    return "${iv.encodeToString()}:$cipherText"
   }
 
   private fun writeLogToFile(log: String) {
@@ -93,7 +104,37 @@ fun checkAndDeleteLogFile(context: Context) {
   }
 }
 
-fun getApplicationLogs(context: Context): File {
-  val logFile = File(context.filesDir, APPLICATION_LOG_FILE_NAME)
-  return logFile
+fun getApplicationLogs(context: Context, password: String): File? {
+  val encryptedFile = File(context.filesDir, APPLICATION_LOG_FILE_NAME)
+  if (!encryptedFile.exists()) return null
+
+  val decryptedFile = File(context.cacheDir, "app_logs_decrypted.txt")
+  val secretKey =
+    SecretKeySpec(MessageDigest.getInstance("SHA-256").digest(password.toByteArray()), "AES")
+
+  try {
+    FileWriter(decryptedFile, false).use { writer ->
+      encryptedFile.forEachLine { line ->
+        try {
+          val parts = line.split(":", limit = 2)
+          if (parts.size == 2) {
+            val decrypted =
+              EncryptionHelper.decrypt(
+                parts[1],
+                secretKey,
+                parts[0].decodeToByteArray(),
+              )
+            writer.appendLine(decrypted)
+          }
+        } catch (e: Exception) {
+          Log.e("FileLoggingTree", "Failed to decrypt log line", e)
+        }
+      }
+      writer.flush()
+    }
+  } catch (e: IOException) {
+    Log.e("FileLoggingTree", "Failed to create decrypted log file", e)
+    return null
+  }
+  return decryptedFile.takeIf { it.length() > 0 }
 }

@@ -9,7 +9,7 @@ plugins {
 
 android {
   namespace = "org.openmrs.android.fhir"
-  compileSdk = 34
+  compileSdk = 36
   defaultConfig {
     minSdk = 26
     testInstrumentationRunner = "androidx.test.runner.Android JUnitRunner"
@@ -114,6 +114,7 @@ object Versions {
   const val moshi = "1.14.0"
   const val loggingInterceptor = "5.0.0-alpha.2"
   const val biometric = "1.1.0"
+  const val zip4j = "2.11.5"
 }
 
 dependencies {
@@ -144,6 +145,7 @@ dependencies {
   implementation("com.jakewharton.timber:timber:${Versions.timber}")
   implementation("net.openid:appauth:${Versions.appauth}")
   implementation("com.auth0.android:jwtdecode:${Versions.jwtdecode}")
+  implementation("net.lingala.zip4j:zip4j:${Versions.zip4j}")
   implementation("com.google.android.fhir:engine:${Versions.fhirEngine}")
   implementation("com.google.android.fhir:data-capture:${Versions.fhirDataCapture}")
   implementation("androidx.biometric:biometric:${Versions.biometric}")

@@ -324,8 +324,8 @@
     <string name="auth_failed">Authentication failed</string>
     <string name="invalid_session">Invalid session</string>
     <string
-        name="no_supported_auth_method"
-    >No supported authentication method available</string>
+        name="no_supported_offline_auth_method"
+    >No supported offline authentication method available</string>
     <string name="version">Version</string>
     <string name="encryption_not_available">Encryption not available</string>
     <string
@@ -333,4 +333,35 @@
     >Please connect to the internet to continue with authentication.</string>
     <string name="retry">Retry</string>
     <string name="exit">Exit</string>
+    <string name="enable_offline_login_title">Enable offline login?</string>
+    <string name="enable_offline_login_body">
+Enable offline login to unlock the app with your device biometrics (face or fingerprint) even without internet.
+
+\nNotes:
+\n• Biometrics must already be set up on this device.
+\n• If you change/remove your biometrics or screen lock later, offline login will be disabled and you’ll need to sign in online again.
+</string>
+    <string name="enable_offline_login_positive">Enable</string>
+    <string name="enable_offline_login_negative">Not now</string>
+    <string name="setup_biometrics_to_enable_offline_login">
+Set up biometrics (face/fingerprint) in Settings to enable offline login.
+</string>
+    <string name="password_changed">
+        It looks like your screen lock or account password has changed. For your security, offline login was disabled. Please sign in online to re-enable offline access.
+    </string>
+    <string
+        name="try_logging_in_with_active_internet_connection"
+    >Try logging in with active Internet connection</string>
+    <string name="offline_login_unavailable">Offline login unavailable!</string>
+    <string
+        name="error_encountered_while_setting_offline_login"
+    >Error encountered while setting offline login</string>
+    <string
+        name="auth_error_offline_login"
+    >Auth error: Unable to setup offline login now, please try again later</string>
+    <string
+        name="auth_failed_offline_login"
+    >Authentication failed! Unable to setup offline login now</string>
+
+
 </resources>

@@ -11,7 +11,7 @@ plugins {
 
 android {
   namespace = "org.openmrs.android.fhir.app"
-  compileSdk = 34
+  compileSdk = 36
   defaultConfig {
     applicationId = "org.openmrs.android.fhir.app"
     minSdk = 26
@@ -47,6 +47,7 @@ android {
 
     setResValue(providers, "show_review_page_before_submit", this, "bool")
     setResValue(providers, "fetch_identifiers", this, "bool")
+    setResValue(providers, "diagnostics_password", this)
   }
   buildTypes {
     getByName("release") { signingConfig = signingConfigs.getByName("debug") }

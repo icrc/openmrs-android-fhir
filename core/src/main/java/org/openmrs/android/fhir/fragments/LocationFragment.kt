@@ -40,8 +40,10 @@ import androidx.core.widget.doOnTextChanged
 import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
@@ -92,7 +94,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
     val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
     (requireActivity().application as FhirApplication).appComponent.inject(this)
 
-    lifecycleScope.launch {
+    viewLifecycleOwner.lifecycleScope.launch {
       val savedLocationName =
         context?.applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.LOCATION_NAME)
       actionBar?.title = savedLocationName ?: requireContext().getString(R.string.select_a_location)
@@ -201,7 +203,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
   ) {
     if (isFavoriteClickedFlag) {
       locationViewModel.favoriteLocationSet?.add(locationItem.resourceId)
-      lifecycleScope.launch {
+      viewLifecycleOwner.lifecycleScope.launch {
         context?.applicationContext?.dataStore?.edit { preferences ->
           preferences[PreferenceKeys.FAVORITE_LOCATIONS] =
             locationViewModel.favoriteLocationSet as Set<String>
@@ -218,32 +220,34 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
   }
 
   private fun observePollState() {
-    lifecycleScope.launch {
-      locationViewModel.pollState.collect {
-        when (it) {
-          is CurrentSyncJobStatus.Succeeded -> {
-            showLocationScreen()
-            locationViewModel.getLocations()
-          }
-          is CurrentSyncJobStatus.Running -> {
-            if (fromLogin) {
-              binding.progressBar.visibility = View.GONE
+    viewLifecycleOwner.lifecycleScope.launch {
+      viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        locationViewModel.pollState.collect {
+          when (it) {
+            is CurrentSyncJobStatus.Succeeded -> {
+              showLocationScreen()
+              locationViewModel.getLocations()
             }
-            if (it.inProgressSyncJob is SyncJobStatus.InProgress) {
-              val inProgressState = it.inProgressSyncJob as SyncJobStatus.InProgress
-              if (inProgressState.syncOperation == SyncOperation.DOWNLOAD) {
-                binding.locationSyncProgressBar.progress = inProgressState.completed
-                binding.locationSyncProgressBar.max = inProgressState.total
+            is CurrentSyncJobStatus.Running -> {
+              if (fromLogin) {
+                binding.progressBar.visibility = View.GONE
+              }
+              if (it.inProgressSyncJob is SyncJobStatus.InProgress) {
+                val inProgressState = it.inProgressSyncJob as SyncJobStatus.InProgress
+                if (inProgressState.syncOperation == SyncOperation.DOWNLOAD) {
+                  binding.locationSyncProgressBar.progress = inProgressState.completed
+                  binding.locationSyncProgressBar.max = inProgressState.total
+                }
               }
             }
-          }
-          is CurrentSyncJobStatus.Failed -> {
-            showLocationScreen()
-            locationViewModel.getLocations()
-            Toast.makeText(context, "Failed to fetch all locations", Toast.LENGTH_SHORT).show()
-          }
-          else -> {
-            showLocationScreen()
+            is CurrentSyncJobStatus.Failed -> {
+              showLocationScreen()
+              locationViewModel.getLocations()
+              Toast.makeText(context, "Failed to fetch all locations", Toast.LENGTH_SHORT).show()
+            }
+            else -> {
+              showLocationScreen()
+            }
           }
         }
       }
@@ -267,7 +271,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
   ) {
     if (isFavoriteClickedFlag) {
       locationViewModel.favoriteLocationSet?.remove(locationItem.resourceId)
-      lifecycleScope.launch {
+      viewLifecycleOwner.lifecycleScope.launch {
         context?.applicationContext?.dataStore?.edit { preferences ->
           preferences[PreferenceKeys.FAVORITE_LOCATIONS] =
             locationViewModel.favoriteLocationSet as Set<String>

@@ -1,4 +1,4 @@
 <paths>
     <cache-path name="cache" path="/" />
-    <external-files-path name="documents" path="Documents/" />
+    <files-path name="documents" path="Documents/" />
 </paths>

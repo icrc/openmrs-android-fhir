@@ -30,7 +30,10 @@ package org.openmrs.android.fhir.extensions
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
 import android.util.Base64
 import androidx.biometric.BiometricManager
@@ -40,43 +43,86 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import org.openmrs.android.fhir.EncryptionHelper
+import org.openmrs.android.fhir.auth.OfflineAuthMethod
+import org.openmrs.android.fhir.viewmodel.LegacyAuthFlow
 import timber.log.Timber
 
 object BiometricUtils {
 
   private const val KEY_ALIAS = "biometric_key"
   private const val PREFS_NAME = "secure_prefs"
-  private const val TOKEN_KEY = "encrypted_token"
+  const val TOKEN_KEY = "encrypted_token"
   private const val IV_KEY = "encrypted_iv"
   private const val BIOMETRIC_ENROLLED_KEY = "biometric_enrolled"
+  private const val OFFLINE_AUTH_METHOD_KEY = "offline_auth_method"
 
   /** Creates a biometric key in the AndroidKeyStore if it does not already exist. */
-  fun createBiometricKeyIfNotExists() {
+  fun createBiometricKeyIfNotExists(
+    context: Context,
+    legacyFlow: LegacyAuthFlow = LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW,
+    validityWindowSeconds: Int = 15,
+    canBioStrong: Boolean = false,
+  ) {
     try {
-      val keyStore = KeyStore.getInstance("AndroidKeyStore")
-      keyStore.load(null)
-      if (!keyStore.containsAlias(KEY_ALIAS)) {
-        val keyGenerator =
-          KeyGenerator.getInstance(
-            KeyProperties.KEY_ALGORITHM_AES,
-            "AndroidKeyStore",
+      val ks = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+      if (ks.containsAlias(KEY_ALIAS)) return
+
+      val kg = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
+      val builder =
+        KeyGenParameterSpec.Builder(
+            KEY_ALIAS,
+            KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
           )
-        val keyGenParameterSpec =
-          KeyGenParameterSpec.Builder(
-              KEY_ALIAS,
-              KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
-            )
-            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-            .setUserAuthenticationRequired(true)
-            .setUserAuthenticationValidityDurationSeconds(-1)
-            .setInvalidatedByBiometricEnrollment(true)
-            .build()
-        keyGenerator.init(keyGenParameterSpec)
-        keyGenerator.generateKey()
+          .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+          .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+          .setUserAuthenticationRequired(true)
+          .setInvalidatedByBiometricEnrollment(true)
+
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        builder.setUnlockedDeviceRequired(true)
       }
+
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        // API 30+: real per-use with biometric OR device credential
+        builder.setUserAuthenticationParameters(
+          0,
+          if (canBioStrong) {
+            KeyProperties.AUTH_BIOMETRIC_STRONG
+          } else {
+            KeyProperties.AUTH_DEVICE_CREDENTIAL
+          },
+        )
+      } else {
+        // API 23–29: pick behavior via parameter
+        when (legacyFlow) {
+          LegacyAuthFlow.BIOMETRIC_PER_USE -> {
+            // Keep per-use via CryptoObject (biometric only).
+            // No validity window; prompt must be biometrics-only.
+            // NOTE: device credential cannot be enforced per-use here.
+            // (No extra builder call needed.)
+          }
+          LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW -> {
+            // Allow device credential by using a short validity window for security.
+            builder.setUserAuthenticationValidityDurationSeconds(validityWindowSeconds)
+          }
+        }
+      }
+
+      if (
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
+          context.packageManager.hasSystemFeature(PackageManager.FEATURE_STRONGBOX_KEYSTORE)
+      ) {
+        try {
+          builder.setIsStrongBoxBacked(true)
+        } catch (_: Exception) {
+          builder.setIsStrongBoxBacked(false)
+        }
+      }
+
+      kg.init(builder.build())
+      kg.generateKey()
     } catch (e: Exception) {
-      Timber.e("Error creating biometric key: ${e.message}")
+      Timber.e(e, "Error creating biometric key")
     }
   }
 
@@ -99,6 +145,8 @@ object BiometricUtils {
       getSharedPrefs(context).edit {
         remove(TOKEN_KEY)
         remove(IV_KEY)
+        remove(BIOMETRIC_ENROLLED_KEY)
+        remove(OFFLINE_AUTH_METHOD_KEY)
       }
     } catch (e: Exception) {
       Timber.e("Failed to delete biometric key: ${e.message}")
@@ -116,8 +164,7 @@ object BiometricUtils {
   }
 
   fun hasBiometricStateChanged(context: Context): Boolean {
-    val prefs = getSharedPrefs(context)
-    val previous = prefs.getBoolean(BIOMETRIC_ENROLLED_KEY, false)
+    val previous = getOfflineAuthMethod(context) == OfflineAuthMethod.BIOMETRIC
     val current = isBiometricEnrolled(context)
     return previous != current
   }
@@ -127,13 +174,13 @@ object BiometricUtils {
     getSharedPrefs(context).edit { putBoolean(BIOMETRIC_ENROLLED_KEY, current) }
   }
 
-  fun saveToken(cipher: Cipher, token: String, context: Context) {
-    val encryptedBytes = cipher.doFinal(token.toByteArray(Charsets.UTF_8))
-    val iv = cipher.iv
-    getSharedPrefs(context).edit {
-      putString(TOKEN_KEY, Base64.encodeToString(encryptedBytes, Base64.DEFAULT))
-      putString(IV_KEY, Base64.encodeToString(iv, Base64.DEFAULT))
-    }
+  fun setOfflineAuthMethod(context: Context, method: OfflineAuthMethod) {
+    getSharedPrefs(context).edit { putString(OFFLINE_AUTH_METHOD_KEY, method.value) }
+  }
+
+  fun getOfflineAuthMethod(context: Context): OfflineAuthMethod? {
+    val value = getSharedPrefs(context).getString(OFFLINE_AUTH_METHOD_KEY, null)
+    return OfflineAuthMethod.fromValue(value)
   }
 
   fun decryptToken(cipher: Cipher, context: Context): String? {
@@ -156,18 +203,26 @@ object BiometricUtils {
       val ivBase64 = prefs.getString(IV_KEY, null) ?: return null
       val iv = Base64.decode(ivBase64, Base64.DEFAULT)
       EncryptionHelper.getDecryptionCipher(secretKey, iv)
+    } catch (e: KeyPermanentlyInvalidatedException) {
+      deleteBiometricKey(context)
+      Timber.e("Cipher key permenantly invalidated: ${e.message}")
+      null
     } catch (e: Exception) {
       Timber.e("Cipher init failed: ${e.message}")
       null
     }
   }
 
-  fun getEncryptionCipher(): Cipher? {
+  fun getEncryptionCipher(context: Context): Cipher? {
     return try {
       val secretKey = getSecretKey() ?: return null
       val cipher = Cipher.getInstance("AES/GCM/NoPadding")
       cipher.init(Cipher.ENCRYPT_MODE, secretKey)
       cipher
+    } catch (e: KeyPermanentlyInvalidatedException) {
+      deleteBiometricKey(context)
+      Timber.e("Cipher key permenantly invalidated: ${e.message}")
+      null
     } catch (e: Exception) {
       Timber.e("Encryption cipher init failed: ${e.message}")
       null

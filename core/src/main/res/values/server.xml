@@ -23,6 +23,7 @@
         translatable="false"
     >http://127.0.0.1:8080/openmrs/ws/rest/v1/session</string>
   <string name="support_email" translatable="false">support@example.com</string>
+  <string name="diagnostics_password" translatable="false">changeit</string>
   <string
         name="registration_questionnaire_name"
         translatable="false"

@@ -355,8 +355,8 @@
     <string name="auth_failed">Échec de l\'authentification</string>
     <string name="invalid_session">Session invalide</string>
     <string
-        name="no_supported_auth_method"
-    >Aucune méthode d\'authentification prise en charge disponible</string>
+        name="no_supported_offline_auth_method"
+    >Aucune méthode d\'authentification hors ligne prise en charge n\'est disponible</string>
     <string name="version">Version</string>
     <string name="encryption_not_available">Chiffrement non disponible</string>
     <string
@@ -364,4 +364,37 @@
     >Veuillez vous connecter à Internet pour continuer l\'authentification.</string>
     <string name="retry">Réessayer</string>
     <string name="exit">Quitter</string>
+    <string
+        name="enable_offline_login_title"
+    >Activer la connexion hors ligne ?</string>
+    <string name="enable_offline_login_body">
+        Activez la connexion hors ligne pour déverrouiller l’application avec la biométrie de votre appareil (visage ou empreinte digitale), même sans connexion Internet.
+
+        Remarques:
+        • La biométrie doit être déjà configurée sur cet appareil.
+        • Si vous modifiez ou supprimez votre biométrie ou le verrouillage d’écran ultérieurement, la connexion hors ligne sera désactivée et vous devrez vous reconnecter en ligne.
+    </string>
+    <string name="enable_offline_login_positive">Activer</string>
+    <string name="enable_offline_login_negative">Pas maintenant</string>
+    <string
+        name="setup_biometrics_to_enable_offline_login"
+    >Configurez la biométrie (visage/empreinte) dans les paramètres pour activer la connexion hors ligne.</string>
+    <string
+        name="password_changed"
+    >Il semble que votre verrouillage d’écran ou le mot de passe de votre compte ait changé. Pour votre sécurité, la connexion hors ligne a été désactivée. Veuillez vous connecter en ligne pour réactiver l’accès hors ligne.</string>
+    <string
+        name="try_logging_in_with_active_internet_connection"
+    >Essayez de vous connecter avec une connexion Internet active</string>
+    <string
+        name="offline_login_unavailable"
+    >Connexion hors ligne indisponible !</string>
+    <string
+        name="error_encountered_while_setting_offline_login"
+    >Une erreur s\'est produite lors de la configuration de la connexion hors ligne</string>
+    <string
+        name="auth_error_offline_login"
+    >Erreur d\'authentification : Impossible de configurer la connexion hors ligne pour le moment, veuillez réessayer plus tard</string>
+    <string
+        name="auth_failed_offline_login"
+    >Échec de l\'authentification ! Impossible de configurer la connexion hors ligne pour le moment</string>
 </resources>

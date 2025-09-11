@@ -48,6 +48,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.view.GravityCompat
+import androidx.datastore.preferences.core.edit
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -56,18 +57,17 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.material.snackbar.Snackbar
-import java.io.BufferedOutputStream
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import net.lingala.zip4j.ZipFile
+import net.lingala.zip4j.model.ZipParameters
+import net.lingala.zip4j.model.enums.AesKeyStrength
+import net.lingala.zip4j.model.enums.EncryptionMethod
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.dataStore
@@ -76,6 +76,7 @@ import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
+import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.extensions.PermissionHelper
 import org.openmrs.android.fhir.extensions.PermissionHelperFactory
@@ -520,7 +521,19 @@ class MainActivity : AppCompatActivity() {
     demoDataStore.clearAll()
     database.clearAllTables()
     authStateManager.resetBasicAuthCredentials()
+    BiometricUtils.deleteBiometricKey(applicationContext)
     checkAndDeleteLogFile(applicationContext)
+    clearApplicationFiles()
+  }
+
+  private fun clearApplicationFiles() {
+    val dirs =
+      listOf(
+        applicationContext.filesDir,
+        applicationContext.cacheDir,
+        applicationContext.getExternalFilesDir(null),
+      )
+    dirs.forEach { dir -> dir?.listFiles()?.forEach { file -> file.deleteRecursively() } }
   }
 
   private fun handleAuthNavigation(
@@ -529,13 +542,19 @@ class MainActivity : AppCompatActivity() {
   ) {
     when (authStateManager.getAuthMethod()) {
       AuthMethod.BASIC -> {
-        lifecycleScope.launch(Dispatchers.IO) { authStateManager.clearAuthDataStore() }
+        lifecycleScope.launch(Dispatchers.IO) {
+          authStateManager.clearAuthDataStore()
+          applicationContext.dataStore.edit { preferences -> preferences.clear() }
+        }
         startActivity(Intent(this, BasicLoginActivity::class.java))
         finish()
       }
       AuthMethod.OPENID -> {
         authStateManager.endSessionRequest(pendingIntentSuccess, pendingIntentCancel)
-        lifecycleScope.launch(Dispatchers.IO) { authStateManager.clearAuthDataStore() }
+        lifecycleScope.launch(Dispatchers.IO) {
+          authStateManager.clearAuthDataStore()
+          applicationContext.dataStore.edit { preferences -> preferences.clear() }
+        }
       }
     }
   }
@@ -566,6 +585,8 @@ class MainActivity : AppCompatActivity() {
   }
 
   private suspend fun sendDiagnosticsEmail() {
+    val password = getString(R.string.diagnostics_password)
+    val zipFile = createDiagnosticZip(password)
     val emailIntent =
       Intent(Intent.ACTION_SEND).apply {
         type = "application/zip"
@@ -577,7 +598,7 @@ class MainActivity : AppCompatActivity() {
           FileProvider.getUriForFile(
             applicationContext,
             "${applicationContext.packageName}.provider",
-            createDiagnosticZip(),
+            zipFile,
           ),
         )
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -585,17 +606,18 @@ class MainActivity : AppCompatActivity() {
     startActivity(Intent.createChooser(emailIntent, "Send Email"))
   }
 
-  private suspend fun createDiagnosticZip(): File {
+  private suspend fun createDiagnosticZip(password: String): File {
     val zipFile = File(applicationContext.cacheDir, "diagnostics.zip")
-    ZipOutputStream(BufferedOutputStream(FileOutputStream(zipFile))).use { zos ->
-      listOf(getApplicationLogs(applicationContext), getSyncInfoFile()).forEach { file ->
-        FileInputStream(file).use { fis ->
-          zos.putNextEntry(ZipEntry(file?.name))
-          fis.copyTo(zos)
-          zos.closeEntry()
-        }
+    val zip = ZipFile(zipFile, password.toCharArray())
+    val params =
+      ZipParameters().apply {
+        isEncryptFiles = true
+        encryptionMethod = EncryptionMethod.AES
+        aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256
       }
-    }
+    val logFile = getApplicationLogs(applicationContext, password)
+    listOfNotNull(logFile, getSyncInfoFile()).forEach { file -> zip.addFile(file, params) }
+    logFile?.delete()
     return zipFile
   }
 

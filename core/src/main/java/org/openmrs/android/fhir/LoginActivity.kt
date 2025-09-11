@@ -34,7 +34,6 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
@@ -46,7 +45,10 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
+import org.openmrs.android.fhir.auth.OfflineAuthMethod
 import org.openmrs.android.fhir.databinding.ActivityLoginBinding
+import org.openmrs.android.fhir.extensions.AuthDialogs
+import org.openmrs.android.fhir.extensions.BiometricPromptHelper
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.viewmodel.LoginActivityViewModel
 import timber.log.Timber
@@ -60,6 +62,7 @@ class LoginActivity : AppCompatActivity() {
 
   private lateinit var biometricPrompt: BiometricPrompt
   private lateinit var executor: Executor
+  private var offlineAuthMethod: OfflineAuthMethod? = null
 
   private val getContent =
     registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -70,10 +73,26 @@ class LoginActivity : AppCompatActivity() {
             val response = result.data?.let { AuthorizationResponse.fromIntent(it) }
             val ex = AuthorizationException.fromIntent(result.data)
             viewModel.handleLoginResponse(response, ex)
-            promptBiometricEncryption() // Prompt biometric after login success
+            AuthDialogs.showOfflineLoginOptIn(
+              activity = this@LoginActivity,
+              onProceedWithBiometric = { promptBiometricEncryption() },
+              navigateToMain = { navigateToMain() },
+            )
           }
         }
       }
+    }
+
+  private val confirmCredLauncher =
+    registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+      BiometricPromptHelper.handleConfirmCredentialResult(
+        activity = this,
+        result = res,
+        sessionTokenProvider = { viewModel.sessionTokenToEncrypt },
+        cipherProvider = { BiometricUtils.getEncryptionCipher(this) },
+        onNavigate = { navigateToMain() },
+        onSaved = { offlineAuthMethod?.let { BiometricUtils.setOfflineAuthMethod(this, it) } },
+      )
     }
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,39 +104,12 @@ class LoginActivity : AppCompatActivity() {
     executor = ContextCompat.getMainExecutor(this)
 
     biometricPrompt =
-      BiometricPrompt(
-        this,
-        executor,
-        object : BiometricPrompt.AuthenticationCallback() {
-          override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-            super.onAuthenticationSucceeded(result)
-            val cipher = result.cryptoObject?.cipher
-            val token = viewModel.tokenToEncrypt
-            if (cipher != null && token != null) {
-              BiometricUtils.encryptAndSaveToken(token, cipher, applicationContext)
-            }
-            startActivity(Intent(this@LoginActivity, MainActivity::class.java))
-            finish()
-          }
-
-          override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-            Toast.makeText(
-                this@LoginActivity,
-                "${getString(R.string.auth_error)} $errString",
-                Toast.LENGTH_SHORT,
-              )
-              .show()
-          }
-
-          override fun onAuthenticationFailed() {
-            Toast.makeText(
-                this@LoginActivity,
-                getString(R.string.auth_failed),
-                Toast.LENGTH_SHORT,
-              )
-              .show()
-          }
-        },
+      BiometricPromptHelper.createBiometricPrompt(
+        activity = this,
+        executor = executor,
+        sessionTokenProvider = { viewModel.sessionTokenToEncrypt },
+        onNavigate = { navigateToMain() },
+        onSaved = { offlineAuthMethod?.let { BiometricUtils.setOfflineAuthMethod(this, it) } },
       )
 
     lifecycleScope.launch {
@@ -146,43 +138,18 @@ class LoginActivity : AppCompatActivity() {
   }
 
   private fun promptBiometricEncryption() {
-    val biometricManager = BiometricManager.from(this)
+    BiometricPromptHelper.promptBiometricEncryption(
+      activity = this,
+      biometricPrompt = biometricPrompt,
+      confirmCredLauncher = confirmCredLauncher,
+      navigateToMain = { navigateToMain() },
+      showToast = { msg -> Toast.makeText(this, msg, Toast.LENGTH_LONG).show() },
+      onMethodSelected = { method -> offlineAuthMethod = method },
+    )
+  }
 
-    val canUseStrongBiometric =
-      biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG) ==
-        BiometricManager.BIOMETRIC_SUCCESS
-
-    val canUseDeviceCredential =
-      biometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL) ==
-        BiometricManager.BIOMETRIC_SUCCESS
-
-    val promptBuilder =
-      BiometricPrompt.PromptInfo.Builder().setTitle(getString(R.string.biometric_prompt_title))
-
-    if (canUseStrongBiometric) {
-      promptBuilder
-        .setSubtitle(getString(R.string.biometric_prompt_subtitle))
-        .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-        .setNegativeButtonText(getString(R.string.cancel))
-
-      val cipher = BiometricUtils.getEncryptionCipher()
-      if (cipher != null) {
-        biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
-      } else {
-        Toast.makeText(this, getString(R.string.encryption_not_available), Toast.LENGTH_LONG).show()
-        startActivity(Intent(this, MainActivity::class.java))
-        finish()
-      }
-    } else if (canUseDeviceCredential) {
-      promptBuilder
-        .setSubtitle(getString(R.string.use_device_credential))
-        .setAllowedAuthenticators(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
-
-      biometricPrompt.authenticate(promptBuilder.build())
-    } else {
-      Toast.makeText(this, getString(R.string.no_supported_auth_method), Toast.LENGTH_LONG).show()
-      startActivity(Intent(this, MainActivity::class.java))
-      finish()
-    }
+  private fun navigateToMain() {
+    startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+    finish()
   }
 }

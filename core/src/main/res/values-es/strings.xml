@@ -340,8 +340,8 @@
     <string name="auth_failed">Autenticación fallida</string>
     <string name="invalid_session">Sesión inválida</string>
     <string
-        name="no_supported_auth_method"
-    >No hay métodos de autenticación compatibles disponibles</string>
+        name="no_supported_offline_auth_method"
+    >No hay ningún método de autenticación sin conexión compatible disponible</string>
     <string name="version">Versión</string>
     <string name="encryption_not_available">Cifrado no disponible</string>
     <string
@@ -349,4 +349,38 @@
     >Por favor, conéctate a internet para continuar con la autenticación.</string>
     <string name="retry">Reintentar</string>
     <string name="exit">Salir</string>
+    <string
+        name="enable_offline_login_title"
+    >¿Activar el inicio de sesión sin conexión?</string>
+    <string name="enable_offline_login_body">
+        Activa el inicio de sesión sin conexión para abrir la app con la biometría de tu dispositivo (rostro o huella) incluso sin internet.
+
+        Notas:
+        • La biometría debe estar configurada previamente en este dispositivo.
+        • Si cambias o eliminas tu biometría o el bloqueo de pantalla más adelante, el inicio de sesión sin conexión se desactivará y tendrás que iniciar sesión en línea de nuevo.
+    </string>
+    <string name="enable_offline_login_positive">Activar</string>
+    <string name="enable_offline_login_negative">Ahora no</string>
+    <string
+        name="setup_biometrics_to_enable_offline_login"
+    >Configura la biometría (rostro/huella) en Ajustes para habilitar el inicio de sesión sin conexión.</string>
+    <string
+        name="password_changed"
+    >Parece que el bloqueo de pantalla o la contraseña de tu cuenta ha cambiado. Por tu seguridad, el inicio de sesión sin conexión se desactivó. Inicia sesión en línea para volver a habilitar el acceso sin conexión.</string>
+    <string
+        name="try_logging_in_with_active_internet_connection"
+    >Intenta iniciar sesión con una conexión a Internet activa</string>
+    <string
+        name="offline_login_unavailable"
+    >¡Inicio de sesión sin conexión no disponible!</string>
+    <string
+        name="error_encountered_while_setting_offline_login"
+    >Se produjo un error al configurar el inicio de sesión sin conexión</string>
+    <string
+        name="auth_error_offline_login"
+    >Error de autenticación: No se puede configurar el inicio de sesión sin conexión ahora, inténtelo de nuevo más tarde</string>
+    <string
+        name="auth_failed_offline_login"
+    >¡Autenticación fallida! No se puede configurar el inicio de sesión sin conexión ahora</string>
+
 </resources>
