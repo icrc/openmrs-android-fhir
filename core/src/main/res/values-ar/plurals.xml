@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+    <plurals name="ageYear">
+        <item quantity="one">%d سنة</item>
+        <item quantity="other">%d سنوات</item>
+    </plurals>
+    <plurals name="ageMonth">
+        <item quantity="one">%d شهر</item>
+        <item quantity="other">%d شهور</item>
+    </plurals>
+    <plurals name="ageDay">
+        <item quantity="one">%d اليوم</item>
+        <item quantity="other">%d أيام</item>
+    </plurals>
+</resources>

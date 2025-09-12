@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+    <string name="section_patient_management">إدارة المريض</string>
+    <string name="title_add_patient">أضف المريض</string>
+    <string name="subtitle_add_patient">سجل سجل مريض جديد</string>
+    <string name="title_search_patient">ابحث المريض</string>
+    <string name="subtitle_search_patient">عرض وإدارة المرضى</string>
+    <string name="title_custom_patient_list">قائمة (قائمة) المريض</string>
+    <string
+        name="subtitle_custom_patient_list"
+    >تحميل قائمة المريض المحفوظة</string>
+    <string name="section_encounters">اللقاءات</string>
+    <string name="title_group_encounter">بدء المجموعة/جلسة الأسرة</string>
+    <string name="subtitle_group_encounter">ابدأ الجلسة مع مرضى متعددين</string>
+    <string name="section_system">نظام</string>
+    <string name="title_sync_info">مزامنة المعلومات</string>
+    <string name="sync_info">مزامنة المعلومات</string>
+    <string name="subtitle_sync_info">عرض موارد التزامن المعلقة</string>
+    <string name="title_unsynced_resources">الموارد غير المتزامنة</string>
+    <string name="subtitle_unsynced_resources">عرض عمليات التزامن</string>
+
+    <string name="app_name" translatable="false">OpenMRS</string>
+    <string name="title_patient_list">المرضى المسجلين</string>
+    <string name="title_patient_detail">تفاصيل SamplePatient</string>
+    <string name="register_patient">سجل المريض</string>
+    <string name="menu_about">حول محرك FHIR</string>
+    <string name="menu_sync_resources">موارد مزامنة</string>
+    <string name="menu_patient_edit">@string/edit_patient</string>
+
+    
+    <string name="observation_brief_text">%1$s: %2$s \n فعال: %3$s</string>
+    <string name="query_hint_patient_search">تجد باسم المريض</string>
+    <string
+        name="cancel_questionnaire_message"
+    >هل أنت متأكد أنك تريد تجاهل الإجابات؟</string>
+    <string name="patient_id">بطاقة تعريف</string>
+    <string name="patient_name">اسم</string>
+    <string name="patient_gender">جنس</string>
+    <string name="patient_dob">دوب</string>
+    <string name="patient_phone_number">رقم التليفون</string>
+    <string name="patient_city">مدينة</string>
+    <string name="patient_country">دولة</string>
+    <string name="patient_is_active">نشط</string>
+    <string name="patient_property_mobile">رقم الهاتف المحمول</string>
+    <string name="patient_property_address">عنوان</string>
+    <string name="patient_property_dob">تاريخ الميلاد</string>
+    <string name="patient_property_gender">جنس</string>
+    <string name="edit_patient">تحرير المريض</string>
+    <string name="new_encounter">لقاء جديد</string>
+    <string name="create_encounter">إنشاء لقاء</string>
+    <string name="create_group_encounter">إنشاء لقاء المجموعة</string>
+    <string name="edit_encounter">تحرير اللقاء</string>
+    <string name="location">موقع</string>
+    <string name="identifier">المعرف</string>
+    <string name="select_a_location">حدد موقعًا</string>
+    <string
+        name="create_encounter_fragment_headline"
+    >ما هو الشكل الذي ترغب في استخدامه؟</string>
+    <string name="select_patient_lists">حدد قوائم المريض</string>
+    <string name="select_identifier_types">حدد أنواع المعرف</string>
+    <string name="submit">يُقدِّم</string>
+    <string name="message_syncing">مزامنة \u2026</string>
+
+    <string name="message_patient_updated">يتم تحديث المريض.</string>
+    <string name="message_encounter_updated">يتم تحديث اللقاء.</string>
+    <string name="inputs_missing">المدخلات مفقودة.</string>
+    <string name="inputs_missing_for_patient">المدخلات مفقودة للمريض:</string>
+    <string name="resources_saved">يتم حفظ الموارد.</string>
+    <string name="response_received">تم استلام رد الاستبيان.</string>
+    <string name="html_text">الوضع الحالي:<font
+            color="#ddd"
+        >UNKNOWN</font></string>
+    <string name="header_observation">الملاحظات</string>
+    <string name="header_conditions">شروط</string>
+    <string name="message_no_datetime">لا يوجد وقت فعال</string>
+    <string name="complete_survey">مسح كامل</string>
+    <string name="risk_status">الوضع الحالي:</string>
+    <string name="unknown">مجهول</string>
+    <string name="none">لا أحد</string>
+    <string name="description_status">حالة</string>
+    <string name="open">يفتح</string>
+    <string name="close">يغلق</string>
+    <string name="sync_menu">المزامنة</string>
+    <string name="last_sync">المزامنة الأخيرة</string>
+    <string name="syncing">مزامنة</string>
+    <string name="sync">المزامنة</string>
+    <string name="button_login">تسجيل الدخول</string>
+    <string name="header_encounters">اللقاءات</string>
+    <string name="component_nav_heading">عناصر</string>
+    <string name="layout_nav_heading">تخطيطات</string>
+    <string name="behavior_nav_heading">السلوكيات</string>
+    <string name="error">خطأ</string>
+    <string name="open_questionnaire">استبيان مفتوح</string>
+    <string name="current_location_label">الموقع الحالي:</string>
+    <string name="no_location_selected">لا يوجد موقع محدد</string>
+    <string
+        name="patient_unsynced_info"
+    >ستتم مزامنة معلومات المريض مع \n Pearl في المرة القادمة التي تكون فيها على الإنترنت</string>
+    <string name="header_visits">زيارة الرأس</string>
+    <string name="online">متصل</string>
+    <string name="offline">دون اتصال</string>
+    <string name="yes">نعم</string>
+    <string name="no">لا</string>
+    <string name="no_and_don_t_ask_me_again">لا ، ولا تسألني مرة أخرى</string>
+    <string name="login_expired">انتهت صلاحية تسجيل الدخول</string>
+    <string name="session_expired">انتهت جلستك.هل تريد إعادة التعبير؟</string>
+    <string name="logout">تسجيل الخروج</string>
+    <string
+        name="logout_message"
+    >هل أنت متأكد أنك تريد تسجيل الخروج؟\n \n إذا قمت بالمتابعة ، فسيتم حذف بيانات كل هذه التطبيقات بشكل دائم.\n يتضمن ذلك جميع الموارد وجلسات المستخدم وقاعدة البيانات وما إلى ذلك.</string>
+    <string name="sync_in_progress">المزامنة: في التقدم</string>
+    <string name="sync_started">المزامنة: بدأت</string>
+    <string name="sync_succeeded_at">المزامنة: نجحت في %1$s</string>
+    <string name="sync_failed_at">المزامنة: فشل في %1$s</string>
+    <string name="sync_unknown_state">المزامنة: حالة غير معروفة.</string>
+    <string name="sync_terminated">المزامنة: إنهاء</string>
+    <string name="logging_out">تسجيل الخروج ..</string>
+    <string
+        name="sync_device_offline_message"
+    >الجهاز غير متصل.سوف تستأنف Sync بمجرد أن يكون الجهاز متصل</string>
+    <string name="settings">إعدادات</string>
+    <string name="save">يحفظ</string>
+    <string name="cancel">يلغي</string>
+    <string
+        name="token_expiry_delay_text"
+    >تأخير قبل مربع حوار انتهاء الصلاحية (في دقائق)</string>
+    <string name="check_network_connectivity">تحقق من اتصال الشبكة</string>
+    <string name="enable_notifications">تمكين الإخطارات</string>
+    <string name="settings_discarded">الإعدادات التي تم التخلص منها</string>
+    <string name="settings_saved">الإعدادات المحفوظة</string>
+    <string
+        name="token_check_delay_in_minutes"
+    >تأخير فحص الرمز المميز (في دقائق)</string>
+    <string name="token_check_delay">تأخير فحص الرمز المميز</string>
+    <string
+        name="periodic_sync_delay_in_minutes"
+    >تأخير المزامنة الدورية (في دقائق)</string>
+    <string name="periodic_sync_delay">تأخير المزامنة الدورية</string>
+    <string name="send_diagnostics">إرسال التشخيص</string>
+    <string
+        name="diagnostics_message"
+    >هل تريد إرسال تقرير تشخيص كامل للتطبيق إلى فريق المطورين؟ \n يتضمن: سجلات التطبيقات ومعلومات المزامنة</string>
+    <string name="username">اسم المستخدم</string>
+    <string name="password">كلمة المرور</string>
+    <string
+        name="username_password_empty"
+    >لا يمكن أن يكون اسم المستخدم أو كلمة المرور فارغة.</string>
+    <string
+        name="invalid_username_password"
+    >فشل تسجيل الدخول.يرجى التحقق من بيانات الاعتماد الخاصة بك.</string>
+    <string
+        name="no_internet_connection"
+    >لا اتصال إنترنت.يرجى التحقق من شبكتك والمحاولة مرة أخرى.</string>
+    <string
+        name="something_went_wrong"
+    >حدث خطأ ما.من فضلك حاول مرة أخرى.</string>
+    <string
+        name="locked_out_message"
+    >الكثير من المحاولات الفاشلة.يرجى المحاولة مرة أخرى لاحقًا.</string>
+    <string
+        name="questionnaire_error_message"
+    >حدث بعض الأخطاء مع تحميل الاستبيان ، يرجى المزامنة والمحاولة مرة أخرى لاحقًا!</string>
+    <string name="connection_restored">تم استعادة الاتصال</string>
+    <string
+        name="do_you_want_to_continue_sync"
+    >هل تريد متابعة المزامنة؟</string>
+    <string
+        name="location_unassigned_select_location"
+    >الموقع غير معتمد ، يرجى تحديد الموقع مرة أخرى ...</string>
+    <string
+        name="no_patients_available_register_a_new_one_using_the_button_below"
+    >لا يوجد مرضى متاح ، قم بتسجيله جديد باستخدام الزر أدناه</string>
+    <string name="observation">ملاحظة</string>
+    <string name="download_observation">تنزيل الملاحظة</string>
+    <string name="delete_observation">حذف الملاحظة</string>
+    <string name="expand">يوسع</string>
+    <string name="encounter">يقابل</string>
+    <string name="download_encounter">تنزيل اللقاء</string>
+    <string name="delete_encounter">حذف اللقاء</string>
+    <string name="download_patient">تحميل المريض</string>
+    <string name="delete_patient">حذف المريض</string>
+    <string name="empty_state_icon">أيقونة الدولة الفارغة</string>
+    <string
+        name="no_unsynced_resources_available"
+    >لا توجد موارد غير متاحة</string>
+    <string name="delete_all">حذف كل شيء</string>
+    <string name="download_all">قم بتنزيل الكل</string>
+    <string name="no_locations_available">لا توجد مواقع متاحة.</string>
+    <string name="no_patient_list_available">لا توجد قائمة مريض متوفرة</string>
+    <string name="task_image">صورة المهمة</string>
+    <string name="patient_list">قائمة المريض</string>
+    <string name="select_location">حدد الموقع</string>
+    <string name="select_patient_list">حدد قائمة المريض</string>
+    <string name="search_identifier_types">أنواع معرف البحث</string>
+    <string name="search_a_location">ابحث في موقع</string>
+    <string name="next">التالي</string>
+    <string name="search_patient_lists">البحث عن قوائم المريض</string>
+    <string
+        name="no_sync_info_available"
+    >لا توجد معلومات المزامنة متوفرة</string>
+    <string name="clear_sync_data">مسح بيانات مزامنة</string>
+    <string name="hsu_id" translatable="false">HSU ID</string>
+    <string name="encounter_date">تاريخ لقاء</string>
+    <string name="encounter_name">اسم اللقاء</string>
+    <string name="location_1">الموقع 1</string>
+    <string name="this_will_show_observations">هذا سيظهر الملاحظات.</string>
+    <string name="_50_years_old">50 سنة</string>
+    <string name="navya_patel" translatable="false">Navya Patel</string>
+    <string name="patient_list_1">قائمة المريض 1</string>
+    <string name="_0" translatable="false">0 %</string>
+    <string name="start_time">وقت البدء</string>
+    <string name="downloaded">تم تنزيله</string>
+    <string name="uploaded">تم الرفع</string>
+    <string name="in_progress">في تَقَدم</string>
+    <string name="completed_at">أكمل في</string>
+    <string name="errors">الأخطاء</string>
+    <string name="start_group_encounter">ابدأ اللقاء الجماعي</string>
+    <string name="next_patient">المريض التالي</string>
+    <string name="save_all_encounters">حفظ جميع اللقاءات</string>
+    <string name="saved">أنقذ</string>
+    <string name="group_encounters">لقاءات المجموعة</string>
+    <string
+        name="save_all_submitted_encounters"
+    >احفظ جميع اللقاءات المقدمة</string>
+    <string
+        name="do_you_want_to_save_all_submitted_encounters"
+    >هل تريد حفظ جميع اللقاءات المقدمة؟</string>
+    <string name="no_encounters_to_save">لا لقاءات لإنقاذ!</string>
+    <string
+        name="all_patients_have_been_submitted"
+    >تم تقديم جميع المرضى</string>
+    <string
+        name="please_select_at_least_one_patient"
+    >يرجى تحديد مريض واحد على الأقل.</string>
+    <string
+        name="select_patients_for_group_encounter"
+    >حدد المرضى لمواجهة المجموعة</string>
+    <string name="select_all_patients">حدد جميع المرضى</string>
+    <string name="patient_is_saved">يتم حفظ المريض.</string>
+    <string name="inputs_are_missing">المدخلات مفقودة.</string>
+    <string name="start">يبدأ</string>
+    <string
+        name="all_encounter_for_group_session_have_been_saved"
+    >تم حفظ كل مواجهة لجلسة المجموعة</string>
+    <string name="do_you_want_to_exit">هل تريد الخروج؟</string>
+    <string
+        name="encounter_questionnaire_not_found_try_again_later"
+    >لم يتم العثور على استبيان اللقاء ، حاول مرة أخرى لاحقًا</string>
+    <string
+        name="please_complete_the_required_fields_first"
+    >يرجى إكمال الحقول المطلوبة أولاً!</string>
+    <string name="encounter_saved_for_patient">تواجه %1$s حفظ</string>
+    <string name="encounter_updated">مواجهة تحديث!</string>
+    <string
+        name="all_encounters_saved_do_you_want_to_exit"
+    >كل اللقاءات المحفوظة!هل تريد الخروج؟</string>
+    <string name="close_this_window">أغلق هذه النافذة</string>
+    <string
+        name="you_can_do_other_things_on_the_device_while_it_syncs"
+    >يمكنك القيام بأشياء أخرى على الجهاز أثناء المزامنة.</string>
+    <string
+        name="leave_the_device_in_a_location_with_good_internet_reception"
+    >اترك الجهاز في موقع مع استقبال جيد على الإنترنت</string>
+    <string
+        name="stay_connected_to_wi_fi_or_data"
+    >ابق على اتصال مع Wi-Fi أو البيانات</string>
+    <string
+        name="this_can_take_up_to_10_minutes_depending_on_your_internet_connection"
+    >قد يستغرق هذا ما يصل إلى 10 دقائق حسب اتصال الإنترنت الخاص بك</string>
+    <string name="syncing_resources">مزامنة الموارد</string>
+    <string name="syncing_patient_data">مزامنة بيانات المريض</string>
+    <string name="Downloading_patient_data">تنزيل بيانات المريض</string>
+    <string name="uploading_patient_data">تحميل بيانات المريض</string>
+    <string name="get_started">ابدأ</string>
+    <string
+        name="please_try_again_later"
+    >يرجى المحاولة مرة أخرى لاحقًا.</string>
+    <string name="unknown_sync_state">حالة المزامنة غير معروفة</string>
+    <string name="sync_failed">فشل المزامنة</string>
+    <string name="sync_completed">الانتهاء من المزامنة</string>
+    <string
+        name="all_data_synchronized_successfully"
+    >تزامن جميع البيانات بنجاح!</string>
+    <string
+        name="patient_resources_are_being_synchronized"
+    >يتم مزامنة موارد المريض ...</string>
+    <string name="progress">تقدم</string>
+    <string
+        name="biometric_prompt_title"
+    >مصادقة الجهاز في وضع عدم الاتصال</string>
+    <string
+        name="biometric_prompt_subtitle"
+    >استخدم بيانات الاعتماد الحيوية الخاصة بك</string>
+    <string
+        name="use_device_credential"
+    >استخدم PIN/نمط/كلمة المرور جهازك</string>
+    <string name="auth_error">خطأ المصادقة: %1$s</string>
+    <string name="auth_failed">فشلت المصادقة</string>
+    <string name="invalid_session">جلسة غير صالحة</string>
+    <string
+        name="no_supported_offline_auth_method"
+    >لا توجد طريقة مصادقة متاحة في وضع عدم الاتصال</string>
+    <string name="version">إصدار</string>
+    <string name="encryption_not_available">التشفير غير متوفر</string>
+    <string
+        name="please_connect_to_the_internet_to_continue_with_authentication"
+    >يرجى الاتصال بالإنترنت لمواصلة المصادقة.</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="exit">مخرج</string>
+    <string
+        name="enable_offline_login_title"
+    >تمكين تسجيل الدخول دون اتصال؟</string>
+    <string
+        name="enable_offline_login_body"
+    >قم بتمكين تسجيل الدخول إلى وضع عدم الاتصال في الخطوط الداخلية لإلغاء تأمين التطبيق باستخدام القياسات الحيوية للجهاز (الوجه أو البصمة) حتى بدون الإنترنت.
+
+ملاحظات \n:
+\n • يجب إعداد القياسات الحيوية بالفعل على هذا الجهاز.
+\n • إذا قمت بتغيير/إزالة القياسات الحيوية أو قفل الشاشة لاحقًا ، فسيتم تعطيل تسجيل الدخول دون اتصال وسيحتاج إلى تسجيل الدخول عبر الإنترنت مرة أخرى.</string>
+    <string name="enable_offline_login_positive">يُمكَِن</string>
+    <string name="enable_offline_login_negative">ليس الآن</string>
+    <string
+        name="setup_biometrics_to_enable_offline_login"
+    >قم بإعداد القياسات الحيوية (الوجه/البصمة) في الإعدادات لتمكين تسجيل الدخول دون اتصال.</string>
+    <string
+        name="password_changed"
+    >يبدو أن قفل الشاشة أو كلمة مرور الحساب قد تغيرت.من أجل أمانك ، تم تعطيل تسجيل الدخول في وضع عدم الاتصال.يرجى تسجيل الدخول عبر الإنترنت لإعادة تمكين الوصول دون اتصال.</string>
+    <string
+        name="try_logging_in_with_active_internet_connection"
+    >حاول تسجيل الدخول باستخدام اتصال إنترنت نشط</string>
+    <string
+        name="offline_login_unavailable"
+    >تسجيل الدخول دون متصل غير متوفر!</string>
+    <string
+        name="error_encountered_while_setting_offline_login"
+    >الخطأ الذي تمت مواجهته أثناء إعداد تسجيل الدخول إلى وضع عدم الاتصال</string>
+    <string
+        name="auth_error_offline_login"
+    >خطأ في المصادقة: غير قادر على إعداد تسجيل الدخول إلى وضع عدم الاتصال الآن ، يرجى المحاولة مرة أخرى لاحقًا</string>
+    <string
+        name="auth_failed_offline_login"
+    >فشل المصادقة!غير قادر على إعداد تسجيل الدخول إلى وضع عدم الاتصال الآن</string>
+
+
+</resources>

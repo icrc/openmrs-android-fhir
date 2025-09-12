@@ -18,9 +18,9 @@
 
     <!-- Optional padding (inner spacing for child views) -->
     <padding
-        android:left="8dp"
+        android:start="8dp"
         android:top="8dp"
-        android:right="8dp"
+        android:end="8dp"
         android:bottom="8dp"
     />
 
