@@ -22,6 +22,7 @@
     <string name="app_name" translatable="false">OpenMRS</string>
     <string name="title_patient_list">المرضى المسجلين</string>
     <string name="title_patient_detail">تفاصيل SamplePatient</string>
+    <string name="patient_details_title">تفاصيل المريض</string>
     <string name="register_patient">سجل المريض</string>
     <string name="menu_about">حول محرك FHIR</string>
     <string name="menu_sync_resources">موارد مزامنة</string>
