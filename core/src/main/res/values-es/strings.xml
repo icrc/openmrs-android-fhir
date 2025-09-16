@@ -27,6 +27,7 @@
 
     <string name="title_patient_list">Pacientes Registrados</string>
     <string name="title_patient_detail">Detalle del Paciente de Muestra</string>
+    <string name="patient_details_title">Detalles del paciente</string>
     <string name="register_patient">Registrar Paciente</string>
     <string name="menu_about">Acerca de Fhir Engine</string>
     <string name="menu_sync_resources">Sincronizar Recursos</string>

@@ -31,6 +31,7 @@ package org.openmrs.android.fhir.extensions
 import android.content.Context
 import android.util.Log
 import java.io.BufferedReader
+import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
@@ -76,17 +77,31 @@ class FileLoggingTree(context: Context, private val maxFileSize: Long, password:
 
   private fun trimLogFile() {
     try {
-      val trimmedContent = StringBuilder()
-      BufferedReader(logFile.reader()).useLines { lines ->
-        val allLines = lines.toList()
-        val deleteCount = (allLines.size * 0.1).toInt()
-        val startIndex = deleteCount
-        for (i in startIndex until allLines.size) {
-          trimmedContent.appendLine(allLines[i])
+      val tempFile = File("${logFile.absolutePath}.tmp")
+
+      // First pass: count total lines
+      val totalLines =
+        BufferedReader(logFile.reader()).use { reader -> reader.useLines { it.count() } }
+
+      val deleteCount = (totalLines * 0.1).toInt().coerceAtLeast(1)
+
+      // Second pass: copy lines we want to keep
+      BufferedReader(logFile.reader()).use { reader ->
+        BufferedWriter(tempFile.writer()).use { writer ->
+          reader.useLines { lines ->
+            lines.drop(deleteCount).forEach { line ->
+              writer.write(line)
+              writer.newLine()
+            }
+          }
         }
       }
-      // Overwrite the file with the trimmed content
-      FileWriter(logFile, false).use { writer -> writer.write(trimmedContent.toString()) }
+
+      // Atomic replace
+      if (!tempFile.renameTo(logFile)) {
+        tempFile.delete()
+        throw IOException("Failed to replace log file")
+      }
     } catch (e: IOException) {
       Log.e("FileLoggingTree", "Failed to trim log file", e)
     }

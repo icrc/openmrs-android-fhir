@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+    <!-- Years -->
+    <plurals name="ageYear">
+        <item quantity="zero">0 سنة</item>
+        <item quantity="one">%d سنة</item>       <!-- e.g. 1 -->
+        <item quantity="two">%d سنتان</item>     <!-- e.g. 2 -->
+        <item quantity="few">%d سنوات</item>     <!-- e.g. 3–10 -->
+        <item quantity="many">%d سنة</item>      <!-- e.g. 11–99 -->
+        <item quantity="other">%d سنة</item>     <!-- fallback -->
+    </plurals>
+
+    <!-- Months -->
+    <plurals name="ageMonth">
+        <item quantity="zero">0 شهر</item>
+        <item quantity="one">%d شهر</item>
+        <item quantity="two">%d شهران</item>
+        <item quantity="few">%d أشهر</item>
+        <item quantity="many">%d شهر</item>
+        <item quantity="other">%d شهر</item>
+    </plurals>
+
+    <!-- Days -->
+    <plurals name="ageDay">
+        <item quantity="zero">0 يوم</item>
+        <item quantity="one">%d يوم</item>
+        <item quantity="two">%d يومان</item>
+        <item quantity="few">%d أيام</item>
+        <item quantity="many">%d يوم</item>
+        <item quantity="other">%d يوم</item>
+    </plurals>
+</resources>
