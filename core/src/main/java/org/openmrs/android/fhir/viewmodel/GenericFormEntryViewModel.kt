@@ -373,7 +373,6 @@ constructor(
     patientReference: Reference,
     encounterReference: Reference,
   ): Observation {
-    val parentValue = info.parentDisplay?.takeIf { it.isNotBlank() } ?: info.parentCoding.code
     return Observation().apply {
       id = generateUuid()
       code = CodeableConcept().addCoding(info.parentCoding.copy())
@@ -381,7 +380,6 @@ constructor(
       encounter = encounterReference
       status = Observation.ObservationStatus.FINAL
       effective = nowUtcDateTime()
-      parentValue?.let { this.value = StringType(it) }
     }
   }
 
@@ -468,7 +466,6 @@ constructor(
             childCodingKeys = childCodingKeys,
             parentCoding = parentCoding.copy(),
             parentCodingKey = parentCodingKey,
-            parentDisplay = parentCoding.display,
             expectedValueTokens = valueTokens,
           ),
         )
@@ -609,7 +606,6 @@ constructor(
     val childCodingKeys: Set<CodingKey>,
     val parentCoding: Coding,
     val parentCodingKey: CodingKey,
-    val parentDisplay: String?,
     val expectedValueTokens: Set<String>,
   )
 
