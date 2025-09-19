@@ -46,17 +46,26 @@ import dagger.assisted.AssistedInject
 import java.util.Date
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.BooleanType
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Condition
+import org.hl7.fhir.r4.model.DateTimeType
+import org.hl7.fhir.r4.model.DateType
+import org.hl7.fhir.r4.model.DecimalType
 import org.hl7.fhir.r4.model.Encounter
+import org.hl7.fhir.r4.model.IntegerType
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Period
+import org.hl7.fhir.r4.model.Quantity
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
+import org.hl7.fhir.r4.model.StringType
+import org.hl7.fhir.r4.model.TimeType
+import org.hl7.fhir.r4.model.Type
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.OpenMRSHelper
@@ -212,6 +221,7 @@ constructor(
         bundle,
         patientReference,
         questionnaire,
+        questionnaireResponse,
         encounterId,
         visit.idPart,
         encounterDate,
@@ -224,6 +234,7 @@ constructor(
     bundle: Bundle,
     patientReference: Reference,
     questionnaire: Questionnaire,
+    questionnaireResponse: QuestionnaireResponse,
     encounterId: String,
     visitId: String,
     encounterDate: Date,
@@ -288,40 +299,37 @@ constructor(
         }
       }
 
-    bundle.entry.forEach {
-      when (val resource = it.resource) {
+    val observationChildInfos = collectObservationChildInfos(questionnaire, questionnaireResponse)
+    val childInfosByCodingKey =
+      observationChildInfos
+        .flatMap { info -> info.childCodingKeys.map { codingKey -> codingKey to info } }
+        .groupBy({ it.first }, { it.second })
+    val parentObservationsByKey = mutableMapOf<ParentKey, Observation>()
+    val parentsToSave = mutableListOf<Observation>()
+    val observationsToSave = mutableListOf<Observation>()
+
+    bundle.entry.forEach { entry ->
+      when (val resource = entry.resource) {
         is Observation -> {
           if (resource.hasCode() && resource.hasValue()) {
-            when (val value = resource.value) {
-              is CodeableConcept -> {
-                val codings = value.coding
-                codings.forEach { coding ->
-                  val obs =
-                    Observation().apply {
-                      id = generateUuid()
-                      code = resource.code
-                      subject = patientReference
-                      encounter = encounterReference
-                      status = Observation.ObservationStatus.FINAL
-                      effective = nowUtcDateTime()
-                      this.value = CodeableConcept().addCoding(coding)
-                    }
-                  saveResourceToDatabase(obs)
-                }
-              }
-              else -> {
-                val obs =
-                  Observation().apply {
-                    id = generateUuid()
-                    code = resource.code
-                    subject = patientReference
-                    encounter = encounterReference
-                    status = Observation.ObservationStatus.FINAL
-                    effective = nowUtcDateTime()
-                    this.value = value
+            val observationEntities =
+              createObservationEntities(resource, patientReference, encounterReference)
+            observationEntities.forEach { observation ->
+              val matchingInfo = findObservationChildInfo(observation, childInfosByCodingKey)
+              if (matchingInfo != null) {
+                val parentKey = ParentKey(matchingInfo.parentCodingKey)
+                val parentObservation =
+                  parentObservationsByKey.getOrPut(parentKey) {
+                    createParentObservation(
+                        matchingInfo,
+                        patientReference,
+                        encounterReference,
+                      )
+                      .also { parentsToSave.add(it) }
                   }
-                saveResourceToDatabase(obs)
+                observation.addPartOf(Reference("Observation/${parentObservation.id}"))
               }
+              observationsToSave.add(observation)
             }
           }
         }
@@ -335,10 +343,309 @@ constructor(
         }
       }
     }
+
+    parentsToSave.forEach { saveResourceToDatabase(it) }
+    observationsToSave.forEach { saveResourceToDatabase(it) }
+  }
+
+  private fun createObservationEntities(
+    resource: Observation,
+    patientReference: Reference,
+    encounterReference: Reference,
+  ): List<Observation> =
+    resource.value?.let { value ->
+      listOf(
+        Observation().apply {
+          id = generateUuid()
+          code = resource.code.copy()
+          subject = patientReference
+          encounter = encounterReference
+          status = Observation.ObservationStatus.FINAL
+          effective = nowUtcDateTime()
+          this.value = value.copy()
+        },
+      )
+    }
+      ?: emptyList()
+
+  private fun createParentObservation(
+    info: ObservationChildInfo,
+    patientReference: Reference,
+    encounterReference: Reference,
+  ): Observation {
+    val parentValue = info.parentDisplay?.takeIf { it.isNotBlank() } ?: info.parentCoding.code
+    return Observation().apply {
+      id = generateUuid()
+      code = CodeableConcept().addCoding(info.parentCoding.copy())
+      subject = patientReference
+      encounter = encounterReference
+      status = Observation.ObservationStatus.FINAL
+      effective = nowUtcDateTime()
+      parentValue?.let { this.value = StringType(it) }
+    }
+  }
+
+  private fun findObservationChildInfo(
+    observation: Observation,
+    childInfosByCodingKey: Map<CodingKey, List<ObservationChildInfo>>,
+  ): ObservationChildInfo? {
+    if (!observation.hasCode()) {
+      return null
+    }
+
+    val candidateInfos =
+      observation.code.coding
+        .flatMap { coding -> childInfosByCodingKey[CodingKey.fromCoding(coding)] ?: emptyList() }
+        .distinct()
+
+    if (candidateInfos.isEmpty()) {
+      return null
+    }
+
+    if (candidateInfos.size == 1) {
+      return candidateInfos.first()
+    }
+
+    val observationTokens = observation.value.toComparisonTokens()
+    if (observationTokens.isEmpty()) {
+      return candidateInfos.first()
+    }
+
+    val matchingInfos =
+      candidateInfos.filter { info ->
+        info.expectedValueTokens.isEmpty() ||
+          observationTokens.any { token -> info.expectedValueTokens.contains(token) }
+      }
+
+    return when {
+      matchingInfos.size == 1 -> matchingInfos.first()
+      matchingInfos.isNotEmpty() -> matchingInfos.first()
+      else -> candidateInfos.first()
+    }
+  }
+
+  private fun collectObservationChildInfos(
+    questionnaire: Questionnaire,
+    questionnaireResponse: QuestionnaireResponse,
+  ): List<ObservationChildInfo> {
+    val responseItemsByLinkId =
+      mutableMapOf<String, QuestionnaireResponse.QuestionnaireResponseItemComponent>()
+    collectResponseItems(questionnaireResponse.item, responseItemsByLinkId)
+
+    data class GroupContext(
+      val valueLinkIds: MutableSet<String> = mutableSetOf(),
+    )
+
+    val groupStack = mutableListOf<GroupContext>()
+    val childInfos = mutableListOf<ObservationChildInfo>()
+
+    fun traverse(item: Questionnaire.QuestionnaireItemComponent) {
+      val currentContext = groupStack.lastOrNull()
+
+      if (currentContext != null && item.isObservationValueItem()) {
+        currentContext.valueLinkIds.add(item.linkId)
+      }
+
+      if (item.hasObservationChildExtension()) {
+        val parentCoding = item.observationChildCoding() ?: return
+        val parentCodingKey = CodingKey.fromCoding(parentCoding)
+        if (!parentCodingKey.isValid()) {
+          return
+        }
+        val childCodingKeys = resolveChildCodingKeys(item, responseItemsByLinkId)
+        if (childCodingKeys.isEmpty()) {
+          return
+        }
+        val valueTokens =
+          currentContext
+            ?.valueLinkIds
+            ?.flatMap { linkId -> responseItemsByLinkId[linkId]?.answerTokens() ?: emptySet() }
+            ?.toSet()
+            ?: emptySet()
+        childInfos.add(
+          ObservationChildInfo(
+            childLinkId = item.linkId,
+            childCodingKeys = childCodingKeys,
+            parentCoding = parentCoding.copy(),
+            parentCodingKey = parentCodingKey,
+            parentDisplay = parentCoding.display,
+            expectedValueTokens = valueTokens,
+          ),
+        )
+      }
+
+      if (item.type == Questionnaire.QuestionnaireItemType.GROUP) {
+        groupStack.add(GroupContext())
+        item.item.forEach { traverse(it) }
+        groupStack.removeAt(groupStack.lastIndex)
+      } else {
+        item.item.forEach { traverse(it) }
+      }
+    }
+
+    questionnaire.item.forEach { traverse(it) }
+
+    return childInfos
+  }
+
+  private fun collectResponseItems(
+    items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>,
+    result: MutableMap<String, QuestionnaireResponse.QuestionnaireResponseItemComponent>,
+  ) {
+    items.forEach { item ->
+      val linkId = item.linkId
+      if (!linkId.isNullOrBlank()) {
+        result[linkId] = item
+      }
+      collectResponseItems(item.item, result)
+    }
+  }
+
+  private fun resolveChildCodingKeys(
+    childItem: Questionnaire.QuestionnaireItemComponent,
+    responseItemsByLinkId: Map<String, QuestionnaireResponse.QuestionnaireResponseItemComponent>,
+  ): Set<CodingKey> {
+    val keys = mutableSetOf<CodingKey>()
+    responseItemsByLinkId[childItem.linkId]?.answer?.forEach { answer ->
+      when (val value = answer.value) {
+        is Coding -> {
+          val key = CodingKey.fromCoding(value)
+          if (key.isValid()) {
+            keys.add(key)
+          }
+        }
+        is CodeableConcept -> {
+          value.coding.forEach { coding ->
+            val key = CodingKey.fromCoding(coding)
+            if (key.isValid()) {
+              keys.add(key)
+            }
+          }
+        }
+      }
+    }
+
+    if (keys.isEmpty()) {
+      childItem.initial
+        .mapNotNull { it.value }
+        .forEach { initialValue ->
+          when (initialValue) {
+            is Coding -> {
+              val key = CodingKey.fromCoding(initialValue)
+              if (key.isValid()) {
+                keys.add(key)
+              }
+            }
+            is CodeableConcept -> {
+              initialValue.coding.forEach { coding ->
+                val key = CodingKey.fromCoding(coding)
+                if (key.isValid()) {
+                  keys.add(key)
+                }
+              }
+            }
+          }
+        }
+    }
+
+    return keys
+  }
+
+  private fun QuestionnaireResponse.QuestionnaireResponseItemComponent.answerTokens(): Set<String> {
+    if (answer.isEmpty()) {
+      return emptySet()
+    }
+    return answer.flatMap { it.value.toComparisonTokens() }.toSet()
+  }
+
+  private fun Questionnaire.QuestionnaireItemComponent.isObservationValueItem(): Boolean {
+    val definition = definition ?: return false
+    return definition.contains("Observation#Observation.value") ||
+      definition.contains("Observation.value")
+  }
+
+  private fun Questionnaire.QuestionnaireItemComponent.hasObservationChildExtension(): Boolean {
+    return getExtensionByUrl(OBSERVATION_CHILD_EXTENSION_URL) != null
+  }
+
+  private fun Questionnaire.QuestionnaireItemComponent.observationChildCoding(): Coding? {
+    return getExtensionByUrl(OBSERVATION_CHILD_EXTENSION_URL)?.value as? Coding
+  }
+
+  private fun Type?.toComparisonTokens(): Set<String> =
+    when (this) {
+      null -> emptySet()
+      is CodeableConcept -> this.coding.firstOrNull()?.let { CodingKey.fromCoding(it).tokens() }
+          ?: emptySet()
+      is Coding -> CodingKey.fromCoding(this).tokens()
+      is StringType -> this.value?.takeIf { it.isNotBlank() }?.let { setOf(it) } ?: emptySet()
+      is IntegerType -> this.value?.let { setOf(it.toString()) } ?: emptySet()
+      is DecimalType -> this.value?.let { setOf(it.toPlainString()) } ?: emptySet()
+      is BooleanType -> this.value?.let { setOf(it.toString()) } ?: emptySet()
+      is DateType -> this.valueAsString.takeIf { it.isNotBlank() }?.let { setOf(it) } ?: emptySet()
+      is DateTimeType -> this.valueAsString.takeIf { it.isNotBlank() }?.let { setOf(it) }
+          ?: emptySet()
+      is TimeType -> this.value?.takeIf { it.isNotBlank() }?.let { setOf(it) } ?: emptySet()
+      is Quantity -> {
+        val tokens = mutableSetOf<String>()
+        val valuePart = this.value?.toPlainString()
+        val unitPart = this.unit
+        if (!valuePart.isNullOrBlank()) {
+          tokens.add(valuePart)
+        }
+        if (!unitPart.isNullOrBlank()) {
+          tokens.add(unitPart)
+        }
+        if (!valuePart.isNullOrBlank() || !unitPart.isNullOrBlank()) {
+          tokens.add(listOfNotNull(valuePart, unitPart).joinToString("|"))
+        }
+        tokens
+      }
+      else -> setOf(toString())
+    }
+
+  private data class ObservationChildInfo(
+    val childLinkId: String,
+    val childCodingKeys: Set<CodingKey>,
+    val parentCoding: Coding,
+    val parentCodingKey: CodingKey,
+    val parentDisplay: String?,
+    val expectedValueTokens: Set<String>,
+  )
+
+  private data class ParentKey(
+    val parentCodingKey: CodingKey,
+  )
+
+  private data class CodingKey(val system: String?, val code: String?) {
+    fun isValid(): Boolean = !system.isNullOrBlank() || !code.isNullOrBlank()
+
+    fun tokens(): Set<String> {
+      val tokens = mutableSetOf<String>()
+      if (!system.isNullOrBlank() && !code.isNullOrBlank()) {
+        tokens.add("$system|$code")
+      }
+      if (!code.isNullOrBlank()) {
+        tokens.add(code)
+      }
+      if (!system.isNullOrBlank()) {
+        tokens.add(system)
+      }
+      return tokens
+    }
+
+    companion object {
+      fun fromCoding(coding: Coding): CodingKey = CodingKey(coding.system, coding.code)
+    }
   }
 
   private suspend fun saveResourceToDatabase(resource: Resource) {
     fhirEngine.create(resource)
+  }
+
+  private companion object {
+    private const val OBSERVATION_CHILD_EXTENSION_URL =
+      "http://fhir.openmrs.org/ext/observation-child"
   }
 
   fun updateQuestionnaire(updated: Questionnaire) {
