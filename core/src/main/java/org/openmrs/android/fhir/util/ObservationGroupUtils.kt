@@ -39,9 +39,13 @@ import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Quantity
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
+import org.hl7.fhir.r4.model.Reference
+import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.TimeType
 import org.hl7.fhir.r4.model.Type
+import org.openmrs.android.fhir.extensions.generateUuid
+import org.openmrs.android.fhir.extensions.nowUtcDateTime
 
 internal const val OBSERVATION_CHILD_EXTENSION_URL = "http://fhir.openmrs.org/ext/observation-child"
 
@@ -76,6 +80,156 @@ internal data class CodingKey(val system: String?, val code: String?) {
 
   companion object {
     fun fromCoding(coding: Coding): CodingKey = CodingKey(coding.system, coding.code)
+  }
+}
+
+internal data class ObservationGroupLookup(
+  val childInfos: List<ObservationChildInfo>,
+  val childInfosByCodingKey: Map<CodingKey, List<ObservationChildInfo>>,
+  val parentCodingKeys: Set<CodingKey>,
+) {
+  fun findChildInfo(observation: Observation): ObservationChildInfo? {
+    return findObservationChildInfo(observation, childInfosByCodingKey)
+  }
+}
+
+internal class ParentObservationTracker {
+  private val touchedParentIds = mutableSetOf<String>()
+  private val parentUpdatesScheduled = mutableSetOf<String>()
+
+  fun markTouched(parent: Observation) {
+    parent.idPart()?.let { touchedParentIds.add(it) }
+  }
+
+  fun touchedIds(): Set<String> = touchedParentIds
+
+  fun wasTouched(parentId: String): Boolean = touchedParentIds.contains(parentId)
+
+  suspend fun markAmended(
+    parent: Observation,
+    update: suspend (Observation) -> Unit,
+  ) {
+    val parentId = parent.idPart() ?: return
+    if (!parentUpdatesScheduled.add(parentId)) {
+      return
+    }
+    parent.status = Observation.ObservationStatus.AMENDED
+    parent.effective = nowUtcDateTime()
+    update(parent)
+  }
+
+  suspend fun ensureActive(parent: Observation, update: suspend (Observation) -> Unit) {
+    if (parent.status == Observation.ObservationStatus.CANCELLED) {
+      markAmended(parent, update)
+    }
+  }
+}
+
+internal data class ParentEnsureResult(val parent: Observation, val isNew: Boolean)
+
+internal class ExistingObservationIndex(
+  private val parentCodingKeys: Set<CodingKey>,
+  observations: List<Observation>,
+) {
+  private val parentObservationsByKey = mutableMapOf<ParentKey, Observation>()
+  private val parentObservationsById = mutableMapOf<String, Observation>()
+  private val childObservationsByKey = mutableMapOf<CodingKey, MutableList<Observation>>()
+
+  val originalParentIds: Set<String>
+
+  init {
+    observations.forEach { categorize(it) }
+    originalParentIds = parentObservationsById.keys.toSet()
+  }
+
+  fun parentObservationsById(): Map<String, Observation> = parentObservationsById
+
+  fun parentById(parentId: String): Observation? = parentObservationsById[parentId]
+
+  suspend fun ensureParentObservation(
+    info: ObservationChildInfo,
+    tracker: ParentObservationTracker,
+    subjectReference: Reference,
+    encounterReference: Reference,
+    saveParent: suspend (Observation) -> Unit,
+  ): ParentEnsureResult {
+    val parentKey = ParentKey(info.parentCodingKey)
+    val existing = parentObservationsByKey[parentKey]
+    return if (existing != null) {
+      tracker.markTouched(existing)
+      ParentEnsureResult(existing, false)
+    } else {
+      val parent = createParentObservation(info, subjectReference, encounterReference)
+      registerParent(parentKey, parent)
+      tracker.markTouched(parent)
+      saveParent(parent)
+      ParentEnsureResult(parent, true)
+    }
+  }
+
+  fun findExisting(resource: Observation): Observation? {
+    resource.code.coding.forEach { coding ->
+      val key = CodingKey.fromCoding(coding)
+      if (!key.isValid()) return@forEach
+      val existing = childObservationsByKey[key]?.firstOrNull()
+      if (existing != null) {
+        consume(existing)
+        return existing
+      }
+    }
+    return null
+  }
+
+  fun findAllExisting(codings: List<Coding>): List<Observation> {
+    val results = linkedSetOf<Observation>()
+    codings.forEach { coding ->
+      val key = CodingKey.fromCoding(coding)
+      if (!key.isValid()) return@forEach
+      childObservationsByKey[key]?.let { results.addAll(it) }
+    }
+    results.forEach { consume(it) }
+    return results.toList()
+  }
+
+  fun remainingChildObservations(): Set<Observation> =
+    childObservationsByKey.values.flatten().toSet()
+
+  private fun categorize(observation: Observation) {
+    if (!observation.hasCode()) {
+      return
+    }
+
+    val codingKeys =
+      observation.code.coding.map { CodingKey.fromCoding(it) }.filter { it.isValid() }
+    if (codingKeys.isEmpty()) {
+      return
+    }
+
+    val parentKey = codingKeys.firstOrNull { parentCodingKeys.contains(it) }
+    if (parentKey != null) {
+      registerParent(ParentKey(parentKey), observation)
+    } else if (observation.status != Observation.ObservationStatus.CANCELLED) {
+      codingKeys.forEach { key ->
+        childObservationsByKey.getOrPut(key) { mutableListOf() }.add(observation)
+      }
+    }
+  }
+
+  private fun registerParent(parentKey: ParentKey, observation: Observation) {
+    parentObservationsByKey[parentKey] = observation
+    observation.idPart()?.let { parentObservationsById[it] = observation }
+  }
+
+  private fun consume(observation: Observation) {
+    observation.code.coding.forEach { coding ->
+      val key = CodingKey.fromCoding(coding)
+      if (!key.isValid()) return@forEach
+      val list = childObservationsByKey[key]
+      list?.remove(observation)
+      if (list != null && list.isEmpty()) {
+        childObservationsByKey.remove(key)
+      }
+    }
   }
 }
 
@@ -309,3 +463,108 @@ private fun Type?.toComparisonTokens(): Set<String> =
     }
     else -> setOf(toString())
   }
+
+internal fun buildObservationGroupLookup(
+  questionnaire: Questionnaire,
+  questionnaireResponse: QuestionnaireResponse,
+): ObservationGroupLookup {
+  val childInfos = collectObservationChildInfos(questionnaire, questionnaireResponse)
+  val childInfosByCodingKey =
+    childInfos
+      .flatMap { info -> info.childCodingKeys.map { codingKey -> codingKey to info } }
+      .groupBy({ it.first }, { it.second })
+  val parentCodingKeys = childInfos.map { it.parentCodingKey }.toSet()
+  return ObservationGroupLookup(childInfos, childInfosByCodingKey, parentCodingKeys)
+}
+
+internal suspend fun ParentEnsureResult?.markExistingParentAmended(
+  tracker: ParentObservationTracker,
+  update: suspend (Observation) -> Unit,
+) {
+  if (this == null || isNew) {
+    return
+  }
+  tracker.markAmended(parent, update)
+}
+
+internal suspend fun ParentEnsureResult?.handleUnchangedChild(
+  tracker: ParentObservationTracker,
+  update: suspend (Observation) -> Unit,
+) {
+  if (this == null || isNew) {
+    return
+  }
+  tracker.ensureActive(parent, update)
+}
+
+internal fun createParentObservation(
+  info: ObservationChildInfo,
+  subjectReference: Reference,
+  encounterReference: Reference,
+): Observation {
+  return Observation().apply {
+    id = generateUuid()
+    code = CodeableConcept().addCoding(info.parentCoding.copy())
+    subject = subjectReference
+    encounter = encounterReference
+    status = Observation.ObservationStatus.FINAL
+    effective = nowUtcDateTime()
+  }
+}
+
+internal fun Observation.idPart(): String? {
+  val idPart = idElement?.idPart
+  if (!idPart.isNullOrBlank()) {
+    return idPart
+  }
+  return id.takeIf { !it.isNullOrBlank() }
+}
+
+internal fun Observation.updateParentReference(parent: Observation?): Boolean {
+  val desiredParentId = parent?.idPart()
+  val desiredReference = desiredParentId?.let { "Observation/$it" }
+
+  val preservedReferences = mutableListOf<Reference>()
+  var hasDesiredReference = false
+  var changed = false
+
+  partOf.forEach { existingReference ->
+    val existingParentId = existingReference.observationReferenceId()
+    if (existingParentId == null) {
+      preservedReferences.add(existingReference)
+      return@forEach
+    }
+
+    if (desiredParentId != null && existingParentId == desiredParentId && !hasDesiredReference) {
+      preservedReferences.add(existingReference)
+      hasDesiredReference = true
+    } else {
+      changed = true
+    }
+  }
+
+  if (desiredReference != null && !hasDesiredReference) {
+    preservedReferences.add(Reference(desiredReference))
+    changed = true
+  }
+
+  if (desiredReference == null && partOf.any { it.observationReferenceId() != null }) {
+    changed = true
+  }
+
+  if (changed) {
+    partOf.clear()
+    partOf.addAll(preservedReferences)
+  }
+
+  return changed
+}
+
+internal fun Reference.observationReferenceId(): String? {
+  val element = referenceElement
+  val resourceType = element.resourceType
+  if (!resourceType.isNullOrBlank() && resourceType != ResourceType.Observation.name) {
+    return null
+  }
+  return element.idPart.takeIf { !it.isNullOrBlank() }
+}

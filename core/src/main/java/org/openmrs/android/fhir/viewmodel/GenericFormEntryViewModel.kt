@@ -66,10 +66,10 @@ import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
-import org.openmrs.android.fhir.util.ObservationChildInfo
 import org.openmrs.android.fhir.util.ParentKey
-import org.openmrs.android.fhir.util.collectObservationChildInfos
-import org.openmrs.android.fhir.util.findObservationChildInfo
+import org.openmrs.android.fhir.util.buildObservationGroupLookup
+import org.openmrs.android.fhir.util.createParentObservation
+import org.openmrs.android.fhir.util.updateParentReference
 
 /** ViewModel for Generic questionnaire screen {@link GenericFormEntryFragment}. */
 class GenericFormEntryViewModel
@@ -294,13 +294,8 @@ constructor(
         }
       }
 
-    val observationChildInfos = collectObservationChildInfos(questionnaire, questionnaireResponse)
-    val childInfosByCodingKey =
-      observationChildInfos
-        .flatMap { info -> info.childCodingKeys.map { codingKey -> codingKey to info } }
-        .groupBy({ it.first }, { it.second })
+    val observationGroupLookup = buildObservationGroupLookup(questionnaire, questionnaireResponse)
     val parentObservationsByKey = mutableMapOf<ParentKey, Observation>()
-    val parentsToSave = mutableListOf<Observation>()
     val observationsToSave = mutableListOf<Observation>()
 
     bundle.entry.forEach { entry ->
@@ -310,19 +305,18 @@ constructor(
             val observationEntities =
               createObservationEntities(resource, patientReference, encounterReference)
             observationEntities.forEach { observation ->
-              val matchingInfo = findObservationChildInfo(observation, childInfosByCodingKey)
+              val matchingInfo = observationGroupLookup.findChildInfo(observation)
               if (matchingInfo != null) {
                 val parentKey = ParentKey(matchingInfo.parentCodingKey)
                 val parentObservation =
                   parentObservationsByKey.getOrPut(parentKey) {
                     createParentObservation(
-                        matchingInfo,
-                        patientReference,
-                        encounterReference,
-                      )
-                      .also { parentsToSave.add(it) }
+                      matchingInfo,
+                      patientReference,
+                      encounterReference,
+                    )
                   }
-                observation.addPartOf(Reference("Observation/${parentObservation.id}"))
+                observation.updateParentReference(parentObservation)
               }
               observationsToSave.add(observation)
             }
@@ -339,7 +333,7 @@ constructor(
       }
     }
 
-    parentsToSave.forEach { saveResourceToDatabase(it) }
+    parentObservationsByKey.values.forEach { saveResourceToDatabase(it) }
     observationsToSave.forEach { saveResourceToDatabase(it) }
   }
 
@@ -362,21 +356,6 @@ constructor(
       )
     }
       ?: emptyList()
-
-  private fun createParentObservation(
-    info: ObservationChildInfo,
-    patientReference: Reference,
-    encounterReference: Reference,
-  ): Observation {
-    return Observation().apply {
-      id = generateUuid()
-      code = CodeableConcept().addCoding(info.parentCoding.copy())
-      subject = patientReference
-      encounter = encounterReference
-      status = Observation.ObservationStatus.FINAL
-      effective = nowUtcDateTime()
-    }
-  }
 
   private suspend fun saveResourceToDatabase(resource: Resource) {
     fhirEngine.create(resource)
