@@ -50,6 +50,7 @@ import kotlin.collections.forEach
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
+import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Condition
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
@@ -59,6 +60,8 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.StringType
+import org.hl7.fhir.r4.model.codesystems.ConditionCategory
+import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
@@ -491,6 +494,19 @@ constructor(
     }
     resource.subject = subjectReference
     resource.encounter = encounterReference
+    resource.category =
+      listOf(
+        CodeableConcept().apply {
+          coding =
+            listOf(
+              Coding().apply {
+                system = Constants.CONDITION_CATEGORY_SYSTEM_URL
+                code = ConditionCategory.ENCOUNTERDIAGNOSIS.toCode()
+                display = ConditionCategory.ENCOUNTERDIAGNOSIS.display
+              },
+            )
+        },
+      )
 
     updateResourceToDatabase(resource)
   }

@@ -57,6 +57,7 @@ import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
+import org.hl7.fhir.r4.model.codesystems.ConditionCategory
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.OpenMRSHelper
@@ -327,6 +328,20 @@ constructor(
             resource.id = generateUuid()
             resource.subject = patientReference
             resource.encounter = encounterReference
+            // Current requirement for encounter-diagnosis only.
+            resource.category =
+              listOf(
+                CodeableConcept().apply {
+                  coding =
+                    listOf(
+                      Coding().apply {
+                        system = Constants.CONDITION_CATEGORY_SYSTEM_URL
+                        code = ConditionCategory.ENCOUNTERDIAGNOSIS.toCode()
+                        display = ConditionCategory.ENCOUNTERDIAGNOSIS.display
+                      },
+                    )
+                },
+              )
             saveResourceToDatabase(resource)
           }
         }
