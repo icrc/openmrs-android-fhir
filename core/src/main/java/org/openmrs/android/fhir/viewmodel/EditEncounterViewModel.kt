@@ -70,6 +70,7 @@ import org.openmrs.android.fhir.extensions.getJsonFileNames
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
 import org.openmrs.android.fhir.extensions.readFileFromAssets
 import org.openmrs.android.fhir.util.ExistingObservationIndex
+import org.openmrs.android.fhir.util.ObservationChildInfo
 import org.openmrs.android.fhir.util.ObservationGroupLookup
 import org.openmrs.android.fhir.util.ParentEnsureResult
 import org.openmrs.android.fhir.util.ParentObservationTracker
@@ -319,6 +320,7 @@ constructor(
           parentResult,
           observationIndex,
           parentTracker,
+          matchingInfo,
         )
       }
       is CodeableConcept -> {
@@ -330,6 +332,7 @@ constructor(
           parentResult,
           observationIndex,
           parentTracker,
+          matchingInfo,
         )
       }
       else -> {}
@@ -343,10 +346,11 @@ constructor(
     parentResult: ParentEnsureResult?,
     observationIndex: ExistingObservationIndex,
     parentTracker: ParentObservationTracker,
+    childInfo: ObservationChildInfo?,
   ) {
     val value = template.value ?: return
-    val existing = observationIndex.findExisting(template)
     val parent = parentResult?.parent
+    val existing = observationIndex.findExisting(template, childInfo, parent)
     if (existing != null) {
       val parentChanged = existing.updateParentReference(parent)
       if (!parentChanged && existing.value.equalsDeep(value)) {
@@ -386,11 +390,12 @@ constructor(
     parentResult: ParentEnsureResult?,
     observationIndex: ExistingObservationIndex,
     parentTracker: ParentObservationTracker,
+    childInfo: ObservationChildInfo?,
   ) {
     val codings = value.coding
     val parent = parentResult?.parent
     if (codings.size <= 1) {
-      val existing = observationIndex.findExisting(template)
+      val existing = observationIndex.findExisting(template, childInfo, parent)
       if (existing != null) {
         val parentChanged = existing.updateParentReference(parent)
         if (!parentChanged && existing.value.equalsDeep(value)) {
@@ -421,7 +426,7 @@ constructor(
         createResourceToDatabase(target)
       }
     } else {
-      val existingMatches = observationIndex.findAllExisting(codings)
+      val existingMatches = observationIndex.findAllExisting(codings, childInfo, parent)
       existingMatches.forEach { existing ->
         val idPart = existing.idElement.idPart
         if (!idPart.isNullOrBlank()) {

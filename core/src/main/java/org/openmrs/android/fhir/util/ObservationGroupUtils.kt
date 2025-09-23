@@ -133,12 +133,13 @@ internal class ExistingObservationIndex(
 ) {
   private val parentObservationsByKey = mutableMapOf<ParentKey, Observation>()
   private val parentObservationsById = mutableMapOf<String, Observation>()
-  private val childObservationsByKey = mutableMapOf<CodingKey, MutableList<Observation>>()
+  private val childObservationsByKey = mutableMapOf<ChildKey, MutableList<Observation>>()
 
   val originalParentIds: Set<String>
 
   init {
-    observations.forEach { categorize(it) }
+    observations.forEach { registerParentIfApplicable(it) }
+    observations.forEach { categorizeChild(it) }
     originalParentIds = parentObservationsById.keys.toSet()
   }
 
@@ -167,25 +168,39 @@ internal class ExistingObservationIndex(
     }
   }
 
-  fun findExisting(resource: Observation): Observation? {
+  fun findExisting(
+    resource: Observation,
+    childInfo: ObservationChildInfo?,
+    parentObservation: Observation?,
+  ): Observation? {
+    val parentContexts = requestedParentContexts(childInfo, parentObservation)
     resource.code.coding.forEach { coding ->
       val key = CodingKey.fromCoding(coding)
       if (!key.isValid()) return@forEach
-      val existing = childObservationsByKey[key]?.firstOrNull()
-      if (existing != null) {
-        consume(existing)
-        return existing
+      parentContexts.forEach { parentContext ->
+        val existing = childObservationsByKey[ChildKey(key, parentContext)]?.firstOrNull()
+        if (existing != null) {
+          consume(existing)
+          return existing
+        }
       }
     }
     return null
   }
 
-  fun findAllExisting(codings: List<Coding>): List<Observation> {
+  fun findAllExisting(
+    codings: List<Coding>,
+    childInfo: ObservationChildInfo?,
+    parentObservation: Observation?,
+  ): List<Observation> {
+    val parentContexts = requestedParentContexts(childInfo, parentObservation)
     val results = linkedSetOf<Observation>()
     codings.forEach { coding ->
       val key = CodingKey.fromCoding(coding)
       if (!key.isValid()) return@forEach
-      childObservationsByKey[key]?.let { results.addAll(it) }
+      parentContexts.forEach { parentContext ->
+        childObservationsByKey[ChildKey(key, parentContext)]?.let { results.addAll(it) }
+      }
     }
     results.forEach { consume(it) }
     return results.toList()
@@ -194,7 +209,12 @@ internal class ExistingObservationIndex(
   fun remainingChildObservations(): Set<Observation> =
     childObservationsByKey.values.flatten().toSet()
 
-  private fun categorize(observation: Observation) {
+  private fun registerParentIfApplicable(observation: Observation) {
+    val parentCodingKey = determineParentCodingKey(observation) ?: return
+    registerParent(ParentKey(parentCodingKey), observation)
+  }
+
+  private fun categorizeChild(observation: Observation) {
     if (!observation.hasCode()) {
       return
     }
@@ -205,12 +225,21 @@ internal class ExistingObservationIndex(
       return
     }
 
-    val parentKey = codingKeys.firstOrNull { parentCodingKeys.contains(it) }
-    if (parentKey != null) {
-      registerParent(ParentKey(parentKey), observation)
-    } else if (observation.status != Observation.ObservationStatus.CANCELLED) {
-      codingKeys.forEach { key ->
-        childObservationsByKey.getOrPut(key) { mutableListOf() }.add(observation)
+    val parentCodingKey = determineParentCodingKey(observation)
+    if (parentCodingKey != null) {
+      return
+    }
+
+    if (observation.status == Observation.ObservationStatus.CANCELLED) {
+      return
+    }
+
+    val parentContexts = childParentContexts(observation)
+    codingKeys.forEach { key ->
+      parentContexts.forEach { parentContext ->
+        childObservationsByKey
+          .getOrPut(ChildKey(key, parentContext)) { mutableListOf() }
+          .add(observation)
       }
     }
   }
@@ -221,15 +250,80 @@ internal class ExistingObservationIndex(
   }
 
   private fun consume(observation: Observation) {
-    observation.code.coding.forEach { coding ->
-      val key = CodingKey.fromCoding(coding)
-      if (!key.isValid()) return@forEach
-      val list = childObservationsByKey[key]
-      list?.remove(observation)
-      if (list != null && list.isEmpty()) {
-        childObservationsByKey.remove(key)
+    val codingKeys =
+      observation.code.coding.map { CodingKey.fromCoding(it) }.filter { it.isValid() }
+    if (codingKeys.isEmpty()) {
+      return
+    }
+    val parentContexts = childParentContexts(observation)
+    codingKeys.forEach { codingKey ->
+      parentContexts.forEach { parentContext ->
+        val mapKey = ChildKey(codingKey, parentContext)
+        val list = childObservationsByKey[mapKey]
+        list?.remove(observation)
+        if (list != null && list.isEmpty()) {
+          childObservationsByKey.remove(mapKey)
+        }
       }
     }
+  }
+
+  private fun determineParentCodingKey(observation: Observation): CodingKey? {
+    if (!observation.hasCode()) {
+      return null
+    }
+    return observation.code.coding
+      .map { CodingKey.fromCoding(it) }
+      .firstOrNull { parentCodingKeys.contains(it) }
+  }
+
+  private fun childParentContexts(observation: Observation): Set<ParentContext> {
+    val contexts = mutableSetOf<ParentContext>()
+    observation.partOf
+      .mapNotNull { it.observationReferenceId() }
+      .forEach { parentId ->
+        contexts.add(ParentContext.ParentId(parentId))
+        parentObservationsById[parentId]
+          ?.let { determineParentCodingKey(it) }
+          ?.let { contexts.add(ParentContext.ParentCoding(it)) }
+      }
+    if (contexts.isEmpty()) {
+      contexts.add(ParentContext.None)
+    }
+    return contexts
+  }
+
+  private fun requestedParentContexts(
+    childInfo: ObservationChildInfo?,
+    parentObservation: Observation?,
+  ): List<ParentContext> {
+    val contexts = mutableListOf<ParentContext>()
+    val parentId = parentObservation?.idPart()
+    if (!parentId.isNullOrBlank()) {
+      contexts.add(ParentContext.ParentId(parentId))
+    }
+
+    val parentCodingKey =
+      childInfo?.parentCodingKey ?: parentObservation?.let { determineParentCodingKey(it) }
+    if (parentCodingKey != null) {
+      contexts.add(ParentContext.ParentCoding(parentCodingKey))
+    }
+
+    if (contexts.isEmpty()) {
+      contexts.add(ParentContext.None)
+    }
+
+    return contexts.distinct()
+  }
+
+  private data class ChildKey(val codingKey: CodingKey, val parentContext: ParentContext)
+
+  private sealed class ParentContext {
+    object None : ParentContext()
+
+    data class ParentId(val id: String) : ParentContext()
+
+    data class ParentCoding(val codingKey: CodingKey) : ParentContext()
   }
 }
 
