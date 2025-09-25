@@ -102,6 +102,8 @@ constructor(
   val isResourcesSaved = MutableLiveData<String>()
   val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
+  private var pendingResourceOperations: MutableList<PendingResourceOperation>? = null
+
   fun prepareEditEncounter(encounterId: String, encounterType: String) {
     viewModelScope.launch {
       val observations = getObservationsEncounterId(encounterId)
@@ -236,6 +238,7 @@ constructor(
     questionnaire: Questionnaire,
     questionnaireResponse: QuestionnaireResponse,
   ) {
+    pendingResourceOperations = mutableListOf()
     try {
       val encounterReference = Reference("Encounter/$encounterId")
       val encounterSubject = fhirEngine.get<Encounter>(encounterId).subject
@@ -279,10 +282,14 @@ constructor(
         updateResourceToDatabase(parentObservation)
       }
 
+      flushPendingResourceOperations()
       isResourcesSaved.value = "SAVED"
     } catch (e: Exception) {
       Timber.e(e.localizedMessage)
       isResourcesSaved.value = "MISSING"
+      pendingResourceOperations?.clear()
+    } finally {
+      pendingResourceOperations = null
     }
   }
 
@@ -533,10 +540,67 @@ constructor(
   }
 
   private suspend fun updateResourceToDatabase(resource: Resource) {
-    fhirEngine.update(resource)
+    enqueueResourceOperation(resource, ResourceOperationType.UPDATE)
   }
 
   private suspend fun createResourceToDatabase(resource: Resource) {
-    fhirEngine.create(resource)
+    enqueueResourceOperation(resource, ResourceOperationType.CREATE)
+  }
+
+  private suspend fun enqueueResourceOperation(
+    resource: Resource,
+    type: ResourceOperationType,
+  ) {
+    val pending = pendingResourceOperations
+    if (pending != null) {
+      pending += PendingResourceOperation(resource, type, resource.toOperationPriority())
+    } else {
+      performResourceOperation(resource, type)
+    }
+  }
+
+  private suspend fun flushPendingResourceOperations() {
+    val pending = pendingResourceOperations ?: return
+    val (cancellations, others) =
+      pending.partition { it.priority == ResourceOperationPriority.CANCELLATION }
+
+    cancellations.forEach { performResourceOperation(it.resource, it.type) }
+    others.forEach { performResourceOperation(it.resource, it.type) }
+
+    pending.clear()
+  }
+
+  private suspend fun performResourceOperation(
+    resource: Resource,
+    type: ResourceOperationType,
+  ) {
+    when (type) {
+      ResourceOperationType.CREATE -> fhirEngine.create(resource)
+      ResourceOperationType.UPDATE -> fhirEngine.update(resource)
+    }
+  }
+
+  private fun Resource.toOperationPriority(): ResourceOperationPriority {
+    return if (this is Observation && this.status == Observation.ObservationStatus.CANCELLED) {
+      ResourceOperationPriority.CANCELLATION
+    } else {
+      ResourceOperationPriority.DEFAULT
+    }
+  }
+
+  private data class PendingResourceOperation(
+    val resource: Resource,
+    val type: ResourceOperationType,
+    val priority: ResourceOperationPriority,
+  )
+
+  private enum class ResourceOperationType {
+    CREATE,
+    UPDATE,
+  }
+
+  private enum class ResourceOperationPriority {
+    CANCELLATION,
+    DEFAULT,
   }
 }

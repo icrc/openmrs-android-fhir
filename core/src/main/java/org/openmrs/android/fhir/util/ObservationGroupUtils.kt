@@ -360,17 +360,29 @@ internal fun findObservationChildInfo(
     return candidateInfos.first()
   }
 
-  val matchingInfos =
-    candidateInfos.filter { info ->
-      info.expectedValueTokens.isEmpty() ||
-        observationTokens.any { token -> info.expectedValueTokens.contains(token) }
+  data class MatchResult(
+    val info: ObservationChildInfo,
+    val matchedTokens: Set<String>,
+  )
+
+  val matches =
+    candidateInfos.map { info ->
+      val matchedTokens = observationTokens.intersect(info.expectedValueTokens)
+      MatchResult(info, matchedTokens)
     }
 
-  return when {
-    matchingInfos.size == 1 -> matchingInfos.first()
-    matchingInfos.isNotEmpty() -> matchingInfos.first()
-    else -> candidateInfos.first()
+  val positiveMatches = matches.filter { it.matchedTokens.isNotEmpty() }
+  if (positiveMatches.isNotEmpty()) {
+    val bestMatchSize = positiveMatches.maxOf { it.matchedTokens.size }
+    return positiveMatches.first { it.matchedTokens.size == bestMatchSize }.info
   }
+
+  val emptyExpectationMatches = matches.filter { it.info.expectedValueTokens.isEmpty() }
+  if (emptyExpectationMatches.isNotEmpty()) {
+    return emptyExpectationMatches.first().info
+  }
+
+  return candidateInfos.first()
 }
 
 /**
@@ -388,18 +400,21 @@ internal fun collectObservationChildInfos(
   collectResponseItems(questionnaireResponse.item, responseItemsByLinkId)
 
   data class GroupContext(
-    val valueLinkIds: MutableSet<String> = mutableSetOf(),
+    val questionnaireGroup: Questionnaire.QuestionnaireItemComponent,
+    val responseGroup: QuestionnaireResponse.QuestionnaireResponseItemComponent?,
   )
 
   val groupStack = mutableListOf<GroupContext>()
   val childInfos = mutableListOf<ObservationChildInfo>()
 
-  fun traverse(item: Questionnaire.QuestionnaireItemComponent) {
+  fun traverse(
+    item: Questionnaire.QuestionnaireItemComponent,
+    responseCandidates: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>,
+  ) {
     val currentContext = groupStack.lastOrNull()
-
-    if (currentContext != null && item.isObservationValueItem()) {
-      currentContext.valueLinkIds.add(item.linkId)
-    }
+    val responseItem =
+      responseCandidates.firstOrNull { it.linkId == item.linkId }
+        ?: responseItemsByLinkId[item.linkId]
 
     if (item.hasObservationChildExtension()) {
       val parentCoding = item.observationParentCoding() ?: return
@@ -412,10 +427,14 @@ internal fun collectObservationChildInfos(
         return
       }
       val valueTokens =
-        currentContext
-          ?.valueLinkIds
-          ?.flatMap { linkId -> responseItemsByLinkId[linkId]?.answerTokens() ?: emptySet() }
-          ?.toSet()
+        currentContext?.let {
+          collectSiblingValueTokens(
+            it.questionnaireGroup,
+            it.responseGroup,
+            item,
+            responseItemsByLinkId,
+          )
+        }
           ?: emptySet()
       childInfos.add(
         ObservationChildInfo(
@@ -428,16 +447,18 @@ internal fun collectObservationChildInfos(
       )
     }
 
+    val childResponseItems = responseItem.childResponseItems()
+
     if (item.type == Questionnaire.QuestionnaireItemType.GROUP) {
-      groupStack.add(GroupContext())
-      item.item.forEach { traverse(it) }
+      groupStack.add(GroupContext(item, responseItem))
+      item.item.forEach { traverse(it, childResponseItems) }
       groupStack.removeAt(groupStack.lastIndex)
     } else {
-      item.item.forEach { traverse(it) }
+      item.item.forEach { traverse(it, childResponseItems) }
     }
   }
 
-  questionnaire.item.forEach { traverse(it) }
+  questionnaire.item.forEach { traverse(it, questionnaireResponse.item) }
 
   return childInfos
 }
@@ -452,7 +473,98 @@ private fun collectResponseItems(
       result[linkId] = item
     }
     collectResponseItems(item.item, result)
+    item.answer.forEach { collectResponseItems(it.item, result) }
   }
+}
+
+private fun collectSiblingValueTokens(
+  parentGroup: Questionnaire.QuestionnaireItemComponent,
+  parentResponse: QuestionnaireResponse.QuestionnaireResponseItemComponent?,
+  childItem: Questionnaire.QuestionnaireItemComponent,
+  responseItemsByLinkId: Map<String, QuestionnaireResponse.QuestionnaireResponseItemComponent>,
+): Set<String> {
+  if (!childItem.linkId.isNullOrBlank() && childItem !in parentGroup.item) {
+    return emptySet()
+  }
+
+  val childLinkId = childItem.linkId.orEmpty()
+  if (childLinkId.isBlank()) {
+    return emptySet()
+  }
+
+  val siblingResponsesByLinkId =
+    parentResponse
+      .childResponseItems()
+      .mapNotNull { response ->
+        val linkId = response.linkId
+        if (linkId.isNullOrBlank()) {
+          null
+        } else {
+          linkId to response
+        }
+      }
+      .groupBy({ it.first }, { it.second })
+
+  val tokens = mutableSetOf<String>()
+
+  parentGroup.item.forEach { sibling ->
+    if (sibling === childItem) {
+      return@forEach
+    }
+
+    if (!sibling.isObservationValueItem()) {
+      return@forEach
+    }
+
+    val valueLinkId = sibling.linkId
+    if (valueLinkId.isNullOrBlank()) {
+      return@forEach
+    }
+
+    if (!linkIdMatches(childLinkId, valueLinkId)) {
+      return@forEach
+    }
+
+    siblingResponsesByLinkId[valueLinkId]?.forEach { tokens.addAll(it.collectAnswerTokensDeep()) }
+    responseItemsByLinkId[valueLinkId]?.let { tokens.addAll(it.collectAnswerTokensDeep()) }
+  }
+
+  return tokens
+}
+
+private fun QuestionnaireResponse.QuestionnaireResponseItemComponent.collectAnswerTokensDeep():
+  Set<String> {
+  val tokens = mutableSetOf<String>()
+  tokens.addAll(answerTokens())
+  item.forEach { tokens.addAll(it.collectAnswerTokensDeep()) }
+  answer.forEach { answerComponent ->
+    answerComponent.item.forEach { tokens.addAll(it.collectAnswerTokensDeep()) }
+  }
+  return tokens
+}
+
+private fun linkIdMatches(childLinkId: String, valueLinkId: String): Boolean {
+  if (childLinkId == valueLinkId) {
+    return true
+  }
+
+  val delimiters = listOf("-", "_")
+  return delimiters.any { delimiter ->
+    childLinkId.startsWith("$valueLinkId$delimiter") ||
+      valueLinkId.startsWith("$childLinkId$delimiter")
+  }
+}
+
+private fun QuestionnaireResponse.QuestionnaireResponseItemComponent?.childResponseItems():
+  List<QuestionnaireResponse.QuestionnaireResponseItemComponent> {
+  if (this == null) {
+    return emptyList()
+  }
+
+  val children = mutableListOf<QuestionnaireResponse.QuestionnaireResponseItemComponent>()
+  children.addAll(item)
+  answer.forEach { children.addAll(it.item) }
+  return children
 }
 
 private fun resolveChildCodingKeys(
