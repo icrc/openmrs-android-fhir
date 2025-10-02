@@ -526,7 +526,6 @@ class MainActivity : AppCompatActivity() {
     BiometricUtils.deleteBiometricKey(applicationContext)
     checkAndDeleteLogFile(applicationContext)
     clearApplicationFiles()
-    applicationContext.dataStore.edit { it.clear() }
   }
 
   private fun clearApplicationFiles() {
