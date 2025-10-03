@@ -98,8 +98,8 @@ class ApiManager @Inject constructor(context: Context) : Api {
       .create(FhirApiService::class.java)
   }
 
-  override suspend fun setLocationSession(sessionLocation: SessionLocation): ApiResponse<Any> {
-    return executeApiHelper { apiService.setLocationSession(sessionLocation) }
+  override suspend fun setLocationSession(sessionLocationMap: SessionLocation): ApiResponse<Any> {
+    return executeApiHelper { apiService.setLocationSession(sessionLocationMap) }
   }
 
   override suspend fun getIdentifier(idType: String): ApiResponse<IdentifierWrapper> {
