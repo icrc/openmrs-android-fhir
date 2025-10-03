@@ -57,6 +57,7 @@ import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
+import org.hl7.fhir.r4.model.codesystems.ConditionCategory
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.OpenMRSHelper
@@ -66,6 +67,10 @@ import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
+import org.openmrs.android.fhir.util.ParentKey
+import org.openmrs.android.fhir.util.buildObservationGroupLookup
+import org.openmrs.android.fhir.util.createParentObservation
+import org.openmrs.android.fhir.util.updateParentReference
 
 /** ViewModel for Generic questionnaire screen {@link GenericFormEntryFragment}. */
 class GenericFormEntryViewModel
@@ -212,6 +217,7 @@ constructor(
         bundle,
         patientReference,
         questionnaire,
+        questionnaireResponse,
         encounterId,
         visit.idPart,
         encounterDate,
@@ -224,6 +230,7 @@ constructor(
     bundle: Bundle,
     patientReference: Reference,
     questionnaire: Questionnaire,
+    questionnaireResponse: QuestionnaireResponse,
     encounterId: String,
     visitId: String,
     encounterDate: Date,
@@ -288,40 +295,31 @@ constructor(
         }
       }
 
-    bundle.entry.forEach {
-      when (val resource = it.resource) {
+    val observationGroupLookup = buildObservationGroupLookup(questionnaire, questionnaireResponse)
+    val parentObservationsByKey = mutableMapOf<ParentKey, Observation>()
+    val observationsToSave = mutableListOf<Observation>()
+
+    bundle.entry.forEach { entry ->
+      when (val resource = entry.resource) {
         is Observation -> {
           if (resource.hasCode() && resource.hasValue()) {
-            when (val value = resource.value) {
-              is CodeableConcept -> {
-                val codings = value.coding
-                codings.forEach { coding ->
-                  val obs =
-                    Observation().apply {
-                      id = generateUuid()
-                      code = resource.code
-                      subject = patientReference
-                      encounter = encounterReference
-                      status = Observation.ObservationStatus.FINAL
-                      effective = nowUtcDateTime()
-                      this.value = CodeableConcept().addCoding(coding)
-                    }
-                  saveResourceToDatabase(obs)
-                }
-              }
-              else -> {
-                val obs =
-                  Observation().apply {
-                    id = generateUuid()
-                    code = resource.code
-                    subject = patientReference
-                    encounter = encounterReference
-                    status = Observation.ObservationStatus.FINAL
-                    effective = nowUtcDateTime()
-                    this.value = value
+            val observationEntities =
+              createObservationEntities(resource, patientReference, encounterReference)
+            observationEntities.forEach { observation ->
+              val matchingInfo = observationGroupLookup.findChildInfo(observation)
+              if (matchingInfo != null) {
+                val parentKey = ParentKey(matchingInfo.parentCodingKey)
+                val parentObservation =
+                  parentObservationsByKey.getOrPut(parentKey) {
+                    createParentObservation(
+                      matchingInfo,
+                      patientReference,
+                      encounterReference,
+                    )
                   }
-                saveResourceToDatabase(obs)
+                observation.updateParentReference(parentObservation)
               }
+              observationsToSave.add(observation)
             }
           }
         }
@@ -330,12 +328,49 @@ constructor(
             resource.id = generateUuid()
             resource.subject = patientReference
             resource.encounter = encounterReference
+            // Current requirement for encounter-diagnosis only.
+            resource.category =
+              listOf(
+                CodeableConcept().apply {
+                  coding =
+                    listOf(
+                      Coding().apply {
+                        system = Constants.CONDITION_CATEGORY_SYSTEM_URL
+                        code = ConditionCategory.ENCOUNTERDIAGNOSIS.toCode()
+                        display = ConditionCategory.ENCOUNTERDIAGNOSIS.display
+                      },
+                    )
+                },
+              )
             saveResourceToDatabase(resource)
           }
         }
       }
     }
+
+    parentObservationsByKey.values.forEach { saveResourceToDatabase(it) }
+    observationsToSave.forEach { saveResourceToDatabase(it) }
   }
+
+  private fun createObservationEntities(
+    resource: Observation,
+    patientReference: Reference,
+    encounterReference: Reference,
+  ): List<Observation> =
+    resource.value?.let { value ->
+      listOf(
+        Observation().apply {
+          id = generateUuid()
+          code = resource.code.copy()
+          subject = patientReference
+          encounter = encounterReference
+          status = Observation.ObservationStatus.FINAL
+          effective = nowUtcDateTime()
+          this.value = value.copy()
+        },
+      )
+    }
+      ?: emptyList()
 
   private suspend fun saveResourceToDatabase(resource: Resource) {
     fhirEngine.create(resource)

@@ -516,7 +516,9 @@ class MainActivity : AppCompatActivity() {
    * Clears app data except AuthStateManager's datastore
    */
   private suspend fun clearAppData() {
-    WorkManager.getInstance(this@MainActivity).cancelAllWork()
+    val workManager = WorkManager.getInstance(this@MainActivity)
+    workManager.cancelAllWork()
+    workManager.pruneWork()
     fhirEngine.clearDatabase()
     demoDataStore.clearAll()
     database.clearAllTables()
@@ -533,7 +535,14 @@ class MainActivity : AppCompatActivity() {
         applicationContext.cacheDir,
         applicationContext.getExternalFilesDir(null),
       )
-    dirs.forEach { dir -> dir?.listFiles()?.forEach { file -> file.deleteRecursively() } }
+    dirs.forEach { dir ->
+      dir?.listFiles()?.forEach { file ->
+        if (dir == applicationContext.filesDir && file.name == "datastore") {
+          return@forEach
+        }
+        file.deleteRecursively()
+      }
+    }
   }
 
   private fun handleAuthNavigation(
