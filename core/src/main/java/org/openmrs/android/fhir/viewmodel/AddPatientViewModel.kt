@@ -39,11 +39,13 @@ import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
+import com.google.android.fhir.get
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.CodeableConcept
+import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
@@ -60,6 +62,7 @@ import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
+import timber.log.Timber
 
 /** ViewModel for patient registration screen {@link AddPatientFragment}. */
 class AddPatientViewModel
@@ -159,8 +162,53 @@ constructor(
       patient.extension = personAttributeExtensions
 
       fhirEngine.create(patient)
+      addPatientToSelectedPatientList(patient)
       isPatientSaved.value = true
       saveInProgress = false
+    }
+  }
+
+  private suspend fun addPatientToSelectedPatientList(patient: Patient) {
+    val selectedPatientListId =
+      applicationContext.dataStore.data
+        .first()[PreferenceKeys.SELECTED_PATIENT_LISTS]
+        ?.firstOrNull()
+        ?: return
+
+    try {
+      val group = fhirEngine.get<Group>(selectedPatientListId)
+      val patientReference =
+        Reference().apply {
+          reference = "Patient/${patient.id}"
+          type = ResourceType.Patient.name
+          display =
+            buildString {
+                val patientName =
+                  if (patient.hasName()) patient.nameFirstRep.nameAsSingleString else ""
+                if (patientName.isNotBlank()) {
+                  append(patientName)
+                }
+                val identifierValue = patient.identifier.firstOrNull()?.value
+                if (!identifierValue.isNullOrBlank()) {
+                  if (isNotEmpty()) {
+                    append(" ")
+                  }
+                  append("(ID: $identifierValue)")
+                }
+              }
+              .takeIf { it.isNotBlank() }
+        }
+
+      val isAlreadyMember =
+        group.member.any { member -> member.entity.reference == patientReference.reference }
+
+      if (!isAlreadyMember) {
+        group.addMember(Group.GroupMemberComponent().apply { entity = patientReference })
+        group.quantity = group.member.size
+        fhirEngine.update(group)
+      }
+    } catch (exception: Exception) {
+      Timber.e(exception, "Failed to add patient to group %s", selectedPatientListId)
     }
   }
 
