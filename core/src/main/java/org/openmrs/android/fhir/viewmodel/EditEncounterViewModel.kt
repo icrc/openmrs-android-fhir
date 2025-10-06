@@ -50,6 +50,7 @@ import kotlin.collections.forEach
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
+import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Condition
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
@@ -59,6 +60,8 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.StringType
+import org.hl7.fhir.r4.model.codesystems.ConditionCategory
+import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
@@ -66,6 +69,16 @@ import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getJsonFileNames
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
 import org.openmrs.android.fhir.extensions.readFileFromAssets
+import org.openmrs.android.fhir.util.ExistingObservationIndex
+import org.openmrs.android.fhir.util.ObservationChildInfo
+import org.openmrs.android.fhir.util.ObservationGroupLookup
+import org.openmrs.android.fhir.util.ParentEnsureResult
+import org.openmrs.android.fhir.util.ParentObservationTracker
+import org.openmrs.android.fhir.util.buildObservationGroupLookup
+import org.openmrs.android.fhir.util.handleUnchangedChild
+import org.openmrs.android.fhir.util.markExistingParentAmended
+import org.openmrs.android.fhir.util.observationReferenceId
+import org.openmrs.android.fhir.util.updateParentReference
 import timber.log.Timber
 
 class EditEncounterViewModel
@@ -88,6 +101,8 @@ constructor(
 
   val isResourcesSaved = MutableLiveData<String>()
   val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+
+  private var pendingResourceOperations: MutableList<PendingResourceOperation>? = null
 
   fun prepareEditEncounter(encounterId: String, encounterType: String) {
     viewModelScope.launch {
@@ -189,17 +204,19 @@ constructor(
         }
       }
 
-      if (questionnaire == null) {
-        isResourcesSaved.value = "ERROR"
-        return@launch
-      }
+      val questionnaireResource =
+        questionnaire
+          ?: run {
+            isResourcesSaved.value = "ERROR"
+            return@launch
+          }
 
       convertDateAnswersToUtcDateTime(questionnaireResponse)
-      val bundle = ResourceMapper.extract(questionnaire as Questionnaire, questionnaireResponse)
+      val bundle = ResourceMapper.extract(questionnaireResource, questionnaireResponse)
 
       if (
         QuestionnaireResponseValidator.validateQuestionnaireResponse(
-            questionnaire as Questionnaire,
+            questionnaire,
             questionnaireResponse,
             applicationContext,
           )
@@ -211,22 +228,40 @@ constructor(
         return@launch
       }
 
-      saveResources(encounterId, bundle)
+      saveResources(encounterId, bundle, questionnaireResource, questionnaireResponse)
     }
   }
 
-  private suspend fun saveResources(encounterId: String, bundle: Bundle) {
+  private suspend fun saveResources(
+    encounterId: String,
+    bundle: Bundle,
+    questionnaire: Questionnaire,
+    questionnaireResponse: QuestionnaireResponse,
+  ) {
+    pendingResourceOperations = mutableListOf()
     try {
       val encounterReference = Reference("Encounter/$encounterId")
       val encounterSubject = fhirEngine.get<Encounter>(encounterId).subject
       val observations = getObservationsEncounterId(encounterId)
       val conditions = getConditionsEncounterId(encounterId)
 
-      bundle.entry.forEach {
-        when (val resource = it.resource) {
+      val observationGroupLookup = buildObservationGroupLookup(questionnaire, questionnaireResponse)
+      val observationIndex =
+        ExistingObservationIndex(observationGroupLookup.parentCodingKeys, observations)
+      val parentTracker = ParentObservationTracker()
+
+      bundle.entry.forEach { entry ->
+        when (val resource = entry.resource) {
           is Observation -> {
             if (resource.hasCode()) {
-              handleObservation(resource, encounterReference, encounterSubject, observations)
+              handleObservation(
+                resource,
+                encounterReference,
+                encounterSubject,
+                observationGroupLookup,
+                observationIndex,
+                parentTracker,
+              )
             }
           }
           is Condition -> {
@@ -236,10 +271,25 @@ constructor(
           }
         }
       }
+
+      cancelRemainingChildObservations(observationIndex, parentTracker)
+
+      val parentIdsToCancel = observationIndex.originalParentIds - parentTracker.touchedIds()
+      parentIdsToCancel.forEach { parentId ->
+        val parentObservation = observationIndex.parentById(parentId) ?: return@forEach
+        parentObservation.status = Observation.ObservationStatus.CANCELLED
+        parentObservation.effective = nowUtcDateTime()
+        updateResourceToDatabase(parentObservation)
+      }
+
+      flushPendingResourceOperations()
       isResourcesSaved.value = "SAVED"
     } catch (e: Exception) {
       Timber.e(e.localizedMessage)
       isResourcesSaved.value = "MISSING"
+      pendingResourceOperations?.clear()
+    } finally {
+      pendingResourceOperations = null
     }
   }
 
@@ -247,84 +297,195 @@ constructor(
     resource: Observation,
     encounterReference: Reference,
     subjectReference: Reference,
-    observations: List<Observation>,
+    observationGroupLookup: ObservationGroupLookup,
+    observationIndex: ExistingObservationIndex,
+    parentTracker: ParentObservationTracker,
   ) {
     if (!resource.hasCode() || !resource.hasValue()) return
 
-    val matching =
-      observations.filter { obs ->
-        obs.code.coding.any { c -> c.code == resource.code.codingFirstRep.code }
+    val matchingInfo = observationGroupLookup.findChildInfo(resource)
+    val parentResult =
+      if (matchingInfo != null) {
+        observationIndex.ensureParentObservation(
+          matchingInfo,
+          parentTracker,
+          subjectReference,
+          encounterReference,
+          ::createResourceToDatabase,
+        )
+      } else {
+        null
       }
 
     when (val value = resource.value) {
       is StringType,
       is Quantity, -> {
-        val existing = matching.firstOrNull()
-        if (existing != null) {
-          if (existing.value.equalsDeep(value)) return // same value → do nothing
-
-          // amend
-          existing.status = Observation.ObservationStatus.AMENDED
-          existing.value = value
-          existing.effective = nowUtcDateTime()
-          updateResourceToDatabase(existing)
-        } else {
-          // new resource
-          resource.id = generateUuid()
-          resource.subject = subjectReference
-          resource.encounter = encounterReference
-          resource.status = Observation.ObservationStatus.FINAL
-          resource.effective = nowUtcDateTime()
-          createResourceToDatabase(resource)
-        }
+        upsertSingleValueObservation(
+          resource,
+          subjectReference,
+          encounterReference,
+          parentResult,
+          observationIndex,
+          parentTracker,
+          matchingInfo,
+        )
       }
       is CodeableConcept -> {
-        val codings = value.coding
-
-        if (codings.size <= 1) {
-          val existing = matching.firstOrNull()
-          if (existing != null && existing.value.equalsDeep(value)) return
-
-          // amend or create
-          val target = existing ?: Observation()
-          target.id = existing?.id ?: generateUuid()
-          target.code = resource.code
-          target.subject = subjectReference
-          target.encounter = encounterReference
-          target.status =
-            if (existing != null) {
-              Observation.ObservationStatus.AMENDED
-            } else {
-              Observation.ObservationStatus.FINAL
-            }
-          target.effective = nowUtcDateTime()
-          target.value = value
-
-          if (existing != null) {
-            updateResourceToDatabase(target)
-          } else {
-            createResourceToDatabase(target)
-          }
-        } else {
-          // purge all existing and create fresh one-per-coding
-          matching.forEach { fhirEngine.purge(it.resourceType, it.idElement.idPart) }
-
-          codings.forEach { coding ->
-            val obs =
-              Observation().apply {
-                id = generateUuid()
-                code = resource.code
-                subject = subjectReference
-                encounter = encounterReference
-                status = Observation.ObservationStatus.FINAL
-                effective = nowUtcDateTime()
-              }
-            obs.setValue(CodeableConcept().apply { addCoding(coding) })
-            createResourceToDatabase(obs)
-          }
-        }
+        upsertCodeableConceptObservation(
+          resource,
+          subjectReference,
+          encounterReference,
+          value,
+          parentResult,
+          observationIndex,
+          parentTracker,
+          matchingInfo,
+        )
       }
       else -> {}
+    }
+  }
+
+  private suspend fun upsertSingleValueObservation(
+    template: Observation,
+    subjectReference: Reference,
+    encounterReference: Reference,
+    parentResult: ParentEnsureResult?,
+    observationIndex: ExistingObservationIndex,
+    parentTracker: ParentObservationTracker,
+    childInfo: ObservationChildInfo?,
+  ) {
+    val value = template.value ?: return
+    val parent = parentResult?.parent
+    val existing = observationIndex.findExisting(template, childInfo, parent)
+    if (existing != null) {
+      val parentChanged = existing.updateParentReference(parent)
+      if (!parentChanged && existing.value.equalsDeep(value)) {
+        parentResult.handleUnchangedChild(parentTracker, ::updateResourceToDatabase)
+        return
+      }
+      parentResult.markExistingParentAmended(parentTracker, ::updateResourceToDatabase)
+      existing.status = Observation.ObservationStatus.AMENDED
+      existing.value = value.copy()
+      existing.effective = nowUtcDateTime()
+      if (!parentChanged) {
+        existing.updateParentReference(parent)
+      }
+      updateResourceToDatabase(existing)
+    } else {
+      val newObservation =
+        Observation().apply {
+          id = generateUuid()
+          code = template.code.copy()
+          subject = subjectReference
+          encounter = encounterReference
+          status = Observation.ObservationStatus.FINAL
+          effective = nowUtcDateTime()
+          this.value = value.copy()
+        }
+      parentResult.markExistingParentAmended(parentTracker, ::updateResourceToDatabase)
+      newObservation.updateParentReference(parent)
+      createResourceToDatabase(newObservation)
+    }
+  }
+
+  private suspend fun upsertCodeableConceptObservation(
+    template: Observation,
+    subjectReference: Reference,
+    encounterReference: Reference,
+    value: CodeableConcept,
+    parentResult: ParentEnsureResult?,
+    observationIndex: ExistingObservationIndex,
+    parentTracker: ParentObservationTracker,
+    childInfo: ObservationChildInfo?,
+  ) {
+    val codings = value.coding
+    val parent = parentResult?.parent
+    if (codings.size <= 1) {
+      val existing = observationIndex.findExisting(template, childInfo, parent)
+      if (existing != null) {
+        val parentChanged = existing.updateParentReference(parent)
+        if (!parentChanged && existing.value.equalsDeep(value)) {
+          parentResult.handleUnchangedChild(parentTracker, ::updateResourceToDatabase)
+          return
+        }
+        parentResult.markExistingParentAmended(parentTracker, ::updateResourceToDatabase)
+        existing.status = Observation.ObservationStatus.AMENDED
+        existing.value = value.copy()
+        existing.effective = nowUtcDateTime()
+        if (!parentChanged) {
+          existing.updateParentReference(parent)
+        }
+        updateResourceToDatabase(existing)
+      } else {
+        val target =
+          Observation().apply {
+            id = generateUuid()
+            code = template.code.copy()
+            subject = subjectReference
+            encounter = encounterReference
+            status = Observation.ObservationStatus.FINAL
+            effective = nowUtcDateTime()
+            this.value = value.copy()
+          }
+        parentResult.markExistingParentAmended(parentTracker, ::updateResourceToDatabase)
+        target.updateParentReference(parent)
+        createResourceToDatabase(target)
+      }
+    } else {
+      val existingMatches = observationIndex.findAllExisting(codings, childInfo, parent)
+      existingMatches.forEach { existing ->
+        val idPart = existing.idElement.idPart
+        if (!idPart.isNullOrBlank()) {
+          fhirEngine.purge(existing.resourceType, idPart)
+        }
+      }
+
+      parentResult.markExistingParentAmended(parentTracker, ::updateResourceToDatabase)
+      codings.forEach { coding ->
+        val obs =
+          Observation().apply {
+            id = generateUuid()
+            code = template.code.copy()
+            subject = subjectReference
+            encounter = encounterReference
+            status = Observation.ObservationStatus.FINAL
+            effective = nowUtcDateTime()
+            setValue(CodeableConcept().apply { addCoding(coding.copy()) })
+          }
+        obs.updateParentReference(parent)
+        createResourceToDatabase(obs)
+      }
+    }
+  }
+
+  private suspend fun cancelRemainingChildObservations(
+    observationIndex: ExistingObservationIndex,
+    parentTracker: ParentObservationTracker,
+  ) {
+    val remainingChildren = observationIndex.remainingChildObservations()
+    if (remainingChildren.isEmpty()) {
+      return
+    }
+
+    val parentMap = observationIndex.parentObservationsById()
+    remainingChildren.forEach { child ->
+      val parentIdsToAmend =
+        child.partOf
+          .mapNotNull { it.observationReferenceId() }
+          .filter { parentTracker.wasTouched(it) }
+
+      parentIdsToAmend.forEach { parentId ->
+        parentMap[parentId]?.let { parent ->
+          parentTracker.markAmended(parent, ::updateResourceToDatabase)
+        }
+      }
+
+      if (child.status != Observation.ObservationStatus.CANCELLED) {
+        child.status = Observation.ObservationStatus.CANCELLED
+        child.effective = nowUtcDateTime()
+        updateResourceToDatabase(child)
+      }
     }
   }
 
@@ -345,6 +506,19 @@ constructor(
     }
     resource.subject = subjectReference
     resource.encounter = encounterReference
+    resource.category =
+      listOf(
+        CodeableConcept().apply {
+          coding =
+            listOf(
+              Coding().apply {
+                system = Constants.CONDITION_CATEGORY_SYSTEM_URL
+                code = ConditionCategory.ENCOUNTERDIAGNOSIS.toCode()
+                display = ConditionCategory.ENCOUNTERDIAGNOSIS.display
+              },
+            )
+        },
+      )
 
     updateResourceToDatabase(resource)
   }
@@ -366,10 +540,67 @@ constructor(
   }
 
   private suspend fun updateResourceToDatabase(resource: Resource) {
-    fhirEngine.update(resource)
+    enqueueResourceOperation(resource, ResourceOperationType.UPDATE)
   }
 
   private suspend fun createResourceToDatabase(resource: Resource) {
-    fhirEngine.create(resource)
+    enqueueResourceOperation(resource, ResourceOperationType.CREATE)
+  }
+
+  private suspend fun enqueueResourceOperation(
+    resource: Resource,
+    type: ResourceOperationType,
+  ) {
+    val pending = pendingResourceOperations
+    if (pending != null) {
+      pending += PendingResourceOperation(resource, type, resource.toOperationPriority())
+    } else {
+      performResourceOperation(resource, type)
+    }
+  }
+
+  private suspend fun flushPendingResourceOperations() {
+    val pending = pendingResourceOperations ?: return
+    val (cancellations, others) =
+      pending.partition { it.priority == ResourceOperationPriority.CANCELLATION }
+
+    cancellations.forEach { performResourceOperation(it.resource, it.type) }
+    others.forEach { performResourceOperation(it.resource, it.type) }
+
+    pending.clear()
+  }
+
+  private suspend fun performResourceOperation(
+    resource: Resource,
+    type: ResourceOperationType,
+  ) {
+    when (type) {
+      ResourceOperationType.CREATE -> fhirEngine.create(resource)
+      ResourceOperationType.UPDATE -> fhirEngine.update(resource)
+    }
+  }
+
+  private fun Resource.toOperationPriority(): ResourceOperationPriority {
+    return if (this is Observation && this.status == Observation.ObservationStatus.CANCELLED) {
+      ResourceOperationPriority.CANCELLATION
+    } else {
+      ResourceOperationPriority.DEFAULT
+    }
+  }
+
+  private data class PendingResourceOperation(
+    val resource: Resource,
+    val type: ResourceOperationType,
+    val priority: ResourceOperationPriority,
+  )
+
+  private enum class ResourceOperationType {
+    CREATE,
+    UPDATE,
+  }
+
+  private enum class ResourceOperationPriority {
+    CANCELLATION,
+    DEFAULT,
   }
 }
