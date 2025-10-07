@@ -20,6 +20,9 @@ gpr.key=<A GitHub token>
 # flag to show review page before submitting questionnaire
 show_review_page_before_submit=true
 
+# flag to scope patient lists by selected location group
+filter_patient_lists_by_group=false
+
 #Flag to fetch identifiers on android side
 fetch_identifiers=true
 

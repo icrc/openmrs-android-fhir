@@ -40,9 +40,14 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Group
+import org.hl7.fhir.r4.model.Reference
+import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.sync.GroupFhirSyncWorker
 
 class SelectPatientListViewModel
@@ -60,10 +65,20 @@ constructor(
 
   fun getSelectPatientListItems() {
     viewModelScope.launch {
+      val filterPatientListsByGroup =
+        applicationContext.resources.getBoolean(R.bool.filter_patient_lists_by_group)
+      val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
       val selectPatientListItemList: MutableList<SelectPatientListItem> = mutableListOf()
-      fhirEngine
-        .search<Group> {}
-        .mapIndexed { index, fhirGroup -> fhirGroup.resource.toSelectPatientListItem(index + 1) }
+      val groups = fhirEngine.search<Group> {}.map { it.resource }
+      val filteredGroups =
+        if (filterPatientListsByGroup) {
+          groups.filter { it.belongsToLocation(locationId) }
+        } else {
+          groups
+        }
+
+      filteredGroups
+        .mapIndexed { index, group -> group.toSelectPatientListItem(index + 1) }
         .let { selectPatientListItemList.addAll(it) }
       masterSelectPatientListItemList = selectPatientListItemList
       selectPatientListItems.value = selectPatientListItemList
@@ -88,6 +103,33 @@ constructor(
       resourceId = idElement.idPart,
       name = name,
     )
+  }
+
+  private fun Group.belongsToLocation(locationId: String?): Boolean {
+    if (locationId.isNullOrBlank()) {
+      return true
+    }
+
+    return extension
+      .mapNotNull { it.extractLocationReferenceId() }
+      .any { it.equals(locationId, ignoreCase = true) }
+  }
+
+  private fun org.hl7.fhir.r4.model.Extension.extractLocationReferenceId(): String? {
+    if (url != GROUP_LOCATION_EXTENSION_URL) {
+      return null
+    }
+
+    val reference = value as? Reference ?: return null
+    val referenceValue = reference.reference ?: return null
+
+    return referenceValue.substringAfter("Location/", missingDelimiterValue = "").takeIf {
+      it.isNotBlank()
+    }
+  }
+
+  companion object {
+    private const val GROUP_LOCATION_EXTENSION_URL = "http://fhir.openmrs.org/ext/group/location"
   }
 
   data class SelectPatientListItem(

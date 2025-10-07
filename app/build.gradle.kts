@@ -46,6 +46,7 @@ android {
     setResValue(providers, "registration_questionnaire_name", this)
 
     setResValue(providers, "show_review_page_before_submit", this, "bool")
+    setResValue(providers, "filter_patient_lists_by_group", this, "bool")
     setResValue(providers, "fetch_identifiers", this, "bool")
     setResValue(providers, "diagnostics_password", this)
   }

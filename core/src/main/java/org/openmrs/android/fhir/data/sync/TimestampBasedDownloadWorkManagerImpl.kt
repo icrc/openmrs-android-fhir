@@ -62,28 +62,51 @@ class TimestampBasedDownloadWorkManagerImpl(
     val syncUrls = context.getString(R.string.fhir_sync_urls).split(',')
     val firstTimeUrls = context.getString(R.string.first_fhir_sync_url).split(',')
 
+    val shouldFilterGroupsByLocation =
+      context.resources.getBoolean(R.bool.filter_patient_lists_by_group)
+    val selectedLocationId =
+      if (shouldFilterGroupsByLocation) {
+        runBlocking {
+          context.applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+        }
+      } else {
+        null
+      }
+
     val urlList =
       (firstTimeUrls + syncUrls).distinctBy { url ->
         resourceTypeList.find { resourceType -> url.startsWith(resourceType, ignoreCase = true) }
       }
 
     return urlList.map { url ->
-      if (url.contains("_has:Group:member:id=")) {
+      var updatedUrl = url
+
+      if (
+        shouldFilterGroupsByLocation &&
+          !selectedLocationId.isNullOrBlank() &&
+          updatedUrl.substringBefore("?").equals(ResourceType.Group.name, ignoreCase = true) &&
+          !updatedUrl.contains("locations=")
+      ) {
+        val separator = if (updatedUrl.contains("?")) "&" else "?"
+        updatedUrl = "$updatedUrl${separator}locations=$selectedLocationId"
+      }
+
+      if (updatedUrl.contains("_has:Group:member:id=")) {
         val selectedPatientLists = runBlocking {
           context.applicationContext.dataStore.data
             .first()[PreferenceKeys.Companion.SELECTED_PATIENT_LISTS]
         }
 
         if (selectedPatientLists.isNullOrEmpty()) {
-          url.replace("_has:Group:member:id=&", "")
+          updatedUrl.replace("_has:Group:member:id=&", "")
         } else {
-          url.replace(
+          updatedUrl.replace(
             "?_has:Group:member:id=",
             "?_has:Group:member:id=" + selectedPatientLists.joinToString(","),
           )
         }
       } else {
-        url
+        updatedUrl
       }
     }
   }

@@ -52,5 +52,6 @@
   ]
 }</string>
   <bool name="show_review_page_before_submit">true</bool>
+  <bool name="filter_patient_lists_by_group">true</bool>
   <bool name="fetch_identifiers">true</bool>
 </resources>
