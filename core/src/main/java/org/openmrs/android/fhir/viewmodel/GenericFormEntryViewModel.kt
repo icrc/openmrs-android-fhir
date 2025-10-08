@@ -37,6 +37,7 @@ import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
@@ -88,22 +89,27 @@ constructor(
   }
 
   private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-  private val _questionnaire = MutableLiveData<Questionnaire>()
-  val questionnaire: LiveData<Questionnaire> = _questionnaire
+  private val _questionnaire = MutableLiveData<Questionnaire?>()
+  val questionnaire: LiveData<Questionnaire?> = _questionnaire
   private val _questionnaireJson = MutableLiveData<String>()
   val questionnaireJson: LiveData<String> = _questionnaireJson
   val isResourcesSaved = MutableLiveData<String>()
   val encounterType = getEncounterTypeValue()
   val isLoading = MutableLiveData<Boolean>()
 
-  fun getEncounterQuestionnaire(questionnaireId: String) {
+  fun getEncounterQuestionnaire(questionnaireId: String, isGroupFormEntry: Boolean = false) {
     viewModelScope.launch {
-      _questionnaire.value =
+      val fetchedQuestionnaire =
         fhirEngine.getQuestionnaireOrFromAssets(
           questionnaireId,
           applicationContext,
           parser,
         )
+      if (isGroupFormEntry) {
+        _questionnaire.value = fetchedQuestionnaire
+      } else if (fetchedQuestionnaire != null) {
+        _questionnaire.value = addEncounterDateQuestionnaireItem(fetchedQuestionnaire)
+      }
       if (_questionnaire.value == null) {
         _questionnaireJson.value = ""
       } else {
@@ -174,12 +180,7 @@ constructor(
         throw IllegalArgumentException("No questionnaire ID provided")
       }
 
-      val questionnaire: Questionnaire? =
-        fhirEngine.getQuestionnaireOrFromAssets(
-          questionnaireId,
-          applicationContext,
-          parser,
-        )
+      val questionnaire: Questionnaire? = _questionnaire.value
 
       if (questionnaire == null) {
         throw IllegalStateException("No questionnaire resource found with ID: $questionnaireId")
@@ -203,7 +204,8 @@ constructor(
       val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
       val patientReference = Reference("Patient/$patientId")
 
-      val encounterDate = sessionDate ?: Date()
+      val encounterDate =
+        sessionDate ?: extractSessionDateFromQuestionnaireResponse(questionnaireResponse)
 
       val visit: Encounter
       visit =
@@ -379,5 +381,36 @@ constructor(
   fun updateQuestionnaire(updated: Questionnaire) {
     _questionnaire.value = updated
     _questionnaireJson.value = parser.encodeResourceToString(updated)
+  }
+
+  private fun addEncounterDateQuestionnaireItem(questionnaire: Questionnaire): Questionnaire {
+    val items = questionnaire.item.toMutableList()
+    items.add(
+      0,
+      Questionnaire.QuestionnaireItemComponent().apply {
+        linkId = "encounterDate"
+        text = "Encounter Date"
+        type = Questionnaire.QuestionnaireItemType.DATETIME
+        required = true
+        initial =
+          mutableListOf(
+            Questionnaire.QuestionnaireItemInitialComponent().apply { value = nowUtcDateTime() },
+          )
+      },
+    )
+    questionnaire.item = items
+    return questionnaire
+  }
+
+  private fun extractSessionDateFromQuestionnaireResponse(
+    questionnaireResponse: QuestionnaireResponse,
+  ): Date {
+    return questionnaireResponse.allItems
+      .firstOrNull { it.linkId == "encounterDate" }
+      ?.answer
+      ?.firstOrNull()
+      ?.valueDateTimeType
+      ?.value
+      ?: Date()
   }
 }
