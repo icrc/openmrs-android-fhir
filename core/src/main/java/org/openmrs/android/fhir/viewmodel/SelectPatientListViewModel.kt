@@ -45,7 +45,6 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Reference
-import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.sync.GroupFhirSyncWorker
@@ -65,8 +64,11 @@ constructor(
 
   fun getSelectPatientListItems() {
     viewModelScope.launch {
-      val filterPatientListsByGroup =
-        applicationContext.resources.getBoolean(R.bool.filter_patient_lists_by_group)
+      // TODO Pending for cohort-module
+      //
+      // val filterPatientListsByGroup =
+      // applicationContext.resources.getBoolean(R.bool.filter_patient_lists_by_group)
+      val filterPatientListsByGroup = false
       val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
       val selectPatientListItemList: MutableList<SelectPatientListItem> = mutableListOf()
       val groups = fhirEngine.search<Group> {}.map { it.resource }

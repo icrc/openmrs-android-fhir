@@ -34,7 +34,7 @@ import org.openmrs.android.fhir.R
 class LocationDownloadWorkManagerImpl(context: Context) : BaseDownloadWorkManagerImpl(context) {
   override fun loadInitialUrls(): List<String> {
     val regex = Regex("(Location\\?[^,]*)")
-    val matchResult = regex.find(context.getString(R.string.fhir_sync_urls))
+    val matchResult = regex.find(context.getString(R.string.first_fhir_sync_url))
     val extractedPart = matchResult?.value ?: "Location?_tag=Login+Location"
     return listOf(extractedPart)
   }

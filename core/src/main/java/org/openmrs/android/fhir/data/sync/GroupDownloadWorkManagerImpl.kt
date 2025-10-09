@@ -38,7 +38,7 @@ import org.openmrs.android.fhir.data.PreferenceKeys
 class GroupDownloadWorkManagerImpl(context: Context) : BaseDownloadWorkManagerImpl(context) {
   override fun loadInitialUrls(): List<String> {
     val regex = Regex("(Group\\?[^,]*)")
-    val matchResult = regex.find(context.getString(R.string.fhir_sync_urls))
+    val matchResult = regex.find(context.getString(R.string.first_fhir_sync_url))
     var extractedPart = matchResult?.value ?: "Group"
 
     if (context.resources.getBoolean(R.bool.filter_patient_lists_by_group)) {
@@ -48,7 +48,7 @@ class GroupDownloadWorkManagerImpl(context: Context) : BaseDownloadWorkManagerIm
 
       if (!selectedLocationId.isNullOrBlank()) {
         val separator = if (extractedPart.contains("?")) "&" else "?"
-        extractedPart = "$extractedPart${separator}locations=$selectedLocationId"
+        extractedPart = "$extractedPart${separator}location=$selectedLocationId"
       }
     }
 

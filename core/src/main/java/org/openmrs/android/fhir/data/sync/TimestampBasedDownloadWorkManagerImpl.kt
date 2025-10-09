@@ -85,10 +85,10 @@ class TimestampBasedDownloadWorkManagerImpl(
         shouldFilterGroupsByLocation &&
           !selectedLocationId.isNullOrBlank() &&
           updatedUrl.substringBefore("?").equals(ResourceType.Group.name, ignoreCase = true) &&
-          !updatedUrl.contains("locations=")
+          !updatedUrl.contains("location=")
       ) {
         val separator = if (updatedUrl.contains("?")) "&" else "?"
-        updatedUrl = "$updatedUrl${separator}locations=$selectedLocationId"
+        updatedUrl = "$updatedUrl${separator}location=$selectedLocationId"
       }
 
       if (updatedUrl.contains("_has:Group:member:id=")) {

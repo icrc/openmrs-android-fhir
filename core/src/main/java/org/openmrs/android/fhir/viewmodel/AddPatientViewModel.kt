@@ -162,7 +162,8 @@ constructor(
       patient.extension = personAttributeExtensions
 
       fhirEngine.create(patient)
-      addPatientToSelectedPatientList(patient)
+      // TODO Pending for cohort-module
+      // addPatientToSelectedPatientList(patient)
       isPatientSaved.value = true
       saveInProgress = false
     }
