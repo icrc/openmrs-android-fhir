@@ -34,20 +34,25 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
 import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import javax.inject.Inject
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
@@ -71,6 +76,7 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
     get() = _binding!!
 
   var fromLogin = false
+  private var filterPatientListsByGroup = false
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -95,24 +101,88 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
     val selectPatientListRecyclerView: RecyclerView = binding.selectPatientListRecylcerView
     selectPatientListRecyclerView.adapter = selectPatientListAdapter
 
+    filterPatientListsByGroup =
+      requireContext().resources.getBoolean(R.bool.filter_patient_lists_by_group)
+
     lifecycleScope.launch {
+      if (!isAdded) {
+        return@launch
+      }
+
+      val appContext = requireContext().applicationContext
+      val preferences = appContext.dataStore.data.first()
+
       actionBar?.title = requireContext().getString(R.string.select_patient_lists)
 
-      val selectedPatientListIds =
-        context
-          ?.applicationContext
-          ?.dataStore
-          ?.data
-          ?.first()
-          ?.get(PreferenceKeys.SELECTED_PATIENT_LISTS)
-
-      selectedPatientListIds?.let { selectedPatientListIds ->
+      preferences[PreferenceKeys.SELECTED_PATIENT_LISTS]?.let { selectedPatientListIds ->
         if (::selectPatientListAdapter.isInitialized) {
           selectPatientListAdapter.selectPatientListItem(selectedPatientListIds)
         }
       }
+
+      configureUi(actionBar)
+
+      if (filterPatientListsByGroup) {
+        selectPatientListViewModel.getSelectPatientListItems()
+        observeSelectedLocation()
+      } else {
+        triggerLegacyInitialSync()
+      }
     }
     observePollState()
+
+    binding.progressBar.visibility = View.VISIBLE
+    selectPatientListViewModel.selectPatientListItems.observe(viewLifecycleOwner) {
+      binding.progressBar.visibility = View.GONE
+      if (::selectPatientListAdapter.isInitialized) {
+        val selectedPatientList = selectPatientListViewModel.getSelectPatientListItemsListFiltered()
+        if (selectedPatientList.isEmpty()) {
+          binding.emptyStateContainer.visibility = View.VISIBLE
+        } else {
+          binding.emptyStateContainer.visibility = View.GONE
+          selectPatientListAdapter.submitList(
+            selectedPatientList,
+          )
+        }
+      }
+    }
+
+    addSearchTextChangeListener()
+  }
+
+  private fun observeSelectedLocation() {
+    if (!filterPatientListsByGroup) {
+      return
+    }
+
+    viewLifecycleOwner.lifecycleScope.launch {
+      viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        val appContext = requireContext().applicationContext
+        appContext.dataStore.data
+          .map { preferences -> preferences[PreferenceKeys.LOCATION_ID] }
+          .distinctUntilChanged()
+          .collect { locationId ->
+            if (!isAdded) return@collect
+            if (isInternetAvailable(requireContext()) && !locationId.isNullOrBlank()) {
+              binding.progressBar.visibility = View.VISIBLE
+              selectPatientListViewModel.fetchPatientListItems()
+            } else {
+              selectPatientListViewModel.getSelectPatientListItems()
+            }
+          }
+      }
+    }
+  }
+
+  private fun proceedToHomeFragment() {
+    (activity as MainActivity).onSyncPress()
+    findNavController()
+      .navigate(
+        SelectPatientListFragmentDirections.actionSelectPatientListFragmentToHomeFragment(),
+      )
+  }
+
+  private fun configureUi(actionBar: ActionBar?) {
     arguments?.let {
       fromLogin = it.getBoolean("from_login")
       if (fromLogin) {
@@ -139,43 +209,27 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
             proceedToHomeFragment()
           }
         }
-        selectPatientListViewModel.getSelectPatientListItems()
       } else {
-        if (isInternetAvailable(requireContext())) {
-          selectPatientListViewModel.fetchPatientListItems()
-        } else {
-          selectPatientListViewModel.getSelectPatientListItems()
-        }
         actionBar?.setDisplayHomeAsUpEnabled(true)
         (activity as MainActivity).setDrawerEnabled(false)
       }
     }
-
-    binding.progressBar.visibility = View.VISIBLE
-    selectPatientListViewModel.selectPatientListItems.observe(viewLifecycleOwner) {
-      binding.progressBar.visibility = View.GONE
-      if (::selectPatientListAdapter.isInitialized) {
-        val selectedPatientList = selectPatientListViewModel.getSelectPatientListItemsListFiltered()
-        if (selectedPatientList.isEmpty()) {
-          binding.emptyStateContainer.visibility = View.VISIBLE
-        } else {
-          binding.emptyStateContainer.visibility = View.GONE
-          selectPatientListAdapter.submitList(
-            selectedPatientList,
-          )
-        }
+      ?: run {
+        actionBar?.setDisplayHomeAsUpEnabled(true)
+        (activity as MainActivity).setDrawerEnabled(false)
       }
-    }
-
-    addSearchTextChangeListener()
   }
 
-  private fun proceedToHomeFragment() {
-    (activity as MainActivity).onSyncPress()
-    findNavController()
-      .navigate(
-        SelectPatientListFragmentDirections.actionSelectPatientListFragmentToHomeFragment(),
-      )
+  private fun triggerLegacyInitialSync() {
+    if (fromLogin) {
+      selectPatientListViewModel.getSelectPatientListItems()
+    } else {
+      if (isInternetAvailable(requireContext())) {
+        selectPatientListViewModel.fetchPatientListItems()
+      } else {
+        selectPatientListViewModel.getSelectPatientListItems()
+      }
+    }
   }
 
   private fun onSelectPatientListItemClicked(

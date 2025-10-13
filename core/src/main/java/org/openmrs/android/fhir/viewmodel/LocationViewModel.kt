@@ -47,6 +47,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Location
 import org.openmrs.android.fhir.FhirApplication
+import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.sync.FirstFhirSyncWorker
@@ -69,9 +70,17 @@ constructor(
 
   fun fetchPreSyncData() {
     viewModelScope.launch {
-      Sync.oneTimeSync<FirstFhirSyncWorker>(applicationContext)
-        .shareIn(this, SharingStarted.Eagerly, 10)
-        .collect { _pollState.emit(it) }
+      val filterPatientListsByGroup =
+        applicationContext.resources.getBoolean(R.bool.filter_patient_lists_by_group)
+
+      val syncFlow =
+        if (filterPatientListsByGroup) {
+          Sync.oneTimeSync<LocationFhirSyncWorker>(applicationContext)
+        } else {
+          Sync.oneTimeSync<FirstFhirSyncWorker>(applicationContext)
+        }
+
+      syncFlow.shareIn(this, SharingStarted.Eagerly, 10).collect { _pollState.emit(it) }
     }
   }
 
