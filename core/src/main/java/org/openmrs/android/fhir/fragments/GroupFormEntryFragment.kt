@@ -109,7 +109,6 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     if (savedInstanceState == null) {
       genericFormEntryViewModel.getEncounterQuestionnaire(
         args.questionnaireId,
-        isGroupFormEntry = true,
       )
     }
     genericFormEntryViewModel.questionnaire.observe(viewLifecycleOwner) {

@@ -51,6 +51,8 @@ import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Condition
+import org.hl7.fhir.r4.model.DateTimeType
+import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Period
@@ -97,19 +99,14 @@ constructor(
   val encounterType = getEncounterTypeValue()
   val isLoading = MutableLiveData<Boolean>()
 
-  fun getEncounterQuestionnaire(questionnaireId: String, isGroupFormEntry: Boolean = false) {
+  fun getEncounterQuestionnaire(questionnaireId: String) {
     viewModelScope.launch {
-      val fetchedQuestionnaire =
+      _questionnaire.value =
         fhirEngine.getQuestionnaireOrFromAssets(
           questionnaireId,
           applicationContext,
           parser,
         )
-      if (isGroupFormEntry) {
-        _questionnaire.value = fetchedQuestionnaire
-      } else if (fetchedQuestionnaire != null) {
-        _questionnaire.value = addEncounterDateQuestionnaireItem(fetchedQuestionnaire)
-      }
       if (_questionnaire.value == null) {
         _questionnaireJson.value = ""
       } else {
@@ -383,34 +380,25 @@ constructor(
     _questionnaireJson.value = parser.encodeResourceToString(updated)
   }
 
-  private fun addEncounterDateQuestionnaireItem(questionnaire: Questionnaire): Questionnaire {
-    val items = questionnaire.item.toMutableList()
-    items.add(
-      0,
-      Questionnaire.QuestionnaireItemComponent().apply {
-        linkId = "encounterDate"
-        text = "Encounter Date"
-        type = Questionnaire.QuestionnaireItemType.DATETIME
-        required = true
-        initial =
-          mutableListOf(
-            Questionnaire.QuestionnaireItemInitialComponent().apply { value = nowUtcDateTime() },
-          )
-      },
-    )
-    questionnaire.item = items
-    return questionnaire
-  }
-
   private fun extractSessionDateFromQuestionnaireResponse(
     questionnaireResponse: QuestionnaireResponse,
   ): Date {
-    return questionnaireResponse.allItems
-      .firstOrNull { it.linkId == "encounterDate" }
-      ?.answer
-      ?.firstOrNull()
-      ?.valueDateTimeType
-      ?.value
-      ?: Date()
+    val encounterDateAnswer =
+      questionnaireResponse.allItems
+        .firstOrNull { it.linkId == "encounter-encounterDate" }
+        ?.answer
+        ?.firstOrNull()
+
+    if (encounterDateAnswer == null) {
+      return Date()
+    }
+
+    if (encounterDateAnswer.value is DateTimeType) {
+      return encounterDateAnswer.valueDateTimeType.value
+    } else if (encounterDateAnswer.value is DateType) {
+      return encounterDateAnswer.valueDateType.value
+    }
+
+    return Date()
   }
 }
