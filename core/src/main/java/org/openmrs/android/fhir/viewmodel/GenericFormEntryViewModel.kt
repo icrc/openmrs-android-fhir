@@ -37,6 +37,7 @@ import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
@@ -50,6 +51,8 @@ import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Condition
+import org.hl7.fhir.r4.model.DateTimeType
+import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Period
@@ -64,9 +67,11 @@ import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
+import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
+import org.openmrs.android.fhir.extensions.utcDateToLocalDate
 import org.openmrs.android.fhir.util.ParentKey
 import org.openmrs.android.fhir.util.buildObservationGroupLookup
 import org.openmrs.android.fhir.util.createParentObservation
@@ -87,9 +92,9 @@ constructor(
     override fun create(handle: SavedStateHandle): GenericFormEntryViewModel
   }
 
-  private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-  private val _questionnaire = MutableLiveData<Questionnaire>()
-  val questionnaire: LiveData<Questionnaire> = _questionnaire
+  val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+  private val _questionnaire = MutableLiveData<Questionnaire?>()
+  val questionnaire: LiveData<Questionnaire?> = _questionnaire
   private val _questionnaireJson = MutableLiveData<String>()
   val questionnaireJson: LiveData<String> = _questionnaireJson
   val isResourcesSaved = MutableLiveData<String>()
@@ -117,6 +122,25 @@ constructor(
       ?.code
       ?.firstOrNull { it.system == "http://fhir.openmrs.org/code-system/encounter-type" }
       ?.code
+  }
+
+  fun prepareEnterEncounter(questionnaire: Questionnaire) {
+    val encounterDateItem = findItemByLinkId(questionnaire.item, "encounter-encounterDate")
+    encounterDateItem?.apply {
+      val initialValue =
+        when (type) {
+          Questionnaire.QuestionnaireItemType.DATE -> DateType(utcDateToLocalDate(Date()))
+          Questionnaire.QuestionnaireItemType.DATETIME -> DateTimeType(utcDateToLocalDate(Date()))
+          else -> null
+        }
+
+      if (initialValue != null) {
+        initial =
+          listOf(
+            Questionnaire.QuestionnaireItemInitialComponent().apply { value = initialValue },
+          )
+      }
+    }
   }
 
   suspend fun createWrapperVisit(patientId: String, visitDate: Date): Encounter {
@@ -174,12 +198,7 @@ constructor(
         throw IllegalArgumentException("No questionnaire ID provided")
       }
 
-      val questionnaire: Questionnaire? =
-        fhirEngine.getQuestionnaireOrFromAssets(
-          questionnaireId,
-          applicationContext,
-          parser,
-        )
+      val questionnaire: Questionnaire? = _questionnaire.value
 
       if (questionnaire == null) {
         throw IllegalStateException("No questionnaire resource found with ID: $questionnaireId")
@@ -203,7 +222,8 @@ constructor(
       val bundle = ResourceMapper.extract(questionnaire, questionnaireResponse)
       val patientReference = Reference("Patient/$patientId")
 
-      val encounterDate = sessionDate ?: Date()
+      val encounterDate =
+        sessionDate ?: extractSessionDateFromQuestionnaireResponse(questionnaireResponse)
 
       val visit: Encounter
       visit =
@@ -379,5 +399,27 @@ constructor(
   fun updateQuestionnaire(updated: Questionnaire) {
     _questionnaire.value = updated
     _questionnaireJson.value = parser.encodeResourceToString(updated)
+  }
+
+  private fun extractSessionDateFromQuestionnaireResponse(
+    questionnaireResponse: QuestionnaireResponse,
+  ): Date {
+    val encounterDateAnswer =
+      questionnaireResponse.allItems
+        .firstOrNull { it.linkId == "encounter-encounterDate" }
+        ?.answer
+        ?.firstOrNull()
+
+    if (encounterDateAnswer == null) {
+      return Date()
+    }
+
+    if (encounterDateAnswer.value is DateTimeType) {
+      return encounterDateAnswer.valueDateTimeType.value
+    } else if (encounterDateAnswer.value is DateType) {
+      return encounterDateAnswer.valueDateType.value
+    }
+
+    return Date()
   }
 }

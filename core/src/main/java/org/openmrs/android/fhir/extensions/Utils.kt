@@ -51,6 +51,7 @@ import java.util.TimeZone
 import java.util.UUID
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.DateType
+import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 
 inline fun <reified T> T.toJson(): String {
@@ -149,6 +150,10 @@ fun nowUtcDateTime(): DateTimeType =
 fun nowLocalDateTime(): DateTimeType =
   DateTimeType(Date(), TemporalPrecisionEnum.SECOND, TimeZone.getDefault())
 
+fun utcDateToLocalDate(date: Date): Date {
+  return Date(date.time + TimeZone.getDefault().getOffset(date.time))
+}
+
 /** Format a Date in the device's local time zone. */
 fun Date.toLocalString(
   pattern: String = "dd MM yyyy",
@@ -157,4 +162,21 @@ fun Date.toLocalString(
 ): String {
   val fmt = DateTimeFormatter.ofPattern(pattern, locale).withZone(zone)
   return fmt.format(this.toInstant())
+}
+
+fun findItemByLinkId(
+  items: List<Questionnaire.QuestionnaireItemComponent>?,
+  linkId: String,
+): Questionnaire.QuestionnaireItemComponent? {
+  if (items == null) return null
+  items.forEach { item ->
+    if (item.linkId == linkId) {
+      return item
+    }
+    val nested = findItemByLinkId(item.item, linkId)
+    if (nested != null) {
+      return nested
+    }
+  }
+  return null
 }
