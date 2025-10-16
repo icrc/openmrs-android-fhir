@@ -199,9 +199,12 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
   }
 
   private fun observeQuestionnaire() {
-    viewModel.questionnaireJson.observe(viewLifecycleOwner) {
-      if (it.isNotEmpty()) {
-        it?.let { addQuestionnaireFragment(it) }
+    viewModel.questionnaire.observe(viewLifecycleOwner) { questionnaire ->
+      if (questionnaire != null) {
+        viewModel.prepareEnterEncounter(questionnaire)
+
+        val questionnaireJson = viewModel.parser.encodeResourceToString(questionnaire)
+        addQuestionnaireFragment(questionnaireJson)
       } else {
         Toast.makeText(
             requireContext(),

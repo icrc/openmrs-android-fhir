@@ -65,10 +65,12 @@ import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
+import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getJsonFileNames
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
 import org.openmrs.android.fhir.extensions.readFileFromAssets
+import org.openmrs.android.fhir.extensions.utcDateToLocalDate
 import org.openmrs.android.fhir.util.ExistingObservationIndex
 import org.openmrs.android.fhir.util.ObservationChildInfo
 import org.openmrs.android.fhir.util.ObservationGroupLookup
@@ -138,6 +140,21 @@ constructor(
                 }
               }
             }
+          }
+        }
+
+        val encounter = fhirEngine.get<Encounter>(encounterId)
+        val encounterDate = encounter.period?.start?.let { utcDateToLocalDate(it) }
+        if (encounterDate != null) {
+          val encounterDateItem = findItemByLinkId(questionnaire?.item, "encounter-encounterDate")
+          encounterDateItem?.apply {
+            initial =
+              listOf(
+                Questionnaire.QuestionnaireItemInitialComponent().apply {
+                  value = org.hl7.fhir.r4.model.DateTimeType(encounterDate)
+                },
+              )
+            readOnly = true
           }
         }
 

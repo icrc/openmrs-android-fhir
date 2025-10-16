@@ -67,9 +67,11 @@ import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
+import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
+import org.openmrs.android.fhir.extensions.utcDateToLocalDate
 import org.openmrs.android.fhir.util.ParentKey
 import org.openmrs.android.fhir.util.buildObservationGroupLookup
 import org.openmrs.android.fhir.util.createParentObservation
@@ -90,7 +92,7 @@ constructor(
     override fun create(handle: SavedStateHandle): GenericFormEntryViewModel
   }
 
-  private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+  val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
   private val _questionnaire = MutableLiveData<Questionnaire?>()
   val questionnaire: LiveData<Questionnaire?> = _questionnaire
   private val _questionnaireJson = MutableLiveData<String>()
@@ -120,6 +122,25 @@ constructor(
       ?.code
       ?.firstOrNull { it.system == "http://fhir.openmrs.org/code-system/encounter-type" }
       ?.code
+  }
+
+  fun prepareEnterEncounter(questionnaire: Questionnaire) {
+    val encounterDateItem = findItemByLinkId(questionnaire.item, "encounter-encounterDate")
+    encounterDateItem?.apply {
+      val initialValue =
+        when (type) {
+          Questionnaire.QuestionnaireItemType.DATE -> DateType(utcDateToLocalDate(Date()))
+          Questionnaire.QuestionnaireItemType.DATETIME -> DateTimeType(utcDateToLocalDate(Date()))
+          else -> null
+        }
+
+      if (initialValue != null) {
+        initial =
+          listOf(
+            Questionnaire.QuestionnaireItemInitialComponent().apply { value = initialValue },
+          )
+      }
+    }
   }
 
   suspend fun createWrapperVisit(patientId: String, visitDate: Date): Encounter {

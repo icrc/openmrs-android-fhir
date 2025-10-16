@@ -265,14 +265,14 @@ constructor(
             Constants.COHORT_IDENTIFIER_UUID,
             StringType(selectedPatientListId),
             "Cohort Identifier",
-          ) // Cohort Identifier
+          )
           createObservation(
             patientId,
             encounterId,
             Constants.COHORT_NAME_UUID,
             StringType(cohortName),
             "Cohort Name",
-          ) // Cohort Name
+          )
         }
       } finally {
         createObservation(
@@ -281,7 +281,7 @@ constructor(
           Constants.SESSION_IDENTIFIER_UUID,
           StringType(sessionId),
           "Session Identifier",
-        ) // Session Identifier
+        )
       }
     }
   }
