@@ -30,18 +30,20 @@ package org.openmrs.android.fhir
 
 import android.app.KeyguardManager
 import android.content.Intent
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
+import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import java.util.concurrent.Executor
 import kotlinx.coroutines.flow.first
@@ -51,7 +53,10 @@ import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.extensions.BiometricUtils
+import org.openmrs.android.fhir.extensions.getServerConnectivityState
 
 class SplashActivity : AppCompatActivity() {
 
@@ -59,6 +64,9 @@ class SplashActivity : AppCompatActivity() {
   private lateinit var executor: Executor
   private lateinit var biometricPrompt: BiometricPrompt
   private var isBiometricReset = false
+  private val apiManager by lazy { ApiManager(applicationContext) }
+  private lateinit var progressIndicator: ProgressBar
+  private lateinit var statusTextView: TextView
 
   private val confirmCredLauncher =
     registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
@@ -73,17 +81,15 @@ class SplashActivity : AppCompatActivity() {
         }
       }
 
-      if (isInternetAvailable()) {
-        redirectToAuthFlow()
-      } else {
-        loginWithInternetOrExit()
-      }
+      lifecycleScope.launch { handleConnectivityWhenOfflineLoginUnavailable() }
     }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
     setContentView(R.layout.activity_splash)
+    progressIndicator = findViewById(R.id.splash_progress)
+    statusTextView = findViewById(R.id.splash_status_text)
 
     authStateManager = AuthStateManager.getInstance(applicationContext)
     executor = ContextCompat.getMainExecutor(this)
@@ -102,18 +108,16 @@ class SplashActivity : AppCompatActivity() {
     val userUuid = getUserUuid()
     val offlineAuthMethod = BiometricUtils.getOfflineAuthMethod(this)
     if (userUuid == null || isBiometricReset || offlineAuthMethod == null) {
-      if (isInternetAvailable()) {
-        redirectToAuthFlow()
-      } else {
-        showNoInternetDialog()
-      }
+      handleConnectivityForAuth()
     } else {
       if (authStateManager.isAuthenticated()) {
         promptBiometricAuthentication(offlineAuthMethod)
-      } else if (isInternetAvailable()) {
-        redirectToAuthFlow()
       } else {
-        promptBiometricAuthentication(offlineAuthMethod)
+        when (getConnectivityState()) {
+          ServerConnectivityState.ServerConnected -> redirectToAuthFlow()
+          ServerConnectivityState.InternetOnly -> promptBiometricAuthentication(offlineAuthMethod)
+          ServerConnectivityState.Offline -> promptBiometricAuthentication(offlineAuthMethod)
+        }
       }
     }
   }
@@ -121,19 +125,55 @@ class SplashActivity : AppCompatActivity() {
   private suspend fun getUserUuid(): String? {
     return try {
       applicationContext.dataStore.data.first()[PreferenceKeys.USER_UUID]
-    } catch (e: Exception) {
+    } catch (_: Exception) {
       null
     }
   }
 
-  private fun isInternetAvailable(): Boolean {
-    val connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
-    val network = connectivityManager.activeNetwork ?: return false
-    val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+  private suspend fun getConnectivityState(): ServerConnectivityState {
+    showConnectivityCheckInProgress()
+    val state = applicationContext.getServerConnectivityState(apiManager)
+    when (state) {
+      ServerConnectivityState.ServerConnected -> hideConnectivityStatus()
+      ServerConnectivityState.InternetOnly ->
+        showConnectivityFailureMessage(R.string.splash_status_server_unreachable)
+      ServerConnectivityState.Offline ->
+        showConnectivityFailureMessage(R.string.splash_status_offline)
+    }
+    return state
+  }
 
-    return capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-      capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
-      capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+  private fun showConnectivityCheckInProgress() {
+    progressIndicator.isVisible = true
+    statusTextView.isVisible = true
+    statusTextView.text = getString(R.string.splash_status_checking_connectivity)
+  }
+
+  private fun showConnectivityFailureMessage(@StringRes messageId: Int) {
+    progressIndicator.isVisible = false
+    statusTextView.isVisible = true
+    statusTextView.text = getString(messageId)
+  }
+
+  private fun hideConnectivityStatus() {
+    progressIndicator.isVisible = false
+    statusTextView.isVisible = false
+  }
+
+  private suspend fun handleConnectivityForAuth() {
+    when (getConnectivityState()) {
+      ServerConnectivityState.ServerConnected -> redirectToAuthFlow()
+      ServerConnectivityState.InternetOnly -> showServerUnavailableDialog()
+      ServerConnectivityState.Offline -> showNoInternetDialog()
+    }
+  }
+
+  private suspend fun handleConnectivityWhenOfflineLoginUnavailable() {
+    when (getConnectivityState()) {
+      ServerConnectivityState.ServerConnected -> redirectToAuthFlow()
+      ServerConnectivityState.InternetOnly -> showServerUnavailableDialog()
+      ServerConnectivityState.Offline -> loginWithInternetOrExit()
+    }
   }
 
   private fun promptBiometricAuthentication(method: OfflineAuthMethod) {
@@ -201,11 +241,7 @@ class SplashActivity : AppCompatActivity() {
       }
     }
 
-    if (isInternetAvailable()) {
-      redirectToAuthFlow()
-    } else {
-      loginWithInternetOrExit()
-    }
+    lifecycleScope.launch { handleConnectivityWhenOfflineLoginUnavailable() }
   }
 
   private fun setupBiometricPrompt() {
@@ -217,11 +253,7 @@ class SplashActivity : AppCompatActivity() {
           override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
             super.onAuthenticationError(errorCode, errString)
             showToast(R.string.auth_error, errString.toString())
-            if (isInternetAvailable()) {
-              redirectToAuthFlow()
-            } else {
-              loginWithInternetOrExit()
-            }
+            lifecycleScope.launch { handleConnectivityWhenOfflineLoginUnavailable() }
           }
 
           override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
@@ -234,11 +266,7 @@ class SplashActivity : AppCompatActivity() {
                 return
               }
             }
-            if (isInternetAvailable()) {
-              redirectToAuthFlow()
-            } else {
-              loginWithInternetOrExit()
-            }
+            lifecycleScope.launch { handleConnectivityWhenOfflineLoginUnavailable() }
           }
         },
       )
@@ -267,6 +295,18 @@ class SplashActivity : AppCompatActivity() {
       )
       .setPositiveButton(getString(R.string.retry)) { _, _ ->
         lifecycleScope.launch { handleAuthenticationFlow() }
+      }
+      .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
+      .setCancelable(false)
+      .show()
+  }
+
+  private fun showServerUnavailableDialog() {
+    AlertDialog.Builder(this)
+      .setTitle(getString(R.string.server_unreachable_title))
+      .setMessage(getString(R.string.server_unreachable_dialog_message))
+      .setPositiveButton(getString(R.string.retry)) { _, _ ->
+        lifecycleScope.launch { handleConnectivityForAuth() }
       }
       .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
       .setCancelable(false)

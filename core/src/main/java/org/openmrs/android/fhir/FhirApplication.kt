@@ -39,6 +39,7 @@ import com.google.android.fhir.datacapture.DataCaptureConfig
 import com.google.android.fhir.datacapture.XFhirQueryResolver
 import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.remote.HttpLogger
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -132,6 +133,12 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     fun authMethod(context: Context) = context.getString(R.string.auth_method)
 
     fun checkServerUrl(context: Context) = context.getString(R.string.check_server_url)
+
+    fun serverConnectivityTimeoutMillis(context: Context): Long {
+      val seconds = context.resources.getInteger(R.integer.server_connectivity_timeout_seconds)
+      val clampedSeconds = seconds.coerceAtLeast(1)
+      return TimeUnit.SECONDS.toMillis(clampedSeconds.toLong())
+    }
   }
 
   override fun getDataCaptureConfig(): DataCaptureConfig = dataCaptureConfig ?: DataCaptureConfig()

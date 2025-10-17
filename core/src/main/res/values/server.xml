@@ -22,6 +22,7 @@
         name="check_server_url"
         translatable="false"
     >http://127.0.0.1:8080/openmrs/ws/rest/v1/session</string>
+  <integer name="server_connectivity_timeout_seconds">30</integer>
   <string name="support_email" translatable="false">support@example.com</string>
   <string name="diagnostics_password" translatable="false">changeit</string>
   <string

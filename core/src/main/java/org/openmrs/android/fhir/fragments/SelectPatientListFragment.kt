@@ -60,12 +60,16 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.SelectPatientListItemRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.databinding.FragmentSelectPatientListBinding
-import org.openmrs.android.fhir.extensions.isInternetAvailable
+import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.viewmodel.SelectPatientListViewModel
 
 class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list) {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+
+  @Inject lateinit var apiManager: ApiManager
   private val selectPatientListViewModel by
     viewModels<SelectPatientListViewModel> { viewModelFactory }
 
@@ -163,7 +167,11 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
           .distinctUntilChanged()
           .collect { locationId ->
             if (!isAdded) return@collect
-            if (isInternetAvailable(requireContext()) && !locationId.isNullOrBlank()) {
+            val connectivityState = requireContext().getServerConnectivityState(apiManager)
+            if (
+              connectivityState == ServerConnectivityState.ServerConnected &&
+                !locationId.isNullOrBlank()
+            ) {
               binding.progressBar.visibility = View.VISIBLE
               selectPatientListViewModel.fetchPatientListItems()
             } else {
@@ -224,10 +232,12 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
     if (fromLogin) {
       selectPatientListViewModel.getSelectPatientListItems()
     } else {
-      if (isInternetAvailable(requireContext())) {
-        selectPatientListViewModel.fetchPatientListItems()
-      } else {
-        selectPatientListViewModel.getSelectPatientListItems()
+      viewLifecycleOwner.lifecycleScope.launch {
+        when (requireContext().getServerConnectivityState(apiManager)) {
+          ServerConnectivityState.ServerConnected ->
+            selectPatientListViewModel.fetchPatientListItems()
+          else -> selectPatientListViewModel.getSelectPatientListItems()
+        }
       }
     }
   }

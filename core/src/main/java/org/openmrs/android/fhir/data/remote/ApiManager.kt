@@ -125,4 +125,13 @@ class ApiManager @Inject constructor(context: Context) : Api {
   override suspend fun validateSession(authorization: String): ApiResponse<SessionResponse> {
     return executeApiHelper { apiService.validateSession(authorization) }
   }
+
+  suspend fun checkServerConnection(url: String): Boolean {
+    return try {
+      val response = apiService.checkServerStatus(url)
+      response.isSuccessful || response.code() == 401
+    } catch (_: Exception) {
+      false
+    }
+  }
 }

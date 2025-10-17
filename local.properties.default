@@ -10,6 +10,7 @@ gpr.key=<A GitHub token>
 #fhir_sync_urls=Location?_sort=_lastUpdated&_summary=data,Patient?_sort=_lastUpdated,Encounter?_sort=_lastUpdated,Observation?_sort=_lastUpdated
 #openmrs_rest_url=http://127.0.0.1:8080/openmrs/ws/rest/v1/
 #check_server_url=http://127.0.0.1:8080/openmrs/ws/rest/v1/session
+server_connectivity_timeout_seconds=30
 
 # Authentication method: basic or openid
 # auth_method=openid
