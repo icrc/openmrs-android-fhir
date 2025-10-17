@@ -44,6 +44,7 @@ import org.openmrs.android.fhir.fragments.EditEncounterFragment
 import org.openmrs.android.fhir.fragments.EditPatientFragment
 import org.openmrs.android.fhir.fragments.GenericFormEntryFragment
 import org.openmrs.android.fhir.fragments.GroupFormEntryFragment
+import org.openmrs.android.fhir.fragments.HomeFragment
 import org.openmrs.android.fhir.fragments.IdentifierFragment
 import org.openmrs.android.fhir.fragments.LocationFragment
 import org.openmrs.android.fhir.fragments.PatientDetailsFragment
@@ -83,6 +84,8 @@ interface AppComponent {
   fun inject(fragment: AddPatientFragment)
 
   fun inject(fragment: LocationFragment)
+
+  fun inject(fragment: HomeFragment)
 
   fun inject(fragment: EditEncounterFragment)
 

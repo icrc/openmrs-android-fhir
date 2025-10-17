@@ -38,16 +38,18 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
-import okhttp3.Response
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.LoginRepository
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.model.SessionResponse
-import org.openmrs.android.fhir.extensions.isInternetAvailable
+import org.openmrs.android.fhir.extensions.getServerConnectivityState
 
 class RestApiManager private constructor(private val context: Context) {
   private val client: OkHttpClient = OkHttpClient.Builder().build()
   private var sessionCookie: String? = null
+  private val apiManager by lazy { ApiManager(context) }
 
   companion object {
     @Volatile private var INSTANCE: RestApiManager? = null
@@ -59,7 +61,10 @@ class RestApiManager private constructor(private val context: Context) {
   }
 
   suspend fun initialize(locationId: String?) {
-    if (isInternetAvailable(context) && locationId != null) {
+    if (
+      locationId != null &&
+        context.getServerConnectivityState(apiManager) == ServerConnectivityState.ServerConnected
+    ) {
       updateSessionLocation(locationId)
     }
   }
@@ -114,25 +119,5 @@ class RestApiManager private constructor(private val context: Context) {
 
   suspend fun updateSessionLocation(locationId: String) {
     setSessionLocation(locationId)
-  }
-
-  fun call(requestBuilder: Request.Builder): Response {
-    val accessToken = LoginRepository.getInstance(context).getAccessToken()
-    requestBuilder.addHeader("Authorization", "Bearer $accessToken")
-
-    sessionCookie?.let { requestBuilder.addHeader("Cookie", it.split(";")[0]) }
-    val request = requestBuilder.build()
-    val response = client.newCall(request).execute()
-
-    return response
-  }
-
-  fun isServerLive(): Boolean {
-    val request = Request.Builder().url(FhirApplication.checkServerUrl(context)).build()
-    return try {
-      client.newCall(request).execute().use { response -> response.isSuccessful }
-    } catch (e: IOException) {
-      false
-    }
   }
 }

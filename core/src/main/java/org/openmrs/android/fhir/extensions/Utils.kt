@@ -49,10 +49,16 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 import java.util.UUID
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
+import org.openmrs.android.fhir.FhirApplication
+import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 
 inline fun <reified T> T.toJson(): String {
   return Moshi.Builder().build().adapter(T::class.java).toJson(this)
@@ -102,12 +108,27 @@ fun String.decodeToByteArray(): ByteArray {
   return Base64.decode(this, Base64.NO_WRAP)
 }
 
-fun isInternetAvailable(context: Context): Boolean {
-  val connectivityManager =
-    context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-  val network = connectivityManager.activeNetwork ?: return false
-  val networkCapabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
-  return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+suspend fun Context.getServerConnectivityState(apiManager: ApiManager): ServerConnectivityState {
+  val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+  val network = connectivityManager.activeNetwork ?: return ServerConnectivityState.Offline
+  val networkCapabilities =
+    connectivityManager.getNetworkCapabilities(network) ?: return ServerConnectivityState.Offline
+  if (!networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+    return ServerConnectivityState.Offline
+  }
+
+  val timeoutMillis = FhirApplication.serverConnectivityTimeoutMillis(this)
+  val isServerReachable =
+    withContext(Dispatchers.IO) {
+      val url = FhirApplication.checkServerUrl(this@getServerConnectivityState)
+      withTimeoutOrNull(timeoutMillis) { apiManager.checkServerConnection(url) } ?: false
+    }
+
+  return if (isServerReachable) {
+    ServerConnectivityState.ServerConnected
+  } else {
+    ServerConnectivityState.InternetOnly
+  }
 }
 
 val Int.minutesInMillis: Long

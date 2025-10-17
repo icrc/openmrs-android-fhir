@@ -37,18 +37,25 @@ import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
-import org.openmrs.android.fhir.extensions.isInternetAvailable
+import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import org.openmrs.android.fhir.extensions.getServerConnectivityState
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
+  @Inject lateinit var apiManager: ApiManager
+
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
+    (requireActivity().application as FhirApplication).appComponent.inject(this)
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title = resources.getString(R.string.app_name)
       setDisplayHomeAsUpEnabled(true)
@@ -95,14 +102,28 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     requireView().findViewById<CardView>(R.id.card_custom_patient_list).setOnClickListener {
-      if (isInternetAvailable(requireContext())) {
-        findNavController()
-          .navigate(
-            HomeFragmentDirections.actionHomeFragmentToSelectPatientListFragment(false),
-          )
-      } else {
-        Toast.makeText(context, "Please connect internet to select patient list", Toast.LENGTH_LONG)
-          .show()
+      viewLifecycleOwner.lifecycleScope.launch {
+        when (requireContext().getServerConnectivityState(apiManager)) {
+          ServerConnectivityState.ServerConnected ->
+            findNavController()
+              .navigate(
+                HomeFragmentDirections.actionHomeFragmentToSelectPatientListFragment(false),
+              )
+          ServerConnectivityState.InternetOnly ->
+            Toast.makeText(
+                context,
+                getString(R.string.server_unreachable_try_again_message),
+                Toast.LENGTH_LONG,
+              )
+              .show()
+          ServerConnectivityState.Offline ->
+            Toast.makeText(
+                context,
+                getString(R.string.connect_internet_to_select_patient_list),
+                Toast.LENGTH_LONG,
+              )
+              .show()
+        }
       }
     }
 

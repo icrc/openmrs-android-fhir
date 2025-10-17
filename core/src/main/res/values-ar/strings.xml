@@ -341,6 +341,31 @@
     <string
         name="auth_failed_offline_login"
     >فشل المصادقة!غير قادر على إعداد تسجيل الدخول إلى وضع عدم الاتصال الآن</string>
-
+    <string
+        name="connect_internet_to_select_patient_list"
+    >الرجاء الاتصال بالإنترنت لتحديد قائمة المرضى.</string>
+    <string
+        name="server_unreachable_try_again_message"
+    >يتعذر الوصول إلى الخادم المكوّن. الرجاء المحاولة مرة أخرى لاحقًا.</string>
+    <string name="server_unreachable_title">الخادم لا يمكن الوصول إليه</string>
+    <string
+        name="server_unreachable_dialog_message"
+    >لا يمكننا الوصول إلى الخادم حاليًا. الرجاء المحاولة مرة أخرى لاحقًا.</string>
+    <string
+        name="sync_server_unreachable_message"
+    >يتعذر الوصول إلى الخادم. ستستأنف المزامنة بمجرد توفر الخادم.</string>
+    <string name="network_status_connected_to_server">متصل بالخادم</string>
+    <string
+        name="network_status_server_unreachable"
+    >الخادم لا يمكن الوصول إليه</string>
+    <string
+        name="splash_status_checking_connectivity"
+    >جارٍ التحقق من اتصال الخادم…</string>
+    <string
+        name="splash_status_server_unreachable"
+    >يتعذر الوصول إلى الخادم.</string>
+    <string
+        name="splash_status_offline"
+    >لم يتم الكشف عن اتصال بالإنترنت.</string>
 
 </resources>
