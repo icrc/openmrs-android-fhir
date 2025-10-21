@@ -23,6 +23,9 @@ show_review_page_before_submit=true
 # flag to scope patient lists by selected location group
 filter_patient_lists_by_group=false
 
+# Cohort list type UUID used to filter patient lists
+#cohort-list-type=
+
 #Flag to fetch identifiers on android side
 fetch_identifiers=true
 

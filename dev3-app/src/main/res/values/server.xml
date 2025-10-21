@@ -20,6 +20,7 @@
   <string
         name="registration_questionnaire_name"
     >new-patient-registration-paginated</string>
+  <string name="cohort_list_type" translatable="false" />
   <bool name="show_review_page_before_submit">true</bool>
   <bool name="filter_patient_lists_by_group">true</bool>
   <bool name="fetch_identifiers">true</bool>
