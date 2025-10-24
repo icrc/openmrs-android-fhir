@@ -61,8 +61,7 @@ class TimestampBasedDownloadWorkManagerImpl(
   private fun loadUrlsFromProperties(): List<String> {
     val syncUrls = context.getString(R.string.fhir_sync_urls).split(',')
     val firstTimeUrls = context.getString(R.string.first_fhir_sync_url).split(',')
-    val cohortListType =
-      context.getString(R.string.cohort_list_type).trim().takeIf { it.isNotEmpty() }
+    val cohortType = context.getString(R.string.cohort_type).trim().takeIf { it.isNotEmpty() }
 
     val shouldFilterGroupsByLocation =
       context.resources.getBoolean(R.bool.filter_patient_lists_by_group)
@@ -94,12 +93,12 @@ class TimestampBasedDownloadWorkManagerImpl(
       }
 
       if (
-        cohortListType != null &&
+        cohortType != null &&
           updatedUrl.substringBefore("?").equals(ResourceType.Group.name, ignoreCase = true) &&
-          !updatedUrl.contains("list-type=")
+          !updatedUrl.contains("cohort-type=")
       ) {
         val separator = if (updatedUrl.contains("?")) "&" else "?"
-        updatedUrl = "$updatedUrl${separator}list-type=$cohortListType"
+        updatedUrl = "$updatedUrl${separator}list-type=$cohortType"
       }
 
       if (updatedUrl.contains("_has:Group:member:id=")) {

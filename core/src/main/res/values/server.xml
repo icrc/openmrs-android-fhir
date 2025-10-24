@@ -28,7 +28,7 @@
         name="registration_questionnaire_name"
         translatable="false"
     >new-patient-registration-paginated</string>
-  <string name="cohort_list_type" translatable="false" />
+  <string name="cohort_type" translatable="false" />
     <string
         name="encounter_type_system_url"
         translatable="false"

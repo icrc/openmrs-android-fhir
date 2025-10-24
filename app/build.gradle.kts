@@ -26,7 +26,7 @@ android {
     setResValue(providers, "fhir_sync_urls", this)
     setResValue(providers, "openmrs_rest_url", this)
     setResValue(providers, "check_server_url", this)
-    setResValue(providers, "cohort_list_type", this, propertyKey = "cohort-list-type")
+    setResValue(providers, "cohort_type", this, propertyKey = "cohort-type")
     //    oauth
     setResValue(providers, "auth_authorization_scope", this)
     setResValue(providers, "auth_client_id", this)
