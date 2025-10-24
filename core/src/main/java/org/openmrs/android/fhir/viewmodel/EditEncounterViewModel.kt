@@ -76,6 +76,7 @@ import org.openmrs.android.fhir.util.ObservationChildInfo
 import org.openmrs.android.fhir.util.ObservationGroupLookup
 import org.openmrs.android.fhir.util.ParentEnsureResult
 import org.openmrs.android.fhir.util.ParentObservationTracker
+import org.openmrs.android.fhir.util.areSameValue
 import org.openmrs.android.fhir.util.buildObservationGroupLookup
 import org.openmrs.android.fhir.util.handleUnchangedChild
 import org.openmrs.android.fhir.util.markExistingParentAmended
@@ -422,7 +423,7 @@ constructor(
       val existing = observationIndex.findExisting(template, childInfo, parent)
       if (existing != null) {
         val parentChanged = existing.updateParentReference(parent)
-        if (!parentChanged && existing.value.equalsDeep(value)) {
+        if (!parentChanged && areSameValue(existing.valueCodeableConcept.coding, value.coding)) {
           parentResult.handleUnchangedChild(parentTracker, ::updateResourceToDatabase)
           return
         }
