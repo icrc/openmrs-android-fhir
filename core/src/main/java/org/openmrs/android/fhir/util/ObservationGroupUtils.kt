@@ -156,9 +156,10 @@ internal class ExistingObservationIndex(
   ): ParentEnsureResult {
     val parentKey = ParentKey(info.parentCodingKey)
     val existing = parentObservationsByKey[parentKey]
-    return if (existing != null) {
-      tracker.markTouched(existing)
-      ParentEnsureResult(existing, false)
+    val reusable = existing?.takeUnless { it.status == Observation.ObservationStatus.CANCELLED }
+    return if (reusable != null) {
+      tracker.markTouched(reusable)
+      ParentEnsureResult(reusable, false)
     } else {
       val parent = createParentObservation(info, subjectReference, encounterReference)
       registerParent(parentKey, parent)
@@ -681,16 +682,6 @@ internal fun buildObservationGroupLookup(
       .groupBy({ it.first }, { it.second })
   val parentCodingKeys = childInfos.map { it.parentCodingKey }.toSet()
   return ObservationGroupLookup(childInfos, childInfosByCodingKey, parentCodingKeys)
-}
-
-internal suspend fun ParentEnsureResult?.markExistingParentAmended(
-  tracker: ParentObservationTracker,
-  update: suspend (Observation) -> Unit,
-) {
-  if (this == null || isNew) {
-    return
-  }
-  tracker.markAmended(parent, update)
 }
 
 internal suspend fun ParentEnsureResult?.handleUnchangedChild(

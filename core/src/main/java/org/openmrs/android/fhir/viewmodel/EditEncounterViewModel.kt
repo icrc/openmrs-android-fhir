@@ -79,7 +79,6 @@ import org.openmrs.android.fhir.util.ParentObservationTracker
 import org.openmrs.android.fhir.util.areSameValue
 import org.openmrs.android.fhir.util.buildObservationGroupLookup
 import org.openmrs.android.fhir.util.handleUnchangedChild
-import org.openmrs.android.fhir.util.markExistingParentAmended
 import org.openmrs.android.fhir.util.observationReferenceId
 import org.openmrs.android.fhir.util.updateParentReference
 import timber.log.Timber
@@ -382,7 +381,6 @@ constructor(
         parentResult.handleUnchangedChild(parentTracker, ::updateResourceToDatabase)
         return
       }
-      parentResult.markExistingParentAmended(parentTracker, ::updateResourceToDatabase)
       existing.status = Observation.ObservationStatus.AMENDED
       existing.value = value.copy()
       existing.effective = nowUtcDateTime()
@@ -401,7 +399,6 @@ constructor(
           effective = nowUtcDateTime()
           this.value = value.copy()
         }
-      parentResult.markExistingParentAmended(parentTracker, ::updateResourceToDatabase)
       newObservation.updateParentReference(parent)
       createResourceToDatabase(newObservation)
     }
@@ -427,7 +424,6 @@ constructor(
           parentResult.handleUnchangedChild(parentTracker, ::updateResourceToDatabase)
           return
         }
-        parentResult.markExistingParentAmended(parentTracker, ::updateResourceToDatabase)
         existing.status = Observation.ObservationStatus.AMENDED
         existing.value = value.copy()
         existing.effective = nowUtcDateTime()
@@ -446,7 +442,6 @@ constructor(
             effective = nowUtcDateTime()
             this.value = value.copy()
           }
-        parentResult.markExistingParentAmended(parentTracker, ::updateResourceToDatabase)
         target.updateParentReference(parent)
         createResourceToDatabase(target)
       }
@@ -459,7 +454,6 @@ constructor(
         }
       }
 
-      parentResult.markExistingParentAmended(parentTracker, ::updateResourceToDatabase)
       codings.forEach { coding ->
         val obs =
           Observation().apply {
