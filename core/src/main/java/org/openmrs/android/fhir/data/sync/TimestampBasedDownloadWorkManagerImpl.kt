@@ -98,7 +98,7 @@ class TimestampBasedDownloadWorkManagerImpl(
           !updatedUrl.contains("cohort-type=")
       ) {
         val separator = if (updatedUrl.contains("?")) "&" else "?"
-        updatedUrl = "$updatedUrl${separator}list-type=$cohortType"
+        updatedUrl = "$updatedUrl${separator}cohort-type=$cohortType"
       }
 
       if (updatedUrl.contains("_has:Group:member:id=")) {
