@@ -113,9 +113,11 @@ internal class ParentObservationTracker {
     if (!parentUpdatesScheduled.add(parentId)) {
       return
     }
-    parent.status = Observation.ObservationStatus.FINAL
-    parent.effective = nowUtcDateTime()
-    update(parent)
+    if (parent.status != Observation.ObservationStatus.FINAL) {
+      parent.status = Observation.ObservationStatus.FINAL
+      parent.effective = nowUtcDateTime()
+      update(parent)
+    }
   }
 
   suspend fun ensureActive(parent: Observation, update: suspend (Observation) -> Unit) {

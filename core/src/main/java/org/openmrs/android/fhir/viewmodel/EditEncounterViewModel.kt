@@ -450,7 +450,8 @@ constructor(
       existingMatches.forEach { existing ->
         val idPart = existing.idElement.idPart
         if (!idPart.isNullOrBlank()) {
-          fhirEngine.purge(existing.resourceType, idPart)
+          existing.status = Observation.ObservationStatus.CANCELLED
+          performResourceOperation(existing, ResourceOperationType.UPDATE)
         }
       }
 
