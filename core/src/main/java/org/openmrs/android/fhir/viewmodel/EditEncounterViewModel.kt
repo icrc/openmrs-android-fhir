@@ -297,7 +297,7 @@ constructor(
       val parentIdsToDelete = observationIndex.originalParentIds - parentTracker.touchedIds()
       parentIdsToDelete.forEach { parentId ->
         val parentObservation = observationIndex.parentById(parentId) ?: return@forEach
-        deleteObservationFromDatabase(parentObservation)
+        softDeleteObservationFromDatabase(parentObservation)
       }
 
       flushPendingResourceOperations()
@@ -331,14 +331,14 @@ constructor(
           return@forEach
         }
 
-        deleteObservationFromDatabase(parentObservation)
+        softDeleteObservationFromDatabase(parentObservation)
         observations.remove(parentObservation)
 
         val childrenToRemove =
           observations.filter { candidate ->
             candidate.partOf.any { it.observationReferenceId() == parentId }
           }
-        childrenToRemove.forEach { child -> purgeObservationFromDatabase(child) }
+        childrenToRemove.forEach { child -> softDeleteObservationFromDatabase(child) }
         observations.removeAll(childrenToRemove)
       }
   }
@@ -480,7 +480,7 @@ constructor(
       }
     } else {
       val existingMatches = observationIndex.findAllExisting(codings, childInfo, parent)
-      existingMatches.forEach { existing -> purgeObservationFromDatabase(existing) }
+      existingMatches.forEach { existing -> softDeleteObservationFromDatabase(existing) }
 
       codings.forEachIndexed { index, coding ->
         val obs =
@@ -521,7 +521,7 @@ constructor(
         }
       }
 
-      deleteObservationFromDatabase(child)
+      softDeleteObservationFromDatabase(child)
     }
   }
 
@@ -564,7 +564,7 @@ constructor(
       fhirEngine.search<Observation> {
         filter(Observation.ENCOUNTER, { value = "Encounter/$encounterId" })
       }
-    return searchResult.map { it.resource }
+    return searchResult.map { it.resource }.filter { it.hasStatus() && it.status != Observation.ObservationStatus.CANCELLED }
   }
 
   private suspend fun getConditionsEncounterId(encounterId: String): List<Condition> {
@@ -583,16 +583,9 @@ constructor(
     enqueueResourceOperation { fhirEngine.create(resource) }
   }
 
-  private suspend fun deleteObservationFromDatabase(observation: Observation) {
-    val idPart = observation.idPart() ?: return
-    enqueueResourceOperation { fhirEngine.delete(ResourceType.Observation, idPart) }
-  }
-
-  private suspend fun purgeObservationFromDatabase(observation: Observation) {
-    val idPart = observation.idPart() ?: return
-    enqueueResourceOperation {
-      fhirEngine.purge(observation.resourceType, idPart, forcePurge = true)
-    }
+  private suspend fun softDeleteObservationFromDatabase(observation: Observation) {
+    observation.status = Observation.ObservationStatus.CANCELLED
+    updateResourceToDatabase(observation)
   }
 
   private suspend fun enqueueResourceOperation(operation: suspend () -> Unit) {
