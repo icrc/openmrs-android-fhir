@@ -59,7 +59,6 @@ import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
-import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.codesystems.ConditionCategory
 import org.openmrs.android.fhir.Constants
@@ -564,7 +563,9 @@ constructor(
       fhirEngine.search<Observation> {
         filter(Observation.ENCOUNTER, { value = "Encounter/$encounterId" })
       }
-    return searchResult.map { it.resource }.filter { it.hasStatus() && it.status != Observation.ObservationStatus.CANCELLED }
+    return searchResult
+      .map { it.resource }
+      .filter { it.hasStatus() && it.status != Observation.ObservationStatus.CANCELLED }
   }
 
   private suspend fun getConditionsEncounterId(encounterId: String): List<Condition> {
