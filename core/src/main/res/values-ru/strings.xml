@@ -1,31 +1,35 @@
 <resources>
     <string name="section_patient_management">УПРАВЛЕНИЕ ПАЦИЕНТАМИ</string>
     <string name="title_add_patient">Добавить пациента</string>
-    <string name="subtitle_add_patient">Зарегистрировать новую карту пациента</string>
+    <string
+        name="subtitle_add_patient"
+    >Зарегистрировать новую карту пациента</string>
     <string name="title_search_patient">Найти пациента</string>
-    <string name="subtitle_search_patient">Просмотр и управление пациентами</string>
+    <string
+        name="subtitle_search_patient"
+    >Просмотр и управление пациентами</string>
     <string name="title_custom_patient_list">Список(ки) пациентов</string>
     <string
-            name="subtitle_custom_patient_list"
+        name="subtitle_custom_patient_list"
     >Загрузить сохраненный список пациентов
     </string>
     <string name="section_encounters">ПРИЕМЫ</string>
-    <string name="title_group_encounter">Начать групповой/семейный сеанс</string>
     <string
-            name="subtitle_group_encounter"
+        name="title_group_encounter"
+    >Начать групповой/семейный сеанс</string>
+    <string
+        name="subtitle_group_encounter"
     >Начать сеанс с несколькими пациентами
     </string>
     <string name="section_system">СИСТЕМА</string>
     <string name="title_sync_info">Информация о синхронизации</string>
     <string name="sync_info">Информация о синхронизации</string>
-    <string
-            name="subtitle_sync_info"
-    >Просмотр ресурсов, ожидающих синхронизации
+    <string name="subtitle_sync_info">Просмотр ресурсов, ожидающих синхронизации
     </string>
-    <string name="title_unsynced_resources">Несинхронизированные ресурсы</string>
     <string
-            name="subtitle_unsynced_resources"
-    >Просмотр процессов синхронизации
+        name="title_unsynced_resources"
+    >Несинхронизированные ресурсы</string>
+    <string name="subtitle_unsynced_resources">Просмотр процессов синхронизации
     </string>
 
     <string name="app_name" translatable="false">OpenMRS</string>
@@ -37,10 +41,12 @@
     <string name="menu_sync_resources">Синхронизировать ресурсы</string>
     <string name="menu_patient_edit">@string/edit_patient</string>
 
-    <string name="observation_brief_text">%1$s: %2$s\nДействительно: %3$s</string>
+    <string
+        name="observation_brief_text"
+    >%1$s: %2$s\nДействительно: %3$s</string>
     <string name="query_hint_patient_search">Найти по имени пациента</string>
     <string
-            name="cancel_questionnaire_message"
+        name="cancel_questionnaire_message"
     >Вы уверены, что хотите отменить ответы?
     </string>
     <string name="patient_id">Id</string>
@@ -64,7 +70,7 @@
     <string name="identifier">Идентификатор</string>
     <string name="select_a_location">Выберите местоположение</string>
     <string
-            name="create_encounter_fragment_headline"
+        name="create_encounter_fragment_headline"
     >Какую форму вы бы хотели использовать?
     </string>
     <string name="select_patient_lists">Выбрать списки пациентов</string>
@@ -76,18 +82,14 @@
     <string name="message_encounter_updated">Данные приема обновлены.</string>
     <string name="inputs_missing">Отсутствуют входные данные.</string>
     <string
-            name="inputs_missing_for_patient"
+        name="inputs_missing_for_patient"
     >Отсутствуют входные данные для пациента:
     </string>
     <string name="resources_saved">Ресурсы сохранены.</string>
-    <string
-            name="response_received"
-    >Ответ на анкету получен.
+    <string name="response_received">Ответ на анкету получен.
     </string>
     <string name="html_text">Текущий статус:
-        <font
-                color="#ddd"
-        >НЕИЗВЕСТНО
+        <font color="#ddd">НЕИЗВЕСТНО
         </font>
     </string>
     <string name="header_observation">Наблюдения</string>
@@ -115,7 +117,7 @@
     <string name="current_location_label">Текущее местоположение:</string>
     <string name="no_location_selected">Местоположение не выбрано</string>
     <string
-            name="patient_unsynced_info"
+        name="patient_unsynced_info"
     >Информация о пациенте будет синхронизирована с\nPearl в следующий раз, когда вы будете онлайн
     </string>
     <string name="header_visits">Заголовок визитов</string>
@@ -123,18 +125,14 @@
     <string name="offline">Офлайн</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
-    <string
-            name="no_and_don_t_ask_me_again"
-    >Нет, и больше не спрашивать
+    <string name="no_and_don_t_ask_me_again">Нет, и больше не спрашивать
     </string>
     <string name="login_expired">Срок действия входа истек</string>
-    <string
-            name="session_expired"
-    >Ваша сессия истекла. Хотите войти снова?
+    <string name="session_expired">Ваша сессия истекла. Хотите войти снова?
     </string>
     <string name="logout">Выйти</string>
     <string
-            name="logout_message"
+        name="logout_message"
     >Вы уверены, что хотите выйти? \n\nЕсли вы продолжите, все данные этого приложения будут безвозвратно удалены. \nЭто
         включает все ресурсы, сеансы пользователей, базу данных и т. д.
     </string>
@@ -142,80 +140,80 @@
     <string name="sync_started">Синхронизация: начата</string>
     <string name="sync_succeeded_at">Синхронизация: успешно в %1$s</string>
     <string name="sync_failed_at">Синхронизация: ошибка в %1$s</string>
-    <string name="sync_unknown_state">Синхронизация: неизвестное состояние.</string>
+    <string
+        name="sync_unknown_state"
+    >Синхронизация: неизвестное состояние.</string>
     <string name="sync_terminated">Синхронизация: прервана</string>
     <string name="logging_out">Выход из системы..</string>
     <string
-            name="sync_device_offline_message"
+        name="sync_device_offline_message"
     >Устройство не в сети. Синхронизация возобновится, как только устройство появится в сети
     </string>
     <string name="settings">Настройки</string>
     <string name="save">Сохранить</string>
     <string name="cancel">Отмена</string>
     <string
-            name="token_expiry_delay_text"
+        name="token_expiry_delay_text"
     >Задержка перед диалогом истечения срока действия токена (в минутах)
     </string>
-    <string
-            name="check_network_connectivity"
-    >Проверьте подключение к сети
+    <string name="check_network_connectivity">Проверьте подключение к сети
     </string>
     <string name="enable_notifications">Включить уведомления</string>
     <string name="settings_discarded">Настройки отменены</string>
     <string name="settings_saved">Настройки сохранены</string>
     <string
-            name="token_check_delay_in_minutes"
+        name="token_check_delay_in_minutes"
     >Задержка проверки токена (в минутах)
     </string>
     <string name="token_check_delay">Задержка проверки токена</string>
     <string
-            name="periodic_sync_delay_in_minutes"
+        name="periodic_sync_delay_in_minutes"
     >Задержка периодической синхронизации (в минутах)
     </string>
-    <string name="periodic_sync_delay">Задержка периодической синхронизации</string>
+    <string
+        name="periodic_sync_delay"
+    >Задержка периодической синхронизации</string>
     <string name="send_diagnostics">Отправить диагностику</string>
     <string
-            name="diagnostics_message"
+        name="diagnostics_message"
     >Хотите отправить полный диагностический отчет о приложении команде разработчиков?\nВключает: Журналы приложения и
         информацию о синхронизации
     </string>
     <string name="username">Имя пользователя</string>
     <string name="password">Пароль</string>
     <string
-            name="username_password_empty"
+        name="username_password_empty"
     >Имя пользователя или пароль не могут быть пустыми.
     </string>
     <string
-            name="invalid_username_password"
+        name="invalid_username_password"
     >Ошибка входа. Пожалуйста, проверьте свои учетные данные.
     </string>
     <string
-            name="no_internet_connection"
+        name="no_internet_connection"
     >Нет подключения к Интернету. Пожалуйста, проверьте сеть и попробуйте снова.
     </string>
     <string
-            name="something_went_wrong"
+        name="something_went_wrong"
     >Что-то пошло не так. Пожалуйста, попробуйте снова.
     </string>
     <string
-            name="locked_out_message"
+        name="locked_out_message"
     >Слишком много неудачных попыток. Пожалуйста, попробуйте позже.
     </string>
     <string
-            name="questionnaire_error_message"
+        name="questionnaire_error_message"
     >Произошла ошибка при загрузке анкеты, пожалуйста, синхронизируйтесь и попробуйте снова позже!
     </string>
     <string name="connection_restored">Соединение восстановлено</string>
-    <string
-            name="do_you_want_to_continue_sync"
-    >Хотите продолжить синхронизацию?
+    <string name="do_you_want_to_continue_sync">Хотите продолжить синхронизацию?
     </string>
     <string
-            name="location_unassigned_select_location"
+        name="location_unassigned_select_location"
     >Местоположение не назначено, пожалуйста, выберите местоположение снова…
     </string>
     <string
-            name="no_patients_available_register_a_new_one_using_the_button_below"
+        name="no_patients_available_register_a_new_one_using_the_button_below"
     >Нет доступных пациентов, зарегистрируйте нового, используя кнопку ниже
     </string>
     <string name="observation">Наблюдение</string>
@@ -229,13 +227,15 @@
     <string name="delete_patient">Удалить пациента</string>
     <string name="empty_state_icon">Значок пустого состояния</string>
     <string
-            name="no_unsynced_resources_available"
+        name="no_unsynced_resources_available"
     >Нет доступных несинхронизированных ресурсов
     </string>
     <string name="delete_all">Удалить все</string>
     <string name="download_all">Скачать все</string>
     <string name="no_locations_available">Нет доступных местоположений.</string>
-    <string name="no_patient_list_available">Нет доступного списка пациентов</string>
+    <string
+        name="no_patient_list_available"
+    >Нет доступного списка пациентов</string>
     <string name="task_image">Изображение задачи</string>
     <string name="patient_list">Список пациентов</string>
     <string name="select_location">Выберите местоположение</string>
@@ -244,15 +244,15 @@
     <string name="search_a_location">Искать местоположение</string>
     <string name="next">Далее</string>
     <string name="search_patient_lists">Искать списки пациентов</string>
-    <string name="no_sync_info_available">Нет доступной информации о синхронизации</string>
+    <string
+        name="no_sync_info_available"
+    >Нет доступной информации о синхронизации</string>
     <string name="clear_sync_data">Очистить данные синхронизации</string>
     <string name="hsu_id" translatable="false">HSU ID</string>
     <string name="encounter_date">Дата приема</string>
     <string name="encounter_name">Название приема</string>
     <string name="location_1">Местоположение 1</string>
-    <string
-            name="this_will_show_observations"
-    >Здесь будут показаны наблюдения.
+    <string name="this_will_show_observations">Здесь будут показаны наблюдения.
     </string>
     <string name="_50_years_old">50 лет</string>
     <string name="navya_patel" translatable="false">Navya Patel</string>
@@ -270,24 +270,22 @@
     <string name="saved">СОХРАНЕНО</string>
     <string name="group_encounters">Групповые приемы</string>
     <string
-            name="save_all_submitted_encounters"
+        name="save_all_submitted_encounters"
     >Сохранить все отправленные приемы
     </string>
     <string
-            name="do_you_want_to_save_all_submitted_encounters"
+        name="do_you_want_to_save_all_submitted_encounters"
     >Хотите сохранить все отправленные приемы?
     </string>
     <string name="no_encounters_to_save">Нет приемов для сохранения!</string>
-    <string
-            name="all_patients_have_been_submitted"
-    >Все пациенты были отправлены
+    <string name="all_patients_have_been_submitted">Все пациенты были отправлены
     </string>
     <string
-            name="please_select_at_least_one_patient"
+        name="please_select_at_least_one_patient"
     >Пожалуйста, выберите хотя бы одного пациента.
     </string>
     <string
-            name="select_patients_for_group_encounter"
+        name="select_patients_for_group_encounter"
     >Выберите пациентов для группового приема
     </string>
     <string name="select_all_patients">Выбрать всех пациентов</string>
@@ -295,39 +293,39 @@
     <string name="inputs_are_missing">Отсутствуют входные данные.</string>
     <string name="start">Начать</string>
     <string
-            name="all_encounter_for_group_session_have_been_saved"
+        name="all_encounter_for_group_session_have_been_saved"
     >Все приемы для группового сеанса сохранены
     </string>
     <string name="do_you_want_to_exit">Хотите выйти?</string>
     <string
-            name="encounter_questionnaire_not_found_try_again_later"
+        name="encounter_questionnaire_not_found_try_again_later"
     >Анкета приема не найдена, попробуйте позже
     </string>
     <string
-            name="please_complete_the_required_fields_first"
+        name="please_complete_the_required_fields_first"
     >Пожалуйста, сначала заполните обязательные поля!
     </string>
     <string name="encounter_saved_for_patient">Прием для %1$s сохранен</string>
     <string name="encounter_updated">Прием обновлен!</string>
     <string
-            name="all_encounters_saved_do_you_want_to_exit"
+        name="all_encounters_saved_do_you_want_to_exit"
     >Все приемы сохранены! Хотите выйти?
     </string>
     <string name="close_this_window">Закрыть это окно</string>
     <string
-            name="you_can_do_other_things_on_the_device_while_it_syncs"
+        name="you_can_do_other_things_on_the_device_while_it_syncs"
     >Вы можете заниматься другими делами на устройстве во время синхронизации.
     </string>
     <string
-            name="leave_the_device_in_a_location_with_good_internet_reception"
+        name="leave_the_device_in_a_location_with_good_internet_reception"
     >Оставьте устройство в месте с хорошим приемом интернета
     </string>
     <string
-            name="stay_connected_to_wi_fi_or_data"
+        name="stay_connected_to_wi_fi_or_data"
     >Оставайтесь подключенными к Wi-Fi или мобильным данным
     </string>
     <string
-            name="this_can_take_up_to_10_minutes_depending_on_your_internet_connection"
+        name="this_can_take_up_to_10_minutes_depending_on_your_internet_connection"
     >Это может занять до 10 минут в зависимости от вашего интернет-соединения
     </string>
     <string name="syncing_resources">Синхронизация ресурсов</string>
@@ -336,38 +334,42 @@
     <string name="uploading_patient_data">Загрузка данных пациентов</string>
     <string name="get_started">Начать</string>
     <string name="please_try_again_later">Пожалуйста, попробуйте позже.</string>
-    <string name="unknown_sync_state">Неизвестное состояние синхронизации</string>
+    <string
+        name="unknown_sync_state"
+    >Неизвестное состояние синхронизации</string>
     <string name="sync_failed">Синхронизация не удалась</string>
     <string name="sync_completed">Синхронизация завершена</string>
     <string
-            name="all_data_synchronized_successfully"
+        name="all_data_synchronized_successfully"
     >Все данные успешно синхронизированы!
     </string>
     <string
-            name="patient_resources_are_being_synchronized"
+        name="patient_resources_are_being_synchronized"
     >Ресурсы пациентов синхронизируются…
     </string>
     <string name="progress">Прогресс</string>
-    <string name="biometric_prompt_title">Аутентификация устройства в офлайн-режиме</string>
     <string
-            name="biometric_prompt_subtitle"
+        name="biometric_prompt_title"
+    >Аутентификация устройства в офлайн-режиме</string>
+    <string
+        name="biometric_prompt_subtitle"
     >Используйте свои биометрические данные
     </string>
     <string
-            name="use_device_credential"
+        name="use_device_credential"
     >Используйте PIN-код/графический ключ/пароль вашего устройства
     </string>
     <string name="auth_error">Ошибка аутентификации: %1$s</string>
     <string name="auth_failed">Аутентификация не удалась</string>
     <string name="invalid_session">Недействительная сессия</string>
     <string
-            name="no_supported_offline_auth_method"
+        name="no_supported_offline_auth_method"
     >Нет доступных поддерживаемых методов офлайн-аутентификации
     </string>
     <string name="version">Версия</string>
     <string name="encryption_not_available">Шифрование недоступно</string>
     <string
-            name="please_connect_to_the_internet_to_continue_with_authentication"
+        name="please_connect_to_the_internet_to_continue_with_authentication"
     >Пожалуйста, подключитесь к Интернету, чтобы продолжить аутентификацию.
     </string>
     <string name="retry">Повторить</string>
@@ -392,20 +394,20 @@
         отключен. Пожалуйста, войдите в систему онлайн, чтобы снова включить офлайн-доступ.
     </string>
     <string
-            name="try_logging_in_with_active_internet_connection"
+        name="try_logging_in_with_active_internet_connection"
     >Попробуйте войти с активным подключением к Интернету
     </string>
     <string name="offline_login_unavailable">Офлайн-вход недоступен!</string>
     <string
-            name="error_encountered_while_setting_offline_login"
+        name="error_encountered_while_setting_offline_login"
     >Произошла ошибка при настройке офлайн-входа
     </string>
     <string
-            name="auth_error_offline_login"
+        name="auth_error_offline_login"
     >Ошибка аутентификации: Невозможно настроить офлайн-вход сейчас, попробуйте позже
     </string>
     <string
-            name="auth_failed_offline_login"
+        name="auth_failed_offline_login"
     >Аутентификация не удалась! Невозможно настроить офлайн-вход сейчас
     </string>
     <string name="app_version_info">Версия приложения: %1$s</string>
