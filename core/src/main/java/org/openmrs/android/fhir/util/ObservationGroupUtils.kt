@@ -113,7 +113,7 @@ internal class ParentObservationTracker {
     if (!parentUpdatesScheduled.add(parentId)) {
       return
     }
-    parent.status = Observation.ObservationStatus.AMENDED
+    parent.status = Observation.ObservationStatus.FINAL
     parent.effective = nowUtcDateTime()
     update(parent)
   }
@@ -156,9 +156,10 @@ internal class ExistingObservationIndex(
   ): ParentEnsureResult {
     val parentKey = ParentKey(info.parentCodingKey)
     val existing = parentObservationsByKey[parentKey]
-    return if (existing != null) {
-      tracker.markTouched(existing)
-      ParentEnsureResult(existing, false)
+    val reusable = existing?.takeUnless { it.status == Observation.ObservationStatus.CANCELLED }
+    return if (reusable != null) {
+      tracker.markTouched(reusable)
+      ParentEnsureResult(reusable, false)
     } else {
       val parent = createParentObservation(info, subjectReference, encounterReference)
       registerParent(parentKey, parent)
@@ -683,16 +684,6 @@ internal fun buildObservationGroupLookup(
   return ObservationGroupLookup(childInfos, childInfosByCodingKey, parentCodingKeys)
 }
 
-internal suspend fun ParentEnsureResult?.markExistingParentAmended(
-  tracker: ParentObservationTracker,
-  update: suspend (Observation) -> Unit,
-) {
-  if (this == null || isNew) {
-    return
-  }
-  tracker.markAmended(parent, update)
-}
-
 internal suspend fun ParentEnsureResult?.handleUnchangedChild(
   tracker: ParentObservationTracker,
   update: suspend (Observation) -> Unit,
@@ -773,4 +764,14 @@ internal fun Reference.observationReferenceId(): String? {
     return null
   }
   return element.idPart.takeIf { !it.isNullOrBlank() }
+}
+
+/** Returns true if any CodeableConcept in listA shares a code with any CodeableConcept in listB. */
+fun areSameValue(listA: List<Coding>?, listB: List<Coding>?): Boolean {
+  if (listA.isNullOrEmpty() || listB.isNullOrEmpty()) return false
+
+  val codesA = listA.mapNotNull { it.code }.toSet()
+  val codesB = listB.mapNotNull { it.code }.toSet()
+
+  return codesA.any { it in codesB }
 }

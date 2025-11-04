@@ -41,6 +41,8 @@ class GroupDownloadWorkManagerImpl(context: Context) : BaseDownloadWorkManagerIm
     val matchResult = regex.find(context.getString(R.string.first_fhir_sync_url))
     var extractedPart = matchResult?.value ?: "Group"
 
+    val cohortType = context.getString(R.string.cohort_type).trim().takeIf { it.isNotEmpty() }
+
     if (context.resources.getBoolean(R.bool.filter_patient_lists_by_group)) {
       val selectedLocationId = runBlocking {
         context.applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
@@ -50,6 +52,11 @@ class GroupDownloadWorkManagerImpl(context: Context) : BaseDownloadWorkManagerIm
         val separator = if (extractedPart.contains("?")) "&" else "?"
         extractedPart = "$extractedPart${separator}location=$selectedLocationId"
       }
+    }
+
+    if (cohortType != null && !extractedPart.contains("cohort-type=")) {
+      val separator = if (extractedPart.contains("?")) "&" else "?"
+      extractedPart = "$extractedPart${separator}cohort-type=$cohortType"
     }
 
     return listOf(extractedPart)

@@ -26,6 +26,7 @@ android {
     setResValue(providers, "fhir_sync_urls", this)
     setResValue(providers, "openmrs_rest_url", this)
     setResValue(providers, "check_server_url", this)
+    setResValue(providers, "cohort_type", this, propertyKey = "cohort-type")
     //    oauth
     setResValue(providers, "auth_authorization_scope", this)
     setResValue(providers, "auth_client_id", this)
@@ -86,8 +87,9 @@ fun setResValue(
   propertyName: String,
   variants: VariantDimension,
   type: String = "string",
+  propertyKey: String = propertyName,
 ) {
-  val prop = gradleLocalProperties(rootDir, providers).getProperty(propertyName)
+  val prop = gradleLocalProperties(rootDir, providers).getProperty(propertyKey)
   if (prop != null) {
     variants.resValue(type, propertyName, prop)
   }
