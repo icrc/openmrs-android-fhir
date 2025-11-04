@@ -383,5 +383,5 @@
     <string
         name="auth_failed_offline_login"
     >¡Autenticación fallida! No se puede configurar el inicio de sesión sin conexión ahora</string>
-
+    <string name="app_version_info">Versión de la aplicación: %1$s</string>
 </resources>
