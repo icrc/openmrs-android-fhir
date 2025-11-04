@@ -220,7 +220,8 @@ class MainActivity : AppCompatActivity() {
           "N/A"
         }
 
-      binding.navigationView.menu.findItem(R.id.menu_version).title = getString(R.string.app_version_info, versionName)
+      binding.navigationView.menu.findItem(R.id.menu_version).title =
+        getString(R.string.app_version_info, versionName)
     }
   }
 
