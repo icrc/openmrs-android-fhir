@@ -389,6 +389,7 @@
     <string
         name="auth_failed_offline_login"
     >¡Autenticación fallida! No se puede configurar el inicio de sesión sin conexión ahora</string>
+    <string name="app_version_info">Versión de la aplicación: %1$s</string>
     <string
         name="connect_internet_to_select_patient_list"
     >Por favor, conéctese a internet para seleccionar una lista de pacientes.</string>

@@ -404,6 +404,7 @@
     <string
         name="auth_failed_offline_login"
     >Échec de l\'authentification ! Impossible de configurer la connexion hors ligne pour le moment</string>
+    <string name="app_version_info">Version de l\'application : %1$s</string>
     <string
         name="connect_internet_to_select_patient_list"
     >Veuillez vous connecter à Internet pour sélectionner une liste de patients.</string>

@@ -166,14 +166,14 @@
     >الكثير من المحاولات الفاشلة.يرجى المحاولة مرة أخرى لاحقًا.</string>
     <string
         name="questionnaire_error_message"
-    >حدث بعض الأخطاء مع تحميل الاستبيان ، يرجى المزامنة والمحاولة مرة أخرى لاحقًا!</string>
+    >حدث بعض الأخطاء مع تحميل الاستبيان ، يرجى المزامنة والمحاولة مرة أخرى لاحقًا</string>
     <string name="connection_restored">تم استعادة الاتصال</string>
     <string
         name="do_you_want_to_continue_sync"
     >هل تريد متابعة المزامنة؟</string>
     <string
         name="location_unassigned_select_location"
-    >الموقع غير معتمد ، يرجى تحديد الموقع مرة أخرى ...</string>
+    >الموقع غير معتمد ، يرجى تحديد الموقع مرة أخرى</string>
     <string
         name="no_patients_available_register_a_new_one_using_the_button_below"
     >لا يوجد مرضى متاح ، قم بتسجيله جديد باستخدام الزر أدناه</string>
@@ -290,7 +290,7 @@
     >تزامن جميع البيانات بنجاح!</string>
     <string
         name="patient_resources_are_being_synchronized"
-    >يتم مزامنة موارد المريض ...</string>
+    >يتم مزامنة موارد المريض</string>
     <string name="progress">تقدم</string>
     <string
         name="biometric_prompt_title"
@@ -347,6 +347,7 @@
     <string
         name="auth_failed_offline_login"
     >فشل المصادقة!غير قادر على إعداد تسجيل الدخول إلى وضع عدم الاتصال الآن</string>
+    <string name="app_version_info">إصدار التطبيق: %1$s</string>
     <string
         name="connect_internet_to_select_patient_list"
     >الرجاء الاتصال بالإنترنت لتحديد قائمة المرضى.</string>
