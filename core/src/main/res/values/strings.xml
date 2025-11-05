@@ -141,6 +141,12 @@
     <string
         name="logout_message"
     >Are you sure you want to log out? \n\nIf you proceed, All of this applications data will be deleted permanently. \nThis includes all resources, user sessions, database etc.</string>
+    <string
+        name="logout_unavailable_internet_only_message"
+    >Unable to log out while the server is unreachable. Please reconnect when the server is available and try again.</string>
+    <string
+        name="logout_unavailable_offline_message"
+    >Unable to log out while offline. Please reconnect to the internet and try again.</string>
     <string name="sync_in_progress">Sync: in progress</string>
     <string name="sync_started">Sync: started</string>
     <string name="sync_succeeded_at">Sync: succeeded at %1$s</string>

@@ -234,7 +234,8 @@ class MainActivity : AppCompatActivity() {
         onSyncPress()
       }
       R.id.menu_logout -> {
-        showLogoutWarningDialog()
+        val connectivityState = viewModel.networkStatus.value
+        showLogoutWarningDialog(connectivityState)
       }
       R.id.menu_settings -> {
         findNavController(R.id.nav_host_fragment).navigate(R.id.settings_fragment)
@@ -496,17 +497,34 @@ class MainActivity : AppCompatActivity() {
     viewModel.unregisterNetworkCallback()
   }
 
-  private fun showLogoutWarningDialog() {
-    AlertDialog.Builder(this)
-      .setTitle(getString(R.string.logout))
-      .setMessage(getString(R.string.logout_message))
-      .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
-        dialog.dismiss()
-        navigateToLogin()
-      }
-      .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
-      .setCancelable(false)
-      .show()
+  private fun showLogoutWarningDialog(connectivityState: ServerConnectivityState) {
+    when (connectivityState) {
+      ServerConnectivityState.ServerConnected ->
+        AlertDialog.Builder(this)
+          .setTitle(getString(R.string.logout))
+          .setMessage(getString(R.string.logout_message))
+          .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
+            dialog.dismiss()
+            navigateToLogin()
+          }
+          .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
+          .setCancelable(false)
+          .show()
+      ServerConnectivityState.InternetOnly ->
+        AlertDialog.Builder(this)
+          .setTitle(getString(R.string.logout))
+          .setMessage(getString(R.string.logout_unavailable_internet_only_message))
+          .setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }
+          .setCancelable(true)
+          .show()
+      ServerConnectivityState.Offline ->
+        AlertDialog.Builder(this)
+          .setTitle(getString(R.string.logout))
+          .setMessage(getString(R.string.logout_unavailable_offline_message))
+          .setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }
+          .setCancelable(true)
+          .show()
+    }
   }
 
   private fun navigateToLogin() {

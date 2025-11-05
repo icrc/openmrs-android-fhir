@@ -119,8 +119,7 @@ constructor(
 
       override fun onLost(network: Network) {
         super.onLost(network)
-        // Network is lost
-        _networkStatus.value = ServerConnectivityState.Offline
+        updateConnectivityState()
       }
     }
 

@@ -109,6 +109,12 @@
     <string
         name="logout_message"
     >هل أنت متأكد أنك تريد تسجيل الخروج؟\n \n إذا قمت بالمتابعة ، فسيتم حذف بيانات كل هذه التطبيقات بشكل دائم.\n يتضمن ذلك جميع الموارد وجلسات المستخدم وقاعدة البيانات وما إلى ذلك.</string>
+    <string
+        name="logout_unavailable_internet_only_message"
+    >يتعذر تسجيل الخروج عندما يتعذر الوصول إلى الخادم. يُرجى إعادة الاتصال عند توفر الخادم والمحاولة مرة أخرى.</string>
+    <string
+        name="logout_unavailable_offline_message"
+    >يتعذر تسجيل الخروج أثناء عدم الاتصال. يُرجى إعادة الاتصال بالإنترنت والمحاولة مرة أخرى.</string>
     <string name="sync_in_progress">المزامنة: في التقدم</string>
     <string name="sync_started">المزامنة: بدأت</string>
     <string name="sync_succeeded_at">المزامنة: نجحت في %1$s</string>

@@ -122,6 +122,12 @@
     <string
         name="logout_message"
     >¿Estás seguro de que quieres cerrar sesión? \n\nSi continúas, todos los datos de esta aplicación se eliminarán permanentemente. \nEsto incluye todos los recursos, sesiones de usuario, base de datos, etc.</string>
+    <string
+        name="logout_unavailable_internet_only_message"
+    >No es posible cerrar sesión cuando el servidor no está disponible. Vuelve a conectarte cuando el servidor esté disponible e inténtalo de nuevo.</string>
+    <string
+        name="logout_unavailable_offline_message"
+    >No es posible cerrar sesión sin conexión. Vuelve a conectarte a Internet e inténtalo de nuevo.</string>
     <string name="sync_in_progress">Sincronización: en progreso</string>
     <string name="sync_started">Sincronización: iniciada</string>
     <string
