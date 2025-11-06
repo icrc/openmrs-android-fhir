@@ -76,9 +76,10 @@ import org.openmrs.android.fhir.util.ObservationChildInfo
 import org.openmrs.android.fhir.util.ObservationGroupLookup
 import org.openmrs.android.fhir.util.ParentEnsureResult
 import org.openmrs.android.fhir.util.ParentObservationTracker
+import org.openmrs.android.fhir.util.areSameValue
 import org.openmrs.android.fhir.util.buildObservationGroupLookup
 import org.openmrs.android.fhir.util.handleUnchangedChild
-import org.openmrs.android.fhir.util.markExistingParentAmended
+import org.openmrs.android.fhir.util.idPart
 import org.openmrs.android.fhir.util.observationReferenceId
 import org.openmrs.android.fhir.util.updateParentReference
 import timber.log.Timber
@@ -104,7 +105,7 @@ constructor(
   val isResourcesSaved = MutableLiveData<String>()
   val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
-  private var pendingResourceOperations: MutableList<PendingResourceOperation>? = null
+  private var pendingResourceOperations: MutableList<suspend () -> Unit>? = null
 
   fun prepareEditEncounter(encounterId: String, encounterType: String) {
     viewModelScope.launch {
@@ -255,14 +256,15 @@ constructor(
     questionnaire: Questionnaire,
     questionnaireResponse: QuestionnaireResponse,
   ) {
-    pendingResourceOperations = mutableListOf()
+    pendingResourceOperations = mutableListOf<suspend () -> Unit>()
     try {
       val encounterReference = Reference("Encounter/$encounterId")
       val encounterSubject = fhirEngine.get<Encounter>(encounterId).subject
-      val observations = getObservationsEncounterId(encounterId)
+      val observations = getObservationsEncounterId(encounterId).toMutableList()
       val conditions = getConditionsEncounterId(encounterId)
 
       val observationGroupLookup = buildObservationGroupLookup(questionnaire, questionnaireResponse)
+      removeReplacedParentObservations(bundle, observationGroupLookup, observations)
       val observationIndex =
         ExistingObservationIndex(observationGroupLookup.parentCodingKeys, observations)
       val parentTracker = ParentObservationTracker()
@@ -289,14 +291,12 @@ constructor(
         }
       }
 
-      cancelRemainingChildObservations(observationIndex, parentTracker)
+      deleteRemainingChildObservations(observationIndex, parentTracker)
 
-      val parentIdsToCancel = observationIndex.originalParentIds - parentTracker.touchedIds()
-      parentIdsToCancel.forEach { parentId ->
+      val parentIdsToDelete = observationIndex.originalParentIds - parentTracker.touchedIds()
+      parentIdsToDelete.forEach { parentId ->
         val parentObservation = observationIndex.parentById(parentId) ?: return@forEach
-        parentObservation.status = Observation.ObservationStatus.CANCELLED
-        parentObservation.effective = nowUtcDateTime()
-        updateResourceToDatabase(parentObservation)
+        softDeleteObservationFromDatabase(parentObservation)
       }
 
       flushPendingResourceOperations()
@@ -308,6 +308,38 @@ constructor(
     } finally {
       pendingResourceOperations = null
     }
+  }
+
+  private suspend fun removeReplacedParentObservations(
+    bundle: Bundle,
+    observationGroupLookup: ObservationGroupLookup,
+    observations: MutableList<Observation>,
+  ) {
+    val processedParentIds = mutableSetOf<String>()
+    bundle.entry
+      .mapNotNull { it.resource as? Observation }
+      .forEach { extractedObservation ->
+        val childInfo = observationGroupLookup.findChildInfo(extractedObservation) ?: return@forEach
+        val parentObservation =
+          observations.firstOrNull { candidate ->
+            candidate.code.coding.any { coding -> coding.matchesCoding(childInfo.parentCoding) }
+          }
+            ?: return@forEach
+        val parentId = parentObservation.idPart() ?: return@forEach
+        if (!processedParentIds.add(parentId)) {
+          return@forEach
+        }
+
+        softDeleteObservationFromDatabase(parentObservation)
+        observations.remove(parentObservation)
+
+        val childrenToRemove =
+          observations.filter { candidate ->
+            candidate.partOf.any { it.observationReferenceId() == parentId }
+          }
+        childrenToRemove.forEach { child -> softDeleteObservationFromDatabase(child) }
+        observations.removeAll(childrenToRemove)
+      }
   }
 
   private suspend fun handleObservation(
@@ -381,7 +413,6 @@ constructor(
         parentResult.handleUnchangedChild(parentTracker, ::updateResourceToDatabase)
         return
       }
-      parentResult.markExistingParentAmended(parentTracker, ::updateResourceToDatabase)
       existing.status = Observation.ObservationStatus.AMENDED
       existing.value = value.copy()
       existing.effective = nowUtcDateTime()
@@ -392,7 +423,7 @@ constructor(
     } else {
       val newObservation =
         Observation().apply {
-          id = generateUuid()
+          id = template.bundleGeneratedId()
           code = template.code.copy()
           subject = subjectReference
           encounter = encounterReference
@@ -400,7 +431,6 @@ constructor(
           effective = nowUtcDateTime()
           this.value = value.copy()
         }
-      parentResult.markExistingParentAmended(parentTracker, ::updateResourceToDatabase)
       newObservation.updateParentReference(parent)
       createResourceToDatabase(newObservation)
     }
@@ -422,11 +452,10 @@ constructor(
       val existing = observationIndex.findExisting(template, childInfo, parent)
       if (existing != null) {
         val parentChanged = existing.updateParentReference(parent)
-        if (!parentChanged && existing.value.equalsDeep(value)) {
+        if (!parentChanged && areSameValue(existing.valueCodeableConcept.coding, value.coding)) {
           parentResult.handleUnchangedChild(parentTracker, ::updateResourceToDatabase)
           return
         }
-        parentResult.markExistingParentAmended(parentTracker, ::updateResourceToDatabase)
         existing.status = Observation.ObservationStatus.AMENDED
         existing.value = value.copy()
         existing.effective = nowUtcDateTime()
@@ -437,7 +466,7 @@ constructor(
       } else {
         val target =
           Observation().apply {
-            id = generateUuid()
+            id = template.bundleGeneratedId()
             code = template.code.copy()
             subject = subjectReference
             encounter = encounterReference
@@ -445,24 +474,17 @@ constructor(
             effective = nowUtcDateTime()
             this.value = value.copy()
           }
-        parentResult.markExistingParentAmended(parentTracker, ::updateResourceToDatabase)
         target.updateParentReference(parent)
         createResourceToDatabase(target)
       }
     } else {
       val existingMatches = observationIndex.findAllExisting(codings, childInfo, parent)
-      existingMatches.forEach { existing ->
-        val idPart = existing.idElement.idPart
-        if (!idPart.isNullOrBlank()) {
-          fhirEngine.purge(existing.resourceType, idPart)
-        }
-      }
+      existingMatches.forEach { existing -> softDeleteObservationFromDatabase(existing) }
 
-      parentResult.markExistingParentAmended(parentTracker, ::updateResourceToDatabase)
-      codings.forEach { coding ->
+      codings.forEachIndexed { index, coding ->
         val obs =
           Observation().apply {
-            id = generateUuid()
+            id = if (index == 0) template.bundleGeneratedId() else generateUuid()
             code = template.code.copy()
             subject = subjectReference
             encounter = encounterReference
@@ -476,7 +498,7 @@ constructor(
     }
   }
 
-  private suspend fun cancelRemainingChildObservations(
+  private suspend fun deleteRemainingChildObservations(
     observationIndex: ExistingObservationIndex,
     parentTracker: ParentObservationTracker,
   ) {
@@ -498,11 +520,7 @@ constructor(
         }
       }
 
-      if (child.status != Observation.ObservationStatus.CANCELLED) {
-        child.status = Observation.ObservationStatus.CANCELLED
-        child.effective = nowUtcDateTime()
-        updateResourceToDatabase(child)
-      }
+      softDeleteObservationFromDatabase(child)
     }
   }
 
@@ -545,7 +563,9 @@ constructor(
       fhirEngine.search<Observation> {
         filter(Observation.ENCOUNTER, { value = "Encounter/$encounterId" })
       }
-    return searchResult.map { it.resource }
+    return searchResult
+      .map { it.resource }
+      .filter { it.hasStatus() && it.status != Observation.ObservationStatus.CANCELLED }
   }
 
   private suspend fun getConditionsEncounterId(encounterId: String): List<Condition> {
@@ -557,67 +577,49 @@ constructor(
   }
 
   private suspend fun updateResourceToDatabase(resource: Resource) {
-    enqueueResourceOperation(resource, ResourceOperationType.UPDATE)
+    enqueueResourceOperation { fhirEngine.update(resource) }
   }
 
   private suspend fun createResourceToDatabase(resource: Resource) {
-    enqueueResourceOperation(resource, ResourceOperationType.CREATE)
+    enqueueResourceOperation { fhirEngine.create(resource) }
   }
 
-  private suspend fun enqueueResourceOperation(
-    resource: Resource,
-    type: ResourceOperationType,
-  ) {
+  private suspend fun softDeleteObservationFromDatabase(observation: Observation) {
+    observation.status = Observation.ObservationStatus.CANCELLED
+    updateResourceToDatabase(observation)
+  }
+
+  private suspend fun enqueueResourceOperation(operation: suspend () -> Unit) {
     val pending = pendingResourceOperations
     if (pending != null) {
-      pending += PendingResourceOperation(resource, type, resource.toOperationPriority())
+      pending += operation
     } else {
-      performResourceOperation(resource, type)
+      operation()
     }
   }
 
   private suspend fun flushPendingResourceOperations() {
     val pending = pendingResourceOperations ?: return
-    val (cancellations, others) =
-      pending.partition { it.priority == ResourceOperationPriority.CANCELLATION }
-
-    cancellations.forEach { performResourceOperation(it.resource, it.type) }
-    others.forEach { performResourceOperation(it.resource, it.type) }
-
+    pending.forEach { it() }
     pending.clear()
   }
 
-  private suspend fun performResourceOperation(
-    resource: Resource,
-    type: ResourceOperationType,
-  ) {
-    when (type) {
-      ResourceOperationType.CREATE -> fhirEngine.create(resource)
-      ResourceOperationType.UPDATE -> fhirEngine.update(resource)
+  private fun Resource.bundleGeneratedId(): String {
+    val idPart = idElement?.idPart
+    if (!idPart.isNullOrBlank()) {
+      return idPart
     }
-  }
-
-  private fun Resource.toOperationPriority(): ResourceOperationPriority {
-    return if (this is Observation && this.status == Observation.ObservationStatus.CANCELLED) {
-      ResourceOperationPriority.CANCELLATION
-    } else {
-      ResourceOperationPriority.DEFAULT
+    val rawId = id.takeIf { !it.isNullOrBlank() }
+    if (rawId != null) {
+      return rawId.substringAfterLast("/")
     }
+    return generateUuid()
   }
 
-  private data class PendingResourceOperation(
-    val resource: Resource,
-    val type: ResourceOperationType,
-    val priority: ResourceOperationPriority,
-  )
-
-  private enum class ResourceOperationType {
-    CREATE,
-    UPDATE,
-  }
-
-  private enum class ResourceOperationPriority {
-    CANCELLATION,
-    DEFAULT,
+  private fun Coding.matchesCoding(target: Coding): Boolean {
+    val systemMatches =
+      system.isNullOrBlank() || target.system.isNullOrBlank() || system == target.system
+    val codeMatches = code.isNullOrBlank() || target.code.isNullOrBlank() || code == target.code
+    return systemMatches && codeMatches
   }
 }

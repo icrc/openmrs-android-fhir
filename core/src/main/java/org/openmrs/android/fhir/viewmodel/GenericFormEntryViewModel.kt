@@ -71,7 +71,6 @@ import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
-import org.openmrs.android.fhir.extensions.utcDateToLocalDate
 import org.openmrs.android.fhir.util.ParentKey
 import org.openmrs.android.fhir.util.buildObservationGroupLookup
 import org.openmrs.android.fhir.util.createParentObservation
@@ -129,8 +128,8 @@ constructor(
     encounterDateItem?.apply {
       val initialValue =
         when (type) {
-          Questionnaire.QuestionnaireItemType.DATE -> DateType(utcDateToLocalDate(Date()))
-          Questionnaire.QuestionnaireItemType.DATETIME -> DateTimeType(utcDateToLocalDate(Date()))
+          Questionnaire.QuestionnaireItemType.DATE -> DateType(Date())
+          Questionnaire.QuestionnaireItemType.DATETIME -> DateTimeType(Date())
           else -> null
         }
 
