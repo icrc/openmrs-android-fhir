@@ -508,27 +508,27 @@ private fun collectSiblingValueTokens(
 
   val tokens = mutableSetOf<String>()
 
-  parentGroup.item.forEach { sibling ->
+  fun collectTokensFromSibling(
+    sibling: Questionnaire.QuestionnaireItemComponent,
+  ) {
     if (sibling === childItem) {
-      return@forEach
-    }
-
-    if (!sibling.isObservationValueItem()) {
-      return@forEach
+      return
     }
 
     val valueLinkId = sibling.linkId
-    if (valueLinkId.isNullOrBlank()) {
-      return@forEach
+    if (!valueLinkId.isNullOrBlank() && sibling.isObservationValueItem()) {
+      if (linkIdMatches(childLinkId, valueLinkId)) {
+        siblingResponsesByLinkId[valueLinkId]?.forEach {
+          tokens.addAll(it.collectAnswerTokensDeep())
+        }
+        responseItemsByLinkId[valueLinkId]?.let { tokens.addAll(it.collectAnswerTokensDeep()) }
+      }
     }
 
-    if (!linkIdMatches(childLinkId, valueLinkId)) {
-      return@forEach
-    }
-
-    siblingResponsesByLinkId[valueLinkId]?.forEach { tokens.addAll(it.collectAnswerTokensDeep()) }
-    responseItemsByLinkId[valueLinkId]?.let { tokens.addAll(it.collectAnswerTokensDeep()) }
+    sibling.item.forEach { collectTokensFromSibling(it) }
   }
+
+  parentGroup.item.forEach { collectTokensFromSibling(it) }
 
   return tokens
 }
