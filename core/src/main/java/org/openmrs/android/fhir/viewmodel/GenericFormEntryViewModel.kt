@@ -375,21 +375,42 @@ constructor(
     resource: Observation,
     patientReference: Reference,
     encounterReference: Reference,
-  ): List<Observation> =
-    resource.value?.let { value ->
+  ): List<Observation> {
+    val value = resource.value ?: return emptyList()
+    val effectiveDateTime = nowUtcDateTime()
+
+    fun createBaseObservation() =
+      Observation().apply {
+        id = generateUuid()
+        code = resource.code.copy()
+        subject = patientReference
+        encounter = encounterReference
+        status = Observation.ObservationStatus.FINAL
+        effective = effectiveDateTime.copy()
+      }
+
+    return if (value is CodeableConcept && value.coding.size > 1) {
+      value.coding.map { coding ->
+        createBaseObservation().apply {
+          this.value =
+            CodeableConcept().apply {
+              text = value.text
+              addCoding(
+                coding.copy().apply {
+                  if (!this.hasDisplay() && value.hasText()) {
+                    display = value.text
+                  }
+                },
+              )
+            }
+        }
+      }
+    } else {
       listOf(
-        Observation().apply {
-          id = generateUuid()
-          code = resource.code.copy()
-          subject = patientReference
-          encounter = encounterReference
-          status = Observation.ObservationStatus.FINAL
-          effective = nowUtcDateTime()
-          this.value = value.copy()
-        },
+        createBaseObservation().apply { this.value = value.copy() },
       )
     }
-      ?: emptyList()
+  }
 
   private suspend fun saveResourceToDatabase(resource: Resource) {
     fhirEngine.create(resource)
