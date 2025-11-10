@@ -1,0 +1,448 @@
+<resources>
+    <string name="section_patient_management">УПРАВЛЕНИЕ ПАЦИЕНТАМИ</string>
+    <string name="title_add_patient">Добавить пациента</string>
+    <string
+        name="subtitle_add_patient"
+    >Зарегистрировать новую карточку пациента</string>
+    <string name="title_search_patient">Поиск пациента</string>
+    <string
+        name="subtitle_search_patient"
+    >Просмотр и управление пациентами</string>
+    <string name="title_custom_patient_list">Список(и) пациентов</string>
+    <string
+        name="subtitle_custom_patient_list"
+    >Загрузить сохраненный список пациентов</string>
+
+    <string name="section_encounters">ВСТРЕЧИ</string>
+    <string
+        name="title_group_encounter"
+    >Начать групповую/семейную сессию</string>
+    <string
+        name="subtitle_group_encounter"
+    >Начать сессию с несколькими пациентами</string>
+
+    <string name="section_system">СИСТЕМА</string>
+    <string name="title_sync_info">Информация о синхронизации</string>
+    <string name="sync_info">Информация о синхронизации</string>
+    <string
+        name="subtitle_sync_info"
+    >Просмотр ожидающих ресурсов для синхронизации</string>
+    <string
+        name="title_unsynced_resources"
+    >Несинхронизированные ресурсы</string>
+    <string
+        name="subtitle_unsynced_resources"
+    >Просмотр процессов синхронизации</string>
+
+    <string name="app_name" translatable="false">OpenMRS</string>
+    <string name="title_patient_list">Зарегистрированные пациенты</string>
+    <string name="title_patient_detail">Информация о пациенте</string>
+    <string name="patient_details_title">Данные пациента</string>
+    <string name="register_patient">Зарегистрировать пациента</string>
+    <string name="menu_about">О Fhir Engine</string>
+    <string name="menu_sync_resources">Синхронизировать ресурсы</string>
+    <string name="menu_patient_edit">@string/edit_patient</string>
+
+    <string name="observation_brief_text">%1$s: %2$s\nДата: %3$s</string>
+    <string name="query_hint_patient_search">Поиск по имени пациента</string>
+    <string
+        name="cancel_questionnaire_message"
+    >Вы уверены, что хотите отменить ответы?</string>
+
+    <string name="patient_id">ID</string>
+    <string name="patient_name">Имя</string>
+    <string name="patient_gender">Пол</string>
+    <string name="patient_dob">Дата рождения</string>
+    <string name="patient_phone_number">Номер телефона</string>
+    <string name="patient_city">Город</string>
+    <string name="patient_country">Страна</string>
+    <string name="patient_is_active">Активен</string>
+    <string name="patient_property_mobile">Мобильный номер</string>
+    <string name="patient_property_address">Адрес</string>
+    <string name="patient_property_dob">Дата рождения</string>
+    <string name="patient_property_gender">Пол</string>
+
+    <string name="edit_patient">Редактировать пациента</string>
+    <string name="new_encounter">Новая встреча</string>
+    <string name="create_encounter">Создать встречу</string>
+    <string name="create_group_encounter">Создать групповую встречу</string>
+    <string name="edit_encounter">Редактировать встречу</string>
+
+    <string name="location">Локация</string>
+    <string name="identifier">Идентификатор</string>
+    <string name="select_a_location">Выберите локацию</string>
+    <string
+        name="create_encounter_fragment_headline"
+    >Какую форму вы хотите использовать?</string>
+
+    <string name="select_patient_lists">Выбрать списки пациентов</string>
+    <string name="select_identifier_types">Выбрать типы идентификаторов</string>
+    <string name="submit">Отправить</string>
+
+    <string name="message_syncing">Синхронизация…</string>
+    <string name="message_patient_updated">Пациент обновлен.</string>
+    <string name="message_encounter_updated">Встреча обновлена.</string>
+    <string name="inputs_missing">Не заполнены необходимые поля.</string>
+    <string
+        name="inputs_missing_for_patient"
+    >Не заполнены поля для пациента:</string>
+    <string name="resources_saved">Ресурсы сохранены.</string>
+    <string name="response_received">Ответ на анкету получен.</string>
+
+    <string name="html_text">Текущий статус: <font
+            color="#ddd"
+        >НЕИЗВЕСТНО</font></string>
+    <string name="header_observation">Наблюдения</string>
+    <string name="header_conditions">Состояния</string>
+    <string name="message_no_datetime">Нет даты</string>
+    <string name="complete_survey">Завершить опрос</string>
+    <string name="risk_status">Текущий статус: </string>
+    <string name="unknown">НЕИЗВЕСТНО</string>
+    <string name="none">нет</string>
+
+    <string name="description_status">Статус</string>
+    <string name="open">Открыть</string>
+    <string name="close">Закрыть</string>
+
+    <string name="sync_menu">Синхронизировать</string>
+    <string name="last_sync">Последняя синхронизация</string>
+    <string name="syncing">Синхронизация</string>
+    <string name="sync">Синхронизировать</string>
+
+    <string name="button_login">Войти</string>
+    <string name="header_encounters">Встречи</string>
+
+    <string name="component_nav_heading">Компоненты</string>
+    <string name="layout_nav_heading">Макеты</string>
+    <string name="behavior_nav_heading">Поведение</string>
+
+    <string name="error">Ошибка</string>
+    <string name="open_questionnaire">Открыть анкету</string>
+    <string name="current_location_label">Текущая локация: </string>
+    <string name="no_location_selected">Локация не выбрана</string>
+
+    <string
+        name="patient_unsynced_info"
+    >Информация о пациенте будет синхронизирована\nпри подключении к интернету</string>
+
+    <string name="header_visits">Заголовок посещения</string>
+
+    <string name="online">Онлайн</string>
+    <string
+        name="network_status_connected_to_server"
+    >Подключено к серверу</string>
+    <string name="network_status_server_unreachable">Сервер недоступен</string>
+    <string name="offline">Оффлайн</string>
+
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string
+        name="no_and_don_t_ask_me_again"
+    >Нет, и больше не спрашивать</string>
+
+    <string name="login_expired">Сессия истекла</string>
+    <string name="session_expired">Ваша сессия истекла. Войти снова?</string>
+
+    <string name="logout">Выйти</string>
+    <string
+        name="logout_message"
+    >Вы уверены, что хотите выйти?\n\nЕсли вы продолжите, все данные приложения будут удалены безвозвратно.\nЭто включает ресурсы, сессии пользователей и базу данных.</string>
+
+    <string
+        name="logout_unavailable_internet_only_message"
+    >Невозможно выйти, сервер недоступен. Подключитесь и попробуйте снова.</string>
+    <string
+        name="logout_unavailable_offline_message"
+    >Невозможно выйти в оффлайн режиме. Подключитесь к интернету и попробуйте снова.</string>
+
+    <string name="sync_in_progress">Синхронизация: выполняется</string>
+    <string name="sync_started">Синхронизация: началась</string>
+    <string name="sync_succeeded_at">Синхронизация завершена в %1$s</string>
+    <string name="sync_failed_at">Синхронизация не удалась в %1$s</string>
+    <string
+        name="sync_unknown_state"
+    >Состояние синхронизации неизвестно.</string>
+    <string name="sync_terminated">Синхронизация прервана</string>
+
+    <string name="logging_out">Выход…</string>
+    <string
+        name="sync_device_offline_message"
+    >Устройство оффлайн. Синхронизация возобновится при подключении.</string>
+    <string
+        name="sync_server_unreachable_message"
+    >Сервер недоступен. Синхронизация возобновится позже.</string>
+
+    <string name="settings">Настройки</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+
+    <string
+        name="token_expiry_delay_text"
+    >Задержка перед уведомлением об истечении токена (в минутах)</string>
+    <string
+        name="check_network_connectivity"
+    >Проверить подключение к сети</string>
+    <string name="enable_notifications">Включить уведомления</string>
+
+    <string name="settings_discarded">Настройки отменены</string>
+    <string name="settings_saved">Настройки сохранены</string>
+
+    <string
+        name="token_check_delay_in_minutes"
+    >Проверка токена (в минутах)</string>
+    <string name="token_check_delay">Проверка токена</string>
+
+    <string
+        name="periodic_sync_delay_in_minutes"
+    >Периодическая синхронизация (в минутах)</string>
+    <string name="periodic_sync_delay">Период синхронизации</string>
+
+    <string name="send_diagnostics">Отправить диагностику</string>
+    <string
+        name="diagnostics_message"
+    >Отправить полный отчет о работе приложения разработчикам?\nВключает логи и сведения о синхронизации.</string>
+
+    <string name="username">Имя пользователя</string>
+    <string name="password">Пароль</string>
+    <string
+        name="username_password_empty"
+    >Имя пользователя или пароль не может быть пустым.</string>
+    <string
+        name="invalid_username_password"
+    >Ошибка входа. Проверьте данные.</string>
+    <string
+        name="no_internet_connection"
+    >Нет подключения к интернету. Проверьте сеть.</string>
+    <string
+        name="something_went_wrong"
+    >Произошла ошибка. Повторите попытку.</string>
+    <string
+        name="locked_out_message"
+    >Слишком много неудачных попыток. Попробуйте позже.</string>
+    <string
+        name="questionnaire_error_message"
+    >Ошибка загрузки анкеты. Синхронизируйте и попробуйте позже.</string>
+
+    <string name="connection_restored">Соединение восстановлено</string>
+    <string
+        name="do_you_want_to_continue_sync"
+    >Продолжить синхронизацию?</string>
+    <string
+        name="location_unassigned_select_location"
+    >Локация не назначена. Выберите локацию…</string>
+    <string
+        name="connect_internet_to_select_patient_list"
+    >Подключитесь к интернету для выбора списка пациентов.</string>
+    <string
+        name="server_unreachable_try_again_message"
+    >Сервер недоступен. Попробуйте позже.</string>
+
+    <string name="server_unreachable_title">Сервер недоступен</string>
+    <string
+        name="server_unreachable_dialog_message"
+    >Сейчас невозможно подключиться к серверу. Проверьте соединение.</string>
+
+    <string
+        name="splash_status_checking_connectivity"
+    >Проверка соединения с сервером…</string>
+    <string name="splash_status_server_unreachable">Сервер недоступен.</string>
+    <string
+        name="splash_status_offline"
+    >Отсутствует интернет-соединение.</string>
+
+    <string
+        name="no_patients_available_register_a_new_one_using_the_button_below"
+    >Пациентов нет. Зарегистрируйте нового с помощью кнопки ниже.</string>
+
+    <string name="observation">Наблюдение</string>
+    <string name="download_observation">Загрузить наблюдение</string>
+    <string name="delete_observation">Удалить наблюдение</string>
+
+    <string name="expand">Развернуть</string>
+    <string name="encounter">Встреча</string>
+    <string name="download_encounter">Загрузить встречу</string>
+    <string name="delete_encounter">Удалить встречу</string>
+
+    <string name="download_patient">Загрузить пациента</string>
+    <string name="delete_patient">Удалить пациента</string>
+
+    <string name="empty_state_icon">Значок пустого состояния</string>
+
+    <string
+        name="no_unsynced_resources_available"
+    >Нет несинхронизированных ресурсов</string>
+    <string name="delete_all">Удалить все</string>
+    <string name="download_all">Загрузить все</string>
+
+    <string name="no_locations_available">Нет доступных локаций.</string>
+    <string name="no_patient_list_available">Нет списка пациентов.</string>
+
+    <string name="task_image">Изображение задачи</string>
+    <string name="patient_list">Список пациентов</string>
+    <string name="select_location">Выбрать локацию</string>
+    <string name="select_patient_list">Выбрать список пациентов</string>
+    <string name="search_identifier_types">Поиск типов идентификаторов</string>
+    <string name="search_a_location">Поиск локации</string>
+
+    <string name="next">Далее</string>
+    <string name="search_patient_lists">Поиск списков пациентов</string>
+
+    <string name="no_sync_info_available">Нет данных о синхронизации</string>
+    <string name="clear_sync_data">Очистить данные синхронизации</string>
+
+    <string name="hsu_id" translatable="false">HSU ID</string>
+
+    <string name="encounter_date">Дата встречи</string>
+    <string name="encounter_name">Название встречи</string>
+    <string name="location_1">Локация 1</string>
+
+    <string
+        name="this_will_show_observations"
+    >Здесь будут показаны наблюдения.</string>
+
+    <string name="_50_years_old">50 лет</string>
+    <string name="navya_patel" translatable="false">Navya Patel</string>
+    <string name="patient_list_1">Список пациентов 1</string>
+    <string name="_0" translatable="false">0 %</string>
+
+    <string name="start_time">Время начала</string>
+    <string name="downloaded">Загружено</string>
+    <string name="uploaded">Отправлено</string>
+    <string name="in_progress">В процессе</string>
+    <string name="completed_at">Завершено в</string>
+    <string name="errors">Ошибки</string>
+
+    <string name="start_group_encounter">Начать групповую встречу</string>
+    <string name="next_patient">Следующий пациент</string>
+    <string name="save_all_encounters">Сохранить все встречи</string>
+    <string name="saved">СОХРАНЕНО</string>
+    <string name="group_encounters">Групповые встречи</string>
+    <string
+        name="save_all_submitted_encounters"
+    >Сохранить все отправленные встречи</string>
+    <string
+        name="do_you_want_to_save_all_submitted_encounters"
+    >Сохранить все отправленные встречи?</string>
+    <string name="no_encounters_to_save">Нет встреч для сохранения!</string>
+    <string
+        name="all_patients_have_been_submitted"
+    >Все пациенты отправлены</string>
+    <string
+        name="please_select_at_least_one_patient"
+    >Выберите хотя бы одного пациента.</string>
+    <string
+        name="select_patients_for_group_encounter"
+    >Выбрать пациентов для групповой встречи</string>
+    <string name="select_all_patients">Выбрать всех пациентов</string>
+    <string name="patient_is_saved">Пациент сохранен.</string>
+    <string name="inputs_are_missing">Не заполнены необходимые поля.</string>
+    <string name="start">Начать</string>
+    <string
+        name="all_encounter_for_group_session_have_been_saved"
+    >Все встречи для групповой сессии сохранены</string>
+    <string name="do_you_want_to_exit">Выйти?</string>
+    <string
+        name="encounter_questionnaire_not_found_try_again_later"
+    >Анкета встречи не найдена, попробуйте позже</string>
+    <string
+        name="please_complete_the_required_fields_first"
+    >Заполните обязательные поля!</string>
+    <string
+        name="encounter_saved_for_patient"
+    >Встреча для %1$s сохранена</string>
+    <string name="encounter_updated">Встреча обновлена!</string>
+    <string
+        name="all_encounters_saved_do_you_want_to_exit"
+    >Все встречи сохранены! Выйти?</string>
+    <string name="close_this_window">Закрыть окно</string>
+
+    <string
+        name="you_can_do_other_things_on_the_device_while_it_syncs"
+    >Вы можете продолжать пользоваться устройством во время синхронизации.</string>
+    <string
+        name="leave_the_device_in_a_location_with_good_internet_reception"
+    >Оставьте устройство там, где хорошее соединение.</string>
+    <string
+        name="stay_connected_to_wi_fi_or_data"
+    >Оставайтесь на Wi-Fi или мобильных данных</string>
+    <string
+        name="this_can_take_up_to_10_minutes_depending_on_your_internet_connection"
+    >Это может занять до 10 минут.</string>
+
+    <string name="syncing_resources">Синхронизация ресурсов</string>
+    <string name="syncing_patient_data">Синхронизация данных пациента</string>
+    <string name="Downloading_patient_data">Загрузка данных пациента</string>
+    <string name="uploading_patient_data">Отправка данных пациента</string>
+
+    <string name="get_started">Начать</string>
+    <string name="please_try_again_later">Попробуйте позже.</string>
+    <string
+        name="unknown_sync_state"
+    >Неизвестное состояние синхронизации</string>
+    <string name="sync_failed">Синхронизация не удалась</string>
+    <string name="sync_completed">Синхронизация завершена</string>
+    <string
+        name="all_data_synchronized_successfully"
+    >Все данные успешно синхронизированы!</string>
+    <string
+        name="patient_resources_are_being_synchronized"
+    >Ресурсы пациента синхронизируются…</string>
+
+    <string name="progress">Прогресс</string>
+
+    <string name="biometric_prompt_title">Оффлайн-аутентификация</string>
+    <string
+        name="biometric_prompt_subtitle"
+    >Используйте биометрические данные</string>
+    <string
+        name="use_device_credential"
+    >Использовать PIN/графический ключ/пароль устройства</string>
+    <string name="auth_error">Ошибка аутентификации: %1$s</string>
+    <string name="auth_failed">Аутентификация не удалась</string>
+    <string name="invalid_session">Недействительная сессия</string>
+    <string
+        name="no_supported_offline_auth_method"
+    >Нет поддерживаемого оффлайн метода аутентификации</string>
+
+    <string name="version">Версия</string>
+    <string name="encryption_not_available">Шифрование недоступно</string>
+
+    <string
+        name="please_connect_to_the_internet_to_continue_with_authentication"
+    >Подключитесь к интернету для продолжения аутентификации.</string>
+
+    <string name="retry">Повторить</string>
+    <string name="exit">Выход</string>
+
+    <string name="enable_offline_login_title">Включить оффлайн вход?</string>
+    <string name="enable_offline_login_body">
+        Включите оффлайн вход, чтобы разблокировать приложение с помощью биометрии устройства даже без интернета.
+
+        Примечания:
+        • Биометрия должна быть уже настроена.
+        • Если изменить/удалить биометрию или блокировку, оффлайн доступ отключится и потребуется вход онлайн.
+    </string>
+    <string name="enable_offline_login_positive">Включить</string>
+    <string name="enable_offline_login_negative">Не сейчас</string>
+    <string
+        name="setup_biometrics_to_enable_offline_login"
+    >Настройте биометрию в настройках для включения оффлайн входа.</string>
+
+    <string
+        name="password_changed"
+    >Похоже, пароль или блокировка устройства были изменены. Для безопасности оффлайн вход отключен. Войдите онлайн, чтобы включить снова.</string>
+
+    <string
+        name="try_logging_in_with_active_internet_connection"
+    >Попробуйте войти с активным интернетом</string>
+    <string name="offline_login_unavailable">Оффлайн вход недоступен!</string>
+    <string
+        name="error_encountered_while_setting_offline_login"
+    >Ошибка при настройке оффлайн входа</string>
+    <string
+        name="auth_error_offline_login"
+    >Ошибка: невозможно включить оффлайн вход сейчас, попробуйте позже</string>
+    <string
+        name="auth_failed_offline_login"
+    >Ошибка аутентификации! Невозможно включить оффлайн вход</string>
+</resources>
