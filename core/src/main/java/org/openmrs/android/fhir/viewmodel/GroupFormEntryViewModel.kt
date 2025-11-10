@@ -51,6 +51,8 @@ import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.CodeType
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
+import org.hl7.fhir.r4.model.DateTimeType
+import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
@@ -62,6 +64,8 @@ import org.hl7.fhir.r4.model.Type
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
+import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.nowLocalDateTime
@@ -85,6 +89,7 @@ constructor(
   private var encounterQuestionnaire: Questionnaire? = null
   private var screenerResponse: QuestionnaireResponse? = null
   private var screenerQuestionnaire: Questionnaire? = null
+  private val screenerLinkIds = mutableSetOf<String>()
   private val screenerEncounterLinkIds = mutableSetOf<String>()
   val sessionId: String = UUID.randomUUID().toString()
   var sessionDate: Date? = null
@@ -122,20 +127,32 @@ constructor(
         )
       screenerQuestionnaire = screener
       plugCurrentDateTimeToSessionDate(screener)
+      screenerLinkIds.clear()
+      screenerEncounterLinkIds.clear()
       screener?.let { s ->
         val extras = mutableListOf<Questionnaire.QuestionnaireItemComponent>()
 
-        fun collect(items: List<Questionnaire.QuestionnaireItemComponent>?) {
+        fun collectTemplateLinkIds(items: List<Questionnaire.QuestionnaireItemComponent>?) {
           items?.forEach { item ->
-            if (item.extension.any { ext -> ext.url == Constants.SHOW_SCREENER_EXTENSION_URL }) {
-              screenerEncounterLinkIds.add(item.linkId)
-              extras.add(item.copy())
-            }
-            collect(item.item)
+            screenerLinkIds.add(item.linkId)
+            collectTemplateLinkIds(item.item)
           }
         }
 
-        collect(encounterQuestionnaire.item)
+        fun collectEncounterExtras(items: List<Questionnaire.QuestionnaireItemComponent>?) {
+          items?.forEach { item ->
+            if (item.extension.any { ext -> ext.url == Constants.SHOW_SCREENER_EXTENSION_URL }) {
+              if (screenerLinkIds.add(item.linkId)) {
+                extras.add(item.copy())
+              }
+              screenerEncounterLinkIds.add(item.linkId)
+            }
+            collectEncounterExtras(item.item)
+          }
+        }
+
+        collectTemplateLinkIds(s.item)
+        collectEncounterExtras(encounterQuestionnaire.item)
         extras.forEach { s.addItem(it) }
         screenerQuestionnaireJson.value = parser.encodeResourceToString(s)
       }
@@ -232,13 +249,54 @@ constructor(
     collect(response.item)
 
     encounterQuestionnaire?.let { questionnaire ->
+      fun convertAnswerValue(
+        item: Questionnaire.QuestionnaireItemComponent,
+        answer: QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent,
+      ): Type {
+        val answerCopy = answer.copy()
+        if (
+          item.type == Questionnaire.QuestionnaireItemType.DATE && answerCopy.value is DateTimeType
+        ) {
+          val conversionResponse =
+            QuestionnaireResponse().apply {
+              addItem(
+                QuestionnaireResponse.QuestionnaireResponseItemComponent().apply {
+                  linkId = item.linkId
+                  addAnswer(answerCopy)
+                },
+              )
+            }
+          convertDateTimeAnswersToDate(conversionResponse)
+          return conversionResponse.itemFirstRep.answerFirstRep.value
+        }
+        if (
+          item.type == Questionnaire.QuestionnaireItemType.DATETIME && answerCopy.value is DateType
+        ) {
+          val conversionResponse =
+            QuestionnaireResponse().apply {
+              addItem(
+                QuestionnaireResponse.QuestionnaireResponseItemComponent().apply {
+                  linkId = item.linkId
+                  addAnswer(answerCopy)
+                },
+              )
+            }
+          convertDateAnswersToUtcDateTime(conversionResponse)
+          return conversionResponse.itemFirstRep.answerFirstRep.value
+        }
+        return answerCopy.value
+      }
+
       fun plug(items: List<Questionnaire.QuestionnaireItemComponent>?) {
         items?.forEach { item ->
-          if (screenerEncounterLinkIds.contains(item.linkId)) {
+          answers[item.linkId]?.let { linkAnswers ->
             item.initial.clear()
-            answers[item.linkId]?.forEach { ans ->
+            linkAnswers.forEach { ans ->
               item.addInitial(
-                Questionnaire.QuestionnaireItemInitialComponent().setValue(ans.value),
+                Questionnaire.QuestionnaireItemInitialComponent()
+                  .setValue(
+                    convertAnswerValue(item, ans),
+                  ),
               )
             }
           }

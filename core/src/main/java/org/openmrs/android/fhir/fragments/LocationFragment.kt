@@ -59,12 +59,16 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.LocationItemRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.databinding.FragmentLocationBinding
-import org.openmrs.android.fhir.extensions.isInternetAvailable
+import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 
 class LocationFragment : Fragment(R.layout.fragment_location) {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+
+  @Inject lateinit var apiManager: ApiManager
   private val locationViewModel by viewModels<LocationViewModel> { viewModelFactory }
 
   private var _binding: FragmentLocationBinding? = null
@@ -114,10 +118,11 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
       fromLogin = it.getBoolean("from_login")
       if (fromLogin) {
         showSyncTasksScreen()
-        if (isInternetAvailable(requireContext())) {
-          locationViewModel.fetchPreSyncData()
-        } else {
-          locationViewModel.getLocations()
+        viewLifecycleOwner.lifecycleScope.launch {
+          when (requireContext().getServerConnectivityState(apiManager)) {
+            ServerConnectivityState.ServerConnected -> locationViewModel.fetchPreSyncData()
+            else -> locationViewModel.getLocations()
+          }
         }
         actionBar?.hide()
         (activity as MainActivity).setDrawerEnabled(true)
@@ -152,10 +157,11 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
           }
         }
       } else {
-        if (isInternetAvailable(requireContext())) {
-          locationViewModel.fetchLocations()
-        } else {
-          locationViewModel.getLocations()
+        viewLifecycleOwner.lifecycleScope.launch {
+          when (requireContext().getServerConnectivityState(apiManager)) {
+            ServerConnectivityState.ServerConnected -> locationViewModel.fetchLocations()
+            else -> locationViewModel.getLocations()
+          }
         }
         actionBar?.setDisplayHomeAsUpEnabled(true)
         (activity as MainActivity).setDrawerEnabled(false)

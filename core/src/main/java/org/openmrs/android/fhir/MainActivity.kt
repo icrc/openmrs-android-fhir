@@ -75,6 +75,8 @@ import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.databinding.ActivityMainBinding
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.NotificationHelper
@@ -214,7 +216,7 @@ class MainActivity : AppCompatActivity() {
         try {
           val packageInfo = packageManager.getPackageInfo(packageName, 0)
           packageInfo.versionName
-        } catch (e: Exception) {
+        } catch (_: Exception) {
           "N/A"
         }
 
@@ -232,7 +234,8 @@ class MainActivity : AppCompatActivity() {
         onSyncPress()
       }
       R.id.menu_logout -> {
-        showLogoutWarningDialog()
+        val connectivityState = viewModel.networkStatus.value
+        showLogoutWarningDialog(connectivityState)
       }
       R.id.menu_settings -> {
         findNavController(R.id.nav_host_fragment).navigate(R.id.settings_fragment)
@@ -256,8 +259,9 @@ class MainActivity : AppCompatActivity() {
    * If not redirects user to the select location screen first and starts the sync.
    */
   fun onSyncPress() {
+    val connectivityState = viewModel.networkStatus.value
     when {
-      !isTokenExpired() && viewModel.networkStatus.value -> {
+      !isTokenExpired() && connectivityState.isServerReachable() -> {
         /*runBlocking {
           val selectedLocationId =
             applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
@@ -286,10 +290,16 @@ class MainActivity : AppCompatActivity() {
         viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers)
         binding.drawer.closeDrawer(GravityCompat.START)
       }
-      isTokenExpired() && viewModel.networkStatus.value -> {
+      isTokenExpired() && connectivityState.isServerReachable() -> {
         showTokenExpiredDialog()
       }
-      !viewModel.networkStatus.value -> {
+      connectivityState is ServerConnectivityState.InternetOnly -> {
+        showSnackBar(
+          this@MainActivity,
+          getString(R.string.sync_server_unreachable_message),
+        )
+      }
+      connectivityState is ServerConnectivityState.Offline -> {
         showSnackBar(this@MainActivity, getString(R.string.sync_device_offline_message))
       }
     }
@@ -368,13 +378,13 @@ class MainActivity : AppCompatActivity() {
   }
 
   private suspend fun monitorTokenExpiry() {
-    val isServerAvailable = withContext(Dispatchers.IO) { viewModel.isServerAvailable() }
     val tokenExpiryDelay = withContext(Dispatchers.IO) { demoDataStore.getTokenExpiryDelay() }
     tokenCheckRunnable =
       object : Runnable {
         override fun run() {
           if (isTokenExpired()) {
-            if (isServerAvailable && viewModel.networkStatus.value) {
+            val connectivityState = viewModel.networkStatus.value
+            if (connectivityState.isServerReachable()) {
               showTokenExpiredDialog()
               tokenExpiryHandler?.removeCallbacks(this)
             }
@@ -433,25 +443,40 @@ class MainActivity : AppCompatActivity() {
 
   private fun observeNetworkConnection(context: Context) {
     lifecycleScope.launch {
-      viewModel.networkStatus.collect { isNetworkAvailable ->
-        if (isNetworkAvailable) {
-          binding.networkStatusFlag.tvNetworkStatus.text = getString(R.string.online)
-          if (viewModel.isSyncing.value == true) {
-            val fetchIdentifiers = applicationContext.resources.getBoolean(R.bool.fetch_identifiers)
-            AlertDialog.Builder(context)
-              .setTitle(getString(R.string.connection_restored))
-              .setMessage(getString(R.string.do_you_want_to_continue_sync))
-              .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
-                dialog.dismiss()
-                viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers)
-              }
-              .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
-              .setCancelable(false)
-              .show()
+      var previousState: ServerConnectivityState? = null
+      viewModel.networkStatus.collect { connectivityState ->
+        val previous = previousState
+        previousState = connectivityState
+        when (connectivityState) {
+          ServerConnectivityState.ServerConnected -> {
+            binding.networkStatusFlag.tvNetworkStatus.text =
+              getString(R.string.network_status_connected_to_server)
+            if (
+              viewModel.isSyncing.value == true &&
+                previous != ServerConnectivityState.ServerConnected
+            ) {
+              val fetchIdentifiers =
+                applicationContext.resources.getBoolean(R.bool.fetch_identifiers)
+              AlertDialog.Builder(context)
+                .setTitle(getString(R.string.connection_restored))
+                .setMessage(getString(R.string.do_you_want_to_continue_sync))
+                .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
+                  dialog.dismiss()
+                  viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers)
+                }
+                .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
+                .setCancelable(false)
+                .show()
+            }
+            monitorTokenExpiry()
           }
-          monitorTokenExpiry()
-        } else {
-          binding.networkStatusFlag.tvNetworkStatus.text = getString(R.string.offline)
+          ServerConnectivityState.InternetOnly -> {
+            binding.networkStatusFlag.tvNetworkStatus.text =
+              getString(R.string.network_status_server_unreachable)
+          }
+          ServerConnectivityState.Offline -> {
+            binding.networkStatusFlag.tvNetworkStatus.text = getString(R.string.offline)
+          }
         }
       }
     }
@@ -472,17 +497,34 @@ class MainActivity : AppCompatActivity() {
     viewModel.unregisterNetworkCallback()
   }
 
-  private fun showLogoutWarningDialog() {
-    AlertDialog.Builder(this)
-      .setTitle(getString(R.string.logout))
-      .setMessage(getString(R.string.logout_message))
-      .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
-        dialog.dismiss()
-        navigateToLogin()
-      }
-      .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
-      .setCancelable(false)
-      .show()
+  private fun showLogoutWarningDialog(connectivityState: ServerConnectivityState) {
+    when (connectivityState) {
+      ServerConnectivityState.ServerConnected ->
+        AlertDialog.Builder(this)
+          .setTitle(getString(R.string.logout))
+          .setMessage(getString(R.string.logout_message))
+          .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
+            dialog.dismiss()
+            navigateToLogin()
+          }
+          .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
+          .setCancelable(false)
+          .show()
+      ServerConnectivityState.InternetOnly ->
+        AlertDialog.Builder(this)
+          .setTitle(getString(R.string.logout))
+          .setMessage(getString(R.string.logout_unavailable_internet_only_message))
+          .setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }
+          .setCancelable(true)
+          .show()
+      ServerConnectivityState.Offline ->
+        AlertDialog.Builder(this)
+          .setTitle(getString(R.string.logout))
+          .setMessage(getString(R.string.logout_unavailable_offline_message))
+          .setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }
+          .setCancelable(true)
+          .show()
+    }
   }
 
   private fun navigateToLogin() {

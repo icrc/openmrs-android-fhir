@@ -122,6 +122,12 @@
     <string
         name="logout_message"
     >¿Estás seguro de que quieres cerrar sesión? \n\nSi continúas, todos los datos de esta aplicación se eliminarán permanentemente. \nEsto incluye todos los recursos, sesiones de usuario, base de datos, etc.</string>
+    <string
+        name="logout_unavailable_internet_only_message"
+    >No es posible cerrar sesión cuando el servidor no está disponible. Vuelve a conectarte cuando el servidor esté disponible e inténtalo de nuevo.</string>
+    <string
+        name="logout_unavailable_offline_message"
+    >No es posible cerrar sesión sin conexión. Vuelve a conectarte a Internet e inténtalo de nuevo.</string>
     <string name="sync_in_progress">Sincronización: en progreso</string>
     <string name="sync_started">Sincronización: iniciada</string>
     <string
@@ -383,5 +389,32 @@
     <string
         name="auth_failed_offline_login"
     >¡Autenticación fallida! No se puede configurar el inicio de sesión sin conexión ahora</string>
-
+    <string
+        name="connect_internet_to_select_patient_list"
+    >Por favor, conéctese a internet para seleccionar una lista de pacientes.</string>
+    <string
+        name="server_unreachable_try_again_message"
+    >No se puede acceder al servidor configurado. Por favor, inténtelo de nuevo más tarde.</string>
+    <string name="server_unreachable_title">Servidor inaccesible</string>
+    <string
+        name="server_unreachable_dialog_message"
+    >No podemos acceder al servidor en este momento. Por favor, inténtelo de nuevo más tarde.</string>
+    <string
+        name="sync_server_unreachable_message"
+    >No se puede acceder al servidor. La sincronización se reanudará cuando el servidor esté disponible.</string>
+    <string
+        name="network_status_connected_to_server"
+    >Conectado al servidor</string>
+    <string
+        name="network_status_server_unreachable"
+    >Servidor inaccesible</string>
+    <string
+        name="splash_status_checking_connectivity"
+    >Comprobando la conectividad del servidor…</string>
+    <string
+        name="splash_status_server_unreachable"
+    >No se puede acceder al servidor.</string>
+    <string
+        name="splash_status_offline"
+    >No se ha detectado conexión a internet.</string>
 </resources>

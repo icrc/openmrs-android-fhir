@@ -37,34 +37,26 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
-import androidx.work.Constraints
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.logicalId
 import com.google.android.fhir.search.search
-import com.google.android.fhir.sync.PeriodicSyncConfiguration
 import com.google.android.fhir.sync.PeriodicSyncJobStatus
-import com.google.android.fhir.sync.RepeatInterval
 import com.google.android.fhir.sync.Sync
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
-import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.IdentifierTypeManager
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -72,9 +64,11 @@ import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncSession
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ApiResponse
+import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.model.IdentifierWrapper
 import org.openmrs.android.fhir.data.remote.model.SessionLocation
 import org.openmrs.android.fhir.data.sync.FhirSyncWorker
+import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.worker.SyncInfoDatabaseWriterWorker
 
 /** View model for [MainActivity]. */
@@ -109,10 +103,9 @@ constructor(
       if (DateFormat.is24HourFormat(applicationContext)) formatString24 else formatString12,
     )
 
-  private val restApiManager = FhirApplication.restApiClient(applicationContext)
-
-  private val _networkStatus = MutableStateFlow(false)
-  val networkStatus: StateFlow<Boolean>
+  private val _networkStatus =
+    MutableStateFlow<ServerConnectivityState>(ServerConnectivityState.Offline)
+  val networkStatus: StateFlow<ServerConnectivityState>
     get() = _networkStatus
 
   private var connectivityManager: ConnectivityManager =
@@ -121,14 +114,12 @@ constructor(
     object : ConnectivityManager.NetworkCallback() {
       override fun onAvailable(network: Network) {
         super.onAvailable(network)
-        // Network is available
-        _networkStatus.value = true
+        updateConnectivityState()
       }
 
       override fun onLost(network: Network) {
         super.onLost(network)
-        // Network is lost
-        _networkStatus.value = false
+        updateConnectivityState()
       }
     }
 
@@ -136,22 +127,6 @@ constructor(
 
   val syncProgress: LiveData<List<WorkInfo>> =
     workManager.getWorkInfosForUniqueWorkLiveData(SyncInfoDatabaseWriterWorker.WORK_NAME)
-
-  @ExperimentalCoroutinesApi
-  fun initPeriodicSyncWorker(periodicSyncDelay: Long) {
-    viewModelScope.launch {
-      _pollPeriodicSyncJobStatus =
-        Sync.periodicSync<FhirSyncWorker>(
-            applicationContext,
-            periodicSyncConfiguration =
-              PeriodicSyncConfiguration(
-                syncConstraints = Constraints.Builder().build(),
-                repeat = RepeatInterval(interval = periodicSyncDelay, timeUnit = TimeUnit.MINUTES),
-              ),
-          )
-          .shareIn(viewModelScope, SharingStarted.Eagerly, 10)
-    }
-  }
 
   fun triggerOneTimeSync(context: Context, fetchIdentifiers: Boolean = true) {
     viewModelScope.launch {
@@ -275,6 +250,7 @@ constructor(
 
   fun registerNetworkCallback() {
     connectivityManager.registerDefaultNetworkCallback(networkCallBack)
+    updateConnectivityState()
   }
 
   // Unregister the network callback
@@ -282,8 +258,10 @@ constructor(
     connectivityManager.unregisterNetworkCallback(networkCallBack)
   }
 
-  fun isServerAvailable(): Boolean {
-    return restApiManager.isServerLive()
+  private fun updateConnectivityState() {
+    viewModelScope.launch {
+      _networkStatus.value = applicationContext.getServerConnectivityState(apiManager)
+    }
   }
 
   fun cancelPeriodicSyncWorker(context: Context) {
