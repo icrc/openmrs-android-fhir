@@ -10,7 +10,7 @@
   "subjectType": ["Patient"],
   "item": [
     {
-      "linkId": "1",
+      "linkId": "sessionName",
       "text": "Session Name",
       "type": "string",
       "required": true,
@@ -19,7 +19,7 @@
       }]
     },
     {
-      "linkId": "2",
+      "linkId": "practitionerName",
       "text": "Practitioner Name",
       "type": "string",
       "required": true,
@@ -28,7 +28,7 @@
       }]
     },
     {
-      "linkId": "3",
+      "linkId": "encounter-encounterDate",
       "text": "Session Date",
       "type": "dateTime",
       "required": true,
@@ -37,7 +37,7 @@
       }]
     },
     {
-      "linkId": "4",
+      "linkId": "sessionNotes",
       "text": "Session Notes",
       "type": "string",
       "required": true,
