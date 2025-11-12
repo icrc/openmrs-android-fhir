@@ -123,7 +123,7 @@ Encounter forms can optionally show the shared screener questionnaire before the
 "code": [
     {
       "system": "http://fhir.openmrs.org/code-system/encounter-type",
-      "code": [{"<Observation code>"}],
+      "code": [{"code":"<Observation code>"}],
       "display": "display"
     }
 }
