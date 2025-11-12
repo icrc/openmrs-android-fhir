@@ -59,26 +59,26 @@ fhir_sync_urls=Location?_sort=_lastUpdated&_summary=data,Patient?_sort=_lastUpda
 
 ### Controlling first-time downloads
 
-Use the optional `first_fhir_sync_url` property when you need a different search scope for the very first download. The app always queues all URLs from `first_fhir_sync_url` and `fhir_sync_urls`, then deduplicates them by resource type so subsequent syncs do not re-run broader first-time queries. This behavior is implemented in `TimestampBasedDownloadWorkManagerImpl` where the two lists are merged and filtered with `distinctBy` on the resource type derived from each URL.【F:core/src/main/java/org/openmrs/android/fhir/data/sync/TimestampBasedDownloadWorkManagerImpl.kt†L61-L82】
+Use the optional `first_fhir_sync_url` property when you need a different search scope for the very first download. The app always queues all URLs from `first_fhir_sync_url` and `fhir_sync_urls`, then deduplicates them by resource type so subsequent syncs do not re-run broader first-time queries. This behavior is implemented in `TimestampBasedDownloadWorkManagerImpl` where the two lists are merged and filtered with `distinctBy` on the resource type derived from each URL.
 
 ### Scoping patient list downloads
 
 Two properties help control how patient lists are filtered during syncs driven by group resources:
 
-- `filter_patient_lists_by_group` (boolean) limits Group queries to the user’s selected location by adding a `location` search parameter when enabled.【F:core/src/main/java/org/openmrs/android/fhir/data/sync/TimestampBasedDownloadWorkManagerImpl.kt†L66-L93】【F:core/src/main/java/org/openmrs/android/fhir/data/sync/GroupDownloadWorkManagerImpl.kt†L46-L54】
-- `cohort-type` (UUID) appends a `cohort-type` parameter to Group requests when provided, allowing you to scope patient lists to a specific cohort definition on both initial and incremental sync paths.【F:core/src/main/java/org/openmrs/android/fhir/data/sync/TimestampBasedDownloadWorkManagerImpl.kt†L95-L101】【F:core/src/main/java/org/openmrs/android/fhir/data/sync/GroupDownloadWorkManagerImpl.kt†L57-L60】
 
-Define these properties in `local.properties` (see `local.properties.default` for examples and defaults).【F:local.properties.default†L20-L31】
+- `filter_patient_lists_by_group` (boolean) limits Group queries to the user’s selected location by adding a `location` search parameter when enabled.
+- `cohort-type` (UUID) appends a `cohort-type` parameter to Group requests when provided, allowing you to scope patient lists to a specific cohort definition on both initial and incremental sync paths.
+  Define these properties in `local.properties` (see `local.properties.default` for examples and defaults).
 ---
 
 ## 🌐 Server connectivity checks
 
 Configure the lightweight connectivity probe using two properties:
 
-- `check_server_url` is the endpoint the app pings to verify the server is reachable before launching sync or login flows.【F:core/src/main/java/org/openmrs/android/fhir/FhirApplication.kt†L135-L135】
-- `server_connectivity_timeout_seconds` defines how long the probe waits before failing; values below one second are automatically clamped to a one-second timeout before being converted to milliseconds.【F:core/src/main/java/org/openmrs/android/fhir/FhirApplication.kt†L137-L140】
+- `check_server_url` is the endpoint the app pings to verify the server is reachable before launching sync or login flows.
+- `server_connectivity_timeout_seconds` defines how long the probe waits before failing; values below one second are automatically clamped to a one-second timeout before being converted to milliseconds.
 
-Both settings live in `local.properties` (see `local.properties.default` for their default values) so you can point to custom health-check endpoints or adjust the responsiveness of the status indicator.【F:local.properties.default†L8-L12】
+Both settings live in `local.properties` (see `local.properties.default` for their default values) so you can point to custom health-check endpoints or adjust the responsiveness of the status indicator.
 
 ---
 
@@ -88,7 +88,7 @@ To Configure **Patient Registration Questionnaire**, set the `registration_quest
 1. `resourceId` of the registration questionnaire synced from the server.
 2. `file name` of the registration questionnaire in the assets folder.
 
-Use the `show_review_page_before_submit` toggle to decide whether a review screen is displayed before users submit questionnaire responses. The fragment builders read this boolean and call `showReviewPageBeforeSubmit(...)` so disabling it skips the intermediate review page for workflows such as patient registration or encounter capture.【F:core/src/main/java/org/openmrs/android/fhir/fragments/GenericFormEntryFragment.kt†L80-L138】 Configure the flag in `local.properties`; the default value is documented in `local.properties.default`.【F:local.properties.default†L18-L24】
+Use the `show_review_page_before_submit` toggle to decide whether a review screen is displayed before users submit questionnaire responses. The fragment builders read this boolean and call `showReviewPageBeforeSubmit(...)` so disabling it skips the intermediate review page for workflows such as patient registration or encounter capture. Configure the flag in `local.properties`; the default value is documented in `local.properties.default`.
 
 ---
 
@@ -114,7 +114,7 @@ Reference: [Example property](https://github.com/parthfloyd/openmrs-android-fhir
 Encounter forms can optionally show the shared screener questionnaire before the main form renders. To enable this behavior:
 
 1. Flag any encounter questionnaire item that should surface in the screener with the `https://openmrs.org/ext/show-screener` extension.
-2. At runtime, `GroupFormEntryViewModel` inspects each encounter form, extracts those flagged items, and merges them into the screener template before handing the combined questionnaire to the UI layer.【F:core/src/main/java/org/openmrs/android/fhir/viewmodel/GroupFormEntryViewModel.kt†L120-L158】
+2. At runtime, `GroupFormEntryViewModel` inspects each encounter form, extracts those flagged items, and merges them into the screener template before handing the combined questionnaire to the UI layer.
 3. The base template lives at `core/src/main/assets/screener-questionnaire-template.json`; customize this file (or replace it entirely) to adjust the screener layout or wording.
 
 ### Example Questionnaire
@@ -137,7 +137,7 @@ To ensure application diagnostics are sent to the correct developer email upon u
 1. Open the `local.properties` file.
 2. Update the `support_email` property with the desired email address.
 
-You can also protect exported diagnostic archives by setting the optional `diagnostics_password` property. When populated, the app passes the value to the `FileLoggingTree` initializer so generated ZIP files require that password to be opened.【F:core/src/main/java/org/openmrs/android/fhir/FhirApplication.kt†L64-L75】 Add the secret to `local.properties`; a placeholder entry is available in `local.properties.default`.【F:local.properties.default†L48-L49】
+You can also protect exported diagnostic archives by setting the optional `diagnostics_password` property. When populated, the app passes the value to the `FileLoggingTree` initializer so generated ZIP files require that password to be opened. Add the secret to `local.properties`; a placeholder entry is available in `local.properties.default`.
 
 ---
 
