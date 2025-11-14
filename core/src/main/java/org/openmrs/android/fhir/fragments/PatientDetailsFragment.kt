@@ -32,6 +32,8 @@ import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -42,13 +44,17 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.FhirEngine
+import com.google.android.material.snackbar.Snackbar
 import java.util.*
 import javax.inject.Inject
 import kotlin.getValue
@@ -59,15 +65,22 @@ import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.PatientDetailsRecyclerViewAdapter
 import org.openmrs.android.fhir.data.OpenMRSHelper
+import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.databinding.PatientDetailBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
+import org.openmrs.android.fhir.viewmodel.SyncUiState
 
 class PatientDetailsFragment : Fragment() {
 
   @Inject lateinit var fhirEngine: FhirEngine
 
   @Inject lateinit var openMRSHelper: OpenMRSHelper
+
+  @Inject lateinit var apiManager: ApiManager
 
   @Inject lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
   private val patientDetailsViewModel: PatientDetailsViewModel by viewModels {
@@ -80,6 +93,21 @@ class PatientDetailsFragment : Fragment() {
     get() = _binding!!
 
   var editMenuItem: MenuItem? = null
+  private var syncStatusSnackbar: Snackbar? = null
+  private var connectivityManager: ConnectivityManager? = null
+  private var isNetworkCallbackRegistered = false
+  private val networkCallback =
+    object : ConnectivityManager.NetworkCallback() {
+      override fun onAvailable(network: Network) {
+        super.onAvailable(network)
+        refreshSyncButtonVisibility()
+      }
+
+      override fun onLost(network: Network) {
+        super.onLost(network)
+        refreshSyncButtonVisibility()
+      }
+    }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -106,6 +134,7 @@ class PatientDetailsFragment : Fragment() {
         ::onEditVisitClick,
       )
     binding.createEncounterFloatingButton.setOnClickListener { onCreateEncounterClick() }
+    binding.syncPatientButton.setOnClickListener { patientDetailsViewModel.syncPatientData() }
     binding.recycler.adapter = adapter
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title = getString(R.string.patient_details_title)
@@ -119,7 +148,18 @@ class PatientDetailsFragment : Fragment() {
       requireActivity().invalidateOptionsMenu()
     }
     patientDetailsViewModel.getPatientDetailData()
+    observeSyncState()
     (activity as MainActivity).setDrawerEnabled(false)
+  }
+
+  override fun onStart() {
+    super.onStart()
+    registerNetworkCallback()
+  }
+
+  override fun onStop() {
+    super.onStop()
+    unregisterNetworkCallback()
   }
 
   override fun onPrepareOptionsMenu(menu: Menu) {
@@ -236,6 +276,93 @@ class PatientDetailsFragment : Fragment() {
     }
   }
 
+  private fun observeSyncState() {
+    viewLifecycleOwner.lifecycleScope.launch {
+      viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        patientDetailsViewModel.syncState.collect { state ->
+          when (state) {
+            SyncUiState.Idle -> {
+              binding.syncPatientButton.isEnabled = true
+              dismissSyncStatusSnackbar()
+            }
+            SyncUiState.Started -> {
+              binding.syncPatientButton.isEnabled = false
+              showSyncStatusSnackbar(getString(R.string.sync_started))
+            }
+            SyncUiState.InProgress -> {
+              binding.syncPatientButton.isEnabled = false
+              showSyncStatusSnackbar(getString(R.string.syncing_patient_data))
+            }
+            SyncUiState.Finished -> {
+              binding.syncPatientButton.isEnabled = true
+              dismissSyncStatusSnackbar()
+              Snackbar.make(binding.root, R.string.sync_completed, Snackbar.LENGTH_SHORT).show()
+            }
+            is SyncUiState.Error -> {
+              binding.syncPatientButton.isEnabled = true
+              dismissSyncStatusSnackbar()
+              Snackbar.make(
+                  binding.root,
+                  state.message ?: getString(R.string.sync_failed),
+                  Snackbar.LENGTH_SHORT,
+                )
+                .show()
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private fun showSyncStatusSnackbar(message: String) {
+    syncStatusSnackbar?.dismiss()
+    syncStatusSnackbar =
+      Snackbar.make(binding.root, message, Snackbar.LENGTH_INDEFINITE).apply { show() }
+  }
+
+  private fun dismissSyncStatusSnackbar() {
+    syncStatusSnackbar?.dismiss()
+    syncStatusSnackbar = null
+  }
+
+  private fun registerNetworkCallback() {
+    if (isNetworkCallbackRegistered) {
+      return
+    }
+    val currentContext = context ?: return
+    connectivityManager =
+      connectivityManager
+        ?: currentContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    connectivityManager?.registerDefaultNetworkCallback(networkCallback)
+    isNetworkCallbackRegistered = true
+    refreshSyncButtonVisibility()
+  }
+
+  private fun unregisterNetworkCallback() {
+    if (!isNetworkCallbackRegistered) {
+      return
+    }
+    connectivityManager?.unregisterNetworkCallback(networkCallback)
+    isNetworkCallbackRegistered = false
+  }
+
+  private fun refreshSyncButtonVisibility() {
+    if (!isAdded || _binding == null) {
+      return
+    }
+    viewLifecycleOwner.lifecycleScope.launch {
+      val connectivityState = requireContext().getServerConnectivityState(apiManager)
+      updateSyncButtonVisibility(connectivityState)
+    }
+  }
+
+  private fun updateSyncButtonVisibility(connectivityState: ServerConnectivityState) {
+    if (_binding == null) {
+      return
+    }
+    binding.syncButtonContainer.isVisible = connectivityState.isServerReachable()
+  }
+
   override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
     inflater.inflate(R.menu.details_options_menu, menu)
     editMenuItem = menu.findItem(R.id.menu_patient_edit)
@@ -267,6 +394,8 @@ class PatientDetailsFragment : Fragment() {
 
   override fun onDestroyView() {
     super.onDestroyView()
+    dismissSyncStatusSnackbar()
+    connectivityManager = null
     _binding = null
   }
 }
