@@ -34,11 +34,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -328,9 +328,13 @@ data class RiskAssessmentItem(
 
 sealed interface SyncUiState {
   object Idle : SyncUiState
+
   object Started : SyncUiState
+
   object InProgress : SyncUiState
+
   object Finished : SyncUiState
+
   data class Error(val message: String? = null) : SyncUiState
 }
 
