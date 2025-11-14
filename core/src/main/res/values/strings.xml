@@ -163,6 +163,10 @@
     <string name="settings">Settings</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+    <string name="initial_sync">Initial sync</string>
+    <string name="initial_sync_started">Initial sync started</string>
+    <string name="initial_sync_completed">Initial sync completed</string>
+    <string name="initial_sync_failed">Initial sync failed</string>
     <string
         name="token_expiry_delay_text"
     >Delay Before Token Expiry Dialog (in Minutes)</string>
