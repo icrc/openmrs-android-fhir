@@ -32,14 +32,22 @@ import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import java.util.Date
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.hl7.fhir.r4.model.Encounter
@@ -52,6 +60,7 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.toLocalString
+import org.openmrs.android.fhir.worker.SyncInfoDatabaseWriterWorker
 
 /**
  * The ViewModel helper class for PatientItemRecyclerViewAdapter, that is responsible for preparing
@@ -75,6 +84,9 @@ constructor(
 
   private val patientId: String = requireNotNull(state["patient_id"])
   val livePatientData = MutableLiveData<List<PatientDetailData>>()
+  private val _syncState = MutableStateFlow<SyncUiState>(SyncUiState.Idle)
+  val syncState: StateFlow<SyncUiState> = _syncState.asStateFlow()
+  private val workManager = WorkManager.getInstance(applicationContext)
 
   /** Emits list of [PatientDetailData]. */
   fun getPatientDetailData() {
@@ -159,6 +171,45 @@ constructor(
         Constants.VISIT_TYPE_UUID,
         startDate,
       )
+    }
+  }
+
+  fun syncPatientData() {
+    viewModelScope.launch {
+      _syncState.value = SyncUiState.Started
+      try {
+        SyncInfoDatabaseWriterWorker.enqueue(applicationContext)
+        _syncState.value = SyncUiState.InProgress
+        val finalWorkInfo =
+          workManager
+            .getWorkInfosForUniqueWorkLiveData(SyncInfoDatabaseWriterWorker.WORK_NAME)
+            .asFlow()
+            .mapNotNull { it.firstOrNull() }
+            .first { it.state.isFinished }
+
+        when (finalWorkInfo.state) {
+          WorkInfo.State.SUCCEEDED -> {
+            getPatientDetailData()
+            _syncState.value = SyncUiState.Finished
+          }
+          WorkInfo.State.FAILED,
+          WorkInfo.State.CANCELLED,
+          WorkInfo.State.BLOCKED, -> {
+            val message =
+              finalWorkInfo.progress.getString(SyncInfoDatabaseWriterWorker.PROGRESS_MESSAGE)
+            _syncState.value = SyncUiState.Error(message ?: getString(R.string.sync_failed))
+          }
+          else -> {
+            _syncState.value = SyncUiState.Idle
+          }
+        }
+      } catch (exception: Exception) {
+        _syncState.value = SyncUiState.Error(exception.localizedMessage)
+      } finally {
+        if (_syncState.value !is SyncUiState.InProgress) {
+          _syncState.value = SyncUiState.Idle
+        }
+      }
     }
   }
 
@@ -274,6 +325,14 @@ data class RiskAssessmentItem(
   var lastContacted: String,
   var patientCardColor: Int,
 )
+
+sealed interface SyncUiState {
+  object Idle : SyncUiState
+  object Started : SyncUiState
+  object InProgress : SyncUiState
+  object Finished : SyncUiState
+  data class Error(val message: String? = null) : SyncUiState
+}
 
 /**
  * The logical (unqualified) part of the ID. For example, if the ID is
