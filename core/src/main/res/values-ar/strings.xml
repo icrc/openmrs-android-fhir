@@ -373,5 +373,9 @@
     <string
         name="splash_status_offline"
     >لم يتم الكشف عن اتصال بالإنترنت.</string>
+    <string name="initial_sync">المزامنة الأولية</string>
+    <string name="initial_sync_started">تم بدء المزامنة الأولية</string>
+    <string name="initial_sync_completed">اكتملت المزامنة الأولية</string>
+    <string name="initial_sync_failed">فشلت المزامنة الأولية</string>
 
 </resources>

@@ -445,4 +445,15 @@
     <string
         name="auth_failed_offline_login"
     >Ошибка аутентификации! Невозможно включить оффлайн вход</string>
+    <string name="initial_sync">Начальная синхронизация</string>
+    <string
+        name="initial_sync_started"
+    >Начальная синхронизация началась</string>
+    <string
+        name="initial_sync_completed"
+    >Начальная синхронизация завершена</string>
+    <string
+        name="initial_sync_failed"
+    >Начальная синхронизация не удалась</string>
+
 </resources>
