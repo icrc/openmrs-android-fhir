@@ -54,6 +54,21 @@
     <string
         name="cancel_questionnaire_message"
     >Are you sure you want to discard the answers?</string>
+    <string name="resume_group_session">Resume previous session?</string>
+    <string
+        name="resume_group_session_message"
+    >We found a saved draft for this session. Would you like to resume or start a new session?</string>
+    <string
+        name="resume_group_session_message_with_name"
+    >We found a saved draft for %1$s. Would you like to resume or start a new session?</string>
+    <string name="resume_session">Resume session</string>
+    <string name="start_new_session">Start new session</string>
+    <string name="save_as_draft">Save as draft</string>
+    <string name="submit_all">Submit all</string>
+    <string name="draft_saved">Draft saved.</string>
+    <string
+        name="complete_screener_before_submit"
+    >Complete the screener before submitting all responses.</string>
     <string name="patient_id">Id</string>
     <string name="patient_name">Name</string>
     <string name="patient_gender">Gender</string>

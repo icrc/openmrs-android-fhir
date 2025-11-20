@@ -26,51 +26,25 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.database
+package org.openmrs.android.fhir.data
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
+import javax.inject.Inject
+import javax.inject.Singleton
+import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
-import org.openmrs.android.fhir.data.database.model.Identifier
-import org.openmrs.android.fhir.data.database.model.IdentifierType
-import org.openmrs.android.fhir.data.database.model.SyncSession
 
-@Database(
-  entities =
-    [Identifier::class, IdentifierType::class, SyncSession::class, GroupSessionDraft::class],
-  version = 2,
-  exportSchema = true,
-)
-@TypeConverters(Converters::class)
-abstract class AppDatabase : RoomDatabase() {
-  abstract fun dao(): Dao
+@Singleton
+class GroupSessionDraftRepository @Inject constructor(private val database: AppDatabase) {
 
-  companion object {
-    val MIGRATION_1_2 =
-      object : Migration(1, 2) {
-        override fun migrate(database: SupportSQLiteDatabase) {
-          database.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `groupsessiondraft` (
-              `questionnaireId` TEXT NOT NULL,
-              `sessionId` TEXT NOT NULL,
-              `patientIds` TEXT NOT NULL,
-              `patientResponses` TEXT,
-              `screenerResponse` TEXT,
-              `encounterQuestionnaireJson` TEXT,
-              `screenerQuestionnaireJson` TEXT,
-              `sessionDate` INTEGER,
-              `screenerCompleted` INTEGER NOT NULL,
-              `lastUpdated` INTEGER NOT NULL,
-              PRIMARY KEY(`questionnaireId`)
-            )
-            """
-              .trimIndent(),
-          )
-        }
-      }
+  suspend fun upsertDraft(draft: GroupSessionDraft) {
+    database.dao().upsertGroupSessionDraft(draft.copy(lastUpdated = System.currentTimeMillis()))
+  }
+
+  suspend fun getDraft(questionnaireId: String): GroupSessionDraft? {
+    return database.dao().getGroupSessionDraft(questionnaireId)
+  }
+
+  suspend fun deleteDraft(questionnaireId: String) {
+    database.dao().deleteGroupSessionDraft(questionnaireId)
   }
 }

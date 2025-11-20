@@ -47,12 +47,15 @@ import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import com.google.android.material.tabs.TabLayout
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.databinding.GroupFormentryFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.generateUuid
@@ -92,9 +95,14 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   // Track the currently selected tab and prevent recursive tab changes
   private var currentSelectedTabPosition = 0
   private var isTabChanging = false
-  private var isScreenerCompleted = false
   private var pendingSavePatientId: String? = null
   private var pendingSaveEncounterId: String? = null
+  private var draftToRestore: GroupSessionDraft? = null
+  private var shouldRestoreDraft = false
+  private val patientIds by lazy { args.patientIds.toList() }
+  private var hasStartedPatientForms = false
+  private var hasActiveDraft = false
+  private var skipDraftSaveOnDestroy = false
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     _binding = GroupFormentryFragmentBinding.bind(view)
@@ -104,18 +112,26 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     observeLoading()
     binding.patientTabLayout.visibility = View.GONE
+    binding.submitAllButton.setOnClickListener { submitAllEncounters() }
     viewModel.getPatients(args.patientIds.toSet())
     observeResourcesSaveAction()
+    lifecycleScope.launch { loadDraftIfAvailable(showResumeDialog = !args.resumeDraft) }
     if (savedInstanceState == null) {
       genericFormEntryViewModel.getEncounterQuestionnaire(
         args.questionnaireId,
       )
     }
     genericFormEntryViewModel.questionnaire.observe(viewLifecycleOwner) {
-      it?.let { questionnaire -> viewModel.prepareScreenerQuestionnaire(questionnaire) }
+      it?.let { questionnaire ->
+        viewModel.prepareScreenerQuestionnaire(questionnaire)
+        restoreDraftNowIfReady()
+        if (viewModel.isScreenerCompleted) {
+          startPatientQuestionnaires()
+        }
+      }
     }
     viewModel.screenerQuestionnaireJson.observe(viewLifecycleOwner) {
-      if (!isScreenerCompleted) {
+      if (!viewModel.isScreenerCompleted) {
         it?.let { addScreenerQuestionnaireFragment(it) }
       }
     }
@@ -123,31 +139,41 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       it?.let { json ->
         val q = parser.parseResource(Questionnaire::class.java, json)
         genericFormEntryViewModel.updateQuestionnaire(q)
+        if (viewModel.isScreenerCompleted && hasStartedPatientForms) {
+          loadQuestionnaireForTab(currentSelectedTabPosition)
+        }
       }
     }
     childFragmentManager.setFragmentResultListener(
       QuestionnaireFragment.SUBMIT_REQUEST_KEY,
       viewLifecycleOwner,
     ) { _, _ ->
-      if (!isScreenerCompleted) {
+      if (!viewModel.isScreenerCompleted) {
         lifecycleScope.launch {
-          val screenerFragment = currentQuestionnaireFragment as QuestionnaireFragment
-          val response = screenerFragment.getQuestionnaireResponse()
+          val screenerFragment = currentQuestionnaireFragment as? QuestionnaireFragment
+          val response = safeQuestionnaireResponse(screenerFragment) ?: return@launch
           viewModel.plugAnswersToEncounter(response)
           viewModel.setSessionDate(response)
-          isScreenerCompleted = true
-          binding.patientTabLayout.visibility = View.VISIBLE
-          observeQuestionnaire()
-          loadQuestionnaireForTab(0)
+          saveDraft()
+          startPatientQuestionnaires()
         }
       } else {
         val selectedTab = binding.patientTabLayout.selectedTabPosition
-        viewModel.submittedSet.add(selectedTab)
-        if (selectedTab < binding.patientTabLayout.tabCount - 1) {
-          binding.patientTabLayout.selectTab(binding.patientTabLayout.getTabAt(selectedTab + 1))
-          binding.patientTabLayout.setScrollPosition(selectedTab + 1, 0f, true)
-        } else {
-          handleSubmitEncounter(selectedTab)
+        val patientId = viewModel.patients.value?.get(selectedTab)?.resourceId
+        lifecycleScope.launch {
+          cacheCurrentPatientResponse(patientId)
+          patientId?.let { viewModel.submittedPatientIds.add(it) }
+          if (selectedTab < binding.patientTabLayout.tabCount - 1) {
+            binding.patientTabLayout.selectTab(binding.patientTabLayout.getTabAt(selectedTab + 1))
+            binding.patientTabLayout.setScrollPosition(selectedTab + 1, 0f, true)
+          } else {
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.submit_all),
+                Toast.LENGTH_SHORT,
+              )
+              .show()
+          }
         }
       }
     }
@@ -180,10 +206,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   private fun onBackPressed() {
-    val savedPatients = viewModel.getPatientIdToEncounterIdMap().keys.size
-    val totalPatients = viewModel.patients.value?.size ?: 0
-
-    if (totalPatients > savedPatients) {
+    if (viewModel.hasDraftData() || currentQuestionnaireFragment != null) {
       showCancelScreenerQuestionnaireAlertDialog()
     } else {
       NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
@@ -198,7 +221,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   private fun addScreenerQuestionnaireFragment(questionnaireJson: String) {
-    val fragment =
+    val fragmentBuilder =
       QuestionnaireFragment.builder()
         .showReviewPageBeforeSubmit(
           requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
@@ -208,7 +231,10 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         .showOptionalText(true)
         .showRequiredText(false)
         .setQuestionnaire(questionnaireJson)
-        .build()
+
+    viewModel.screenerResponseJson?.let { fragmentBuilder.setQuestionnaireResponse(it) }
+
+    val fragment = fragmentBuilder.build()
     childFragmentManager.commit {
       replace(R.id.form_entry_container, fragment, SCREENER_FRAGMENT_TAG)
     }
@@ -256,47 +282,63 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     view?.post { viewModel.isLoading.value = false }
   }
 
-  private fun handleSubmitEncounter(selectedTab: Int) {
-    val patientId = viewModel.patients.value?.get(selectedTab)?.resourceId
+  private fun startPatientQuestionnaires() {
+    if (hasStartedPatientForms) return
+    if (viewModel.patients.value.isNullOrEmpty()) return
+    hasStartedPatientForms = true
+    binding.patientTabLayout.visibility = View.VISIBLE
+    binding.submitAllButton.visibility = View.VISIBLE
+    observeQuestionnaire()
+    loadQuestionnaireForTab(currentSelectedTabPosition)
+  }
 
-    if (patientId != null) {
-      viewModel.isLoading.value = true
-      lifecycleScope.launch {
-        try {
-          val questionnaireFragment =
-            childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG + patientId)
-              as QuestionnaireFragment
-          val questionnaireResponse = questionnaireFragment.getQuestionnaireResponse()
+  private suspend fun cacheCurrentPatientResponse(
+    patientId: String? = currentPatientId,
+    questionnaireResponse: QuestionnaireResponse? = null,
+    persist: Boolean = true,
+  ) {
+    val response =
+      questionnaireResponse
+        ?: safeQuestionnaireResponse(currentQuestionnaireFragment as? QuestionnaireFragment)
 
-          var encounterId = viewModel.getEncounterIdForPatientId(patientId)
-          val encounterType = genericFormEntryViewModel.getEncounterTypeValue()
-          pendingSavePatientId = patientId
-          if (encounterId != null && encounterType != null) {
-            pendingSaveEncounterId = encounterId
-            editEncounterViewModel.updateEncounter(
-              questionnaireResponse,
-              encounterId,
-              encounterType,
-            )
-          } else {
-            encounterId = generateUuid()
-            pendingSaveEncounterId = encounterId
-            genericFormEntryViewModel.saveEncounter(
-              questionnaireResponse,
-              patientId,
-              encounterId,
-              viewModel.sessionDate,
-            )
-            viewModel.setPatientIdToEncounterIdMap(patientId, encounterId)
-            // ⚠️ removed direct createInternalObservations call here
-          }
-          saveCurrentQuestionnaireResponse(questionnaireResponse)
-        } catch (exception: Exception) {
-          Timber.e(exception.localizedMessage)
-          viewModel.isLoading.value = false
-          return@launch
-        }
+    if (patientId.isNullOrBlank() || response == null) return
+
+    try {
+      viewModel.patientResponses[patientId] = parser.encodeResourceToString(response)
+      if (persist) {
+        viewModel.saveDraft(args.questionnaireId, patientIds)
       }
+    } catch (exception: Exception) {
+      Timber.e(exception.localizedMessage)
+    }
+  }
+
+  private suspend fun cacheScreenerDraft(
+    questionnaireResponse: QuestionnaireResponse? = null,
+    persist: Boolean = true,
+  ) {
+    val response =
+      questionnaireResponse
+        ?: safeQuestionnaireResponse(currentQuestionnaireFragment as? QuestionnaireFragment)
+    response?.let {
+      viewModel.cacheScreenerDraft(it)
+      viewModel.setSessionDate(it)
+      if (persist) {
+        viewModel.saveDraft(args.questionnaireId, patientIds)
+      }
+    }
+  }
+
+  private suspend fun saveDraft(showToast: Boolean = false) {
+    if (viewModel.isScreenerCompleted) {
+      cacheCurrentPatientResponse(persist = false)
+    } else {
+      cacheScreenerDraft(persist = false)
+    }
+    if (!viewModel.hasDraftData()) return
+    viewModel.saveDraft(args.questionnaireId, patientIds)
+    if (showToast) {
+      Toast.makeText(requireContext(), getString(R.string.draft_saved), Toast.LENGTH_SHORT).show()
     }
   }
 
@@ -307,13 +349,67 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         builder.apply {
           setMessage(getString(R.string.cancel_questionnaire_message))
           setPositiveButton(getString(android.R.string.yes)) { _, _ ->
-            NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
+            lifecycleScope.launch {
+              viewModel.deleteDraft(args.questionnaireId)
+              viewModel.clearSessionState()
+              hasActiveDraft = false
+              skipDraftSaveOnDestroy = true
+              NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
+            }
+          }
+          setNeutralButton(getString(R.string.save_as_draft)) { _, _ ->
+            lifecycleScope.launch {
+              saveDraft(showToast = true)
+              NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
+            }
           }
           setNegativeButton(getString(android.R.string.no)) { _, _ -> }
         }
         builder.create()
       }
     alertDialog?.show()
+  }
+
+  private suspend fun loadDraftIfAvailable(showResumeDialog: Boolean = true) {
+    val draft = viewModel.loadDraft(args.questionnaireId) ?: return
+    draftToRestore = draft
+    withContext(Dispatchers.Main) {
+      if (showResumeDialog) {
+        showResumeDraftDialog()
+      } else {
+        restoreDraftNowIfReady()
+      }
+    }
+  }
+
+  private fun showResumeDraftDialog() {
+    AlertDialog.Builder(requireContext())
+      .setTitle(getString(R.string.resume_group_session))
+      .setMessage(getString(R.string.resume_group_session_message))
+      .setPositiveButton(getString(R.string.resume_session)) { _, _ -> restoreDraftNowIfReady() }
+      .setNegativeButton(getString(R.string.start_new_session)) { _, _ ->
+        lifecycleScope.launch { viewModel.deleteDraft(args.questionnaireId) }
+        viewModel.clearSessionState()
+        draftToRestore = null
+        shouldRestoreDraft = false
+        hasActiveDraft = false
+      }
+      .create()
+      .show()
+  }
+
+  private fun restoreDraftNowIfReady() {
+    val draft = draftToRestore ?: return
+    shouldRestoreDraft = true
+    if (genericFormEntryViewModel.questionnaire.value != null) {
+      viewModel.restoreDraft(draft)
+      draftToRestore = null
+      shouldRestoreDraft = false
+      hasActiveDraft = true
+      if (viewModel.isScreenerCompleted) {
+        startPatientQuestionnaires()
+      }
+    }
   }
 
   private fun setupPatientTabs(patients: List<PatientListViewModel.PatientItem>) {
@@ -368,7 +464,8 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
 
         override fun onTabUnselected(tab: TabLayout.Tab) {
           val selectedTab = tab.position
-          handleSubmitEncounter(selectedTab)
+          val patientId = viewModel.patients.value?.get(selectedTab)?.resourceId
+          lifecycleScope.launch { cacheCurrentPatientResponse(patientId) }
         }
 
         override fun onTabReselected(tab: TabLayout.Tab) {
@@ -387,7 +484,14 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       ) as? QuestionnaireFragment
         ?: return true
 
-    val questionnaireResponse = questionnaireFragment.getQuestionnaireResponse()
+    val questionnaireResponse =
+      safeQuestionnaireResponse(questionnaireFragment)
+        ?: viewModel.patientResponses[patientId]?.let { savedResponse ->
+          parser.parseResource(QuestionnaireResponse::class.java, savedResponse)
+            as QuestionnaireResponse
+        }
+          ?: return true
+    cacheCurrentPatientResponse(patientId, questionnaireResponse)
     return viewModel.isValidQuestionnaireResponse(
       genericFormEntryViewModel.questionnaire.value!!,
       questionnaireResponse,
@@ -398,24 +502,92 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   private fun loadQuestionnaireForTab(tabPosition: Int) {
     viewModel.isLoading.value = true
     val patientId = viewModel.patients.value?.get(tabPosition)?.resourceId
-    if (patientId != null) {
-      addQuestionnaireFragment(
-        genericFormEntryViewModel.questionnaireJson.value.toString(),
-        patientId,
-      )
+    val questionnaireJson = genericFormEntryViewModel.questionnaireJson.value
+    if (patientId != null && !questionnaireJson.isNullOrEmpty()) {
+      addQuestionnaireFragment(questionnaireJson, patientId)
     } else {
       viewModel.isLoading.value = false
     }
   }
 
-  private fun saveCurrentQuestionnaireResponse(questionnaireResponse: QuestionnaireResponse?) {
-    questionnaireResponse?.let { questionnaireResponse ->
-      currentPatientId?.let { patientId ->
-        try {
-          viewModel.patientResponses[patientId] =
-            parser.encodeResourceToString(questionnaireResponse)
-        } catch (e: Exception) {
-          // Handle exception
+  private fun submitAllEncounters() {
+    lifecycleScope.launch {
+      if (!viewModel.isScreenerCompleted) {
+        Toast.makeText(
+            requireContext(),
+            getString(R.string.complete_screener_before_submit),
+            Toast.LENGTH_SHORT,
+          )
+          .show()
+        return@launch
+      }
+
+      viewModel.isLoading.value = true
+      cacheCurrentPatientResponse()
+      val questionnaire = genericFormEntryViewModel.questionnaire.value
+      val patients = viewModel.patients.value.orEmpty()
+      if (questionnaire == null || patients.isEmpty()) {
+        viewModel.isLoading.value = false
+        return@launch
+      }
+
+      val missingPatient =
+        patients.firstOrNull { patient ->
+          viewModel.patientResponses[patient.resourceId].isNullOrBlank()
+        }
+      if (missingPatient != null) {
+        viewModel.isLoading.value = false
+        Toast.makeText(
+            requireContext(),
+            getString(R.string.inputs_missing_for_patient) + " ${missingPatient.name}",
+            Toast.LENGTH_SHORT,
+          )
+          .show()
+        return@launch
+      }
+
+      for (patient in patients) {
+        val responseJson = viewModel.patientResponses[patient.resourceId] ?: continue
+        val response =
+          parser.parseResource(QuestionnaireResponse::class.java, responseJson)
+            as QuestionnaireResponse
+        val isValid =
+          viewModel.isValidQuestionnaireResponse(questionnaire, response, requireContext())
+        if (!isValid) {
+          viewModel.isLoading.value = false
+          Toast.makeText(
+              requireContext(),
+              getString(R.string.inputs_missing_for_patient) + " ${patient.name}",
+              Toast.LENGTH_SHORT,
+            )
+            .show()
+          return@launch
+        }
+      }
+
+      viewModel.submittedPatientIds.clear()
+      patients.forEach { patient ->
+        val patientId = patient.resourceId
+        val responseJson = viewModel.patientResponses[patientId] ?: return@forEach
+        val response =
+          parser.parseResource(QuestionnaireResponse::class.java, responseJson)
+            as QuestionnaireResponse
+        var encounterId = viewModel.getEncounterIdForPatientId(patientId)
+        val encounterType = genericFormEntryViewModel.getEncounterTypeValue()
+        pendingSavePatientId = patientId
+        if (encounterId != null && encounterType != null) {
+          pendingSaveEncounterId = encounterId
+          editEncounterViewModel.updateEncounter(response, encounterId, encounterType)
+        } else {
+          encounterId = encounterId ?: generateUuid()
+          pendingSaveEncounterId = encounterId
+          genericFormEntryViewModel.saveEncounter(
+            response,
+            patientId,
+            encounterId,
+            viewModel.sessionDate,
+          )
+          viewModel.setPatientIdToEncounterIdMap(patientId, encounterId)
         }
       }
     }
@@ -423,9 +595,9 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
 
   private fun observeResourcesSaveAction() {
     genericFormEntryViewModel.isResourcesSaved.observe(viewLifecycleOwner) {
-      viewModel.isLoading.value = false
       val isError = it.contains("ERROR")
       if (isError) {
+        viewModel.isLoading.value = false
         Toast.makeText(requireContext(), getString(R.string.inputs_missing), Toast.LENGTH_SHORT)
           .show()
         return@observe
@@ -434,11 +606,14 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       if (isSaved) {
         removeHiddenFragments()
         val patientId = it.split("/")[1]
+        viewModel.submittedPatientIds.add(patientId)
         val encounterId = viewModel.getEncounterIdForPatientId(patientId)
         if (encounterId != null) {
           viewModel.saveScreenerObservations(patientId, encounterId)
           viewModel.createInternalObservations(patientId, encounterId)
         }
+        pendingSavePatientId = null
+        pendingSaveEncounterId = null
         val patientName = viewModel.getPatientName(patientId)
         Toast.makeText(
             requireContext(),
@@ -446,13 +621,16 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
             Toast.LENGTH_SHORT,
           )
           .show()
+        if (viewModel.submittedPatientIds.size == viewModel.patients.value?.size) {
+          viewModel.isLoading.value = false
+        }
         handleAllEncountersSaved()
       }
     }
     editEncounterViewModel.isResourcesSaved.observe(viewLifecycleOwner) {
-      viewModel.isLoading.value = false
       val isError = it.contains("ERROR")
       if (isError) {
+        viewModel.isLoading.value = false
         Toast.makeText(requireContext(), getString(R.string.inputs_missing), Toast.LENGTH_SHORT)
           .show()
         return@observe
@@ -464,18 +642,34 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         val encounterId = pendingSaveEncounterId
         if (patientId != null && encounterId != null) {
           viewModel.saveScreenerObservations(patientId, encounterId)
+          viewModel.submittedPatientIds.add(patientId)
         }
         pendingSavePatientId = null
         pendingSaveEncounterId = null
         Toast.makeText(requireContext(), getString(R.string.encounter_updated), Toast.LENGTH_SHORT)
           .show()
+        if (viewModel.submittedPatientIds.size == viewModel.patients.value?.size) {
+          viewModel.isLoading.value = false
+        }
         handleAllEncountersSaved()
       }
     }
   }
 
   private fun handleAllEncountersSaved() {
-    if (viewModel.patients.value?.size == viewModel.submittedSet.size) {
+    if (viewModel.patients.value?.size == viewModel.submittedPatientIds.size) {
+      lifecycleScope.launch { viewModel.deleteDraft(args.questionnaireId) }
+      viewModel.clearSessionState()
+      draftToRestore = null
+      shouldRestoreDraft = false
+      hasActiveDraft = false
+      hasStartedPatientForms = false
+      currentQuestionnaireFragment = null
+      currentPatientId = null
+      currentSelectedTabPosition = 0
+      pendingSavePatientId = null
+      pendingSaveEncounterId = null
+      binding.submitAllButton.visibility = View.GONE
       val alertDialog: AlertDialog? =
         activity?.let {
           val builder = AlertDialog.Builder(it)
@@ -488,6 +682,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
           }
           builder.create()
         }
+      viewModel.isLoading.value = false
       alertDialog?.show()
     }
   }
@@ -498,6 +693,14 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         childFragmentManager.commit { remove(fragment) }
       }
     }
+  }
+
+  private suspend fun safeQuestionnaireResponse(
+    questionnaireFragment: QuestionnaireFragment?,
+  ): QuestionnaireResponse? {
+    if (questionnaireFragment == null) return null
+    if (!questionnaireFragment.isAdded || questionnaireFragment.context == null) return null
+    return questionnaireFragment.getQuestionnaireResponse()
   }
 
   private fun observeQuestionnaire() {
@@ -517,7 +720,14 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   private fun observePatients() {
-    viewModel.patients.observe(viewLifecycleOwner) { it?.let { setupPatientTabs(it) } }
+    viewModel.patients.observe(viewLifecycleOwner) {
+      it?.let {
+        setupPatientTabs(it)
+        if (viewModel.isScreenerCompleted) {
+          startPatientQuestionnaires()
+        }
+      }
+    }
   }
 
   private fun observeLoading() {
@@ -527,12 +737,11 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   override fun onDestroyView() {
-    lifecycleScope.launch {
-      saveCurrentQuestionnaireResponse(currentQuestionnaireFragment?.getQuestionnaireResponse())
+    if (!skipDraftSaveOnDestroy) {
+      lifecycleScope.launch { saveDraft() }
     }
     currentQuestionnaireFragment = null
     currentPatientId = null
-    viewModel.patientResponses.clear()
     super.onDestroyView()
   }
 

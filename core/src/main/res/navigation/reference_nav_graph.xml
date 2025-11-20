@@ -108,6 +108,11 @@
     >
     <argument android:name="patientIds" app:argType="string[]" />
     <argument android:name="questionnaire_id" app:argType="string" />
+    <argument
+            android:name="resume_draft"
+            app:argType="boolean"
+            android:defaultValue="false"
+        />
   </fragment>
   <dialog
         android:id="@+id/patientSelectionDialogFragment"

@@ -37,6 +37,7 @@ import androidx.room.Transaction
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.Flow
+import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.data.database.model.Identifier
 import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.data.database.model.SyncSession
@@ -107,6 +108,20 @@ interface Dao {
 
   @Query("DELETE FROM syncsession WHERE status != 'ONGOING'")
   suspend fun clearAllSyncSessionsExceptOngoing()
+
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  suspend fun upsertGroupSessionDraft(groupSessionDraft: GroupSessionDraft)
+
+  @Query("SELECT * FROM groupsessiondraft WHERE questionnaireId=:questionnaireId LIMIT 1")
+  suspend fun getGroupSessionDraft(questionnaireId: String): GroupSessionDraft?
+
+  @Query(
+    "SELECT * FROM groupsessiondraft WHERE questionnaireId IN (:questionnaireIds) ORDER BY lastUpdated DESC LIMIT 1",
+  )
+  suspend fun getLatestGroupSessionDraft(questionnaireIds: List<String>): GroupSessionDraft?
+
+  @Query("DELETE FROM groupsessiondraft WHERE questionnaireId=:questionnaireId")
+  suspend fun deleteGroupSessionDraft(questionnaireId: String)
 
   @Transaction
   suspend fun getOrCreateInProgressSyncSession(formatter: DateTimeFormatter): SyncSession {

@@ -26,46 +26,21 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.data.database
+package org.openmrs.android.fhir.data.database.model
 
-import androidx.room.TypeConverter
-import org.json.JSONObject
-import org.openmrs.android.fhir.data.database.model.SyncStatus
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-class Converters {
-
-  @TypeConverter
-  fun fromStringList(value: String): List<String> {
-    return value.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-  }
-
-  @TypeConverter
-  fun toStringList(list: List<String>): String {
-    return list.joinToString(",")
-  }
-
-  @TypeConverter
-  fun fromSyncStatus(value: SyncStatus): String {
-    return value.name
-  }
-
-  @TypeConverter
-  fun toSyncStatus(value: String): SyncStatus {
-    return SyncStatus.valueOf(value)
-  }
-
-  @TypeConverter
-  fun fromStringMap(value: Map<String, String>?): String? {
-    if (value == null) return null
-    return JSONObject(value as Map<*, *>).toString()
-  }
-
-  @TypeConverter
-  fun toStringMap(value: String?): Map<String, String> {
-    if (value.isNullOrBlank()) return emptyMap()
-    val jsonObject = JSONObject(value)
-    val map = mutableMapOf<String, String>()
-    jsonObject.keys().forEach { key -> map[key] = jsonObject.optString(key) }
-    return map
-  }
-}
+@Entity(tableName = "groupsessiondraft")
+data class GroupSessionDraft(
+  @PrimaryKey val questionnaireId: String,
+  val sessionId: String,
+  val patientIds: List<String>,
+  val patientResponses: Map<String, String>,
+  val screenerResponse: String?,
+  val encounterQuestionnaireJson: String?,
+  val screenerQuestionnaireJson: String?,
+  val sessionDate: Long?,
+  val screenerCompleted: Boolean,
+  val lastUpdated: Long = System.currentTimeMillis(),
+)

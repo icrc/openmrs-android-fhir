@@ -443,4 +443,22 @@
         name="initial_sync_failed"
     >Échec de la synchronisation initiale</string>
 
+    <string
+        name="resume_group_session"
+    >Reprendre la session précédente ?</string>
+    <string
+        name="resume_group_session_message"
+    >Nous avons trouvé une ébauche enregistrée pour cette session. Souhaitez-vous la reprendre ou démarrer une nouvelle session ?</string>
+    <string
+        name="resume_group_session_message_with_name"
+    >Nous avons trouvé une ébauche enregistrée pour %1$s. Souhaitez-vous la reprendre ou démarrer une nouvelle session ?</string>
+    <string name="resume_session">Reprendre la session</string>
+    <string name="start_new_session">Commencer une nouvelle session</string>
+    <string name="save_as_draft">Enregistrer comme brouillon</string>
+    <string name="submit_all">Tout soumettre</string>
+    <string name="draft_saved">Brouillon enregistré.</string>
+    <string
+        name="complete_screener_before_submit"
+    >Veuillez compléter le questionnaire avant de soumettre toutes les réponses.</string>
+
 </resources>
