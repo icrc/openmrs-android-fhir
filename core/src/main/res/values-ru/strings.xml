@@ -445,4 +445,20 @@
     <string
         name="auth_failed_offline_login"
     >Ошибка аутентификации! Невозможно включить оффлайн вход</string>
+    <string name="resume_group_session">Продолжить предыдущую сессию?</string>
+    <string
+        name="resume_group_session_message"
+    >Мы нашли сохранённый черновик для этой сессии. Хотите продолжить или начать новую сессию?</string>
+    <string
+        name="resume_group_session_message_with_name"
+    >Мы нашли сохранённый черновик для %1$s. Хотите продолжить или начать новую сессию?</string>
+    <string name="resume_session">Продолжить сессию</string>
+    <string name="start_new_session">Начать новую сессию</string>
+    <string name="save_as_draft">Сохранить как черновик</string>
+    <string name="submit_all">Отправить всё</string>
+    <string name="draft_saved">Черновик сохранён.</string>
+    <string
+        name="complete_screener_before_submit"
+    >Заполните скрининг перед отправкой всех ответов.</string>
+
 </resources>
