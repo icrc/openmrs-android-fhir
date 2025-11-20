@@ -31,6 +31,7 @@ package org.openmrs.android.fhir.viewmodel
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
@@ -43,9 +44,11 @@ import com.google.android.fhir.delete
 import com.google.android.fhir.get
 import com.google.android.fhir.search.Operation
 import com.google.android.fhir.search.search
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import java.util.Date
 import java.util.UUID
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -68,6 +71,7 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.GroupSessionDraftRepository
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
+import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
 import org.openmrs.android.fhir.extensions.generateUuid
@@ -76,12 +80,19 @@ import org.openmrs.android.fhir.extensions.nowLocalDateTime
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
 
 class GroupFormEntryViewModel
-@Inject
+@AssistedInject
 constructor(
   private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
   private val groupSessionDraftRepository: GroupSessionDraftRepository,
+  @Assisted private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+
+  @AssistedFactory
+  interface Factory : ViewModelAssistedFactory<GroupFormEntryViewModel> {
+    override fun create(handle: SavedStateHandle): GroupFormEntryViewModel
+  }
+
   private val _patients = MutableLiveData<List<PatientListViewModel.PatientItem>>()
   val patients: LiveData<List<PatientListViewModel.PatientItem>> = _patients
 
@@ -101,6 +112,12 @@ constructor(
   var sessionDate: Date? = null
   var screenerResponseJson: String? = null
   private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+
+  var hasActiveSession: Boolean
+    get() = savedStateHandle[ACTIVE_SESSION_KEY] ?: false
+    private set(value) {
+      savedStateHandle[ACTIVE_SESSION_KEY] = value
+    }
 
   fun getPatients(patientIds: Set<String>) {
     isLoading.value = true
@@ -175,6 +192,10 @@ constructor(
         )
       }
     }
+  }
+
+  fun markSessionActive() {
+    hasActiveSession = true
   }
 
   fun saveScreenerObservations(patientId: String, encounterId: String) {
@@ -466,6 +487,7 @@ constructor(
     if (draft.screenerCompleted) {
       screenerResponse?.let { plugAnswersToEncounter(it) }
     }
+    markSessionActive()
   }
 
   fun clearSessionState() {
@@ -479,9 +501,18 @@ constructor(
     sessionDate = null
     isScreenerCompleted = false
     sessionId = UUID.randomUUID().toString()
+    clearActiveSession()
+  }
+
+  fun clearActiveSession() {
+    savedStateHandle[ACTIVE_SESSION_KEY] = false
   }
 
   fun hasDraftData(): Boolean {
     return patientResponses.isNotEmpty() || screenerResponse != null || isScreenerCompleted
+  }
+
+  companion object {
+    private const val ACTIVE_SESSION_KEY = "active_session"
   }
 }

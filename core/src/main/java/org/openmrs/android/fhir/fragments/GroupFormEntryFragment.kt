@@ -38,7 +38,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
@@ -67,14 +66,12 @@ import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import timber.log.Timber
 
 class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
-  @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
-
   @Inject lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
   private val genericFormEntryViewModel: GenericFormEntryViewModel by viewModels {
     viewModelSavedStateFactory
   }
   private val viewModel: GroupFormEntryViewModel by
-    viewModels<GroupFormEntryViewModel> { viewModelFactory }
+    viewModels<GroupFormEntryViewModel> { viewModelSavedStateFactory }
 
   private val editEncounterViewModel: EditEncounterViewModel by viewModels {
     viewModelSavedStateFactory
@@ -112,10 +109,12 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     observeLoading()
     binding.patientTabLayout.visibility = View.GONE
-    binding.submitAllButton.setOnClickListener { submitAllEncounters() }
     viewModel.getPatients(args.patientIds.toSet())
     observeResourcesSaveAction()
-    lifecycleScope.launch { loadDraftIfAvailable(showResumeDialog = !args.resumeDraft) }
+    lifecycleScope.launch {
+      val shouldShowResumeDialog = !viewModel.hasActiveSession && !args.resumeDraft
+      loadDraftIfAvailable(showResumeDialog = shouldShowResumeDialog)
+    }
     if (savedInstanceState == null) {
       genericFormEntryViewModel.getEncounterQuestionnaire(
         args.questionnaireId,
@@ -167,12 +166,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
             binding.patientTabLayout.selectTab(binding.patientTabLayout.getTabAt(selectedTab + 1))
             binding.patientTabLayout.setScrollPosition(selectedTab + 1, 0f, true)
           } else {
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.submit_all),
-                Toast.LENGTH_SHORT,
-              )
-              .show()
+            submitAllEncounters()
           }
         }
       }
@@ -287,7 +281,6 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     if (viewModel.patients.value.isNullOrEmpty()) return
     hasStartedPatientForms = true
     binding.patientTabLayout.visibility = View.VISIBLE
-    binding.submitAllButton.visibility = View.VISIBLE
     observeQuestionnaire()
     loadQuestionnaireForTab(currentSelectedTabPosition)
   }
@@ -360,6 +353,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
           setNeutralButton(getString(R.string.save_as_draft)) { _, _ ->
             lifecycleScope.launch {
               saveDraft(showToast = true)
+              viewModel.clearActiveSession()
               NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
             }
           }
@@ -371,7 +365,11 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   private suspend fun loadDraftIfAvailable(showResumeDialog: Boolean = true) {
-    val draft = viewModel.loadDraft(args.questionnaireId) ?: return
+    val draft = viewModel.loadDraft(args.questionnaireId)
+    if (draft == null) {
+      viewModel.markSessionActive()
+      return
+    }
     draftToRestore = draft
     withContext(Dispatchers.Main) {
       if (showResumeDialog) {
@@ -393,6 +391,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         draftToRestore = null
         shouldRestoreDraft = false
         hasActiveDraft = false
+        viewModel.markSessionActive()
       }
       .create()
       .show()
@@ -669,7 +668,6 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       currentSelectedTabPosition = 0
       pendingSavePatientId = null
       pendingSaveEncounterId = null
-      binding.submitAllButton.visibility = View.GONE
       val alertDialog: AlertDialog? =
         activity?.let {
           val builder = AlertDialog.Builder(it)
