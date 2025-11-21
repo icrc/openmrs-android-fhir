@@ -157,7 +157,7 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
 
       if (draftEntry != null && isAdded) {
         val (formItem, patientIds) = draftEntry
-        showResumeDraftDialog(formItem, patientIds)
+        showResumeDraftDialog(formItem, patientIds, true)
       }
     }
   }
@@ -222,21 +222,36 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     findNavController().navigate(action)
   }
 
-  private fun showResumeDraftDialog(formItem: FormItem, patientIds: Array<String>) {
-    AlertDialog.Builder(requireContext())
-      .setTitle(getString(R.string.resume_group_session))
-      .setMessage(
-        getString(
-          R.string.resume_group_session_message_with_name,
-          formItem.name,
-        ),
-      )
-      .setPositiveButton(getString(R.string.resume_session)) { _, _ ->
-        navigateToGroupFormEntry(formItem.questionnaireId, patientIds)
+  private fun showResumeDraftDialog(
+    formItem: FormItem,
+    patientIds: Array<String>,
+    showCancel: Boolean = false,
+  ) {
+    val dialog =
+      AlertDialog.Builder(requireContext())
+        .setTitle(getString(R.string.resume_group_session))
+        .setMessage(
+          getString(
+            R.string.resume_group_session_message_with_name,
+            formItem.name,
+          ),
+        )
+        .setPositiveButton(getString(R.string.resume_session)) { _, _ ->
+          navigateToGroupFormEntry(formItem.questionnaireId, patientIds)
+        }
+
+    if (showCancel) {
+      dialog.setNegativeButton(getString(R.string.cancel), null)
+    } else {
+      dialog.setNegativeButton(getString(R.string.start_new_session)) { _, _ ->
+        viewLifecycleOwner.lifecycleScope.launch {
+          groupSessionDraftRepository.deleteDraft(formItem.questionnaireId)
+          navigateToPatientSelection(formItem.questionnaireId)
+        }
       }
-      .setNegativeButton(getString(R.string.cancel), null)
-      .create()
-      .show()
+    }
+
+    dialog.create().show()
   }
 
   override fun onDestroyView() {
