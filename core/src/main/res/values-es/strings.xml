@@ -429,10 +429,10 @@
     <string name="resume_group_session">¿Reanudar sesión anterior?</string>
     <string
         name="resume_group_session_message"
-    >Hemos encontrado un borrador guardado para esta sesión. ¿Deseas reanudarla o comenzar una nueva sesión?</string>
+    >Hemos encontrado un borrador guardado para esta sesión. ¿Deseas reanudarla?</string>
     <string
         name="resume_group_session_message_with_name"
-    >Hemos encontrado un borrador guardado para %1$s. ¿Deseas reanudarla o comenzar una nueva sesión?</string>
+    >Hemos encontrado un borrador guardado para %1$s. ¿Deseas reanudarla?</string>
     <string name="resume_session">Reanudar sesión</string>
     <string name="start_new_session">Comenzar nueva sesión</string>
     <string name="save_as_draft">Guardar como borrador</string>

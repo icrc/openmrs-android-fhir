@@ -380,10 +380,10 @@
     <string name="resume_group_session">استئناف الجلسة السابقة؟</string>
     <string
         name="resume_group_session_message"
-    >لقد وجدنا مسودة محفوظة لهذه الجلسة. هل ترغب في استئنافها أم بدء جلسة جديدة؟</string>
+    >لقد وجدنا مسودة محفوظة لهذه الجلسة. هل ترغب في استئنافها؟</string>
     <string
         name="resume_group_session_message_with_name"
-    >لقد وجدنا مسودة محفوظة لـ %1$s. هل ترغب في استئنافها أم بدء جلسة جديدة؟</string>
+    >لقد وجدنا مسودة محفوظة لـ %1$s. هل ترغب في استئنافها؟</string>
     <string name="resume_session">استئناف الجلسة</string>
     <string name="start_new_session">بدء جلسة جديدة</string>
     <string name="save_as_draft">حفظ كمسودة</string>
