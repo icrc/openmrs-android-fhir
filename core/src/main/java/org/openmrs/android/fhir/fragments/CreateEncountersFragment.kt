@@ -33,28 +33,37 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.CreateFormSectionAdapter
+import org.openmrs.android.fhir.data.GroupSessionDraftRepository
+import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.FormSectionItem
+import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.databinding.CreateEncounterFragmentBinding
 import org.openmrs.android.fhir.viewmodel.CreateEncounterViewModel
 
 class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+
+  @Inject lateinit var groupSessionDraftRepository: GroupSessionDraftRepository
   private val viewModel by viewModels<CreateEncounterViewModel> { viewModelFactory }
   private lateinit var recyclerView: RecyclerView
   private lateinit var progressBar: ProgressBar
+  private var draftResumeChecked = false
 
   private val args: CreateEncountersFragmentArgs by navArgs()
 
@@ -99,7 +108,10 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
 
   private fun setupObservers() {
     viewModel.formData.observe(viewLifecycleOwner) { formData ->
-      formData?.let { setupAdapter(it) }
+      formData?.let {
+        setupAdapter(it)
+        maybePromptToResumeDraft(it)
+      }
     }
 
     viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
@@ -112,8 +124,42 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
   }
 
   private fun setupAdapter(formSectionItems: List<FormSectionItem>) {
-    val adapter = CreateFormSectionAdapter(formSectionItems) { formId -> handleFormClick(formId) }
+    val adapter =
+      CreateFormSectionAdapter(formSectionItems) { formItem -> handleFormClick(formItem) }
     recyclerView.adapter = adapter
+  }
+
+  private fun maybePromptToResumeDraft(formSectionItems: List<FormSectionItem>) {
+    if (!args.isGroupEncounter || draftResumeChecked) return
+    draftResumeChecked = true
+
+    val formItems = formSectionItems.flatMap { section -> section.forms }
+
+    viewLifecycleOwner.lifecycleScope.launch {
+      var latestDraft: Pair<FormItem, GroupSessionDraft>? = null
+
+      formItems.forEach { formItem ->
+        val draft = groupSessionDraftRepository.getDraft(formItem.questionnaireId)
+        when {
+          draft == null -> Unit
+          draft.hasContent() -> {
+            val currentLatest = latestDraft
+            if (currentLatest == null || draft.lastUpdated > currentLatest.second.lastUpdated) {
+              latestDraft = formItem to draft
+            }
+          }
+          else -> groupSessionDraftRepository.deleteDraft(formItem.questionnaireId)
+        }
+      }
+
+      val draftEntry =
+        latestDraft?.let { (formItem, draft) -> formItem to draft.patientIds.toTypedArray() }
+
+      if (draftEntry != null && isAdded) {
+        val (formItem, patientIds) = draftEntry
+        showResumeDraftDialog(formItem, patientIds, true)
+      }
+    }
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -126,13 +172,22 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     }
   }
 
-  private fun handleFormClick(questionnaireId: String) {
+  private fun handleFormClick(formItem: FormItem) {
+    val questionnaireId = formItem.questionnaireId
     if (args.isGroupEncounter) {
-      // Navigate to the patient selection dialog
-      val action =
-        CreateEncountersFragmentDirections
-          .actionCreateEncounterFragmentToPatientSelectionDialogFragment(questionnaireId)
-      findNavController().navigate(action)
+      viewLifecycleOwner.lifecycleScope.launch {
+        val draft = groupSessionDraftRepository.getDraft(questionnaireId)
+        if (draft != null) {
+          if (draft.hasContent()) {
+            showResumeDraftDialog(formItem, draft.patientIds.toTypedArray())
+          } else {
+            groupSessionDraftRepository.deleteDraft(questionnaireId)
+            navigateToPatientSelection(questionnaireId)
+          }
+        } else {
+          navigateToPatientSelection(questionnaireId)
+        }
+      }
     } else {
       findNavController()
         .navigate(
@@ -144,6 +199,59 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
             ),
         )
     }
+  }
+
+  private fun GroupSessionDraft.hasContent(): Boolean {
+    return screenerCompleted || patientResponses.isNotEmpty() || !screenerResponse.isNullOrBlank()
+  }
+
+  private fun navigateToPatientSelection(questionnaireId: String) {
+    val action =
+      CreateEncountersFragmentDirections
+        .actionCreateEncounterFragmentToPatientSelectionDialogFragment(questionnaireId)
+    findNavController().navigate(action)
+  }
+
+  private fun navigateToGroupFormEntry(questionnaireId: String, patientIds: Array<String>) {
+    val action =
+      CreateEncountersFragmentDirections.actionCreateEncounterFragmentToGroupFormEntryFragment(
+        questionnaireId = questionnaireId,
+        patientIds = patientIds,
+        resumeDraft = true,
+      )
+    findNavController().navigate(action)
+  }
+
+  private fun showResumeDraftDialog(
+    formItem: FormItem,
+    patientIds: Array<String>,
+    showCancel: Boolean = false,
+  ) {
+    val dialog =
+      AlertDialog.Builder(requireContext())
+        .setTitle(getString(R.string.resume_group_session))
+        .setMessage(
+          getString(
+            R.string.resume_group_session_message_with_name,
+            formItem.name,
+          ),
+        )
+        .setPositiveButton(getString(R.string.resume_session)) { _, _ ->
+          navigateToGroupFormEntry(formItem.questionnaireId, patientIds)
+        }
+
+    if (showCancel) {
+      dialog.setNegativeButton(getString(R.string.cancel), null)
+    } else {
+      dialog.setNegativeButton(getString(R.string.start_new_session)) { _, _ ->
+        viewLifecycleOwner.lifecycleScope.launch {
+          groupSessionDraftRepository.deleteDraft(formItem.questionnaireId)
+          navigateToPatientSelection(formItem.questionnaireId)
+        }
+      }
+    }
+
+    dialog.create().show()
   }
 
   override fun onDestroyView() {

@@ -31,6 +31,7 @@ package org.openmrs.android.fhir.viewmodel
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
@@ -43,11 +44,15 @@ import com.google.android.fhir.delete
 import com.google.android.fhir.get
 import com.google.android.fhir.search.Operation
 import com.google.android.fhir.search.search
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import java.util.Date
 import java.util.UUID
-import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.CodeType
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
@@ -63,7 +68,10 @@ import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.Type
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.GroupSessionDraftRepository
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
+import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
 import org.openmrs.android.fhir.extensions.generateUuid
@@ -72,18 +80,26 @@ import org.openmrs.android.fhir.extensions.nowLocalDateTime
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
 
 class GroupFormEntryViewModel
-@Inject
+@AssistedInject
 constructor(
   private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
+  private val groupSessionDraftRepository: GroupSessionDraftRepository,
+  @Assisted private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+
+  @AssistedFactory
+  interface Factory : ViewModelAssistedFactory<GroupFormEntryViewModel> {
+    override fun create(handle: SavedStateHandle): GroupFormEntryViewModel
+  }
+
   private val _patients = MutableLiveData<List<PatientListViewModel.PatientItem>>()
   val patients: LiveData<List<PatientListViewModel.PatientItem>> = _patients
 
   private val patientIdToEncounterIdMap = mutableMapOf<String, String>()
   val patientResponses = mutableMapOf<String, String>()
   val isLoading = MutableLiveData<Boolean>()
-  var submittedSet = mutableSetOf<Int>()
+  var submittedPatientIds = mutableSetOf<String>()
   val screenerQuestionnaireJson = MutableLiveData<String>()
   val encounterQuestionnaireJson = MutableLiveData<String>()
   private var encounterQuestionnaire: Questionnaire? = null
@@ -91,9 +107,17 @@ constructor(
   private var screenerQuestionnaire: Questionnaire? = null
   private val screenerLinkIds = mutableSetOf<String>()
   private val screenerEncounterLinkIds = mutableSetOf<String>()
-  val sessionId: String = UUID.randomUUID().toString()
+  var sessionId: String = UUID.randomUUID().toString()
+  var isScreenerCompleted = false
   var sessionDate: Date? = null
+  var screenerResponseJson: String? = null
   private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+
+  var hasActiveSession: Boolean
+    get() = savedStateHandle[ACTIVE_SESSION_KEY] ?: false
+    private set(value) {
+      savedStateHandle[ACTIVE_SESSION_KEY] = value
+    }
 
   fun getPatients(patientIds: Set<String>) {
     isLoading.value = true
@@ -170,6 +194,10 @@ constructor(
     }
   }
 
+  fun markSessionActive() {
+    hasActiveSession = true
+  }
+
   fun saveScreenerObservations(patientId: String, encounterId: String) {
     val response = screenerResponse ?: return
     val questionnaire = screenerQuestionnaire ?: return
@@ -232,8 +260,15 @@ constructor(
         ?.value
   }
 
+  fun cacheScreenerDraft(response: QuestionnaireResponse) {
+    screenerResponse = response
+    screenerResponseJson = parser.encodeResourceToString(response)
+  }
+
   fun plugAnswersToEncounter(response: QuestionnaireResponse) {
     screenerResponse = response
+    screenerResponseJson = parser.encodeResourceToString(response)
+    isScreenerCompleted = true
     val answers =
       mutableMapOf<String, List<QuestionnaireResponse.QuestionnaireResponseItemAnswerComponent>>()
 
@@ -406,5 +441,78 @@ constructor(
       .values
       .flatten()
       .any { it is Invalid }
+  }
+
+  suspend fun saveDraft(questionnaireId: String, patientIds: List<String>) {
+    val draft =
+      GroupSessionDraft(
+        questionnaireId = questionnaireId,
+        sessionId = sessionId,
+        patientIds = patientIds,
+        patientResponses = patientResponses.toMap(),
+        screenerResponse = screenerResponseJson,
+        encounterQuestionnaireJson = encounterQuestionnaireJson.value,
+        screenerQuestionnaireJson = screenerQuestionnaireJson.value,
+        sessionDate = sessionDate?.time,
+        screenerCompleted = isScreenerCompleted,
+      )
+    withContext(Dispatchers.IO) { groupSessionDraftRepository.upsertDraft(draft) }
+  }
+
+  suspend fun loadDraft(questionnaireId: String): GroupSessionDraft? {
+    return withContext(Dispatchers.IO) { groupSessionDraftRepository.getDraft(questionnaireId) }
+  }
+
+  suspend fun deleteDraft(questionnaireId: String) {
+    withContext(Dispatchers.IO) { groupSessionDraftRepository.deleteDraft(questionnaireId) }
+  }
+
+  fun restoreDraft(draft: GroupSessionDraft) {
+    sessionId = draft.sessionId
+    isScreenerCompleted = draft.screenerCompleted
+    sessionDate = draft.sessionDate?.let { Date(it) }
+    patientResponses.clear()
+    patientResponses.putAll(draft.patientResponses)
+    screenerResponseJson = draft.screenerResponse
+    screenerResponse =
+      draft.screenerResponse?.let {
+        parser.parseResource(QuestionnaireResponse::class.java, it) as QuestionnaireResponse
+      }
+    if (!draft.encounterQuestionnaireJson.isNullOrBlank()) {
+      encounterQuestionnaireJson.value = draft.encounterQuestionnaireJson
+    }
+    if (!draft.screenerQuestionnaireJson.isNullOrBlank()) {
+      screenerQuestionnaireJson.value = draft.screenerQuestionnaireJson
+    }
+    if (draft.screenerCompleted) {
+      screenerResponse?.let { plugAnswersToEncounter(it) }
+    }
+    markSessionActive()
+  }
+
+  fun clearSessionState() {
+    patientResponses.clear()
+    patientIdToEncounterIdMap.clear()
+    submittedPatientIds.clear()
+    screenerResponse = null
+    screenerResponseJson = null
+    encounterQuestionnaire = null
+    screenerQuestionnaire = null
+    sessionDate = null
+    isScreenerCompleted = false
+    sessionId = UUID.randomUUID().toString()
+    clearActiveSession()
+  }
+
+  fun clearActiveSession() {
+    savedStateHandle[ACTIVE_SESSION_KEY] = false
+  }
+
+  fun hasDraftData(): Boolean {
+    return patientResponses.isNotEmpty() || screenerResponse != null || isScreenerCompleted
+  }
+
+  companion object {
+    private const val ACTIVE_SESSION_KEY = "active_session"
   }
 }

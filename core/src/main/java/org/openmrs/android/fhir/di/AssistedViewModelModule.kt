@@ -35,6 +35,7 @@ import dagger.multibindings.IntoMap
 import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.EditPatientViewModel
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
+import org.openmrs.android.fhir.viewmodel.GroupFormEntryViewModel
 import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
 
 @Module
@@ -66,5 +67,12 @@ class AssistedViewModelModule {
   @ViewModelKey(PatientDetailsViewModel::class)
   fun patientDetailsViewModelAssistedFactory(
     factory: PatientDetailsViewModel.Factory,
+  ): ViewModelAssistedFactory<out ViewModel> = factory
+
+  @Provides
+  @IntoMap
+  @ViewModelKey(GroupFormEntryViewModel::class)
+  fun groupFormEntryViewModelAssistedFactory(
+    factory: GroupFormEntryViewModel.Factory,
   ): ViewModelAssistedFactory<out ViewModel> = factory
 }

@@ -40,7 +40,7 @@ import org.openmrs.android.fhir.data.database.model.FormSectionItem
 
 class CreateFormSectionAdapter(
   private val formSectionItems: List<FormSectionItem>,
-  private val formClickListener: (String) -> Unit,
+  private val formClickListener: (FormItem) -> Unit,
 ) : RecyclerView.Adapter<CreateFormSectionAdapter.FormSectionViewHolder>() {
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FormSectionViewHolder {
@@ -60,7 +60,7 @@ class CreateFormSectionAdapter(
     private val sectionNameTextView: TextView = itemView.findViewById(R.id.tv_section_name)
     private val formsRecyclerView: RecyclerView = itemView.findViewById(R.id.rv_forms)
 
-    fun bind(formSectionItem: FormSectionItem, formClickListener: (String) -> Unit) {
+    fun bind(formSectionItem: FormSectionItem, formClickListener: (FormItem) -> Unit) {
       sectionNameTextView.text = formSectionItem.name
       formsRecyclerView.layoutManager = LinearLayoutManager(itemView.context)
       formsRecyclerView.adapter = FormAdapter(formSectionItem.forms, formClickListener)
@@ -70,7 +70,7 @@ class CreateFormSectionAdapter(
 
 class FormAdapter(
   private val forms: List<FormItem>,
-  private val formClickListener: (String) -> Unit,
+  private val formClickListener: (FormItem) -> Unit,
 ) : RecyclerView.Adapter<FormAdapter.FormViewHolder>() {
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FormViewHolder {
@@ -88,13 +88,13 @@ class FormAdapter(
   class FormViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val formNameTextView: TextView = itemView.findViewById(R.id.tv_form_name)
 
-    fun bind(formItem: FormItem, formClickListener: (String) -> Unit) {
+    fun bind(formItem: FormItem, formClickListener: (FormItem) -> Unit) {
       // Format the form name for display (remove prefix, replace dots with spaces, etc.)
       val displayName = formItem.name
 
       formNameTextView.text = displayName
 
-      itemView.setOnClickListener { formClickListener(formItem.questionnaireId) }
+      itemView.setOnClickListener { formClickListener(formItem) }
     }
   }
 }
