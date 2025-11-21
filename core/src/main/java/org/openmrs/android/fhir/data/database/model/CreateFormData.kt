@@ -28,11 +28,14 @@
 */
 package org.openmrs.android.fhir.data.database.model
 
+import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class FormData(
   val formSections: List<FormSection>,
+  @Json(name = "Translation overrides")
+  val translationOverrides: Map<String, Map<String, String>> = emptyMap(),
 )
 
 @JsonClass(generateAdapter = true)
