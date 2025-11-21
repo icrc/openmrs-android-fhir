@@ -460,5 +460,7 @@
     <string
         name="complete_screener_before_submit"
     >Заполните скрининг перед отправкой всех ответов.</string>
+    <string name="button_pagination_next">Далее</string>
+    <string name="button_pagination_previous">Назад</string>
 
 </resources>

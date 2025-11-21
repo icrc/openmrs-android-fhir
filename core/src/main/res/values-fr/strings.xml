@@ -449,5 +449,7 @@
     <string
         name="complete_screener_before_submit"
     >Veuillez compléter le questionnaire avant de soumettre toutes les réponses.</string>
+    <string name="button_pagination_next">Suivant</string>
+    <string name="button_pagination_previous">Précédent</string>
 
 </resources>
