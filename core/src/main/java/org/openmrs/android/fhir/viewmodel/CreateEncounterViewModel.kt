@@ -38,6 +38,7 @@ import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.logicalId
 import com.google.android.fhir.search.search
 import com.squareup.moshi.Moshi
+import java.util.Locale
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Questionnaire
@@ -78,6 +79,8 @@ constructor(
         val moshi = Moshi.Builder().build()
         val adapter = moshi.adapter(FormData::class.java).lenient()
         val formData = adapter.fromJson(formDataString.trim())
+        val translationOverrides = formData?.translationOverrides ?: emptyMap()
+        val deviceLanguageOverrides = translationOverrides[Locale.getDefault().language].orEmpty()
         val questionnaires = fhirEngine.search<Questionnaire> {}.map { it.resource }.toMutableList()
         // This code can be refactored once there's possiblity to add assets file to fhirEngine.
         val assetQuestionnaireFileNames = applicationContext.getJsonFileNames()
@@ -102,7 +105,12 @@ constructor(
         val formSectionItems =
           formData
             ?.formSections
-            ?.map { it.toFormSectionItem(encounterTypeCodeToQuestionnaireIdMap) }
+            ?.map {
+              it.toFormSectionItem(
+                encounterTypeCodeToQuestionnaireIdMap,
+                deviceLanguageOverrides,
+              )
+            }
             ?.filter { it.forms.isNotEmpty() }
             ?: emptyList()
         _formData.value = formSectionItems
@@ -120,6 +128,7 @@ constructor(
    */
   internal suspend fun FormSection.toFormSectionItem(
     encounterTypeCodeToQuestionnaireIdMap: Map<String, String>,
+    translationOverrides: Map<String, String>,
   ): FormSectionItem {
     val formItems = mutableListOf<FormItem>()
     forms.forEach { encounterTypeCode ->
@@ -128,16 +137,19 @@ constructor(
       val questionnaire: Questionnaire? =
         fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
       if (questionnaire != null) {
+        val localizedQuestionnaireTitle =
+          questionnaire.title?.let { translationOverrides[it] ?: it } ?: "No Name provided"
         formItems.add(
           FormItem(
-            name = questionnaire.title ?: "No Name provided",
+            name = localizedQuestionnaireTitle,
             questionnaireId = questionnaireId,
           ),
         )
       }
     }
+    val sectionName = translationOverrides[name] ?: name
     return FormSectionItem(
-      name = name,
+      name = sectionName,
       forms = formItems,
     )
   }
