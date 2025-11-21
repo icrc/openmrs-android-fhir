@@ -234,12 +234,7 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
       .setPositiveButton(getString(R.string.resume_session)) { _, _ ->
         navigateToGroupFormEntry(formItem.questionnaireId, patientIds)
       }
-      .setNegativeButton(getString(R.string.start_new_session)) { _, _ ->
-        viewLifecycleOwner.lifecycleScope.launch {
-          groupSessionDraftRepository.deleteDraft(formItem.questionnaireId)
-          navigateToPatientSelection(formItem.questionnaireId)
-        }
-      }
+      .setNegativeButton(getString(R.string.cancel), null)
       .create()
       .show()
   }
