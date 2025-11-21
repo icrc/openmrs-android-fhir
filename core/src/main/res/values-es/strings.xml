@@ -441,5 +441,8 @@
     <string
         name="complete_screener_before_submit"
     >Completa el cuestionario antes de enviar todas las respuestas.</string>
+    <string name="button_pagination_next">Siguiente</string>
+    <string name="button_pagination_previous">Anterior</string>
+
 
 </resources>

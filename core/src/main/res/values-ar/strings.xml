@@ -392,6 +392,8 @@
     <string
         name="complete_screener_before_submit"
     >أكمل الاستبيان قبل إرسال جميع الإجابات.</string>
+    <string name="button_pagination_next">التالي</string>
+    <string name="button_pagination_previous">السابق</string>
 
 
 </resources>

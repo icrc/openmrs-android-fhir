@@ -414,6 +414,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="auth_failed_offline_login"
     >Authentication failed! Unable to setup offline login now</string>
-
+    <string name="button_pagination_next">Next</string>
+    <string name="button_pagination_previous">Previous</string>
 
 </resources>
