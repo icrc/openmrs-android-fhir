@@ -98,11 +98,23 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnInitialSync"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/initial_sync"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="@dimen/search_patient_cardview_margin_top"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/periodicSyncDelayElement"
+    />
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSaveSettings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/save"
         android:layout_margin="@dimen/action_button_margin_horizontal"
+        app:layout_constraintStart_toEndOf="@+id/btnCancelSettings"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
     />
@@ -113,6 +125,7 @@
         android:layout_height="wrap_content"
         android:text="@string/cancel"
         android:layout_margin="@dimen/action_button_margin_horizontal"
+        app:layout_constraintEnd_toStartOf="@+id/btnSaveSettings"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
     />

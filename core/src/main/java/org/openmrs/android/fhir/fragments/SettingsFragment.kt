@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -39,16 +40,24 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
+import com.google.android.fhir.sync.CurrentSyncJobStatus
+import com.google.android.fhir.sync.Sync
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.data.sync.FirstFhirSyncWorker
 import org.openmrs.android.fhir.databinding.SettingsPageBinding
 
 class SettingsFragment : Fragment(R.layout.settings_page) {
 
   private var _binding: SettingsPageBinding? = null
   private var isNetworkCheckEnabled: Boolean = false
+  private var initialSyncJob: Job? = null
+  private var hasShownInitialSyncStartedToast = false
+  private var isInitialSyncInProgress = false
+  private lateinit var appContext: Context
   private val binding
     get() = _binding!!
 
@@ -66,6 +75,7 @@ class SettingsFragment : Fragment(R.layout.settings_page) {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     setHasOptionsMenu(true)
+    appContext = requireContext().applicationContext
     dataStore = DemoDataStore(requireContext())
     lifecycleScope.launch { setupUI() }
     observeNetworkConnectivity()
@@ -80,6 +90,8 @@ class SettingsFragment : Fragment(R.layout.settings_page) {
       navigateUp()
     }
     binding.btnSaveSettings.setOnClickListener { saveSettings() }
+    binding.btnInitialSync.setOnClickListener { runInitialSync() }
+    binding.btnInitialSync.isEnabled = !isInitialSyncInProgress
     binding.checkNetworkSwitch.setOnCheckedChangeListener { _, isChecked ->
       //      lifecycleScope.launch { dataStore.setCheckNetworkConnectivity(isChecked) }
       isNetworkCheckEnabled = isChecked
@@ -132,6 +144,53 @@ class SettingsFragment : Fragment(R.layout.settings_page) {
           .show()
         navigateUp()
       }
+  }
+
+  private fun runInitialSync() {
+    if (initialSyncJob?.isActive == true) {
+      return
+    }
+
+    binding.btnInitialSync.isEnabled = false
+    hasShownInitialSyncStartedToast = false
+    isInitialSyncInProgress = true
+
+    initialSyncJob =
+      requireActivity().lifecycleScope.launch {
+        Sync.oneTimeSync<FirstFhirSyncWorker>(appContext).collect { status ->
+          when (status) {
+            is CurrentSyncJobStatus.Succeeded -> {
+              showInitialSyncToast(R.string.initial_sync_completed)
+              resetInitialSyncState()
+            }
+            is CurrentSyncJobStatus.Failed,
+            is CurrentSyncJobStatus.Cancelled,
+            is CurrentSyncJobStatus.Blocked, -> {
+              showInitialSyncToast(R.string.initial_sync_failed)
+              resetInitialSyncState()
+            }
+            is CurrentSyncJobStatus.Running,
+            CurrentSyncJobStatus.Enqueued, -> {
+              if (!hasShownInitialSyncStartedToast) {
+                showInitialSyncToast(R.string.initial_sync_started)
+                hasShownInitialSyncStartedToast = true
+              }
+            }
+            else -> {}
+          }
+        }
+      }
+  }
+
+  private fun showInitialSyncToast(messageResId: Int) {
+    Toast.makeText(appContext, appContext.getString(messageResId), Toast.LENGTH_SHORT).show()
+  }
+
+  private fun resetInitialSyncState() {
+    _binding?.btnInitialSync?.isEnabled = true
+    hasShownInitialSyncStartedToast = false
+    initialSyncJob = null
+    isInitialSyncInProgress = false
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {

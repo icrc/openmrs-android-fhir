@@ -417,4 +417,13 @@
     <string
         name="splash_status_offline"
     >No se ha detectado conexión a internet.</string>
+    <string name="initial_sync">Sincronización inicial</string>
+    <string
+        name="initial_sync_started"
+    >La sincronización inicial ha comenzado</string>
+    <string
+        name="initial_sync_completed"
+    >La sincronización inicial se completó</string>
+    <string name="initial_sync_failed">La sincronización inicial falló</string>
+
 </resources>
