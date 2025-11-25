@@ -81,6 +81,7 @@ constructor(
         val formData = adapter.fromJson(formDataString.trim())
         val translationOverrides = formData?.translationOverrides ?: emptyMap()
         val deviceLanguageOverrides = translationOverrides[Locale.getDefault().language].orEmpty()
+        val deviceLanguage = Locale.getDefault().language.lowercase(Locale.ROOT)
         val questionnaires = fhirEngine.search<Questionnaire> {}.map { it.resource }.toMutableList()
         // This code can be refactored once there's possiblity to add assets file to fhirEngine.
         val assetQuestionnaireFileNames = applicationContext.getJsonFileNames()
@@ -109,6 +110,7 @@ constructor(
               it.toFormSectionItem(
                 encounterTypeCodeToQuestionnaireIdMap,
                 deviceLanguageOverrides,
+                deviceLanguage,
               )
             }
             ?.filter { it.forms.isNotEmpty() }
@@ -129,6 +131,7 @@ constructor(
   internal suspend fun FormSection.toFormSectionItem(
     encounterTypeCodeToQuestionnaireIdMap: Map<String, String>,
     translationOverrides: Map<String, String>,
+    deviceLanguage: String,
   ): FormSectionItem {
     val formItems = mutableListOf<FormItem>()
     forms.forEach { encounterTypeCode ->
@@ -138,7 +141,8 @@ constructor(
         fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
       if (questionnaire != null) {
         val localizedQuestionnaireTitle =
-          questionnaire.title?.let { translationOverrides[it] ?: it } ?: "No Name provided"
+          questionnaire.getTranslatedTitle(deviceLanguage)
+            ?: questionnaire.title?.let { translationOverrides[it] ?: it } ?: "No Name provided"
         formItems.add(
           FormItem(
             name = localizedQuestionnaireTitle,
@@ -152,5 +156,34 @@ constructor(
       name = sectionName,
       forms = formItems,
     )
+  }
+
+  private fun Questionnaire.getTranslatedTitle(deviceLanguage: String): String? {
+    return this.titleElement
+      ?.extension
+      ?.asSequence()
+      ?.filter { it.url == TRANSLATION_EXTENSION_URL }
+      ?.mapNotNull { translationExtension ->
+        val lang =
+          translationExtension.extension
+            .firstOrNull { it.url == LANGUAGE_EXTENSION_URL }
+            ?.value
+            ?.primitiveValue()
+            ?.lowercase(Locale.ROOT)
+        val content =
+          translationExtension.extension
+            .firstOrNull { it.url == CONTENT_EXTENSION_URL }
+            ?.value
+            ?.primitiveValue()
+        if (lang != null && lang == deviceLanguage) content else null
+      }
+      ?.firstOrNull()
+  }
+
+  companion object {
+    private const val TRANSLATION_EXTENSION_URL =
+      "http://hl7.org/fhir/StructureDefinition/translation"
+    private const val LANGUAGE_EXTENSION_URL = "lang"
+    private const val CONTENT_EXTENSION_URL = "content"
   }
 }

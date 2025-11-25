@@ -7,6 +7,8 @@ The app reads encounter form groups from the `questionnaires` JSON string inside
 
 At runtime `CreateEncounterViewModel` loads this JSON, looks up the device language (for example `Locale.getDefault().language`), and replaces each section name or questionnaire title with the translated value when an override exists. When no override is provided the original label is shown.
 
+For questionnaire names the view model first checks if the Questionnaire resource includes `_title` translation extensions with the current device language (FHIR `http://hl7.org/fhir/StructureDefinition/translation`). If a match is found that localized value is shown; otherwise the translation overrides map is used, falling back to the raw `title`.
+
 ## Example configuration
 
 Below is a minimal example of the `questionnaires` string value inside `server.xml` using multiple sections and two locale overrides:
