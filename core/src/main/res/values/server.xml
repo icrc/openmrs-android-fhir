@@ -51,7 +51,17 @@
         \"encounter.cForm\"
       ]
     }
-  ]
+  ],
+  \"Translation overrides\": {
+    \"fr\": {
+      \"Test Forms\": \"Formulaires de test\",
+      \"Test B Form\": \"Formulaire B de test\"
+    },
+    \"es\": {
+      \"Test Forms\": \"Formularios de prueba\",
+      \"Test B Form\": \"Formulario B de prueba\"
+    }
+  }
 }</string>
   <bool name="show_review_page_before_submit">true</bool>
   <bool name="filter_patient_lists_by_group">true</bool>
