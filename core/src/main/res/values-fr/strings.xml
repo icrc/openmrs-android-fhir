@@ -442,7 +442,6 @@
     <string
         name="initial_sync_failed"
     >Échec de la synchronisation initiale</string>
-
     <string
         name="resume_group_session"
     >Reprendre la session précédente ?</string>
@@ -462,5 +461,50 @@
     >Veuillez compléter le questionnaire avant de soumettre toutes les réponses.</string>
     <string name="button_pagination_next">Suivant</string>
     <string name="button_pagination_previous">Précédent</string>
+    <string
+        name="questionnaire_review_mode_title"
+    >Vérifier les réponses avant de soumettre</string>
+    <string name="submit_questionnaire">Soumettre</string>
+    <string name="back_button_text">Retour</string>
+    <string name="edit_button_text">Modifier</string>
+    <string name="review_answers_text">Vérifier les réponses</string>
+    <string name="button_review">Vérifier</string>
+    <string
+        name="questionnaire_validation_error_headline"
+    >Erreurs trouvées</string>
+    <string
+        name="questionnaire_validation_error_supporting_text"
+    >Corrigez les questions suivantes :</string>
+    <string
+        name="questionnaire_validation_error_item_text_with_bullet"
+    >• %s</string>
+    <string
+        name="questionnaire_validation_error_submit_button_text"
+    >Soumettre quand même</string>
+    <string
+        name="questionnaire_validation_error_fix_button_text"
+    >Corriger les questions</string>
+
+    <string
+        name="questionnaire_cancel_text"
+    >Voulez-vous quitter le questionnaire ?</string>
+    <string name="not_answered">Non répondu</string>
+    <string name="help">Aide</string>
+    <string name="open_choice_other">Autre</string>
+    <string
+        name="open_choice_other_hint"
+    >Entrez une option personnalisée</string>
+    <string
+        name="open_choice_other_add_another"
+    >Ajouter une autre réponse</string>
+    <string
+        name="multi_select_dialog_subtitle"
+    >Sélectionnez toutes les options applicables</string>
+    <string name="group_header_add_item_button">Ajouter un élément</string>
+    <string
+        name="required_constraint_validation_error_msg"
+    >Réponse manquante pour un champ obligatoire.</string>
+    <string name="optional_helper_text">Optionnel</string>
+    <string name="required">Obligatoire</string>
 
 </resources>
