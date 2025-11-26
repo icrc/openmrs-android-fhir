@@ -377,5 +377,62 @@
     <string name="initial_sync_started">تم بدء المزامنة الأولية</string>
     <string name="initial_sync_completed">اكتملت المزامنة الأولية</string>
     <string name="initial_sync_failed">فشلت المزامنة الأولية</string>
+    <string name="resume_group_session">استئناف الجلسة السابقة؟</string>
+    <string
+        name="resume_group_session_message"
+    >لقد وجدنا مسودة محفوظة لهذه الجلسة. هل ترغب في استئنافها؟</string>
+    <string
+        name="resume_group_session_message_with_name"
+    >لقد وجدنا مسودة محفوظة لـ %1$s. هل ترغب في استئنافها؟</string>
+    <string name="resume_session">استئناف الجلسة</string>
+    <string name="start_new_session">بدء جلسة جديدة</string>
+    <string name="save_as_draft">حفظ كمسودة</string>
+    <string name="submit_all">إرسال الكل</string>
+    <string name="draft_saved">تم حفظ المسودة.</string>
+    <string
+        name="complete_screener_before_submit"
+    >أكمل الاستبيان قبل إرسال جميع الإجابات.</string>
+    <string name="button_pagination_next">التالي</string>
+    <string name="button_pagination_previous">السابق</string>
+    <string
+        name="questionnaire_review_mode_title"
+    >مراجعة الإجابات قبل الإرسال</string>
+    <string name="submit_questionnaire">إرسال</string>
+    <string name="back_button_text">رجوع</string>
+    <string name="edit_button_text">تعديل</string>
+    <string name="review_answers_text">مراجعة الإجابات</string>
+    <string name="button_review">مراجعة</string>
+    <string
+        name="questionnaire_validation_error_headline"
+    >تم العثور على أخطاء</string>
+    <string
+        name="questionnaire_validation_error_supporting_text"
+    >قم بإصلاح الأسئلة التالية:</string>
+    <string
+        name="questionnaire_validation_error_item_text_with_bullet"
+    >• %s</string>
+    <string
+        name="questionnaire_validation_error_submit_button_text"
+    >إرسال على أي حال</string>
+    <string
+        name="questionnaire_validation_error_fix_button_text"
+    >إصلاح الأسئلة</string>
+
+    <string
+        name="questionnaire_cancel_text"
+    >هل تريد الخروج من الاستبيان؟</string>
+    <string name="not_answered">غير مُجاب</string>
+    <string name="help">مساعدة</string>
+    <string name="open_choice_other">أخرى</string>
+    <string name="open_choice_other_hint">أدخل خيارًا مخصصًا</string>
+    <string name="open_choice_other_add_another">أضف إجابة أخرى</string>
+    <string name="multi_select_dialog_subtitle">اختر كل ما ينطبق</string>
+    <string name="group_header_add_item_button">إضافة عنصر</string>
+    <string
+        name="required_constraint_validation_error_msg"
+    >إجابة مفقودة لحقل مطلوب.</string>
+    <string name="optional_helper_text">اختياري</string>
+    <string name="required">مطلوب</string>
+
 
 </resources>

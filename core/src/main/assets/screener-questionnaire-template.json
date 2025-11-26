@@ -11,39 +11,263 @@
   "item": [
     {
       "linkId": "sessionName",
-      "text": "Session Name",
       "type": "string",
       "required": true,
       "code": [{
         "code": "e2559620-900b-4f66-ae41-0b9c4adfb654"
-      }]
+      }],
+      "text": "Session Name",
+      "_text": {
+        "extension": [
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "fr"
+              },
+              {
+                "url": "content",
+                "valueString": "Nom de la session"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          },
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "ar"
+              },
+              {
+                "url": "content",
+                "valueString": "اسم الجلسة"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          },
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "ru"
+              },
+              {
+                "url": "content",
+                "valueString": "Название сеанса"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          },
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "es"
+              },
+              {
+                "url": "content",
+                "valueString": "Nombre de la Sesión"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          }
+        ]
+      }
     },
     {
       "linkId": "practitionerName",
-      "text": "Practitioner Name",
       "type": "string",
       "required": true,
       "code": [{
         "code": "f1a2d58c-1a0e-4148-931a-aac224649fdc"
-      }]
+      }],
+      "text": "Practitioner Name",
+      "_text": {
+        "extension": [
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "fr"
+              },
+              {
+                "url": "content",
+                "valueString": "Nom du praticien"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          },
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "ar"
+              },
+              {
+                "url": "content",
+                "valueString": "اسم الممارس"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          },
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "ru"
+              },
+              {
+                "url": "content",
+                "valueString": "Имя практикующего врача"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          },
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "es"
+              },
+              {
+                "url": "content",
+                "valueString": "Nombre del Profesional"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          }
+        ]
+      }
     },
     {
       "linkId": "encounter-encounterDate",
-      "text": "Session Date",
       "type": "dateTime",
       "required": true,
       "code": [{
         "code": "ceaca505-6dff-4940-8a43-8c060a0924d7"
-      }]
+      }],
+      "text": "Session Date",
+      "_text": {
+        "extension": [
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "fr"
+              },
+              {
+                "url": "content",
+                "valueString": "Date de la session"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          },
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "ar"
+              },
+              {
+                "url": "content",
+                "valueString": "تاريخ الجلسة"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          },
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "ru"
+              },
+              {
+                "url": "content",
+                "valueString": "Дата сеанса"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          },
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "es"
+              },
+              {
+                "url": "content",
+                "valueString": "Fecha de la Sesión"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          }
+        ]
+      }
     },
     {
       "linkId": "sessionNotes",
-      "text": "Session Notes",
       "type": "string",
       "required": true,
       "code": [{
         "code": "fa8fedc0-c066-4da3-8dc1-2ad8621fc480"
-      }]
+      }],
+      "text": "Session Notes",
+      "_text": {
+        "extension": [
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "fr"
+              },
+              {
+                "url": "content",
+                "valueString": "Notes de session"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          },
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "ar"
+              },
+              {
+                "url": "content",
+                "valueString": "ملاحظات الجلسة"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          },
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "ru"
+              },
+              {
+                "url": "content",
+                "valueString": "Заметки о сеансе"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          },
+          {
+            "extension": [
+              {
+                "url": "lang",
+                "valueCode": "es"
+              },
+              {
+                "url": "content",
+                "valueString": "Notas de la Sesión"
+              }
+            ],
+            "url": "http://hl7.org/fhir/StructureDefinition/translation"
+          }
+        ]
+      }
     }
   ]
 }

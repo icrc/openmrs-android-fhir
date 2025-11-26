@@ -455,5 +455,63 @@
     <string
         name="initial_sync_failed"
     >Начальная синхронизация не удалась</string>
+    <string name="resume_group_session">Продолжить предыдущую сессию?</string>
+    <string
+        name="resume_group_session_message"
+    >Мы нашли сохранённый черновик для этой сессии. Хотите продолжить её?</string>
+    <string
+        name="resume_group_session_message_with_name"
+    >Мы нашли сохранённый черновик для %1$s. Хотите продолжить её?</string>
+    <string name="resume_session">Продолжить сессию</string>
+    <string name="start_new_session">Начать новую сессию</string>
+    <string name="save_as_draft">Сохранить как черновик</string>
+    <string name="submit_all">Отправить всё</string>
+    <string name="draft_saved">Черновик сохранён.</string>
+    <string
+        name="complete_screener_before_submit"
+    >Заполните скрининг перед отправкой всех ответов.</string>
+    <string name="button_pagination_next">Далее</string>
+    <string name="button_pagination_previous">Назад</string>
+    <string
+        name="questionnaire_review_mode_title"
+    >Проверьте ответы перед отправкой</string>
+    <string name="submit_questionnaire">Отправить</string>
+    <string name="back_button_text">Назад</string>
+    <string name="edit_button_text">Редактировать</string>
+    <string name="review_answers_text">Проверить ответы</string>
+    <string name="button_review">Проверить</string>
+    <string
+        name="questionnaire_validation_error_headline"
+    >Обнаружены ошибки</string>
+    <string
+        name="questionnaire_validation_error_supporting_text"
+    >Исправьте следующие вопросы:</string>
+    <string
+        name="questionnaire_validation_error_item_text_with_bullet"
+    >• %s</string>
+    <string
+        name="questionnaire_validation_error_submit_button_text"
+    >Отправить всё равно</string>
+    <string
+        name="questionnaire_validation_error_fix_button_text"
+    >Исправить вопросы</string>
+
+    <string name="questionnaire_cancel_text">Вы хотите выйти из анкеты?</string>
+    <string name="not_answered">Не отвечено</string>
+    <string name="help">Помощь</string>
+    <string name="open_choice_other">Другое</string>
+    <string name="open_choice_other_hint">Введите собственный вариант</string>
+    <string
+        name="open_choice_other_add_another"
+    >Добавить ещё один ответ</string>
+    <string
+        name="multi_select_dialog_subtitle"
+    >Выберите все подходящие варианты</string>
+    <string name="group_header_add_item_button">Добавить элемент</string>
+    <string
+        name="required_constraint_validation_error_msg"
+    >Отсутствует ответ на обязательный вопрос.</string>
+    <string name="optional_helper_text">Необязательно</string>
+    <string name="required">Обязательно</string>
 
 </resources>

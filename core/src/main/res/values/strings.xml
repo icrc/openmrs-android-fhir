@@ -54,6 +54,21 @@
     <string
         name="cancel_questionnaire_message"
     >Are you sure you want to discard the answers?</string>
+    <string name="resume_group_session">Resume previous session?</string>
+    <string
+        name="resume_group_session_message"
+    >We found a saved draft for this session. Would you like to resume it?</string>
+    <string
+        name="resume_group_session_message_with_name"
+    >We found a saved draft for %1$s. Would you like to resume it?</string>
+    <string name="resume_session">Resume session</string>
+    <string name="start_new_session">Start new session</string>
+    <string name="save_as_draft">Save as draft</string>
+    <string name="submit_all">Submit all</string>
+    <string name="draft_saved">Draft saved.</string>
+    <string
+        name="complete_screener_before_submit"
+    >Complete the screener before submitting all responses.</string>
     <string name="patient_id">Id</string>
     <string name="patient_name">Name</string>
     <string name="patient_gender">Gender</string>
@@ -399,6 +414,45 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="auth_failed_offline_login"
     >Authentication failed! Unable to setup offline login now</string>
+    <string
+        name="questionnaire_review_mode_title"
+    >Review answers before submitting</string>
+    <string name="submit_questionnaire">Submit</string>
+    <string name="back_button_text">Back</string>
+    <string name="edit_button_text">Edit</string>
+    <string name="review_answers_text">Review answers</string>
+    <string name="button_review">Review</string>
+    <string name="questionnaire_validation_error_headline">Errors found</string>
+    <string
+        name="questionnaire_validation_error_supporting_text"
+    >Fix the following questions:</string>
+    <string
+        name="questionnaire_validation_error_item_text_with_bullet"
+    >• %s</string>
+    <string
+        name="questionnaire_validation_error_submit_button_text"
+    >Submit anyway</string>
+    <string
+        name="questionnaire_validation_error_fix_button_text"
+    >Fix questions</string>
 
+    <!-- 1.3 Cancel Pop-up-->
+    <string
+        name="questionnaire_cancel_text"
+    >Do you want to exit the questionnaire?</string>
+    <string name="not_answered">"Not Answered"</string>
+    <string name="help">Help</string>
+    <string name="open_choice_other">Other</string>
+    <string name="open_choice_other_hint">Enter custom option</string>
+    <string name="open_choice_other_add_another">Add another answer</string>
+    <string name="multi_select_dialog_subtitle">Select all that apply</string>
+    <string name="group_header_add_item_button">Add item</string>
+    <string
+        name="required_constraint_validation_error_msg"
+    >Missing answer for required field.</string>
+    <string name="optional_helper_text">Optional</string>
+    <string name="required">Required</string>
+    <string name="button_pagination_next">Next</string>
+    <string name="button_pagination_previous">Previous</string>
 
 </resources>

@@ -425,5 +425,64 @@
         name="initial_sync_completed"
     >La sincronización inicial se completó</string>
     <string name="initial_sync_failed">La sincronización inicial falló</string>
+    <string name="resume_group_session">¿Reanudar sesión anterior?</string>
+    <string
+        name="resume_group_session_message"
+    >Hemos encontrado un borrador guardado para esta sesión. ¿Deseas reanudarla?</string>
+    <string
+        name="resume_group_session_message_with_name"
+    >Hemos encontrado un borrador guardado para %1$s. ¿Deseas reanudarla?</string>
+    <string name="resume_session">Reanudar sesión</string>
+    <string name="start_new_session">Comenzar nueva sesión</string>
+    <string name="save_as_draft">Guardar como borrador</string>
+    <string name="submit_all">Enviar todo</string>
+    <string name="draft_saved">Borrador guardado.</string>
+    <string
+        name="complete_screener_before_submit"
+    >Completa el cuestionario antes de enviar todas las respuestas.</string>
+    <string name="button_pagination_next">Siguiente</string>
+    <string name="button_pagination_previous">Anterior</string>
+    <string
+        name="questionnaire_review_mode_title"
+    >Revisar respuestas antes de enviar</string>
+    <string name="submit_questionnaire">Enviar</string>
+    <string name="back_button_text">Atrás</string>
+    <string name="edit_button_text">Editar</string>
+    <string name="review_answers_text">Revisar respuestas</string>
+    <string name="button_review">Revisar</string>
+    <string
+        name="questionnaire_validation_error_headline"
+    >Se encontraron errores</string>
+    <string
+        name="questionnaire_validation_error_supporting_text"
+    >Corrige las siguientes preguntas:</string>
+    <string
+        name="questionnaire_validation_error_item_text_with_bullet"
+    >• %s</string>
+    <string
+        name="questionnaire_validation_error_submit_button_text"
+    >Enviar de todos modos</string>
+    <string
+        name="questionnaire_validation_error_fix_button_text"
+    >Corregir preguntas</string>
+
+    <string
+        name="questionnaire_cancel_text"
+    >¿Deseas salir del cuestionario?</string>
+    <string name="not_answered">No respondido</string>
+    <string name="help">Ayuda</string>
+    <string name="open_choice_other">Otro</string>
+    <string name="open_choice_other_hint">Ingresar opción personalizada</string>
+    <string name="open_choice_other_add_another">Agregar otra respuesta</string>
+    <string
+        name="multi_select_dialog_subtitle"
+    >Selecciona todas las que correspondan</string>
+    <string name="group_header_add_item_button">Agregar elemento</string>
+    <string
+        name="required_constraint_validation_error_msg"
+    >Falta respuesta para un campo obligatorio.</string>
+    <string name="optional_helper_text">Opcional</string>
+    <string name="required">Obligatorio</string>
+
 
 </resources>
