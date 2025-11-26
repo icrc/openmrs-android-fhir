@@ -29,6 +29,30 @@
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
     />
 
+    <LinearLayout
+        android:id="@+id/sync_button_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="96dp"
+        android:orientation="horizontal"
+        android:visibility="gone"
+    >
+
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/sync_patient_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/surfaceVariant_neutral_variant_30"
+            android:clickable="true"
+            android:text="@string/sync"
+            android:textColor="@color/white"
+            app:icon="@drawable/cloud_sync_24px"
+            app:iconTint="@color/white"
+        />
+    </LinearLayout>
+
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/create_encounter_floating_button"
         android:layout_width="wrap_content"
