@@ -260,7 +260,12 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
       if (::selectPatientListAdapter.isInitialized) {
         selectPatientListAdapter.removeSelectPatientListItem(selectPatientListItem.resourceId)
       }
-      Toast.makeText(context, "Removed Patient List from Sync", Toast.LENGTH_SHORT).show()
+      Toast.makeText(
+          context,
+          getString(R.string.removed_patient_list_from_sync),
+          Toast.LENGTH_SHORT,
+        )
+        .show()
     } else {
       selectPatientListItem(selectPatientListItem)
     }
@@ -291,7 +296,8 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
         selectPatientListAdapter.addSelectPatientListItem(selectPatientListItem.resourceId)
       }
 
-      Toast.makeText(context, "Added Patient List to Sync", Toast.LENGTH_SHORT).show()
+      Toast.makeText(context, getString(R.string.added_patient_list_to_sync), Toast.LENGTH_SHORT)
+        .show()
     }
   }
 
@@ -310,7 +316,12 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
           }
           is CurrentSyncJobStatus.Failed -> {
             selectPatientListViewModel.getSelectPatientListItems()
-            Toast.makeText(context, "Failed to fetch all patient lists", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                getString(R.string.failed_to_fetch_all_patient_lists),
+                Toast.LENGTH_SHORT,
+              )
+              .show()
           }
           else -> {
             selectPatientListViewModel.getSelectPatientListItems()

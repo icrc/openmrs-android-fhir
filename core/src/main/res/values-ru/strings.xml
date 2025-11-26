@@ -513,5 +513,29 @@
     >Отсутствует ответ на обязательный вопрос.</string>
     <string name="optional_helper_text">Необязательно</string>
     <string name="required">Обязательно</string>
+    <string
+        name="please_select_a_location_first"
+    >Пожалуйста, сначала выберите локацию</string>
+    <string
+        name="location_added_to_favorites"
+    >Локация добавлена в избранное.</string>
+    <string name="identifier_removed">Идентификатор удалён</string>
+    <string name="identifier_added">Идентификатор добавлен</string>
+    <string
+        name="failed_to_fetch_all_patient_lists"
+    >Не удалось получить все списки пациентов</string>
+    <string
+        name="failed_to_fetch_all_locations"
+    >Не удалось получить все локации</string>
+    <string
+        name="location_removed_from_favorites"
+    >Локация удалена из избранного</string>
+    <string
+        name="added_patient_list_to_sync"
+    >Список пациентов добавлен для синхронизации</string>
+    <string
+        name="removed_patient_list_from_sync"
+    >Список пациентов удалён из синхронизации</string>
+    <string name="location_updated">Локация обновлена</string>
 
 </resources>

@@ -483,6 +483,30 @@
     >Falta respuesta para un campo obligatorio.</string>
     <string name="optional_helper_text">Opcional</string>
     <string name="required">Obligatorio</string>
+    <string
+        name="please_select_a_location_first"
+    >Por favor selecciona una ubicación primero</string>
+    <string
+        name="location_added_to_favorites"
+    >Ubicación agregada a favoritos.</string>
+    <string name="identifier_removed">Identificador eliminado</string>
+    <string name="identifier_added">Identificador agregado</string>
+    <string
+        name="failed_to_fetch_all_patient_lists"
+    >No se pudieron obtener todas las listas de pacientes</string>
+    <string
+        name="failed_to_fetch_all_locations"
+    >No se pudieron obtener todas las ubicaciones</string>
+    <string
+        name="location_removed_from_favorites"
+    >Ubicación eliminada de favoritos</string>
+    <string
+        name="added_patient_list_to_sync"
+    >Lista de pacientes agregada para sincronizar</string>
+    <string
+        name="removed_patient_list_from_sync"
+    >Lista de pacientes eliminada de la sincronización</string>
+    <string name="location_updated">Ubicación actualizada</string>
 
 
 </resources>

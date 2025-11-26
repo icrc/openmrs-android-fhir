@@ -33,24 +33,31 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
+import com.squareup.moshi.Moshi
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
+import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.OpenMRSHelper
+import org.openmrs.android.fhir.data.database.model.FormData
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
+import org.openmrs.android.fhir.extensions.getJsonFileNames
+import org.openmrs.android.fhir.extensions.readFileFromAssets
 import org.openmrs.android.fhir.extensions.toLocalString
 
 /**
@@ -76,12 +83,22 @@ constructor(
   private val patientId: String = requireNotNull(state["patient_id"])
   val livePatientData = MutableLiveData<List<PatientDetailData>>()
 
+  private val parser = FhirContext.forR4Cached().newJsonParser()
+  private val deviceLanguage = Locale.getDefault().language.lowercase(Locale.ROOT)
+  private val translationOverrides: Map<String, String> by lazy {
+    loadTranslationOverrides(deviceLanguage)
+  }
+
   /** Emits list of [PatientDetailData]. */
   fun getPatientDetailData() {
     viewModelScope.launch { livePatientData.value = getPatientDetailDataModel() }
   }
 
   private suspend fun getPatientDetailDataModel(): List<PatientDetailData> {
+    val encounterTypeSystemUrl = applicationContext.getString(R.string.encounter_type_system_url)
+    val encounterTypeCodeToQuestionnaireMap =
+      mapEncounterTypeCodesToQuestionnaires(encounterTypeSystemUrl)
+
     val searchResult =
       fhirEngine.search<Patient> {
         filter(Resource.RES_ID, { value = of(patientId) })
@@ -96,12 +113,12 @@ constructor(
     data.add(PatientDetailHeader(getString(R.string.header_encounters)))
     visits.forEach { (visit, encounters) ->
       if (!Constants.WRAP_ENCOUNTER) {
-        data.addVisitData(visit)
+        data.addVisitData(visit, encounterTypeCodeToQuestionnaireMap)
       }
 
       encounters.forEach { encounter ->
         val isSynced = isEncounterSynced(encounter)
-        data.addEncounterData(encounter, isSynced)
+        data.addEncounterData(encounter, isSynced, encounterTypeCodeToQuestionnaireMap)
       }
     }
 
@@ -164,20 +181,29 @@ constructor(
 
   private fun MutableList<PatientDetailData>.addVisitData(
     visit: Encounter,
+    encounterTypeCodeToQuestionnaireMap: Map<String, Questionnaire>,
   ) {
-    val visitItem = createVisitItem(visit)
+    val visitItem = createVisitItem(visit, encounterTypeCodeToQuestionnaireMap)
     add(PatientDetailVisit(visitItem))
   }
 
   private fun MutableList<PatientDetailData>.addEncounterData(
     encounter: Encounter,
     isSynced: Boolean,
+    encounterTypeCodeToQuestionnaireMap: Map<String, Questionnaire>,
   ) {
-    add(PatientDetailEncounter(createEncounterItem(encounter, isSynced)))
+    add(
+      PatientDetailEncounter(
+        createEncounterItem(encounter, isSynced, encounterTypeCodeToQuestionnaireMap),
+      ),
+    )
   }
 
-  private fun createVisitItem(visit: Encounter): PatientListViewModel.VisitItem {
-    val visitType = visit.type.firstOrNull()?.coding?.firstOrNull()?.display ?: "Type"
+  private fun createVisitItem(
+    visit: Encounter,
+    encounterTypeCodeToQuestionnaireMap: Map<String, Questionnaire>,
+  ): PatientListViewModel.VisitItem {
+    val visitType = visit.getLocalizedEncounterType(encounterTypeCodeToQuestionnaireMap)
     val startDate = visit.period?.start?.let { Constants.DATE24_FORMATTER.format(it) } ?: ""
     val endDate = visit.period?.end?.let { Constants.DATE24_FORMATTER.format(it) } ?: ""
 
@@ -192,8 +218,9 @@ constructor(
   private fun createEncounterItem(
     encounter: Encounter,
     isSynced: Boolean,
+    encounterTypeCodeToQuestionnaireMap: Map<String, Questionnaire>,
   ): PatientListViewModel.EncounterItem {
-    val visitType = encounter.type.firstOrNull()?.coding?.firstOrNull()?.display ?: "Type"
+    val visitType = encounter.getLocalizedEncounterType(encounterTypeCodeToQuestionnaireMap)
     val visitDate = encounter.period?.start?.toLocalString() ?: "Date"
 
     return PatientListViewModel.EncounterItem(
@@ -207,10 +234,96 @@ constructor(
     )
   }
 
+  private suspend fun mapEncounterTypeCodesToQuestionnaires(
+    encounterTypeSystemUrl: String,
+  ): Map<String, Questionnaire> {
+    val questionnaires = loadQuestionnaires()
+    val encounterTypeCodeToQuestionnaireMap = mutableMapOf<String, Questionnaire>()
+    questionnaires.forEach { questionnaire ->
+      if (questionnaire.hasCode()) {
+        questionnaire.code.forEach { coding ->
+          if (coding.hasSystem() && coding.system == encounterTypeSystemUrl) {
+            encounterTypeCodeToQuestionnaireMap.putIfAbsent(coding.code, questionnaire)
+          }
+        }
+      }
+    }
+    return encounterTypeCodeToQuestionnaireMap
+  }
+
+  private fun Encounter.getLocalizedEncounterType(
+    encounterTypeCodeToQuestionnaireMap: Map<String, Questionnaire>,
+  ): String {
+    val encounterType = this.type.firstOrNull()
+    val encounterCode = encounterType?.coding?.firstOrNull()?.code
+    val questionnaire = encounterCode?.let { encounterTypeCodeToQuestionnaireMap[it] }
+
+    val localizedTitle =
+      questionnaire?.getTranslatedTitle(deviceLanguage)
+        ?: questionnaire?.title?.let { translationOverrides[it] ?: it }
+
+    if (localizedTitle != null) {
+      return localizedTitle
+    }
+
+    val fallback = encounterType?.coding?.firstOrNull()?.display ?: encounterType?.text ?: "Type"
+    return translationOverrides[fallback] ?: fallback
+  }
+
+  private suspend fun loadQuestionnaires(): List<Questionnaire> {
+    val questionnaires = fhirEngine.search<Questionnaire> {}.map { it.resource }.toMutableList()
+    val assetQuestionnaireFileNames = applicationContext.getJsonFileNames()
+    assetQuestionnaireFileNames.forEach { fileName ->
+      val questionnaireString = applicationContext.readFileFromAssets(fileName)
+      if (questionnaireString.isNotEmpty()) {
+        questionnaires.add(parser.parseResource(Questionnaire::class.java, questionnaireString))
+      }
+    }
+    return questionnaires
+  }
+
+  private fun loadTranslationOverrides(deviceLanguage: String): Map<String, String> {
+    val formDataString = applicationContext.resources.getString(R.string.questionnaires)
+    return try {
+      val moshi = Moshi.Builder().build()
+      val adapter = moshi.adapter(FormData::class.java).lenient()
+      val formData = adapter.fromJson(formDataString.trim())
+      formData?.translationOverrides?.get(deviceLanguage).orEmpty()
+    } catch (e: Exception) {
+      emptyMap()
+    }
+  }
+
+  private fun Questionnaire.getTranslatedTitle(deviceLanguage: String): String? {
+    return this.titleElement
+      ?.extension
+      ?.asSequence()
+      ?.filter { it.url == TRANSLATION_EXTENSION_URL }
+      ?.mapNotNull { translationExtension ->
+        val lang =
+          translationExtension.extension
+            .firstOrNull { it.url == LANGUAGE_EXTENSION_URL }
+            ?.value
+            ?.primitiveValue()
+            ?.lowercase(Locale.ROOT)
+        val content =
+          translationExtension.extension
+            .firstOrNull { it.url == CONTENT_EXTENSION_URL }
+            ?.value
+            ?.primitiveValue()
+        if (lang != null && lang == deviceLanguage) content else null
+      }
+      ?.firstOrNull()
+  }
+
   private fun getString(resId: Int) = applicationContext.resources.getString(resId)
 
   companion object {
     private const val MAX_RESOURCE_COUNT = 10
+    private const val TRANSLATION_EXTENSION_URL =
+      "http://hl7.org/fhir/StructureDefinition/translation"
+    private const val LANGUAGE_EXTENSION_URL = "lang"
+    private const val CONTENT_EXTENSION_URL = "content"
   }
 }
 

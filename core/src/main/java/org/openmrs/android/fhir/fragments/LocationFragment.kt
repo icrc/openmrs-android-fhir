@@ -217,7 +217,12 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
             favoriteLocationAdapter.submitList(locationViewModel.getFavoriteLocationsList())
             locationAdapter.submitList(locationViewModel.getLocationsListFiltered())
           }
-          Toast.makeText(context, "Location added to favorites.", Toast.LENGTH_SHORT).show()
+          Toast.makeText(
+              context,
+              getString(R.string.location_added_to_favorites),
+              Toast.LENGTH_SHORT,
+            )
+            .show()
         }
       }
     } else {
@@ -249,7 +254,12 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
             is CurrentSyncJobStatus.Failed -> {
               showLocationScreen()
               locationViewModel.getLocations()
-              Toast.makeText(context, "Failed to fetch all locations", Toast.LENGTH_SHORT).show()
+              Toast.makeText(
+                  context,
+                  getString(R.string.failed_to_fetch_all_locations),
+                  Toast.LENGTH_SHORT,
+                )
+                .show()
             }
             else -> {
               showLocationScreen()
@@ -285,7 +295,12 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
             favoriteLocationAdapter.submitList(locationViewModel.getFavoriteLocationsList())
             locationAdapter.submitList(locationViewModel.getLocationsListFiltered())
           }
-          Toast.makeText(context, "Location removed from favorites", Toast.LENGTH_SHORT).show()
+          Toast.makeText(
+              context,
+              getString(R.string.location_removed_from_favorites),
+              Toast.LENGTH_SHORT,
+            )
+            .show()
         }
       }
     } else {
@@ -310,7 +325,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
       locationViewModel.updateSessionLocation(locationItem.resourceId)
     }
 
-    Toast.makeText(context, "Location Updated", Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, getString(R.string.location_updated), Toast.LENGTH_SHORT).show()
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
