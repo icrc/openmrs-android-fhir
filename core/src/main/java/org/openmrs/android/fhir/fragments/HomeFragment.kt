@@ -79,7 +79,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
           findNavController()
             .navigate(HomeFragmentDirections.actionHomeFragmentToAddPatientFragment())
         } else {
-          Toast.makeText(context, "Please select a location first", Toast.LENGTH_LONG).show()
+          Toast.makeText(
+              context,
+              getString(R.string.please_select_a_location_first),
+              Toast.LENGTH_LONG,
+            )
+            .show()
         }
       }
     }
@@ -96,7 +101,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         ) {
           findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToPatientList())
         } else {
-          Toast.makeText(context, "Please select a location first", Toast.LENGTH_LONG).show()
+          Toast.makeText(context, R.string.please_select_a_location_first, Toast.LENGTH_LONG).show()
         }
       }
     }

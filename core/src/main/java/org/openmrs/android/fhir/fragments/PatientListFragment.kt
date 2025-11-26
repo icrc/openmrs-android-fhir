@@ -164,7 +164,12 @@ class PatientListFragment : Fragment() {
         findNavController()
           .navigate(PatientListFragmentDirections.actionPatientListToAddPatientFragment())
       } else {
-        Toast.makeText(context, "Please select a location first", Toast.LENGTH_LONG).show()
+        Toast.makeText(
+            context,
+            getString(R.string.please_select_a_location_first),
+            Toast.LENGTH_LONG,
+          )
+          .show()
       }
     }
   }

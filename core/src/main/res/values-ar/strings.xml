@@ -433,6 +433,30 @@
     >إجابة مفقودة لحقل مطلوب.</string>
     <string name="optional_helper_text">اختياري</string>
     <string name="required">مطلوب</string>
+    <string
+        name="please_select_a_location_first"
+    >يرجى اختيار الموقع أولاً</string>
+    <string
+        name="location_added_to_favorites"
+    >تمت إضافة الموقع إلى المفضلة.</string>
+    <string name="identifier_removed">تمت إزالة المعرّف</string>
+    <string name="identifier_added">تمت إضافة المعرّف</string>
+    <string
+        name="failed_to_fetch_all_patient_lists"
+    >فشل في جلب جميع قوائم المرضى</string>
+    <string
+        name="failed_to_fetch_all_locations"
+    >فشل في جلب جميع المواقع</string>
+    <string
+        name="location_removed_from_favorites"
+    >تمت إزالة الموقع من المفضلة</string>
+    <string
+        name="added_patient_list_to_sync"
+    >تمت إضافة قائمة المرضى للمزامنة</string>
+    <string
+        name="removed_patient_list_from_sync"
+    >تمت إزالة قائمة المرضى من المزامنة</string>
+    <string name="location_updated">تم تحديث الموقع</string>
 
 
 </resources>

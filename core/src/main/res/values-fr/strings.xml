@@ -506,5 +506,29 @@
     >Réponse manquante pour un champ obligatoire.</string>
     <string name="optional_helper_text">Optionnel</string>
     <string name="required">Obligatoire</string>
+    <string
+        name="please_select_a_location_first"
+    >Veuillez d’abord sélectionner un emplacement</string>
+    <string
+        name="location_added_to_favorites"
+    >Emplacement ajouté aux favoris.</string>
+    <string name="identifier_removed">Identifiant supprimé</string>
+    <string name="identifier_added">Identifiant ajouté</string>
+    <string
+        name="failed_to_fetch_all_patient_lists"
+    >Échec du chargement de toutes les listes de patients</string>
+    <string
+        name="failed_to_fetch_all_locations"
+    >Échec du chargement de tous les emplacements</string>
+    <string
+        name="location_removed_from_favorites"
+    >Emplacement retiré des favoris</string>
+    <string
+        name="added_patient_list_to_sync"
+    >Liste de patients ajoutée pour la synchronisation</string>
+    <string
+        name="removed_patient_list_from_sync"
+    >Liste de patients retirée de la synchronisation</string>
+    <string name="location_updated">Emplacement mis à jour</string>
 
 </resources>

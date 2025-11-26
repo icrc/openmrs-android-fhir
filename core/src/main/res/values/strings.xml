@@ -454,5 +454,29 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="required">Required</string>
     <string name="button_pagination_next">Next</string>
     <string name="button_pagination_previous">Previous</string>
+    <string
+        name="please_select_a_location_first"
+    >Please select a location first</string>
+    <string
+        name="location_added_to_favorites"
+    >Location added to favorites.</string>
+    <string name="identifier_removed">Identifier removed</string>
+    <string name="identifier_added">Identifier added</string>
+    <string
+        name="failed_to_fetch_all_patient_lists"
+    >Failed to fetch all patient lists</string>
+    <string
+        name="failed_to_fetch_all_locations"
+    >Failed to fetch all locations</string>
+    <string
+        name="location_removed_from_favorites"
+    >Location removed from favorites</string>
+    <string
+        name="added_patient_list_to_sync"
+    >Added Patient List to Sync</string>
+    <string
+        name="removed_patient_list_from_sync"
+    >Removed Patient List from Sync</string>
+    <string name="location_updated">Location Updated</string>
 
 </resources>
