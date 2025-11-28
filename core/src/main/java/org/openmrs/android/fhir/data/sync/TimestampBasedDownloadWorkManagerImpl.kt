@@ -56,9 +56,11 @@ class TimestampBasedDownloadWorkManagerImpl(
   private val context: Context,
 ) : DownloadWorkManager {
   private val resourceTypeList = ResourceType.entries.map { it.name }
-  private val urls = LinkedList(loadUrlsFromProperties())
+  private val baseUrls = loadUrlsFromProperties()
+  private val urls = LinkedList(baseUrls)
+  private var currentRequest: ScopedDownloadUrl? = null
 
-  private fun loadUrlsFromProperties(): List<String> {
+  private fun loadUrlsFromProperties(): List<ScopedDownloadUrl> {
     val syncUrls = context.getString(R.string.fhir_sync_urls).split(',')
     val firstTimeUrls = context.getString(R.string.first_fhir_sync_url).split(',')
     val cohortType = context.getString(R.string.cohort_type).trim().takeIf { it.isNotEmpty() }
@@ -79,7 +81,7 @@ class TimestampBasedDownloadWorkManagerImpl(
         resourceTypeList.find { resourceType -> url.startsWith(resourceType, ignoreCase = true) }
       }
 
-    return urlList.map { url ->
+    return urlList.flatMap { url ->
       var updatedUrl = url
 
       if (
@@ -101,47 +103,53 @@ class TimestampBasedDownloadWorkManagerImpl(
         updatedUrl = "$updatedUrl${separator}cohort-type=$cohortType"
       }
 
-      if (updatedUrl.contains("_has:Group:member:id=")) {
-        val selectedPatientLists = runBlocking {
-          context.applicationContext.dataStore.data
-            .first()[PreferenceKeys.Companion.SELECTED_PATIENT_LISTS]
-        }
+      val selectedPatientLists = runBlocking {
+        context.applicationContext.dataStore.data
+          .first()[PreferenceKeys.Companion.SELECTED_PATIENT_LISTS]
+      }
 
-        if (selectedPatientLists.isNullOrEmpty()) {
-          updatedUrl.replace("_has:Group:member:id=&", "")
-        } else {
-          updatedUrl.replace(
-            "?_has:Group:member:id=",
-            "?_has:Group:member:id=" + selectedPatientLists.joinToString(","),
-          )
+      when {
+        updatedUrl.contains("_has:Group:member:id=") && selectedPatientLists.isNullOrEmpty() ->
+          listOf(ScopedDownloadUrl(updatedUrl.replace("_has:Group:member:id=&", "")))
+        updatedUrl.contains("_has:Group:member:id=") -> {
+          resetLegacyPatientTimestamp()
+          selectedPatientLists!!.map { groupId ->
+            val scopedUrl =
+              updatedUrl.replace(
+                "?_has:Group:member:id=",
+                "?_has:Group:member:id=$groupId",
+              )
+            ScopedDownloadUrl(scopedUrl, groupId)
+          }
         }
-      } else {
-        updatedUrl
+        else -> listOf(ScopedDownloadUrl(updatedUrl))
       }
     }
   }
 
   override suspend fun getNextRequest(): DownloadRequest? {
-    var url = urls.poll() ?: return null
+    val scopedUrl = urls.poll() ?: return null
+    currentRequest = scopedUrl
+    var url = scopedUrl.url
 
     val resourceTypeToDownload =
       ResourceType.fromCode(url.findAnyOf(resourceTypeList, ignoreCase = true)!!.second)
-    dataStore.getLasUpdateTimestamp(resourceTypeToDownload)?.let {
+    dataStore.getLastUpdateTimestamp(resourceTypeToDownload, scopedUrl.groupId)?.let {
       url = affixLastUpdatedTimestamp(url, it)
     }
     return DownloadRequest.Companion.of(url)
   }
 
   override suspend fun getSummaryRequestUrls(): Map<ResourceType, String> {
-    return urls.associate { url ->
-      val resourceType = ResourceType.fromCode(url.substringBefore("?"))
-      val lastUpdated = dataStore.getLasUpdateTimestamp(resourceType)
+    return baseUrls.associate { scopedUrl ->
+      val resourceType = ResourceType.fromCode(scopedUrl.url.substringBefore("?"))
+      val lastUpdated = dataStore.getLastUpdateTimestamp(resourceType, scopedUrl.groupId)
 
       var baseUrl =
         if (lastUpdated.isNullOrEmpty()) {
-          url
+          scopedUrl.url
         } else {
-          affixLastUpdatedTimestamp(url, lastUpdated)
+          affixLastUpdatedTimestamp(scopedUrl.url, lastUpdated)
         }
 
       baseUrl = removeSummaryParameter(baseUrl)
@@ -169,7 +177,7 @@ class TimestampBasedDownloadWorkManagerImpl(
         val reference = Reference(entry.item.reference)
         if (reference.referenceElement.resourceType == "Patient") {
           val patientUrl = "${entry.item.reference}/\$everything"
-          urls.add(patientUrl)
+          urls.add(currentRequest?.copy(url = patientUrl) ?: ScopedDownloadUrl(patientUrl))
         }
       }
     }
@@ -179,7 +187,7 @@ class TimestampBasedDownloadWorkManagerImpl(
     if (response is Bundle) {
       val nextUrl = response.link.firstOrNull { component -> component.relation == "next" }?.url
       if (nextUrl != null) {
-        urls.add(nextUrl)
+        urls.add(currentRequest?.copy(url = nextUrl) ?: ScopedDownloadUrl(nextUrl))
       }
     }
 
@@ -189,13 +197,16 @@ class TimestampBasedDownloadWorkManagerImpl(
       bundleCollection =
         response.entry
           .map { it.resource }
-          .also { extractAndSaveLastUpdateTimestampToFetchFutureUpdates(it) }
+          .also {
+            extractAndSaveLastUpdateTimestampToFetchFutureUpdates(it, currentRequest?.groupId)
+          }
     }
     return bundleCollection
   }
 
   private suspend fun extractAndSaveLastUpdateTimestampToFetchFutureUpdates(
     resources: List<Resource>,
+    groupId: String?,
   ) {
     resources
       .groupBy { it.resourceType }
@@ -204,10 +215,17 @@ class TimestampBasedDownloadWorkManagerImpl(
         dataStore.saveLastUpdatedTimestamp(
           map.key,
           map.value.maxOfOrNull { it.meta.lastUpdated }?.toTimeZoneString() ?: "",
+          groupId,
         )
       }
   }
+
+  private fun resetLegacyPatientTimestamp() {
+    runBlocking { dataStore.clearLastUpdatedTimestamp(ResourceType.Patient) }
+  }
 }
+
+private data class ScopedDownloadUrl(val url: String, val groupId: String? = null)
 
 /**
  * Affixes the last updated timestamp to the request URL.
