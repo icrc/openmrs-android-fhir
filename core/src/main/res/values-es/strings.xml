@@ -519,6 +519,7 @@
         name="removed_patient_list_from_sync"
     >Lista de pacientes eliminada de la sincronización</string>
     <string name="location_updated">Ubicación actualizada</string>
+    <string name="discard">Descartar</string>
 
 
 </resources>

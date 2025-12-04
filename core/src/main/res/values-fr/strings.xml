@@ -542,5 +542,6 @@
         name="removed_patient_list_from_sync"
     >Liste de patients retirée de la synchronisation</string>
     <string name="location_updated">Emplacement mis à jour</string>
+    <string name="discard">Ignorer</string>
 
 </resources>

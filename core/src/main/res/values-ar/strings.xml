@@ -469,6 +469,7 @@
         name="removed_patient_list_from_sync"
     >تمت إزالة قائمة المرضى من المزامنة</string>
     <string name="location_updated">تم تحديث الموقع</string>
+    <string name="discard">تجاهل</string>
 
 
 </resources>

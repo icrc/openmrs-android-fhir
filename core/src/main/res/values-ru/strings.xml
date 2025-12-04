@@ -549,5 +549,6 @@
         name="removed_patient_list_from_sync"
     >Список пациентов удалён из синхронизации</string>
     <string name="location_updated">Локация обновлена</string>
+    <string name="discard">Отменить</string>
 
 </resources>
