@@ -46,8 +46,6 @@ import androidx.navigation.fragment.navArgs
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.datacapture.QuestionnaireFragment
-import com.google.android.fhir.datacapture.validation.Invalid
-import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import com.google.android.material.tabs.TabLayout
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -346,7 +344,15 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         val builder = AlertDialog.Builder(it)
         builder.apply {
           setMessage(getString(R.string.cancel_questionnaire_message))
-          setPositiveButton(getString(android.R.string.yes)) { _, _ ->
+          setPositiveButton(getString(android.R.string.cancel)) { _, _ -> }
+          setNegativeButton(getString(R.string.save_as_draft)) { _, _ ->
+            lifecycleScope.launch {
+              saveDraft(showToast = true)
+              viewModel.clearActiveSession()
+              NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
+            }
+          }
+          setNeutralButton(getString(R.string.discard)) { _, _ ->
             lifecycleScope.launch {
               viewModel.deleteDraft(args.questionnaireId)
               viewModel.clearSessionState()
@@ -355,14 +361,6 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
               NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
             }
           }
-          setNeutralButton(getString(R.string.save_as_draft)) { _, _ ->
-            lifecycleScope.launch {
-              saveDraft(showToast = true)
-              viewModel.clearActiveSession()
-              NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
-            }
-          }
-          setNegativeButton(getString(android.R.string.no)) { _, _ -> }
         }
         builder.create()
       }
@@ -446,17 +444,16 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
 
           // Validate the previous tab before switching
           lifecycleScope.launch {
-            val missingMandatoryQuestions = validateCurrentForm(previousTabPosition)
+            val hasValidationErrors = validateCurrentForm(previousTabPosition)
             val patientId = viewModel.patients.value?.get(previousTabPosition)?.resourceId
             if (!patientId.isNullOrBlank()) {
-              updateTabIndicatorState(previousTabPosition, missingMandatoryQuestions.isNotEmpty())
+              updateTabIndicatorState(previousTabPosition, hasValidationErrors)
             }
 
-            if (missingMandatoryQuestions.isEmpty()) {
+            if (!hasValidationErrors) {
               switchToTab(newTabPosition)
             } else {
               showIncompleteFormDialog(
-                missingMandatoryQuestions,
                 onContinue = { switchToTab(newTabPosition) },
                 onStay = { /* keep current tab */},
               )
@@ -507,12 +504,12 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     questionnaireResponse: QuestionnaireResponse,
   ) {
     val questionnaire = genericFormEntryViewModel.questionnaire.value ?: return
-    val missingMandatoryQuestions =
-      getMissingMandatoryQuestions(questionnaire, questionnaireResponse)
+    val hasValidationErrors =
+      !viewModel.isValidQuestionnaireResponse(questionnaire, questionnaireResponse, requireContext())
     val tabPosition = viewModel.patients.value?.indexOfFirst { it.resourceId == patientId } ?: -1
     if (tabPosition >= 0) {
       withContext(Dispatchers.Main) {
-        updateTabIndicatorState(tabPosition, missingMandatoryQuestions.isNotEmpty())
+        updateTabIndicatorState(tabPosition, hasValidationErrors)
       }
     }
   }
@@ -526,9 +523,10 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         val response =
           parser.parseResource(QuestionnaireResponse::class.java, responseJson)
             as QuestionnaireResponse
-        val missingMandatoryQuestions = getMissingMandatoryQuestions(questionnaire, response)
+        val hasValidationErrors =
+          !viewModel.isValidQuestionnaireResponse(questionnaire, response, requireContext())
         withContext(Dispatchers.Main) {
-          updateTabIndicatorState(index, missingMandatoryQuestions.isNotEmpty())
+          updateTabIndicatorState(index, hasValidationErrors)
         }
       } catch (exception: Exception) {
         Timber.e(exception.localizedMessage)
@@ -536,14 +534,14 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     }
   }
 
-  private suspend fun validateCurrentForm(tabPosition: Int): List<String> {
-    val patientId = viewModel.patients.value?.get(tabPosition)?.resourceId ?: return emptyList()
+  private suspend fun validateCurrentForm(tabPosition: Int): Boolean {
+    val patientId = viewModel.patients.value?.get(tabPosition)?.resourceId ?: return false
 
     val questionnaireFragment =
       childFragmentManager.findFragmentByTag(
         QUESTIONNAIRE_FRAGMENT_TAG + patientId,
       ) as? QuestionnaireFragment
-        ?: return emptyList()
+        ?: return false
 
     val questionnaireResponse =
       safeQuestionnaireResponse(questionnaireFragment)
@@ -551,14 +549,14 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
           parser.parseResource(QuestionnaireResponse::class.java, savedResponse)
             as QuestionnaireResponse
         }
-          ?: return emptyList()
+          ?: return false
     cacheCurrentPatientResponse(patientId, questionnaireResponse)
 
-    val questionnaire = genericFormEntryViewModel.questionnaire.value ?: return emptyList()
-    val missingMandatoryQuestions =
-      getMissingMandatoryQuestions(questionnaire, questionnaireResponse)
-    updateTabIndicatorState(tabPosition, missingMandatoryQuestions.isNotEmpty())
-    return missingMandatoryQuestions
+    val questionnaire = genericFormEntryViewModel.questionnaire.value ?: return false
+    val hasValidationErrors =
+      !viewModel.isValidQuestionnaireResponse(questionnaire, questionnaireResponse, requireContext())
+    updateTabIndicatorState(tabPosition, hasValidationErrors)
+    return hasValidationErrors
   }
 
   private fun switchToTab(tabPosition: Int) {
@@ -577,64 +575,11 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     isTabChanging = false
   }
 
-  private suspend fun getMissingMandatoryQuestions(
-    questionnaire: Questionnaire,
-    questionnaireResponse: QuestionnaireResponse,
-  ): List<String> {
-    val validationResults =
-      QuestionnaireResponseValidator.validateQuestionnaireResponse(
-        questionnaire,
-        questionnaireResponse,
-        requireContext(),
-      )
-    val questionTextByLinkId = mutableMapOf<String, String>()
-    collectQuestionTexts(questionnaire.item, questionTextByLinkId)
-
-    return validationResults
-      .filterValues { results -> results.any { it is Invalid } }
-      .flatMap { (linkId, results) ->
-        val questionText = questionTextByLinkId[linkId]
-        val invalidMessages: List<String> =
-          results.filterIsInstance<Invalid>().map { invalidResult ->
-            invalidResult.getSingleStringValidationMessage()
-          }
-        val detail = invalidMessages.joinToString(separator = "; ").takeIf { it.isNotBlank() }
-
-        when {
-          !questionText.isNullOrBlank() && !detail.isNullOrBlank() ->
-            listOf("$questionText: $detail")
-          !questionText.isNullOrBlank() -> listOf(questionText)
-          !detail.isNullOrBlank() -> listOf(detail)
-          else -> emptyList()
-        }
-      }
-      .distinct()
-  }
-
-  private fun collectQuestionTexts(
-    items: List<Questionnaire.QuestionnaireItemComponent>,
-    questionTextByLinkId: MutableMap<String, String>,
-  ) {
-    items.forEach { item ->
-      if (!item.text.isNullOrBlank()) {
-        questionTextByLinkId[item.linkId] = item.text
-      }
-      if (item.hasItem()) {
-        collectQuestionTexts(item.item, questionTextByLinkId)
-      }
-    }
-  }
-
   private fun showIncompleteFormDialog(
-    missingMandatoryQuestions: List<String>,
     onContinue: () -> Unit,
     onStay: () -> Unit,
   ) {
-    val message =
-      getString(
-        R.string.required_questions_missing_dialog_message,
-        missingMandatoryQuestions.joinToString(separator = "\n") { "• $it" },
-      )
+    val message = getString(R.string.required_questions_missing_dialog_message)
 
     AlertDialog.Builder(requireContext())
       .setTitle(getString(R.string.incomplete_form_dialog_title))

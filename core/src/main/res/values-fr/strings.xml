@@ -307,6 +307,18 @@
     <string
         name="please_complete_the_required_fields_first"
     >Veuillez d\'abord remplir les champs obligatoires !</string>
+    <string name="incomplete_form_dialog_title">Formulaire incomplet</string>
+    <string
+        name="required_questions_missing_dialog_message"
+    >Certaines questions obligatoires sont incomplètes. Voulez-vous continuer sans les compléter ?</string>
+    <string name="continue_without_completing">Continuer</string>
+    <string name="stay_on_current_patient">Rester sur ce patient</string>
+    <string
+        name="incomplete_patients_dialog_title"
+    >Les patients nécessitent une attention</string>
+    <string
+        name="incomplete_patients_dialog_message"
+    >Sélectionnez un patient ci-dessous pour résoudre les réponses manquantes. L\'envoi est bloqué tant que tout n\'est pas complété.</string>
     <string
         name="encounter_saved_for_patient"
     >Consultation pour %1$s enregistrée</string>
