@@ -331,6 +331,21 @@
     <string
         name="please_complete_the_required_fields_first"
     >Please complete the required fields first!</string>
+    <string name="incomplete_form_dialog_title">Incomplete form</string>
+    <string
+        name="required_questions_missing_dialog_message"
+    >The following required questions are incomplete:
+%1$s
+
+Do you want to continue without completing them?</string>
+    <string name="continue_without_completing">Continue</string>
+    <string name="stay_on_current_patient">Stay on this patient</string>
+    <string
+        name="incomplete_patients_dialog_title"
+    >Patients need attention</string>
+    <string
+        name="incomplete_patients_dialog_message"
+    >Select a patient below to resolve missing responses. Submission is blocked until all are complete.</string>
     <string name="encounter_saved_for_patient">Encounter for %1$s saved</string>
     <string name="encounter_updated">Encounter updated!</string>
     <string
