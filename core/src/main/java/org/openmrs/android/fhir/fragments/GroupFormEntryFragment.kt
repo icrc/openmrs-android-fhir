@@ -508,7 +508,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       !viewModel.isValidQuestionnaireResponse(
         questionnaire,
         questionnaireResponse,
-        requireContext()
+        requireContext(),
       )
     val tabPosition = viewModel.patients.value?.indexOfFirst { it.resourceId == patientId } ?: -1
     if (tabPosition >= 0) {
@@ -557,7 +557,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       !viewModel.isValidQuestionnaireResponse(
         questionnaire,
         questionnaireResponse,
-        requireContext()
+        requireContext(),
       )
     updateTabIndicatorState(tabPosition, hasValidationErrors)
     return hasValidationErrors
