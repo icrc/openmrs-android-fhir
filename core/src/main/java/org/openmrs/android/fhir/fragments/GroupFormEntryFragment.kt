@@ -505,12 +505,14 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   ) {
     val questionnaire = genericFormEntryViewModel.questionnaire.value ?: return
     val hasValidationErrors =
-      !viewModel.isValidQuestionnaireResponse(questionnaire, questionnaireResponse, requireContext())
+      !viewModel.isValidQuestionnaireResponse(
+        questionnaire,
+        questionnaireResponse,
+        requireContext()
+      )
     val tabPosition = viewModel.patients.value?.indexOfFirst { it.resourceId == patientId } ?: -1
     if (tabPosition >= 0) {
-      withContext(Dispatchers.Main) {
-        updateTabIndicatorState(tabPosition, hasValidationErrors)
-      }
+      withContext(Dispatchers.Main) { updateTabIndicatorState(tabPosition, hasValidationErrors) }
     }
   }
 
@@ -525,9 +527,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
             as QuestionnaireResponse
         val hasValidationErrors =
           !viewModel.isValidQuestionnaireResponse(questionnaire, response, requireContext())
-        withContext(Dispatchers.Main) {
-          updateTabIndicatorState(index, hasValidationErrors)
-        }
+        withContext(Dispatchers.Main) { updateTabIndicatorState(index, hasValidationErrors) }
       } catch (exception: Exception) {
         Timber.e(exception.localizedMessage)
       }
@@ -554,7 +554,11 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
 
     val questionnaire = genericFormEntryViewModel.questionnaire.value ?: return false
     val hasValidationErrors =
-      !viewModel.isValidQuestionnaireResponse(questionnaire, questionnaireResponse, requireContext())
+      !viewModel.isValidQuestionnaireResponse(
+        questionnaire,
+        questionnaireResponse,
+        requireContext()
+      )
     updateTabIndicatorState(tabPosition, hasValidationErrors)
     return hasValidationErrors
   }
