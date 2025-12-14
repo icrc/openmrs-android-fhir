@@ -1,3 +1,6 @@
+val composeBomVersion: String by project
+val composeCompilerExtensionVersion: String by project
+
 plugins {
   id("com.android.library")
   id("kotlin-android")
@@ -5,6 +8,7 @@ plugins {
   id("com.google.devtools.ksp")
   id("maven-publish")
   id("kotlin-kapt")
+  id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -15,7 +19,11 @@ android {
     testInstrumentationRunner = "androidx.test.runner.Android JUnitRunner"
     buildFeatures.buildConfig = true
   }
-  buildFeatures { viewBinding = true }
+  buildFeatures {
+    compose = true
+    viewBinding = true
+  }
+  composeOptions { kotlinCompilerExtensionVersion = composeCompilerExtensionVersion }
   buildTypes {
     release {
       isMinifyEnabled = false
@@ -81,6 +89,7 @@ publishing {
 
 object Versions {
   const val androidXCore = "1.12.0"
+  const val composeNavigation = "2.7.7"
   const val desugar_jdk_libs = "2.1.0"
   const val appauth = "0.11.1"
   const val timber = "5.0.1"
@@ -118,11 +127,19 @@ object Versions {
 }
 
 dependencies {
+  val composeBom = platform("androidx.compose:compose-bom:$composeBomVersion")
+
   coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:${Versions.desugar_jdk_libs}")
+  implementation(composeBom)
   implementation("androidx.core:core:${Versions.androidXCore}")
   implementation("androidx.activity:activity-ktx:${Versions.activity}")
+  implementation("androidx.activity:activity-compose:${Versions.activity}")
   implementation("androidx.appcompat:appcompat:${Versions.appcompat}")
   implementation("androidx.constraintlayout:constraintlayout:${Versions.constraintlayout}")
+  implementation("androidx.compose.material3:material3")
+  implementation("androidx.compose.runtime:runtime")
+  implementation("androidx.compose.ui:ui")
+  implementation("androidx.compose.ui:ui-tooling-preview")
   implementation("androidx.datastore:datastore-preferences:${Versions.datastore}")
   implementation("androidx.fragment:fragment-ktx:${Versions.fragment}")
   implementation("androidx.lifecycle:lifecycle-livedata-ktx:${Versions.lifecycle}")
@@ -130,6 +147,7 @@ dependencies {
   implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${Versions.lifecycle}")
   implementation("androidx.navigation:navigation-fragment-ktx:${Versions.navigation}")
   implementation("androidx.navigation:navigation-ui-ktx:${Versions.navigation}")
+  implementation("androidx.navigation:navigation-compose:${Versions.composeNavigation}")
   implementation("androidx.recyclerview:recyclerview:${Versions.recyclerview}")
   implementation("androidx.work:work-runtime-ktx:${Versions.work}")
   implementation("com.google.android.material:material:${Versions.material}")
@@ -153,7 +171,10 @@ dependencies {
   implementation("androidx.room:room-ktx:${Versions.room}")
   ksp("androidx.room:room-compiler:${Versions.room}")
 
+  androidTestImplementation(composeBom)
+  
   androidTestImplementation("junit:junit:${Versions.junit}")
+  androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 
   // AndroidX Test libraries
   testImplementation("junit:junit:${Versions.junit}")
@@ -163,6 +184,11 @@ dependencies {
   testImplementation("androidx.test:runner:${Versions.androidXTestRunner}")
   testImplementation("androidx.test.ext:truth:${Versions.androidTestTruth}")
   testImplementation("androidx.test.ext:junit:${Versions.androidXTestJunit}")
+  testImplementation(composeBom)
+  testImplementation("androidx.compose.ui:ui-test-junit4")
+  debugImplementation(composeBom)
+  debugImplementation("androidx.compose.ui:ui-test-manifest")
+  debugImplementation("androidx.compose.ui:ui-tooling")
 
   // Mockito for mocking dependencies
   testImplementation("org.mockito:mockito-core:${Versions.mockito}")
