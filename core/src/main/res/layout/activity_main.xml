@@ -231,9 +231,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
         >
-        <include
-                android:id="@+id/network_status_flag"
-                layout="@layout/network_status_flag_layout"
+        <androidx.compose.ui.platform.ComposeView
+                android:id="@+id/network_status_banner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
             />
 
         <androidx.appcompat.widget.Toolbar
@@ -280,6 +281,5 @@
         android:layout_gravity="start"
         android:clipToPadding="false"
         app:menu="@menu/drawer_menu"
-        app:headerLayout="@layout/drawer_header_layout"
     />
 </androidx.drawerlayout.widget.DrawerLayout>

@@ -41,11 +41,16 @@ import android.view.View
 import android.view.View.OnFocusChangeListener
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.TextView
 import androidx.activity.viewModels
+import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.FileProvider
 import androidx.core.view.GravityCompat
 import androidx.datastore.preferences.core.edit
@@ -87,6 +92,8 @@ import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
 import org.openmrs.android.fhir.extensions.getApplicationLogs
 import org.openmrs.android.fhir.extensions.saveToFile
 import org.openmrs.android.fhir.extensions.showSnackBar
+import org.openmrs.android.fhir.ui.components.DrawerHeader
+import org.openmrs.android.fhir.ui.components.NetworkStatusBanner
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
 import org.openmrs.android.fhir.worker.SyncInfoDatabaseWriterWorker
@@ -119,6 +126,9 @@ class MainActivity : AppCompatActivity() {
   private val viewModel by viewModels<MainActivityViewModel> { viewModelFactory }
   private val syncInfoViewModel by viewModels<SyncInfoViewModel> { viewModelFactory }
 
+  private var networkStatusText by mutableStateOf("")
+  private var lastSyncText by mutableStateOf("")
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     Thread.setDefaultUncaughtExceptionHandler(
@@ -135,6 +145,7 @@ class MainActivity : AppCompatActivity() {
     //    lifecycleScope.launch {
     // viewModel.initPeriodicSyncWorker(demoDataStore.getPeriodicSyncDelay()) } TODO: Discuss on
     // periodic sync
+    setupNetworkStatusBanner()
     initActionBar()
     initNavigationDrawer()
     observeNetworkConnection(this)
@@ -194,11 +205,31 @@ class MainActivity : AppCompatActivity() {
     setSupportActionBar(toolbar)
   }
 
+  private fun setupNetworkStatusBanner() {
+    networkStatusText = getString(R.string.offline)
+    binding.networkStatusBanner.apply {
+      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+      setContent { NetworkStatusBanner(text = networkStatusText) }
+    }
+  }
+
+  private fun setupDrawerHeader() {
+    val headerView = ComposeView(this)
+    headerView.setViewCompositionStrategy(
+      ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+    )
+    headerView.setContent {
+      DrawerHeader(label = getString(R.string.last_sync), lastSyncValue = lastSyncText)
+    }
+    binding.navigationView.addHeaderView(headerView)
+  }
+
   private fun initNavigationDrawer() {
     binding.navigationView.setNavigationItemSelectedListener(this::onNavigationItemSelected)
     drawerToggle = ActionBarDrawerToggle(this, binding.drawer, R.string.open, R.string.close)
     binding.drawer.addDrawerListener(drawerToggle)
     drawerToggle.syncState()
+    setupDrawerHeader()
     setLocationInDrawer()
   }
 
@@ -372,9 +403,7 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun observeLastSyncTime() {
-    viewModel.lastSyncTimestampLiveData.observe(this) {
-      binding.navigationView.getHeaderView(0).findViewById<TextView>(R.id.last_sync_tv).text = it
-    }
+    viewModel.lastSyncTimestampLiveData.observe(this) { timestamp -> lastSyncText = timestamp }
   }
 
   private suspend fun monitorTokenExpiry() {
@@ -449,8 +478,7 @@ class MainActivity : AppCompatActivity() {
         previousState = connectivityState
         when (connectivityState) {
           ServerConnectivityState.ServerConnected -> {
-            binding.networkStatusFlag.tvNetworkStatus.text =
-              getString(R.string.network_status_connected_to_server)
+            networkStatusText = getString(R.string.network_status_connected_to_server)
             if (
               viewModel.isSyncing.value == true &&
                 previous != ServerConnectivityState.ServerConnected
@@ -471,15 +499,24 @@ class MainActivity : AppCompatActivity() {
             monitorTokenExpiry()
           }
           ServerConnectivityState.InternetOnly -> {
-            binding.networkStatusFlag.tvNetworkStatus.text =
-              getString(R.string.network_status_server_unreachable)
+            networkStatusText = getString(R.string.network_status_server_unreachable)
           }
           ServerConnectivityState.Offline -> {
-            binding.networkStatusFlag.tvNetworkStatus.text = getString(R.string.offline)
+            networkStatusText = getString(R.string.offline)
           }
         }
       }
     }
+  }
+
+  @VisibleForTesting
+  fun updateNetworkStatusBannerTextForTest(text: String) {
+    networkStatusText = text
+  }
+
+  @VisibleForTesting
+  fun updateLastSyncTextForTest(text: String) {
+    lastSyncText = text
   }
 
   override fun onDestroy() {
@@ -614,9 +651,9 @@ class MainActivity : AppCompatActivity() {
     lifecycleScope.launch {
       demoDataStore.getCheckNetworkConnectivityFlow().collect { isCheckNetworkConnectivityEnabled ->
         if (isCheckNetworkConnectivityEnabled) {
-          binding.networkStatusFlag.tvNetworkStatus.visibility = View.VISIBLE
+          binding.networkStatusBanner.visibility = View.VISIBLE
         } else {
-          binding.networkStatusFlag.tvNetworkStatus.visibility = View.GONE
+          binding.networkStatusBanner.visibility = View.GONE
         }
       }
     }

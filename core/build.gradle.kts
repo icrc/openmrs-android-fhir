@@ -172,7 +172,7 @@ dependencies {
   ksp("androidx.room:room-compiler:${Versions.room}")
 
   androidTestImplementation(composeBom)
-  
+
   androidTestImplementation("junit:junit:${Versions.junit}")
   androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 
