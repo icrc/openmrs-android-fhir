@@ -536,5 +536,6 @@
     >Téléchargé %1$d/%2$d | Téléversé %3$d/%4$d</string>
     <string name="completed_at_with_value">Terminé à : %1$s</string>
     <string name="errors_with_count">Erreurs : %1$d</string>
+    <string name="delete">Supprimer</string>
 
 </resources>
