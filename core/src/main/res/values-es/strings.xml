@@ -507,6 +507,12 @@
         name="removed_patient_list_from_sync"
     >Lista de pacientes eliminada de la sincronización</string>
     <string name="location_updated">Ubicación actualizada</string>
+    <string name="start_time_with_value">Hora de inicio: %1$s</string>
+    <string
+        name="sync_session_progress"
+    >Descargado %1$d/%2$d | Subido %3$d/%4$d</string>
+    <string name="completed_at_with_value">Completado a las: %1$s</string>
+    <string name="errors_with_count">Errores: %1$d</string>
 
 
 </resources>

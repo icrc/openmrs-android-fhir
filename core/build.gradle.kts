@@ -16,8 +16,9 @@ android {
   compileSdk = 36
   defaultConfig {
     minSdk = 26
-    testInstrumentationRunner = "androidx.test.runner.Android JUnitRunner"
+    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     buildFeatures.buildConfig = true
+    manifestPlaceholders["appAuthRedirectScheme"] = "org.openmrs.android.fhir"
   }
   buildFeatures {
     compose = true
@@ -118,6 +119,7 @@ object Versions {
   const val androidXTestJunit = "1.2.1"
   const val coroutineTest = "1.8.1"
   const val mockito = "4.0.0"
+  const val mockitoKotlin = "4.0.0"
   const val daggerVersion = "2.51.1"
   const val eventBus = "3.3.1"
   const val moshi = "1.14.0"
@@ -138,6 +140,7 @@ dependencies {
   implementation("androidx.constraintlayout:constraintlayout:${Versions.constraintlayout}")
   implementation("androidx.compose.material3:material3")
   implementation("androidx.compose.runtime:runtime")
+  implementation("androidx.compose.runtime:runtime-livedata")
   implementation("androidx.compose.ui:ui")
   implementation("androidx.compose.ui:ui-tooling-preview")
   implementation("androidx.datastore:datastore-preferences:${Versions.datastore}")
@@ -194,6 +197,7 @@ dependencies {
   testImplementation("org.mockito:mockito-core:${Versions.mockito}")
   testImplementation("org.mockito:mockito-inline:${Versions.mockito}")
   testImplementation("org.mockito:mockito-android:${Versions.mockito}")
+  testImplementation("org.mockito.kotlin:mockito-kotlin:${Versions.mockitoKotlin}")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.coroutineTest}")
 
   // Dependency injection

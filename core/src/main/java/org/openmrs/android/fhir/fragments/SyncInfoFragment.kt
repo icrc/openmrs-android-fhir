@@ -29,49 +29,49 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
-import androidx.recyclerview.widget.LinearLayoutManager
 import javax.inject.Inject
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.adapters.SyncSessionsAdapter
-import org.openmrs.android.fhir.databinding.FragmentSyncInfoBinding
+import org.openmrs.android.fhir.ui.components.SyncInfoContent
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
 
 class SyncInfoFragment : Fragment() {
 
-  private var _binding: FragmentSyncInfoBinding? = null
-  private val binding
-    get() = _binding!!
-
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
   private val viewModel by viewModels<SyncInfoViewModel> { viewModelFactory }
-
-  private lateinit var adapter: SyncSessionsAdapter
-
-  override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
-    savedInstanceState: Bundle?,
-  ): View {
-    _binding = FragmentSyncInfoBinding.inflate(inflater, container, false)
-    return binding.root
-  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setHasOptionsMenu(true)
+  }
+
+  override fun onCreateView(
+    inflater: android.view.LayoutInflater,
+    container: android.view.ViewGroup?,
+    savedInstanceState: Bundle?,
+  ): View {
+    (requireActivity().application as FhirApplication).appComponent.inject(this)
+    return ComposeView(requireContext()).apply {
+      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+      setContent {
+        SyncInfoContent(
+          syncSessions = viewModel.syncSessions.observeAsState(emptyList()).value,
+          onDeleteSession = { viewModel.deleteSyncSession(it) },
+          onClearAll = { viewModel.clearAllSyncSessions() },
+        )
+      }
+    }
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -81,37 +81,7 @@ class SyncInfoFragment : Fragment() {
       title = requireContext().getString(R.string.title_sync_info)
       setDisplayHomeAsUpEnabled(true)
     }
-    setupRecyclerView()
-    observeViewModel()
-
-    binding.btnClearAllSyncData.setOnClickListener { viewModel.clearAllSyncSessions() }
     (activity as MainActivity).setDrawerEnabled(false)
-  }
-
-  private fun setupRecyclerView() {
-    adapter = SyncSessionsAdapter { session -> viewModel.deleteSyncSession(session) }
-
-    binding.recyclerViewSyncSessions.apply {
-      layoutManager = LinearLayoutManager(requireContext())
-      adapter = this@SyncInfoFragment.adapter
-    }
-  }
-
-  private fun observeViewModel() {
-    // Observe the live data for the sync sessions
-    viewModel.syncSessions.observe(
-      viewLifecycleOwner,
-      Observer { sessions ->
-        if (sessions.isNullOrEmpty()) {
-          binding.recyclerViewSyncSessions.isVisible = false
-          binding.emptyStateContainer.isVisible = true
-        } else {
-          binding.recyclerViewSyncSessions.isVisible = true
-          binding.emptyStateContainer.isVisible = false
-        }
-        adapter.submitList(sessions)
-      },
-    )
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -122,10 +92,5 @@ class SyncInfoFragment : Fragment() {
       }
       else -> false
     }
-  }
-
-  override fun onDestroyView() {
-    super.onDestroyView()
-    _binding = null
   }
 }

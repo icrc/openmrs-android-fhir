@@ -216,7 +216,7 @@ class MainActivity : AppCompatActivity() {
   private fun setupDrawerHeader() {
     val headerView = ComposeView(this)
     headerView.setViewCompositionStrategy(
-      ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
+      ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
     )
     headerView.setContent {
       DrawerHeader(label = getString(R.string.last_sync), lastSyncValue = lastSyncText)

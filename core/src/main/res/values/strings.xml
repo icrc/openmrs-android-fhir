@@ -168,6 +168,12 @@
     <string name="sync_failed_at">Sync: failed at %1$s</string>
     <string name="sync_unknown_state">Sync: unknown state.</string>
     <string name="sync_terminated">Sync: Terminated</string>
+    <string name="start_time_with_value">Start Time: %1$s</string>
+    <string
+        name="sync_session_progress"
+    >Downloaded %1$d/%2$d | Uploaded %3$d/%4$d</string>
+    <string name="completed_at_with_value">Completed At: %1$s</string>
+    <string name="errors_with_count">Errors: %1$d</string>
     <string name="logging_out">Logging out..</string>
     <string
         name="sync_device_offline_message"
@@ -260,6 +266,7 @@
     <string name="download_encounter">Download Encounter</string>
     <string name="delete_encounter">Delete Encounter</string>
     <string name="download_patient">Download Patient</string>
+    <string name="delete">Delete</string>
     <string name="delete_patient">Delete Patient</string>
     <string name="empty_state_icon">Empty State Icon</string>
     <string
@@ -290,6 +297,7 @@
     <string name="navya_patel" translatable="false">Navya Patel</string>
     <string name="patient_list_1">Patient List 1</string>
     <string name="_0" translatable="false">0 %</string>
+    <string name="_100" translatable="false">100 %</string>
     <string name="start_time">Start Time</string>
     <string name="downloaded">Downloaded</string>
     <string name="uploaded">Uploaded</string>

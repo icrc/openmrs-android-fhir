@@ -537,5 +537,11 @@
         name="removed_patient_list_from_sync"
     >Список пациентов удалён из синхронизации</string>
     <string name="location_updated">Локация обновлена</string>
+    <string name="start_time_with_value">Время начала: %1$s</string>
+    <string
+        name="sync_session_progress"
+    >Загружено %1$d/%2$d | Отправлено %3$d/%4$d</string>
+    <string name="completed_at_with_value">Завершено в: %1$s</string>
+    <string name="errors_with_count">Ошибки: %1$d</string>
 
 </resources>
