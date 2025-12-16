@@ -28,27 +28,25 @@
 */
 package org.openmrs.android.fhir.adapters
 
-import android.content.res.ColorStateList
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.annotation.ColorInt
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.shape.MaterialShapeDrawable
-import com.google.android.material.shape.RoundedCornerTreatment
-import com.google.android.material.shape.ShapeAppearanceModel
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.databinding.PatientDetailsCardViewBinding
 import org.openmrs.android.fhir.databinding.PatientDetailsHeaderBinding
-import org.openmrs.android.fhir.databinding.PatientDetailsUnsyncedBinding
-import org.openmrs.android.fhir.databinding.PatientPropertyItemViewBinding
-import org.openmrs.android.fhir.databinding.VisitListItemBinding
+import org.openmrs.android.fhir.ui.components.EncounterListItemRow
+import org.openmrs.android.fhir.ui.components.PatientDetailsHeaderRow
+import org.openmrs.android.fhir.ui.components.PatientPropertyRow
+import org.openmrs.android.fhir.ui.components.PatientUnsyncedCard
+import org.openmrs.android.fhir.ui.components.VisitListItemRow
 import org.openmrs.android.fhir.viewmodel.PatientDetailCondition
 import org.openmrs.android.fhir.viewmodel.PatientDetailData
 import org.openmrs.android.fhir.viewmodel.PatientDetailEncounter
@@ -72,7 +70,14 @@ class PatientDetailsRecyclerViewAdapter(
     return when (PatientDetailsVisitItemViewHolder.ViewTypes.from(viewType)) {
       PatientDetailsVisitItemViewHolder.ViewTypes.HEADER ->
         PatientDetailsHeaderItemViewHolder(
-          PatientDetailsCardViewBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+          ComposeView(parent.context).apply {
+            layoutParams =
+              ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+              )
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+          },
         )
       PatientDetailsVisitItemViewHolder.ViewTypes.PATIENT ->
         PatientOverviewItemViewHolder(
@@ -81,44 +86,70 @@ class PatientDetailsRecyclerViewAdapter(
         )
       PatientDetailsVisitItemViewHolder.ViewTypes.PATIENT_UNSYNCED ->
         PatientDetailsUnsyncedItemViewHolder(
-          PatientDetailsUnsyncedBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+          ComposeView(parent.context).apply {
+            layoutParams =
+              ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+              )
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+          },
         )
       PatientDetailsVisitItemViewHolder.ViewTypes.PATIENT_PROPERTY ->
         PatientPropertyItemViewHolder(
-          PatientPropertyItemViewBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false,
-          ),
+          ComposeView(parent.context).apply {
+            layoutParams =
+              ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+              )
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+          },
         )
       PatientDetailsVisitItemViewHolder.ViewTypes.OBSERVATION ->
         PatientDetailsObservationItemViewHolder(
-          PatientPropertyItemViewBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false,
-          ),
+          ComposeView(parent.context).apply {
+            layoutParams =
+              ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+              )
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+          },
         )
       PatientDetailsVisitItemViewHolder.ViewTypes.CONDITION ->
         PatientDetailsVisitItemViewHolder.PatientDetailsConditionItemViewHolder(
-          PatientPropertyItemViewBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false,
-          ),
+          ComposeView(parent.context).apply {
+            layoutParams =
+              ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+              )
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+          },
         )
       PatientDetailsVisitItemViewHolder.ViewTypes.ENCOUNTER ->
         PatientDetailsEncounterItemViewHolder(
-          PatientPropertyItemViewBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false,
-          ),
+          ComposeView(parent.context).apply {
+            layoutParams =
+              ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+              )
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+          },
           onEditEncounterClick,
         )
       PatientDetailsVisitItemViewHolder.ViewTypes.VISIT ->
         PatientDetailsVisitItemViewHolder(
-          VisitListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+          ComposeView(parent.context).apply {
+            layoutParams =
+              ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+              )
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+          },
           onEditVisitClick,
         )
     }
@@ -127,10 +158,6 @@ class PatientDetailsRecyclerViewAdapter(
   override fun onBindViewHolder(holder: PatientDetailItemViewHolder, position: Int) {
     val model = getItem(position)
     holder.bind(model)
-    if (holder is PatientDetailsHeaderItemViewHolder) return
-    if (holder is PatientDetailsEncounterItemViewHolder) {
-      holder.bind(getItem(position) as PatientDetailEncounter)
-    }
   }
 
   override fun getItemViewType(position: Int): Int {
@@ -148,60 +175,6 @@ class PatientDetailsRecyclerViewAdapter(
         throw IllegalArgumentException("Undefined Item type")
       }
     }.ordinal
-  }
-
-  companion object {
-    private const val STROKE_WIDTH = 2f
-    private const val CORNER_RADIUS = 10f
-
-    @ColorInt private const val FILL_COLOR = Color.TRANSPARENT
-
-    @ColorInt private const val STROKE_COLOR = Color.GRAY
-
-    fun allCornersRounded(): MaterialShapeDrawable {
-      return MaterialShapeDrawable(
-          ShapeAppearanceModel.builder()
-            .setAllCornerSizes(CORNER_RADIUS)
-            .setAllCorners(RoundedCornerTreatment())
-            .build(),
-        )
-        .applyStrokeColor()
-    }
-
-    fun topCornersRounded(): MaterialShapeDrawable {
-      return MaterialShapeDrawable(
-          ShapeAppearanceModel.builder()
-            .setTopLeftCornerSize(CORNER_RADIUS)
-            .setTopRightCornerSize(CORNER_RADIUS)
-            .setTopLeftCorner(RoundedCornerTreatment())
-            .setTopRightCorner(RoundedCornerTreatment())
-            .build(),
-        )
-        .applyStrokeColor()
-    }
-
-    fun bottomCornersRounded(): MaterialShapeDrawable {
-      return MaterialShapeDrawable(
-          ShapeAppearanceModel.builder()
-            .setBottomLeftCornerSize(CORNER_RADIUS)
-            .setBottomRightCornerSize(CORNER_RADIUS)
-            .setBottomLeftCorner(RoundedCornerTreatment())
-            .setBottomRightCorner(RoundedCornerTreatment())
-            .build(),
-        )
-        .applyStrokeColor()
-    }
-
-    fun noCornersRounded(): MaterialShapeDrawable {
-      return MaterialShapeDrawable(ShapeAppearanceModel.builder().build()).applyStrokeColor()
-    }
-
-    private fun MaterialShapeDrawable.applyStrokeColor(): MaterialShapeDrawable {
-      strokeWidth = STROKE_WIDTH
-      fillColor = ColorStateList.valueOf(FILL_COLOR)
-      strokeColor = ColorStateList.valueOf(STROKE_COLOR)
-      return this
-    }
   }
 }
 
@@ -237,54 +210,72 @@ class PatientOverviewItemViewHolder(
   }
 }
 
-class PatientPropertyItemViewHolder(private val binding: PatientPropertyItemViewBinding) :
-  PatientDetailItemViewHolder(binding.root) {
+class PatientPropertyItemViewHolder(private val composeView: ComposeView) :
+  PatientDetailItemViewHolder(composeView) {
   override fun bind(data: PatientDetailData) {
-    (data as PatientDetailProperty).let {
-      binding.name.text = it.patientProperty.header
-      binding.fieldName.text = it.patientProperty.value
+    val property = data as PatientDetailProperty
+    composeView.setContent {
+      MaterialTheme {
+        PatientPropertyRow(
+          header = property.patientProperty.header,
+          value = property.patientProperty.value,
+          showSyncIcon = true,
+        )
+      }
     }
   }
 }
 
-class PatientDetailsHeaderItemViewHolder(private val binding: PatientDetailsCardViewBinding) :
-  PatientDetailItemViewHolder(binding.root) {
+class PatientDetailsHeaderItemViewHolder(private val composeView: ComposeView) :
+  PatientDetailItemViewHolder(composeView) {
   override fun bind(data: PatientDetailData) {
-    (data as PatientDetailHeader).let { binding.header.text = it.header }
+    val header = (data as PatientDetailHeader).header
+    composeView.setContent { MaterialTheme { PatientDetailsHeaderRow(title = header) } }
   }
 }
 
-class PatientDetailsUnsyncedItemViewHolder(private val binding: PatientDetailsUnsyncedBinding) :
-  PatientDetailItemViewHolder(binding.root) {
-  override fun bind(data: PatientDetailData) {}
+class PatientDetailsUnsyncedItemViewHolder(private val composeView: ComposeView) :
+  PatientDetailItemViewHolder(composeView) {
+  override fun bind(data: PatientDetailData) {
+    composeView.setContent { MaterialTheme { PatientUnsyncedCard() } }
+  }
 }
 
-class PatientDetailsObservationItemViewHolder(private val binding: PatientPropertyItemViewBinding) :
-  PatientDetailItemViewHolder(binding.root) {
+class PatientDetailsObservationItemViewHolder(private val composeView: ComposeView) :
+  PatientDetailItemViewHolder(composeView) {
   override fun bind(data: PatientDetailData) {
-    (data as PatientDetailObservation).let {
-      binding.name.text = it.observation.code
-      binding.fieldName.text = it.observation.value
+    val observation = (data as PatientDetailObservation).observation
+    composeView.setContent {
+      MaterialTheme {
+        PatientPropertyRow(
+          header = observation.code,
+          value = observation.value,
+          showSyncIcon = true,
+        )
+      }
     }
   }
 }
 
 class PatientDetailsEncounterItemViewHolder(
-  private val binding: PatientPropertyItemViewBinding,
+  private val composeView: ComposeView,
   private val onEditEncounterClick: (String, String, String) -> Unit,
-) : PatientDetailItemViewHolder(binding.root) {
+) : PatientDetailItemViewHolder(composeView) {
   override fun bind(data: PatientDetailData) {
-    (data as PatientDetailEncounter).let {
-      val encounter = it.encounter
-      binding.name.text = encounter.type
-      binding.fieldName.text = encounter.dateTime
-      binding.syncItemStatus.visibility =
-        if (encounter.isSynced!! && encounter.isSynced) View.GONE else View.VISIBLE
-      binding.name.setOnClickListener {
-        onEditEncounterClick(
-          encounter.encounterId ?: "",
-          encounter.formDisplay ?: "",
-          encounter.encounterType ?: "",
+    val encounter = (data as PatientDetailEncounter).encounter
+    composeView.setContent {
+      MaterialTheme {
+        EncounterListItemRow(
+          encounterType = encounter.type,
+          encounterDate = encounter.dateTime,
+          showSyncIcon = encounter.isSynced?.not() ?: true,
+          onTitleClick = {
+            onEditEncounterClick(
+              encounter.encounterId ?: "",
+              encounter.formDisplay ?: "",
+              encounter.encounterType ?: "",
+            )
+          },
         )
       }
     }
@@ -292,25 +283,31 @@ class PatientDetailsEncounterItemViewHolder(
 }
 
 class PatientDetailsVisitItemViewHolder(
-  private val binding: VisitListItemBinding, // Update to the correct binding class
+  private val composeView: ComposeView,
   private val onEditVisitClick: (String) -> Unit,
-) : PatientDetailItemViewHolder(binding.root) {
+) : PatientDetailItemViewHolder(composeView) {
 
   override fun bind(data: PatientDetailData) {
-    (data as PatientDetailVisit).let {
-      val visit = it.visit
-      binding.encounterType.text = visit.code
-      binding.encounterDate.text = visit.getPeriods()
-      binding.encounterDate.setOnClickListener { onEditVisitClick(visit.id) }
+    val visit = (data as PatientDetailVisit).visit
+    composeView.setContent {
+      MaterialTheme {
+        VisitListItemRow(
+          encounterType = visit.code,
+          encounterDate = visit.getPeriods(),
+          onDateClick = { onEditVisitClick(visit.id) },
+        )
+      }
     }
   }
 
-  class PatientDetailsConditionItemViewHolder(private val binding: PatientPropertyItemViewBinding) :
-    PatientDetailItemViewHolder(binding.root) {
+  class PatientDetailsConditionItemViewHolder(private val composeView: ComposeView) :
+    PatientDetailItemViewHolder(composeView) {
     override fun bind(data: PatientDetailData) {
-      (data as PatientDetailCondition).let {
-        binding.name.text = it.condition.code
-        binding.fieldName.text = it.condition.value
+      val condition = (data as PatientDetailCondition).condition
+      composeView.setContent {
+        MaterialTheme {
+          PatientPropertyRow(header = condition.code, value = condition.value, showSyncIcon = true)
+        }
       }
     }
   }

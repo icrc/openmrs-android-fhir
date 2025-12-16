@@ -26,32 +26,41 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.viewmodel
+package org.openmrs.android.fhir.ui.components
 
-import android.widget.TextView
-import androidx.recyclerview.widget.RecyclerView
-import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.databinding.ItemEncounterBinding
+import androidx.activity.ComponentActivity
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import org.junit.Rule
+import org.junit.Test
 
-class EncounterItemViewHolder(private val binding: ItemEncounterBinding) :
-  RecyclerView.ViewHolder(binding.root) {
-  private val encounterTypeTextView: TextView = binding.encounterType
-  private val encounterDateTextView: TextView = binding.encounterDate
+class PatientListItemRowTest {
+  @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
-  fun bindTo(encounterItem: PatientListViewModel.EncounterItem) {
-    this.encounterTypeTextView.text =
-      itemView.resources.getString(
-        R.string.observation_brief_text,
-        encounterItem.encounterId,
-        encounterItem.type,
-        encounterItem.dateTime,
-      )
-    this.encounterDateTextView.text =
-      itemView.resources.getString(
-        R.string.observation_brief_text,
-        encounterItem.encounterId,
-        encounterItem.type,
-        encounterItem.dateTime,
-      )
+  @Test
+  fun showsUnsyncedIconWhenNotSynced() {
+    composeRule.setContent {
+      MaterialTheme {
+        PatientListItemRow(name = "Jane Doe", ageGenderLabel = "30,F", isSynced = false)
+      }
+    }
+
+    composeRule.onNodeWithTag("PatientSyncIcon").assertIsDisplayed()
+    composeRule.onNodeWithTag("PatientName").assertIsDisplayed()
+    composeRule.onNodeWithTag("PatientAgeGender").assertIsDisplayed()
+  }
+
+  @Test
+  fun hidesSyncIconWhenSynced() {
+    composeRule.setContent {
+      MaterialTheme {
+        PatientListItemRow(name = "John Doe", ageGenderLabel = "25,M", isSynced = true)
+      }
+    }
+
+    composeRule.onNodeWithTag("PatientSyncIcon").assertIsNotDisplayed()
   }
 }

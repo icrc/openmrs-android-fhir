@@ -29,6 +29,5 @@
         android:scrollbars="vertical"
         app:layoutManager="LinearLayoutManager"
         tools:context=".PatientListActivity"
-        tools:listitem="@layout/patient_property_item_view"
     />
 </RelativeLayout>

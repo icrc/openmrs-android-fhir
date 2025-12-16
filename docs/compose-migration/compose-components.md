@@ -7,6 +7,69 @@ New Compose primitives centralize banner and header rendering:
 
 These composables are defined in `core/src/main/java/org/openmrs/android/fhir/ui/components/HeaderComponents.kt` and are hosted from `MainActivity` via `ComposeView` to keep existing navigation and toolbar scaffolding intact.
 
+# Patient list row
+
+`PatientListItemRow` lives in `core/src/main/java/org/openmrs/android/fhir/ui/components/PatientRowComponents.kt` and replaces
+`patient_list_item_view.xml` inside `PatientItemRecyclerViewAdapter`. The composable preserves the sync indicator, name label, and
+age/gender chip while exposing test tags (`PatientSyncIcon`, `PatientName`, and `PatientAgeGender`) for Compose UI assertions. The
+adapter now hosts the composable inside a `ComposeView`, keeping the existing fragment and navigation setup unchanged.
+
+# Identifier and location rows
+
+`IdentifierTypeListItemRow` and `LocationListItemRow` also live in
+`core/src/main/java/org/openmrs/android/fhir/ui/components/PatientRowComponents.kt`. The identifier row keeps the checkmark and
+required-state styling from `identifier_type_item_view.xml`, while the location row mirrors the favorite star and selection highlight
+from `location_list_item_view.xml`. Both are hosted via `ComposeView` in their respective adapters so fragments can remain unchanged
+while Compose UI tests target the exposed test tags (`IdentifierTypeIcon`, `IdentifierTypeName`, `LocationListItem`, and
+`LocationFavorite`).
+
+# Additional list rows
+
+- Patient details rows now use Compose equivalents: `PatientPropertyRow` for patient properties/observations/conditions, `PatientDetailsHeaderRow` for section headers, `PatientUnsyncedCard` for the unsynced banner, and `EncounterListItemRow`/`VisitListItemRow` for encounters and visits.
+- Selection and sync history screens now host `PatientSelectableRow`, `SelectPatientListItemRow`, `SyncSessionRow`, and the unsynced resource rows (`UnsyncedPatientRow`, `UnsyncedEncounterRow`, `UnsyncedObservationRow`) to mirror their original XML styling while remaining in RecyclerView-based flows.
+
+# Patient list row
+
+`PatientListItemRow` lives in `core/src/main/java/org/openmrs/android/fhir/ui/components/PatientRowComponents.kt` and replaces
+`patient_list_item_view.xml` inside `PatientItemRecyclerViewAdapter`. The composable preserves the sync indicator, name label, and
+age/gender chip while exposing test tags (`PatientSyncIcon`, `PatientName`, and `PatientAgeGender`) for Compose UI assertions. The
+adapter now hosts the composable inside a `ComposeView`, keeping the existing fragment and navigation setup unchanged.
+
+# Identifier and location rows
+
+`IdentifierTypeListItemRow` and `LocationListItemRow` also live in
+`core/src/main/java/org/openmrs/android/fhir/ui/components/PatientRowComponents.kt`. The identifier row keeps the checkmark and
+required-state styling from `identifier_type_item_view.xml`, while the location row mirrors the favorite star and selection highlight
+from `location_list_item_view.xml`. Both are hosted via `ComposeView` in their respective adapters so fragments can remain unchanged
+while Compose UI tests target the exposed test tags (`IdentifierTypeIcon`, `IdentifierTypeName`, `LocationListItem`, and
+`LocationFavorite`).
+
+# Additional list rows
+
+- Patient details rows now use Compose equivalents: `PatientPropertyRow` for patient properties/observations/conditions, `PatientDetailsHeaderRow` for section headers, `PatientUnsyncedCard` for the unsynced banner, and `EncounterListItemRow`/`VisitListItemRow` for encounters and visits.
+- Selection and sync history screens now host `PatientSelectableRow`, `SelectPatientListItemRow`, `SyncSessionRow`, and the unsynced resource rows (`UnsyncedPatientRow`, `UnsyncedEncounterRow`, `UnsyncedObservationRow`) to mirror their original XML styling while remaining in RecyclerView-based flows.
+
+# Patient list row
+
+`PatientListItemRow` lives in `core/src/main/java/org/openmrs/android/fhir/ui/components/PatientRowComponents.kt` and replaces
+`patient_list_item_view.xml` inside `PatientItemRecyclerViewAdapter`. The composable preserves the sync indicator, name label, and
+age/gender chip while exposing test tags (`PatientSyncIcon`, `PatientName`, and `PatientAgeGender`) for Compose UI assertions. The
+adapter now hosts the composable inside a `ComposeView`, keeping the existing fragment and navigation setup unchanged.
+
+# Identifier and location rows
+
+`IdentifierTypeListItemRow` and `LocationListItemRow` also live in
+`core/src/main/java/org/openmrs/android/fhir/ui/components/PatientRowComponents.kt`. The identifier row keeps the checkmark and
+required-state styling from `identifier_type_item_view.xml`, while the location row mirrors the favorite star and selection highlight
+from `location_list_item_view.xml`. Both are hosted via `ComposeView` in their respective adapters so fragments can remain unchanged
+while Compose UI tests target the exposed test tags (`IdentifierTypeIcon`, `IdentifierTypeName`, `LocationListItem`, and
+`LocationFavorite`).
+
+# Additional list rows
+
+- Patient details rows now use Compose equivalents: `PatientPropertyRow` for patient properties/observations/conditions, `PatientDetailsHeaderRow` for section headers, `PatientUnsyncedCard` for the unsynced banner, and `EncounterListItemRow`/`VisitListItemRow` for encounters and visits.
+- Selection and sync history screens now host `PatientSelectableRow`, `SelectPatientListItemRow`, `SyncSessionRow`, and the unsynced resource rows (`UnsyncedPatientRow`, `UnsyncedEncounterRow`, `UnsyncedObservationRow`) to mirror their original XML styling while remaining in RecyclerView-based flows.
+
 ## Sync status utilities
 
 `SyncStatusLayout` mirrors `core/src/main/res/layout/sync_status_layout.xml` using Compose. It keeps the light-blue status row with grey icon/text, left-aligned percentage label, and in-card horizontal progress indicator using a `SyncStatusUiState` that distinguishes syncing, success, error, and idle states.

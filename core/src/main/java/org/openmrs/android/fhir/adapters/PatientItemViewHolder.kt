@@ -28,32 +28,29 @@
 */
 package org.openmrs.android.fhir.adapters
 
-import android.view.View
-import android.widget.ImageView
-import android.widget.TextView
+import androidx.compose.ui.platform.ComposeView
 import androidx.recyclerview.widget.RecyclerView
 import java.time.LocalDate
 import java.time.Period
-import org.openmrs.android.fhir.databinding.PatientListItemViewBinding
+import org.openmrs.android.fhir.ui.components.PatientListItemRow
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 
-class PatientItemViewHolder(binding: PatientListItemViewBinding) :
-  RecyclerView.ViewHolder(binding.root) {
-  private val statusView: ImageView = binding.status
-  private val nameView: TextView = binding.name
-  private val ageView: TextView = binding.fieldName
+class PatientItemViewHolder(private val composeView: ComposeView) :
+  RecyclerView.ViewHolder(composeView) {
 
   fun bindTo(
     patientItem: PatientListViewModel.PatientItem,
     onItemClicked: (PatientListViewModel.PatientItem) -> Unit,
   ) {
-    this.nameView.text = patientItem.name
-    this.ageView.text = getFormattedAge(patientItem) + "," + patientItem.gender[0].uppercase()
-    this.itemView.setOnClickListener { onItemClicked(patientItem) }
-    if (patientItem.isSynced != null && patientItem.isSynced!!) {
-      statusView.visibility = View.GONE
-    } else {
-      statusView.visibility = View.VISIBLE
+    composeView.setContent {
+      androidx.compose.material3.MaterialTheme {
+        PatientListItemRow(
+          name = patientItem.name,
+          ageGenderLabel = getFormattedAge(patientItem) + "," + patientItem.gender[0].uppercase(),
+          isSynced = patientItem.isSynced,
+          onClick = { onItemClicked(patientItem) },
+        )
+      }
     }
   }
 

@@ -26,33 +26,60 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.adapters
+package org.openmrs.android.fhir.ui.components
 
+import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.platform.ComposeView
-import androidx.recyclerview.widget.RecyclerView
-import org.openmrs.android.fhir.ui.components.LocationListItemRow
-import org.openmrs.android.fhir.viewmodel.LocationViewModel
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import org.junit.Rule
+import org.junit.Test
 
-class LocationItemViewHolder(private val composeView: ComposeView) :
-  RecyclerView.ViewHolder(composeView) {
+class IdentifierAndLocationRowTest {
+  @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
 
-  fun bindTo(
-    locationItem: LocationViewModel.LocationItem,
-    onItemClicked: (LocationViewModel.LocationItem, Boolean) -> Unit,
-    isFavorite: Boolean,
-    isSelected: Boolean,
-  ) {
-    composeView.setContent {
+  @Test
+  fun identifierRowShowsIconWhenSelectedOrRequired() {
+    composeRule.setContent {
+      MaterialTheme {
+        IdentifierTypeListItemRow(name = "National ID", isRequired = false, isSelected = true)
+      }
+    }
+
+    composeRule.onNodeWithTag("IdentifierTypeIcon").assertIsDisplayed()
+    composeRule.onNodeWithTag("IdentifierTypeName").assertIsDisplayed()
+  }
+
+  @Test
+  fun identifierRowHidesIconWhenOptionalAndUnselected() {
+    composeRule.setContent {
+      MaterialTheme {
+        IdentifierTypeListItemRow(name = "National ID", isRequired = false, isSelected = false)
+      }
+    }
+
+    composeRule.onNodeWithTag("IdentifierTypeIcon").assertIsNotDisplayed()
+  }
+
+  @Test
+  fun locationRowRendersFavoriteState() {
+    composeRule.setContent {
       MaterialTheme {
         LocationListItemRow(
-          name = locationItem.name,
-          isFavorite = isFavorite,
-          isSelected = isSelected,
-          onFavoriteClick = { onItemClicked(locationItem, true) },
-          onClick = { onItemClicked(locationItem, false) },
+          name = "Test Location",
+          isFavorite = true,
+          isSelected = true,
+          onFavoriteClick = {},
+          onClick = {},
         )
       }
     }
+
+    composeRule.onNodeWithTag("LocationListItem").assertIsDisplayed()
+    composeRule.onNodeWithTag("LocationFavorite").assertIsDisplayed()
+    composeRule.onNodeWithText("Test Location").assertIsDisplayed()
   }
 }

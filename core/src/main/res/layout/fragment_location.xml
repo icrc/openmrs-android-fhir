@@ -281,7 +281,6 @@
             android:background="@color/white"
             android:scrollbars="vertical"
             app:layoutManager="LinearLayoutManager"
-            tools:listitem="@layout/location_list_item_view"
         />
 
         <androidx.appcompat.widget.LinearLayoutCompat
@@ -301,7 +300,6 @@
             android:background="@color/white"
             android:scrollbars="vertical"
             app:layoutManager="LinearLayoutManager"
-            tools:listitem="@layout/location_list_item_view"
         />
 
         <com.google.android.material.button.MaterialButton

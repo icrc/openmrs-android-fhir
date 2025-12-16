@@ -172,9 +172,16 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
 
     val locationRecyclerView: RecyclerView = binding.locationRecyclerView
     val favoriteLocationRecyclerView: RecyclerView = binding.locationFavoriteRecylcerView
-    locationAdapter = LocationItemRecyclerViewAdapter(this::onLocationItemClicked, false)
+    locationAdapter =
+      LocationItemRecyclerViewAdapter(
+        this::onLocationItemClicked,
+        locationViewModel.favoriteLocationSet ?: emptySet(),
+      )
     favoriteLocationAdapter =
-      LocationItemRecyclerViewAdapter(this::onFavoriteLocationItemClicked, true)
+      LocationItemRecyclerViewAdapter(
+        this::onFavoriteLocationItemClicked,
+        locationViewModel.favoriteLocationSet ?: emptySet(),
+      )
     locationRecyclerView.adapter = locationAdapter
     favoriteLocationRecyclerView.adapter = favoriteLocationAdapter
 
@@ -185,6 +192,8 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
       binding.progressBar.visibility = View.GONE
       binding.emptyStateContainer.visibility = if (it.isEmpty()) View.VISIBLE else View.GONE
       if (::locationAdapter.isInitialized && ::favoriteLocationAdapter.isInitialized) {
+        locationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
+        favoriteLocationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
         locationAdapter.submitList(locationViewModel.getLocationsListFiltered())
         favoriteLocationAdapter.submitList(locationViewModel.getFavoriteLocationsList())
       }
@@ -196,11 +205,13 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
   private fun showSyncTasksScreen() {
     binding.syncTasksContainer.visibility = View.VISIBLE
     binding.locationContainer.visibility = View.GONE
+    binding.actionButton.visibility = View.GONE
   }
 
   private fun showLocationScreen() {
     binding.syncTasksContainer.visibility = View.GONE
     binding.locationContainer.visibility = View.VISIBLE
+    binding.actionButton.visibility = if (fromLogin) View.VISIBLE else View.GONE
   }
 
   private fun onLocationItemClicked(
@@ -214,6 +225,8 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
           preferences[PreferenceKeys.FAVORITE_LOCATIONS] =
             locationViewModel.favoriteLocationSet as Set<String>
           if (::favoriteLocationAdapter.isInitialized && ::locationAdapter.isInitialized) {
+            favoriteLocationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
+            locationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
             favoriteLocationAdapter.submitList(locationViewModel.getFavoriteLocationsList())
             locationAdapter.submitList(locationViewModel.getLocationsListFiltered())
           }
@@ -292,6 +305,8 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
           preferences[PreferenceKeys.FAVORITE_LOCATIONS] =
             locationViewModel.favoriteLocationSet as Set<String>
           if (::favoriteLocationAdapter.isInitialized && ::locationAdapter.isInitialized) {
+            favoriteLocationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
+            locationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
             favoriteLocationAdapter.submitList(locationViewModel.getFavoriteLocationsList())
             locationAdapter.submitList(locationViewModel.getLocationsListFiltered())
           }
