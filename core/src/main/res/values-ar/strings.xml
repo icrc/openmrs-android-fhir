@@ -256,6 +256,18 @@
     <string
         name="please_complete_the_required_fields_first"
     >يرجى إكمال الحقول المطلوبة أولاً!</string>
+    <string name="incomplete_form_dialog_title">نموذج غير مكتمل</string>
+    <string
+        name="required_questions_missing_dialog_message"
+    >بعض الأسئلة المطلوبة غير مكتملة. هل تريد المتابعة دون إكمالها؟</string>
+    <string name="continue_without_completing">متابعة</string>
+    <string name="stay_on_current_patient">البقاء على هذا المريض</string>
+    <string
+        name="incomplete_patients_dialog_title"
+    >المرضى بحاجة إلى الانتباه</string>
+    <string
+        name="incomplete_patients_dialog_message"
+    >اختر مريضًا أدناه لمعالجة الإجابات الناقصة. سيتم حظر الإرسال حتى يكتمل الجميع.</string>
     <string name="encounter_saved_for_patient">تواجه %1$s حفظ</string>
     <string name="encounter_updated">مواجهة تحديث!</string>
     <string
@@ -457,6 +469,7 @@
         name="removed_patient_list_from_sync"
     >تمت إزالة قائمة المرضى من المزامنة</string>
     <string name="location_updated">تم تحديث الموقع</string>
+    <string name="discard">تجاهل</string>
 
 
 </resources>

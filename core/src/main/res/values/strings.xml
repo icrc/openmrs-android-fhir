@@ -64,6 +64,7 @@
     <string name="resume_session">Resume session</string>
     <string name="start_new_session">Start new session</string>
     <string name="save_as_draft">Save as draft</string>
+    <string name="discard">Discard</string>
     <string name="submit_all">Submit all</string>
     <string name="draft_saved">Draft saved.</string>
     <string
@@ -331,6 +332,18 @@
     <string
         name="please_complete_the_required_fields_first"
     >Please complete the required fields first!</string>
+    <string name="incomplete_form_dialog_title">Incomplete form</string>
+    <string
+        name="required_questions_missing_dialog_message"
+    >Some required questions are incomplete. Do you want to continue without completing them?</string>
+    <string name="continue_without_completing">Continue</string>
+    <string name="stay_on_current_patient">Stay on this patient</string>
+    <string
+        name="incomplete_patients_dialog_title"
+    >Patients need attention</string>
+    <string
+        name="incomplete_patients_dialog_message"
+    >Select a patient below to resolve missing responses. Submission is blocked until all are complete.</string>
     <string name="encounter_saved_for_patient">Encounter for %1$s saved</string>
     <string name="encounter_updated">Encounter updated!</string>
     <string
