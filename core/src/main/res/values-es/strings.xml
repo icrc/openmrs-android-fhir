@@ -288,6 +288,18 @@
     <string
         name="please_complete_the_required_fields_first"
     >¡Por favor, completa los campos obligatorios primero!</string>
+    <string name="incomplete_form_dialog_title">Formulario incompleto</string>
+    <string
+        name="required_questions_missing_dialog_message"
+    >Algunas preguntas obligatorias están incompletas. ¿Desea continuar sin completarlas?</string>
+    <string name="continue_without_completing">Continuar</string>
+    <string name="stay_on_current_patient">Permanecer en este paciente</string>
+    <string
+        name="incomplete_patients_dialog_title"
+    >Los pacientes necesitan atención</string>
+    <string
+        name="incomplete_patients_dialog_message"
+    >Seleccione un paciente abajo para resolver las respuestas faltantes. El envío se bloquea hasta que todos estén completos.</string>
     <string
         name="encounter_saved_for_patient"
     >Consulta de %1$s guardada</string>
@@ -514,6 +526,7 @@
     <string name="completed_at_with_value">Completado a las: %1$s</string>
     <string name="errors_with_count">Errores: %1$d</string>
     <string name="delete">Eliminar</string>
+    <string name="discard">Descartar</string>
 
 
 </resources>

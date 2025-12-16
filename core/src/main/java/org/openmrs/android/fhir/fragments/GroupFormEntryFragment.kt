@@ -29,8 +29,10 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
@@ -298,6 +300,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
 
     try {
       viewModel.patientResponses[patientId] = parser.encodeResourceToString(response)
+      updatePatientValidationIndicator(patientId, response)
       if (persist) {
         viewModel.saveDraft(args.questionnaireId, patientIds)
       }
@@ -341,7 +344,15 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         val builder = AlertDialog.Builder(it)
         builder.apply {
           setMessage(getString(R.string.cancel_questionnaire_message))
-          setPositiveButton(getString(android.R.string.yes)) { _, _ ->
+          setPositiveButton(getString(android.R.string.cancel)) { _, _ -> }
+          setNegativeButton(getString(R.string.save_as_draft)) { _, _ ->
+            lifecycleScope.launch {
+              saveDraft(showToast = true)
+              viewModel.clearActiveSession()
+              NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
+            }
+          }
+          setNeutralButton(getString(R.string.discard)) { _, _ ->
             lifecycleScope.launch {
               viewModel.deleteDraft(args.questionnaireId)
               viewModel.clearSessionState()
@@ -350,14 +361,6 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
               NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
             }
           }
-          setNeutralButton(getString(R.string.save_as_draft)) { _, _ ->
-            lifecycleScope.launch {
-              saveDraft(showToast = true)
-              viewModel.clearActiveSession()
-              NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
-            }
-          }
-          setNegativeButton(getString(android.R.string.no)) { _, _ -> }
         }
         builder.create()
       }
@@ -416,7 +419,9 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     binding.patientTabLayout.removeAllTabs() // Clear existing tabs before adding new ones
 
     for (patient in patients) {
-      binding.patientTabLayout.addTab(binding.patientTabLayout.newTab().setText(patient.name))
+      val tab = binding.patientTabLayout.newTab()
+      tab.customView = createTabView(patient.name)
+      binding.patientTabLayout.addTab(tab)
     }
 
     // Set up tab selection listener
@@ -434,34 +439,30 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
             return
           }
 
+          // Immediately restore the previous tab selection to prevent visual jumps
+          revertToTab(previousTabPosition)
+
           // Validate the previous tab before switching
           lifecycleScope.launch {
-            val canSwitchTab = validateCurrentForm(previousTabPosition)
+            val hasValidationErrors = validateCurrentForm(previousTabPosition)
+            val patientId = viewModel.patients.value?.get(previousTabPosition)?.resourceId
+            if (!patientId.isNullOrBlank()) {
+              updateTabIndicatorState(previousTabPosition, hasValidationErrors)
+            }
 
-            if (canSwitchTab) {
-              // Allow tab switch
-              currentSelectedTabPosition = newTabPosition
-              loadQuestionnaireForTab(newTabPosition)
+            if (!hasValidationErrors) {
+              switchToTab(newTabPosition)
             } else {
-              // Prevent tab switch - revert to previous tab
-              isTabChanging = true
-              binding.patientTabLayout.selectTab(
-                binding.patientTabLayout.getTabAt(previousTabPosition),
+              showIncompleteFormDialog(
+                onContinue = { switchToTab(newTabPosition) },
+                onStay = { /* keep current tab */},
               )
-              isTabChanging = false
-
-              // Show validation error message
-              Toast.makeText(
-                  requireContext(),
-                  getString(R.string.please_complete_the_required_fields_first),
-                  Toast.LENGTH_SHORT,
-                )
-                .show()
             }
           }
         }
 
         override fun onTabUnselected(tab: TabLayout.Tab) {
+          if (isTabChanging) return
           val selectedTab = tab.position
           val patientId = viewModel.patients.value?.get(selectedTab)?.resourceId
           lifecycleScope.launch { cacheCurrentPatientResponse(patientId) }
@@ -472,16 +473,75 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         }
       },
     )
+
+    lifecycleScope.launch { refreshTabValidationIndicators() }
+  }
+
+  private fun createTabView(patientName: String, showIndicator: Boolean = false): View {
+    val tabView =
+      LayoutInflater.from(requireContext())
+        .inflate(R.layout.patient_tab_item, binding.patientTabLayout, false)
+    tabView.findViewById<TextView>(R.id.patient_tab_title)?.text = patientName
+    tabView.findViewById<View>(R.id.patient_tab_indicator)?.visibility =
+      if (showIndicator) View.VISIBLE else View.GONE
+    return tabView
+  }
+
+  private fun updateTabIndicatorState(tabPosition: Int, hasErrors: Boolean) {
+    val tab = binding.patientTabLayout.getTabAt(tabPosition) ?: return
+    val patientName = viewModel.patients.value?.getOrNull(tabPosition)?.name
+    val tabView =
+      (tab.customView ?: createTabView(patientName.orEmpty(), hasErrors)).also { customView ->
+        customView.findViewById<TextView>(R.id.patient_tab_title)?.text = patientName
+        customView.findViewById<View>(R.id.patient_tab_indicator)?.visibility =
+          if (hasErrors) View.VISIBLE else View.GONE
+      }
+    tab.customView = tabView
+  }
+
+  private suspend fun updatePatientValidationIndicator(
+    patientId: String,
+    questionnaireResponse: QuestionnaireResponse,
+  ) {
+    val questionnaire = genericFormEntryViewModel.questionnaire.value ?: return
+    val hasValidationErrors =
+      !viewModel.isValidQuestionnaireResponse(
+        questionnaire,
+        questionnaireResponse,
+        requireContext(),
+      )
+    val tabPosition = viewModel.patients.value?.indexOfFirst { it.resourceId == patientId } ?: -1
+    if (tabPosition >= 0) {
+      withContext(Dispatchers.Main) { updateTabIndicatorState(tabPosition, hasValidationErrors) }
+    }
+  }
+
+  private suspend fun refreshTabValidationIndicators() {
+    val questionnaire = genericFormEntryViewModel.questionnaire.value ?: return
+    val patients = viewModel.patients.value.orEmpty()
+    patients.forEachIndexed { index, patient ->
+      val responseJson = viewModel.patientResponses[patient.resourceId] ?: return@forEachIndexed
+      try {
+        val response =
+          parser.parseResource(QuestionnaireResponse::class.java, responseJson)
+            as QuestionnaireResponse
+        val hasValidationErrors =
+          !viewModel.isValidQuestionnaireResponse(questionnaire, response, requireContext())
+        withContext(Dispatchers.Main) { updateTabIndicatorState(index, hasValidationErrors) }
+      } catch (exception: Exception) {
+        Timber.e(exception.localizedMessage)
+      }
+    }
   }
 
   private suspend fun validateCurrentForm(tabPosition: Int): Boolean {
-    val patientId = viewModel.patients.value?.get(tabPosition)?.resourceId ?: return true
+    val patientId = viewModel.patients.value?.get(tabPosition)?.resourceId ?: return false
 
     val questionnaireFragment =
       childFragmentManager.findFragmentByTag(
         QUESTIONNAIRE_FRAGMENT_TAG + patientId,
       ) as? QuestionnaireFragment
-        ?: return true
+        ?: return false
 
     val questionnaireResponse =
       safeQuestionnaireResponse(questionnaireFragment)
@@ -489,13 +549,50 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
           parser.parseResource(QuestionnaireResponse::class.java, savedResponse)
             as QuestionnaireResponse
         }
-          ?: return true
+          ?: return false
     cacheCurrentPatientResponse(patientId, questionnaireResponse)
-    return viewModel.isValidQuestionnaireResponse(
-      genericFormEntryViewModel.questionnaire.value!!,
-      questionnaireResponse,
-      requireContext(),
-    )
+
+    val questionnaire = genericFormEntryViewModel.questionnaire.value ?: return false
+    val hasValidationErrors =
+      !viewModel.isValidQuestionnaireResponse(
+        questionnaire,
+        questionnaireResponse,
+        requireContext(),
+      )
+    updateTabIndicatorState(tabPosition, hasValidationErrors)
+    return hasValidationErrors
+  }
+
+  private fun switchToTab(tabPosition: Int) {
+    val newTab = binding.patientTabLayout.getTabAt(tabPosition) ?: return
+    isTabChanging = true
+    binding.patientTabLayout.selectTab(newTab)
+    isTabChanging = false
+    currentSelectedTabPosition = tabPosition
+    loadQuestionnaireForTab(tabPosition)
+  }
+
+  private fun revertToTab(previousTabPosition: Int) {
+    val previousTab = binding.patientTabLayout.getTabAt(previousTabPosition) ?: return
+    isTabChanging = true
+    binding.patientTabLayout.selectTab(previousTab)
+    isTabChanging = false
+  }
+
+  private fun showIncompleteFormDialog(
+    onContinue: () -> Unit,
+    onStay: () -> Unit,
+  ) {
+    val message = getString(R.string.required_questions_missing_dialog_message)
+
+    AlertDialog.Builder(requireContext())
+      .setTitle(getString(R.string.incomplete_form_dialog_title))
+      .setMessage(message)
+      .setPositiveButton(getString(R.string.continue_without_completing)) { _, _ -> onContinue() }
+      .setNegativeButton(getString(R.string.stay_on_current_patient)) { _, _ -> onStay() }
+      .setCancelable(false)
+      .create()
+      .show()
   }
 
   private fun loadQuestionnaireForTab(tabPosition: Int) {
@@ -530,38 +627,28 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         return@launch
       }
 
-      val missingPatient =
-        patients.firstOrNull { patient ->
-          viewModel.patientResponses[patient.resourceId].isNullOrBlank()
-        }
-      if (missingPatient != null) {
-        viewModel.isLoading.value = false
-        Toast.makeText(
-            requireContext(),
-            getString(R.string.inputs_missing_for_patient) + " ${missingPatient.name}",
-            Toast.LENGTH_SHORT,
-          )
-          .show()
-        return@launch
-      }
-
+      val patientsWithIssues = mutableListOf<PatientListViewModel.PatientItem>()
       for (patient in patients) {
-        val responseJson = viewModel.patientResponses[patient.resourceId] ?: continue
+        val responseJson = viewModel.patientResponses[patient.resourceId]
+        if (responseJson.isNullOrBlank()) {
+          patientsWithIssues.add(patient)
+          continue
+        }
+
         val response =
           parser.parseResource(QuestionnaireResponse::class.java, responseJson)
             as QuestionnaireResponse
-        val isValid =
-          viewModel.isValidQuestionnaireResponse(questionnaire, response, requireContext())
-        if (!isValid) {
-          viewModel.isLoading.value = false
-          Toast.makeText(
-              requireContext(),
-              getString(R.string.inputs_missing_for_patient) + " ${patient.name}",
-              Toast.LENGTH_SHORT,
-            )
-            .show()
-          return@launch
+        val hasValidationErrors =
+          !viewModel.isValidQuestionnaireResponse(questionnaire, response, requireContext())
+        if (hasValidationErrors) {
+          patientsWithIssues.add(patient)
         }
+      }
+
+      if (patientsWithIssues.isNotEmpty()) {
+        viewModel.isLoading.value = false
+        showIncompletePatientsDialog(patientsWithIssues)
+        return@launch
       }
 
       viewModel.submittedPatientIds.clear()
@@ -590,6 +677,26 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         }
       }
     }
+  }
+
+  private fun showIncompletePatientsDialog(patients: List<PatientListViewModel.PatientItem>) {
+    val patientNames = patients.map { it.name }.toTypedArray()
+
+    AlertDialog.Builder(requireContext())
+      .setTitle(getString(R.string.incomplete_patients_dialog_title))
+      .setMessage(getString(R.string.incomplete_patients_dialog_message))
+      .setItems(patientNames) { dialog, which ->
+        val patientId = patients[which].resourceId
+        val tabIndex = viewModel.patients.value?.indexOfFirst { it.resourceId == patientId } ?: -1
+        if (tabIndex >= 0) {
+          binding.patientTabLayout.getTabAt(tabIndex)?.select()
+        }
+        dialog.dismiss()
+      }
+      .setPositiveButton(android.R.string.ok, null)
+      .setCancelable(true)
+      .create()
+      .show()
   }
 
   private fun observeResourcesSaveAction() {
@@ -714,6 +821,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
           )
         }
       }
+      lifecycleScope.launch { refreshTabValidationIndicators() }
     }
   }
 
