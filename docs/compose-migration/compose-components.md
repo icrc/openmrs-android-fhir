@@ -7,6 +7,18 @@ New Compose primitives centralize banner and header rendering:
 
 These composables are defined in `core/src/main/java/org/openmrs/android/fhir/ui/components/HeaderComponents.kt` and are hosted from `MainActivity` via `ComposeView` to keep existing navigation and toolbar scaffolding intact.
 
+## Compose patient selection dialog
+
+`PatientSelectionDialogContent` replaces `dialog_patient_selection.xml` with a Compose-driven dialog surface that still lives
+inside `PatientSelectionDialogFragment`. The fragment now uses a `ComposeView` to render the dialog contents and manages
+selection state through Compose callbacks rather than RecyclerView adapters or layout inflation.
+
+Key behaviors:
+
+* The `Select all` checkbox is derived from `PatientSelectionUiState` and only enabled when the patient list is non-empty.
+* Row selection is handled by the `SelectablePatientRow` composable, which is reused for every patient and exposes stable test tags for UI tests.
+* Navigation continues through the fragment’s `onStartEncounter` handler; callers only need to navigate to the dialog destination—no extra inflation code is required.
+
 # Patient list row
 
 `PatientListItemRow` lives in `core/src/main/java/org/openmrs/android/fhir/ui/components/PatientRowComponents.kt` and replaces

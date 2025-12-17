@@ -218,6 +218,14 @@ constructor(private val applicationContext: Context, private val fhirEngine: Fhi
   }
 }
 
+internal fun filterSelectedIdsForPatients(
+  patients: List<PatientListViewModel.PatientItem>,
+  selectedIds: Set<String>,
+): Set<String> {
+  val validIds = patients.map { it.resourceId }.toSet()
+  return selectedIds.filter { it in validIds }.toSet()
+}
+
 internal fun Patient.toPatientItem(position: Int): PatientListViewModel.PatientItem {
   // Show nothing if no values available for gender and date of birth.
   val patientId = if (hasIdElement()) idElement.idPart else ""
