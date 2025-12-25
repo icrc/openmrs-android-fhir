@@ -7,6 +7,14 @@ New Compose primitives centralize banner and header rendering:
 
 These composables are defined in `core/src/main/java/org/openmrs/android/fhir/ui/components/HeaderComponents.kt` and are hosted from `MainActivity` via `ComposeView` to keep existing navigation and toolbar scaffolding intact.
 
+## Compose list containers
+
+`SwipeRefreshListContainer` and the `PatientListContainerScreen`/`ObservationListContainerScreen` wrappers live in
+`core/src/main/java/org/openmrs/android/fhir/ui/components/ListContainerComponents.kt`. These composables mirror the
+RecyclerView-only list containers from `patient_list_view.xml` and `observation_list_view.xml` while adding Compose
+pull-to-refresh support. Each container exposes stable test tags for UI assertions (`PatientList`, `ObservationList`,
+`ListEmptyState`, `ListLoadingIndicator`, and `ListRefreshIndicator`).
+
 ## Compose patient selection dialog
 
 `PatientSelectionDialogContent` replaces `dialog_patient_selection.xml` with a Compose-driven dialog surface that still lives

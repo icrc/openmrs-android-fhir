@@ -2,7 +2,6 @@ import com.android.build.api.dsl.VariantDimension
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 val composeBomVersion: String by project
-val composeCompilerExtensionVersion: String by project
 val navigationVersion = "2.9.6"
 
 plugins {
@@ -69,7 +68,6 @@ android {
     compose = true
     viewBinding = true
   }
-  composeOptions { kotlinCompilerExtensionVersion = composeCompilerExtensionVersion }
   compileOptions {
     // Flag to enable support for the new language APIs
     // See https://developer.android.com/studio/write/java8-support

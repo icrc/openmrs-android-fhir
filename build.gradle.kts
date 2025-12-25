@@ -9,7 +9,7 @@ buildscript {
   }
   dependencies {
     classpath("com.android.tools.build:gradle:8.9.1")
-    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0")
+    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.0")
     classpath("com.google.gms:google-services:4.4.2")
     classpath("com.diffplug.spotless:spotless-plugin-gradle:6.21.0")
     classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.9.0")
@@ -22,9 +22,9 @@ buildscript {
 }
 
 plugins {
-  id("com.google.devtools.ksp") version "2.0.0-1.0.21" apply false
-  id("org.jetbrains.kotlin.android") version "2.0.0" apply false
-  id("org.jetbrains.kotlin.plugin.compose") version "2.0.0" apply false
+  id("com.google.devtools.ksp") version "2.2.21-2.0.4" apply false
+  id("org.jetbrains.kotlin.android") version "2.2.21" apply false
+  id("org.jetbrains.kotlin.plugin.compose") version "2.2.21" apply false
 }
 
 allprojects {

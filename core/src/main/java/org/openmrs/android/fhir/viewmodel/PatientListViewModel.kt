@@ -28,9 +28,10 @@
 */
 package org.openmrs.android.fhir.viewmodel
 
-import android.content.Context
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.Order
@@ -40,7 +41,10 @@ import com.google.android.fhir.search.search
 import java.time.LocalDate
 import java.time.ZoneOffset
 import javax.inject.Inject
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Patient
@@ -52,22 +56,35 @@ import timber.log.Timber
  * The ViewModel helper class for PatientItemRecyclerViewAdapter, that is responsible for preparing
  * data for UI.
  */
-class PatientListViewModel
-@Inject
-constructor(private val applicationContext: Context, private val fhirEngine: FhirEngine) :
-  ViewModel() {
+class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngine) : ViewModel() {
 
   val liveSearchedPatients = MutableLiveData<List<PatientItem>>()
   val patientCount = MutableLiveData<Long>()
 
-  val isLoading = MutableLiveData<Boolean>()
+  private val _isLoading = MutableStateFlow(false)
+  val isLoadingFlow: StateFlow<Boolean> = _isLoading.asStateFlow()
+  val isLoading: LiveData<Boolean> = isLoadingFlow.asLiveData()
+
+  private val _isRefreshing = MutableStateFlow(false)
+  val isRefreshingFlow: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
   init {
+    loadPatients()
+  }
+
+  fun loadPatients() {
     updatePatientListAndPatientCount({ getSearchResults() }, { count() })
   }
 
+  fun refreshPatients() {
+    updatePatientListAndPatientCount({ getSearchResults(refreshing = true) }, { count() })
+  }
+
   fun searchPatientsByName(nameQuery: String) {
-    updatePatientListAndPatientCount({ getSearchResults(nameQuery) }, { count(nameQuery) })
+    updatePatientListAndPatientCount(
+      { getSearchResults(nameQuery = nameQuery) },
+      { count(nameQuery) },
+    )
   }
 
   /**
@@ -106,8 +123,15 @@ constructor(private val applicationContext: Context, private val fhirEngine: Fhi
   /*
    * Fetches Patient list
    */
-  private suspend fun getSearchResults(nameQuery: String = ""): List<PatientItem> {
-    isLoading.value = true
+  private suspend fun getSearchResults(
+    nameQuery: String = "",
+    refreshing: Boolean = false,
+  ): List<PatientItem> {
+    if (refreshing) {
+      _isRefreshing.update { true }
+    } else {
+      _isLoading.update { true }
+    }
     val patients: MutableList<PatientItem> = mutableListOf()
     fhirEngine
       .search<Patient> {
@@ -139,7 +163,11 @@ constructor(private val applicationContext: Context, private val fhirEngine: Fhi
         patient.risk = it.prediction?.first()?.qualitativeRisk?.coding?.first()?.code
       }
     }
-    isLoading.value = false
+    if (refreshing) {
+      _isRefreshing.update { false }
+    } else {
+      _isLoading.update { false }
+    }
     return patients
   }
 
@@ -235,7 +263,7 @@ internal fun Patient.toPatientItem(position: Int): PatientListViewModel.PatientI
     if (hasBirthDateElement()) {
       try {
         birthDateElement.value.toInstant().atOffset(ZoneOffset.UTC).toLocalDate()
-      } catch (e: Exception) {
+      } catch (_: Exception) {
         Timber.e("${birthDateElement.valueAsString} can't be parsed")
         null
       }

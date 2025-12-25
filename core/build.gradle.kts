@@ -1,5 +1,4 @@
 val composeBomVersion: String by project
-val composeCompilerExtensionVersion: String by project
 
 plugins {
   id("com.android.library")
@@ -7,7 +6,6 @@ plugins {
   id("androidx.navigation.safeargs.kotlin")
   id("com.google.devtools.ksp")
   id("maven-publish")
-  id("kotlin-kapt")
   id("org.jetbrains.kotlin.plugin.compose")
 }
 
@@ -24,7 +22,6 @@ android {
     compose = true
     viewBinding = true
   }
-  composeOptions { kotlinCompilerExtensionVersion = composeCompilerExtensionVersion }
   buildTypes {
     release {
       isMinifyEnabled = false
@@ -109,8 +106,7 @@ object Versions {
   const val work = "2.9.1"
   const val material = "1.12.0"
   const val retrofitVersion = "2.9.0"
-  const val kotlinStdlibJdk7 = "1.9.22"
-  const val room = "2.6.1"
+  const val room = "2.8.4"
   const val junit = "4.13.2"
   const val coreTesting = "2.2.0"
   const val androidXTest = "1.6.1"
@@ -120,7 +116,7 @@ object Versions {
   const val coroutineTest = "1.8.1"
   const val mockito = "4.0.0"
   const val mockitoKotlin = "4.0.0"
-  const val daggerVersion = "2.51.1"
+  const val daggerVersion = "2.57.2"
   const val eventBus = "3.3.1"
   const val moshi = "1.14.0"
   const val loggingInterceptor = "5.0.0-alpha.2"
@@ -139,6 +135,7 @@ dependencies {
   implementation("androidx.appcompat:appcompat:${Versions.appcompat}")
   implementation("androidx.constraintlayout:constraintlayout:${Versions.constraintlayout}")
   implementation("androidx.compose.material3:material3")
+  implementation("androidx.compose.material:material")
   implementation("androidx.compose.runtime:runtime")
   implementation("androidx.compose.runtime:runtime-livedata")
   implementation("androidx.compose.ui:ui")
@@ -162,7 +159,6 @@ dependencies {
   implementation("org.greenrobot:eventbus:${Versions.eventBus}")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.coroutines}")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
-  implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${Versions.kotlinStdlibJdk7}")
   implementation("com.jakewharton.timber:timber:${Versions.timber}")
   implementation("net.openid:appauth:${Versions.appauth}")
   implementation("com.auth0.android:jwtdecode:${Versions.jwtdecode}")
@@ -173,7 +169,7 @@ dependencies {
   implementation("androidx.room:room-runtime:${Versions.room}")
   implementation("androidx.room:room-ktx:${Versions.room}")
   ksp("androidx.room:room-compiler:${Versions.room}")
-
+  //
   androidTestImplementation(composeBom)
 
   androidTestImplementation("junit:junit:${Versions.junit}")
@@ -202,5 +198,6 @@ dependencies {
 
   // Dependency injection
   implementation("com.google.dagger:dagger:${Versions.daggerVersion}")
-  kapt("com.google.dagger:dagger-compiler:${Versions.daggerVersion}")
+  ksp("com.google.dagger:dagger-compiler:${Versions.daggerVersion}")
+  testImplementation(kotlin("test"))
 }
