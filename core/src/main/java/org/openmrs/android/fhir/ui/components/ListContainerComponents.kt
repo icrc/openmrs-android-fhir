@@ -31,14 +31,13 @@ package org.openmrs.android.fhir.ui.components
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 
 object ListContainerTestTags {
-  const val ObservationList = "ObservationList"
   const val PatientList = "PatientList"
   const val EmptyState = "ListEmptyState"
   const val LoadingIndicator = "ListLoadingIndicator"
@@ -135,36 +133,6 @@ fun PatientListContainerScreen(
     listTestTag = ListContainerTestTags.PatientList,
     emptyContent = emptyContent,
     itemKey = { it.resourceId },
-    itemContent = itemContent,
-  )
-}
-
-@Composable
-fun ObservationListContainerScreen(
-  observations: List<PatientListViewModel.ObservationItem>,
-  isLoading: Boolean,
-  isRefreshing: Boolean,
-  onRefresh: () -> Unit,
-  modifier: Modifier = Modifier,
-  emptyContent: @Composable (() -> Unit) = {
-    Text(
-      modifier = Modifier.testTag(ListContainerTestTags.EmptyState),
-      text = "No observations found",
-      style = MaterialTheme.typography.bodyMedium,
-    )
-  },
-  itemContent: @Composable (PatientListViewModel.ObservationItem) -> Unit,
-) {
-  SwipeRefreshListContainer(
-    items = observations,
-    isLoading = isLoading,
-    isRefreshing = isRefreshing,
-    onRefresh = onRefresh,
-    modifier = modifier,
-    listModifier = Modifier.padding(horizontal = 16.dp),
-    listTestTag = ListContainerTestTags.ObservationList,
-    emptyContent = emptyContent,
-    itemKey = { it.id },
     itemContent = itemContent,
   )
 }

@@ -51,7 +51,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.invisibleToUser
+import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -84,8 +84,6 @@ fun PatientListItemRow(
           contentDescription = stringResource(id = R.string.description_status),
           tint = MaterialTheme.colorScheme.error,
         )
-      } else {
-        Spacer(modifier = Modifier.size(20.dp))
       }
 
       Spacer(modifier = Modifier.width(12.dp))
@@ -96,7 +94,7 @@ fun PatientListItemRow(
       )
       Spacer(modifier = Modifier.width(12.dp))
       Text(
-        modifier = Modifier.testTag("PatientAgeGender"),
+        modifier = Modifier.testTag("PatientAgeGender").padding(end = 8.dp),
         text = ageGenderLabel,
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -165,7 +163,7 @@ fun IdentifierTypeListItemRow(
         )
       } else {
         // Keep a tagged node for testing while preventing the icon from being laid out/visible.
-        Box(modifier = iconModifier.size(0.dp).semantics { invisibleToUser() })
+        Box(modifier = iconModifier.size(0.dp).semantics { hideFromAccessibility() })
       }
     }
   }

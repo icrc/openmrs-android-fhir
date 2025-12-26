@@ -9,10 +9,10 @@ These composables are defined in `core/src/main/java/org/openmrs/android/fhir/ui
 
 ## Compose list containers
 
-`SwipeRefreshListContainer` and the `PatientListContainerScreen`/`ObservationListContainerScreen` wrappers live in
+`SwipeRefreshListContainer` and the `PatientListContainerScreen` wrapper live in
 `core/src/main/java/org/openmrs/android/fhir/ui/components/ListContainerComponents.kt`. These composables mirror the
-RecyclerView-only list containers from `patient_list_view.xml` and `observation_list_view.xml` while adding Compose
-pull-to-refresh support. Each container exposes stable test tags for UI assertions (`PatientList`, `ObservationList`,
+RecyclerView-only list container from `patient_list_view.xml` while adding Compose
+pull-to-refresh support. Each container exposes stable test tags for UI assertions (`PatientList`,
 `ListEmptyState`, `ListLoadingIndicator`, and `ListRefreshIndicator`).
 
 ## Compose patient selection dialog

@@ -35,7 +35,6 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import org.junit.Rule
 import org.junit.Test
-import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 
 class ListContainerComponentsTest {
   @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
@@ -76,16 +75,8 @@ class ListContainerComponentsTest {
   fun showsRefreshIndicatorWhenRefreshing() {
     composeRule.setContent {
       MaterialTheme {
-        ObservationListContainerScreen(
-          observations =
-            listOf(
-              PatientListViewModel.ObservationItem(
-                id = "1",
-                code = "BP",
-                effective = "Today",
-                value = "120/80",
-              ),
-            ),
+        PatientListContainerScreen(
+          patients = emptyList(),
           isLoading = false,
           isRefreshing = true,
           onRefresh = {},
