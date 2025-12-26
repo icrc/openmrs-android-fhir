@@ -15,6 +15,20 @@ RecyclerView-only list container from `patient_list_view.xml` while adding Compo
 pull-to-refresh support. Each container exposes stable test tags for UI assertions (`PatientList`,
 `ListEmptyState`, `ListLoadingIndicator`, and `ListRefreshIndicator`).
 
+Screens hosting Compose list containers:
+
+* `PatientListFragment` uses `PatientListContainerScreen` inside `FragmentPatientListBinding.patientListContainer`. It wires
+  `patients` from `patientListViewModel.liveSearchedPatients`, `isLoading` from `isLoadingFlow`, and `isRefreshing` from
+  `isRefreshingFlow`, while `onRefresh` invokes `patientListViewModel.refreshPatients()`. The `emptyContent` slot supplies
+  the custom empty state copy and illustration.
+
+Relevant test tags and coverage:
+
+* Test tags: `ListContainerTestTags.PatientList`, `ListContainerTestTags.EmptyState`, `ListContainerTestTags.LoadingIndicator`,
+  and `ListContainerTestTags.RefreshIndicator`.
+* Instrumentation coverage: `core/src/androidTest/java/org/openmrs/android/fhir/ui/components/ListContainerComponentsTest.kt`
+  and `core/src/androidTest/java/org/openmrs/android/fhir/ui/patient/PatientListContainerScreenTest.kt`.
+
 ## Compose patient selection dialog
 
 `PatientSelectionDialogContent` replaces `dialog_patient_selection.xml` with a Compose-driven dialog surface that still lives
