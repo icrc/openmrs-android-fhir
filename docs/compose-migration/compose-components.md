@@ -59,7 +59,7 @@ while Compose UI tests target the exposed test tags (`IdentifierTypeIcon`, `Iden
 
 # Additional list rows
 
-- Patient details rows now use Compose equivalents: `PatientPropertyRow` for patient properties/observations/conditions, `PatientDetailsHeaderRow` for section headers, `PatientUnsyncedCard` for the unsynced banner, and `EncounterListItemRow`/`VisitListItemRow` for encounters and visits.
+- Patient details rows now use Compose equivalents: `PatientDetailsOverviewHeader` for the patient summary header, `PatientPropertyRow` for patient properties/observations/conditions, `PatientDetailsHeaderRow` for section headers, `PatientUnsyncedCard` for the unsynced banner, and `EncounterListItemRow`/`VisitListItemRow` for encounters and visits.
 - Selection and sync history screens now host `PatientSelectableRow`, `SelectPatientListItemRow`, `SyncSessionRow`, and the unsynced resource rows (`UnsyncedPatientRow`, `UnsyncedEncounterRow`, `UnsyncedObservationRow`) to mirror their original XML styling while remaining in RecyclerView-based flows.
 
 # Patient list row
@@ -80,7 +80,7 @@ while Compose UI tests target the exposed test tags (`IdentifierTypeIcon`, `Iden
 
 # Additional list rows
 
-- Patient details rows now use Compose equivalents: `PatientPropertyRow` for patient properties/observations/conditions, `PatientDetailsHeaderRow` for section headers, `PatientUnsyncedCard` for the unsynced banner, and `EncounterListItemRow`/`VisitListItemRow` for encounters and visits.
+- Patient details rows now use Compose equivalents: `PatientDetailsOverviewHeader` for the patient summary header, `PatientPropertyRow` for patient properties/observations/conditions, `PatientDetailsHeaderRow` for section headers, `PatientUnsyncedCard` for the unsynced banner, and `EncounterListItemRow`/`VisitListItemRow` for encounters and visits.
 - Selection and sync history screens now host `PatientSelectableRow`, `SelectPatientListItemRow`, `SyncSessionRow`, and the unsynced resource rows (`UnsyncedPatientRow`, `UnsyncedEncounterRow`, `UnsyncedObservationRow`) to mirror their original XML styling while remaining in RecyclerView-based flows.
 
 # Patient list row
@@ -101,7 +101,7 @@ while Compose UI tests target the exposed test tags (`IdentifierTypeIcon`, `Iden
 
 # Additional list rows
 
-- Patient details rows now use Compose equivalents: `PatientPropertyRow` for patient properties/observations/conditions, `PatientDetailsHeaderRow` for section headers, `PatientUnsyncedCard` for the unsynced banner, and `EncounterListItemRow`/`VisitListItemRow` for encounters and visits.
+- Patient details rows now use Compose equivalents: `PatientDetailsOverviewHeader` for the patient summary header, `PatientPropertyRow` for patient properties/observations/conditions, `PatientDetailsHeaderRow` for section headers, `PatientUnsyncedCard` for the unsynced banner, and `EncounterListItemRow`/`VisitListItemRow` for encounters and visits.
 - Selection and sync history screens now host `PatientSelectableRow`, `SelectPatientListItemRow`, `SyncSessionRow`, and the unsynced resource rows (`UnsyncedPatientRow`, `UnsyncedEncounterRow`, `UnsyncedObservationRow`) to mirror their original XML styling while remaining in RecyclerView-based flows.
 
 ## Sync status utilities

@@ -51,7 +51,6 @@ import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.FhirEngine
 import java.util.*
 import javax.inject.Inject
-import kotlin.getValue
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.FhirApplication
@@ -101,7 +100,6 @@ class PatientDetailsFragment : Fragment() {
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     val adapter =
       PatientDetailsRecyclerViewAdapter(
-        ::onCreateEncounterClick,
         ::onEditEncounterClick,
         ::onEditVisitClick,
       )
@@ -174,13 +172,13 @@ class PatientDetailsFragment : Fragment() {
     DatePickerDialog(
         requireContext(),
         { _, selectedYear, selectedMonth, selectedDayOfMonth ->
-          calendar.set(selectedYear, selectedMonth, selectedDayOfMonth)
+          calendar[selectedYear, selectedMonth] = selectedDayOfMonth
 
           TimePickerDialog(
               requireContext(),
               { _, selectedHourOfDay, selectedMinute ->
-                calendar.set(Calendar.HOUR_OF_DAY, selectedHourOfDay)
-                calendar.set(Calendar.MINUTE, selectedMinute)
+                calendar[Calendar.HOUR_OF_DAY] = selectedHourOfDay
+                calendar[Calendar.MINUTE] = selectedMinute
 
                 val selectedDateTime = calendar.time
 
@@ -196,16 +194,16 @@ class PatientDetailsFragment : Fragment() {
                   navigateToCreateEncounter()
                 }
               },
-              calendar.get(Calendar.HOUR_OF_DAY),
-              calendar.get(Calendar.MINUTE),
+              calendar[Calendar.HOUR_OF_DAY],
+              calendar[Calendar.MINUTE],
               true,
             )
             .apply { setTitle("Select time for the visit") }
             .show()
         },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH),
+        calendar[Calendar.YEAR],
+        calendar[Calendar.MONTH],
+        calendar[Calendar.DAY_OF_MONTH],
       )
       .apply {
         setTitle("Start a new visit?")
@@ -216,7 +214,6 @@ class PatientDetailsFragment : Fragment() {
 
   private fun onEditEncounterClick(
     encounterId: String,
-    formDisplay: String,
     encounterType: String,
   ) {
     findNavController()

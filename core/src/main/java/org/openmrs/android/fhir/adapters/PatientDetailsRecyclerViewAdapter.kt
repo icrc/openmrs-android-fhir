@@ -28,22 +28,18 @@
 */
 package org.openmrs.android.fhir.adapters
 
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.databinding.PatientDetailsHeaderBinding
 import org.openmrs.android.fhir.ui.components.EncounterListItemRow
 import org.openmrs.android.fhir.ui.components.PatientDetailsHeaderRow
+import org.openmrs.android.fhir.ui.components.PatientDetailsOverviewHeader
 import org.openmrs.android.fhir.ui.components.PatientPropertyRow
 import org.openmrs.android.fhir.ui.components.PatientUnsyncedCard
 import org.openmrs.android.fhir.ui.components.VisitListItemRow
@@ -58,8 +54,7 @@ import org.openmrs.android.fhir.viewmodel.PatientDetailVisit
 import org.openmrs.android.fhir.viewmodel.PatientUnsynced
 
 class PatientDetailsRecyclerViewAdapter(
-  private val onCreateEncountersClick: () -> Unit,
-  private val onEditEncounterClick: (String, String, String) -> Unit,
+  private val onEditEncounterClick: (String, String) -> Unit,
   private val onEditVisitClick: (String) -> Unit,
 ) :
   ListAdapter<PatientDetailData, PatientDetailItemViewHolder>(
@@ -70,86 +65,28 @@ class PatientDetailsRecyclerViewAdapter(
     return when (PatientDetailsVisitItemViewHolder.ViewTypes.from(viewType)) {
       PatientDetailsVisitItemViewHolder.ViewTypes.HEADER ->
         PatientDetailsHeaderItemViewHolder(
-          ComposeView(parent.context).apply {
-            layoutParams =
-              ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-              )
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-          },
+          createComposeView(parent),
         )
       PatientDetailsVisitItemViewHolder.ViewTypes.PATIENT ->
-        PatientOverviewItemViewHolder(
-          PatientDetailsHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-          onCreateEncountersClick,
-        )
+        PatientOverviewItemViewHolder(createComposeView(parent))
       PatientDetailsVisitItemViewHolder.ViewTypes.PATIENT_UNSYNCED ->
-        PatientDetailsUnsyncedItemViewHolder(
-          ComposeView(parent.context).apply {
-            layoutParams =
-              ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-              )
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-          },
-        )
+        PatientDetailsUnsyncedItemViewHolder(createComposeView(parent))
       PatientDetailsVisitItemViewHolder.ViewTypes.PATIENT_PROPERTY ->
-        PatientPropertyItemViewHolder(
-          ComposeView(parent.context).apply {
-            layoutParams =
-              ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-              )
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-          },
-        )
+        PatientPropertyItemViewHolder(createComposeView(parent))
       PatientDetailsVisitItemViewHolder.ViewTypes.OBSERVATION ->
-        PatientDetailsObservationItemViewHolder(
-          ComposeView(parent.context).apply {
-            layoutParams =
-              ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-              )
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-          },
-        )
+        PatientDetailsObservationItemViewHolder(createComposeView(parent))
       PatientDetailsVisitItemViewHolder.ViewTypes.CONDITION ->
         PatientDetailsVisitItemViewHolder.PatientDetailsConditionItemViewHolder(
-          ComposeView(parent.context).apply {
-            layoutParams =
-              ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-              )
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-          },
+          createComposeView(parent),
         )
       PatientDetailsVisitItemViewHolder.ViewTypes.ENCOUNTER ->
         PatientDetailsEncounterItemViewHolder(
-          ComposeView(parent.context).apply {
-            layoutParams =
-              ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-              )
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-          },
+          createComposeView(parent),
           onEditEncounterClick,
         )
       PatientDetailsVisitItemViewHolder.ViewTypes.VISIT ->
         PatientDetailsVisitItemViewHolder(
-          ComposeView(parent.context).apply {
-            layoutParams =
-              ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-              )
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-          },
+          createComposeView(parent),
           onEditVisitClick,
         )
     }
@@ -176,139 +113,193 @@ class PatientDetailsRecyclerViewAdapter(
       }
     }.ordinal
   }
+
+  private fun createComposeView(parent: ViewGroup): ComposeView {
+    return ComposeView(parent.context).apply {
+      layoutParams =
+        ViewGroup.LayoutParams(
+          ViewGroup.LayoutParams.MATCH_PARENT,
+          ViewGroup.LayoutParams.WRAP_CONTENT,
+        )
+      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+    }
+  }
 }
 
 abstract class PatientDetailItemViewHolder(v: View) : RecyclerView.ViewHolder(v) {
   abstract fun bind(data: PatientDetailData)
 }
 
-class PatientOverviewItemViewHolder(
-  private val binding: PatientDetailsHeaderBinding,
-  val onCreateEncountersClick: () -> Unit,
-) : PatientDetailItemViewHolder(binding.root) {
-  override fun bind(data: PatientDetailData) {
-    (data as PatientDetailOverview).let {
-      binding.title.text = it.patient.name
-      binding.identifiersContainer.removeAllViews()
-      it.patient.identifiers.forEach { identifier ->
-        if (!identifier.type?.text.equals("unsynced")) {
-          val textView =
-            TextView(binding.root.context).apply {
-              layoutParams =
-                LinearLayout.LayoutParams(
-                  LinearLayout.LayoutParams.WRAP_CONTENT,
-                  LinearLayout.LayoutParams.WRAP_CONTENT,
-                )
-              textSize = 16f
-              typeface = ResourcesCompat.getFont(context, R.font.inter)
-              text = "${identifier.type.text}: ${identifier.value}"
-            }
-          binding.identifiersContainer.addView(textView)
+class PatientOverviewItemViewHolder(composeView: ComposeView) :
+  PatientDetailItemViewHolder(composeView) {
+  private val overviewState = mutableStateOf<PatientDetailOverview?>(null)
+
+  init {
+    composeView.setContent {
+      MaterialTheme {
+        overviewState.value?.let { overview ->
+          PatientDetailsOverviewHeader(
+            name = overview.patient.name,
+            identifiers = overview.patient.identifiers,
+          )
         }
       }
     }
   }
+
+  override fun bind(data: PatientDetailData) {
+    overviewState.value = data as PatientDetailOverview
+  }
 }
 
-class PatientPropertyItemViewHolder(private val composeView: ComposeView) :
+class PatientPropertyItemViewHolder(composeView: ComposeView) :
   PatientDetailItemViewHolder(composeView) {
-  override fun bind(data: PatientDetailData) {
-    val property = data as PatientDetailProperty
+  private val propertyState = mutableStateOf<PatientDetailProperty?>(null)
+
+  init {
     composeView.setContent {
       MaterialTheme {
-        PatientPropertyRow(
-          header = property.patientProperty.header,
-          value = property.patientProperty.value,
-          showSyncIcon = true,
-        )
+        propertyState.value?.let { property ->
+          PatientPropertyRow(
+            header = property.patientProperty.header,
+            value = property.patientProperty.value,
+            showSyncIcon = true,
+          )
+        }
       }
     }
   }
-}
 
-class PatientDetailsHeaderItemViewHolder(private val composeView: ComposeView) :
-  PatientDetailItemViewHolder(composeView) {
   override fun bind(data: PatientDetailData) {
-    val header = (data as PatientDetailHeader).header
-    composeView.setContent { MaterialTheme { PatientDetailsHeaderRow(title = header) } }
+    propertyState.value = data as PatientDetailProperty
   }
 }
 
-class PatientDetailsUnsyncedItemViewHolder(private val composeView: ComposeView) :
+class PatientDetailsHeaderItemViewHolder(composeView: ComposeView) :
   PatientDetailItemViewHolder(composeView) {
+  private val headerState = mutableStateOf("")
+
+  init {
+    composeView.setContent { MaterialTheme { PatientDetailsHeaderRow(title = headerState.value) } }
+  }
+
   override fun bind(data: PatientDetailData) {
+    headerState.value = (data as PatientDetailHeader).header
+  }
+}
+
+class PatientDetailsUnsyncedItemViewHolder(composeView: ComposeView) :
+  PatientDetailItemViewHolder(composeView) {
+  init {
     composeView.setContent { MaterialTheme { PatientUnsyncedCard() } }
   }
+
+  override fun bind(data: PatientDetailData) {
+    // No-op: static card content.
+  }
 }
 
-class PatientDetailsObservationItemViewHolder(private val composeView: ComposeView) :
+class PatientDetailsObservationItemViewHolder(composeView: ComposeView) :
   PatientDetailItemViewHolder(composeView) {
-  override fun bind(data: PatientDetailData) {
-    val observation = (data as PatientDetailObservation).observation
+  private val observationState = mutableStateOf<PatientDetailObservation?>(null)
+
+  init {
     composeView.setContent {
       MaterialTheme {
-        PatientPropertyRow(
-          header = observation.code,
-          value = observation.value,
-          showSyncIcon = true,
-        )
+        observationState.value?.let { observation ->
+          PatientPropertyRow(
+            header = observation.observation.code,
+            value = observation.observation.value,
+            showSyncIcon = true,
+          )
+        }
       }
     }
+  }
+
+  override fun bind(data: PatientDetailData) {
+    observationState.value = data as PatientDetailObservation
   }
 }
 
 class PatientDetailsEncounterItemViewHolder(
-  private val composeView: ComposeView,
-  private val onEditEncounterClick: (String, String, String) -> Unit,
+  composeView: ComposeView,
+  private val onEditEncounterClick: (String, String) -> Unit,
 ) : PatientDetailItemViewHolder(composeView) {
-  override fun bind(data: PatientDetailData) {
-    val encounter = (data as PatientDetailEncounter).encounter
+  private val encounterState = mutableStateOf<PatientDetailEncounter?>(null)
+
+  init {
     composeView.setContent {
       MaterialTheme {
-        EncounterListItemRow(
-          encounterType = encounter.type,
-          encounterDate = encounter.dateTime,
-          showSyncIcon = encounter.isSynced?.not() ?: true,
-          onTitleClick = {
-            onEditEncounterClick(
-              encounter.encounterId ?: "",
-              encounter.formDisplay ?: "",
-              encounter.encounterType ?: "",
-            )
-          },
-        )
+        encounterState.value?.let { encounter ->
+          EncounterListItemRow(
+            encounterType = encounter.encounter.type,
+            encounterDate = encounter.encounter.dateTime,
+            showSyncIcon = encounter.encounter.isSynced?.not() ?: true,
+            onTitleClick = {
+              val currentEncounter = encounterState.value?.encounter
+              if (currentEncounter != null) {
+                onEditEncounterClick(
+                  currentEncounter.encounterId ?: "",
+                  currentEncounter.encounterType ?: "",
+                )
+              }
+            },
+          )
+        }
       }
     }
+  }
+
+  override fun bind(data: PatientDetailData) {
+    encounterState.value = data as PatientDetailEncounter
   }
 }
 
 class PatientDetailsVisitItemViewHolder(
-  private val composeView: ComposeView,
+  composeView: ComposeView,
   private val onEditVisitClick: (String) -> Unit,
 ) : PatientDetailItemViewHolder(composeView) {
+  private val visitState = mutableStateOf<PatientDetailVisit?>(null)
 
-  override fun bind(data: PatientDetailData) {
-    val visit = (data as PatientDetailVisit).visit
+  init {
     composeView.setContent {
       MaterialTheme {
-        VisitListItemRow(
-          encounterType = visit.code,
-          encounterDate = visit.getPeriods(),
-          onDateClick = { onEditVisitClick(visit.id) },
-        )
+        visitState.value?.let { visit ->
+          VisitListItemRow(
+            encounterType = visit.visit.code,
+            encounterDate = visit.visit.getPeriods(),
+            onDateClick = { onEditVisitClick(visit.visit.id) },
+          )
+        }
       }
     }
   }
 
-  class PatientDetailsConditionItemViewHolder(private val composeView: ComposeView) :
+  override fun bind(data: PatientDetailData) {
+    visitState.value = data as PatientDetailVisit
+  }
+
+  class PatientDetailsConditionItemViewHolder(composeView: ComposeView) :
     PatientDetailItemViewHolder(composeView) {
-    override fun bind(data: PatientDetailData) {
-      val condition = (data as PatientDetailCondition).condition
+    private val conditionState = mutableStateOf<PatientDetailCondition?>(null)
+
+    init {
       composeView.setContent {
         MaterialTheme {
-          PatientPropertyRow(header = condition.code, value = condition.value, showSyncIcon = true)
+          conditionState.value?.let { condition ->
+            PatientPropertyRow(
+              header = condition.condition.code,
+              value = condition.condition.value,
+              showSyncIcon = true,
+            )
+          }
         }
       }
+    }
+
+    override fun bind(data: PatientDetailData) {
+      conditionState.value = data as PatientDetailCondition
     }
   }
 
@@ -325,7 +316,7 @@ class PatientDetailsVisitItemViewHolder(
 
     companion object {
       fun from(ordinal: Int): ViewTypes {
-        return values()[ordinal]
+        return entries[ordinal]
       }
     }
   }

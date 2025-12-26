@@ -29,6 +29,7 @@
 package org.openmrs.android.fhir.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -61,10 +62,13 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.hl7.fhir.r4.model.Identifier
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.SyncSession
 import org.openmrs.android.fhir.data.database.model.SyncStatus
@@ -143,6 +147,68 @@ fun PatientDetailsHeaderRow(title: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun PatientDetailsOverviewHeader(
+  name: String,
+  identifiers: List<Identifier>,
+  modifier: Modifier = Modifier,
+) {
+  val visibleIdentifiers =
+    identifiers.filterNot { identifier ->
+      identifier.type?.text?.equals("unsynced", ignoreCase = true) == true
+    }
+  Surface(
+    modifier =
+      modifier
+        .fillMaxWidth()
+        .padding(1.dp)
+        .padding(bottom = 12.dp)
+        .testTag("PatientDetailsOverviewHeader"),
+    color = colorResource(id = R.color.white),
+  ) {
+    Row(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Image(
+        modifier = Modifier.size(120.dp),
+        painter = painterResource(id = R.drawable.ic_user),
+        contentDescription = null,
+        colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color(0xFFF1F2F4)),
+      )
+      Column(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+      ) {
+        Text(
+          modifier = Modifier.testTag("PatientDetailsName"),
+          text = name,
+          fontSize = 26.sp,
+          fontFamily = FontFamily(Font(R.font.inter_semibold)),
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        visibleIdentifiers.forEach { identifier ->
+          val typeText = identifier.type?.text.orEmpty()
+          val valueText = identifier.value.orEmpty()
+          val label =
+            if (typeText.isNotBlank()) {
+              "$typeText: $valueText"
+            } else {
+              valueText
+            }
+          if (label.isNotBlank()) {
+            Text(
+              modifier = Modifier.testTag("PatientDetailsIdentifier"),
+              text = label,
+              fontSize = 16.sp,
+              fontFamily = FontFamily(Font(R.font.inter)),
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+@Composable
 fun PatientUnsyncedCard(modifier: Modifier = Modifier) {
   val backgroundColor = Color(0xFFfef3e6)
   val accentColor = Color(0xFFb16e1c)
@@ -217,23 +283,26 @@ fun VisitListItemRow(
 
 @Composable
 fun EncounterListItemRow(
+  modifier: Modifier = Modifier,
   encounterType: String,
   encounterDate: String,
   showSyncIcon: Boolean,
   onTitleClick: (() -> Unit)? = null,
-  modifier: Modifier = Modifier,
 ) {
   Surface(color = colorResource(id = R.color.white)) {
     Column(
       modifier = modifier.fillMaxWidth().padding(8.dp).testTag("EncounterListItemRow"),
     ) {
       Text(
-        modifier = Modifier.testTag("EncounterDate"),
+        modifier = Modifier.testTag("EncounterDate").padding(start = 20.dp),
         text = encounterDate,
         fontSize = 14.sp,
         color = Color.DarkGray,
       )
-      Row(verticalAlignment = Alignment.CenterVertically) {
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(start = 20.dp),
+      ) {
         if (showSyncIcon) {
           Icon(
             modifier = Modifier.size(20.dp).testTag("EncounterSyncIcon"),
