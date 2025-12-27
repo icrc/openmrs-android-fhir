@@ -28,20 +28,20 @@
 */
 package org.openmrs.android.fhir.adapters
 
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.TextView
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.UnsyncedEncounter
 import org.openmrs.android.fhir.data.database.model.UnsyncedObservation
 import org.openmrs.android.fhir.data.database.model.UnsyncedPatient
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
+import org.openmrs.android.fhir.ui.components.UnsyncedEncounterRow
+import org.openmrs.android.fhir.ui.components.UnsyncedObservationRow
+import org.openmrs.android.fhir.ui.components.UnsyncedPatientRow
 
 class UnsyncedResourcesAdapter(
   private val onTogglePatientExpand: (String) -> Unit,
@@ -67,22 +67,40 @@ class UnsyncedResourcesAdapter(
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
     return when (viewType) {
       VIEW_TYPE_PATIENT -> {
-        val view =
-          LayoutInflater.from(parent.context)
-            .inflate(R.layout.unsynced_patient_list_item_view, parent, false)
-        PatientViewHolder(view, onTogglePatientExpand, onDelete, onDownload)
+        val composeView =
+          ComposeView(parent.context).apply {
+            layoutParams =
+              ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+              )
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+          }
+        PatientViewHolder(composeView, onTogglePatientExpand, onDelete, onDownload)
       }
       VIEW_TYPE_ENCOUNTER -> {
-        val view =
-          LayoutInflater.from(parent.context)
-            .inflate(R.layout.unsynced_encounter_list_item_view, parent, false)
-        EncounterViewHolder(view, onToggleEncounterExpand, onDelete, onDownload)
+        val composeView =
+          ComposeView(parent.context).apply {
+            layoutParams =
+              ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+              )
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+          }
+        EncounterViewHolder(composeView, onToggleEncounterExpand, onDelete, onDownload)
       }
       VIEW_TYPE_OBSERVATION -> {
-        val view =
-          LayoutInflater.from(parent.context)
-            .inflate(R.layout.unsynced_observation_list_item_view, parent, false)
-        ObservationViewHolder(view, onDelete, onDownload)
+        val composeView =
+          ComposeView(parent.context).apply {
+            layoutParams =
+              ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+              )
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+          }
+        ObservationViewHolder(composeView, onDelete, onDownload)
       }
       else -> throw IllegalArgumentException("Invalid view type")
     }
@@ -98,101 +116,73 @@ class UnsyncedResourcesAdapter(
   }
 
   class PatientViewHolder(
-    itemView: View,
+    private val composeView: ComposeView,
     private val onToggleExpand: (String) -> Unit,
     private val onDelete: (UnsyncedResource) -> Unit,
     private val onDownload: (UnsyncedResource) -> Unit,
-  ) : RecyclerView.ViewHolder(itemView) {
-    private val tvPatientName: TextView = itemView.findViewById(R.id.tvPatientName)
-    private val ivExpandCollapse: ImageView = itemView.findViewById(R.id.ivExpandCollapse)
-    private val btnDeletePatient: ImageButton = itemView.findViewById(R.id.btnDeletePatient)
-    private val btnDownloadPatient: ImageButton = itemView.findViewById(R.id.btnDownloadPatient)
+  ) : RecyclerView.ViewHolder(composeView) {
 
     fun bind(patient: UnsyncedPatient) {
-      tvPatientName.text = patient.name
-
-      // Set expand/collapse icon
-      ivExpandCollapse.visibility =
-        if (patient.encounters.isNotEmpty()) View.VISIBLE else View.INVISIBLE
-
-      // Set click listeners
-      ivExpandCollapse.setOnClickListener { onToggleExpand(patient.logicalId) }
-
-      if (patient.isSynced) {
-        btnDeletePatient.setImageResource(R.drawable.ic_check_decagram_green)
-      } else {
-        btnDeletePatient.setOnClickListener { onDelete(UnsyncedResource.PatientItem(patient)) }
+      composeView.setContent {
+        MaterialTheme {
+          UnsyncedPatientRow(
+            name = patient.name,
+            onToggleExpand = {
+              if (patient.encounters.isNotEmpty()) onToggleExpand(patient.logicalId)
+            },
+            onDownload = { onDownload(UnsyncedResource.PatientItem(patient)) },
+            onDelete = { onDelete(UnsyncedResource.PatientItem(patient)) },
+            showExpand = patient.encounters.isNotEmpty(),
+            isSynced = patient.isSynced,
+          )
+        }
       }
-
-      btnDownloadPatient.setOnClickListener { onDownload(UnsyncedResource.PatientItem(patient)) }
     }
   }
 
   class EncounterViewHolder(
-    itemView: View,
+    private val composeView: ComposeView,
     private val onToggleExpand: (String) -> Unit,
     private val onDelete: (UnsyncedResource) -> Unit,
     private val onDownload: (UnsyncedResource) -> Unit,
-  ) : RecyclerView.ViewHolder(itemView) {
-    private val tvEncounterTitle: TextView = itemView.findViewById(R.id.tvEncounterTitle)
-    private val ivExpandCollapse: ImageView = itemView.findViewById(R.id.ivExpandCollapse)
-    private val btnDeleteEncounter: ImageButton = itemView.findViewById(R.id.btnDeleteEncounter)
-    private val btnDownloadEncounter: ImageButton = itemView.findViewById(R.id.btnDownloadEncounter)
+  ) : RecyclerView.ViewHolder(composeView) {
 
     fun bind(encounter: UnsyncedEncounter) {
-      tvEncounterTitle.text = encounter.title
-
-      ivExpandCollapse.visibility =
-        if (encounter.observations.isNotEmpty()) View.VISIBLE else View.INVISIBLE
-
-      // Set visibility based on whether there are observations
-      ivExpandCollapse.visibility =
-        if (encounter.observations.isNotEmpty()) View.VISIBLE else View.INVISIBLE
-
-      // Set click listeners
-      ivExpandCollapse.setOnClickListener {
-        if (encounter.observations.isNotEmpty()) {
-          onToggleExpand(encounter.logicalId)
+      composeView.setContent {
+        MaterialTheme {
+          UnsyncedEncounterRow(
+            title = encounter.title,
+            hasObservations = encounter.observations.isNotEmpty(),
+            onToggleExpand = {
+              if (encounter.observations.isNotEmpty()) {
+                onToggleExpand(encounter.logicalId)
+              }
+            },
+            onDownload = { onDownload(UnsyncedResource.EncounterItem(encounter)) },
+            onDelete = { onDelete(UnsyncedResource.EncounterItem(encounter)) },
+            isSynced = encounter.isSynced,
+          )
         }
-      }
-
-      if (encounter.isSynced) {
-        btnDeleteEncounter.setImageResource(R.drawable.ic_check_decagram_green)
-      } else {
-        btnDeleteEncounter.setOnClickListener {
-          onDelete(UnsyncedResource.EncounterItem(encounter))
-        }
-      }
-
-      btnDownloadEncounter.setOnClickListener {
-        onDownload(UnsyncedResource.EncounterItem(encounter))
       }
     }
   }
 
   class ObservationViewHolder(
-    itemView: View,
+    private val composeView: ComposeView,
     private val onDelete: (UnsyncedResource) -> Unit,
     private val onDownload: (UnsyncedResource) -> Unit,
-  ) : RecyclerView.ViewHolder(itemView) {
-    private val tvObservationTitle: TextView = itemView.findViewById(R.id.tvObservationTitle)
-    private val btnDeleteObservation: ImageButton = itemView.findViewById(R.id.btnDeleteObservation)
-    private val btnDownloadObservation: ImageButton =
-      itemView.findViewById(R.id.btnDownloadObservation)
+  ) : RecyclerView.ViewHolder(composeView) {
 
     fun bind(observation: UnsyncedObservation) {
-      tvObservationTitle.text = observation.title
-
-      if (observation.isSynced) {
-        btnDeleteObservation.setImageResource(R.drawable.ic_check_decagram_green)
-      } else {
-        btnDeleteObservation.setOnClickListener {
-          onDelete(UnsyncedResource.ObservationItem(observation))
+      composeView.setContent {
+        MaterialTheme {
+          UnsyncedObservationRow(
+            title = observation.title,
+            onDownload = { onDownload(UnsyncedResource.ObservationItem(observation)) },
+            onDelete = { onDelete(UnsyncedResource.ObservationItem(observation)) },
+            isSynced = observation.isSynced,
+          )
         }
-      }
-
-      btnDownloadObservation.setOnClickListener {
-        onDownload(UnsyncedResource.ObservationItem(observation))
       }
     }
   }

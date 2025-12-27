@@ -28,12 +28,12 @@
 */
 package org.openmrs.android.fhir.adapters
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import org.openmrs.android.fhir.data.database.model.IdentifierType
-import org.openmrs.android.fhir.databinding.IdentifierTypeItemViewBinding
 
 class IdentifierTypeRecyclerViewAdapter(
   private val onItemClicked: (IdentifierType, Boolean) -> Unit,
@@ -53,9 +53,16 @@ class IdentifierTypeRecyclerViewAdapter(
   }
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): IdentifierTypeViewHolder {
-    val binding =
-      IdentifierTypeItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-    return IdentifierTypeViewHolder(binding)
+    val composeView =
+      ComposeView(parent.context).apply {
+        layoutParams =
+          ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+          )
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+      }
+    return IdentifierTypeViewHolder(composeView)
   }
 
   override fun onBindViewHolder(holder: IdentifierTypeViewHolder, position: Int) {
