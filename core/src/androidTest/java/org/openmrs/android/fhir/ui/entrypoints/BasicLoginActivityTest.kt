@@ -26,43 +26,56 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.ui
+package org.openmrs.android.fhir.ui.entrypoints
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.openmrs.android.fhir.ui.components.DrawerHeader
-import org.openmrs.android.fhir.ui.components.NetworkStatusBanner
+import org.openmrs.android.fhir.BasicLoginActivity
+import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.extensions.AuthDialogs
+import org.openmrs.android.fhir.viewmodel.LoginUiState
 
 @RunWith(AndroidJUnit4::class)
-class NetworkBannerAndDrawerHeaderTest {
+class BasicLoginActivityTest {
 
-  @get:Rule val composeTestRule = createComposeRule()
+  @get:Rule val composeTestRule = createAndroidComposeRule<BasicLoginActivity>()
 
   @Test
-  fun networkBanner_updatesVisibilityAndText() {
-    val initialText = "Offline"
-    composeTestRule.setContent { NetworkStatusBanner(text = initialText) }
-
-    composeTestRule.onNodeWithTag("NetworkStatusBanner").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("NetworkStatusText").assertIsDisplayed()
-    composeTestRule.onNodeWithText(initialText).assertIsDisplayed()
+  fun basicLoginScreen_showsFormFields() {
+    composeTestRule.onNodeWithTag("BasicLoginScreen").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("BasicLoginUsername").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("BasicLoginPassword").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("BasicLoginButton").assertIsDisplayed()
   }
 
   @Test
-  fun drawerHeader_updatesVisibilityAndText() {
-    val lastSyncText = "Today 10:00"
-    val lastSyncLabel = "Last sync"
-    composeTestRule.setContent { DrawerHeader(label = lastSyncLabel, lastSyncValue = lastSyncText) }
-    composeTestRule.onNodeWithTag("DrawerHeader").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("DrawerHeaderLabel").assertIsDisplayed()
-    composeTestRule.onNodeWithText(lastSyncLabel).assertIsDisplayed()
-    composeTestRule.onNodeWithTag("DrawerHeaderValue").assertIsDisplayed()
-    composeTestRule.onNodeWithText(lastSyncText).assertIsDisplayed()
+  fun basicLoginScreen_showsProgressForLoading() {
+    composeTestRule.runOnUiThread {
+      composeTestRule.activity.setLoginUiStateForTest(LoginUiState.Loading)
+    }
+
+    composeTestRule.onNodeWithTag("BasicLoginProgress").assertIsDisplayed()
+  }
+
+  @Test
+  fun basicLoginFlow_displaysOfflineOptInDialog() {
+    val dialogState = composeTestRule.activity.dialogStateForTest
+    AuthDialogs.registerTestHost(dialogState)
+    composeTestRule.runOnUiThread {
+      composeTestRule.activity.setLoginUiStateForTest(LoginUiState.Success)
+    }
+    val title = composeTestRule.activity.getString(R.string.enable_offline_login_title)
+    composeTestRule.waitUntil(timeoutMillis = 5_000) {
+      composeTestRule.onAllNodesWithText(title).fetchSemanticsNodes().isNotEmpty()
+    }
+    composeTestRule.onNodeWithText(title).assertIsDisplayed()
+    AuthDialogs.clearTestHost()
   }
 }

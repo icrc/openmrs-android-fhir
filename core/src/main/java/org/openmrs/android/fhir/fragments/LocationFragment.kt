@@ -203,13 +203,16 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
   }
 
   private fun showSyncTasksScreen() {
-    binding.syncTasksContainer.visibility = View.VISIBLE
+    (activity as? MainActivity)?.showSyncTasksScreen(
+      headerTextResId = R.string.get_started,
+      showCloseButton = false,
+    )
     binding.locationContainer.visibility = View.GONE
     binding.actionButton.visibility = View.GONE
   }
 
   private fun showLocationScreen() {
-    binding.syncTasksContainer.visibility = View.GONE
+    (activity as? MainActivity)?.hideSyncTasksScreen()
     binding.locationContainer.visibility = View.VISIBLE
     binding.actionButton.visibility = if (fromLogin) View.VISIBLE else View.GONE
   }
@@ -259,8 +262,10 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
               if (it.inProgressSyncJob is SyncJobStatus.InProgress) {
                 val inProgressState = it.inProgressSyncJob as SyncJobStatus.InProgress
                 if (inProgressState.syncOperation == SyncOperation.DOWNLOAD) {
-                  binding.locationSyncProgressBar.progress = inProgressState.completed
-                  binding.locationSyncProgressBar.max = inProgressState.total
+                  (activity as? MainActivity)?.updateSyncProgress(
+                    current = inProgressState.completed,
+                    total = inProgressState.total,
+                  )
                 }
               }
             }

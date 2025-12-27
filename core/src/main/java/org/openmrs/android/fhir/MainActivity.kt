@@ -36,35 +36,41 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.MenuItem
 import android.view.View
-import android.view.View.OnFocusChangeListener
-import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.VisibleForTesting
-import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.graphics.drawable.DrawerArrowDrawable
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
-import androidx.core.view.GravityCompat
 import androidx.datastore.preferences.core.edit
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.findNavController
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.snackbar.Snackbar
 import java.io.File
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -82,7 +88,6 @@ import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.isServerReachable
-import org.openmrs.android.fhir.databinding.ActivityMainBinding
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.extensions.PermissionHelper
@@ -92,16 +97,15 @@ import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
 import org.openmrs.android.fhir.extensions.getApplicationLogs
 import org.openmrs.android.fhir.extensions.saveToFile
 import org.openmrs.android.fhir.extensions.showSnackBar
-import org.openmrs.android.fhir.ui.components.DrawerHeader
-import org.openmrs.android.fhir.ui.components.NetworkStatusBanner
+import org.openmrs.android.fhir.ui.screens.DrawerItem
+import org.openmrs.android.fhir.ui.screens.MainActivityScaffold
+import org.openmrs.android.fhir.ui.screens.SyncProgressState
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
 import org.openmrs.android.fhir.worker.SyncInfoDatabaseWriterWorker
 import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
-  private lateinit var binding: ActivityMainBinding
-  private lateinit var drawerToggle: ActionBarDrawerToggle
   private lateinit var authStateManager: AuthStateManager
   private var tokenExpiryHandler: Handler? = null
   private var tokenCheckRunnable: Runnable? = null
@@ -126,8 +130,23 @@ class MainActivity : AppCompatActivity() {
   private val viewModel by viewModels<MainActivityViewModel> { viewModelFactory }
   private val syncInfoViewModel by viewModels<SyncInfoViewModel> { viewModelFactory }
 
+  private val navHostFragmentId = View.generateViewId()
+  private var drawerState: DrawerState? = null
+  private var drawerScope: CoroutineScope? = null
+  private var toolbar: MaterialToolbar? = null
+
   private var networkStatusText by mutableStateOf("")
   private var lastSyncText by mutableStateOf("")
+  private var isNetworkStatusVisible by mutableStateOf(true)
+  private var drawerEnabledState by mutableStateOf(true)
+  private var isSyncTasksVisible by mutableStateOf(false)
+  private var syncProgressState by mutableStateOf(SyncProgressState(0, 0))
+  private var isLoading by mutableStateOf(false)
+  private var locationMenuTitle by mutableStateOf("")
+  private var versionMenuTitle by mutableStateOf("")
+  private var syncHeaderText by mutableStateOf("")
+  private var showSyncCloseButton by mutableStateOf(true)
+  private var hasHandledPostLoginNavigation = false
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -136,111 +155,236 @@ class MainActivity : AppCompatActivity() {
     )
     (this.application as FhirApplication).appComponent.inject(this)
     permissionHelper = permissionHelperFactory.create(this)
-    binding = ActivityMainBinding.inflate(layoutInflater)
     loginRepository = LoginRepository.getInstance(applicationContext)
     authStateManager = AuthStateManager.getInstance(applicationContext)
-    setContentView(binding.root)
     tokenExpiryHandler = Handler(Looper.getMainLooper())
     demoDataStore = DemoDataStore(this)
+    networkStatusText = getString(R.string.offline)
+    syncHeaderText = getString(R.string.syncing_patient_data)
+    setContent {
+      val activityContext = LocalContext.current
+      val drawerState = rememberDrawerState(DrawerValue.Closed)
+      val scope = androidx.compose.runtime.rememberCoroutineScope()
+      this.drawerState = drawerState
+      drawerScope = scope
+      val navController = rememberNavController()
+      val drawerItems =
+        androidx.compose.runtime.remember(locationMenuTitle, versionMenuTitle) {
+          buildDrawerItems(activityContext)
+        }
+
+      NavHost(navController = navController, startDestination = "main") {
+        composable("main") {
+          MainActivityScaffold(
+            drawerState = drawerState,
+            isDrawerEnabled = drawerEnabledState,
+            networkStatusText = networkStatusText,
+            isNetworkStatusVisible = isNetworkStatusVisible,
+            lastSyncText = lastSyncText,
+            drawerItems = drawerItems,
+            syncProgressState = syncProgressState,
+            syncHeaderText = syncHeaderText,
+            showSyncCloseButton = showSyncCloseButton,
+            isSyncTasksVisible = isSyncTasksVisible,
+            isLoading = isLoading,
+            navHostFragmentId = navHostFragmentId,
+            onDrawerItemSelected = ::onNavigationItemSelected,
+            onCloseSyncTasks = ::hideSyncTasksScreen,
+            onToolbarReady = ::configureToolbar,
+            ensureNavHost = ::ensureNavHost,
+          )
+        }
+      }
+    }
+    registerBackHandler()
     //    lifecycleScope.launch {
     // viewModel.initPeriodicSyncWorker(demoDataStore.getPeriodicSyncDelay()) } TODO: Discuss on
     // periodic sync
-    setupNetworkStatusBanner()
-    initActionBar()
-    initNavigationDrawer()
     observeNetworkConnection(this)
     observeLastSyncTime()
     observeSyncState()
     viewModel.updateLastSyncTimestamp()
     viewModel.triggerIdentifierTypeSync()
     observeSettings()
+    setLocationInDrawer()
   }
 
   override fun onResume() {
     super.onResume()
-    // If the user has not selected a location, redirects to the "select location" screen.
-    runBlocking {
-      val selectedLocationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
-      if (selectedLocationId == null) {
-        val bundle = Bundle().apply { putBoolean("from_login", true) }
-        binding.navHostFragment.findNavController().navigate(R.id.locationFragment, bundle)
+    lifecycleScope.launch {
+      if (!hasHandledPostLoginNavigation) {
+        val selectedLocationId =
+          applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+        if (selectedLocationId == null) {
+          showSyncTasksScreen(
+            headerTextResId = R.string.get_started,
+            showCloseButton = false,
+          )
+          waitForNavController()?.let { navController ->
+            if (navController.currentDestination?.id != R.id.locationFragment) {
+              val bundle = Bundle().apply { putBoolean("from_login", true) }
+              navController.navigate(R.id.locationFragment, bundle)
+              hasHandledPostLoginNavigation = true
+            }
+          }
+        }
       }
     }
-    // getting Root View that gets focus
-    val rootView = (findViewById<View>(android.R.id.content) as ViewGroup).getChildAt(0)
-    rootView.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
-      if (hasFocus) {
-        hideKeyboard(this@MainActivity)
-      }
-    }
+    currentFocus?.let { hideKeyboard(this@MainActivity, it) }
   }
 
-  private fun hideKeyboard(context: Activity) {
+  private fun hideKeyboard(context: Activity, focusView: View) {
     val inputMethodManager = context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-    inputMethodManager.hideSoftInputFromWindow(context.currentFocus!!.windowToken, 0)
+    inputMethodManager.hideSoftInputFromWindow(focusView.windowToken, 0)
   }
 
-  override fun onBackPressed() {
-    if (binding.drawer.isDrawerOpen(GravityCompat.START)) {
-      binding.drawer.closeDrawer(GravityCompat.START)
-      return
-    }
-    super.onBackPressed()
+  private fun registerBackHandler() {
+    onBackPressedDispatcher.addCallback(
+      this,
+      object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+          if (drawerState?.isOpen == true) {
+            drawerScope?.launch { drawerState?.close() }
+            return
+          }
+          lifecycleScope.launch {
+            val navController = waitForNavController()
+            val handled = navController?.popBackStack() ?: false
+            if (!handled) {
+              isEnabled = false
+              onBackPressedDispatcher.onBackPressed()
+              isEnabled = true
+            }
+          }
+        }
+      },
+    )
   }
 
   fun setDrawerEnabled(enabled: Boolean) {
-    val lockMode =
-      if (enabled) DrawerLayout.LOCK_MODE_UNLOCKED else DrawerLayout.LOCK_MODE_LOCKED_CLOSED
-    binding.drawer.setDrawerLockMode(lockMode)
-    drawerToggle.isDrawerIndicatorEnabled = enabled
+    drawerEnabledState = enabled
+    updateToolbarNavigationIcon()
   }
 
   fun openNavigationDrawer() {
-    binding.drawer.openDrawer(GravityCompat.START)
+    drawerScope?.launch { drawerState?.open() }
     viewModel.updateLastSyncTimestamp()
   }
 
-  private fun initActionBar() {
-    val toolbar = binding.toolbar
+  private fun closeNavigationDrawer() {
+    drawerScope?.launch { drawerState?.close() }
+  }
+
+  private fun configureToolbar(toolbar: MaterialToolbar) {
+    if (this.toolbar === toolbar) {
+      return
+    }
+    this.toolbar = toolbar
     setSupportActionBar(toolbar)
-  }
-
-  private fun setupNetworkStatusBanner() {
-    networkStatusText = getString(R.string.offline)
-    binding.networkStatusBanner.apply {
-      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-      setContent { NetworkStatusBanner(text = networkStatusText) }
+    updateToolbarNavigationIcon()
+    toolbar.setNavigationOnClickListener {
+      if (drawerEnabledState) {
+        openNavigationDrawer()
+      } else {
+        onBackPressedDispatcher.onBackPressed()
+      }
     }
   }
 
-  private fun setupDrawerHeader() {
-    val headerView = ComposeView(this)
-    headerView.setViewCompositionStrategy(
-      ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
+  private fun updateToolbarNavigationIcon() {
+    val drawable = DrawerArrowDrawable(this).apply { progress = if (drawerEnabledState) 0f else 1f }
+    toolbar?.navigationIcon = drawable
+    supportActionBar?.setDisplayHomeAsUpEnabled(true)
+  }
+
+  private fun buildDrawerItems(context: Context): List<DrawerItem> {
+    return listOf(
+      DrawerItem(
+        id = R.id.menu_sync,
+        iconRes = R.drawable.cloud_sync_24px,
+        title = context.getString(R.string.sync_menu),
+        testTag = "DrawerItemSync",
+      ),
+      DrawerItem(
+        id = R.id.menu_current_location,
+        iconRes = R.drawable.ic_location,
+        title =
+          if (locationMenuTitle.isNotBlank()) {
+            locationMenuTitle
+          } else {
+            context.getString(R.string.no_location_selected)
+          },
+        testTag = "DrawerItemLocation",
+      ),
+      DrawerItem(
+        id = R.id.menu_select_identifier,
+        iconRes = R.drawable.baseline_tag_24,
+        title = context.getString(R.string.select_identifier_types),
+        testTag = "DrawerItemIdentifier",
+      ),
+      DrawerItem(
+        id = R.id.menu_settings,
+        iconRes = R.drawable.baseline_settings_24,
+        title = context.getString(R.string.settings),
+        testTag = "DrawerItemSettings",
+      ),
+      DrawerItem(
+        id = R.id.menu_diagnostics,
+        iconRes = R.drawable.ic_diagnostics,
+        title = context.getString(R.string.send_diagnostics),
+        testTag = "DrawerItemDiagnostics",
+      ),
+      DrawerItem(
+        id = R.id.menu_logout,
+        iconRes = R.drawable.ic_logout,
+        title = context.getString(R.string.logout),
+        testTag = "DrawerItemLogout",
+      ),
+      DrawerItem(
+        id = R.id.menu_version,
+        iconRes = R.drawable.ic_version_24,
+        title =
+          if (versionMenuTitle.isNotBlank()) {
+            versionMenuTitle
+          } else {
+            context.getString(R.string.version)
+          },
+        testTag = "DrawerItemVersion",
+        enabled = false,
+      ),
     )
-    headerView.setContent {
-      DrawerHeader(label = getString(R.string.last_sync), lastSyncValue = lastSyncText)
+  }
+
+  private fun ensureNavHost(containerId: Int) {
+    val existing = supportFragmentManager.findFragmentById(containerId) as? NavHostFragment
+    if (existing == null) {
+      supportFragmentManager
+        .beginTransaction()
+        .replace(containerId, NavHostFragment.create(R.navigation.reference_nav_graph))
+        .commit()
     }
-    binding.navigationView.addHeaderView(headerView)
   }
 
-  private fun initNavigationDrawer() {
-    binding.navigationView.setNavigationItemSelectedListener(this::onNavigationItemSelected)
-    drawerToggle = ActionBarDrawerToggle(this, binding.drawer, R.string.open, R.string.close)
-    binding.drawer.addDrawerListener(drawerToggle)
-    drawerToggle.syncState()
-    setupDrawerHeader()
-    setLocationInDrawer()
+  private fun getNavController(): NavController? {
+    val navHost = supportFragmentManager.findFragmentById(navHostFragmentId) as? NavHostFragment
+    return navHost?.navController
   }
 
-  private fun checkNotificationPermission() {
-    permissionHelper.checkAndRequestNotificationPermission {}
+  private suspend fun waitForNavController(maxAttempts: Int = 50): NavController? {
+    repeat(maxAttempts) {
+      val controller = getNavController()
+      if (controller != null) {
+        return controller
+      }
+      delay(50)
+    }
+    return null
   }
 
   private fun setLocationInDrawer() {
     lifecycleScope.launch {
-      binding.navigationView.menu.findItem(R.id.menu_current_location).title =
-        applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.LOCATION_NAME)
+      locationMenuTitle =
+        applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_NAME]
           ?: getString(R.string.no_location_selected)
 
       val versionName =
@@ -250,17 +394,16 @@ class MainActivity : AppCompatActivity() {
         } catch (_: Exception) {
           "N/A"
         }
-
-      binding.navigationView.menu.findItem(R.id.menu_version).title = "App Version: $versionName"
+      versionMenuTitle = "App Version: $versionName"
     }
   }
 
   fun updateLocationName(locationName: String) {
-    binding.navigationView.menu.findItem(R.id.menu_current_location).title = locationName
+    locationMenuTitle = locationName
   }
 
-  private fun onNavigationItemSelected(item: MenuItem): Boolean {
-    when (item.itemId) {
+  private fun onNavigationItemSelected(itemId: Int) {
+    when (itemId) {
       R.id.menu_sync -> {
         onSyncPress()
       }
@@ -269,20 +412,19 @@ class MainActivity : AppCompatActivity() {
         showLogoutWarningDialog(connectivityState)
       }
       R.id.menu_settings -> {
-        findNavController(R.id.nav_host_fragment).navigate(R.id.settings_fragment)
+        getNavController()?.navigate(R.id.settings_fragment)
       }
       R.id.menu_diagnostics -> {
         showSendDiagnosticReportDialog()
       }
       R.id.menu_select_identifier -> {
-        findNavController(R.id.nav_host_fragment).navigate(R.id.identifierFragment)
+        getNavController()?.navigate(R.id.identifierFragment)
       }
       R.id.menu_current_location -> {
-        findNavController(R.id.nav_host_fragment).navigate(R.id.locationFragment)
+        getNavController()?.navigate(R.id.locationFragment)
       }
     }
-    binding.drawer.closeDrawer(GravityCompat.START)
-    return false
+    closeNavigationDrawer()
   }
 
   /*
@@ -304,7 +446,7 @@ class MainActivity : AppCompatActivity() {
                 selectedLocationId,
               )
             if (!isCurrentLocationValid) {
-              applicationContext?.dataStore?.edit { preferences ->
+              applicationContext.dataStore.edit { preferences ->
                 preferences.remove(PreferenceKeys.LOCATION_ID)
                 preferences.remove(PreferenceKeys.LOCATION_NAME)
               }
@@ -312,14 +454,14 @@ class MainActivity : AppCompatActivity() {
                 this@MainActivity,
                 getString(R.string.location_unassigned_select_location),
               )
-              binding.navHostFragment.findNavController().navigate(R.id.locationFragment)
+              getNavController()?.navigate(R.id.locationFragment)
             }
           }
         }*/
         checkNotificationPermission()
         val fetchIdentifiers = applicationContext.resources.getBoolean(R.bool.fetch_identifiers)
         viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers)
-        binding.drawer.closeDrawer(GravityCompat.START)
+        closeNavigationDrawer()
       }
       isTokenExpired() && connectivityState.isServerReachable() -> {
         showTokenExpiredDialog()
@@ -336,15 +478,25 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
-  fun showSyncTasksScreen() {
-    binding.syncTasksContainer.visibility = View.VISIBLE
-    binding.coordinatorLayoutContainer.visibility = View.GONE
-    binding.btnSyncTasks.setOnClickListener { hideSyncTasksScreen() }
+  private fun checkNotificationPermission() {
+    permissionHelper.checkAndRequestNotificationPermission {}
+  }
+
+  fun showSyncTasksScreen(
+    headerTextResId: Int = R.string.syncing_patient_data,
+    showCloseButton: Boolean = true,
+  ) {
+    syncHeaderText = getString(headerTextResId)
+    showSyncCloseButton = showCloseButton
+    isSyncTasksVisible = true
   }
 
   fun hideSyncTasksScreen() {
-    binding.syncTasksContainer.visibility = View.GONE
-    binding.coordinatorLayoutContainer.visibility = View.VISIBLE
+    isSyncTasksVisible = false
+  }
+
+  fun updateSyncProgress(current: Int, total: Int) {
+    syncProgressState = SyncProgressState(current = current, total = total)
   }
 
   private fun observeSyncState() {
@@ -353,8 +505,11 @@ class MainActivity : AppCompatActivity() {
 
       viewModel.inProgressSyncSession.observe(this@MainActivity) {
         if (it != null) {
-          binding.syncProgressBar.max = it.totalPatientsToDownload + it.totalPatientsToUpload
-          binding.syncProgressBar.progress = it.uploadedPatients + it.downloadedPatients
+          syncProgressState =
+            SyncProgressState(
+              current = it.uploadedPatients + it.downloadedPatients,
+              total = it.totalPatientsToDownload + it.totalPatientsToUpload,
+            )
         }
       }
 
@@ -569,8 +724,7 @@ class MainActivity : AppCompatActivity() {
 
     val pendingIntentSuccess = createPendingIntent(loginIntent, 0)
     val pendingIntentCancel = createPendingIntent(loginIntent, 1)
-    binding.loadingLayout.setBackgroundColor(getColor(R.color.white))
-    binding.progressBar.visibility = View.VISIBLE
+    isLoading = true
     showSnackBar(
       this@MainActivity,
       getString(R.string.logging_out),
@@ -578,7 +732,7 @@ class MainActivity : AppCompatActivity() {
     )
 
     lifecycleScope
-      .launch(Dispatchers.IO) { clearAppData() }
+      .launch(Dispatchers.Default) { clearAppData() }
       .invokeOnCompletion { handleAuthNavigation(pendingIntentSuccess, pendingIntentCancel) }
   }
 
@@ -650,11 +804,7 @@ class MainActivity : AppCompatActivity() {
   private fun observeSettings() {
     lifecycleScope.launch {
       demoDataStore.getCheckNetworkConnectivityFlow().collect { isCheckNetworkConnectivityEnabled ->
-        if (isCheckNetworkConnectivityEnabled) {
-          binding.networkStatusBanner.visibility = View.VISIBLE
-        } else {
-          binding.networkStatusBanner.visibility = View.GONE
-        }
+        isNetworkStatusVisible = isCheckNetworkConnectivityEnabled
       }
     }
   }

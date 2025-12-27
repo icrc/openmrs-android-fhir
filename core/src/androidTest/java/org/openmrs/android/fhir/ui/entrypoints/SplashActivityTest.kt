@@ -26,43 +26,60 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.ui
+package org.openmrs.android.fhir.ui.entrypoints
 
+import android.content.Intent
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.openmrs.android.fhir.ui.components.DrawerHeader
-import org.openmrs.android.fhir.ui.components.NetworkStatusBanner
+import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.SplashActivity
 
 @RunWith(AndroidJUnit4::class)
-class NetworkBannerAndDrawerHeaderTest {
+class SplashActivityTest {
 
-  @get:Rule val composeTestRule = createComposeRule()
+  private val intent =
+    Intent(ApplicationProvider.getApplicationContext(), SplashActivity::class.java)
+      .putExtra(
+        SplashActivity.EXTRA_SKIP_AUTH_FLOW,
+        true,
+      )
+
+  @get:Rule val activityRule = ActivityScenarioRule<SplashActivity>(intent)
+
+  @get:Rule
+  val composeTestRule = AndroidComposeTestRule(activityRule) { currentActivity(activityRule) }
 
   @Test
-  fun networkBanner_updatesVisibilityAndText() {
-    val initialText = "Offline"
-    composeTestRule.setContent { NetworkStatusBanner(text = initialText) }
+  fun splashStatus_updatesProgressAndText() {
+    val statusText =
+      composeTestRule.activity.getString(R.string.splash_status_checking_connectivity)
+    composeTestRule.runOnUiThread {
+      composeTestRule.activity.updateSplashStatusForTest(true, statusText)
+    }
 
-    composeTestRule.onNodeWithTag("NetworkStatusBanner").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("NetworkStatusText").assertIsDisplayed()
-    composeTestRule.onNodeWithText(initialText).assertIsDisplayed()
-  }
+    composeTestRule.onNodeWithTag("SplashProgress").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("SplashStatusText").assertIsDisplayed()
+    composeTestRule.onNodeWithText(statusText).assertIsDisplayed()
 
-  @Test
-  fun drawerHeader_updatesVisibilityAndText() {
-    val lastSyncText = "Today 10:00"
-    val lastSyncLabel = "Last sync"
-    composeTestRule.setContent { DrawerHeader(label = lastSyncLabel, lastSyncValue = lastSyncText) }
-    composeTestRule.onNodeWithTag("DrawerHeader").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("DrawerHeaderLabel").assertIsDisplayed()
-    composeTestRule.onNodeWithText(lastSyncLabel).assertIsDisplayed()
-    composeTestRule.onNodeWithTag("DrawerHeaderValue").assertIsDisplayed()
-    composeTestRule.onNodeWithText(lastSyncText).assertIsDisplayed()
+    composeTestRule.runOnUiThread {
+      composeTestRule.activity.updateSplashStatusForTest(false, null)
+    }
+
+    composeTestRule.onNodeWithTag("SplashProgress").assertDoesNotExist()
+    composeTestRule.onNodeWithTag("SplashStatusText").assertDoesNotExist()
   }
+}
+
+private fun currentActivity(rule: ActivityScenarioRule<SplashActivity>): SplashActivity {
+  lateinit var activity: SplashActivity
+  rule.scenario.onActivity { activity = it }
+  return activity
 }

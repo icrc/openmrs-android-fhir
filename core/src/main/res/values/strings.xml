@@ -126,6 +126,8 @@
     <string name="syncing">Syncing</string>
     <string name="sync">Sync</string>
     <string name="button_login">Log in</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
     <string name="header_encounters">Encounters</string>
     <string name="component_nav_heading">Components</string>
     <string name="layout_nav_heading">Layouts</string>

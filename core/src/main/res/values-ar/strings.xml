@@ -477,6 +477,8 @@
     <string name="errors_with_count">الأخطاء: %1$d</string>
     <string name="delete">حذف</string>
     <string name="discard">تجاهل</string>
+    <string name="show_password">إظهار كلمة المرور</string>
+    <string name="hide_password">إخفاء كلمة المرور</string>
 
 
 </resources>

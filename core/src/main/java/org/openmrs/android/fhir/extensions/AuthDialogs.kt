@@ -38,6 +38,26 @@ import org.openmrs.android.fhir.R
 
 object AuthDialogs {
 
+  @Volatile
+  private var composeDialogState: androidx.compose.runtime.MutableState<DialogConfig?>? = null
+
+  fun registerTestHost(state: androidx.compose.runtime.MutableState<DialogConfig?>) {
+    composeDialogState = state
+  }
+
+  fun clearTestHost() {
+    composeDialogState = null
+  }
+
+  data class DialogConfig(
+    val title: CharSequence,
+    val message: CharSequence,
+    val positiveText: CharSequence,
+    val negativeText: CharSequence,
+    val onConfirm: () -> Unit,
+    val onDismiss: () -> Unit,
+  )
+
   /**
    * Shows an opt-in dialog to enable offline login.
    *
@@ -58,6 +78,38 @@ object AuthDialogs {
     positiveText: CharSequence = activity.getString(R.string.enable_offline_login_positive),
     negativeText: CharSequence = activity.getString(R.string.enable_offline_login_negative),
   ) {
+    composeDialogState?.value =
+      DialogConfig(
+        title = title,
+        message = message,
+        positiveText = positiveText,
+        negativeText = negativeText,
+        onConfirm = {
+          val bm = BiometricManager.from(activity)
+          val canUseBiometric =
+            bm.canAuthenticate(
+              BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+            ) == BiometricManager.BIOMETRIC_SUCCESS
+
+          if (canUseBiometric || Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+            onProceedWithBiometric()
+          } else {
+            Toast.makeText(
+                activity,
+                activity.getString(R.string.setup_biometrics_to_enable_offline_login),
+                Toast.LENGTH_LONG,
+              )
+              .show()
+            navigateToMain()
+          }
+        },
+        onDismiss = navigateToMain,
+      )
+    if (composeDialogState != null) {
+      return
+    }
+
     AlertDialog.Builder(activity)
       .setTitle(title)
       .setMessage(message)

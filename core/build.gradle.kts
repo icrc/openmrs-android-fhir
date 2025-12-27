@@ -136,6 +136,7 @@ dependencies {
   implementation("androidx.constraintlayout:constraintlayout:${Versions.constraintlayout}")
   implementation("androidx.compose.material3:material3")
   implementation("androidx.compose.material:material")
+  implementation("androidx.compose.material:material-icons-extended")
   implementation("androidx.compose.runtime:runtime")
   implementation("androidx.compose.runtime:runtime-livedata")
   implementation("androidx.compose.ui:ui")
@@ -173,6 +174,11 @@ dependencies {
   androidTestImplementation(composeBom)
 
   androidTestImplementation("junit:junit:${Versions.junit}")
+  androidTestImplementation("androidx.test:core:${Versions.androidXTest}")
+  androidTestImplementation("androidx.test:rules:${Versions.androidXTest}")
+  androidTestImplementation("androidx.test:runner:${Versions.androidXTestRunner}")
+  androidTestImplementation("androidx.test.ext:junit:${Versions.androidXTestJunit}")
+  androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
   androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 
   // AndroidX Test libraries

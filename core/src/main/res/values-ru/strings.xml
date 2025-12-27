@@ -557,5 +557,7 @@
     <string name="errors_with_count">Ошибки: %1$d</string>
     <string name="delete">Удалить</string>
     <string name="discard">Отменить</string>
+    <string name="show_password">Показать пароль</string>
+    <string name="hide_password">Скрыть пароль</string>
 
 </resources>

@@ -26,43 +26,29 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.ui
+package org.openmrs.android.fhir.ui.entrypoints
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.openmrs.android.fhir.ui.components.DrawerHeader
-import org.openmrs.android.fhir.ui.components.NetworkStatusBanner
+import org.openmrs.android.fhir.MainActivity
 
 @RunWith(AndroidJUnit4::class)
-class NetworkBannerAndDrawerHeaderTest {
+class MainNavigationContainerTest {
 
-  @get:Rule val composeTestRule = createComposeRule()
-
-  @Test
-  fun networkBanner_updatesVisibilityAndText() {
-    val initialText = "Offline"
-    composeTestRule.setContent { NetworkStatusBanner(text = initialText) }
-
-    composeTestRule.onNodeWithTag("NetworkStatusBanner").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("NetworkStatusText").assertIsDisplayed()
-    composeTestRule.onNodeWithText(initialText).assertIsDisplayed()
-  }
+  @get:Rule val composeTestRule = createAndroidComposeRule<MainActivity>()
 
   @Test
-  fun drawerHeader_updatesVisibilityAndText() {
-    val lastSyncText = "Today 10:00"
-    val lastSyncLabel = "Last sync"
-    composeTestRule.setContent { DrawerHeader(label = lastSyncLabel, lastSyncValue = lastSyncText) }
-    composeTestRule.onNodeWithTag("DrawerHeader").assertIsDisplayed()
-    composeTestRule.onNodeWithTag("DrawerHeaderLabel").assertIsDisplayed()
-    composeTestRule.onNodeWithText(lastSyncLabel).assertIsDisplayed()
-    composeTestRule.onNodeWithTag("DrawerHeaderValue").assertIsDisplayed()
-    composeTestRule.onNodeWithText(lastSyncText).assertIsDisplayed()
+  fun mainNavigationContainer_rendersDrawerItems() {
+    composeTestRule.onNodeWithTag("MainNavHostContainer").assertIsDisplayed()
+
+    composeTestRule.runOnUiThread { composeTestRule.activity.openNavigationDrawer() }
+
+    composeTestRule.onNodeWithTag("DrawerItemSync").assertIsDisplayed()
+    composeTestRule.onNodeWithTag("DrawerItemLogout").assertIsDisplayed()
   }
 }

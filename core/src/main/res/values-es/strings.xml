@@ -527,6 +527,8 @@
     <string name="errors_with_count">Errores: %1$d</string>
     <string name="delete">Eliminar</string>
     <string name="discard">Descartar</string>
+    <string name="show_password">Mostrar contraseña</string>
+    <string name="hide_password">Ocultar contraseña</string>
 
 
 </resources>

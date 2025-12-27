@@ -550,5 +550,7 @@
     <string name="errors_with_count">Erreurs : %1$d</string>
     <string name="delete">Supprimer</string>
     <string name="discard">Ignorer</string>
+    <string name="show_password">Afficher le mot de passe</string>
+    <string name="hide_password">Masquer le mot de passe</string>
 
 </resources>
