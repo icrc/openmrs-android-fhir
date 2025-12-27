@@ -52,7 +52,7 @@
         android:id="@+id/patient_list"
         android:label="Patient List"
         android:name="org.openmrs.android.fhir.fragments.PatientListFragment"
-        tools:layout="@layout/patient_list_view"
+        tools:layout="@layout/fragment_patient_list"
     >
     <action
             android:id="@+id/navigate_to_product_detail"
@@ -212,7 +212,6 @@
         android:id="@+id/syncInfoFragment"
         android:label="@string/sync_info"
         android:name="org.openmrs.android.fhir.fragments.SyncInfoFragment"
-        tools:layout="@layout/fragment_sync_info"
     />
   <fragment
         android:id="@+id/unsyncedResourcesFragment"

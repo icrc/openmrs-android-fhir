@@ -40,7 +40,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
-import com.google.android.fhir.datacapture.extensions.logicalId
 import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.PeriodicSyncJobStatus
 import com.google.android.fhir.sync.Sync
@@ -54,9 +53,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
-import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.IdentifierTypeManager
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -71,7 +68,7 @@ import org.openmrs.android.fhir.data.sync.FhirSyncWorker
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.worker.SyncInfoDatabaseWriterWorker
 
-/** View model for [MainActivity]. */
+/** View model for [org.openmrs.android.fhir.MainActivity]. */
 class MainActivityViewModel
 @Inject
 constructor(
@@ -151,23 +148,6 @@ constructor(
     }
   }
 
-  suspend fun checkLocationIdAndPurgeUnassignedLocations(
-    context: Context,
-    locationId: String,
-  ): Boolean {
-    apiManager.getLocation(context, locationId).let { response ->
-      return when (response) {
-        is ApiResponse.Success<Location> -> true
-        else -> {
-          val localLocationIds =
-            fhirEngine.search<Location> {}.map { it.resource.logicalId }.toSet()
-          fhirEngine.purge(ResourceType.Location, localLocationIds)
-          false
-        }
-      }
-    }
-  }
-
   fun triggerIdentifierTypeSync() {
     viewModelScope.launch {
       if (!stopSync) {
@@ -238,7 +218,7 @@ constructor(
     }
   }
 
-  val inProgressSyncSession: LiveData<SyncSession> =
+  val inProgressSyncSession: LiveData<SyncSession?> =
     database.dao().getInProgressSyncSessionAsFlow().asLiveData()
 
   /** Emits last sync time. */

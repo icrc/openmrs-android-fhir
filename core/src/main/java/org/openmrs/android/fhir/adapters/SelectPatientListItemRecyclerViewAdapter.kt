@@ -28,15 +28,14 @@
 */
 package org.openmrs.android.fhir.adapters
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.CheckBox
-import android.widget.TextView
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.databinding.SelectPatientListItemViewBinding
+import org.openmrs.android.fhir.ui.components.SelectPatientListItemRow
 import org.openmrs.android.fhir.viewmodel.SelectPatientListViewModel
 
 class SelectPatientListItemRecyclerViewAdapter(
@@ -82,9 +81,16 @@ class SelectPatientListItemRecyclerViewAdapter(
     parent: ViewGroup,
     viewType: Int,
   ): SelectPatientListItemViewHolder {
-    val binding =
-      SelectPatientListItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-    return SelectPatientListItemViewHolder(binding)
+    val composeView =
+      ComposeView(parent.context).apply {
+        layoutParams =
+          ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+          )
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+      }
+    return SelectPatientListItemViewHolder(composeView)
   }
 
   override fun onBindViewHolder(holder: SelectPatientListItemViewHolder, position: Int) {
@@ -94,26 +100,22 @@ class SelectPatientListItemRecyclerViewAdapter(
   }
 }
 
-class SelectPatientListItemViewHolder(private val binding: SelectPatientListItemViewBinding) :
-  RecyclerView.ViewHolder(binding.root) {
-
-  private val selectPatientListItemText: TextView = binding.selectPatientListItemText
-  private val selectPatientListItemCheckbox: CheckBox = binding.selectPatientListItemCheckbox
+class SelectPatientListItemViewHolder(private val composeView: ComposeView) :
+  RecyclerView.ViewHolder(composeView) {
 
   fun bindTo(
     selectPatientListItem: SelectPatientListViewModel.SelectPatientListItem,
     onItemClicked: (SelectPatientListViewModel.SelectPatientListItem, Boolean) -> Unit,
     isSelected: Boolean,
   ) {
-    selectPatientListItemText.text = selectPatientListItem.name
-    selectPatientListItemCheckbox.isChecked = isSelected
-    selectPatientListItemCheckbox.setOnClickListener {
-      onItemClicked(selectPatientListItem, isSelected)
+    composeView.setContent {
+      MaterialTheme {
+        SelectPatientListItemRow(
+          text = selectPatientListItem.name,
+          checked = isSelected,
+          onToggle = { onItemClicked(selectPatientListItem, isSelected) },
+        )
+      }
     }
-
-    itemView.setOnClickListener { onItemClicked(selectPatientListItem, isSelected) }
-    itemView.setBackgroundResource(
-      if (isSelected) R.drawable.selected_item_background else 0,
-    )
   }
 }

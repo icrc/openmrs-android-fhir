@@ -32,19 +32,24 @@ import android.app.KeyguardManager
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import java.util.concurrent.Executor
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -57,16 +62,21 @@ import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
+import org.openmrs.android.fhir.ui.screens.SplashScreen
 
 class SplashActivity : AppCompatActivity() {
+  companion object {
+    @VisibleForTesting const val EXTRA_SKIP_AUTH_FLOW = "skip_auth_flow"
+  }
 
   private lateinit var authStateManager: AuthStateManager
   private lateinit var executor: Executor
   private lateinit var biometricPrompt: BiometricPrompt
   private var isBiometricReset = false
   private val apiManager by lazy { ApiManager(applicationContext) }
-  private lateinit var progressIndicator: ProgressBar
-  private lateinit var statusTextView: TextView
+
+  private var isProgressVisible by mutableStateOf(false)
+  private var statusText by mutableStateOf<String?>(null)
 
   private val confirmCredLauncher =
     registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
@@ -87,20 +97,27 @@ class SplashActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
-    setContentView(R.layout.activity_splash)
-    progressIndicator = findViewById(R.id.splash_progress)
-    statusTextView = findViewById(R.id.splash_status_text)
+    setContent {
+      val navController = rememberNavController()
+      NavHost(navController = navController, startDestination = "splash") {
+        composable("splash") {
+          SplashScreen(isProgressVisible = isProgressVisible, statusText = statusText)
+        }
+      }
+    }
 
     authStateManager = AuthStateManager.getInstance(applicationContext)
     executor = ContextCompat.getMainExecutor(this)
 
-    lifecycleScope.launch {
-      val userUuid = getUserUuid()
-      if (userUuid != null && BiometricUtils.getOfflineAuthMethod(this@SplashActivity) != null) {
-        resetBiometricKeyIfNeeded()
+    if (!intent.getBooleanExtra(EXTRA_SKIP_AUTH_FLOW, false)) {
+      lifecycleScope.launch {
+        val userUuid = getUserUuid()
+        if (userUuid != null && BiometricUtils.getOfflineAuthMethod(this@SplashActivity) != null) {
+          resetBiometricKeyIfNeeded()
+        }
+        setupBiometricPrompt()
+        handleAuthenticationFlow()
       }
-      setupBiometricPrompt()
-      handleAuthenticationFlow()
     }
   }
 
@@ -144,20 +161,18 @@ class SplashActivity : AppCompatActivity() {
   }
 
   private fun showConnectivityCheckInProgress() {
-    progressIndicator.isVisible = true
-    statusTextView.isVisible = true
-    statusTextView.text = getString(R.string.splash_status_checking_connectivity)
+    isProgressVisible = true
+    statusText = getString(R.string.splash_status_checking_connectivity)
   }
 
   private fun showConnectivityFailureMessage(@StringRes messageId: Int) {
-    progressIndicator.isVisible = false
-    statusTextView.isVisible = true
-    statusTextView.text = getString(messageId)
+    isProgressVisible = false
+    statusText = getString(messageId)
   }
 
   private fun hideConnectivityStatus() {
-    progressIndicator.isVisible = false
-    statusTextView.isVisible = false
+    isProgressVisible = false
+    statusText = null
   }
 
   private suspend fun handleConnectivityForAuth() {
@@ -339,5 +354,11 @@ class SplashActivity : AppCompatActivity() {
   private fun showToast(resId: Int, arg: String? = null, length: Int = Toast.LENGTH_SHORT) {
     val msg = arg?.let { getString(resId, it) } ?: getString(resId)
     Toast.makeText(this, msg, length).show()
+  }
+
+  @VisibleForTesting
+  fun updateSplashStatusForTest(progressVisible: Boolean, statusText: String?) {
+    isProgressVisible = progressVisible
+    this.statusText = statusText
   }
 }
