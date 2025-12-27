@@ -143,7 +143,8 @@ fun BasicLoginScreen(
       singleLine = true,
       visualTransformation =
         if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-      keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done, keyboardType = KeyboardType.Password),
+      keyboardOptions =
+        KeyboardOptions(imeAction = ImeAction.Done, keyboardType = KeyboardType.Password),
       trailingIcon = {
         val icon = if (isPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility
         val contentDescription =
