@@ -54,6 +54,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.DateType
+import org.hl7.fhir.r4.model.IntegerType
+import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.openmrs.android.fhir.FhirApplication
@@ -152,6 +154,14 @@ fun convertDateTimeAnswersToDate(response: QuestionnaireResponse) {
       }
     }
   }
+}
+
+fun convertQuantityObsToIntegerObs(obs: Observation): Observation {
+  if (obs.hasValueQuantity() && obs.valueQuantity.hasValue()) {
+    val intValue = obs.valueQuantity.value.toInt()
+    obs.value = IntegerType(intValue)
+  }
+  return obs
 }
 
 fun convertDateAnswersToUtcDateTime(response: QuestionnaireResponse) {
