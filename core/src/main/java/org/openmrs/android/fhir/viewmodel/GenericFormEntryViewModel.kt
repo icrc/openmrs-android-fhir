@@ -103,11 +103,7 @@ constructor(
   fun getEncounterQuestionnaire(questionnaireId: String) {
     viewModelScope.launch {
       _questionnaire.value =
-        fhirEngine.getQuestionnaireOrFromAssets(
-          questionnaireId,
-          applicationContext,
-          parser,
-        )
+        fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
       if (_questionnaire.value == null) {
         _questionnaireJson.value = ""
       } else {
@@ -135,9 +131,7 @@ constructor(
 
       if (initialValue != null) {
         initial =
-          listOf(
-            Questionnaire.QuestionnaireItemInitialComponent().apply { value = initialValue },
-          )
+          listOf(Questionnaire.QuestionnaireItemInitialComponent().apply { value = initialValue })
       }
     }
   }
@@ -151,14 +145,14 @@ constructor(
           Period().apply {
             start = visitDate
             end = visitDate
-          },
+          }
         )
 
         addParticipant(openMRSHelper.createVisitParticipant())
         addLocation(
           Encounter.EncounterLocationComponent().apply {
             location = openMRSHelper.getCurrentAuthLocation()
-          },
+          }
         )
         addType(
           CodeableConcept().apply {
@@ -168,9 +162,9 @@ constructor(
                   system = Constants.VISIT_TYPE_CODE_SYSTEM
                   code = Constants.VISIT_TYPE_UUID
                   display = "Facility Visit"
-                },
+                }
               )
-          },
+          }
         )
       }
 
@@ -277,13 +271,13 @@ constructor(
             Period().apply {
               start = encounterDate
               end = encounterDate
-            },
+            }
           )
           addParticipant(openMRSHelper.createEncounterParticipant())
           addLocation(
             Encounter.EncounterLocationComponent().apply {
               location = Reference("Location/$locationId")
-            },
+            }
           )
 
           addType(
@@ -294,9 +288,9 @@ constructor(
                     system = encounterType?.system
                     code = encounterType?.code
                     display = encounterType?.display
-                  },
+                  }
                 )
-            },
+            }
           )
           addType(
             CodeableConcept().apply {
@@ -306,9 +300,9 @@ constructor(
                     system = omrsForm?.system
                     code = omrsForm?.code
                     display = omrsForm?.display
-                  },
+                  }
                 )
-            },
+            }
           )
           saveResourceToDatabase(this)
         }
@@ -330,11 +324,7 @@ constructor(
                 val parentKey = ParentKey(matchingInfo.parentCodingKey)
                 val parentObservation =
                   parentObservationsByKey.getOrPut(parentKey) {
-                    createParentObservation(
-                      matchingInfo,
-                      patientReference,
-                      encounterReference,
-                    )
+                    createParentObservation(matchingInfo, patientReference, encounterReference)
                   }
                 observation.updateParentReference(parentObservation)
               }
@@ -357,9 +347,9 @@ constructor(
                         system = Constants.CONDITION_CATEGORY_SYSTEM_URL
                         code = ConditionCategory.ENCOUNTERDIAGNOSIS.toCode()
                         display = ConditionCategory.ENCOUNTERDIAGNOSIS.display
-                      },
+                      }
                     )
-                },
+                }
               )
             saveResourceToDatabase(resource)
           }
@@ -400,15 +390,13 @@ constructor(
                   if (!this.hasDisplay() && value.hasText()) {
                     display = value.text
                   }
-                },
+                }
               )
             }
         }
       }
     } else {
-      listOf(
-        createBaseObservation().apply { this.value = value.copy() },
-      )
+      listOf(createBaseObservation().apply { this.value = value.copy() })
     }
   }
 
@@ -422,7 +410,7 @@ constructor(
   }
 
   private fun extractSessionDateFromQuestionnaireResponse(
-    questionnaireResponse: QuestionnaireResponse,
+    questionnaireResponse: QuestionnaireResponse
   ): Date {
     val encounterDateAnswer =
       questionnaireResponse.allItems
