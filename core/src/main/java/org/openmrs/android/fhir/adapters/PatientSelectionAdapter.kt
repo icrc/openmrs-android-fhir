@@ -28,12 +28,14 @@
 */
 package org.openmrs.android.fhir.adapters
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import org.openmrs.android.fhir.databinding.ItemPatientSelectableBinding
+import org.openmrs.android.fhir.ui.components.PatientSelectableRow
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 
 class PatientSelectionAdapter(
@@ -73,13 +75,16 @@ class PatientSelectionAdapter(
   }
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PatientViewHolder {
-    val binding =
-      ItemPatientSelectableBinding.inflate(
-        LayoutInflater.from(parent.context),
-        parent,
-        false,
-      )
-    return PatientViewHolder(binding)
+    val composeView =
+      ComposeView(parent.context).apply {
+        layoutParams =
+          ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+          )
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+      }
+    return PatientViewHolder(composeView)
   }
 
   override fun onBindViewHolder(holder: PatientViewHolder, position: Int) {
@@ -87,26 +92,30 @@ class PatientSelectionAdapter(
     holder.bind(patient, selectedPatientIds.contains(patient.resourceId))
   }
 
-  inner class PatientViewHolder(private val binding: ItemPatientSelectableBinding) :
-    RecyclerView.ViewHolder(binding.root) {
+  inner class PatientViewHolder(private val composeView: ComposeView) :
+    RecyclerView.ViewHolder(composeView) {
 
     fun bind(patient: PatientListViewModel.PatientItem, isSelected: Boolean) {
-      binding.textviewPatientName.text = patient.name
-      binding.checkboxPatientSelect.isChecked = isSelected
-
-      binding.root.setOnClickListener {
-        // Toggle selection
-        val currentlyChecked = binding.checkboxPatientSelect.isChecked
-        if (!currentlyChecked) { // If it's about to be checked
-          selectedPatientIds.add(patient.resourceId)
-        } else { // If it's about to be unchecked
-          selectedPatientIds.remove(patient.resourceId)
+      composeView.setContent {
+        MaterialTheme {
+          PatientSelectableRow(
+            name = patient.name,
+            checked = isSelected,
+            onToggle = {
+              val position =
+                bindingAdapterPosition.takeIf { it != RecyclerView.NO_POSITION }
+                  ?: return@PatientSelectableRow
+              if (!isSelected) {
+                selectedPatientIds.add(patient.resourceId)
+              } else {
+                selectedPatientIds.remove(patient.resourceId)
+              }
+              notifyItemChanged(position)
+              onSelectionChanged()
+            },
+          )
         }
-        binding.checkboxPatientSelect.isChecked = !currentlyChecked // Update UI
-        onSelectionChanged() // Notify fragment
       }
-      // Prevent CheckBox from consuming click if root handles it
-      binding.checkboxPatientSelect.isClickable = false
     }
   }
 }

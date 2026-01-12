@@ -36,7 +36,6 @@
         android:layout_height="wrap_content"
         android:scrollbars="vertical"
         app:layoutManager="LinearLayoutManager"
-        tools:listitem="@layout/location_list_item_view"
     />
 
     <FrameLayout

@@ -28,23 +28,25 @@
 */
 package org.openmrs.android.fhir.adapters
 
-import android.widget.TextView
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.platform.ComposeView
 import androidx.recyclerview.widget.RecyclerView
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.databinding.ObservationListItemBinding
+import org.openmrs.android.fhir.ui.components.ObservationCardRow
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 
-class ObservationItemViewHolder(private val binding: ObservationListItemBinding) :
-  RecyclerView.ViewHolder(binding.root) {
-  private val observationTextView: TextView = binding.observationDetail
+class ObservationItemViewHolder(private val composeView: ComposeView) :
+  RecyclerView.ViewHolder(composeView) {
 
   fun bindTo(observationItem: PatientListViewModel.ObservationItem) {
-    this.observationTextView.text =
+    val observationText =
       itemView.resources.getString(
         R.string.observation_brief_text,
         observationItem.code,
         observationItem.value,
         observationItem.effective,
       )
+
+    composeView.setContent { MaterialTheme { ObservationCardRow(text = observationText) } }
   }
 }

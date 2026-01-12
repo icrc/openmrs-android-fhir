@@ -35,23 +35,29 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
+  @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+
   @Inject lateinit var apiManager: ApiManager
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
@@ -61,7 +67,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
       setDisplayHomeAsUpEnabled(true)
     }
     setHasOptionsMenu(true)
-    (activity as MainActivity).setDrawerEnabled(true)
+    mainActivityViewModel.setDrawerEnabled(true)
     setOnClicks()
   }
 
@@ -154,7 +160,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
       android.R.id.home -> {
-        (requireActivity() as MainActivity).openNavigationDrawer()
+        mainActivityViewModel.requestOpenDrawer()
         true
       }
       else -> false

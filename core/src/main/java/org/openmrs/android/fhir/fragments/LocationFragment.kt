@@ -39,6 +39,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
 import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -54,7 +55,6 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.LocationItemRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
@@ -64,12 +64,15 @@ import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.databinding.FragmentLocationBinding
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
 class LocationFragment : Fragment(R.layout.fragment_location) {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
   @Inject lateinit var apiManager: ApiManager
   private val locationViewModel by viewModels<LocationViewModel> { viewModelFactory }
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   private var _binding: FragmentLocationBinding? = null
   private lateinit var locationAdapter: LocationItemRecyclerViewAdapter
@@ -125,7 +128,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
           }
         }
         actionBar?.hide()
-        (activity as MainActivity).setDrawerEnabled(true)
+        mainActivityViewModel.setDrawerEnabled(true)
         binding.titleTextView.visibility = View.VISIBLE
         binding.actionButton.visibility = View.VISIBLE
         binding.actionButton.setOnClickListener {
@@ -164,7 +167,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
           }
         }
         actionBar?.setDisplayHomeAsUpEnabled(true)
-        (activity as MainActivity).setDrawerEnabled(false)
+        mainActivityViewModel.setDrawerEnabled(false)
       }
     }
 
@@ -172,9 +175,16 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
 
     val locationRecyclerView: RecyclerView = binding.locationRecyclerView
     val favoriteLocationRecyclerView: RecyclerView = binding.locationFavoriteRecylcerView
-    locationAdapter = LocationItemRecyclerViewAdapter(this::onLocationItemClicked, false)
+    locationAdapter =
+      LocationItemRecyclerViewAdapter(
+        this::onLocationItemClicked,
+        locationViewModel.favoriteLocationSet ?: emptySet(),
+      )
     favoriteLocationAdapter =
-      LocationItemRecyclerViewAdapter(this::onFavoriteLocationItemClicked, true)
+      LocationItemRecyclerViewAdapter(
+        this::onFavoriteLocationItemClicked,
+        locationViewModel.favoriteLocationSet ?: emptySet(),
+      )
     locationRecyclerView.adapter = locationAdapter
     favoriteLocationRecyclerView.adapter = favoriteLocationAdapter
 
@@ -185,6 +195,8 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
       binding.progressBar.visibility = View.GONE
       binding.emptyStateContainer.visibility = if (it.isEmpty()) View.VISIBLE else View.GONE
       if (::locationAdapter.isInitialized && ::favoriteLocationAdapter.isInitialized) {
+        locationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
+        favoriteLocationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
         locationAdapter.submitList(locationViewModel.getLocationsListFiltered())
         favoriteLocationAdapter.submitList(locationViewModel.getFavoriteLocationsList())
       }
@@ -194,13 +206,18 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
   }
 
   private fun showSyncTasksScreen() {
-    binding.syncTasksContainer.visibility = View.VISIBLE
+    mainActivityViewModel.showSyncTasksScreen(
+      headerTextResId = R.string.get_started,
+      showCloseButton = false,
+    )
     binding.locationContainer.visibility = View.GONE
+    binding.actionButton.visibility = View.GONE
   }
 
   private fun showLocationScreen() {
-    binding.syncTasksContainer.visibility = View.GONE
+    mainActivityViewModel.hideSyncTasksScreen()
     binding.locationContainer.visibility = View.VISIBLE
+    binding.actionButton.visibility = if (fromLogin) View.VISIBLE else View.GONE
   }
 
   private fun onLocationItemClicked(
@@ -214,6 +231,8 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
           preferences[PreferenceKeys.FAVORITE_LOCATIONS] =
             locationViewModel.favoriteLocationSet as Set<String>
           if (::favoriteLocationAdapter.isInitialized && ::locationAdapter.isInitialized) {
+            favoriteLocationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
+            locationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
             favoriteLocationAdapter.submitList(locationViewModel.getFavoriteLocationsList())
             locationAdapter.submitList(locationViewModel.getLocationsListFiltered())
           }
@@ -246,8 +265,10 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
               if (it.inProgressSyncJob is SyncJobStatus.InProgress) {
                 val inProgressState = it.inProgressSyncJob as SyncJobStatus.InProgress
                 if (inProgressState.syncOperation == SyncOperation.DOWNLOAD) {
-                  binding.locationSyncProgressBar.progress = inProgressState.completed
-                  binding.locationSyncProgressBar.max = inProgressState.total
+                  mainActivityViewModel.updateSyncProgress(
+                    current = inProgressState.completed,
+                    total = inProgressState.total,
+                  )
                 }
               }
             }
@@ -292,6 +313,8 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
           preferences[PreferenceKeys.FAVORITE_LOCATIONS] =
             locationViewModel.favoriteLocationSet as Set<String>
           if (::favoriteLocationAdapter.isInitialized && ::locationAdapter.isInitialized) {
+            favoriteLocationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
+            locationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
             favoriteLocationAdapter.submitList(locationViewModel.getFavoriteLocationsList())
             locationAdapter.submitList(locationViewModel.getLocationsListFiltered())
           }
@@ -314,7 +337,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
         preferences[PreferenceKeys.LOCATION_ID] = locationItem.resourceId
         preferences[PreferenceKeys.LOCATION_NAME] = locationItem.name
       }
-      (activity as MainActivity).updateLocationName(locationItem.name)
+      mainActivityViewModel.updateLocationName(locationItem.name)
 
       (requireActivity() as AppCompatActivity).supportActionBar?.title = locationItem.name
 

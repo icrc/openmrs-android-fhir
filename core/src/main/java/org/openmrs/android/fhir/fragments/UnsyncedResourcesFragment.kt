@@ -38,6 +38,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
@@ -45,12 +46,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.UnsyncedResourcesAdapter
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
 import org.openmrs.android.fhir.databinding.FragmentUnsyncedResourcesBinding
 import org.openmrs.android.fhir.extensions.saveToFile
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.UnsyncedResourcesViewModel
 
 class UnsyncedResourcesFragment : Fragment() {
@@ -61,6 +62,8 @@ class UnsyncedResourcesFragment : Fragment() {
 
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
   private val viewModel by viewModels<UnsyncedResourcesViewModel> { viewModelFactory }
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   private lateinit var adapter: UnsyncedResourcesAdapter
 
@@ -130,7 +133,7 @@ class UnsyncedResourcesFragment : Fragment() {
       adapter.submitList(resources)
     }
     observeDownloadResources()
-    (activity as MainActivity).setDrawerEnabled(false)
+    mainActivityViewModel.setDrawerEnabled(false)
   }
 
   private fun showDeleteConfirmationDialog(resource: UnsyncedResource) {

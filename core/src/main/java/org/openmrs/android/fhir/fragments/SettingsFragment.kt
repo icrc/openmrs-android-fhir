@@ -38,19 +38,26 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.Sync
+import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.DemoDataStore
-import org.openmrs.android.fhir.MainActivity
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.sync.FirstFhirSyncWorker
 import org.openmrs.android.fhir.databinding.SettingsPageBinding
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
 class SettingsFragment : Fragment(R.layout.settings_page) {
+  @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   private var _binding: SettingsPageBinding? = null
   private var isNetworkCheckEnabled: Boolean = false
@@ -75,6 +82,7 @@ class SettingsFragment : Fragment(R.layout.settings_page) {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     setHasOptionsMenu(true)
+    (requireActivity().application as FhirApplication).appComponent.inject(this)
     appContext = requireContext().applicationContext
     dataStore = DemoDataStore(requireContext())
     lifecycleScope.launch { setupUI() }
@@ -83,7 +91,7 @@ class SettingsFragment : Fragment(R.layout.settings_page) {
 
   private suspend fun setupUI() {
     setUpActionBar()
-    (activity as? MainActivity)?.setDrawerEnabled(false)
+    mainActivityViewModel.setDrawerEnabled(false)
     binding.btnCancelSettings.setOnClickListener {
       Toast.makeText(requireContext(), getString(R.string.settings_discarded), Toast.LENGTH_SHORT)
         .show()

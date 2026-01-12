@@ -46,29 +46,17 @@ import org.openmrs.android.fhir.data.database.model.SyncStatus
 @Dao
 interface Dao {
 
-  @Query("SELECT * from identifier WHERE identifierTypeUUID=:identifierTypeUUID LIMIT 1")
-  suspend fun getOneIdentifierByType(identifierTypeUUID: String): Identifier?
-
   @Query("SELECT * from IdentifierType WHERE uuid=:identifierTypeUUID LIMIT 1")
   suspend fun getIdentifierTypeById(identifierTypeUUID: String): IdentifierType?
 
   @Query("SELECT * FROM identifiertype") suspend fun getAllIdentifierTypes(): List<IdentifierType>
 
   @Insert(onConflict = OnConflictStrategy.REPLACE)
-  suspend fun insertAllIdentifierModel(identifiers: List<Identifier>)
-
-  @Insert(onConflict = OnConflictStrategy.REPLACE)
   suspend fun insertAllIdentifierTypeModel(identifierTypes: List<IdentifierType>)
-
-  @Query("SELECT COUNT(*) FROM identifier WHERE identifierTypeUUID=:identifierTypeId")
-  suspend fun getIdentifierCountByTypeId(identifierTypeId: String): Int
 
   @Query("SELECT COUNT(*) FROM IdentifierType") suspend fun getIdentifierTypesCount(): Int
 
   @Delete suspend fun delete(identifier: Identifier)
-
-  @Query("DELETE FROM identifier WHERE value = :identifierValue ")
-  suspend fun deleteIdentifierByValue(identifierValue: String)
 
   @Insert(onConflict = OnConflictStrategy.REPLACE)
   suspend fun insertSyncSession(syncSession: SyncSession)
@@ -82,7 +70,7 @@ interface Dao {
   suspend fun getInProgressSyncSession(): SyncSession?
 
   @Query("SELECT * FROM syncsession WHERE status='ONGOING' ORDER BY startTime DESC LIMIT 1")
-  fun getInProgressSyncSessionAsFlow(): Flow<SyncSession>
+  fun getInProgressSyncSessionAsFlow(): Flow<SyncSession?>
 
   @Query("UPDATE syncsession SET status = :newStatus WHERE id = :sessionId")
   suspend fun updateSyncSessionStatus(sessionId: Int, newStatus: SyncStatus)
@@ -114,11 +102,6 @@ interface Dao {
 
   @Query("SELECT * FROM groupsessiondraft WHERE questionnaireId=:questionnaireId LIMIT 1")
   suspend fun getGroupSessionDraft(questionnaireId: String): GroupSessionDraft?
-
-  @Query(
-    "SELECT * FROM groupsessiondraft WHERE questionnaireId IN (:questionnaireIds) ORDER BY lastUpdated DESC LIMIT 1",
-  )
-  suspend fun getLatestGroupSessionDraft(questionnaireIds: List<String>): GroupSessionDraft?
 
   @Query("DELETE FROM groupsessiondraft WHERE questionnaireId=:questionnaireId")
   suspend fun deleteGroupSessionDraft(questionnaireId: String)

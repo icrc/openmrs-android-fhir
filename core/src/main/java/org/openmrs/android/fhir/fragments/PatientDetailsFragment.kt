@@ -43,7 +43,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
@@ -51,16 +53,15 @@ import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.FhirEngine
 import java.util.*
 import javax.inject.Inject
-import kotlin.getValue
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.PatientDetailsRecyclerViewAdapter
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.databinding.PatientDetailBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
 
 class PatientDetailsFragment : Fragment() {
@@ -69,10 +70,14 @@ class PatientDetailsFragment : Fragment() {
 
   @Inject lateinit var openMRSHelper: OpenMRSHelper
 
+  @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+
   @Inject lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
   private val patientDetailsViewModel: PatientDetailsViewModel by viewModels {
     viewModelSavedStateFactory
   }
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   private val args: PatientDetailsFragmentArgs by navArgs()
   private var _binding: PatientDetailBinding? = null
@@ -101,7 +106,6 @@ class PatientDetailsFragment : Fragment() {
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     val adapter =
       PatientDetailsRecyclerViewAdapter(
-        ::onCreateEncounterClick,
         ::onEditEncounterClick,
         ::onEditVisitClick,
       )
@@ -119,7 +123,7 @@ class PatientDetailsFragment : Fragment() {
       requireActivity().invalidateOptionsMenu()
     }
     patientDetailsViewModel.getPatientDetailData()
-    (activity as MainActivity).setDrawerEnabled(false)
+    mainActivityViewModel.setDrawerEnabled(false)
   }
 
   override fun onPrepareOptionsMenu(menu: Menu) {
@@ -174,13 +178,13 @@ class PatientDetailsFragment : Fragment() {
     DatePickerDialog(
         requireContext(),
         { _, selectedYear, selectedMonth, selectedDayOfMonth ->
-          calendar.set(selectedYear, selectedMonth, selectedDayOfMonth)
+          calendar[selectedYear, selectedMonth] = selectedDayOfMonth
 
           TimePickerDialog(
               requireContext(),
               { _, selectedHourOfDay, selectedMinute ->
-                calendar.set(Calendar.HOUR_OF_DAY, selectedHourOfDay)
-                calendar.set(Calendar.MINUTE, selectedMinute)
+                calendar[Calendar.HOUR_OF_DAY] = selectedHourOfDay
+                calendar[Calendar.MINUTE] = selectedMinute
 
                 val selectedDateTime = calendar.time
 
@@ -196,16 +200,16 @@ class PatientDetailsFragment : Fragment() {
                   navigateToCreateEncounter()
                 }
               },
-              calendar.get(Calendar.HOUR_OF_DAY),
-              calendar.get(Calendar.MINUTE),
+              calendar[Calendar.HOUR_OF_DAY],
+              calendar[Calendar.MINUTE],
               true,
             )
             .apply { setTitle("Select time for the visit") }
             .show()
         },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH),
+        calendar[Calendar.YEAR],
+        calendar[Calendar.MONTH],
+        calendar[Calendar.DAY_OF_MONTH],
       )
       .apply {
         setTitle("Start a new visit?")
@@ -216,7 +220,6 @@ class PatientDetailsFragment : Fragment() {
 
   private fun onEditEncounterClick(
     encounterId: String,
-    formDisplay: String,
     encounterType: String,
   ) {
     findNavController()
