@@ -40,6 +40,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
 import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -55,7 +56,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.SelectPatientListItemRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
@@ -64,6 +64,7 @@ import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.databinding.FragmentSelectPatientListBinding
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.SelectPatientListViewModel
 
 class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list) {
@@ -72,6 +73,8 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
   @Inject lateinit var apiManager: ApiManager
   private val selectPatientListViewModel by
     viewModels<SelectPatientListViewModel> { viewModelFactory }
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   private var _binding: FragmentSelectPatientListBinding? = null
   private lateinit var selectPatientListAdapter: SelectPatientListItemRecyclerViewAdapter
@@ -183,7 +186,7 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
   }
 
   private fun proceedToHomeFragment() {
-    (activity as MainActivity).onSyncPress()
+    mainActivityViewModel.requestSync()
     findNavController()
       .navigate(
         SelectPatientListFragmentDirections.actionSelectPatientListFragmentToHomeFragment(),
@@ -195,7 +198,7 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
       fromLogin = it.getBoolean("from_login")
       if (fromLogin) {
         actionBar?.hide()
-        (activity as MainActivity).setDrawerEnabled(true)
+        mainActivityViewModel.setDrawerEnabled(true)
         binding.titleTextView.visibility = View.VISIBLE
         binding.actionButton.visibility = View.VISIBLE
         binding.actionButton.setOnClickListener {
@@ -219,12 +222,12 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
         }
       } else {
         actionBar?.setDisplayHomeAsUpEnabled(true)
-        (activity as MainActivity).setDrawerEnabled(false)
+        mainActivityViewModel.setDrawerEnabled(false)
       }
     }
       ?: run {
         actionBar?.setDisplayHomeAsUpEnabled(true)
-        (activity as MainActivity).setDrawerEnabled(false)
+        mainActivityViewModel.setDrawerEnabled(false)
       }
   }
 

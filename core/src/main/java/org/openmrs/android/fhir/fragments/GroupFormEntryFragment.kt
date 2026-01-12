@@ -38,8 +38,10 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
@@ -54,7 +56,6 @@ import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.databinding.GroupFormentryFragmentBinding
@@ -64,10 +65,13 @@ import org.openmrs.android.fhir.extensions.showSnackBar
 import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
 import org.openmrs.android.fhir.viewmodel.GroupFormEntryViewModel
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import timber.log.Timber
 
 class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
+  @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+
   @Inject lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
   private val genericFormEntryViewModel: GenericFormEntryViewModel by viewModels {
     viewModelSavedStateFactory
@@ -78,6 +82,8 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   private val editEncounterViewModel: EditEncounterViewModel by viewModels {
     viewModelSavedStateFactory
   }
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   private val args: GroupFormEntryFragmentArgs by navArgs()
 
@@ -174,7 +180,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       }
     }
     addBackPressedListener()
-    (activity as MainActivity).setDrawerEnabled(false)
+    mainActivityViewModel.setDrawerEnabled(false)
     observePatients()
   }
 

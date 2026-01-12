@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -69,13 +70,13 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.FragmentPatientListBinding
 import org.openmrs.android.fhir.ui.components.PatientListContainerScreen
 import org.openmrs.android.fhir.ui.components.PatientListItemRow
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import timber.log.Timber
 
@@ -83,6 +84,8 @@ class PatientListFragment : Fragment() {
 
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
   private val patientListViewModel by viewModels<PatientListViewModel> { viewModelFactory }
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
   private lateinit var patientQuery: String
   private var _binding: FragmentPatientListBinding? = null
   private val binding
@@ -174,7 +177,7 @@ class PatientListFragment : Fragment() {
 
     binding.apply { addPatient.setOnClickListener { onAddPatientClick() } }
     setHasOptionsMenu(true)
-    (activity as MainActivity).setDrawerEnabled(false)
+    mainActivityViewModel.setDrawerEnabled(false)
   }
 
   private fun addSearchTextChangeListener() {

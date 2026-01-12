@@ -38,6 +38,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
 import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.RecyclerView
@@ -46,7 +48,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.IdentifierTypeRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
@@ -55,12 +56,17 @@ import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.databinding.FragmentIdentifierBinding
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
 class IdentifierFragment : Fragment(R.layout.fragment_identifier) {
+
+  @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
   @Inject lateinit var database: AppDatabase
 
   @Inject lateinit var identifierTypeManager: IdentifierTypeManager
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
   private var _binding: FragmentIdentifierBinding? = null
   private lateinit var identifierAdapter: IdentifierTypeRecyclerViewAdapter
   private lateinit var selectedIdentifierTypes: MutableSet<String>
@@ -115,7 +121,7 @@ class IdentifierFragment : Fragment(R.layout.fragment_identifier) {
       identifierAdapter.submitList(identifierTypes)
       binding.progressBar.visibility = View.GONE
     }
-    (activity as MainActivity).setDrawerEnabled(false)
+    mainActivityViewModel.setDrawerEnabled(false)
 
     addSearchTextChangeListener()
   }

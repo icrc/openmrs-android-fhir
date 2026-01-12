@@ -39,6 +39,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
 import androidx.datastore.preferences.core.edit
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -54,7 +55,6 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.LocationItemRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
@@ -64,12 +64,15 @@ import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.databinding.FragmentLocationBinding
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
 class LocationFragment : Fragment(R.layout.fragment_location) {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
   @Inject lateinit var apiManager: ApiManager
   private val locationViewModel by viewModels<LocationViewModel> { viewModelFactory }
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   private var _binding: FragmentLocationBinding? = null
   private lateinit var locationAdapter: LocationItemRecyclerViewAdapter
@@ -125,7 +128,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
           }
         }
         actionBar?.hide()
-        (activity as MainActivity).setDrawerEnabled(true)
+        mainActivityViewModel.setDrawerEnabled(true)
         binding.titleTextView.visibility = View.VISIBLE
         binding.actionButton.visibility = View.VISIBLE
         binding.actionButton.setOnClickListener {
@@ -164,7 +167,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
           }
         }
         actionBar?.setDisplayHomeAsUpEnabled(true)
-        (activity as MainActivity).setDrawerEnabled(false)
+        mainActivityViewModel.setDrawerEnabled(false)
       }
     }
 
@@ -203,7 +206,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
   }
 
   private fun showSyncTasksScreen() {
-    (activity as? MainActivity)?.showSyncTasksScreen(
+    mainActivityViewModel.showSyncTasksScreen(
       headerTextResId = R.string.get_started,
       showCloseButton = false,
     )
@@ -212,7 +215,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
   }
 
   private fun showLocationScreen() {
-    (activity as? MainActivity)?.hideSyncTasksScreen()
+    mainActivityViewModel.hideSyncTasksScreen()
     binding.locationContainer.visibility = View.VISIBLE
     binding.actionButton.visibility = if (fromLogin) View.VISIBLE else View.GONE
   }
@@ -262,7 +265,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
               if (it.inProgressSyncJob is SyncJobStatus.InProgress) {
                 val inProgressState = it.inProgressSyncJob as SyncJobStatus.InProgress
                 if (inProgressState.syncOperation == SyncOperation.DOWNLOAD) {
-                  (activity as? MainActivity)?.updateSyncProgress(
+                  mainActivityViewModel.updateSyncProgress(
                     current = inProgressState.completed,
                     total = inProgressState.total,
                   )
@@ -334,7 +337,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
         preferences[PreferenceKeys.LOCATION_ID] = locationItem.resourceId
         preferences[PreferenceKeys.LOCATION_NAME] = locationItem.name
       }
-      (activity as MainActivity).updateLocationName(locationItem.name)
+      mainActivityViewModel.updateLocationName(locationItem.name)
 
       (requireActivity() as AppCompatActivity).supportActionBar?.title = locationItem.name
 

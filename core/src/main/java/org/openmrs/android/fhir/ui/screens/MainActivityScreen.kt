@@ -44,6 +44,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -52,11 +53,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DrawerState
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.ProgressIndicatorDefaults
@@ -104,72 +102,73 @@ data class SyncProgressState(
 
 @Composable
 fun MainActivityScaffold(
-  drawerState: DrawerState,
-  isDrawerEnabled: Boolean,
   networkStatusText: String,
   isNetworkStatusVisible: Boolean,
+  onToolbarReady: (MaterialToolbar) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  Column(modifier = modifier.fillMaxWidth().statusBarsPadding()) {
+    if (isNetworkStatusVisible) {
+      NetworkStatusBanner(text = networkStatusText)
+    }
+    ToolbarHost(onToolbarReady = onToolbarReady)
+  }
+}
+
+@Composable
+fun DrawerContent(
   lastSyncText: String,
   drawerItems: List<DrawerItem>,
+  onDrawerItemSelected: (Int) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  Column(
+    modifier =
+      modifier
+        .background(colorResource(id = R.color.white))
+        .verticalScroll(rememberScrollState())
+        .padding(bottom = 16.dp),
+  ) {
+    DrawerHeader(label = stringResource(R.string.last_sync), lastSyncValue = lastSyncText)
+    Divider()
+    drawerItems.forEach { item ->
+      NavigationDrawerItem(
+        modifier =
+          Modifier.fillMaxWidth().alpha(if (item.enabled) 1f else 0.6f).testTag(item.testTag),
+        label = { Text(text = item.title) },
+        icon = { IconResource(iconRes = item.iconRes) },
+        selected = false,
+        onClick = { if (item.enabled) onDrawerItemSelected(item.id) },
+        colors =
+          NavigationDrawerItemDefaults.colors(
+            unselectedContainerColor = Color.Transparent,
+          ),
+      )
+    }
+  }
+}
+
+@Composable
+fun MainActivityOverlays(
   syncProgressState: SyncProgressState,
   syncHeaderText: String,
   showSyncCloseButton: Boolean,
   isSyncTasksVisible: Boolean,
   isLoading: Boolean,
-  navHostFragmentId: Int,
-  onDrawerItemSelected: (Int) -> Unit,
   onCloseSyncTasks: () -> Unit,
-  onToolbarReady: (MaterialToolbar) -> Unit,
-  ensureNavHost: (Int) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  ModalNavigationDrawer(
-    drawerState = drawerState,
-    gesturesEnabled = isDrawerEnabled,
-    drawerContent = {
-      ModalDrawerSheet(drawerContainerColor = colorResource(id = R.color.white)) {
-        Column(
-          modifier =
-            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 16.dp),
-        ) {
-          DrawerHeader(label = stringResource(R.string.last_sync), lastSyncValue = lastSyncText)
-          Divider()
-          drawerItems.forEach { item ->
-            NavigationDrawerItem(
-              modifier =
-                Modifier.fillMaxWidth().alpha(if (item.enabled) 1f else 0.6f).testTag(item.testTag),
-              label = { Text(text = item.title) },
-              icon = { IconResource(iconRes = item.iconRes) },
-              selected = false,
-              onClick = { if (item.enabled) onDrawerItemSelected(item.id) },
-              colors =
-                NavigationDrawerItemDefaults.colors(
-                  unselectedContainerColor = Color.Transparent,
-                ),
-            )
-          }
-        }
-      }
-    },
-  ) {
-    Box(modifier = modifier.fillMaxSize()) {
-      Column(modifier = Modifier.fillMaxSize()) {
-        if (isNetworkStatusVisible) {
-          NetworkStatusBanner(text = networkStatusText)
-        }
-        ToolbarHost(onToolbarReady = onToolbarReady)
-        FragmentContainer(navHostFragmentId = navHostFragmentId, ensureNavHost = ensureNavHost)
-      }
-      if (isSyncTasksVisible) {
-        SyncTasksOverlay(
-          syncProgressState = syncProgressState,
-          headerText = syncHeaderText,
-          showCloseButton = showSyncCloseButton,
-          onClose = onCloseSyncTasks,
-        )
-      }
-      if (isLoading) {
-        LoadingOverlay()
-      }
+  Box(modifier = modifier.fillMaxSize()) {
+    if (isSyncTasksVisible) {
+      SyncTasksOverlay(
+        syncProgressState = syncProgressState,
+        headerText = syncHeaderText,
+        showCloseButton = showSyncCloseButton,
+        onClose = onCloseSyncTasks,
+      )
+    }
+    if (isLoading) {
+      LoadingOverlay()
     }
   }
 }
@@ -207,17 +206,6 @@ private fun ToolbarHost(onToolbarReady: (MaterialToolbar) -> Unit) {
         onToolbarReady(toolbar)
       }
     },
-  )
-}
-
-@Composable
-private fun FragmentContainer(navHostFragmentId: Int, ensureNavHost: (Int) -> Unit) {
-  AndroidView(
-    modifier = Modifier.fillMaxSize().testTag("MainNavHostContainer"),
-    factory = { context ->
-      androidx.fragment.app.FragmentContainerView(context).apply { id = navHostFragmentId }
-    },
-    update = { ensureNavHost(it.id) },
   )
 }
 

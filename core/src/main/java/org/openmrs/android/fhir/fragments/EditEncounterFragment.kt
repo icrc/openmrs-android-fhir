@@ -34,8 +34,10 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.fhir.FhirEngine
@@ -43,20 +45,24 @@ import com.google.android.fhir.datacapture.QuestionnaireFragment
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
 /**
  * A fragment representing Edit Encounter screen. This fragment is contained in a [MainActivity].
  */
 class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
+  @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+
   @Inject lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
 
   @Inject lateinit var fhirEngine: FhirEngine
 
   private val viewModel: EditEncounterViewModel by viewModels { viewModelSavedStateFactory }
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   private lateinit var encounterType: String
   private lateinit var encounterId: String
@@ -106,7 +112,7 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
       NavHostFragment.findNavController(this).navigateUp()
     }
 
-    (activity as MainActivity).setDrawerEnabled(false)
+    mainActivityViewModel.setDrawerEnabled(false)
 
     /** Use the provided cancel|submit buttons from the sdc library */
     childFragmentManager.setFragmentResultListener(
