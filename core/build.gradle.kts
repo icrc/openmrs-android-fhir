@@ -53,8 +53,8 @@ android {
 }
 
 ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
-    arg("room.generateKotlin", "false")
+  arg("room.schemaLocation", "$projectDir/schemas")
+  arg("room.generateKotlin", "false")
 }
 
 publishing {
