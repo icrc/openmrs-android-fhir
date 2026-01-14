@@ -103,11 +103,7 @@ constructor(
   fun getEncounterQuestionnaire(questionnaireId: String) {
     viewModelScope.launch {
       _questionnaire.value =
-        fhirEngine.getQuestionnaireOrFromAssets(
-          questionnaireId,
-          applicationContext,
-          parser,
-        )
+        fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
       if (_questionnaire.value == null) {
         _questionnaireJson.value = ""
       } else {
@@ -135,9 +131,7 @@ constructor(
 
       if (initialValue != null) {
         initial =
-          listOf(
-            Questionnaire.QuestionnaireItemInitialComponent().apply { value = initialValue },
-          )
+          listOf(Questionnaire.QuestionnaireItemInitialComponent().apply { value = initialValue })
       }
     }
   }
@@ -330,11 +324,7 @@ constructor(
                 val parentKey = ParentKey(matchingInfo.parentCodingKey)
                 val parentObservation =
                   parentObservationsByKey.getOrPut(parentKey) {
-                    createParentObservation(
-                      matchingInfo,
-                      patientReference,
-                      encounterReference,
-                    )
+                    createParentObservation(matchingInfo, patientReference, encounterReference)
                   }
                 observation.updateParentReference(parentObservation)
               }
@@ -406,9 +396,7 @@ constructor(
         }
       }
     } else {
-      listOf(
-        createBaseObservation().apply { this.value = value.copy() },
-      )
+      listOf(createBaseObservation().apply { this.value = value.copy() })
     }
   }
 

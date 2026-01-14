@@ -4,7 +4,6 @@ plugins {
   id("androidx.navigation.safeargs.kotlin")
   id("com.google.devtools.ksp")
   id("maven-publish")
-  id("kotlin-kapt")
 }
 
 android {
@@ -53,7 +52,10 @@ android {
   }
 }
 
-ksp { arg("room.schemaLocation", "$projectDir/schemas") }
+ksp {
+  arg("room.schemaLocation", "$projectDir/schemas")
+  arg("room.generateKotlin", "false")
+}
 
 publishing {
   publications {
@@ -100,7 +102,7 @@ object Versions {
   const val material = "1.12.0"
   const val retrofitVersion = "2.9.0"
   const val kotlinStdlibJdk7 = "1.9.22"
-  const val room = "2.6.1"
+  const val room = "2.8.4"
   const val junit = "4.13.2"
   const val coreTesting = "2.2.0"
   const val androidXTest = "1.6.1"
@@ -109,7 +111,7 @@ object Versions {
   const val androidXTestJunit = "1.2.1"
   const val coroutineTest = "1.8.1"
   const val mockito = "4.0.0"
-  const val daggerVersion = "2.51.1"
+  const val daggerVersion = "2.55"
   const val eventBus = "3.3.1"
   const val moshi = "1.14.0"
   const val loggingInterceptor = "5.0.0-alpha.2"
@@ -172,5 +174,5 @@ dependencies {
 
   // Dependency injection
   implementation("com.google.dagger:dagger:${Versions.daggerVersion}")
-  kapt("com.google.dagger:dagger-compiler:${Versions.daggerVersion}")
+  ksp("com.google.dagger:dagger-compiler:${Versions.daggerVersion}")
 }
