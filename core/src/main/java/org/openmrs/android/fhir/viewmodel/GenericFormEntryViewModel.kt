@@ -145,14 +145,14 @@ constructor(
           Period().apply {
             start = visitDate
             end = visitDate
-          }
+          },
         )
 
         addParticipant(openMRSHelper.createVisitParticipant())
         addLocation(
           Encounter.EncounterLocationComponent().apply {
             location = openMRSHelper.getCurrentAuthLocation()
-          }
+          },
         )
         addType(
           CodeableConcept().apply {
@@ -162,9 +162,9 @@ constructor(
                   system = Constants.VISIT_TYPE_CODE_SYSTEM
                   code = Constants.VISIT_TYPE_UUID
                   display = "Facility Visit"
-                }
+                },
               )
-          }
+          },
         )
       }
 
@@ -271,13 +271,13 @@ constructor(
             Period().apply {
               start = encounterDate
               end = encounterDate
-            }
+            },
           )
           addParticipant(openMRSHelper.createEncounterParticipant())
           addLocation(
             Encounter.EncounterLocationComponent().apply {
               location = Reference("Location/$locationId")
-            }
+            },
           )
 
           addType(
@@ -288,9 +288,9 @@ constructor(
                     system = encounterType?.system
                     code = encounterType?.code
                     display = encounterType?.display
-                  }
+                  },
                 )
-            }
+            },
           )
           addType(
             CodeableConcept().apply {
@@ -300,9 +300,9 @@ constructor(
                     system = omrsForm?.system
                     code = omrsForm?.code
                     display = omrsForm?.display
-                  }
+                  },
                 )
-            }
+            },
           )
           saveResourceToDatabase(this)
         }
@@ -347,9 +347,9 @@ constructor(
                         system = Constants.CONDITION_CATEGORY_SYSTEM_URL
                         code = ConditionCategory.ENCOUNTERDIAGNOSIS.toCode()
                         display = ConditionCategory.ENCOUNTERDIAGNOSIS.display
-                      }
+                      },
                     )
-                }
+                },
               )
             saveResourceToDatabase(resource)
           }
@@ -390,7 +390,7 @@ constructor(
                   if (!this.hasDisplay() && value.hasText()) {
                     display = value.text
                   }
-                }
+                },
               )
             }
         }
@@ -410,7 +410,7 @@ constructor(
   }
 
   private fun extractSessionDateFromQuestionnaireResponse(
-    questionnaireResponse: QuestionnaireResponse
+    questionnaireResponse: QuestionnaireResponse,
   ): Date {
     val encounterDateAnswer =
       questionnaireResponse.allItems

@@ -153,7 +153,7 @@ constructor(
               listOf(
                 Questionnaire.QuestionnaireItemInitialComponent().apply {
                   value = org.hl7.fhir.r4.model.DateTimeType(encounterDate)
-                }
+                },
               )
             readOnly = true
           }
@@ -330,7 +330,8 @@ constructor(
         val parentObservation =
           observations.firstOrNull { candidate ->
             candidate.code.coding.any { coding -> coding.matchesCoding(childInfo.parentCoding) }
-          } ?: return@forEach
+          }
+            ?: return@forEach
         val parentId = parentObservation.idPart() ?: return@forEach
         if (!processedParentIds.add(parentId)) {
           return@forEach
@@ -375,7 +376,7 @@ constructor(
     when (val value = resource.value) {
       is StringType,
       is IntegerType,
-      is Quantity -> {
+      is Quantity, -> {
         upsertSingleValueObservation(
           resource,
           subjectReference,
@@ -557,9 +558,9 @@ constructor(
                 system = Constants.CONDITION_CATEGORY_SYSTEM_URL
                 code = ConditionCategory.ENCOUNTERDIAGNOSIS.toCode()
                 display = ConditionCategory.ENCOUNTERDIAGNOSIS.display
-              }
+              },
             )
-        }
+        },
       )
 
     updateResourceToDatabase(resource)
