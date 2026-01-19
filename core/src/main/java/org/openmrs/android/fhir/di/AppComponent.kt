@@ -61,6 +61,7 @@ import org.openmrs.android.fhir.fragments.UnsyncedResourcesFragment
     [
       AppModule::class,
       AssistedViewModelModule::class,
+      SettingsModule::class,
       ViewModelModule::class,
       ViewModelBuilderModule::class,
     ],

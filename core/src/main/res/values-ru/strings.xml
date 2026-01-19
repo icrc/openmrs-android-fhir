@@ -559,5 +559,6 @@
     <string name="discard">Отменить</string>
     <string name="show_password">Показать пароль</string>
     <string name="hide_password">Скрыть пароль</string>
+    <string name="show_network_status">Показать состояние сети</string>
 
 </resources>

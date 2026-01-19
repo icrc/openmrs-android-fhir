@@ -197,6 +197,7 @@
     <string
         name="check_network_connectivity"
     >Check Network Connectivity</string>
+    <string name="show_network_status">Show Network Status</string>
     <string name="enable_notifications">Enable Notifications</string>
     <string name="settings_discarded">Settings Discarded</string>
     <string name="settings_saved">Settings Saved</string>

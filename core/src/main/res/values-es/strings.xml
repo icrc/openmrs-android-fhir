@@ -529,6 +529,7 @@
     <string name="discard">Descartar</string>
     <string name="show_password">Mostrar contraseña</string>
     <string name="hide_password">Ocultar contraseña</string>
+    <string name="show_network_status">Mostrar estado de la red</string>
 
 
 </resources>

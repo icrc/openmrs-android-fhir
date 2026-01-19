@@ -552,5 +552,6 @@
     <string name="discard">Ignorer</string>
     <string name="show_password">Afficher le mot de passe</string>
     <string name="hide_password">Masquer le mot de passe</string>
+    <string name="show_network_status">Afficher l’état du réseau</string>
 
 </resources>

@@ -28,177 +28,86 @@
 */
 package org.openmrs.android.fhir.fragments
 
-import android.content.Context
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
-import com.google.android.fhir.sync.CurrentSyncJobStatus
-import com.google.android.fhir.sync.Sync
 import javax.inject.Inject
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.data.sync.FirstFhirSyncWorker
-import org.openmrs.android.fhir.databinding.SettingsPageBinding
+import org.openmrs.android.fhir.ui.screens.SettingsDefaults
+import org.openmrs.android.fhir.ui.screens.SettingsScreen
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
+import org.openmrs.android.fhir.viewmodel.SettingsEvent
+import org.openmrs.android.fhir.viewmodel.SettingsViewModel
 
-class SettingsFragment : Fragment(R.layout.settings_page) {
+class SettingsFragment : Fragment() {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
   private val mainActivityViewModel by
     activityViewModels<MainActivityViewModel> { viewModelFactory }
-
-  private var _binding: SettingsPageBinding? = null
-  private var isNetworkCheckEnabled: Boolean = false
-  private var initialSyncJob: Job? = null
-  private var hasShownInitialSyncStartedToast = false
-  private var isInitialSyncInProgress = false
-  private lateinit var appContext: Context
-  private val binding
-    get() = _binding!!
-
-  private lateinit var dataStore: DemoDataStore
+  private val settingsViewModel by viewModels<SettingsViewModel> { viewModelFactory }
 
   override fun onCreateView(
     inflater: LayoutInflater,
     container: ViewGroup?,
     savedInstanceState: Bundle?,
   ): View {
-    _binding = SettingsPageBinding.inflate(inflater, container, false)
-    return binding.root
+    val composeView = ComposeView(requireContext())
+    composeView.setViewCompositionStrategy(
+      ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
+    )
+    composeView.setContent {
+      val context = LocalContext.current
+      val density = LocalDensity.current
+      val actionBarHeightPx = remember { resolveActionBarHeightPx(context) }
+      val actionBarHeightDp = with(density) { actionBarHeightPx.toDp() }
+      val uiState = settingsViewModel.uiState.collectAsStateWithLifecycle().value
+      MaterialTheme {
+        SettingsScreen(
+          uiState = uiState,
+          tokenDelayOptions = SettingsDefaults.TokenDelayOptions,
+          periodicSyncDelayOptions = SettingsDefaults.PeriodicSyncDelayOptions,
+          onNetworkStatusToggle = settingsViewModel::onNetworkStatusToggle,
+          onNotificationsToggle = settingsViewModel::onNotificationsToggle,
+          onTokenDelaySelected = settingsViewModel::onTokenDelaySelected,
+          onPeriodicSyncDelaySelected = settingsViewModel::onPeriodicSyncDelaySelected,
+          onInitialSyncClicked = settingsViewModel::onInitialSyncClicked,
+          onCancelClicked = settingsViewModel::onCancelClicked,
+          onSaveClicked = settingsViewModel::onSaveClicked,
+          topPadding = actionBarHeightDp,
+        )
+      }
+    }
+    return composeView
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     setHasOptionsMenu(true)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
-    appContext = requireContext().applicationContext
-    dataStore = DemoDataStore(requireContext())
-    lifecycleScope.launch { setupUI() }
-    observeNetworkConnectivity()
-  }
-
-  private suspend fun setupUI() {
     setUpActionBar()
     mainActivityViewModel.setDrawerEnabled(false)
-    binding.btnCancelSettings.setOnClickListener {
-      Toast.makeText(requireContext(), getString(R.string.settings_discarded), Toast.LENGTH_SHORT)
-        .show()
-      navigateUp()
-    }
-    binding.btnSaveSettings.setOnClickListener { saveSettings() }
-    binding.btnInitialSync.setOnClickListener { runInitialSync() }
-    binding.btnInitialSync.isEnabled = !isInitialSyncInProgress
-    binding.checkNetworkSwitch.setOnCheckedChangeListener { _, isChecked ->
-      //      lifecycleScope.launch { dataStore.setCheckNetworkConnectivity(isChecked) }
-      isNetworkCheckEnabled = isChecked
-    }
-    val tokenCheckDelayList = listOf("1", "2", "4", "5", "10")
-    val tokenCheckDelayAdapter =
-      ArrayAdapter(
-        requireContext(),
-        com.google.android.material.R.layout.support_simple_spinner_dropdown_item,
-        tokenCheckDelayList,
-      )
-    val periodicSyncDelayList = listOf("15", "20", "25", "30")
-    val periodicSyncDelayAdapter =
-      ArrayAdapter(
-        requireContext(),
-        com.google.android.material.R.layout.support_simple_spinner_dropdown_item,
-        periodicSyncDelayList,
-      )
-    binding.tokenCheckDelay.setText((dataStore.getTokenExpiryDelay() / 60000).toString())
-    binding.periodicSyncDelay.setText((dataStore.getPeriodicSyncDelay() / 60000).toString())
-    binding.tokenCheckDelay.setAdapter(tokenCheckDelayAdapter)
-    binding.periodicSyncDelay.setAdapter(periodicSyncDelayAdapter)
-  }
-
-  private fun setUpActionBar() {
-    (requireActivity() as? AppCompatActivity)?.supportActionBar?.apply {
-      title = getString(R.string.settings)
-      setDisplayHomeAsUpEnabled(true)
-    }
-  }
-
-  private fun observeNetworkConnectivity() {
-    lifecycleScope.launch {
-      dataStore.getCheckNetworkConnectivityFlow().collect { isConnected ->
-        binding.checkNetworkSwitch.isChecked = isConnected
-      }
-    }
-  }
-
-  private fun saveSettings() {
-    lifecycleScope
-      .launch {
-        dataStore.setCheckNetworkConnectivity(binding.checkNetworkSwitch.isChecked)
-        dataStore.saveTokenExpiryDelay(binding.tokenCheckDelay.text.toString())
-        dataStore.savePeriodicSyncDelay(binding.periodicSyncDelay.text.toString())
-        dataStore.setCheckNetworkConnectivity(isNetworkCheckEnabled)
-      }
-      .invokeOnCompletion {
-        Toast.makeText(requireContext(), getString(R.string.settings_saved), Toast.LENGTH_SHORT)
-          .show()
-        navigateUp()
-      }
-  }
-
-  private fun runInitialSync() {
-    if (initialSyncJob?.isActive == true) {
-      return
-    }
-
-    binding.btnInitialSync.isEnabled = false
-    hasShownInitialSyncStartedToast = false
-    isInitialSyncInProgress = true
-
-    initialSyncJob =
-      requireActivity().lifecycleScope.launch {
-        Sync.oneTimeSync<FirstFhirSyncWorker>(appContext).collect { status ->
-          when (status) {
-            is CurrentSyncJobStatus.Succeeded -> {
-              showInitialSyncToast(R.string.initial_sync_completed)
-              resetInitialSyncState()
-            }
-            is CurrentSyncJobStatus.Failed,
-            is CurrentSyncJobStatus.Cancelled,
-            is CurrentSyncJobStatus.Blocked, -> {
-              showInitialSyncToast(R.string.initial_sync_failed)
-              resetInitialSyncState()
-            }
-            is CurrentSyncJobStatus.Running,
-            CurrentSyncJobStatus.Enqueued, -> {
-              if (!hasShownInitialSyncStartedToast) {
-                showInitialSyncToast(R.string.initial_sync_started)
-                hasShownInitialSyncStartedToast = true
-              }
-            }
-            else -> {}
-          }
-        }
-      }
-  }
-
-  private fun showInitialSyncToast(messageResId: Int) {
-    Toast.makeText(appContext, appContext.getString(messageResId), Toast.LENGTH_SHORT).show()
-  }
-
-  private fun resetInitialSyncState() {
-    _binding?.btnInitialSync?.isEnabled = true
-    hasShownInitialSyncStartedToast = false
-    initialSyncJob = null
-    isInitialSyncInProgress = false
+    observeSettingsEvents()
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -211,12 +120,82 @@ class SettingsFragment : Fragment(R.layout.settings_page) {
     }
   }
 
+  private fun observeSettingsEvents() {
+    viewLifecycleOwner.lifecycleScope.launch {
+      viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        settingsViewModel.events.collect { event -> handleSettingsEvent(event) }
+      }
+    }
+  }
+
+  private fun handleSettingsEvent(event: SettingsEvent) {
+    val action = resolveSettingsEvent(event)
+    action.messageResId?.let { messageResId ->
+      Toast.makeText(requireContext(), getString(messageResId), Toast.LENGTH_SHORT).show()
+    }
+    if (action.navigateUp) {
+      navigateUp()
+    }
+  }
+
+  private fun setUpActionBar() {
+    (requireActivity() as? AppCompatActivity)?.supportActionBar?.apply {
+      title = getString(R.string.settings)
+      setDisplayHomeAsUpEnabled(true)
+    }
+  }
+
   private fun navigateUp() {
     NavHostFragment.findNavController(this).navigateUp()
   }
+}
 
-  override fun onDestroyView() {
-    super.onDestroyView()
-    _binding = null
+internal data class SettingsEventAction(
+  val messageResId: Int?,
+  val navigateUp: Boolean,
+)
+
+internal fun resolveSettingsEvent(event: SettingsEvent): SettingsEventAction {
+  return when (event) {
+    SettingsEvent.SettingsSaved ->
+      SettingsEventAction(
+        messageResId = R.string.settings_saved,
+        navigateUp = true,
+      )
+    SettingsEvent.SettingsDiscarded ->
+      SettingsEventAction(
+        messageResId = R.string.settings_discarded,
+        navigateUp = true,
+      )
+    SettingsEvent.InitialSyncStarted ->
+      SettingsEventAction(
+        messageResId = R.string.initial_sync_started,
+        navigateUp = false,
+      )
+    SettingsEvent.InitialSyncCompleted ->
+      SettingsEventAction(
+        messageResId = R.string.initial_sync_completed,
+        navigateUp = false,
+      )
+    SettingsEvent.InitialSyncFailed ->
+      SettingsEventAction(
+        messageResId = R.string.initial_sync_failed,
+        navigateUp = false,
+      )
+  }
+}
+
+private fun resolveActionBarHeightPx(context: android.content.Context): Int {
+  val typedValue = TypedValue()
+  val resolved =
+    context.theme.resolveAttribute(androidx.appcompat.R.attr.actionBarSize, typedValue, true) ||
+      context.theme.resolveAttribute(android.R.attr.actionBarSize, typedValue, true)
+  return if (resolved) {
+    TypedValue.complexToDimensionPixelSize(
+      typedValue.data,
+      context.resources.displayMetrics,
+    )
+  } else {
+    0
   }
 }

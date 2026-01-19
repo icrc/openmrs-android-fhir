@@ -20,6 +20,12 @@ The main entry-point activities now render their UI with Jetpack Compose while p
 * Each activity owns a small Compose `NavHost` for its route (`splash`, `login`, `basic_login`, `main`) and preserves intent-based transitions between activities.
 * Remaining XML fragments stay in the `reference_nav_graph` navigation graph and are hosted from Compose.
 
+## Settings screen
+
+* `SettingsFragment` now hosts a Compose-based `SettingsScreen` and no longer relies on `settings_page.xml`.
+* `SettingsViewModel` holds the UI state, emits UI events (save/discard/sync status), and delegates persistence to a `SettingsRepository` backed by `DemoDataStore`.
+* The initial sync action is routed through `InitialSyncRunner` so the ViewModel stays testable and follows dependency inversion.
+
 ## Testing
 
 * `core/src/androidTest/java/org/openmrs/android/fhir/ui/NetworkBannerAndDrawerHeaderTest.kt` covers the banner and drawer header state updates.

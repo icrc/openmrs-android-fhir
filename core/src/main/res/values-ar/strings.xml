@@ -479,6 +479,7 @@
     <string name="discard">تجاهل</string>
     <string name="show_password">إظهار كلمة المرور</string>
     <string name="hide_password">إخفاء كلمة المرور</string>
+    <string name="show_network_status">عرض حالة الشبكة</string>
 
 
 </resources>
