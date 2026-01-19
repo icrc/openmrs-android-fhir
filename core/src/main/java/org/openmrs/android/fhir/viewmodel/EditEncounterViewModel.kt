@@ -53,6 +53,7 @@ import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Condition
 import org.hl7.fhir.r4.model.Encounter
+import org.hl7.fhir.r4.model.IntegerType
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Quantity
 import org.hl7.fhir.r4.model.Questionnaire
@@ -65,6 +66,7 @@ import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
+import org.openmrs.android.fhir.extensions.convertQuantityObsToIntegerObs
 import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getJsonFileNames
@@ -94,9 +96,7 @@ constructor(
 
   @AssistedFactory
   interface Factory : ViewModelAssistedFactory<EditEncounterViewModel> {
-    override fun create(
-      handle: SavedStateHandle,
-    ): EditEncounterViewModel
+    override fun create(handle: SavedStateHandle): EditEncounterViewModel
   }
 
   private val _encounterDataPair = MutableLiveData<Pair<String, String>>()
@@ -164,7 +164,14 @@ constructor(
         val observationBundle =
           Bundle().apply {
             type = Bundle.BundleType.COLLECTION
-            observations.forEach { addEntry().resource = it.apply { id = "Observation/$id" } }
+            entry =
+              observations.map { obs ->
+                if (obs.hasValueQuantity()) {
+                  convertQuantityObsToIntegerObs(obs)
+                }
+                Bundle.BundleEntryComponent()
+                  .setResource(obs.apply { id = "Observation/${idPart()}" })
+              }
           }
 
         val launchContexts = mapOf("observations" to observationBundle)
@@ -368,6 +375,7 @@ constructor(
 
     when (val value = resource.value) {
       is StringType,
+      is IntegerType,
       is Quantity, -> {
         upsertSingleValueObservation(
           resource,
