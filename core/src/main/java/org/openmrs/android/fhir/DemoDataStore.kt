@@ -51,12 +51,24 @@ private val Context.dataStorage: DataStore<Preferences> by
  */
 class DemoDataStore(private val context: Context) {
 
-  suspend fun saveLastUpdatedTimestamp(resourceType: ResourceType, timestamp: String) {
-    context.dataStorage.edit { pref -> pref[stringPreferencesKey(resourceType.name)] = timestamp }
+  suspend fun saveLastUpdatedTimestamp(
+    resourceType: ResourceType,
+    timestamp: String,
+    groupId: String? = null,
+  ) {
+    context.dataStorage.edit { pref ->
+      pref[stringPreferencesKey(resourceType.buildKey(groupId))] = timestamp
+    }
   }
 
-  suspend fun getLasUpdateTimestamp(resourceType: ResourceType): String? {
-    return context.dataStorage.data.first()[stringPreferencesKey(resourceType.name)]
+  suspend fun getLastUpdateTimestamp(resourceType: ResourceType, groupId: String? = null): String? {
+    return context.dataStorage.data.first()[stringPreferencesKey(resourceType.buildKey(groupId))]
+  }
+
+  suspend fun clearLastUpdatedTimestamp(resourceType: ResourceType, groupId: String? = null) {
+    context.dataStorage.edit { pref ->
+      pref.remove(stringPreferencesKey(resourceType.buildKey(groupId)))
+    }
   }
 
   suspend fun saveTokenExpiryDelay(time: String) {
@@ -104,5 +116,13 @@ class DemoDataStore(private val context: Context) {
     const val CHECK_NETWORK_CONNECTIVITY = "check-network-connectivity"
     const val INITIAL_TOKEN_CHECK_DELAY: Long = 1
     const val INITIAL_PERIODIC_SYNC_DELAY: Long = 15
+  }
+}
+
+private fun ResourceType.buildKey(groupId: String?): String {
+  return if (groupId.isNullOrBlank()) {
+    name
+  } else {
+    "$name-$groupId"
   }
 }
