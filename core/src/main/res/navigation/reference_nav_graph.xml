@@ -215,9 +215,8 @@
     />
   <fragment
         android:id="@+id/unsyncedResourcesFragment"
-        android:label="@string/sync_info"
+        android:label="@string/title_unsynced_resources"
         android:name="org.openmrs.android.fhir.fragments.UnsyncedResourcesFragment"
-        tools:layout="@layout/fragment_unsynced_resources"
     />
 
   <fragment

@@ -530,6 +530,40 @@
     <string name="show_password">Mostrar contraseña</string>
     <string name="hide_password">Ocultar contraseña</string>
     <string name="show_network_status">Mostrar estado de la red</string>
+    <string name="delete_resource_title">Eliminar recurso</string>
+    <string
+        name="delete_resource_message"
+    >¿Estás seguro de que deseas eliminar este %1$s?</string>
+    <string name="delete_all_title">Eliminar todo</string>
+    <string
+        name="delete_all_message"
+    >¿Estás seguro de que deseas eliminar todos los recursos no sincronizados?</string>
+    <string name="resource_patient_label">paciente</string>
+    <string name="resource_encounter_label">encuentro</string>
+    <string name="resource_observation_label">observación</string>
+    <string name="resource_deleted">Recurso eliminado</string>
+    <string name="all_resources_deleted">Todos los recursos eliminados</string>
+    <string
+        name="downloading_all_resources"
+    >Descargando todos los recursos</string>
+    <string
+        name="collecting_patient_data"
+    >Recopilando datos del paciente para %1$s</string>
+    <string
+        name="collecting_encounter_data"
+    >Recopilando datos del encuentro: %1$s</string>
+    <string
+        name="collecting_observation_data"
+    >Recopilando observación: %1$s</string>
+    <string
+        name="unsynced_resources_email_subject"
+    >Recursos no sincronizados</string>
+    <string
+        name="unsynced_resources_email_body"
+    >Se adjuntan los recursos no sincronizados.</string>
+    <string
+        name="send_unsynced_resources"
+    >Enviar recursos no sincronizados</string>
 
 
 </resources>

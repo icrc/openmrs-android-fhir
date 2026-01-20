@@ -560,5 +560,33 @@
     <string name="show_password">Показать пароль</string>
     <string name="hide_password">Скрыть пароль</string>
     <string name="show_network_status">Показать состояние сети</string>
+    <string name="delete_resource_title">Удалить ресурс</string>
+    <string
+        name="delete_resource_message"
+    >Вы уверены, что хотите удалить %1$s?</string>
+    <string name="delete_all_title">Удалить всё</string>
+    <string
+        name="delete_all_message"
+    >Вы уверены, что хотите удалить все несинхронизированные ресурсы?</string>
+    <string name="resource_patient_label">пациент</string>
+    <string name="resource_encounter_label">приём</string>
+    <string name="resource_observation_label">наблюдение</string>
+    <string name="resource_deleted">Ресурс удалён</string>
+    <string name="all_resources_deleted">Все ресурсы удалены</string>
+    <string name="downloading_all_resources">Загрузка всех ресурсов</string>
+    <string
+        name="collecting_patient_data"
+    >Сбор данных пациента для %1$s</string>
+    <string name="collecting_encounter_data">Сбор данных приёма: %1$s</string>
+    <string name="collecting_observation_data">Сбор наблюдения: %1$s</string>
+    <string
+        name="unsynced_resources_email_subject"
+    >Несинхронизированные ресурсы</string>
+    <string
+        name="unsynced_resources_email_body"
+    >Во вложении находятся несинхронизированные ресурсы.</string>
+    <string
+        name="send_unsynced_resources"
+    >Отправить несинхронизированные ресурсы</string>
 
 </resources>

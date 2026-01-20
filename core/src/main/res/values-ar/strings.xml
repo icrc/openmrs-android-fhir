@@ -480,6 +480,34 @@
     <string name="show_password">إظهار كلمة المرور</string>
     <string name="hide_password">إخفاء كلمة المرور</string>
     <string name="show_network_status">عرض حالة الشبكة</string>
+    <string name="delete_resource_title">حذف المورد</string>
+    <string
+        name="delete_resource_message"
+    >هل أنت متأكد من رغبتك في حذف %1$s؟</string>
+    <string name="delete_all_title">حذف الكل</string>
+    <string
+        name="delete_all_message"
+    >هل أنت متأكد من رغبتك في حذف جميع الموارد غير المتزامنة؟</string>
+    <string name="resource_patient_label">مريض</string>
+    <string name="resource_encounter_label">زيارة</string>
+    <string name="resource_observation_label">ملاحظة</string>
+    <string name="resource_deleted">تم حذف المورد</string>
+    <string name="all_resources_deleted">تم حذف جميع الموارد</string>
+    <string name="downloading_all_resources">جارٍ تنزيل جميع الموارد</string>
+    <string
+        name="collecting_patient_data"
+    >جارٍ جمع بيانات المريض لـ %1$s</string>
+    <string
+        name="collecting_encounter_data"
+    >جارٍ جمع بيانات الزيارة: %1$s</string>
+    <string name="collecting_observation_data">جارٍ جمع الملاحظة: %1$s</string>
+    <string
+        name="unsynced_resources_email_subject"
+    >الموارد غير المتزامنة</string>
+    <string
+        name="unsynced_resources_email_body"
+    >مرفق الموارد غير المتزامنة.</string>
+    <string name="send_unsynced_resources">إرسال الموارد غير المتزامنة</string>
 
 
 </resources>

@@ -277,6 +277,34 @@
         name="no_unsynced_resources_available"
     >No Unsynced Resources Available</string>
     <string name="delete_all">Delete All</string>
+    <string name="delete_resource_title">Delete Resource</string>
+    <string
+        name="delete_resource_message"
+    >Are you sure you want to delete this %1$s?</string>
+    <string name="delete_all_title">Delete All</string>
+    <string
+        name="delete_all_message"
+    >Are you sure you want to delete all unsynced resources?</string>
+    <string name="resource_patient_label">patient</string>
+    <string name="resource_encounter_label">encounter</string>
+    <string name="resource_observation_label">observation</string>
+    <string name="resource_deleted">Resource deleted</string>
+    <string name="all_resources_deleted">All resources deleted</string>
+    <string name="downloading_all_resources">Downloading all resources</string>
+    <string
+        name="collecting_patient_data"
+    >Collecting patient data for %1$s</string>
+    <string
+        name="collecting_encounter_data"
+    >Collecting encounter data: %1$s</string>
+    <string
+        name="collecting_observation_data"
+    >Collecting observation: %1$s</string>
+    <string name="unsynced_resources_email_subject">Unsynced Resources</string>
+    <string
+        name="unsynced_resources_email_body"
+    >Attached are the unsynced resources.</string>
+    <string name="send_unsynced_resources">Send Unsynced Resources</string>
     <string name="download_all">Download All</string>
     <string name="no_locations_available">No Locations available.</string>
     <string name="no_patient_list_available">No Patient List available</string>

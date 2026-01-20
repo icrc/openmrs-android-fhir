@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
   <application android:name="org.openmrs.android.fhir.FhirApplication">
     <activity
+            android:name="org.openmrs.android.fhir.ui.UnsyncedResourcesTestActivity"
+            android:theme="@style/TestAppTheme"
+        />
+    <activity
             android:name="org.openmrs.android.fhir.LoginActivity"
             android:theme="@style/TestAppTheme"
         >

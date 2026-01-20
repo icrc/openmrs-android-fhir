@@ -553,5 +553,41 @@
     <string name="show_password">Afficher le mot de passe</string>
     <string name="hide_password">Masquer le mot de passe</string>
     <string name="show_network_status">Afficher l’état du réseau</string>
+    <string name="delete_resource_title">Supprimer la ressource</string>
+    <string
+        name="delete_resource_message"
+    >Êtes-vous sûr de vouloir supprimer ce/cette %1$s ?</string>
+    <string name="delete_all_title">Tout supprimer</string>
+    <string
+        name="delete_all_message"
+    >Êtes-vous sûr de vouloir supprimer toutes les ressources non synchronisées ?</string>
+    <string name="resource_patient_label">patient</string>
+    <string name="resource_encounter_label">consultation</string>
+    <string name="resource_observation_label">observation</string>
+    <string name="resource_deleted">Ressource supprimée</string>
+    <string
+        name="all_resources_deleted"
+    >Toutes les ressources ont été supprimées</string>
+    <string
+        name="downloading_all_resources"
+    >Téléchargement de toutes les ressources</string>
+    <string
+        name="collecting_patient_data"
+    >Collecte des données du patient pour %1$s</string>
+    <string
+        name="collecting_encounter_data"
+    >Collecte des données de la consultation : %1$s</string>
+    <string
+        name="collecting_observation_data"
+    >Collecte de l’observation : %1$s</string>
+    <string
+        name="unsynced_resources_email_subject"
+    >Ressources non synchronisées</string>
+    <string
+        name="unsynced_resources_email_body"
+    >Les ressources non synchronisées sont jointes.</string>
+    <string
+        name="send_unsynced_resources"
+    >Envoyer les ressources non synchronisées</string>
 
 </resources>

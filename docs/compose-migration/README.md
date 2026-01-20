@@ -30,3 +30,13 @@ The main entry-point activities now render their UI with Jetpack Compose while p
 
 * `core/src/androidTest/java/org/openmrs/android/fhir/ui/NetworkBannerAndDrawerHeaderTest.kt` covers the banner and drawer header state updates.
 * `core/src/androidTest/java/org/openmrs/android/fhir/ui/entrypoints` contains Compose UI/instrumentation tests for splash timing, login flows, and the main navigation container.
+
+## Unsynced resources screen
+
+* `UnsyncedResourcesFragment` now hosts Compose via `UnsyncedResourcesScreen`, which replaces
+  `fragment_unsynced_resources.xml`.
+* The screen renders existing unsynced rows, empty state, and confirmation dialogs in Compose while
+  keeping side effects inside the Fragment.
+* Compose and fragment tests live in `core/src/androidTest/java/org/openmrs/android/fhir/ui/`.
+
+See [Unsynced resources Compose layout](unsynced-resources-compose.md) for details.
