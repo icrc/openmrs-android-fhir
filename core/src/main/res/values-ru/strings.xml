@@ -588,5 +588,8 @@
     <string
         name="send_unsynced_resources"
     >Отправить несинхронизированные ресурсы</string>
+    <string
+        name="no_location_is_selected_do_you_want_to_select_one"
+    >Местоположение не выбрано. Хотите выбрать одно?</string>
 
 </resources>

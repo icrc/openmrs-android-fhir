@@ -508,6 +508,9 @@
         name="unsynced_resources_email_body"
     >مرفق الموارد غير المتزامنة.</string>
     <string name="send_unsynced_resources">إرسال الموارد غير المتزامنة</string>
+    <string
+        name="no_location_is_selected_do_you_want_to_select_one"
+    >لم يتم اختيار أي موقع. هل ترغب في اختيار واحد؟</string>
 
 
 </resources>

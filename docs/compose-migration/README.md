@@ -23,6 +23,7 @@ The main entry-point activities now render their UI with Jetpack Compose while p
 ## Settings screen
 
 * `SettingsFragment` now hosts a Compose-based `SettingsScreen` and no longer relies on `settings_page.xml`.
+* Location, identifier, and patient list selection now use Compose screens hosted from their fragments. See `selection-screens.md` for the UI/state pattern and ViewModel contracts.
 * `SettingsViewModel` holds the UI state, emits UI events (save/discard/sync status), and delegates persistence to a `SettingsRepository` backed by `DemoDataStore`.
 * The initial sync action is routed through `InitialSyncRunner` so the ViewModel stays testable and follows dependency inversion.
 

@@ -589,5 +589,8 @@
     <string
         name="send_unsynced_resources"
     >Envoyer les ressources non synchronisées</string>
+    <string
+        name="no_location_is_selected_do_you_want_to_select_one"
+    >Aucun emplacement n’est sélectionné. Souhaitez-vous en sélectionner un ?</string>
 
 </resources>

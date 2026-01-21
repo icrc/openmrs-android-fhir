@@ -29,63 +29,70 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.doOnTextChanged
-import androidx.datastore.preferences.core.edit
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.NavHostFragment
-import androidx.recyclerview.widget.RecyclerView
 import javax.inject.Inject
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.adapters.IdentifierTypeRecyclerViewAdapter
-import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.IdentifierTypeManager
-import org.openmrs.android.fhir.data.PreferenceKeys
-import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.IdentifierType
-import org.openmrs.android.fhir.databinding.FragmentIdentifierBinding
+import org.openmrs.android.fhir.ui.screens.IdentifierSelectionScreen
+import org.openmrs.android.fhir.viewmodel.IdentifierSelectionViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
-class IdentifierFragment : Fragment(R.layout.fragment_identifier) {
+class IdentifierFragment : Fragment() {
 
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
-  @Inject lateinit var database: AppDatabase
-
-  @Inject lateinit var identifierTypeManager: IdentifierTypeManager
   private val mainActivityViewModel by
     activityViewModels<MainActivityViewModel> { viewModelFactory }
-  private var _binding: FragmentIdentifierBinding? = null
-  private lateinit var identifierAdapter: IdentifierTypeRecyclerViewAdapter
-  private lateinit var selectedIdentifierTypes: MutableSet<String>
-  private lateinit var identifierTypes: MutableList<IdentifierType>
-  private val binding
-    get() = _binding!!
-
-  override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
-    savedInstanceState: Bundle?,
-  ): View {
-    _binding = FragmentIdentifierBinding.inflate(inflater, container, false)
-    return binding.root
-  }
+  private val identifierSelectionViewModel by
+    viewModels<IdentifierSelectionViewModel> { viewModelFactory }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setHasOptionsMenu(true)
+  }
+
+  override fun onCreateView(
+    inflater: android.view.LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?,
+  ): View {
+    return ComposeView(requireContext()).apply {
+      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+      setContent {
+        MaterialTheme {
+          val uiState by identifierSelectionViewModel.uiState.collectAsStateWithLifecycle()
+          val filteredIdentifiers =
+            remember(uiState.identifierTypes, uiState.query) {
+              uiState.identifierTypes.filter { it.display?.contains(uiState.query) ?: true }
+            }
+
+          IdentifierSelectionScreen(
+            query = uiState.query,
+            onQueryChange = identifierSelectionViewModel::onQueryChanged,
+            identifierTypes = filteredIdentifiers,
+            selectedIdentifierIds = uiState.selectedIdentifierIds,
+            isLoading = uiState.isLoading,
+            onIdentifierToggle = ::onIdentifierTypeItemClicked,
+          )
+        }
+      }
+    }
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -95,72 +102,23 @@ class IdentifierFragment : Fragment(R.layout.fragment_identifier) {
       title = requireContext().getString(R.string.select_identifier_types)
       setDisplayHomeAsUpEnabled(true)
     }
-    runBlocking {
-      binding.progressBar.visibility = View.VISIBLE
-      identifierTypes =
-        context?.applicationContext?.let { database.dao().getAllIdentifierTypes().toMutableList() }
-          ?: mutableListOf()
-      if (identifierTypes.isEmpty()) {
-        context?.applicationContext?.let { identifierTypeManager.fetchIdentifiers() }
-      }
-      selectedIdentifierTypes =
-        context
-          ?.dataStore
-          ?.data
-          ?.first()
-          ?.get(PreferenceKeys.SELECTED_IDENTIFIER_TYPES)
-          ?.toMutableSet()
-          ?: mutableSetOf()
-      val identifierRecyclerView: RecyclerView = binding.identifierRecyclerView
-      identifierAdapter =
-        IdentifierTypeRecyclerViewAdapter(
-          this@IdentifierFragment::onIdentifierTypeItemClicked,
-          selectedIdentifierTypes,
-        )
-      identifierRecyclerView.adapter = identifierAdapter
-      identifierAdapter.submitList(identifierTypes)
-      binding.progressBar.visibility = View.GONE
-    }
+    identifierSelectionViewModel.loadIdentifiers()
     mainActivityViewModel.setDrawerEnabled(false)
-
-    addSearchTextChangeListener()
-  }
-
-  private fun addSearchTextChangeListener() {
-    binding.identifierInputEditText.doOnTextChanged { text, _, _, _ ->
-      if (::identifierAdapter.isInitialized && text != null) {
-        identifierAdapter.submitList(
-          identifierTypes.filter { it.display?.contains(text) ?: true },
-        )
-      }
-    }
   }
 
   private fun onIdentifierTypeItemClicked(identifierTypeItem: IdentifierType, isSelected: Boolean) {
     if (!identifierTypeItem.required) {
-      lifecycleScope.launch {
-        if (isSelected) {
-          context?.applicationContext?.dataStore?.edit { preferences ->
-            selectedIdentifierTypes.remove(identifierTypeItem.uuid)
-            preferences[PreferenceKeys.SELECTED_IDENTIFIER_TYPES] = selectedIdentifierTypes
-            Toast.makeText(context, getString(R.string.identifier_removed), Toast.LENGTH_SHORT)
-              .show()
-          }
-        } else {
-          lifecycleScope.launch {
-            selectedIdentifierTypes.add(identifierTypeItem.uuid)
-            context?.applicationContext?.dataStore?.edit { preferences ->
-              preferences[PreferenceKeys.SELECTED_IDENTIFIER_TYPES] = selectedIdentifierTypes
-              Toast.makeText(context, getString(R.string.identifier_added), Toast.LENGTH_SHORT)
-                .show()
-            }
-          }
-        }
-        if (::identifierAdapter.isInitialized) {
-          identifierAdapter.notifyDataSetChanged()
-          identifierAdapter.submitList(identifierTypes)
-        }
-      }
+      identifierSelectionViewModel.onIdentifierToggle(identifierTypeItem, isSelected)
+      Toast.makeText(
+          context,
+          if (isSelected) {
+            getString(R.string.identifier_removed)
+          } else {
+            getString(R.string.identifier_added)
+          },
+          Toast.LENGTH_SHORT,
+        )
+        .show()
     }
   }
 
@@ -172,10 +130,5 @@ class IdentifierFragment : Fragment(R.layout.fragment_identifier) {
       }
       else -> false
     }
-  }
-
-  override fun onDestroyView() {
-    super.onDestroyView()
-    _binding = null
   }
 }

@@ -29,45 +29,47 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.doOnTextChanged
-import androidx.datastore.preferences.core.edit
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import javax.inject.Inject
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.adapters.SelectPatientListItemRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
-import org.openmrs.android.fhir.databinding.FragmentSelectPatientListBinding
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
+import org.openmrs.android.fhir.ui.screens.PatientListSelectionScreen
+import org.openmrs.android.fhir.ui.screens.selectionScreenContentPadding
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.SelectPatientListViewModel
 
-class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list) {
+class SelectPatientListFragment : Fragment() {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
   @Inject lateinit var apiManager: ApiManager
@@ -76,57 +78,65 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
   private val mainActivityViewModel by
     activityViewModels<MainActivityViewModel> { viewModelFactory }
 
-  private var _binding: FragmentSelectPatientListBinding? = null
-  private lateinit var selectPatientListAdapter: SelectPatientListItemRecyclerViewAdapter
-
-  private val binding
-    get() = _binding!!
-
-  var fromLogin = false
+  private var fromLogin = false
   private var filterPatientListsByGroup = false
-
-  override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
-    savedInstanceState: Bundle?,
-  ): View {
-    _binding = FragmentSelectPatientListBinding.inflate(inflater, container, false)
-    return binding.root
-  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setHasOptionsMenu(true)
+    fromLogin = arguments?.getBoolean("from_login") ?: false
+  }
+
+  override fun onCreateView(
+    inflater: android.view.LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?,
+  ): View {
+    return ComposeView(requireContext()).apply {
+      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+      setContent {
+        MaterialTheme {
+          val patientLists by
+            selectPatientListViewModel.selectPatientListItems.observeAsState(emptyList())
+          val uiState by selectPatientListViewModel.uiState.collectAsStateWithLifecycle()
+          val filteredPatientLists =
+            remember(patientLists, uiState.query) {
+              patientLists.filter { it.name.contains(uiState.query, true) }
+            }
+
+          PatientListSelectionScreen(
+            query = uiState.query,
+            onQueryChange = selectPatientListViewModel::onQueryChanged,
+            patientLists = filteredPatientLists,
+            selectedPatientListIds = uiState.selectedPatientListIds,
+            showTitle = fromLogin,
+            showActionButton = fromLogin,
+            showEmptyState = patientLists.isEmpty(),
+            isLoading = uiState.isLoading,
+            onPatientListToggle = ::onSelectPatientListItemClicked,
+            onActionClick = ::handleActionClick,
+            topPadding =
+              if (fromLogin) {
+                20.dp
+              } else {
+                selectionScreenContentPadding().calculateTopPadding()
+              },
+          )
+        }
+      }
+    }
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
     (requireActivity().application as FhirApplication).appComponent.inject(this)
-    selectPatientListAdapter =
-      SelectPatientListItemRecyclerViewAdapter(this::onSelectPatientListItemClicked)
-    val selectPatientListRecyclerView: RecyclerView = binding.selectPatientListRecylcerView
-    selectPatientListRecyclerView.adapter = selectPatientListAdapter
 
     filterPatientListsByGroup =
       requireContext().resources.getBoolean(R.bool.filter_patient_lists_by_group)
 
     lifecycleScope.launch {
-      if (!isAdded) {
-        return@launch
-      }
-
-      val appContext = requireContext().applicationContext
-      val preferences = appContext.dataStore.data.first()
-
       actionBar?.title = requireContext().getString(R.string.select_patient_lists)
-
-      preferences[PreferenceKeys.SELECTED_PATIENT_LISTS]?.let { selectedPatientListIds ->
-        if (::selectPatientListAdapter.isInitialized) {
-          selectPatientListAdapter.selectPatientListItem(selectedPatientListIds)
-        }
-      }
-
       configureUi(actionBar)
 
       if (filterPatientListsByGroup) {
@@ -138,23 +148,9 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
     }
     observePollState()
 
-    binding.progressBar.visibility = View.VISIBLE
     selectPatientListViewModel.selectPatientListItems.observe(viewLifecycleOwner) {
-      binding.progressBar.visibility = View.GONE
-      if (::selectPatientListAdapter.isInitialized) {
-        val selectedPatientList = selectPatientListViewModel.getSelectPatientListItemsListFiltered()
-        if (selectedPatientList.isEmpty()) {
-          binding.emptyStateContainer.visibility = View.VISIBLE
-        } else {
-          binding.emptyStateContainer.visibility = View.GONE
-          selectPatientListAdapter.submitList(
-            selectedPatientList,
-          )
-        }
-      }
+      selectPatientListViewModel.onLoadingChanged(false)
     }
-
-    addSearchTextChangeListener()
   }
 
   private fun observeSelectedLocation() {
@@ -175,7 +171,7 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
               connectivityState == ServerConnectivityState.ServerConnected &&
                 !locationId.isNullOrBlank()
             ) {
-              binding.progressBar.visibility = View.VISIBLE
+              selectPatientListViewModel.onLoadingChanged(true)
               selectPatientListViewModel.fetchPatientListItems()
             } else {
               selectPatientListViewModel.getSelectPatientListItems()
@@ -193,42 +189,33 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
       )
   }
 
-  private fun configureUi(actionBar: ActionBar?) {
-    arguments?.let {
-      fromLogin = it.getBoolean("from_login")
-      if (fromLogin) {
-        actionBar?.hide()
-        mainActivityViewModel.setDrawerEnabled(true)
-        binding.titleTextView.visibility = View.VISIBLE
-        binding.actionButton.visibility = View.VISIBLE
-        binding.actionButton.setOnClickListener {
-          if (
-            !selectPatientListAdapter.isAnyPatientListItemSelected() &&
-              !selectPatientListViewModel.selectPatientListItems.value.isNullOrEmpty()
-          ) {
-            AlertDialog.Builder(requireContext()).apply {
-              setTitle("Select Patient List")
-              setMessage("No patient list is selected. Do you want to select one?")
-              setPositiveButton("Yes") { dialog, _ -> dialog.dismiss() }
-              setNegativeButton("No") { dialog, _ ->
-                proceedToHomeFragment()
-                dialog.dismiss()
-              }
-              show()
-            }
-          } else {
-            proceedToHomeFragment()
-          }
-        }
-      } else {
-        actionBar?.setDisplayHomeAsUpEnabled(true)
-        mainActivityViewModel.setDrawerEnabled(false)
-      }
+  private fun configureUi(actionBar: androidx.appcompat.app.ActionBar?) {
+    if (fromLogin) {
+      actionBar?.hide()
+      mainActivityViewModel.setDrawerEnabled(true)
+    } else {
+      actionBar?.setDisplayHomeAsUpEnabled(true)
+      mainActivityViewModel.setDrawerEnabled(false)
     }
-      ?: run {
-        actionBar?.setDisplayHomeAsUpEnabled(true)
-        mainActivityViewModel.setDrawerEnabled(false)
+  }
+
+  private fun handleActionClick() {
+    val hasSelection = selectPatientListViewModel.uiState.value.selectedPatientListIds.isNotEmpty()
+    val hasLists = !selectPatientListViewModel.selectPatientListItems.value.isNullOrEmpty()
+    if (!hasSelection && hasLists) {
+      AlertDialog.Builder(requireContext()).apply {
+        setTitle("Select Patient List")
+        setMessage("No patient list is selected. Do you want to select one?")
+        setPositiveButton("Yes") { dialog, _ -> dialog.dismiss() }
+        setNegativeButton("No") { dialog, _ ->
+          proceedToHomeFragment()
+          dialog.dismiss()
+        }
+        show()
       }
+    } else {
+      proceedToHomeFragment()
+    }
   }
 
   private fun triggerLegacyInitialSync() {
@@ -236,6 +223,7 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
       selectPatientListViewModel.getSelectPatientListItems()
     } else {
       viewLifecycleOwner.lifecycleScope.launch {
+        selectPatientListViewModel.onLoadingChanged(true)
         when (requireContext().getServerConnectivityState(apiManager)) {
           ServerConnectivityState.ServerConnected ->
             selectPatientListViewModel.fetchPatientListItems()
@@ -250,19 +238,8 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
     isSelected: Boolean,
   ) {
     if (isSelected) {
-      lifecycleScope.launch {
-        context?.applicationContext?.dataStore?.edit { preferences ->
-          preferences[PreferenceKeys.SELECTED_PATIENT_LISTS] =
-            preferences[PreferenceKeys.SELECTED_PATIENT_LISTS]?.minus(
-              selectPatientListItem.resourceId,
-            )
-              ?: mutableSetOf()
-        }
-      }
+      selectPatientListViewModel.onPatientListToggle(selectPatientListItem.resourceId, true)
 
-      if (::selectPatientListAdapter.isInitialized) {
-        selectPatientListAdapter.removeSelectPatientListItem(selectPatientListItem.resourceId)
-      }
       Toast.makeText(
           context,
           getString(R.string.removed_patient_list_from_sync),
@@ -274,34 +251,12 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
     }
   }
 
-  private fun addSearchTextChangeListener() {
-    binding.selectPatientListInputEditText.doOnTextChanged { text, _, _, _ ->
-      if (::selectPatientListAdapter.isInitialized) {
-        selectPatientListAdapter.submitList(
-          selectPatientListViewModel.getSelectPatientListItemsListFiltered(text.toString()),
-        )
-      }
-    }
-  }
-
   private fun selectPatientListItem(
     selectPatientListItem: SelectPatientListViewModel.SelectPatientListItem,
   ) {
-    lifecycleScope.launch {
-      context?.applicationContext?.dataStore?.edit { preferences ->
-        preferences[PreferenceKeys.SELECTED_PATIENT_LISTS] =
-          preferences[PreferenceKeys.SELECTED_PATIENT_LISTS]?.plus(
-            selectPatientListItem.resourceId,
-          )
-            ?: mutableSetOf(selectPatientListItem.resourceId)
-      }
-      if (::selectPatientListAdapter.isInitialized) {
-        selectPatientListAdapter.addSelectPatientListItem(selectPatientListItem.resourceId)
-      }
-
-      Toast.makeText(context, getString(R.string.added_patient_list_to_sync), Toast.LENGTH_SHORT)
-        .show()
-    }
+    selectPatientListViewModel.onPatientListToggle(selectPatientListItem.resourceId, false)
+    Toast.makeText(context, getString(R.string.added_patient_list_to_sync), Toast.LENGTH_SHORT)
+      .show()
   }
 
   private fun observePollState() {
@@ -314,7 +269,7 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
           is CurrentSyncJobStatus.Running,
           CurrentSyncJobStatus.Enqueued, -> {
             if (fromLogin) {
-              binding.progressBar.visibility = View.GONE
+              selectPatientListViewModel.onLoadingChanged(false)
             }
           }
           is CurrentSyncJobStatus.Failed -> {
@@ -347,10 +302,5 @@ class SelectPatientListFragment : Fragment(R.layout.fragment_select_patient_list
   override fun onPause() {
     super.onPause()
     (requireActivity() as AppCompatActivity).supportActionBar?.show()
-  }
-
-  override fun onDestroyView() {
-    super.onDestroyView()
-    _binding = null
   }
 }

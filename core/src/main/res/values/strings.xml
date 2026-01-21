@@ -530,5 +530,8 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
         name="removed_patient_list_from_sync"
     >Removed Patient List from Sync</string>
     <string name="location_updated">Location Updated</string>
+    <string
+        name="no_location_is_selected_do_you_want_to_select_one"
+    >No location is selected. Do you want to select one?</string>
 
 </resources>

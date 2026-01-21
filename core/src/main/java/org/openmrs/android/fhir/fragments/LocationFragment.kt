@@ -29,25 +29,34 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.doOnTextChanged
-import androidx.datastore.preferences.core.edit
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.SyncJobStatus
 import com.google.android.fhir.sync.SyncOperation
@@ -56,17 +65,17 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.adapters.LocationItemRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
-import org.openmrs.android.fhir.databinding.FragmentLocationBinding
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
+import org.openmrs.android.fhir.ui.screens.LocationSelectionScreen
+import org.openmrs.android.fhir.ui.screens.selectionScreenContentPadding
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
-class LocationFragment : Fragment(R.layout.fragment_location) {
+class LocationFragment : Fragment() {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
   @Inject lateinit var apiManager: ApiManager
@@ -74,26 +83,67 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
   private val mainActivityViewModel by
     activityViewModels<MainActivityViewModel> { viewModelFactory }
 
-  private var _binding: FragmentLocationBinding? = null
-  private lateinit var locationAdapter: LocationItemRecyclerViewAdapter
-  private lateinit var favoriteLocationAdapter: LocationItemRecyclerViewAdapter
-  private val binding
-    get() = _binding!!
-
   private var fromLogin = false
-
-  override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
-    savedInstanceState: Bundle?,
-  ): View {
-    _binding = FragmentLocationBinding.inflate(inflater, container, false)
-    return binding.root
-  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setHasOptionsMenu(true)
+    fromLogin = arguments?.getBoolean("from_login") ?: false
+  }
+
+  override fun onCreateView(
+    inflater: android.view.LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?,
+  ): View {
+    return ComposeView(requireContext()).apply {
+      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+      setContent {
+        MaterialTheme {
+          val locations by locationViewModel.locations.observeAsState(emptyList())
+          val uiState by locationViewModel.uiState.collectAsStateWithLifecycle()
+          val filteredFavorites =
+            remember(locations, uiState.favoriteLocationIds, uiState.query) {
+              locations.filter {
+                uiState.favoriteLocationIds.contains(it.resourceId) &&
+                  it.name.contains(uiState.query, true)
+              }
+            }
+          val filteredLocations =
+            remember(locations, uiState.favoriteLocationIds, uiState.query) {
+              locations.filter {
+                !uiState.favoriteLocationIds.contains(it.resourceId) &&
+                  it.name.contains(uiState.query, true)
+              }
+            }
+
+          if (uiState.showContent) {
+            LocationSelectionScreen(
+              query = uiState.query,
+              onQueryChange = locationViewModel::onQueryChanged,
+              favoriteLocations = filteredFavorites,
+              locations = filteredLocations,
+              selectedLocationId = uiState.selectedLocationId,
+              showTitle = fromLogin,
+              showActionButton = fromLogin,
+              showEmptyState = locations.isEmpty(),
+              isLoading = uiState.isLoading,
+              onLocationClick = ::selectLocationItem,
+              onFavoriteToggle = ::onFavoriteLocationToggle,
+              onActionClick = ::handleActionClick,
+              topPadding =
+                if (fromLogin) {
+                  20.dp
+                } else {
+                  selectionScreenContentPadding().calculateTopPadding()
+                },
+            )
+          } else {
+            Box(modifier = Modifier.fillMaxSize().background(Color(0xFFE8F0FE)))
+          }
+        }
+      }
+    }
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -102,107 +152,39 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
     (requireActivity().application as FhirApplication).appComponent.inject(this)
 
     viewLifecycleOwner.lifecycleScope.launch {
-      val savedLocationName =
-        context?.applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.LOCATION_NAME)
+      val preferences = context?.applicationContext?.dataStore?.data?.first()
+      val savedLocationName = preferences?.get(PreferenceKeys.LOCATION_NAME)
       actionBar?.title = savedLocationName ?: requireContext().getString(R.string.select_a_location)
-
-      val selectedLocationId =
-        context?.applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.LOCATION_ID)
-
-      selectedLocationId?.let { locationId ->
-        if (::locationAdapter.isInitialized && ::favoriteLocationAdapter.isInitialized) {
-          locationAdapter.setSelectedLocation(locationId)
-          favoriteLocationAdapter.setSelectedLocation(locationId)
-        }
-      }
     }
+
     observePollState()
-    arguments?.let {
-      fromLogin = it.getBoolean("from_login")
-      if (fromLogin) {
-        showSyncTasksScreen()
-        viewLifecycleOwner.lifecycleScope.launch {
-          when (requireContext().getServerConnectivityState(apiManager)) {
-            ServerConnectivityState.ServerConnected -> locationViewModel.fetchPreSyncData()
-            else -> locationViewModel.getLocations()
-          }
+
+    if (fromLogin) {
+      showSyncTasksScreen()
+      viewLifecycleOwner.lifecycleScope.launch {
+        when (requireContext().getServerConnectivityState(apiManager)) {
+          ServerConnectivityState.ServerConnected -> locationViewModel.fetchPreSyncData()
+          else -> locationViewModel.getLocations()
         }
-        actionBar?.hide()
-        mainActivityViewModel.setDrawerEnabled(true)
-        binding.titleTextView.visibility = View.VISIBLE
-        binding.actionButton.visibility = View.VISIBLE
-        binding.actionButton.setOnClickListener {
-          if (
-            ::locationAdapter.isInitialized &&
-              ::favoriteLocationAdapter.isInitialized &&
-              !locationAdapter.isLocationSelected()
-          ) {
-            AlertDialog.Builder(requireContext()).apply {
-              setTitle("Select Location")
-              setMessage("No location is selected. Do you want to select one?")
-              setPositiveButton("Yes") { dialog, _ -> dialog.dismiss() }
-              setNegativeButton("No") { dialog, _ ->
-                findNavController()
-                  .navigate(
-                    LocationFragmentDirections.actionLocationFragmentToSelectPatientListFragment(
-                      true,
-                    ),
-                  )
-                dialog.dismiss()
-              }
-              show()
-            }
-          } else {
-            findNavController()
-              .navigate(
-                LocationFragmentDirections.actionLocationFragmentToSelectPatientListFragment(true),
-              )
-          }
-        }
-      } else {
-        viewLifecycleOwner.lifecycleScope.launch {
-          when (requireContext().getServerConnectivityState(apiManager)) {
-            ServerConnectivityState.ServerConnected -> locationViewModel.fetchLocations()
-            else -> locationViewModel.getLocations()
-          }
-        }
-        actionBar?.setDisplayHomeAsUpEnabled(true)
-        mainActivityViewModel.setDrawerEnabled(false)
       }
+      actionBar?.hide()
+      mainActivityViewModel.setDrawerEnabled(true)
+    } else {
+      viewLifecycleOwner.lifecycleScope.launch {
+        locationViewModel.onLoadingChanged(true)
+        when (requireContext().getServerConnectivityState(apiManager)) {
+          ServerConnectivityState.ServerConnected -> locationViewModel.fetchLocations()
+          else -> locationViewModel.getLocations()
+        }
+      }
+      actionBar?.setDisplayHomeAsUpEnabled(true)
+      mainActivityViewModel.setDrawerEnabled(false)
     }
-
-    locationViewModel.setFavoriteLocations(context?.applicationContext!!)
-
-    val locationRecyclerView: RecyclerView = binding.locationRecyclerView
-    val favoriteLocationRecyclerView: RecyclerView = binding.locationFavoriteRecylcerView
-    locationAdapter =
-      LocationItemRecyclerViewAdapter(
-        this::onLocationItemClicked,
-        locationViewModel.favoriteLocationSet ?: emptySet(),
-      )
-    favoriteLocationAdapter =
-      LocationItemRecyclerViewAdapter(
-        this::onFavoriteLocationItemClicked,
-        locationViewModel.favoriteLocationSet ?: emptySet(),
-      )
-    locationRecyclerView.adapter = locationAdapter
-    favoriteLocationRecyclerView.adapter = favoriteLocationAdapter
-
-    binding.progressBar.visibility = View.VISIBLE
 
     locationViewModel.locations.observe(viewLifecycleOwner) {
       showLocationScreen()
-      binding.progressBar.visibility = View.GONE
-      binding.emptyStateContainer.visibility = if (it.isEmpty()) View.VISIBLE else View.GONE
-      if (::locationAdapter.isInitialized && ::favoriteLocationAdapter.isInitialized) {
-        locationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
-        favoriteLocationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
-        locationAdapter.submitList(locationViewModel.getLocationsListFiltered())
-        favoriteLocationAdapter.submitList(locationViewModel.getFavoriteLocationsList())
-      }
+      locationViewModel.onLoadingChanged(false)
     }
-
-    addSearchTextChangeListener()
   }
 
   private fun showSyncTasksScreen() {
@@ -210,42 +192,37 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
       headerTextResId = R.string.get_started,
       showCloseButton = false,
     )
-    binding.locationContainer.visibility = View.GONE
-    binding.actionButton.visibility = View.GONE
+    locationViewModel.onShowContentChanged(false)
   }
 
   private fun showLocationScreen() {
     mainActivityViewModel.hideSyncTasksScreen()
-    binding.locationContainer.visibility = View.VISIBLE
-    binding.actionButton.visibility = if (fromLogin) View.VISIBLE else View.GONE
+    locationViewModel.onShowContentChanged(true)
   }
 
-  private fun onLocationItemClicked(
-    locationItem: LocationViewModel.LocationItem,
-    isFavoriteClickedFlag: Boolean,
-  ) {
-    if (isFavoriteClickedFlag) {
-      locationViewModel.favoriteLocationSet?.add(locationItem.resourceId)
-      viewLifecycleOwner.lifecycleScope.launch {
-        context?.applicationContext?.dataStore?.edit { preferences ->
-          preferences[PreferenceKeys.FAVORITE_LOCATIONS] =
-            locationViewModel.favoriteLocationSet as Set<String>
-          if (::favoriteLocationAdapter.isInitialized && ::locationAdapter.isInitialized) {
-            favoriteLocationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
-            locationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
-            favoriteLocationAdapter.submitList(locationViewModel.getFavoriteLocationsList())
-            locationAdapter.submitList(locationViewModel.getLocationsListFiltered())
-          }
-          Toast.makeText(
-              context,
-              getString(R.string.location_added_to_favorites),
-              Toast.LENGTH_SHORT,
+  private fun handleActionClick() {
+    if (
+      locationViewModel.uiState.value.selectedLocationId.isNullOrBlank() &&
+        !locationViewModel.locations.value.isNullOrEmpty()
+    ) {
+      AlertDialog.Builder(requireContext()).apply {
+        setTitle(getString(R.string.select_location))
+        setMessage(getString(R.string.no_location_is_selected_do_you_want_to_select_one))
+        setPositiveButton(getString(R.string.yes)) { dialog, _ -> dialog.dismiss() }
+        setNegativeButton(getString(R.string.no)) { dialog, _ ->
+          findNavController()
+            .navigate(
+              LocationFragmentDirections.actionLocationFragmentToSelectPatientListFragment(true),
             )
-            .show()
+          dialog.dismiss()
         }
+        show()
       }
     } else {
-      selectLocationItem(locationItem)
+      findNavController()
+        .navigate(
+          LocationFragmentDirections.actionLocationFragmentToSelectPatientListFragment(true)
+        )
     }
   }
 
@@ -260,7 +237,7 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
             }
             is CurrentSyncJobStatus.Running -> {
               if (fromLogin) {
-                binding.progressBar.visibility = View.GONE
+                locationViewModel.onLoadingChanged(false)
               }
               if (it.inProgressSyncJob is SyncJobStatus.InProgress) {
                 val inProgressState = it.inProgressSyncJob as SyncJobStatus.InProgress
@@ -291,60 +268,28 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
     }
   }
 
-  private fun addSearchTextChangeListener() {
-    binding.locationInputEditText.doOnTextChanged { text, _, _, _ ->
-      if (::locationAdapter.isInitialized && ::favoriteLocationAdapter.isInitialized) {
-        locationAdapter.submitList(locationViewModel.getLocationsListFiltered(text.toString()))
-        favoriteLocationAdapter.submitList(
-          locationViewModel.getFavoriteLocationsList(text.toString()),
-        )
-      }
-    }
-  }
-
-  private fun onFavoriteLocationItemClicked(
+  private fun onFavoriteLocationToggle(
     locationItem: LocationViewModel.LocationItem,
-    isFavoriteClickedFlag: Boolean,
+    isFavorite: Boolean,
   ) {
-    if (isFavoriteClickedFlag) {
-      locationViewModel.favoriteLocationSet?.remove(locationItem.resourceId)
-      viewLifecycleOwner.lifecycleScope.launch {
-        context?.applicationContext?.dataStore?.edit { preferences ->
-          preferences[PreferenceKeys.FAVORITE_LOCATIONS] =
-            locationViewModel.favoriteLocationSet as Set<String>
-          if (::favoriteLocationAdapter.isInitialized && ::locationAdapter.isInitialized) {
-            favoriteLocationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
-            locationAdapter.updateFavoriteLocations(locationViewModel.favoriteLocationSet)
-            favoriteLocationAdapter.submitList(locationViewModel.getFavoriteLocationsList())
-            locationAdapter.submitList(locationViewModel.getLocationsListFiltered())
-          }
-          Toast.makeText(
-              context,
-              getString(R.string.location_removed_from_favorites),
-              Toast.LENGTH_SHORT,
-            )
-            .show()
-        }
-      }
-    } else {
-      selectLocationItem(locationItem)
-    }
+    locationViewModel.onFavoriteToggle(locationItem.resourceId, isFavorite)
+    Toast.makeText(
+        context,
+        if (isFavorite) {
+          getString(R.string.location_removed_from_favorites)
+        } else {
+          getString(R.string.location_added_to_favorites)
+        },
+        Toast.LENGTH_SHORT,
+      )
+      .show()
   }
 
   private fun selectLocationItem(locationItem: LocationViewModel.LocationItem) {
     lifecycleScope.launch {
-      context?.applicationContext?.dataStore?.edit { preferences ->
-        preferences[PreferenceKeys.LOCATION_ID] = locationItem.resourceId
-        preferences[PreferenceKeys.LOCATION_NAME] = locationItem.name
-      }
+      locationViewModel.onLocationSelected(locationItem.resourceId, locationItem.name)
       mainActivityViewModel.updateLocationName(locationItem.name)
-
       (requireActivity() as AppCompatActivity).supportActionBar?.title = locationItem.name
-
-      if (::locationAdapter.isInitialized && ::favoriteLocationAdapter.isInitialized) {
-        locationAdapter.setSelectedLocation(locationItem.resourceId)
-        favoriteLocationAdapter.setSelectedLocation(locationItem.resourceId)
-      }
       locationViewModel.updateSessionLocation(locationItem.resourceId)
     }
 
@@ -364,10 +309,5 @@ class LocationFragment : Fragment(R.layout.fragment_location) {
   override fun onPause() {
     super.onPause()
     (requireActivity() as AppCompatActivity).supportActionBar?.show()
-  }
-
-  override fun onDestroyView() {
-    super.onDestroyView()
-    _binding = null
   }
 }
