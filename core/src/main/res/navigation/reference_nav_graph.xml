@@ -52,7 +52,6 @@
         android:id="@+id/patient_list"
         android:label="Patient List"
         android:name="org.openmrs.android.fhir.fragments.PatientListFragment"
-        tools:layout="@layout/fragment_patient_list"
     >
     <action
             android:id="@+id/navigate_to_product_detail"

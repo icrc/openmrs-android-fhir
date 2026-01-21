@@ -41,3 +41,12 @@ The main entry-point activities now render their UI with Jetpack Compose while p
 * Compose and fragment tests live in `core/src/androidTest/java/org/openmrs/android/fhir/ui/`.
 
 See [Unsynced resources Compose layout](unsynced-resources-compose.md) for details.
+
+## Patient list screen
+
+* `PatientListFragment` now hosts `PatientListScreen` via a `ComposeView`, mirroring the previous
+  XML layout while centralizing state in `PatientListViewModel`.
+* The screen renders the search field, list container, empty state, loading overlays, and
+  floating action button in Compose.
+
+See [Patient list Compose layout](patient-list-compose.md) for details.

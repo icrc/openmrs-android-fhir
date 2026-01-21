@@ -221,7 +221,7 @@ class LocationFragment : Fragment() {
     } else {
       findNavController()
         .navigate(
-          LocationFragmentDirections.actionLocationFragmentToSelectPatientListFragment(true)
+          LocationFragmentDirections.actionLocationFragmentToSelectPatientListFragment(true),
         )
     }
   }

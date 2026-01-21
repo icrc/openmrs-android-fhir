@@ -44,6 +44,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Identifier
@@ -56,35 +57,50 @@ import timber.log.Timber
  * The ViewModel helper class for PatientItemRecyclerViewAdapter, that is responsible for preparing
  * data for UI.
  */
+data class PatientListUiState(
+  val query: String = "",
+  val patients: List<PatientListViewModel.PatientItem> = emptyList(),
+  val isLoading: Boolean = false,
+  val isRefreshing: Boolean = false,
+)
+
 class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngine) : ViewModel() {
 
-  val liveSearchedPatients = MutableLiveData<List<PatientItem>>()
+  private val _uiState = MutableStateFlow(PatientListUiState())
+  val uiState: StateFlow<PatientListUiState> = _uiState.asStateFlow()
+
+  val liveSearchedPatients: LiveData<List<PatientItem>> = uiState.map { it.patients }.asLiveData()
   val patientCount = MutableLiveData<Long>()
-
-  private val _isLoading = MutableStateFlow(false)
-  val isLoadingFlow: StateFlow<Boolean> = _isLoading.asStateFlow()
-  val isLoading: LiveData<Boolean> = isLoadingFlow.asLiveData()
-
-  private val _isRefreshing = MutableStateFlow(false)
-  val isRefreshingFlow: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
   init {
     loadPatients()
   }
 
   fun loadPatients() {
-    updatePatientListAndPatientCount({ getSearchResults() }, { count() })
+    updatePatientListAndPatientCount(
+      { getSearchResults(nameQuery = uiState.value.query) },
+      { count(uiState.value.query) },
+    )
   }
 
   fun refreshPatients() {
-    updatePatientListAndPatientCount({ getSearchResults(refreshing = true) }, { count() })
+    updatePatientListAndPatientCount(
+      { getSearchResults(nameQuery = uiState.value.query, refreshing = true) },
+      { count(uiState.value.query) },
+    )
   }
 
   fun searchPatientsByName(nameQuery: String) {
+    _uiState.update { it.copy(query = nameQuery) }
     updatePatientListAndPatientCount(
       { getSearchResults(nameQuery = nameQuery) },
       { count(nameQuery) },
     )
+  }
+
+  fun clearSearch() {
+    _uiState.update { it.copy(query = "") }
+    loadPatients()
   }
 
   /**
@@ -97,7 +113,8 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
     count: suspend () -> Long,
   ) {
     viewModelScope.launch {
-      liveSearchedPatients.value = search()
+      val patients = search()
+      _uiState.update { it.copy(patients = patients) }
       patientCount.value = count()
     }
   }
@@ -128,9 +145,9 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
     refreshing: Boolean = false,
   ): List<PatientItem> {
     if (refreshing) {
-      _isRefreshing.update { true }
+      _uiState.update { it.copy(isRefreshing = true) }
     } else {
-      _isLoading.update { true }
+      _uiState.update { it.copy(isLoading = true) }
     }
     val patients: MutableList<PatientItem> = mutableListOf()
     fhirEngine
@@ -164,9 +181,9 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
       }
     }
     if (refreshing) {
-      _isRefreshing.update { false }
+      _uiState.update { it.copy(isRefreshing = false) }
     } else {
-      _isLoading.update { false }
+      _uiState.update { it.copy(isLoading = false) }
     }
     return patients
   }

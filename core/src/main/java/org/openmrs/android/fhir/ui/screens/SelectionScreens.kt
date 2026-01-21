@@ -247,7 +247,7 @@ fun IdentifierSelectionScreen(
                 {
                   onIdentifierToggle(
                     identifierType,
-                    selectedIdentifierIds.contains(identifierType.uuid)
+                    selectedIdentifierIds.contains(identifierType.uuid),
                   )
                 }
               },
@@ -326,7 +326,7 @@ fun PatientListSelectionScreen(
             onToggle = {
               onPatientListToggle(
                 patientList,
-                selectedPatientListIds.contains(patientList.resourceId)
+                selectedPatientListIds.contains(patientList.resourceId),
               )
             },
           )
