@@ -7,6 +7,16 @@ New Compose primitives centralize banner and header rendering:
 
 These composables are defined in `core/src/main/java/org/openmrs/android/fhir/ui/components/HeaderComponents.kt` and are hosted from `MainActivity` via `ComposeView` to keep existing navigation and toolbar scaffolding intact.
 
+## Home dashboard
+
+`HomeScreen` renders the dashboard cards in Compose (replacing the old `fragment_home.xml` scroll view) while keeping section order aligned with the legacy layout: Patient Management cards, Encounters, and System actions. The screen uses a `LazyColumn` for smoother scrolling and applies the same top inset padding strategy as `UnsyncedResourcesScreen` to prevent content from being hidden behind the action bar.
+
+Key behaviors:
+
+* Card ordering mirrors the XML dashboard layout and preserves the copy, icons, and spacing from the legacy cards.
+* Stable test tags are provided for card presence and quick-action UI tests (`HomeTestTags.NewPatientCard`, `HomeTestTags.PatientListCard`, `HomeTestTags.CustomPatientListCard`, `HomeTestTags.GroupEncounterCard`, `HomeTestTags.SyncInfoCard`, and `HomeTestTags.UnsyncedResourcesCard`).
+* Click handling is delegated to `HomeViewModel` so state (like location selection and connectivity) lives outside the fragment.
+
 ## Compose list containers
 
 `SwipeRefreshListContainer` and the `PatientListContainerScreen` wrapper live in

@@ -29,35 +29,63 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import javax.inject.Inject
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.PreferenceKeys
-import org.openmrs.android.fhir.data.remote.ApiManager
-import org.openmrs.android.fhir.data.remote.ServerConnectivityState
-import org.openmrs.android.fhir.extensions.getServerConnectivityState
+import org.openmrs.android.fhir.ui.screens.HomeScreen
+import org.openmrs.android.fhir.viewmodel.HomeEvent
+import org.openmrs.android.fhir.viewmodel.HomeViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
-class HomeFragment : Fragment(R.layout.fragment_home) {
+class HomeFragment : Fragment() {
 
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
-  @Inject lateinit var apiManager: ApiManager
   private val mainActivityViewModel by
     activityViewModels<MainActivityViewModel> { viewModelFactory }
+  private val homeViewModel by viewModels<HomeViewModel> { viewModelFactory }
+
+  override fun onCreateView(
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?,
+  ): View {
+    val composeView = ComposeView(requireContext())
+    composeView.setViewCompositionStrategy(
+      ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
+    )
+    composeView.setContent {
+      MaterialTheme {
+        HomeScreen(
+          onNewPatientClicked = homeViewModel::onNewPatientClicked,
+          onPatientListClicked = homeViewModel::onPatientListClicked,
+          onCustomPatientListClicked = homeViewModel::onCustomPatientListClicked,
+          onGroupEncounterClicked = homeViewModel::onGroupEncounterClicked,
+          onSyncInfoClicked = homeViewModel::onSyncInfoClicked,
+          onUnsyncedResourcesClicked = homeViewModel::onUnsyncedResourcesClicked,
+        )
+      }
+    }
+    return composeView
+  }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
@@ -68,92 +96,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
     setHasOptionsMenu(true)
     mainActivityViewModel.setDrawerEnabled(true)
-    setOnClicks()
-  }
-
-  private fun setOnClicks() {
-    requireView().findViewById<CardView>(R.id.card_new_patient).setOnClickListener {
-      lifecycleScope.launch {
-        if (
-          context
-            ?.applicationContext
-            ?.dataStore
-            ?.data
-            ?.first()
-            ?.get(PreferenceKeys.LOCATION_NAME) != null
-        ) {
-          findNavController()
-            .navigate(HomeFragmentDirections.actionHomeFragmentToAddPatientFragment())
-        } else {
-          Toast.makeText(
-              context,
-              getString(R.string.please_select_a_location_first),
-              Toast.LENGTH_LONG,
-            )
-            .show()
-        }
-      }
-    }
-
-    requireView().findViewById<CardView>(R.id.card_patient_list).setOnClickListener {
-      lifecycleScope.launch {
-        if (
-          context
-            ?.applicationContext
-            ?.dataStore
-            ?.data
-            ?.first()
-            ?.get(PreferenceKeys.LOCATION_NAME) != null
-        ) {
-          findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToPatientList())
-        } else {
-          Toast.makeText(context, R.string.please_select_a_location_first, Toast.LENGTH_LONG).show()
-        }
-      }
-    }
-
-    requireView().findViewById<CardView>(R.id.card_custom_patient_list).setOnClickListener {
-      viewLifecycleOwner.lifecycleScope.launch {
-        when (requireContext().getServerConnectivityState(apiManager)) {
-          ServerConnectivityState.ServerConnected ->
-            findNavController()
-              .navigate(
-                HomeFragmentDirections.actionHomeFragmentToSelectPatientListFragment(false),
-              )
-          ServerConnectivityState.InternetOnly ->
-            Toast.makeText(
-                context,
-                getString(R.string.server_unreachable_try_again_message),
-                Toast.LENGTH_LONG,
-              )
-              .show()
-          ServerConnectivityState.Offline ->
-            Toast.makeText(
-                context,
-                getString(R.string.connect_internet_to_select_patient_list),
-                Toast.LENGTH_LONG,
-              )
-              .show()
-        }
-      }
-    }
-
-    requireView().findViewById<CardView>(R.id.card_group_encounter).setOnClickListener {
-      findNavController()
-        .navigate(
-          HomeFragmentDirections.actionHomeFragmentToCreateEncounterFragment(
-            patientId = "",
-            isGroupEncounter = true,
-          ),
-        )
-    }
-    requireView().findViewById<CardView>(R.id.card_sync_info).setOnClickListener {
-      findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSyncInfoFragment())
-    }
-    requireView().findViewById<CardView>(R.id.card_unsynced_resources).setOnClickListener {
-      findNavController()
-        .navigate(HomeFragmentDirections.actionHomeFragmentToUnsyncedResourcesFragment())
-    }
+    observeHomeEvents()
   }
 
   @Deprecated("Deprecated in Java")
@@ -164,6 +107,42 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         true
       }
       else -> false
+    }
+  }
+
+  private fun observeHomeEvents() {
+    viewLifecycleOwner.lifecycleScope.launch {
+      viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        homeViewModel.events.collect { event -> handleHomeEvent(event) }
+      }
+    }
+  }
+
+  private fun handleHomeEvent(event: HomeEvent) {
+    when (event) {
+      HomeEvent.NavigateToAddPatient ->
+        findNavController()
+          .navigate(HomeFragmentDirections.actionHomeFragmentToAddPatientFragment())
+      HomeEvent.NavigateToPatientList ->
+        findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToPatientList())
+      HomeEvent.NavigateToCustomPatientList ->
+        findNavController()
+          .navigate(HomeFragmentDirections.actionHomeFragmentToSelectPatientListFragment(false))
+      HomeEvent.NavigateToGroupEncounter ->
+        findNavController()
+          .navigate(
+            HomeFragmentDirections.actionHomeFragmentToCreateEncounterFragment(
+              patientId = "",
+              isGroupEncounter = true,
+            ),
+          )
+      HomeEvent.NavigateToSyncInfo ->
+        findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSyncInfoFragment())
+      HomeEvent.NavigateToUnsyncedResources ->
+        findNavController()
+          .navigate(HomeFragmentDirections.actionHomeFragmentToUnsyncedResourcesFragment())
+      is HomeEvent.ShowMessage ->
+        Toast.makeText(requireContext(), getString(event.messageResId), Toast.LENGTH_LONG).show()
     }
   }
 }
