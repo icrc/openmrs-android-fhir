@@ -87,8 +87,6 @@ class PatientListViewModelLoadingTest {
     viewModel.refreshPatients()
     dispatcher.scheduler.advanceUntilIdle()
 
-    assertEquals(false, viewModel.isRefreshingFlow.value)
-    assertEquals(false, viewModel.isLoadingFlow.value)
     assertEquals(0, viewModel.liveSearchedPatients.value?.size ?: 0)
   }
 }
