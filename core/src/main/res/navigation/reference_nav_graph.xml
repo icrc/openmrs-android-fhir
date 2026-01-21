@@ -11,7 +11,6 @@
         android:id="@+id/home_fragment"
         android:name="org.openmrs.android.fhir.fragments.HomeFragment"
         android:label="HomeFragment"
-        tools:layout="@layout/fragment_home"
     >
     <action
             android:id="@+id/action_home_fragment_to_addPatientFragment"
@@ -52,7 +51,6 @@
         android:id="@+id/patient_list"
         android:label="Patient List"
         android:name="org.openmrs.android.fhir.fragments.PatientListFragment"
-        tools:layout="@layout/patient_list_view"
     >
     <action
             android:id="@+id/navigate_to_product_detail"
@@ -118,7 +116,6 @@
         android:id="@+id/patientSelectionDialogFragment"
         android:name="org.openmrs.android.fhir.fragments.PatientSelectionDialogFragment"
         android:label="Select Patients"
-        tools:layout="@layout/dialog_patient_selection"
     >
     <argument android:name="questionnaireId" app:argType="string" />
     <action
@@ -180,7 +177,6 @@
         android:id="@+id/locationFragment"
         android:label="@string/location"
         android:name="org.openmrs.android.fhir.fragments.LocationFragment"
-        tools:layout="@layout/fragment_location"
     >
     <argument android:name="from_login" app:argType="boolean" />
     <action
@@ -192,7 +188,6 @@
         android:id="@+id/selectPatientListFragment"
         android:label="@string/select_patient_lists"
         android:name="org.openmrs.android.fhir.fragments.SelectPatientListFragment"
-        tools:layout="@layout/fragment_select_patient_list"
     >
     <argument android:name="from_login" app:argType="boolean" />
     <action
@@ -206,25 +201,21 @@
         android:id="@+id/identifierFragment"
         android:label="@string/identifier"
         android:name="org.openmrs.android.fhir.fragments.IdentifierFragment"
-        tools:layout="@layout/fragment_identifier"
     />
   <fragment
         android:id="@+id/syncInfoFragment"
         android:label="@string/sync_info"
         android:name="org.openmrs.android.fhir.fragments.SyncInfoFragment"
-        tools:layout="@layout/fragment_sync_info"
     />
   <fragment
         android:id="@+id/unsyncedResourcesFragment"
-        android:label="@string/sync_info"
+        android:label="@string/title_unsynced_resources"
         android:name="org.openmrs.android.fhir.fragments.UnsyncedResourcesFragment"
-        tools:layout="@layout/fragment_unsynced_resources"
     />
 
   <fragment
         android:id="@+id/settings_fragment"
         android:label="Settings Screen"
         android:name="org.openmrs.android.fhir.fragments.SettingsFragment"
-        tools:layout="@layout/settings_page"
     />
 </navigation>

@@ -35,11 +35,13 @@ import dagger.multibindings.IntoMap
 import org.openmrs.android.fhir.viewmodel.AddPatientViewModel
 import org.openmrs.android.fhir.viewmodel.BasicLoginActivityViewModel
 import org.openmrs.android.fhir.viewmodel.CreateEncounterViewModel
+import org.openmrs.android.fhir.viewmodel.HomeViewModel
+import org.openmrs.android.fhir.viewmodel.IdentifierSelectionViewModel
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 import org.openmrs.android.fhir.viewmodel.LoginActivityViewModel
-import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import org.openmrs.android.fhir.viewmodel.SelectPatientListViewModel
+import org.openmrs.android.fhir.viewmodel.SettingsViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
 import org.openmrs.android.fhir.viewmodel.UnsyncedResourcesViewModel
 
@@ -62,6 +64,11 @@ abstract class ViewModelModule {
 
   @Binds
   @IntoMap
+  @ViewModelKey(IdentifierSelectionViewModel::class)
+  abstract fun bindIdentifierSelectionViewModel(viewmodel: IdentifierSelectionViewModel): ViewModel
+
+  @Binds
+  @IntoMap
   @ViewModelKey(SelectPatientListViewModel::class)
   abstract fun bindSelectPatientListViewModel(viewmodel: SelectPatientListViewModel): ViewModel
 
@@ -69,11 +76,6 @@ abstract class ViewModelModule {
   @IntoMap
   @ViewModelKey(LoginActivityViewModel::class)
   abstract fun bindLoginActivityViewModel(viewmodel: LoginActivityViewModel): ViewModel
-
-  @Binds
-  @IntoMap
-  @ViewModelKey(MainActivityViewModel::class)
-  abstract fun bindMainActivityViewModel(viewmodel: MainActivityViewModel): ViewModel
 
   @Binds
   @IntoMap
@@ -97,6 +99,16 @@ abstract class ViewModelModule {
 
   @Binds
   @IntoMap
+  @ViewModelKey(HomeViewModel::class)
+  abstract fun bindHomeViewModel(viewmodel: HomeViewModel): ViewModel
+
+  @Binds
+  @IntoMap
   @ViewModelKey(BasicLoginActivityViewModel::class)
   abstract fun bindBasicLoginActivityViewModel(viewmodel: BasicLoginActivityViewModel): ViewModel
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(SettingsViewModel::class)
+  abstract fun bindSettingsViewModel(viewmodel: SettingsViewModel): ViewModel
 }

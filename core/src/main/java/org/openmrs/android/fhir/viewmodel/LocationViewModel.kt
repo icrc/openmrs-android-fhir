@@ -29,6 +29,7 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -41,9 +42,12 @@ import com.google.android.fhir.sync.Sync
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Location
 import org.openmrs.android.fhir.FhirApplication
@@ -61,12 +65,20 @@ constructor(
 ) : ViewModel() {
   private var masterLocationsList: MutableList<LocationItem> = mutableListOf()
   private val restApiManager = FhirApplication.restApiClient(applicationContext)
-  var favoriteLocationSet: MutableSet<String>? = null
+  private var favoriteLocationSet: MutableSet<String> = mutableSetOf()
 
   val locations = MutableLiveData<List<LocationItem>>()
   private val _pollState = MutableSharedFlow<CurrentSyncJobStatus>()
   val pollState: Flow<CurrentSyncJobStatus>
     get() = _pollState
+
+  private val _uiState = MutableStateFlow(LocationSelectionUiState())
+  val uiState: StateFlow<LocationSelectionUiState>
+    get() = _uiState
+
+  init {
+    loadSelectionPreferences()
+  }
 
   fun fetchPreSyncData() {
     viewModelScope.launch {
@@ -113,28 +125,55 @@ constructor(
     restApiManager.updateSessionLocation(resourceId)
   }
 
-  fun setFavoriteLocations(context: Context) {
+  fun onQueryChanged(query: String) {
+    _uiState.update { it.copy(query = query) }
+  }
+
+  fun onLoadingChanged(isLoading: Boolean) {
+    _uiState.update { it.copy(isLoading = isLoading) }
+  }
+
+  fun onShowContentChanged(showContent: Boolean) {
+    _uiState.update { it.copy(showContent = showContent) }
+  }
+
+  fun onFavoriteToggle(resourceId: String, isFavorite: Boolean) {
+    val updatedFavorites = favoriteLocationSet.toMutableSet()
+    if (isFavorite) {
+      updatedFavorites.remove(resourceId)
+    } else {
+      updatedFavorites.add(resourceId)
+    }
+    favoriteLocationSet = updatedFavorites
+    _uiState.update { it.copy(favoriteLocationIds = updatedFavorites) }
     viewModelScope.launch {
-      favoriteLocationSet =
-        context.dataStore.data.first()[PreferenceKeys.FAVORITE_LOCATIONS]?.toMutableSet()
-      if (favoriteLocationSet == null) {
-        favoriteLocationSet = mutableSetOf()
+      applicationContext.dataStore.edit { preferences ->
+        preferences[PreferenceKeys.FAVORITE_LOCATIONS] = updatedFavorites
       }
     }
   }
 
-  fun getFavoriteLocationsList(query: String = ""): List<LocationItem> {
-    return masterLocationsList.filter {
-      (favoriteLocationSet?.contains(it.resourceId) ?: false) and it.name.contains(query, true)
+  fun onLocationSelected(resourceId: String, name: String) {
+    _uiState.update { it.copy(selectedLocationId = resourceId) }
+    viewModelScope.launch {
+      applicationContext.dataStore.edit { preferences ->
+        preferences[PreferenceKeys.LOCATION_ID] = resourceId
+        preferences[PreferenceKeys.LOCATION_NAME] = name
+      }
     }
   }
 
-  fun getLocationsListFiltered(query: String = ""): List<LocationItem> {
-    return if (favoriteLocationSet == null) {
-      masterLocationsList.filter { it.name.contains(query, true) }
-    } else {
-      masterLocationsList.filter {
-        (!favoriteLocationSet?.contains(it.resourceId)!!) and it.name.contains(query, true)
+  private fun loadSelectionPreferences() {
+    viewModelScope.launch {
+      val preferences = applicationContext.dataStore.data.first()
+      val favoriteIds =
+        preferences[PreferenceKeys.FAVORITE_LOCATIONS]?.toMutableSet() ?: mutableSetOf()
+      favoriteLocationSet = favoriteIds
+      _uiState.update {
+        it.copy(
+          favoriteLocationIds = favoriteIds,
+          selectedLocationId = preferences[PreferenceKeys.LOCATION_ID],
+        )
       }
     }
   }
@@ -155,5 +194,13 @@ constructor(
     val status: String,
     val name: String,
     val description: String,
+  )
+
+  data class LocationSelectionUiState(
+    val query: String = "",
+    val favoriteLocationIds: Set<String> = emptySet(),
+    val selectedLocationId: String? = null,
+    val isLoading: Boolean = false,
+    val showContent: Boolean = true,
   )
 }

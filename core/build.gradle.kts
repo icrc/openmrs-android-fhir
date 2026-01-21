@@ -1,9 +1,12 @@
+val composeBomVersion: String by project
+
 plugins {
   id("com.android.library")
   id("kotlin-android")
   id("androidx.navigation.safeargs.kotlin")
   id("com.google.devtools.ksp")
   id("maven-publish")
+  id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -11,10 +14,14 @@ android {
   compileSdk = 36
   defaultConfig {
     minSdk = 26
-    testInstrumentationRunner = "androidx.test.runner.Android JUnitRunner"
+    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     buildFeatures.buildConfig = true
+    manifestPlaceholders["appAuthRedirectScheme"] = "org.openmrs.android.fhir"
   }
-  buildFeatures { viewBinding = true }
+  buildFeatures {
+    compose = true
+    viewBinding = true
+  }
   buildTypes {
     release {
       isMinifyEnabled = false
@@ -83,6 +90,7 @@ publishing {
 
 object Versions {
   const val androidXCore = "1.12.0"
+  const val composeNavigation = "2.7.7"
   const val desugar_jdk_libs = "2.1.0"
   const val appauth = "0.11.1"
   const val timber = "5.0.1"
@@ -101,7 +109,6 @@ object Versions {
   const val work = "2.9.1"
   const val material = "1.12.0"
   const val retrofitVersion = "2.9.0"
-  const val kotlinStdlibJdk7 = "1.9.22"
   const val room = "2.8.4"
   const val junit = "4.13.2"
   const val coreTesting = "2.2.0"
@@ -111,7 +118,8 @@ object Versions {
   const val androidXTestJunit = "1.2.1"
   const val coroutineTest = "1.8.1"
   const val mockito = "4.0.0"
-  const val daggerVersion = "2.55"
+  const val mockitoKotlin = "4.0.0"
+  const val daggerVersion = "2.57.2"
   const val eventBus = "3.3.1"
   const val moshi = "1.14.0"
   const val loggingInterceptor = "5.0.0-alpha.2"
@@ -120,11 +128,22 @@ object Versions {
 }
 
 dependencies {
+  val composeBom = platform("androidx.compose:compose-bom:$composeBomVersion")
+
   coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:${Versions.desugar_jdk_libs}")
+  implementation(composeBom)
   implementation("androidx.core:core:${Versions.androidXCore}")
   implementation("androidx.activity:activity-ktx:${Versions.activity}")
+  implementation("androidx.activity:activity-compose:${Versions.activity}")
   implementation("androidx.appcompat:appcompat:${Versions.appcompat}")
   implementation("androidx.constraintlayout:constraintlayout:${Versions.constraintlayout}")
+  implementation("androidx.compose.material3:material3")
+  implementation("androidx.compose.material:material")
+  implementation("androidx.compose.material:material-icons-extended")
+  implementation("androidx.compose.runtime:runtime")
+  implementation("androidx.compose.runtime:runtime-livedata")
+  implementation("androidx.compose.ui:ui")
+  implementation("androidx.compose.ui:ui-tooling-preview")
   implementation("androidx.datastore:datastore-preferences:${Versions.datastore}")
   implementation("androidx.fragment:fragment-ktx:${Versions.fragment}")
   implementation("androidx.lifecycle:lifecycle-livedata-ktx:${Versions.lifecycle}")
@@ -132,6 +151,7 @@ dependencies {
   implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:${Versions.lifecycle}")
   implementation("androidx.navigation:navigation-fragment-ktx:${Versions.navigation}")
   implementation("androidx.navigation:navigation-ui-ktx:${Versions.navigation}")
+  implementation("androidx.navigation:navigation-compose:${Versions.composeNavigation}")
   implementation("androidx.recyclerview:recyclerview:${Versions.recyclerview}")
   implementation("androidx.work:work-runtime-ktx:${Versions.work}")
   implementation("com.google.android.material:material:${Versions.material}")
@@ -143,7 +163,6 @@ dependencies {
   implementation("org.greenrobot:eventbus:${Versions.eventBus}")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.coroutines}")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
-  implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${Versions.kotlinStdlibJdk7}")
   implementation("com.jakewharton.timber:timber:${Versions.timber}")
   implementation("net.openid:appauth:${Versions.appauth}")
   implementation("com.auth0.android:jwtdecode:${Versions.jwtdecode}")
@@ -154,8 +173,16 @@ dependencies {
   implementation("androidx.room:room-runtime:${Versions.room}")
   implementation("androidx.room:room-ktx:${Versions.room}")
   ksp("androidx.room:room-compiler:${Versions.room}")
+  //
+  androidTestImplementation(composeBom)
 
   androidTestImplementation("junit:junit:${Versions.junit}")
+  androidTestImplementation("androidx.test:core:${Versions.androidXTest}")
+  androidTestImplementation("androidx.test:rules:${Versions.androidXTest}")
+  androidTestImplementation("androidx.test:runner:${Versions.androidXTestRunner}")
+  androidTestImplementation("androidx.test.ext:junit:${Versions.androidXTestJunit}")
+  androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+  androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 
   // AndroidX Test libraries
   testImplementation("junit:junit:${Versions.junit}")
@@ -165,14 +192,21 @@ dependencies {
   testImplementation("androidx.test:runner:${Versions.androidXTestRunner}")
   testImplementation("androidx.test.ext:truth:${Versions.androidTestTruth}")
   testImplementation("androidx.test.ext:junit:${Versions.androidXTestJunit}")
+  testImplementation(composeBom)
+  testImplementation("androidx.compose.ui:ui-test-junit4")
+  debugImplementation(composeBom)
+  debugImplementation("androidx.compose.ui:ui-test-manifest")
+  debugImplementation("androidx.compose.ui:ui-tooling")
 
   // Mockito for mocking dependencies
   testImplementation("org.mockito:mockito-core:${Versions.mockito}")
   testImplementation("org.mockito:mockito-inline:${Versions.mockito}")
   testImplementation("org.mockito:mockito-android:${Versions.mockito}")
+  testImplementation("org.mockito.kotlin:mockito-kotlin:${Versions.mockitoKotlin}")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.coroutineTest}")
 
   // Dependency injection
   implementation("com.google.dagger:dagger:${Versions.daggerVersion}")
   ksp("com.google.dagger:dagger-compiler:${Versions.daggerVersion}")
+  testImplementation(kotlin("test"))
 }
