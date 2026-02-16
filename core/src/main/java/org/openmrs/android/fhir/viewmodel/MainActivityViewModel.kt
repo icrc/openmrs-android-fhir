@@ -153,6 +153,7 @@ constructor(
     }
 
   private val workManager = WorkManager.getInstance(applicationContext)
+  private var activeSyncWorkId: String? = null
 
   val syncProgress: LiveData<List<WorkInfo>> =
     workManager.getWorkInfosForUniqueWorkLiveData(SyncInfoDatabaseWriterWorker.WORK_NAME)
@@ -373,6 +374,9 @@ constructor(
 
     when {
       workInfo.state == WorkInfo.State.RUNNING -> {
+        if (activeSyncWorkId != workId) {
+          activeSyncWorkId = workId
+        }
         if (
           progressStatus == "STARTED" &&
             savedStateHandle.get<String>(KEY_LAST_PROGRESS_STATUS) != "STARTED"
@@ -384,16 +388,22 @@ constructor(
       }
       workInfo.state == WorkInfo.State.SUCCEEDED -> {
         if (lastState != currentState) {
-          _uiEvents.tryEmit(MainActivityEvent.HideSyncTasks)
-          _uiEvents.tryEmit(MainActivityEvent.SyncCompleted)
+          if (activeSyncWorkId == workId) {
+            _uiEvents.tryEmit(MainActivityEvent.HideSyncTasks)
+            _uiEvents.tryEmit(MainActivityEvent.SyncCompleted)
+            activeSyncWorkId = null
+          }
           updateLastSyncTimestamp()
           setIsSyncing(false)
         }
       }
       workInfo.state == WorkInfo.State.FAILED -> {
         if (lastState != currentState) {
-          _uiEvents.tryEmit(MainActivityEvent.HideSyncTasks)
-          _uiEvents.tryEmit(MainActivityEvent.SyncFailed)
+          if (activeSyncWorkId == workId) {
+            _uiEvents.tryEmit(MainActivityEvent.HideSyncTasks)
+            _uiEvents.tryEmit(MainActivityEvent.SyncFailed)
+            activeSyncWorkId = null
+          }
           updateLastSyncTimestamp()
           setIsSyncing(false)
         }
