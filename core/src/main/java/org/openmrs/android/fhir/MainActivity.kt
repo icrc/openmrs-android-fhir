@@ -529,9 +529,9 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun observeSyncState() {
-    lifecycleScope.launch {
-      viewModel.syncProgress.observeForever { viewModel.handleSyncWorkInfos(it) }
+    viewModel.syncProgress.observe(this@MainActivity) { viewModel.handleSyncWorkInfos(it) }
 
+    lifecycleScope.launch {
       viewModel.pollPeriodicSyncJobStatus?.collect {
         Timber.d("observerSyncState: pollState Got status $it")
         //        handleCurrentSyncJobStatus(it.currentSyncJobStatus)
