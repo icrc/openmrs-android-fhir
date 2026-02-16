@@ -260,7 +260,7 @@ class LocationFragment : Fragment() {
                 .show()
             }
             else -> {
-              showLocationScreen()
+              //
             }
           }
         }
