@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -74,6 +75,7 @@ import androidx.compose.ui.unit.sp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.SyncSession
 import org.openmrs.android.fhir.data.database.model.SyncStatus
+import org.openmrs.android.fhir.extensions.statusBarAndActionBarTopInset
 
 @Immutable
 sealed class SyncStatusUiState {
@@ -292,7 +294,10 @@ fun SyncInfoContent(
   onClearAll: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  Column(modifier = modifier.fillMaxSize()) {
+  val contentPadding =
+    PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp + statusBarAndActionBarTopInset())
+
+  Column(modifier = modifier.fillMaxSize().padding(contentPadding)) {
     if (syncSessions.isEmpty()) {
       Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -314,11 +319,7 @@ fun SyncInfoContent(
       }
     } else {
       Column(
-        modifier =
-          Modifier.fillMaxWidth()
-            .weight(1f)
-            .padding(horizontal = 8.dp)
-            .verticalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp),
       ) {
         syncSessions.forEach { session ->

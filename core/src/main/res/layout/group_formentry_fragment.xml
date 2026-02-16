@@ -4,6 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingTop="86dp"
 >
 
     <com.google.android.material.tabs.TabLayout
@@ -24,6 +25,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:context="fragments.GenericFormEntryFragment"
+        android:layout_marginTop="8dp"
     >
 
   <androidx.fragment.app.FragmentContainerView
