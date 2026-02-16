@@ -104,6 +104,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   private var pendingSaveEncounterId: String? = null
   private var draftToRestore: GroupSessionDraft? = null
   private var shouldRestoreDraft = false
+  private var activeSubmissionSessionId: String? = null
   private val patientIds by lazy { args.patientIds.toList() }
   private var hasStartedPatientForms = false
   private var hasActiveDraft = false
@@ -658,6 +659,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       }
 
       viewModel.submittedPatientIds.clear()
+      activeSubmissionSessionId = viewModel.sessionId
       patients.forEach { patient ->
         val patientId = patient.resourceId
         val responseJson = viewModel.patientResponses[patientId] ?: return@forEach
@@ -718,11 +720,21 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       if (isSaved) {
         removeHiddenFragments()
         val patientId = it.split("/")[1]
-        viewModel.submittedPatientIds.add(patientId)
         val encounterId = viewModel.getEncounterIdForPatientId(patientId)
         if (encounterId != null) {
-          viewModel.saveScreenerObservations(patientId, encounterId)
-          viewModel.createInternalObservations(patientId, encounterId)
+          lifecycleScope.launch {
+            viewModel.saveScreenerObservations(patientId, encounterId)
+            viewModel.createInternalObservations(
+              patientId,
+              encounterId,
+              activeSubmissionSessionId ?: viewModel.sessionId,
+            )
+            viewModel.submittedPatientIds.add(patientId)
+            if (viewModel.submittedPatientIds.size == viewModel.patients.value?.size) {
+              viewModel.isLoading.value = false
+            }
+            handleAllEncountersSaved()
+          }
         }
         pendingSavePatientId = null
         pendingSaveEncounterId = null
@@ -733,10 +745,6 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
             Toast.LENGTH_SHORT,
           )
           .show()
-        if (viewModel.submittedPatientIds.size == viewModel.patients.value?.size) {
-          viewModel.isLoading.value = false
-        }
-        handleAllEncountersSaved()
       }
     }
     editEncounterViewModel.isResourcesSaved.observe(viewLifecycleOwner) {
@@ -753,17 +761,24 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         val patientId = pendingSavePatientId
         val encounterId = pendingSaveEncounterId
         if (patientId != null && encounterId != null) {
-          viewModel.saveScreenerObservations(patientId, encounterId)
-          viewModel.submittedPatientIds.add(patientId)
+          lifecycleScope.launch {
+            viewModel.saveScreenerObservations(patientId, encounterId)
+            viewModel.createInternalObservations(
+              patientId,
+              encounterId,
+              activeSubmissionSessionId ?: viewModel.sessionId,
+            )
+            viewModel.submittedPatientIds.add(patientId)
+            if (viewModel.submittedPatientIds.size == viewModel.patients.value?.size) {
+              viewModel.isLoading.value = false
+            }
+            handleAllEncountersSaved()
+          }
         }
         pendingSavePatientId = null
         pendingSaveEncounterId = null
         Toast.makeText(requireContext(), getString(R.string.encounter_updated), Toast.LENGTH_SHORT)
           .show()
-        if (viewModel.submittedPatientIds.size == viewModel.patients.value?.size) {
-          viewModel.isLoading.value = false
-        }
-        handleAllEncountersSaved()
       }
     }
   }
@@ -781,6 +796,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       currentSelectedTabPosition = 0
       pendingSavePatientId = null
       pendingSaveEncounterId = null
+      activeSubmissionSessionId = null
       val alertDialog: AlertDialog? =
         activity?.let {
           val builder = AlertDialog.Builder(it)

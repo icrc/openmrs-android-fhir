@@ -198,7 +198,7 @@ constructor(
     hasActiveSession = true
   }
 
-  fun saveScreenerObservations(patientId: String, encounterId: String) {
+  suspend fun saveScreenerObservations(patientId: String, encounterId: String) {
     val response = screenerResponse ?: return
     val questionnaire = screenerQuestionnaire ?: return
     val answerMap =
@@ -226,19 +226,17 @@ constructor(
 
     mapItems(questionnaire.item)
 
-    viewModelScope.launch {
-      answerMap.forEach { (linkId, answers) ->
-        if (!screenerEncounterLinkIds.contains(linkId)) {
-          val qItem = itemMap[linkId]
-          val code: String =
-            if (qItem?.code?.isNotEmpty() == true) {
-              qItem.codeFirstRep.code ?: ""
-            } else {
-              linkId
-            }
-          answers.forEach { ans ->
-            createObservation(patientId, encounterId, code.toString(), ans.value, qItem?.text)
+    answerMap.forEach { (linkId, answers) ->
+      if (!screenerEncounterLinkIds.contains(linkId)) {
+        val qItem = itemMap[linkId]
+        val code: String =
+          if (qItem?.code?.isNotEmpty() == true) {
+            qItem.codeFirstRep.code ?: ""
+          } else {
+            linkId
           }
+        answers.forEach { ans ->
+          createObservation(patientId, encounterId, code.toString(), ans.value, qItem?.text)
         }
       }
     }
@@ -343,43 +341,45 @@ constructor(
     }
   }
 
-  fun createInternalObservations(patientId: String, encounterId: String) {
-    viewModelScope.launch {
-      val selectedPatientListId =
-        applicationContext.dataStore.data
-          .first()[PreferenceKeys.SELECTED_PATIENT_LISTS]
-          ?.firstOrNull()
-      try {
-        if (selectedPatientListId != null) {
-          val cohortName = fhirEngine.get<Group>(selectedPatientListId).name
-          createObservation(
-            patientId,
-            encounterId,
-            Constants.COHORT_IDENTIFIER_UUID,
-            StringType(selectedPatientListId),
-            "Cohort Identifier",
-          )
-          createObservation(
-            patientId,
-            encounterId,
-            Constants.COHORT_NAME_UUID,
-            StringType(cohortName),
-            "Cohort Name",
-          )
-        }
-      } finally {
+  suspend fun createInternalObservations(
+    patientId: String,
+    encounterId: String,
+    sessionId: String,
+  ) {
+    val selectedPatientListId =
+      applicationContext.dataStore.data
+        .first()[PreferenceKeys.SELECTED_PATIENT_LISTS]
+        ?.firstOrNull()
+    try {
+      if (selectedPatientListId != null) {
+        val cohortName = fhirEngine.get<Group>(selectedPatientListId).name
         createObservation(
           patientId,
           encounterId,
-          Constants.SESSION_IDENTIFIER_UUID,
-          StringType(sessionId),
-          "Session Identifier",
+          Constants.COHORT_IDENTIFIER_UUID,
+          StringType(selectedPatientListId),
+          "Cohort Identifier",
+        )
+        createObservation(
+          patientId,
+          encounterId,
+          Constants.COHORT_NAME_UUID,
+          StringType(cohortName),
+          "Cohort Name",
         )
       }
+    } finally {
+      createObservation(
+        patientId,
+        encounterId,
+        Constants.SESSION_IDENTIFIER_UUID,
+        StringType(sessionId),
+        "Session Identifier",
+      )
     }
   }
 
-  fun createObservation(
+  suspend fun createObservation(
     patientId: String,
     encounterId: String,
     observationCode: String,
@@ -403,20 +403,18 @@ constructor(
         effective = nowUtcDateTime()
         value = observationValue
       }
-    viewModelScope.launch {
-      // Delete observation if exists then create new observation.
-      fhirEngine.withTransaction {
-        fhirEngine
-          .search<Observation> {
-            filter(Observation.SUBJECT, { value = "Patient/$patientId" })
-            filter(Observation.ENCOUNTER, { value = "Encounter/$encounterId" })
-            filter(Observation.CODE, { value = of(CodeType(observationCode)) })
-            operation = Operation.AND
-          }
-          .firstOrNull()
-          ?.let { fhirEngine.delete<Observation>(it.resource.id) }
-        fhirEngine.create(obs)
-      }
+    // Delete observation if exists then create new observation.
+    fhirEngine.withTransaction {
+      fhirEngine
+        .search<Observation> {
+          filter(Observation.SUBJECT, { value = "Patient/$patientId" })
+          filter(Observation.ENCOUNTER, { value = "Encounter/$encounterId" })
+          filter(Observation.CODE, { value = of(CodeType(observationCode)) })
+          operation = Operation.AND
+        }
+        .firstOrNull()
+        ?.let { fhirEngine.delete<Observation>(it.resource.id) }
+      fhirEngine.create(obs)
     }
   }
 
