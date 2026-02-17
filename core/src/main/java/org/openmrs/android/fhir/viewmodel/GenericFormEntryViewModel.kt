@@ -67,6 +67,7 @@ import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
+import org.openmrs.android.fhir.extensions.ensurePageGroupsHaveTrailingSpacer
 import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
@@ -102,8 +103,9 @@ constructor(
 
   fun getEncounterQuestionnaire(questionnaireId: String) {
     viewModelScope.launch {
-      _questionnaire.value =
-        fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
+      val q = fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
+      q?.ensurePageGroupsHaveTrailingSpacer()
+      _questionnaire.value = q
       if (_questionnaire.value == null) {
         _questionnaireJson.value = ""
       } else {

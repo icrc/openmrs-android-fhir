@@ -52,11 +52,13 @@ import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.IntegerType
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Questionnaire
+import org.hl7.fhir.r4.model.Questionnaire.QuestionnaireItemComponent
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.data.remote.ApiManager
@@ -196,9 +198,9 @@ fun Date.toLocalString(
 }
 
 fun findItemByLinkId(
-  items: List<Questionnaire.QuestionnaireItemComponent>?,
+  items: List<QuestionnaireItemComponent>?,
   linkId: String,
-): Questionnaire.QuestionnaireItemComponent? {
+): QuestionnaireItemComponent? {
   if (items == null) return null
   items.forEach { item ->
     if (item.linkId == linkId) {
@@ -210,4 +212,52 @@ fun findItemByLinkId(
     }
   }
   return null
+}
+
+private const val QUESTIONNAIRE_ITEM_CONTROL_URL =
+  "http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl"
+private const val QUESTIONNAIRE_ITEM_CONTROL_SYSTEM =
+  "http://hl7.org/fhir/questionnaire-item-control"
+private const val QUESTIONNAIRE_ITEM_CONTROL_PAGE = "page"
+private const val PAGE_SPACER_TEXT = "&#8203;<br><br><br><br><br><br><br>"
+
+fun Questionnaire.ensurePageGroupsHaveTrailingSpacer() {
+  item.forEach { questionnaireItem -> questionnaireItem.ensurePageGroupsHaveTrailingSpacer() }
+}
+
+private fun QuestionnaireItemComponent.ensurePageGroupsHaveTrailingSpacer() {
+  item.forEach { childItem -> childItem.ensurePageGroupsHaveTrailingSpacer() }
+
+  if (!isPageGroupItem()) {
+    return
+  }
+
+  val existingSpacerIndex = item.indexOfFirst { it.isPageSpacerItem() }
+  if (existingSpacerIndex != -1) {
+    val spacerItem = item.removeAt(existingSpacerIndex)
+    item.add(spacerItem)
+    return
+  }
+
+  item.add(
+    QuestionnaireItemComponent().apply {
+      linkId = generateUuid()
+      type = Questionnaire.QuestionnaireItemType.DISPLAY
+      text = PAGE_SPACER_TEXT
+    },
+  )
+}
+
+private fun QuestionnaireItemComponent.isPageGroupItem(): Boolean {
+  return extension.any { extension ->
+    extension.url == QUESTIONNAIRE_ITEM_CONTROL_URL &&
+      (extension.value as? CodeableConcept)?.coding?.any { coding ->
+        coding.system == QUESTIONNAIRE_ITEM_CONTROL_SYSTEM &&
+          coding.code == QUESTIONNAIRE_ITEM_CONTROL_PAGE
+      } == true
+  }
+}
+
+private fun QuestionnaireItemComponent.isPageSpacerItem(): Boolean {
+  return type == Questionnaire.QuestionnaireItemType.DISPLAY && text == PAGE_SPACER_TEXT
 }

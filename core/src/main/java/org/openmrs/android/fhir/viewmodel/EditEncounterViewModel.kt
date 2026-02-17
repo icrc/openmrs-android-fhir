@@ -67,6 +67,7 @@ import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
 import org.openmrs.android.fhir.extensions.convertQuantityObsToIntegerObs
+import org.openmrs.android.fhir.extensions.ensurePageGroupsHaveTrailingSpacer
 import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getJsonFileNames
@@ -144,6 +145,8 @@ constructor(
           }
         }
 
+        questionnaire?.ensurePageGroupsHaveTrailingSpacer()
+
         val encounter = fhirEngine.get<Encounter>(encounterId)
         val encounterDate = encounter.period?.start?.let { utcDateToLocalDate(it) }
         if (encounterDate != null) {
@@ -175,7 +178,7 @@ constructor(
           }
 
         val launchContexts = mapOf("observations" to observationBundle)
-        var questionnaireResponse =
+        val questionnaireResponse =
           ResourceMapper.populate(
             questionnaire!!,
             launchContexts,
@@ -228,6 +231,8 @@ constructor(
           }
         }
       }
+
+      questionnaire?.ensurePageGroupsHaveTrailingSpacer()
 
       val questionnaireResource =
         questionnaire

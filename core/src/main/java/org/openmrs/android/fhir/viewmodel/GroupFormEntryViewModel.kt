@@ -74,6 +74,7 @@ import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
+import org.openmrs.android.fhir.extensions.ensurePageGroupsHaveTrailingSpacer
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.nowLocalDateTime
@@ -142,6 +143,7 @@ constructor(
 
   fun prepareScreenerQuestionnaire(encounterQuestionnaire: Questionnaire) {
     viewModelScope.launch {
+      encounterQuestionnaire.ensurePageGroupsHaveTrailingSpacer()
       this@GroupFormEntryViewModel.encounterQuestionnaire = encounterQuestionnaire
       val screener =
         fhirEngine.getQuestionnaireOrFromAssets(
@@ -337,6 +339,7 @@ constructor(
         }
       }
       plug(questionnaire.item)
+      questionnaire.ensurePageGroupsHaveTrailingSpacer()
       encounterQuestionnaireJson.value = parser.encodeResourceToString(questionnaire)
     }
   }
@@ -418,10 +421,6 @@ constructor(
     }
   }
 
-  fun getPatientIdToEncounterIdMap(): Map<String, String> {
-    return patientIdToEncounterIdMap.toMap()
-  }
-
   fun getEncounterIdForPatientId(patientId: String): String? {
     return patientIdToEncounterIdMap[patientId]
   }
@@ -477,7 +476,13 @@ constructor(
         parser.parseResource(QuestionnaireResponse::class.java, it) as QuestionnaireResponse
       }
     if (!draft.encounterQuestionnaireJson.isNullOrBlank()) {
-      encounterQuestionnaireJson.value = draft.encounterQuestionnaireJson
+      encounterQuestionnaire =
+        parser.parseResource(Questionnaire::class.java, draft.encounterQuestionnaireJson)
+          as Questionnaire
+      encounterQuestionnaire?.ensurePageGroupsHaveTrailingSpacer()
+      encounterQuestionnaireJson.value =
+        encounterQuestionnaire?.let { parser.encodeResourceToString(it) }
+          ?: draft.encounterQuestionnaireJson
     }
     if (!draft.screenerQuestionnaireJson.isNullOrBlank()) {
       screenerQuestionnaireJson.value = draft.screenerQuestionnaireJson
