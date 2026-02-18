@@ -159,14 +159,14 @@ class PatientDetailsFragment : Fragment() {
 
   fun showEndVisitDialog(context: Context, visitId: String, onEndVisitConfirmed: (String) -> Unit) {
     val builder = AlertDialog.Builder(context)
-    builder.setMessage("Are you sure you want to end the visit now?")
+    builder.setMessage(getString(R.string.end_visit_confirmation_message))
 
-    builder.setPositiveButton("Yes") { dialog, _ ->
+    builder.setPositiveButton(getString(R.string.yes)) { dialog, _ ->
       onEndVisitConfirmed(visitId)
       dialog.dismiss()
     }
 
-    builder.setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
+    builder.setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
 
     val dialog = builder.create()
     dialog.show()
@@ -191,7 +191,7 @@ class PatientDetailsFragment : Fragment() {
                 if (selectedDateTime.after(Date())) {
                   Toast.makeText(
                       requireContext(),
-                      "Future date/time is not allowed.",
+                      getString(R.string.future_visit_datetime_not_allowed),
                       Toast.LENGTH_SHORT,
                     )
                     .show()
@@ -204,7 +204,7 @@ class PatientDetailsFragment : Fragment() {
               calendar[Calendar.MINUTE],
               true,
             )
-            .apply { setTitle("Select time for the visit") }
+            .apply { setTitle(getString(R.string.select_visit_time_title)) }
             .show()
         },
         calendar[Calendar.YEAR],
@@ -212,7 +212,7 @@ class PatientDetailsFragment : Fragment() {
         calendar[Calendar.DAY_OF_MONTH],
       )
       .apply {
-        setTitle("Start a new visit?")
+        setTitle(getString(R.string.start_new_visit_title))
         datePicker.maxDate = calendar.timeInMillis
       }
       .show()

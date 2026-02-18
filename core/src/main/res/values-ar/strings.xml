@@ -513,4 +513,29 @@
     >لم يتم اختيار أي موقع. هل ترغب في اختيار واحد؟</string>
 
 
+
+    <string
+        name="end_visit_confirmation_message"
+    >هل أنت متأكد أنك تريد إنهاء الزيارة الآن؟</string>
+    <string
+        name="future_visit_datetime_not_allowed"
+    >لا يُسمح بتاريخ/وقت في المستقبل.</string>
+    <string name="select_visit_time_title">اختر وقت الزيارة</string>
+    <string name="start_new_visit_title">بدء زيارة جديدة؟</string>
+    <string name="select_patient_list_dialog_title">اختر قائمة المرضى</string>
+    <string
+        name="no_patient_list_selected_message"
+    >لم يتم اختيار قائمة مرضى. هل تريد اختيار واحدة؟</string>
+    <string name="diagnostic_report_subject">تقرير تشخيصي</string>
+    <string name="diagnostic_report_body">تم إرفاق التقرير التشخيصي.</string>
+    <string name="send_email_chooser_title">إرسال بريد إلكتروني</string>
+    <string name="sync_tasks_channel_name">مهام المزامنة</string>
+    <string name="sync_tasks_channel_description">إشعارات مزامنة المهام</string>
+    <string name="app_version_with_value">إصدار التطبيق: %1$s</string>
+    <string name="not_available">غير متاح</string>
+    <string name="no_name_provided">لم يتم توفير اسم</string>
+    <string name="unsynced_observation_fallback_title">ملاحظة: %1$s</string>
+    <string name="unsynced_encounter_fallback_title">مقابلة: %1$s</string>
+    <string name="unsynced_patient_fallback_name">مريض: %1$s</string>
+
 </resources>

@@ -534,4 +534,35 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
         name="no_location_is_selected_do_you_want_to_select_one"
     >No location is selected. Do you want to select one?</string>
 
+
+    <string
+        name="end_visit_confirmation_message"
+    >Are you sure you want to end the visit now?</string>
+    <string
+        name="future_visit_datetime_not_allowed"
+    >Future date/time is not allowed.</string>
+    <string name="select_visit_time_title">Select time for the visit</string>
+    <string name="start_new_visit_title">Start a new visit?</string>
+    <string name="select_patient_list_dialog_title">Select Patient List</string>
+    <string
+        name="no_patient_list_selected_message"
+    >No patient list is selected. Do you want to select one?</string>
+    <string name="diagnostic_report_subject">Diagnostic Report</string>
+    <string
+        name="diagnostic_report_body"
+    >Attached is the diagnostic report.</string>
+    <string name="send_email_chooser_title">Send Email</string>
+    <string name="sync_tasks_channel_name">Sync Tasks</string>
+    <string
+        name="sync_tasks_channel_description"
+    >Task synchronization notifications</string>
+    <string name="app_version_with_value">App Version: %1$s</string>
+    <string name="not_available">N/A</string>
+    <string name="no_name_provided">No Name provided</string>
+    <string
+        name="unsynced_observation_fallback_title"
+    >Observation: %1$s</string>
+    <string name="unsynced_encounter_fallback_title">Encounter: %1$s</string>
+    <string name="unsynced_patient_fallback_name">Patient: %1$s</string>
+
 </resources>

@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -47,6 +48,7 @@ import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
+import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.UnsyncedEncounter
 import org.openmrs.android.fhir.data.database.model.UnsyncedObservation
 import org.openmrs.android.fhir.data.database.model.UnsyncedPatient
@@ -57,6 +59,7 @@ import org.openmrs.android.fhir.di.IoDispatcher
 class UnsyncedResourcesViewModel
 @Inject
 constructor(
+  private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
   @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
@@ -428,7 +431,11 @@ constructor(
   internal fun Observation.toObservationItem(isSynced: Boolean = false): UnsyncedObservation {
     return UnsyncedObservation(
       logicalId = logicalId,
-      title = code.coding.firstOrNull()?.display ?: "Observation: ${logicalId.takeLast(5)}",
+      title = code.coding.firstOrNull()?.display
+          ?: applicationContext.getString(
+            R.string.unsynced_observation_fallback_title,
+            logicalId.takeLast(5),
+          ),
       encounterId = getEncounterId(),
       patientId = subject.reference.substringAfterLast("/"),
       isSynced = isSynced,
@@ -446,7 +453,10 @@ constructor(
     return UnsyncedEncounter(
       logicalId = logicalId,
       title = type.firstOrNull()?.coding?.firstOrNull()?.display
-          ?: "Encounter: ${logicalId.takeLast(5)}",
+          ?: applicationContext.getString(
+            R.string.unsynced_encounter_fallback_title,
+            logicalId.takeLast(5),
+          ),
       patientId = getPatientId(),
       observations = unsyncedObservations,
       isSynced = isSynced,
@@ -459,7 +469,11 @@ constructor(
   ): UnsyncedPatient {
     return UnsyncedPatient(
       logicalId = logicalId,
-      name = name.firstOrNull()?.nameAsSingleString ?: "Patient: ${logicalId.takeLast(5)}",
+      name = name.firstOrNull()?.nameAsSingleString
+          ?: applicationContext.getString(
+            R.string.unsynced_patient_fallback_name,
+            logicalId.takeLast(5),
+          ),
       isExpanded = false,
       isSynced = isSynced,
       encounters = unsyncedEncounters,

@@ -569,4 +569,39 @@
     >No se ha seleccionado ninguna ubicación. ¿Deseas seleccionar una?</string>
 
 
+
+    <string
+        name="end_visit_confirmation_message"
+    >¿Seguro que quieres finalizar la visita ahora?</string>
+    <string
+        name="future_visit_datetime_not_allowed"
+    >No se permite una fecha/hora futura.</string>
+    <string
+        name="select_visit_time_title"
+    >Selecciona la hora de la visita</string>
+    <string name="start_new_visit_title">¿Iniciar una nueva visita?</string>
+    <string
+        name="select_patient_list_dialog_title"
+    >Seleccionar lista de pacientes</string>
+    <string
+        name="no_patient_list_selected_message"
+    >No hay ninguna lista de pacientes seleccionada. ¿Quieres seleccionar una?</string>
+    <string name="diagnostic_report_subject">Informe de diagnóstico</string>
+    <string
+        name="diagnostic_report_body"
+    >Se adjunta el informe de diagnóstico.</string>
+    <string name="send_email_chooser_title">Enviar correo electrónico</string>
+    <string name="sync_tasks_channel_name">Tareas de sincronización</string>
+    <string
+        name="sync_tasks_channel_description"
+    >Notificaciones de sincronización de tareas</string>
+    <string name="app_version_with_value">Versión de la app: %1$s</string>
+    <string name="not_available">N/D</string>
+    <string name="no_name_provided">No se proporcionó nombre</string>
+    <string
+        name="unsynced_observation_fallback_title"
+    >Observación: %1$s</string>
+    <string name="unsynced_encounter_fallback_title">Encuentro: %1$s</string>
+    <string name="unsynced_patient_fallback_name">Paciente: %1$s</string>
+
 </resources>

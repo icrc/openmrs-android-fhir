@@ -204,10 +204,10 @@ class SelectPatientListFragment : Fragment() {
     val hasLists = !selectPatientListViewModel.selectPatientListItems.value.isNullOrEmpty()
     if (!hasSelection && hasLists) {
       AlertDialog.Builder(requireContext()).apply {
-        setTitle("Select Patient List")
-        setMessage("No patient list is selected. Do you want to select one?")
-        setPositiveButton("Yes") { dialog, _ -> dialog.dismiss() }
-        setNegativeButton("No") { dialog, _ ->
+        setTitle(getString(R.string.select_patient_list_dialog_title))
+        setMessage(getString(R.string.no_patient_list_selected_message))
+        setPositiveButton(getString(R.string.yes)) { dialog, _ -> dialog.dismiss() }
+        setNegativeButton(getString(R.string.no)) { dialog, _ ->
           proceedToHomeFragment()
           dialog.dismiss()
         }

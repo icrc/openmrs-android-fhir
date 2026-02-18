@@ -780,8 +780,8 @@ class MainActivity : AppCompatActivity() {
       Intent(Intent.ACTION_SEND).apply {
         type = "application/zip"
         putExtra(Intent.EXTRA_EMAIL, arrayOf(getString(R.string.support_email)))
-        putExtra(Intent.EXTRA_SUBJECT, "Diagnostic Report")
-        putExtra(Intent.EXTRA_TEXT, "Attached is the diagnostic report.")
+        putExtra(Intent.EXTRA_SUBJECT, getString(R.string.diagnostic_report_subject))
+        putExtra(Intent.EXTRA_TEXT, getString(R.string.diagnostic_report_body))
         putExtra(
           Intent.EXTRA_STREAM,
           FileProvider.getUriForFile(
@@ -792,7 +792,7 @@ class MainActivity : AppCompatActivity() {
         )
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
       }
-    startActivity(Intent.createChooser(emailIntent, "Send Email"))
+    startActivity(Intent.createChooser(emailIntent, getString(R.string.send_email_chooser_title)))
   }
 
   private suspend fun createDiagnosticZip(password: String): File {

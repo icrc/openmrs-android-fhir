@@ -31,6 +31,7 @@ package org.openmrs.android.fhir.adapters
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.platform.ComposeView
 import androidx.recyclerview.widget.RecyclerView
+import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.ui.components.IdentifierTypeListItemRow
 
@@ -45,7 +46,7 @@ class IdentifierTypeViewHolder(private val composeView: ComposeView) :
     composeView.setContent {
       MaterialTheme {
         IdentifierTypeListItemRow(
-          name = identifierTypeItem.display ?: "unknown",
+          name = identifierTypeItem.display ?: composeView.context.getString(R.string.unknown),
           isRequired = identifierTypeItem.required,
           isSelected = isSelected,
           onClick = { onItemClicked(identifierTypeItem, isSelected) },

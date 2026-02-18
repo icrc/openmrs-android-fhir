@@ -479,10 +479,14 @@ constructor(
             applicationContext.packageManager.getPackageInfo(applicationContext.packageName, 0)
           packageInfo.versionName
         } catch (_: Exception) {
-          "N/A"
+          applicationContext.getString(R.string.not_available)
         }
       _uiState.update {
-        it.copy(locationMenuTitle = locationName, versionMenuTitle = "App Version: $versionName")
+        it.copy(
+          locationMenuTitle = locationName,
+          versionMenuTitle =
+            applicationContext.getString(R.string.app_version_with_value, versionName),
+        )
       }
     }
   }
