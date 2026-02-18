@@ -469,7 +469,73 @@
         name="removed_patient_list_from_sync"
     >تمت إزالة قائمة المرضى من المزامنة</string>
     <string name="location_updated">تم تحديث الموقع</string>
+    <string name="start_time_with_value">وقت البدء: %1$s</string>
+    <string
+        name="sync_session_progress"
+    >تم التنزيل %1$d/%2$d | تم الرفع %3$d/%4$d</string>
+    <string name="completed_at_with_value">اكتمل في: %1$s</string>
+    <string name="errors_with_count">الأخطاء: %1$d</string>
+    <string name="delete">حذف</string>
     <string name="discard">تجاهل</string>
+    <string name="show_password">إظهار كلمة المرور</string>
+    <string name="hide_password">إخفاء كلمة المرور</string>
+    <string name="show_network_status">عرض حالة الشبكة</string>
+    <string name="delete_resource_title">حذف المورد</string>
+    <string
+        name="delete_resource_message"
+    >هل أنت متأكد من رغبتك في حذف %1$s؟</string>
+    <string name="delete_all_title">حذف الكل</string>
+    <string
+        name="delete_all_message"
+    >هل أنت متأكد من رغبتك في حذف جميع الموارد غير المتزامنة؟</string>
+    <string name="resource_patient_label">مريض</string>
+    <string name="resource_encounter_label">زيارة</string>
+    <string name="resource_observation_label">ملاحظة</string>
+    <string name="resource_deleted">تم حذف المورد</string>
+    <string name="all_resources_deleted">تم حذف جميع الموارد</string>
+    <string name="downloading_all_resources">جارٍ تنزيل جميع الموارد</string>
+    <string
+        name="collecting_patient_data"
+    >جارٍ جمع بيانات المريض لـ %1$s</string>
+    <string
+        name="collecting_encounter_data"
+    >جارٍ جمع بيانات الزيارة: %1$s</string>
+    <string name="collecting_observation_data">جارٍ جمع الملاحظة: %1$s</string>
+    <string
+        name="unsynced_resources_email_subject"
+    >الموارد غير المتزامنة</string>
+    <string
+        name="unsynced_resources_email_body"
+    >مرفق الموارد غير المتزامنة.</string>
+    <string name="send_unsynced_resources">إرسال الموارد غير المتزامنة</string>
+    <string
+        name="no_location_is_selected_do_you_want_to_select_one"
+    >لم يتم اختيار أي موقع. هل ترغب في اختيار واحد؟</string>
 
+
+
+    <string
+        name="end_visit_confirmation_message"
+    >هل أنت متأكد أنك تريد إنهاء الزيارة الآن؟</string>
+    <string
+        name="future_visit_datetime_not_allowed"
+    >لا يُسمح بتاريخ/وقت في المستقبل.</string>
+    <string name="select_visit_time_title">اختر وقت الزيارة</string>
+    <string name="start_new_visit_title">بدء زيارة جديدة؟</string>
+    <string name="select_patient_list_dialog_title">اختر قائمة المرضى</string>
+    <string
+        name="no_patient_list_selected_message"
+    >لم يتم اختيار قائمة مرضى. هل تريد اختيار واحدة؟</string>
+    <string name="diagnostic_report_subject">تقرير تشخيصي</string>
+    <string name="diagnostic_report_body">تم إرفاق التقرير التشخيصي.</string>
+    <string name="send_email_chooser_title">إرسال بريد إلكتروني</string>
+    <string name="sync_tasks_channel_name">مهام المزامنة</string>
+    <string name="sync_tasks_channel_description">إشعارات مزامنة المهام</string>
+    <string name="app_version_with_value">إصدار التطبيق: %1$s</string>
+    <string name="not_available">غير متاح</string>
+    <string name="no_name_provided">لم يتم توفير اسم</string>
+    <string name="unsynced_observation_fallback_title">ملاحظة: %1$s</string>
+    <string name="unsynced_encounter_fallback_title">مقابلة: %1$s</string>
+    <string name="unsynced_patient_fallback_name">مريض: %1$s</string>
 
 </resources>

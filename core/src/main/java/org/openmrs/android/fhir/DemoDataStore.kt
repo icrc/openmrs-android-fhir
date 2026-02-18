@@ -98,10 +98,20 @@ class DemoDataStore(private val context: Context) {
       preferences[booleanPreferencesKey(CHECK_NETWORK_CONNECTIVITY)] ?: true
     }
 
+  suspend fun setNotificationsEnabled(isEnabled: Boolean) {
+    context.dataStore.edit { pref -> pref[booleanPreferencesKey(ENABLE_NOTIFICATIONS)] = isEnabled }
+  }
+
+  fun getNotificationsEnabledFlow() =
+    context.dataStore.data.map { preferences ->
+      preferences[booleanPreferencesKey(ENABLE_NOTIFICATIONS)] ?: true
+    }
+
   companion object {
     const val TOKEN_EXPIRY_DELAY = "token-expiry-delay"
     const val PERIODIC_SYNC_DELAY = "periodic-sync-delay"
     const val CHECK_NETWORK_CONNECTIVITY = "check-network-connectivity"
+    const val ENABLE_NOTIFICATIONS = "enable-notifications"
     const val INITIAL_TOKEN_CHECK_DELAY: Long = 1
     const val INITIAL_PERIODIC_SYNC_DELAY: Long = 15
   }

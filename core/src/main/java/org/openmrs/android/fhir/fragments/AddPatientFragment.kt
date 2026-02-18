@@ -36,6 +36,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
@@ -47,18 +48,20 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.AddPatientFragmentBinding
 import org.openmrs.android.fhir.viewmodel.AddPatientViewModel
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
 /** A fragment class to show patient registration screen. */
 class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
 
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
   private val viewModel by viewModels<AddPatientViewModel> { viewModelFactory }
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   private var _binding: AddPatientFragmentBinding? = null
 
@@ -110,7 +113,7 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
     }
     observeQuestionnaire()
     observePatientSaveAction()
-    (activity as MainActivity).setDrawerEnabled(false)
+    mainActivityViewModel.setDrawerEnabled(false)
 
     /** Use the provided cancel|submit buttons from the sdc library */
     childFragmentManager.setFragmentResultListener(

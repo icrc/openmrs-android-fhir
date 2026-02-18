@@ -36,6 +36,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -45,6 +46,7 @@ import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import javax.inject.Inject
+import kotlin.getValue
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
@@ -55,6 +57,7 @@ import org.openmrs.android.fhir.data.database.model.FormSectionItem
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.databinding.CreateEncounterFragmentBinding
 import org.openmrs.android.fhir.viewmodel.CreateEncounterViewModel
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
 class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -64,6 +67,9 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
   private lateinit var recyclerView: RecyclerView
   private lateinit var progressBar: ProgressBar
   private var draftResumeChecked = false
+
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   private val args: CreateEncountersFragmentArgs by navArgs()
 
@@ -104,6 +110,7 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
 
     // Observe data
     setupObservers()
+    mainActivityViewModel.setDrawerEnabled(false)
   }
 
   private fun setupObservers() {

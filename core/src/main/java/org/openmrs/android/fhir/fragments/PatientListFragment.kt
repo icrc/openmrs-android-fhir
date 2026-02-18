@@ -36,44 +36,44 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.doOnTextChanged
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.RecyclerView
 import javax.inject.Inject
-import kotlin.getValue
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.adapters.PatientItemRecyclerViewAdapter
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
-import org.openmrs.android.fhir.databinding.FragmentPatientListBinding
+import org.openmrs.android.fhir.ui.patient.PatientListScreen
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
-import timber.log.Timber
 
 class PatientListFragment : Fragment() {
 
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
   private val patientListViewModel by viewModels<PatientListViewModel> { viewModelFactory }
-  private lateinit var patientQuery: String
-  private var _binding: FragmentPatientListBinding? = null
-  private val binding
-    get() = _binding!!
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
+  private lateinit var composeView: ComposeView
 
   override fun onCreateView(
     inflater: LayoutInflater,
     container: ViewGroup?,
     savedInstanceState: Bundle?,
   ): View {
-    _binding = FragmentPatientListBinding.inflate(inflater, container, false)
-    return binding.root
+    composeView = ComposeView(requireContext())
+    return composeView
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -83,19 +83,21 @@ class PatientListFragment : Fragment() {
       setDisplayHomeAsUpEnabled(true)
     }
     (requireActivity().application as FhirApplication).appComponent.inject(this)
-    observeLoading()
-    val recyclerView: RecyclerView = binding.patientListContainer.patientList
-    val adapter = PatientItemRecyclerViewAdapter(this::onPatientItemClicked)
-    recyclerView.adapter = adapter
-
-    patientListViewModel.liveSearchedPatients.observe(viewLifecycleOwner) {
-      Timber.d("Submitting ${it.count()} patient records")
-      binding.emptyStateContainer.visibility = if (it.isEmpty()) View.VISIBLE else View.GONE
-      adapter.submitList(it)
+    composeView.setViewCompositionStrategy(
+      ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
+    )
+    composeView.setContent {
+      MaterialTheme {
+        val uiState by patientListViewModel.uiState.collectAsState()
+        PatientListScreen(
+          uiState = uiState,
+          onQueryChange = { patientListViewModel.searchPatientsByName(it.trim()) },
+          onRefresh = { patientListViewModel.refreshPatients() },
+          onPatientClick = { patient -> onPatientItemClicked(patient) },
+          onFabClick = { onAddPatientClick() },
+        )
+      }
     }
-
-    patientQuery = binding.patientInputEditText.text.toString()
-    addSearchTextChangeListener()
 
     requireActivity()
       .onBackPressedDispatcher
@@ -103,8 +105,8 @@ class PatientListFragment : Fragment() {
         viewLifecycleOwner,
         object : OnBackPressedCallback(true) {
           override fun handleOnBackPressed() {
-            if (binding.patientInputEditText.text.toString().trim().isNotEmpty()) {
-              binding.patientInputEditText.setText("")
+            if (patientListViewModel.uiState.value.query.isNotEmpty()) {
+              patientListViewModel.clearSearch()
             } else {
               isEnabled = false
               activity?.onBackPressed()
@@ -113,33 +115,15 @@ class PatientListFragment : Fragment() {
         },
       )
 
-    binding.apply { addPatient.setOnClickListener { onAddPatientClick() } }
     setHasOptionsMenu(true)
-    (activity as MainActivity).setDrawerEnabled(false)
-  }
-
-  private fun addSearchTextChangeListener() {
-    binding.patientInputEditText.doOnTextChanged { newText, _, _, _ ->
-      patientListViewModel.searchPatientsByName(newText.toString().trim())
-    }
-  }
-
-  private fun observeLoading() {
-    patientListViewModel.isLoading.observe(viewLifecycleOwner) {
-      binding.progressBar.visibility = if (it) View.VISIBLE else View.GONE
-    }
-  }
-
-  override fun onDestroyView() {
-    super.onDestroyView()
-    _binding = null
+    mainActivityViewModel.setDrawerEnabled(false)
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
       android.R.id.home -> {
-        if (binding.patientInputEditText.text.toString().trim().isNotEmpty()) {
-          binding.patientInputEditText.setText("")
+        if (patientListViewModel.uiState.value.query.isNotEmpty()) {
+          patientListViewModel.clearSearch()
         } else {
           //          isEnabled = false
           NavHostFragment.findNavController(this).navigateUp()

@@ -65,11 +65,11 @@ constructor(
       val channel =
         NotificationChannel(
             CHANNEL_ID,
-            "Sync Tasks",
+            context.getString(R.string.sync_tasks_channel_name),
             NotificationManager.IMPORTANCE_DEFAULT,
           )
           .apply {
-            description = "Task synchronization notifications"
+            description = context.getString(R.string.sync_tasks_channel_description)
             enableLights(true)
             lightColor = Color.BLUE
             enableVibration(true)

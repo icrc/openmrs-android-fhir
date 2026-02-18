@@ -36,6 +36,7 @@ import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.EditPatientViewModel
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
 import org.openmrs.android.fhir.viewmodel.GroupFormEntryViewModel
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
 
 @Module
@@ -74,5 +75,12 @@ class AssistedViewModelModule {
   @ViewModelKey(GroupFormEntryViewModel::class)
   fun groupFormEntryViewModelAssistedFactory(
     factory: GroupFormEntryViewModel.Factory,
+  ): ViewModelAssistedFactory<out ViewModel> = factory
+
+  @Provides
+  @IntoMap
+  @ViewModelKey(MainActivityViewModel::class)
+  fun mainActivityViewModelAssistedFactory(
+    factory: MainActivityViewModel.Factory,
   ): ViewModelAssistedFactory<out ViewModel> = factory
 }

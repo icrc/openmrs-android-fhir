@@ -38,8 +38,10 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
@@ -54,7 +56,6 @@ import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.databinding.GroupFormentryFragmentBinding
@@ -64,10 +65,13 @@ import org.openmrs.android.fhir.extensions.showSnackBar
 import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
 import org.openmrs.android.fhir.viewmodel.GroupFormEntryViewModel
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import timber.log.Timber
 
 class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
+  @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+
   @Inject lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
   private val genericFormEntryViewModel: GenericFormEntryViewModel by viewModels {
     viewModelSavedStateFactory
@@ -78,6 +82,8 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   private val editEncounterViewModel: EditEncounterViewModel by viewModels {
     viewModelSavedStateFactory
   }
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   private val args: GroupFormEntryFragmentArgs by navArgs()
 
@@ -98,6 +104,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   private var pendingSaveEncounterId: String? = null
   private var draftToRestore: GroupSessionDraft? = null
   private var shouldRestoreDraft = false
+  private var activeSubmissionSessionId: String? = null
   private val patientIds by lazy { args.patientIds.toList() }
   private var hasStartedPatientForms = false
   private var hasActiveDraft = false
@@ -174,7 +181,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       }
     }
     addBackPressedListener()
-    (activity as MainActivity).setDrawerEnabled(false)
+    mainActivityViewModel.setDrawerEnabled(false)
     observePatients()
   }
 
@@ -652,6 +659,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       }
 
       viewModel.submittedPatientIds.clear()
+      activeSubmissionSessionId = viewModel.sessionId
       patients.forEach { patient ->
         val patientId = patient.resourceId
         val responseJson = viewModel.patientResponses[patientId] ?: return@forEach
@@ -712,11 +720,21 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       if (isSaved) {
         removeHiddenFragments()
         val patientId = it.split("/")[1]
-        viewModel.submittedPatientIds.add(patientId)
         val encounterId = viewModel.getEncounterIdForPatientId(patientId)
         if (encounterId != null) {
-          viewModel.saveScreenerObservations(patientId, encounterId)
-          viewModel.createInternalObservations(patientId, encounterId)
+          lifecycleScope.launch {
+            viewModel.saveScreenerObservations(patientId, encounterId)
+            viewModel.createInternalObservations(
+              patientId,
+              encounterId,
+              activeSubmissionSessionId ?: viewModel.sessionId,
+            )
+            viewModel.submittedPatientIds.add(patientId)
+            if (viewModel.submittedPatientIds.size == viewModel.patients.value?.size) {
+              viewModel.isLoading.value = false
+            }
+            handleAllEncountersSaved()
+          }
         }
         pendingSavePatientId = null
         pendingSaveEncounterId = null
@@ -727,10 +745,6 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
             Toast.LENGTH_SHORT,
           )
           .show()
-        if (viewModel.submittedPatientIds.size == viewModel.patients.value?.size) {
-          viewModel.isLoading.value = false
-        }
-        handleAllEncountersSaved()
       }
     }
     editEncounterViewModel.isResourcesSaved.observe(viewLifecycleOwner) {
@@ -747,17 +761,24 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         val patientId = pendingSavePatientId
         val encounterId = pendingSaveEncounterId
         if (patientId != null && encounterId != null) {
-          viewModel.saveScreenerObservations(patientId, encounterId)
-          viewModel.submittedPatientIds.add(patientId)
+          lifecycleScope.launch {
+            viewModel.saveScreenerObservations(patientId, encounterId)
+            viewModel.createInternalObservations(
+              patientId,
+              encounterId,
+              activeSubmissionSessionId ?: viewModel.sessionId,
+            )
+            viewModel.submittedPatientIds.add(patientId)
+            if (viewModel.submittedPatientIds.size == viewModel.patients.value?.size) {
+              viewModel.isLoading.value = false
+            }
+            handleAllEncountersSaved()
+          }
         }
         pendingSavePatientId = null
         pendingSaveEncounterId = null
         Toast.makeText(requireContext(), getString(R.string.encounter_updated), Toast.LENGTH_SHORT)
           .show()
-        if (viewModel.submittedPatientIds.size == viewModel.patients.value?.size) {
-          viewModel.isLoading.value = false
-        }
-        handleAllEncountersSaved()
       }
     }
   }
@@ -775,6 +796,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       currentSelectedTabPosition = 0
       pendingSavePatientId = null
       pendingSaveEncounterId = null
+      activeSubmissionSessionId = null
       val alertDialog: AlertDialog? =
         activity?.let {
           val builder = AlertDialog.Builder(it)

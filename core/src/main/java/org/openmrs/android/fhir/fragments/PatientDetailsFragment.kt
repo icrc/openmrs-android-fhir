@@ -43,7 +43,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
@@ -51,16 +53,15 @@ import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.FhirEngine
 import java.util.*
 import javax.inject.Inject
-import kotlin.getValue
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.adapters.PatientDetailsRecyclerViewAdapter
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.databinding.PatientDetailBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
 
 class PatientDetailsFragment : Fragment() {
@@ -69,10 +70,14 @@ class PatientDetailsFragment : Fragment() {
 
   @Inject lateinit var openMRSHelper: OpenMRSHelper
 
+  @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+
   @Inject lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
   private val patientDetailsViewModel: PatientDetailsViewModel by viewModels {
     viewModelSavedStateFactory
   }
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   private val args: PatientDetailsFragmentArgs by navArgs()
   private var _binding: PatientDetailBinding? = null
@@ -101,7 +106,6 @@ class PatientDetailsFragment : Fragment() {
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     val adapter =
       PatientDetailsRecyclerViewAdapter(
-        ::onCreateEncounterClick,
         ::onEditEncounterClick,
         ::onEditVisitClick,
       )
@@ -119,7 +123,7 @@ class PatientDetailsFragment : Fragment() {
       requireActivity().invalidateOptionsMenu()
     }
     patientDetailsViewModel.getPatientDetailData()
-    (activity as MainActivity).setDrawerEnabled(false)
+    mainActivityViewModel.setDrawerEnabled(false)
   }
 
   override fun onPrepareOptionsMenu(menu: Menu) {
@@ -155,14 +159,14 @@ class PatientDetailsFragment : Fragment() {
 
   fun showEndVisitDialog(context: Context, visitId: String, onEndVisitConfirmed: (String) -> Unit) {
     val builder = AlertDialog.Builder(context)
-    builder.setMessage("Are you sure you want to end the visit now?")
+    builder.setMessage(getString(R.string.end_visit_confirmation_message))
 
-    builder.setPositiveButton("Yes") { dialog, _ ->
+    builder.setPositiveButton(getString(R.string.yes)) { dialog, _ ->
       onEndVisitConfirmed(visitId)
       dialog.dismiss()
     }
 
-    builder.setNegativeButton("No") { dialog, _ -> dialog.dismiss() }
+    builder.setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
 
     val dialog = builder.create()
     dialog.show()
@@ -174,20 +178,20 @@ class PatientDetailsFragment : Fragment() {
     DatePickerDialog(
         requireContext(),
         { _, selectedYear, selectedMonth, selectedDayOfMonth ->
-          calendar.set(selectedYear, selectedMonth, selectedDayOfMonth)
+          calendar[selectedYear, selectedMonth] = selectedDayOfMonth
 
           TimePickerDialog(
               requireContext(),
               { _, selectedHourOfDay, selectedMinute ->
-                calendar.set(Calendar.HOUR_OF_DAY, selectedHourOfDay)
-                calendar.set(Calendar.MINUTE, selectedMinute)
+                calendar[Calendar.HOUR_OF_DAY] = selectedHourOfDay
+                calendar[Calendar.MINUTE] = selectedMinute
 
                 val selectedDateTime = calendar.time
 
                 if (selectedDateTime.after(Date())) {
                   Toast.makeText(
                       requireContext(),
-                      "Future date/time is not allowed.",
+                      getString(R.string.future_visit_datetime_not_allowed),
                       Toast.LENGTH_SHORT,
                     )
                     .show()
@@ -196,19 +200,19 @@ class PatientDetailsFragment : Fragment() {
                   navigateToCreateEncounter()
                 }
               },
-              calendar.get(Calendar.HOUR_OF_DAY),
-              calendar.get(Calendar.MINUTE),
+              calendar[Calendar.HOUR_OF_DAY],
+              calendar[Calendar.MINUTE],
               true,
             )
-            .apply { setTitle("Select time for the visit") }
+            .apply { setTitle(getString(R.string.select_visit_time_title)) }
             .show()
         },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH),
+        calendar[Calendar.YEAR],
+        calendar[Calendar.MONTH],
+        calendar[Calendar.DAY_OF_MONTH],
       )
       .apply {
-        setTitle("Start a new visit?")
+        setTitle(getString(R.string.start_new_visit_title))
         datePicker.maxDate = calendar.timeInMillis
       }
       .show()
@@ -216,7 +220,6 @@ class PatientDetailsFragment : Fragment() {
 
   private fun onEditEncounterClick(
     encounterId: String,
-    formDisplay: String,
     encounterType: String,
   ) {
     findNavController()

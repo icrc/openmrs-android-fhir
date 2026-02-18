@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application android:name="org.openmrs.android.fhir.FhirApplication">
+    <activity
+            android:name="org.openmrs.android.fhir.ui.UnsyncedResourcesTestActivity"
+            android:theme="@style/TestAppTheme"
+        />
+    <activity
+            android:name="org.openmrs.android.fhir.LoginActivity"
+            android:theme="@style/TestAppTheme"
+        >
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+    <activity
+            android:name="org.openmrs.android.fhir.BasicLoginActivity"
+            android:theme="@style/TestAppTheme"
+        >
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+    <activity
+            android:name="org.openmrs.android.fhir.SplashActivity"
+            android:theme="@style/TestAppTheme"
+        >
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+    <activity
+            android:name="org.openmrs.android.fhir.MainActivity"
+            android:theme="@style/TestAppTheme"
+        >
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>

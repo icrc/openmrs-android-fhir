@@ -4,6 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:paddingTop="?android:attr/actionBarSize"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".fragments.AddPatientFragment"
 >
@@ -14,6 +16,7 @@
         app:layout_constraintStart_toStartOf="parent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="?android:attr/actionBarSize"
         style="@style/AppTheme.PatientDetails.body2"
         android:text="@string/current_location_label"
     />

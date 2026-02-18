@@ -126,6 +126,8 @@
     <string name="syncing">Syncing</string>
     <string name="sync">Sync</string>
     <string name="button_login">Log in</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
     <string name="header_encounters">Encounters</string>
     <string name="component_nav_heading">Components</string>
     <string name="layout_nav_heading">Layouts</string>
@@ -169,6 +171,12 @@
     <string name="sync_failed_at">Sync: failed at %1$s</string>
     <string name="sync_unknown_state">Sync: unknown state.</string>
     <string name="sync_terminated">Sync: Terminated</string>
+    <string name="start_time_with_value">Start Time: %1$s</string>
+    <string
+        name="sync_session_progress"
+    >Downloaded %1$d/%2$d | Uploaded %3$d/%4$d</string>
+    <string name="completed_at_with_value">Completed At: %1$s</string>
+    <string name="errors_with_count">Errors: %1$d</string>
     <string name="logging_out">Logging out..</string>
     <string
         name="sync_device_offline_message"
@@ -189,6 +197,7 @@
     <string
         name="check_network_connectivity"
     >Check Network Connectivity</string>
+    <string name="show_network_status">Show Network Status</string>
     <string name="enable_notifications">Enable Notifications</string>
     <string name="settings_discarded">Settings Discarded</string>
     <string name="settings_saved">Settings Saved</string>
@@ -261,12 +270,41 @@
     <string name="download_encounter">Download Encounter</string>
     <string name="delete_encounter">Delete Encounter</string>
     <string name="download_patient">Download Patient</string>
+    <string name="delete">Delete</string>
     <string name="delete_patient">Delete Patient</string>
     <string name="empty_state_icon">Empty State Icon</string>
     <string
         name="no_unsynced_resources_available"
     >No Unsynced Resources Available</string>
     <string name="delete_all">Delete All</string>
+    <string name="delete_resource_title">Delete Resource</string>
+    <string
+        name="delete_resource_message"
+    >Are you sure you want to delete this %1$s?</string>
+    <string name="delete_all_title">Delete All</string>
+    <string
+        name="delete_all_message"
+    >Are you sure you want to delete all unsynced resources?</string>
+    <string name="resource_patient_label">patient</string>
+    <string name="resource_encounter_label">encounter</string>
+    <string name="resource_observation_label">observation</string>
+    <string name="resource_deleted">Resource deleted</string>
+    <string name="all_resources_deleted">All resources deleted</string>
+    <string name="downloading_all_resources">Downloading all resources</string>
+    <string
+        name="collecting_patient_data"
+    >Collecting patient data for %1$s</string>
+    <string
+        name="collecting_encounter_data"
+    >Collecting encounter data: %1$s</string>
+    <string
+        name="collecting_observation_data"
+    >Collecting observation: %1$s</string>
+    <string name="unsynced_resources_email_subject">Unsynced Resources</string>
+    <string
+        name="unsynced_resources_email_body"
+    >Attached are the unsynced resources.</string>
+    <string name="send_unsynced_resources">Send Unsynced Resources</string>
     <string name="download_all">Download All</string>
     <string name="no_locations_available">No Locations available.</string>
     <string name="no_patient_list_available">No Patient List available</string>
@@ -291,6 +329,7 @@
     <string name="navya_patel" translatable="false">Navya Patel</string>
     <string name="patient_list_1">Patient List 1</string>
     <string name="_0" translatable="false">0 %</string>
+    <string name="_100" translatable="false">100 %</string>
     <string name="start_time">Start Time</string>
     <string name="downloaded">Downloaded</string>
     <string name="uploaded">Uploaded</string>
@@ -491,5 +530,39 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
         name="removed_patient_list_from_sync"
     >Removed Patient List from Sync</string>
     <string name="location_updated">Location Updated</string>
+    <string
+        name="no_location_is_selected_do_you_want_to_select_one"
+    >No location is selected. Do you want to select one?</string>
+
+
+    <string
+        name="end_visit_confirmation_message"
+    >Are you sure you want to end the visit now?</string>
+    <string
+        name="future_visit_datetime_not_allowed"
+    >Future date/time is not allowed.</string>
+    <string name="select_visit_time_title">Select time for the visit</string>
+    <string name="start_new_visit_title">Start a new visit?</string>
+    <string name="select_patient_list_dialog_title">Select Patient List</string>
+    <string
+        name="no_patient_list_selected_message"
+    >No patient list is selected. Do you want to select one?</string>
+    <string name="diagnostic_report_subject">Diagnostic Report</string>
+    <string
+        name="diagnostic_report_body"
+    >Attached is the diagnostic report.</string>
+    <string name="send_email_chooser_title">Send Email</string>
+    <string name="sync_tasks_channel_name">Sync Tasks</string>
+    <string
+        name="sync_tasks_channel_description"
+    >Task synchronization notifications</string>
+    <string name="app_version_with_value">App Version: %1$s</string>
+    <string name="not_available">N/A</string>
+    <string name="no_name_provided">No Name provided</string>
+    <string
+        name="unsynced_observation_fallback_title"
+    >Observation: %1$s</string>
+    <string name="unsynced_encounter_fallback_title">Encounter: %1$s</string>
+    <string name="unsynced_patient_fallback_name">Patient: %1$s</string>
 
 </resources>
