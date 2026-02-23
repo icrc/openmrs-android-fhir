@@ -161,7 +161,6 @@ constructor(
           hasEmittedInitialSyncStarted = true
         }
       }
-      else -> Unit
     }
   }
 

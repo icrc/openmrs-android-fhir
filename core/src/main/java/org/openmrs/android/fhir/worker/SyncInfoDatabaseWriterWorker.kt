@@ -216,18 +216,17 @@ class SyncInfoDatabaseWriterWorker(
         }
       }
     }
-    if (state is CurrentSyncJobStatus.Running && state.inProgressSyncJob is SyncJobStatus.Failed) {
-      val inProgressSyncSession = database.dao().getInProgressSyncSession()
-      if (inProgressSyncSession != null) {
-        database
-          .dao()
-          .updateSyncSessionErrors(
-            inProgressSyncSession.id,
-            (state.inProgressSyncJob as SyncJobStatus.Failed).exceptions.map { it ->
-              it.exception.message
-            } as List<String>,
-          )
-      }
+    if (state is CurrentSyncJobStatus.Running) {
+      val failed = state.inProgressSyncJob as? SyncJobStatus.Failed ?: return
+
+      val session = database.dao().getInProgressSyncSession() ?: return
+
+      val errors: List<String> =
+        failed.exceptions
+          .mapNotNull { it.exception.message } // drops nulls
+          .ifEmpty { listOf("Sync failed (no error message)") }
+
+      database.dao().updateSyncSessionErrors(session.id, errors)
     }
   }
 
