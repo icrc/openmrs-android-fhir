@@ -38,8 +38,6 @@ import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.allItems
-import com.google.android.fhir.datacapture.validation.Invalid
-import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import com.google.android.fhir.delete
 import com.google.android.fhir.get
 import com.google.android.fhir.search.Operation
@@ -77,6 +75,7 @@ import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
 import org.openmrs.android.fhir.extensions.ensurePageGroupsHaveTrailingSpacer
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
+import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
 import org.openmrs.android.fhir.extensions.nowLocalDateTime
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
 
@@ -238,7 +237,7 @@ constructor(
             linkId
           }
         answers.forEach { ans ->
-          createObservation(patientId, encounterId, code.toString(), ans.value, qItem?.text)
+          createObservation(patientId, encounterId, code, ans.value, qItem?.text)
         }
       }
     }
@@ -430,14 +429,10 @@ constructor(
     questionnaireResponse: QuestionnaireResponse,
     applicationContext: Context,
   ): Boolean {
-    return !QuestionnaireResponseValidator.validateQuestionnaireResponse(
-        questionnaire,
-        questionnaireResponse,
-        applicationContext,
-      )
-      .values
-      .flatten()
-      .any { it is Invalid }
+    return !questionnaire.hasInvalidAnswersIgnoringPageSpacers(
+      questionnaireResponse,
+      applicationContext,
+    )
   }
 
   suspend fun saveDraft(questionnaireId: String, patientIds: List<String>) {

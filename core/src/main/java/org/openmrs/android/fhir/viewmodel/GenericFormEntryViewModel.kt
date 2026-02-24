@@ -39,8 +39,6 @@ import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
-import com.google.android.fhir.datacapture.validation.Invalid
-import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -71,6 +69,7 @@ import org.openmrs.android.fhir.extensions.ensurePageGroupsHaveTrailingSpacer
 import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
+import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
 import org.openmrs.android.fhir.util.ParentKey
 import org.openmrs.android.fhir.util.buildObservationGroupLookup
@@ -200,14 +199,10 @@ constructor(
       }
 
       if (
-        QuestionnaireResponseValidator.validateQuestionnaireResponse(
-            questionnaire,
-            questionnaireResponse,
-            applicationContext,
-          )
-          .values
-          .flatten()
-          .any { it is Invalid }
+        questionnaire.hasInvalidAnswersIgnoringPageSpacers(
+          questionnaireResponse,
+          applicationContext,
+        )
       ) {
         isResourcesSaved.value = "MISSING/$patientId"
         return@launch

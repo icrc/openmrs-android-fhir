@@ -37,6 +37,8 @@ import android.util.Base64
 import android.view.View
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum
 import com.google.android.fhir.datacapture.extensions.allItems
+import com.google.android.fhir.datacapture.validation.Invalid
+import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import com.google.android.material.snackbar.Snackbar
 import com.squareup.moshi.Moshi
 import java.io.File
@@ -220,6 +222,7 @@ private const val QUESTIONNAIRE_ITEM_CONTROL_SYSTEM =
   "http://hl7.org/fhir/questionnaire-item-control"
 private const val QUESTIONNAIRE_ITEM_CONTROL_PAGE = "page"
 private const val PAGE_SPACER_TEXT = "&#8203;<br><br><br><br><br><br><br>"
+const val PAGE_SPACER_LINK_ID_PREFIX = "__page_spacer__"
 
 fun Questionnaire.ensurePageGroupsHaveTrailingSpacer() {
   item.forEach { questionnaireItem -> questionnaireItem.ensurePageGroupsHaveTrailingSpacer() }
@@ -241,11 +244,38 @@ private fun QuestionnaireItemComponent.ensurePageGroupsHaveTrailingSpacer() {
 
   item.add(
     QuestionnaireItemComponent().apply {
-      linkId = generateUuid()
+      linkId = PAGE_SPACER_LINK_ID_PREFIX + generateUuid()
       type = Questionnaire.QuestionnaireItemType.DISPLAY
       text = PAGE_SPACER_TEXT
     },
   )
+}
+
+fun QuestionnaireResponse.removePageSpacerItemsRecursively() {
+  item.removePageSpacerItemsRecursively()
+}
+
+private fun MutableList<QuestionnaireResponse.QuestionnaireResponseItemComponent>
+  .removePageSpacerItemsRecursively() {
+  removeAll { responseItem -> responseItem.linkId.startsWith(PAGE_SPACER_LINK_ID_PREFIX) }
+  forEach { responseItem -> responseItem.item.removePageSpacerItemsRecursively() }
+}
+
+suspend fun Questionnaire.hasInvalidAnswersIgnoringPageSpacers(
+  questionnaireResponse: QuestionnaireResponse,
+  applicationContext: Context,
+): Boolean {
+  val sanitizedResponse = questionnaireResponse.copy() as QuestionnaireResponse
+  sanitizedResponse.removePageSpacerItemsRecursively()
+
+  return QuestionnaireResponseValidator.validateQuestionnaireResponse(
+      this,
+      sanitizedResponse,
+      applicationContext,
+    )
+    .values
+    .flatten()
+    .any { it is Invalid }
 }
 
 private fun QuestionnaireItemComponent.isPageGroupItem(): Boolean {

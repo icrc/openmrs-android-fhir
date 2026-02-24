@@ -38,8 +38,6 @@ import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
-import com.google.android.fhir.datacapture.validation.Invalid
-import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import com.google.android.fhir.get
 import com.google.android.fhir.search.search
 import dagger.assisted.Assisted
@@ -71,6 +69,7 @@ import org.openmrs.android.fhir.extensions.ensurePageGroupsHaveTrailingSpacer
 import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getJsonFileNames
+import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
 import org.openmrs.android.fhir.extensions.readFileFromAssets
 import org.openmrs.android.fhir.extensions.utcDateToLocalDate
@@ -245,14 +244,10 @@ constructor(
       val bundle = ResourceMapper.extract(questionnaireResource, questionnaireResponse)
 
       if (
-        QuestionnaireResponseValidator.validateQuestionnaireResponse(
-            questionnaire,
-            questionnaireResponse,
-            applicationContext,
-          )
-          .values
-          .flatten()
-          .any { it is Invalid }
+        questionnaireResource.hasInvalidAnswersIgnoringPageSpacers(
+          questionnaireResponse,
+          applicationContext,
+        )
       ) {
         isResourcesSaved.value = "MISSING"
         return@launch
