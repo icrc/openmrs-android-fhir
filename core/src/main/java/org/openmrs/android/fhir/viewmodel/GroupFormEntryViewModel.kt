@@ -38,8 +38,6 @@ import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.allItems
-import com.google.android.fhir.datacapture.validation.Invalid
-import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
 import com.google.android.fhir.delete
 import com.google.android.fhir.get
 import com.google.android.fhir.search.Operation
@@ -74,8 +72,10 @@ import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
+import org.openmrs.android.fhir.extensions.ensurePageGroupsHaveTrailingSpacer
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
+import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
 import org.openmrs.android.fhir.extensions.nowLocalDateTime
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
 
@@ -142,6 +142,7 @@ constructor(
 
   fun prepareScreenerQuestionnaire(encounterQuestionnaire: Questionnaire) {
     viewModelScope.launch {
+      encounterQuestionnaire.ensurePageGroupsHaveTrailingSpacer()
       this@GroupFormEntryViewModel.encounterQuestionnaire = encounterQuestionnaire
       val screener =
         fhirEngine.getQuestionnaireOrFromAssets(
@@ -198,7 +199,7 @@ constructor(
     hasActiveSession = true
   }
 
-  fun saveScreenerObservations(patientId: String, encounterId: String) {
+  suspend fun saveScreenerObservations(patientId: String, encounterId: String) {
     val response = screenerResponse ?: return
     val questionnaire = screenerQuestionnaire ?: return
     val answerMap =
@@ -226,19 +227,17 @@ constructor(
 
     mapItems(questionnaire.item)
 
-    viewModelScope.launch {
-      answerMap.forEach { (linkId, answers) ->
-        if (!screenerEncounterLinkIds.contains(linkId)) {
-          val qItem = itemMap[linkId]
-          val code: String =
-            if (qItem?.code?.isNotEmpty() == true) {
-              qItem.codeFirstRep.code ?: ""
-            } else {
-              linkId
-            }
-          answers.forEach { ans ->
-            createObservation(patientId, encounterId, code.toString(), ans.value, qItem?.text)
+    answerMap.forEach { (linkId, answers) ->
+      if (!screenerEncounterLinkIds.contains(linkId)) {
+        val qItem = itemMap[linkId]
+        val code: String =
+          if (qItem?.code?.isNotEmpty() == true) {
+            qItem.codeFirstRep.code ?: ""
+          } else {
+            linkId
           }
+        answers.forEach { ans ->
+          createObservation(patientId, encounterId, code, ans.value, qItem?.text)
         }
       }
     }
@@ -339,47 +338,50 @@ constructor(
         }
       }
       plug(questionnaire.item)
+      questionnaire.ensurePageGroupsHaveTrailingSpacer()
       encounterQuestionnaireJson.value = parser.encodeResourceToString(questionnaire)
     }
   }
 
-  fun createInternalObservations(patientId: String, encounterId: String) {
-    viewModelScope.launch {
-      val selectedPatientListId =
-        applicationContext.dataStore.data
-          .first()[PreferenceKeys.SELECTED_PATIENT_LISTS]
-          ?.firstOrNull()
-      try {
-        if (selectedPatientListId != null) {
-          val cohortName = fhirEngine.get<Group>(selectedPatientListId).name
-          createObservation(
-            patientId,
-            encounterId,
-            Constants.COHORT_IDENTIFIER_UUID,
-            StringType(selectedPatientListId),
-            "Cohort Identifier",
-          )
-          createObservation(
-            patientId,
-            encounterId,
-            Constants.COHORT_NAME_UUID,
-            StringType(cohortName),
-            "Cohort Name",
-          )
-        }
-      } finally {
+  suspend fun createInternalObservations(
+    patientId: String,
+    encounterId: String,
+    sessionId: String,
+  ) {
+    val selectedPatientListId =
+      applicationContext.dataStore.data
+        .first()[PreferenceKeys.SELECTED_PATIENT_LISTS]
+        ?.firstOrNull()
+    try {
+      if (selectedPatientListId != null) {
+        val cohortName = fhirEngine.get<Group>(selectedPatientListId).name
         createObservation(
           patientId,
           encounterId,
-          Constants.SESSION_IDENTIFIER_UUID,
-          StringType(sessionId),
-          "Session Identifier",
+          Constants.COHORT_IDENTIFIER_UUID,
+          StringType(selectedPatientListId),
+          "Cohort Identifier",
+        )
+        createObservation(
+          patientId,
+          encounterId,
+          Constants.COHORT_NAME_UUID,
+          StringType(cohortName),
+          "Cohort Name",
         )
       }
+    } finally {
+      createObservation(
+        patientId,
+        encounterId,
+        Constants.SESSION_IDENTIFIER_UUID,
+        StringType(sessionId),
+        "Session Identifier",
+      )
     }
   }
 
-  fun createObservation(
+  suspend fun createObservation(
     patientId: String,
     encounterId: String,
     observationCode: String,
@@ -403,25 +405,19 @@ constructor(
         effective = nowUtcDateTime()
         value = observationValue
       }
-    viewModelScope.launch {
-      // Delete observation if exists then create new observation.
-      fhirEngine.withTransaction {
-        fhirEngine
-          .search<Observation> {
-            filter(Observation.SUBJECT, { value = "Patient/$patientId" })
-            filter(Observation.ENCOUNTER, { value = "Encounter/$encounterId" })
-            filter(Observation.CODE, { value = of(CodeType(observationCode)) })
-            operation = Operation.AND
-          }
-          .firstOrNull()
-          ?.let { fhirEngine.delete<Observation>(it.resource.id) }
-        fhirEngine.create(obs)
-      }
+    // Delete observation if exists then create new observation.
+    fhirEngine.withTransaction {
+      fhirEngine
+        .search<Observation> {
+          filter(Observation.SUBJECT, { value = "Patient/$patientId" })
+          filter(Observation.ENCOUNTER, { value = "Encounter/$encounterId" })
+          filter(Observation.CODE, { value = of(CodeType(observationCode)) })
+          operation = Operation.AND
+        }
+        .firstOrNull()
+        ?.let { fhirEngine.delete<Observation>(it.resource.id) }
+      fhirEngine.create(obs)
     }
-  }
-
-  fun getPatientIdToEncounterIdMap(): Map<String, String> {
-    return patientIdToEncounterIdMap.toMap()
   }
 
   fun getEncounterIdForPatientId(patientId: String): String? {
@@ -433,14 +429,10 @@ constructor(
     questionnaireResponse: QuestionnaireResponse,
     applicationContext: Context,
   ): Boolean {
-    return !QuestionnaireResponseValidator.validateQuestionnaireResponse(
-        questionnaire,
-        questionnaireResponse,
-        applicationContext,
-      )
-      .values
-      .flatten()
-      .any { it is Invalid }
+    return !questionnaire.hasInvalidAnswersIgnoringPageSpacers(
+      questionnaireResponse,
+      applicationContext,
+    )
   }
 
   suspend fun saveDraft(questionnaireId: String, patientIds: List<String>) {
@@ -479,7 +471,13 @@ constructor(
         parser.parseResource(QuestionnaireResponse::class.java, it) as QuestionnaireResponse
       }
     if (!draft.encounterQuestionnaireJson.isNullOrBlank()) {
-      encounterQuestionnaireJson.value = draft.encounterQuestionnaireJson
+      encounterQuestionnaire =
+        parser.parseResource(Questionnaire::class.java, draft.encounterQuestionnaireJson)
+          as Questionnaire
+      encounterQuestionnaire?.ensurePageGroupsHaveTrailingSpacer()
+      encounterQuestionnaireJson.value =
+        encounterQuestionnaire?.let { parser.encodeResourceToString(it) }
+          ?: draft.encounterQuestionnaireJson
     }
     if (!draft.screenerQuestionnaireJson.isNullOrBlank()) {
       screenerQuestionnaireJson.value = draft.screenerQuestionnaireJson

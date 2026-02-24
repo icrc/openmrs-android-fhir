@@ -519,7 +519,89 @@
         name="removed_patient_list_from_sync"
     >Lista de pacientes eliminada de la sincronización</string>
     <string name="location_updated">Ubicación actualizada</string>
+    <string name="start_time_with_value">Hora de inicio: %1$s</string>
+    <string
+        name="sync_session_progress"
+    >Descargado %1$d/%2$d | Subido %3$d/%4$d</string>
+    <string name="completed_at_with_value">Completado a las: %1$s</string>
+    <string name="errors_with_count">Errores: %1$d</string>
+    <string name="delete">Eliminar</string>
     <string name="discard">Descartar</string>
+    <string name="show_password">Mostrar contraseña</string>
+    <string name="hide_password">Ocultar contraseña</string>
+    <string name="show_network_status">Mostrar estado de la red</string>
+    <string name="delete_resource_title">Eliminar recurso</string>
+    <string
+        name="delete_resource_message"
+    >¿Estás seguro de que deseas eliminar este %1$s?</string>
+    <string name="delete_all_title">Eliminar todo</string>
+    <string
+        name="delete_all_message"
+    >¿Estás seguro de que deseas eliminar todos los recursos no sincronizados?</string>
+    <string name="resource_patient_label">paciente</string>
+    <string name="resource_encounter_label">encuentro</string>
+    <string name="resource_observation_label">observación</string>
+    <string name="resource_deleted">Recurso eliminado</string>
+    <string name="all_resources_deleted">Todos los recursos eliminados</string>
+    <string
+        name="downloading_all_resources"
+    >Descargando todos los recursos</string>
+    <string
+        name="collecting_patient_data"
+    >Recopilando datos del paciente para %1$s</string>
+    <string
+        name="collecting_encounter_data"
+    >Recopilando datos del encuentro: %1$s</string>
+    <string
+        name="collecting_observation_data"
+    >Recopilando observación: %1$s</string>
+    <string
+        name="unsynced_resources_email_subject"
+    >Recursos no sincronizados</string>
+    <string
+        name="unsynced_resources_email_body"
+    >Se adjuntan los recursos no sincronizados.</string>
+    <string
+        name="send_unsynced_resources"
+    >Enviar recursos no sincronizados</string>
+    <string
+        name="no_location_is_selected_do_you_want_to_select_one"
+    >No se ha seleccionado ninguna ubicación. ¿Deseas seleccionar una?</string>
 
+
+
+    <string
+        name="end_visit_confirmation_message"
+    >¿Seguro que quieres finalizar la visita ahora?</string>
+    <string
+        name="future_visit_datetime_not_allowed"
+    >No se permite una fecha/hora futura.</string>
+    <string
+        name="select_visit_time_title"
+    >Selecciona la hora de la visita</string>
+    <string name="start_new_visit_title">¿Iniciar una nueva visita?</string>
+    <string
+        name="select_patient_list_dialog_title"
+    >Seleccionar lista de pacientes</string>
+    <string
+        name="no_patient_list_selected_message"
+    >No hay ninguna lista de pacientes seleccionada. ¿Quieres seleccionar una?</string>
+    <string name="diagnostic_report_subject">Informe de diagnóstico</string>
+    <string
+        name="diagnostic_report_body"
+    >Se adjunta el informe de diagnóstico.</string>
+    <string name="send_email_chooser_title">Enviar correo electrónico</string>
+    <string name="sync_tasks_channel_name">Tareas de sincronización</string>
+    <string
+        name="sync_tasks_channel_description"
+    >Notificaciones de sincronización de tareas</string>
+    <string name="app_version_with_value">Versión de la app: %1$s</string>
+    <string name="not_available">N/D</string>
+    <string name="no_name_provided">No se proporcionó nombre</string>
+    <string
+        name="unsynced_observation_fallback_title"
+    >Observación: %1$s</string>
+    <string name="unsynced_encounter_fallback_title">Encuentro: %1$s</string>
+    <string name="unsynced_patient_fallback_name">Paciente: %1$s</string>
 
 </resources>

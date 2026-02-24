@@ -28,11 +28,11 @@
 */
 package org.openmrs.android.fhir.adapters
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
-import org.openmrs.android.fhir.databinding.ObservationListItemBinding
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 
 /** UI Controller helper class to display list of observations. */
@@ -55,9 +55,16 @@ class ObservationItemRecyclerViewAdapter :
   }
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ObservationItemViewHolder {
-    return ObservationItemViewHolder(
-      ObservationListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-    )
+    val composeView =
+      ComposeView(parent.context).apply {
+        layoutParams =
+          ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+          )
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+      }
+    return ObservationItemViewHolder(composeView)
   }
 
   override fun onBindViewHolder(holder: ObservationItemViewHolder, position: Int) {

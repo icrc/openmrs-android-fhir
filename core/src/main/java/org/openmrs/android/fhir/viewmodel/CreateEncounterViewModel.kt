@@ -42,6 +42,7 @@ import java.util.Locale
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Questionnaire
+import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.FormData
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.FormSection
@@ -142,7 +143,8 @@ constructor(
       if (questionnaire != null) {
         val localizedQuestionnaireTitle =
           questionnaire.getTranslatedTitle(deviceLanguage)
-            ?: questionnaire.title?.let { translationOverrides[it] ?: it } ?: "No Name provided"
+            ?: questionnaire.title?.let { translationOverrides[it] ?: it }
+              ?: applicationContext.getString(R.string.no_name_provided)
         formItems.add(
           FormItem(
             name = localizedQuestionnaireTitle,

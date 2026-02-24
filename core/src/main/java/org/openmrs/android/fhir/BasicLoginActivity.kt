@@ -30,31 +30,38 @@ package org.openmrs.android.fhir
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricPrompt
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import java.util.concurrent.Executor
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
-import org.openmrs.android.fhir.databinding.ActivityBasicLoginBinding
 import org.openmrs.android.fhir.extensions.AuthDialogs
 import org.openmrs.android.fhir.extensions.BiometricPromptHelper
 import org.openmrs.android.fhir.extensions.BiometricUtils
+import org.openmrs.android.fhir.ui.screens.BasicLoginScreen
 import org.openmrs.android.fhir.viewmodel.BasicLoginActivityViewModel
 import org.openmrs.android.fhir.viewmodel.LoginUiState
 
 class BasicLoginActivity : AppCompatActivity() {
-
-  private lateinit var binding: ActivityBasicLoginBinding
 
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
   private val viewModel by viewModels<BasicLoginActivityViewModel> { viewModelFactory }
@@ -62,6 +69,9 @@ class BasicLoginActivity : AppCompatActivity() {
   private lateinit var biometricPrompt: BiometricPrompt
   private lateinit var executor: Executor
   private var offlineAuthMethod: OfflineAuthMethod? = null
+
+  private var loginUiState: LoginUiState by mutableStateOf(LoginUiState.Idle)
+  val dialogStateForTest: MutableState<AuthDialogs.DialogConfig?> = mutableStateOf(null)
 
   private val confirmCredLauncher =
     registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
@@ -78,8 +88,49 @@ class BasicLoginActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     (application as FhirApplication).appComponent.inject(this)
-    binding = ActivityBasicLoginBinding.inflate(layoutInflater)
-    setContentView(binding.root)
+    setContent {
+      val navController = rememberNavController()
+      NavHost(navController = navController, startDestination = "basic_login") {
+        composable("basic_login") {
+          BasicLoginScreen(
+            uiState = loginUiState,
+            onLoginClick = { username, password -> viewModel.login(username, password) },
+          )
+        }
+      }
+      LaunchedEffect(loginUiState) {
+        when (loginUiState) {
+          is LoginUiState.Failure ->
+            showToastMessage(getString((loginUiState as LoginUiState.Failure).resId))
+          is LoginUiState.LockedOut -> showToastMessage(getString(R.string.locked_out_message))
+          is LoginUiState.Success ->
+            AuthDialogs.showOfflineLoginOptIn(
+              activity = this@BasicLoginActivity,
+              onProceedWithBiometric = { promptBiometricEncryption() },
+              navigateToMain = { navigateToMain() },
+            )
+          else -> Unit
+        }
+      }
+      val dialogConfig = dialogStateForTest.value
+      if (dialogConfig != null) {
+        androidx.compose.material3.AlertDialog(
+          onDismissRequest = dialogConfig.onDismiss,
+          confirmButton = {
+            androidx.compose.material3.TextButton(onClick = dialogConfig.onConfirm) {
+              androidx.compose.material3.Text(text = dialogConfig.positiveText.toString())
+            }
+          },
+          dismissButton = {
+            androidx.compose.material3.TextButton(onClick = dialogConfig.onDismiss) {
+              androidx.compose.material3.Text(text = dialogConfig.negativeText.toString())
+            }
+          },
+          title = { androidx.compose.material3.Text(text = dialogConfig.title.toString()) },
+          text = { androidx.compose.material3.Text(text = dialogConfig.message.toString()) },
+        )
+      }
+    }
 
     executor = ContextCompat.getMainExecutor(this)
 
@@ -94,39 +145,8 @@ class BasicLoginActivity : AppCompatActivity() {
 
     lifecycleScope.launch {
       repeatOnLifecycle(Lifecycle.State.STARTED) {
-        viewModel.uiState.collect { state ->
-          when (state) {
-            is LoginUiState.Idle -> Unit
-            is LoginUiState.Failure -> {
-              binding.progressIndicator.visibility = View.GONE
-              showToastMessage(getString(state.resId))
-            }
-            is LoginUiState.Loading -> {
-              binding.progressIndicator.visibility = View.VISIBLE
-            }
-            is LoginUiState.LockedOut -> {
-              binding.progressIndicator.visibility = View.GONE
-              showToastMessage(getString(R.string.locked_out_message))
-            }
-            is LoginUiState.Success -> {
-              binding.progressIndicator.visibility = View.GONE
-              // After successful online login, instead of calling promptBiometricEncryption()
-              // directly:
-              AuthDialogs.showOfflineLoginOptIn(
-                activity = this@BasicLoginActivity,
-                onProceedWithBiometric = { promptBiometricEncryption() },
-                navigateToMain = { navigateToMain() },
-              )
-            }
-          }
-        }
+        viewModel.uiState.collect { state -> loginUiState = state }
       }
-    }
-
-    binding.basicLoginButton.setOnClickListener {
-      val username = binding.usernameInputText.text.toString()
-      val password = binding.passwordInputText.text.toString()
-      viewModel.login(username, password)
     }
   }
 
@@ -148,5 +168,10 @@ class BasicLoginActivity : AppCompatActivity() {
 
   private fun showToastMessage(message: String) {
     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+  }
+
+  @VisibleForTesting
+  fun setLoginUiStateForTest(state: LoginUiState) {
+    loginUiState = state
   }
 }

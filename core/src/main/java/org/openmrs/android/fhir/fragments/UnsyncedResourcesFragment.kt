@@ -30,47 +30,89 @@ package org.openmrs.android.fhir.fragments
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.adapters.UnsyncedResourcesAdapter
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
-import org.openmrs.android.fhir.databinding.FragmentUnsyncedResourcesBinding
 import org.openmrs.android.fhir.extensions.saveToFile
+import org.openmrs.android.fhir.ui.screens.UnsyncedResourcesScreen
+import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.UnsyncedResourcesViewModel
 
 class UnsyncedResourcesFragment : Fragment() {
 
-  private var _binding: FragmentUnsyncedResourcesBinding? = null
-  private val binding
-    get() = _binding!!
-
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
   private val viewModel by viewModels<UnsyncedResourcesViewModel> { viewModelFactory }
-
-  private lateinit var adapter: UnsyncedResourcesAdapter
+  private val mainActivityViewModel by
+    activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   override fun onCreateView(
-    inflater: LayoutInflater,
-    container: ViewGroup?,
+    inflater: android.view.LayoutInflater,
+    container: android.view.ViewGroup?,
     savedInstanceState: Bundle?,
-  ): View? {
-    _binding = FragmentUnsyncedResourcesBinding.inflate(inflater, container, false)
-    return binding.root
+  ): View {
+    (requireActivity().application as FhirApplication).appComponent.inject(this)
+    return ComposeView(requireContext()).apply {
+      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+      setContent {
+        val resources = viewModel.resources.observeAsState(emptyList()).value
+        val isLoading = viewModel.isLoading.observeAsState(false).value
+        MaterialTheme {
+          UnsyncedResourcesScreen(
+            resources = resources,
+            isLoading = isLoading,
+            onTogglePatientExpand = viewModel::togglePatientExpansion,
+            onToggleEncounterExpand = viewModel::toggleEncounterExpansion,
+            onDeleteResource = { resource ->
+              viewModel.deleteResource(resource)
+              Toast.makeText(
+                  requireContext(),
+                  getString(R.string.resource_deleted),
+                  Toast.LENGTH_SHORT,
+                )
+                .show()
+            },
+            onDownloadResource = { resource ->
+              viewModel.downloadResource(resource)
+              showDownloadToast(resource)
+            },
+            onDeleteAll = {
+              viewModel.deleteAll()
+              Toast.makeText(
+                  requireContext(),
+                  getString(R.string.all_resources_deleted),
+                  Toast.LENGTH_SHORT,
+                )
+                .show()
+            },
+            onDownloadAll = {
+              viewModel.downloadAll()
+              Toast.makeText(
+                  requireContext(),
+                  getString(R.string.downloading_all_resources),
+                  Toast.LENGTH_SHORT,
+                )
+                .show()
+            },
+          )
+        }
+      }
+    }
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,101 +129,21 @@ class UnsyncedResourcesFragment : Fragment() {
       title = requireContext().getString(R.string.title_unsynced_resources)
       setDisplayHomeAsUpEnabled(true)
     }
-    observeLoading()
-
-    // Setup RecyclerView
-    adapter =
-      UnsyncedResourcesAdapter(
-        onTogglePatientExpand = { patientId -> viewModel.togglePatientExpansion(patientId) },
-        onToggleEncounterExpand = { encounterId ->
-          viewModel.toggleEncounterExpansion(encounterId)
-        },
-        onDelete = { resource -> showDeleteConfirmationDialog(resource) },
-        onDownload = { resource ->
-          viewModel.downloadResource(resource)
-          showDownloadToast(resource)
-        },
-      )
-
-    binding.rvUnsyncedResources.layoutManager = LinearLayoutManager(requireContext())
-    binding.rvUnsyncedResources.adapter = adapter
-
-    // Setup button click listeners
-    binding.btnDeleteAll.setOnClickListener { showDeleteAllConfirmationDialog() }
-
-    binding.btnDownloadAll.setOnClickListener {
-      viewModel.downloadAll()
-      Toast.makeText(
-          requireContext(),
-          "Downloading all resources",
-          Toast.LENGTH_SHORT,
-        )
-        .show()
-    }
-    // Observe ViewModel
-    viewModel.resources.observe(viewLifecycleOwner) { resources ->
-      if (resources.isEmpty()) {
-        binding.emptyStateContainer.visibility = View.VISIBLE
-        binding.rvUnsyncedResources.visibility = View.GONE
-      } else {
-        binding.emptyStateContainer.visibility = View.GONE
-        binding.rvUnsyncedResources.visibility = View.VISIBLE
-      }
-      adapter.submitList(resources)
-    }
     observeDownloadResources()
-    (activity as MainActivity).setDrawerEnabled(false)
-  }
-
-  private fun showDeleteConfirmationDialog(resource: UnsyncedResource) {
-    val resourceType =
-      when (resource) {
-        is UnsyncedResource.PatientItem -> "patient"
-        is UnsyncedResource.EncounterItem -> "encounter"
-        is UnsyncedResource.ObservationItem -> "observation"
-      }
-
-    MaterialAlertDialogBuilder(requireContext())
-      .setTitle("Delete Resource")
-      .setMessage("Are you sure you want to delete this $resourceType?")
-      .setPositiveButton("Delete") { _, _ ->
-        viewModel.deleteResource(resource)
-        Toast.makeText(
-            requireContext(),
-            "Resource deleted",
-            Toast.LENGTH_SHORT,
-          )
-          .show()
-      }
-      .setNegativeButton("Cancel", null)
-      .show()
-  }
-
-  private fun showDeleteAllConfirmationDialog() {
-    MaterialAlertDialogBuilder(requireContext())
-      .setTitle("Delete All")
-      .setMessage("Are you sure you want to delete all unsynced resources?")
-      .setPositiveButton("Delete All") { _, _ ->
-        viewModel.deleteAll()
-        Toast.makeText(
-            requireContext(),
-            "All resources deleted",
-            Toast.LENGTH_SHORT,
-          )
-          .show()
-      }
-      .setNegativeButton("Cancel", null)
-      .show()
+    if (requireActivity() is MainActivity) {
+      mainActivityViewModel.setDrawerEnabled(false)
+    }
   }
 
   private fun showDownloadToast(resource: UnsyncedResource) {
     val message =
       when (resource) {
-        is UnsyncedResource.PatientItem -> "Collecting patient data for ${resource.patient.name}"
+        is UnsyncedResource.PatientItem ->
+          getString(R.string.collecting_patient_data, resource.patient.name)
         is UnsyncedResource.EncounterItem ->
-          "Collecting encounter data: ${resource.encounter.title}"
+          getString(R.string.collecting_encounter_data, resource.encounter.title)
         is UnsyncedResource.ObservationItem ->
-          "Collecting observation: ${resource.observation.title}"
+          getString(R.string.collecting_observation_data, resource.observation.title)
       }
 
     Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
@@ -195,8 +157,8 @@ class UnsyncedResourcesFragment : Fragment() {
           Intent(Intent.ACTION_SEND).apply {
             type = "application/json"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(getString(R.string.support_email)))
-            putExtra(Intent.EXTRA_SUBJECT, "Unsynced Resources")
-            putExtra(Intent.EXTRA_TEXT, "Attached are the unsynced resources.")
+            putExtra(Intent.EXTRA_SUBJECT, getString(R.string.unsynced_resources_email_subject))
+            putExtra(Intent.EXTRA_TEXT, getString(R.string.unsynced_resources_email_body))
             putExtra(
               Intent.EXTRA_STREAM,
               FileProvider.getUriForFile(
@@ -207,14 +169,10 @@ class UnsyncedResourcesFragment : Fragment() {
             )
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
           }
-        startActivity(Intent.createChooser(emailIntent, "Send Unsynced Resources"))
+        startActivity(
+          Intent.createChooser(emailIntent, getString(R.string.send_unsynced_resources)),
+        )
       }
-    }
-  }
-
-  private fun observeLoading() {
-    viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-      binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
   }
 
@@ -226,10 +184,5 @@ class UnsyncedResourcesFragment : Fragment() {
       }
       else -> false
     }
-  }
-
-  override fun onDestroyView() {
-    super.onDestroyView()
-    _binding = null
   }
 }

@@ -28,22 +28,22 @@
 */
 package org.openmrs.android.fhir.adapters
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
-import org.openmrs.android.fhir.databinding.LocationListItemViewBinding
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 
 class LocationItemRecyclerViewAdapter(
   private val onItemClicked: (LocationViewModel.LocationItem, Boolean) -> Unit,
-  private val isFavorite: Boolean,
-) :
-  ListAdapter<LocationViewModel.LocationItem, LocationItemViewHolder>(LocationItemDiffCallback()) {
+  favoriteLocations: Set<String>,
+) : ListAdapter<LocationViewModel.LocationItem, LocationItemViewHolder>(LocationDiffCallback()) {
 
+  private val favoriteLocationIds: MutableSet<String> = favoriteLocations.toMutableSet()
   private var selectedLocationId: String? = null
 
-  class LocationItemDiffCallback : DiffUtil.ItemCallback<LocationViewModel.LocationItem>() {
+  class LocationDiffCallback : DiffUtil.ItemCallback<LocationViewModel.LocationItem>() {
     override fun areItemsTheSame(
       oldItem: LocationViewModel.LocationItem,
       newItem: LocationViewModel.LocationItem,
@@ -56,23 +56,54 @@ class LocationItemRecyclerViewAdapter(
   }
 
   fun setSelectedLocation(locationId: String?) {
+    if (selectedLocationId == locationId) return
+    val previousSelectedId = selectedLocationId
     selectedLocationId = locationId
-    notifyDataSetChanged()
+
+    previousSelectedId?.let { previousId ->
+      val previousIndex = currentList.indexOfFirst { it.resourceId == previousId }
+      if (previousIndex != -1) notifyItemChanged(previousIndex)
+    }
+
+    selectedLocationId?.let { newId ->
+      val newIndex = currentList.indexOfFirst { it.resourceId == newId }
+      if (newIndex != -1) notifyItemChanged(newIndex)
+    }
   }
 
-  fun isLocationSelected(): Boolean {
-    return selectedLocationId != null
+  fun isLocationSelected(): Boolean = selectedLocationId != null
+
+  fun updateFavoriteLocations(locations: Set<String>?) {
+    val previousFavorites = favoriteLocationIds.toSet()
+    favoriteLocationIds.clear()
+    if (locations != null) favoriteLocationIds.addAll(locations)
+
+    currentList.forEachIndexed { index, item ->
+      val wasFavorite = previousFavorites.contains(item.resourceId)
+      val isFavorite = favoriteLocationIds.contains(item.resourceId)
+      if (wasFavorite != isFavorite) {
+        notifyItemChanged(index)
+      }
+    }
   }
 
   override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LocationItemViewHolder {
-    val binding =
-      LocationListItemViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-    return LocationItemViewHolder(binding)
+    val composeView =
+      ComposeView(parent.context).apply {
+        layoutParams =
+          ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+          )
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+      }
+    return LocationItemViewHolder(composeView)
   }
 
   override fun onBindViewHolder(holder: LocationItemViewHolder, position: Int) {
     val item = getItem(position)
-    val isSelected = item.resourceId == selectedLocationId
+    val isFavorite = favoriteLocationIds.contains(item.resourceId)
+    val isSelected = selectedLocationId == item.resourceId
     holder.bindTo(item, onItemClicked, isFavorite, isSelected)
   }
 }

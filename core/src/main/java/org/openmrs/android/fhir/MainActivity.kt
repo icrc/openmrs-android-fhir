@@ -36,30 +36,37 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.MenuItem
 import android.view.View
-import android.view.View.OnFocusChangeListener
-import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
-import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.graphics.drawable.DrawerArrowDrawable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.view.GravityCompat
+import androidx.core.view.isVisible
 import androidx.datastore.preferences.core.edit
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.findNavController
-import androidx.work.WorkInfo
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.snackbar.Snackbar
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -77,7 +84,7 @@ import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.isServerReachable
-import org.openmrs.android.fhir.databinding.ActivityMainBinding
+import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.extensions.PermissionHelper
@@ -87,22 +94,24 @@ import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
 import org.openmrs.android.fhir.extensions.getApplicationLogs
 import org.openmrs.android.fhir.extensions.saveToFile
 import org.openmrs.android.fhir.extensions.showSnackBar
+import org.openmrs.android.fhir.ui.screens.DrawerContent
+import org.openmrs.android.fhir.ui.screens.DrawerItem
+import org.openmrs.android.fhir.ui.screens.MainActivityOverlays
+import org.openmrs.android.fhir.ui.screens.MainActivityScaffold
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
-import org.openmrs.android.fhir.worker.SyncInfoDatabaseWriterWorker
 import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
-  private lateinit var binding: ActivityMainBinding
-  private lateinit var drawerToggle: ActionBarDrawerToggle
   private lateinit var authStateManager: AuthStateManager
   private var tokenExpiryHandler: Handler? = null
   private var tokenCheckRunnable: Runnable? = null
-  private var isDialogShowing = false
   private lateinit var loginRepository: LoginRepository
   private lateinit var demoDataStore: DemoDataStore
 
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+
+  @Inject lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
 
   @Inject lateinit var fhirEngine: FhirEngine
 
@@ -116,8 +125,13 @@ class MainActivity : AppCompatActivity() {
 
   @Inject lateinit var permissionHelperFactory: PermissionHelperFactory
 
-  private val viewModel by viewModels<MainActivityViewModel> { viewModelFactory }
+  private val viewModel by viewModels<MainActivityViewModel> { viewModelSavedStateFactory }
   private val syncInfoViewModel by viewModels<SyncInfoViewModel> { viewModelFactory }
+
+  private val navHostFragmentId: Int = R.id.main_nav_host_container
+  private var drawerLayout: DrawerLayout? = null
+  private var toolbar: MaterialToolbar? = null
+  private var overlayComposeView: ComposeView? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -126,132 +140,297 @@ class MainActivity : AppCompatActivity() {
     )
     (this.application as FhirApplication).appComponent.inject(this)
     permissionHelper = permissionHelperFactory.create(this)
-    binding = ActivityMainBinding.inflate(layoutInflater)
     loginRepository = LoginRepository.getInstance(applicationContext)
     authStateManager = AuthStateManager.getInstance(applicationContext)
-    setContentView(binding.root)
     tokenExpiryHandler = Handler(Looper.getMainLooper())
     demoDataStore = DemoDataStore(this)
+    setContentView(R.layout.activity_main)
+    ensureNavHost(navHostFragmentId)
+    drawerLayout = findViewById(R.id.drawer)
+    findViewById<ComposeView>(R.id.top_bar_compose_container).setContent {
+      val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+      MainActivityScaffold(
+        networkStatusText = uiState.networkStatusText,
+        isNetworkStatusVisible = uiState.isNetworkStatusVisible,
+        onToolbarReady = ::configureToolbar,
+      )
+    }
+    findViewById<ComposeView>(R.id.drawer_compose_container).setContent {
+      val activityContext = LocalContext.current
+      val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+      val drawerItems =
+        androidx.compose.runtime.remember(uiState.locationMenuTitle, uiState.versionMenuTitle) {
+          buildDrawerItems(
+            activityContext,
+            uiState.locationMenuTitle,
+            uiState.versionMenuTitle,
+          )
+        }
+      DrawerContent(
+        lastSyncText = uiState.lastSyncText,
+        drawerItems = drawerItems,
+        onDrawerItemSelected = ::onNavigationItemSelected,
+      )
+    }
+    overlayComposeView = findViewById(R.id.overlay_compose_container)
+    overlayComposeView?.setContent {
+      val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+      MainActivityOverlays(
+        isSyncTasksVisible = uiState.isSyncTasksVisible,
+        syncProgressState = uiState.syncProgressState,
+        syncHeaderText = uiState.syncHeaderText,
+        showSyncCloseButton = uiState.showSyncCloseButton,
+        onCloseSyncTasks = ::hideSyncTasksScreen,
+        isLoading = uiState.loading,
+      )
+    }
+    updateOverlayVisibility()
+    registerBackHandler()
+    lifecycleScope.launch {
+      repeatOnLifecycle(Lifecycle.State.STARTED) {
+        viewModel.uiEvents.collect { event ->
+          when (event) {
+            is org.openmrs.android.fhir.viewmodel.MainActivityEvent.OpenDrawer ->
+              openNavigationDrawer()
+            is org.openmrs.android.fhir.viewmodel.MainActivityEvent.TriggerSync -> onSyncPress()
+            is org.openmrs.android.fhir.viewmodel.MainActivityEvent.ShowSyncTasks ->
+              showSyncTasksScreen()
+            is org.openmrs.android.fhir.viewmodel.MainActivityEvent.HideSyncTasks ->
+              hideSyncTasksScreen()
+            is org.openmrs.android.fhir.viewmodel.MainActivityEvent.SyncStarted -> showSyncStarted()
+            is org.openmrs.android.fhir.viewmodel.MainActivityEvent.SyncCompleted ->
+              showSnackBar(this@MainActivity, getString(R.string.sync_completed))
+            is org.openmrs.android.fhir.viewmodel.MainActivityEvent.SyncFailed ->
+              showSnackBar(this@MainActivity, getString(R.string.sync_failed))
+            is org.openmrs.android.fhir.viewmodel.MainActivityEvent.ShowContinueSyncDialog ->
+              showContinueSyncDialog(event.fetchIdentifiers)
+            is org.openmrs.android.fhir.viewmodel.MainActivityEvent.ShowTokenExpiredDialog ->
+              showTokenExpiredDialog(event.connectivityState)
+            is org.openmrs.android.fhir.viewmodel.MainActivityEvent.ShowLogoutDialog ->
+              showLogoutWarningDialog(event.connectivityState)
+          }
+        }
+      }
+    }
     //    lifecycleScope.launch {
     // viewModel.initPeriodicSyncWorker(demoDataStore.getPeriodicSyncDelay()) } TODO: Discuss on
     // periodic sync
-    initActionBar()
-    initNavigationDrawer()
     observeNetworkConnection(this)
-    observeLastSyncTime()
     observeSyncState()
     viewModel.updateLastSyncTimestamp()
     viewModel.triggerIdentifierTypeSync()
-    observeSettings()
   }
 
   override fun onResume() {
     super.onResume()
-    // If the user has not selected a location, redirects to the "select location" screen.
-    runBlocking {
-      val selectedLocationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
-      if (selectedLocationId == null) {
-        val bundle = Bundle().apply { putBoolean("from_login", true) }
-        binding.navHostFragment.findNavController().navigate(R.id.locationFragment, bundle)
+    lifecycleScope.launch {
+      if (!viewModel.hasHandledPostLoginNavigation()) {
+        val selectedLocationId =
+          applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+        if (selectedLocationId == null) {
+          showSyncTasksScreen(
+            headerTextResId = R.string.get_started,
+            showCloseButton = false,
+          )
+          waitForNavController()?.let { navController ->
+            if (navController.currentDestination?.id != R.id.locationFragment) {
+              val bundle = Bundle().apply { putBoolean("from_login", true) }
+              navController.navigate(R.id.locationFragment, bundle)
+              viewModel.setHasHandledPostLoginNavigation(true)
+            }
+          }
+        }
       }
     }
-    // getting Root View that gets focus
-    val rootView = (findViewById<View>(android.R.id.content) as ViewGroup).getChildAt(0)
-    rootView.onFocusChangeListener = OnFocusChangeListener { _, hasFocus ->
-      if (hasFocus) {
-        hideKeyboard(this@MainActivity)
-      }
-    }
+    currentFocus?.let { hideKeyboard(this@MainActivity, it) }
   }
 
-  private fun hideKeyboard(context: Activity) {
+  private fun hideKeyboard(context: Activity, focusView: View) {
     val inputMethodManager = context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-    inputMethodManager.hideSoftInputFromWindow(context.currentFocus!!.windowToken, 0)
+    inputMethodManager.hideSoftInputFromWindow(focusView.windowToken, 0)
   }
 
-  override fun onBackPressed() {
-    if (binding.drawer.isDrawerOpen(GravityCompat.START)) {
-      binding.drawer.closeDrawer(GravityCompat.START)
-      return
-    }
-    super.onBackPressed()
+  private fun registerBackHandler() {
+    onBackPressedDispatcher.addCallback(
+      this,
+      object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+          if (drawerLayout?.isDrawerOpen(GravityCompat.START) == true) {
+            drawerLayout?.closeDrawer(GravityCompat.START)
+            return
+          }
+          lifecycleScope.launch {
+            val navController = waitForNavController()
+            val handled = navController?.popBackStack() ?: false
+            if (!handled) {
+              isEnabled = false
+              onBackPressedDispatcher.onBackPressed()
+              isEnabled = true
+            }
+          }
+        }
+      },
+    )
   }
 
   fun setDrawerEnabled(enabled: Boolean) {
-    val lockMode =
-      if (enabled) DrawerLayout.LOCK_MODE_UNLOCKED else DrawerLayout.LOCK_MODE_LOCKED_CLOSED
-    binding.drawer.setDrawerLockMode(lockMode)
-    drawerToggle.isDrawerIndicatorEnabled = enabled
+    viewModel.setDrawerEnabled(enabled)
+    drawerLayout?.setDrawerLockMode(
+      if (enabled) DrawerLayout.LOCK_MODE_UNLOCKED else DrawerLayout.LOCK_MODE_LOCKED_CLOSED,
+      GravityCompat.START,
+    )
+    updateToolbarNavigationIcon()
   }
 
   fun openNavigationDrawer() {
-    binding.drawer.openDrawer(GravityCompat.START)
+    drawerLayout?.openDrawer(GravityCompat.START)
     viewModel.updateLastSyncTimestamp()
   }
 
-  private fun initActionBar() {
-    val toolbar = binding.toolbar
+  private fun closeNavigationDrawer() {
+    drawerLayout?.closeDrawer(GravityCompat.START)
+  }
+
+  private fun configureToolbar(toolbar: MaterialToolbar) {
+    if (this.toolbar === toolbar) {
+      return
+    }
+    this.toolbar = toolbar
     setSupportActionBar(toolbar)
-  }
-
-  private fun initNavigationDrawer() {
-    binding.navigationView.setNavigationItemSelectedListener(this::onNavigationItemSelected)
-    drawerToggle = ActionBarDrawerToggle(this, binding.drawer, R.string.open, R.string.close)
-    binding.drawer.addDrawerListener(drawerToggle)
-    drawerToggle.syncState()
-    setLocationInDrawer()
-  }
-
-  private fun checkNotificationPermission() {
-    permissionHelper.checkAndRequestNotificationPermission {}
-  }
-
-  private fun setLocationInDrawer() {
-    lifecycleScope.launch {
-      binding.navigationView.menu.findItem(R.id.menu_current_location).title =
-        applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.LOCATION_NAME)
-          ?: getString(R.string.no_location_selected)
-
-      val versionName =
-        try {
-          val packageInfo = packageManager.getPackageInfo(packageName, 0)
-          packageInfo.versionName
-        } catch (_: Exception) {
-          "N/A"
-        }
-
-      binding.navigationView.menu.findItem(R.id.menu_version).title = "App Version: $versionName"
+    updateToolbarNavigationIcon()
+    toolbar.setNavigationOnClickListener {
+      if (viewModel.uiState.value.drawerEnabled) {
+        openNavigationDrawer()
+      } else {
+        onBackPressedDispatcher.onBackPressed()
+      }
     }
   }
 
-  fun updateLocationName(locationName: String) {
-    binding.navigationView.menu.findItem(R.id.menu_current_location).title = locationName
+  private fun updateToolbarNavigationIcon() {
+    val drawable =
+      DrawerArrowDrawable(this).apply {
+        progress = if (viewModel.uiState.value.drawerEnabled) 0f else 1f
+      }
+    toolbar?.navigationIcon = drawable
+    supportActionBar?.setDisplayHomeAsUpEnabled(true)
   }
 
-  private fun onNavigationItemSelected(item: MenuItem): Boolean {
-    when (item.itemId) {
+  private fun buildDrawerItems(
+    context: Context,
+    locationMenuTitle: String,
+    versionMenuTitle: String,
+  ): List<DrawerItem> {
+    return listOf(
+      DrawerItem(
+        id = R.id.menu_sync,
+        iconRes = R.drawable.cloud_sync_24px,
+        title = context.getString(R.string.sync_menu),
+        testTag = "DrawerItemSync",
+      ),
+      DrawerItem(
+        id = R.id.menu_current_location,
+        iconRes = R.drawable.ic_location,
+        title =
+          if (locationMenuTitle.isNotBlank()) {
+            locationMenuTitle
+          } else {
+            context.getString(R.string.no_location_selected)
+          },
+        testTag = "DrawerItemLocation",
+      ),
+      DrawerItem(
+        id = R.id.menu_select_identifier,
+        iconRes = R.drawable.baseline_tag_24,
+        title = context.getString(R.string.select_identifier_types),
+        testTag = "DrawerItemIdentifier",
+      ),
+      DrawerItem(
+        id = R.id.menu_settings,
+        iconRes = R.drawable.baseline_settings_24,
+        title = context.getString(R.string.settings),
+        testTag = "DrawerItemSettings",
+      ),
+      DrawerItem(
+        id = R.id.menu_diagnostics,
+        iconRes = R.drawable.ic_diagnostics,
+        title = context.getString(R.string.send_diagnostics),
+        testTag = "DrawerItemDiagnostics",
+      ),
+      DrawerItem(
+        id = R.id.menu_logout,
+        iconRes = R.drawable.ic_logout,
+        title = context.getString(R.string.logout),
+        testTag = "DrawerItemLogout",
+      ),
+      DrawerItem(
+        id = R.id.menu_version,
+        iconRes = R.drawable.ic_version_24,
+        title =
+          if (versionMenuTitle.isNotBlank()) {
+            versionMenuTitle
+          } else {
+            context.getString(R.string.version)
+          },
+        testTag = "DrawerItemVersion",
+        enabled = false,
+      ),
+    )
+  }
+
+  private fun ensureNavHost(containerId: Int) {
+    val existing = supportFragmentManager.findFragmentById(containerId) as? NavHostFragment
+    if (existing == null) {
+      supportFragmentManager
+        .beginTransaction()
+        .replace(containerId, NavHostFragment.create(R.navigation.reference_nav_graph))
+        .commit()
+    }
+  }
+
+  private fun getNavController(): NavController? {
+    val navHost = supportFragmentManager.findFragmentById(navHostFragmentId) as? NavHostFragment
+    return navHost?.navController
+  }
+
+  private suspend fun waitForNavController(maxAttempts: Int = 50): NavController? {
+    repeat(maxAttempts) {
+      val controller = getNavController()
+      if (controller != null) {
+        return controller
+      }
+      delay(50)
+    }
+    return null
+  }
+
+  fun updateLocationName(locationName: String) {
+    viewModel.updateLocationName(locationName)
+  }
+
+  private fun onNavigationItemSelected(itemId: Int) {
+    when (itemId) {
       R.id.menu_sync -> {
         onSyncPress()
       }
       R.id.menu_logout -> {
         val connectivityState = viewModel.networkStatus.value
-        showLogoutWarningDialog(connectivityState)
+        viewModel.requestLogoutDialog(connectivityState)
       }
       R.id.menu_settings -> {
-        findNavController(R.id.nav_host_fragment).navigate(R.id.settings_fragment)
+        getNavController()?.navigate(R.id.settings_fragment)
       }
       R.id.menu_diagnostics -> {
         showSendDiagnosticReportDialog()
       }
       R.id.menu_select_identifier -> {
-        findNavController(R.id.nav_host_fragment).navigate(R.id.identifierFragment)
+        getNavController()?.navigate(R.id.identifierFragment)
       }
       R.id.menu_current_location -> {
-        findNavController(R.id.nav_host_fragment).navigate(R.id.locationFragment)
+        getNavController()?.navigate(R.id.locationFragment)
       }
     }
-    binding.drawer.closeDrawer(GravityCompat.START)
-    return false
+    closeNavigationDrawer()
   }
 
   /*
@@ -273,7 +452,7 @@ class MainActivity : AppCompatActivity() {
                 selectedLocationId,
               )
             if (!isCurrentLocationValid) {
-              applicationContext?.dataStore?.edit { preferences ->
+              applicationContext.dataStore.edit { preferences ->
                 preferences.remove(PreferenceKeys.LOCATION_ID)
                 preferences.remove(PreferenceKeys.LOCATION_NAME)
               }
@@ -281,17 +460,17 @@ class MainActivity : AppCompatActivity() {
                 this@MainActivity,
                 getString(R.string.location_unassigned_select_location),
               )
-              binding.navHostFragment.findNavController().navigate(R.id.locationFragment)
+              getNavController()?.navigate(R.id.locationFragment)
             }
           }
         }*/
         checkNotificationPermission()
         val fetchIdentifiers = applicationContext.resources.getBoolean(R.bool.fetch_identifiers)
         viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers)
-        binding.drawer.closeDrawer(GravityCompat.START)
+        closeNavigationDrawer()
       }
       isTokenExpired() && connectivityState.isServerReachable() -> {
-        showTokenExpiredDialog()
+        viewModel.requestTokenExpiredDialog(connectivityState)
       }
       connectivityState is ServerConnectivityState.InternetOnly -> {
         showSnackBar(
@@ -305,75 +484,58 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
-  fun showSyncTasksScreen() {
-    binding.syncTasksContainer.visibility = View.VISIBLE
-    binding.coordinatorLayoutContainer.visibility = View.GONE
-    binding.btnSyncTasks.setOnClickListener { hideSyncTasksScreen() }
+  private fun checkNotificationPermission() {
+    permissionHelper.checkAndRequestNotificationPermission {}
+  }
+
+  @SuppressLint("MissingPermission")
+  private fun showSyncStarted() {
+    permissionHelper.checkNotificationPermissionStatus { isGranted ->
+      if (isGranted) {
+        notificationHelper.showSyncStarted()
+      }
+    }
+    showSnackBar(this@MainActivity, getString(R.string.sync_started))
+  }
+
+  private fun showContinueSyncDialog(fetchIdentifiers: Boolean) {
+    AlertDialog.Builder(this)
+      .setTitle(getString(R.string.connection_restored))
+      .setMessage(getString(R.string.do_you_want_to_continue_sync))
+      .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
+        dialog.dismiss()
+        viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers)
+      }
+      .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
+      .setCancelable(false)
+      .show()
+  }
+
+  fun showSyncTasksScreen(
+    headerTextResId: Int = R.string.syncing_patient_data,
+    showCloseButton: Boolean = true,
+  ) {
+    viewModel.showSyncTasksScreen(headerTextResId, showCloseButton)
+    updateOverlayVisibility()
   }
 
   fun hideSyncTasksScreen() {
-    binding.syncTasksContainer.visibility = View.GONE
-    binding.coordinatorLayoutContainer.visibility = View.VISIBLE
+    viewModel.hideSyncTasksScreen()
+    updateOverlayVisibility()
+  }
+
+  fun updateSyncProgress(current: Int, total: Int) {
+    viewModel.updateSyncProgress(current, total)
   }
 
   private fun observeSyncState() {
+    viewModel.syncProgress.observe(this@MainActivity) { viewModel.handleSyncWorkInfos(it) }
+
     lifecycleScope.launch {
-      viewModel.syncProgress.observeForever { handleSyncStatus(it) }
-
-      viewModel.inProgressSyncSession.observe(this@MainActivity) {
-        if (it != null) {
-          binding.syncProgressBar.max = it.totalPatientsToDownload + it.totalPatientsToUpload
-          binding.syncProgressBar.progress = it.uploadedPatients + it.downloadedPatients
-        }
-      }
-
       viewModel.pollPeriodicSyncJobStatus?.collect {
         Timber.d("observerSyncState: pollState Got status $it")
         //        handleCurrentSyncJobStatus(it.currentSyncJobStatus)
       }
-    }
-  }
-
-  @SuppressLint("MissingPermission")
-  private fun handleSyncStatus(workInfos: List<WorkInfo>) {
-    val workInfo = workInfos.firstOrNull()
-
-    if (workInfo == null) {
-      return
-    }
-
-    when {
-      workInfo.state == WorkInfo.State.RUNNING -> {
-        val progress = workInfo.progress
-
-        if (progress.getString(SyncInfoDatabaseWriterWorker.PROGRESS_STATUS) == "STARTED") {
-          permissionHelper.checkNotificationPermissionStatus { isGranted ->
-            if (isGranted) {
-              notificationHelper.showSyncStarted()
-            }
-          }
-          showSyncTasksScreen()
-          showSnackBar(this@MainActivity, getString(R.string.sync_started))
-        }
-      }
-      workInfo.state == WorkInfo.State.SUCCEEDED -> {
-        hideSyncTasksScreen()
-        viewModel.updateLastSyncTimestamp()
-        showSnackBar(this@MainActivity, getString(R.string.sync_completed))
-        viewModel.setIsSyncing(false)
-      }
-      workInfo.state == WorkInfo.State.FAILED -> {
-        hideSyncTasksScreen()
-        viewModel.updateLastSyncTimestamp()
-        viewModel.setIsSyncing(false)
-        showSnackBar(this@MainActivity, getString(R.string.sync_failed))
-      }
-    }
-  }
-
-  private fun observeLastSyncTime() {
-    viewModel.lastSyncTimestampLiveData.observe(this) {
-      binding.navigationView.getHeaderView(0).findViewById<TextView>(R.id.last_sync_tv).text = it
     }
   }
 
@@ -385,7 +547,7 @@ class MainActivity : AppCompatActivity() {
           if (isTokenExpired()) {
             val connectivityState = viewModel.networkStatus.value
             if (connectivityState.isServerReachable()) {
-              showTokenExpiredDialog()
+              viewModel.requestTokenExpiredDialog(connectivityState)
               tokenExpiryHandler?.removeCallbacks(this)
             }
           } else {
@@ -402,40 +564,42 @@ class MainActivity : AppCompatActivity() {
     return expirationTime != null && System.currentTimeMillis() > expirationTime
   }
 
-  private fun showTokenExpiredDialog() {
-    if (!isDialogShowing) {
-      isDialogShowing = true
-      AlertDialog.Builder(this)
-        .setTitle(getString(R.string.login_expired))
-        .setMessage(getString(R.string.session_expired))
-        .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
-          isDialogShowing = false
-          lifecycleScope.launch { loginRepository.refreshAccessToken() }
-          viewModel.setStopSync(false)
-          dialog.dismiss()
-        }
-        .setNegativeButton(getString(R.string.no)) { dialog, _ ->
-          isDialogShowing = false
-          lifecycleScope.launch { scheduleDialogForLater() }
-          viewModel.setStopSync(false)
-          dialog.dismiss()
-        }
-        .setNeutralButton(getString(R.string.no_and_don_t_ask_me_again)) { dialog, _ ->
-          isDialogShowing = true
-          viewModel.cancelPeriodicSyncWorker(applicationContext)
-          viewModel.setStopSync(true)
-          showSnackBar(this@MainActivity, getString(R.string.sync_terminated))
-          dialog.dismiss()
-        }
-        .setCancelable(false)
-        .show()
+  private fun showTokenExpiredDialog(connectivityState: ServerConnectivityState) {
+    if (!connectivityState.isServerReachable()) {
+      viewModel.onTokenExpiredDialogDismissed()
+      return
     }
+    AlertDialog.Builder(this)
+      .setTitle(getString(R.string.login_expired))
+      .setMessage(getString(R.string.session_expired))
+      .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
+        lifecycleScope.launch { loginRepository.refreshAccessToken() }
+        viewModel.setStopSync(false)
+        viewModel.onTokenExpiredDialogDismissed()
+        dialog.dismiss()
+      }
+      .setNegativeButton(getString(R.string.no)) { dialog, _ ->
+        lifecycleScope.launch { scheduleDialogForLater() }
+        viewModel.setStopSync(false)
+        viewModel.onTokenExpiredDialogDismissed()
+        dialog.dismiss()
+      }
+      .setNeutralButton(getString(R.string.no_and_don_t_ask_me_again)) { dialog, _ ->
+        viewModel.cancelPeriodicSyncWorker(applicationContext)
+        viewModel.setStopSync(true)
+        showSnackBar(this@MainActivity, getString(R.string.sync_terminated))
+        viewModel.onTokenExpiredDialogDismissed()
+        dialog.dismiss()
+      }
+      .setCancelable(false)
+      .show()
   }
 
   private suspend fun scheduleDialogForLater() {
     tokenExpiryHandler?.postDelayed(
       {
-        showTokenExpiredDialog() // Re-show the dialog after 15 minutes
+        val connectivityState = viewModel.networkStatus.value
+        viewModel.requestTokenExpiredDialog(connectivityState)
       },
       demoDataStore.getPeriodicSyncDelay(),
     ) // 15 minutes in milliseconds
@@ -443,43 +607,29 @@ class MainActivity : AppCompatActivity() {
 
   private fun observeNetworkConnection(context: Context) {
     lifecycleScope.launch {
-      var previousState: ServerConnectivityState? = null
       viewModel.networkStatus.collect { connectivityState ->
-        val previous = previousState
-        previousState = connectivityState
-        when (connectivityState) {
-          ServerConnectivityState.ServerConnected -> {
-            binding.networkStatusFlag.tvNetworkStatus.text =
-              getString(R.string.network_status_connected_to_server)
-            if (
-              viewModel.isSyncing.value == true &&
-                previous != ServerConnectivityState.ServerConnected
-            ) {
-              val fetchIdentifiers =
-                applicationContext.resources.getBoolean(R.bool.fetch_identifiers)
-              AlertDialog.Builder(context)
-                .setTitle(getString(R.string.connection_restored))
-                .setMessage(getString(R.string.do_you_want_to_continue_sync))
-                .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
-                  dialog.dismiss()
-                  viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers)
-                }
-                .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
-                .setCancelable(false)
-                .show()
-            }
-            monitorTokenExpiry()
-          }
-          ServerConnectivityState.InternetOnly -> {
-            binding.networkStatusFlag.tvNetworkStatus.text =
-              getString(R.string.network_status_server_unreachable)
-          }
-          ServerConnectivityState.Offline -> {
-            binding.networkStatusFlag.tvNetworkStatus.text = getString(R.string.offline)
-          }
+        if (connectivityState is ServerConnectivityState.ServerConnected) {
+          monitorTokenExpiry()
         }
+        val fetchIdentifiers = applicationContext.resources.getBoolean(R.bool.fetch_identifiers)
+        viewModel.handleConnectivityState(connectivityState, fetchIdentifiers)
       }
     }
+  }
+
+  private fun updateOverlayVisibility() {
+    val shouldShow = viewModel.uiState.value.isSyncTasksVisible || viewModel.uiState.value.loading
+    overlayComposeView?.isVisible = shouldShow
+  }
+
+  @VisibleForTesting
+  fun updateNetworkStatusBannerTextForTest(text: String) {
+    viewModel.updateNetworkStatusBannerTextForTest(text)
+  }
+
+  @VisibleForTesting
+  fun updateLastSyncTextForTest(text: String) {
+    viewModel.updateLastSyncTextForTest(text)
   }
 
   override fun onDestroy() {
@@ -532,8 +682,8 @@ class MainActivity : AppCompatActivity() {
 
     val pendingIntentSuccess = createPendingIntent(loginIntent, 0)
     val pendingIntentCancel = createPendingIntent(loginIntent, 1)
-    binding.loadingLayout.setBackgroundColor(getColor(R.color.white))
-    binding.progressBar.visibility = View.VISIBLE
+    viewModel.setLoading(true)
+    updateOverlayVisibility()
     showSnackBar(
       this@MainActivity,
       getString(R.string.logging_out),
@@ -541,7 +691,7 @@ class MainActivity : AppCompatActivity() {
     )
 
     lifecycleScope
-      .launch(Dispatchers.IO) { clearAppData() }
+      .launch(Dispatchers.Default) { clearAppData() }
       .invokeOnCompletion { handleAuthNavigation(pendingIntentSuccess, pendingIntentCancel) }
   }
 
@@ -610,18 +760,6 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
-  private fun observeSettings() {
-    lifecycleScope.launch {
-      demoDataStore.getCheckNetworkConnectivityFlow().collect { isCheckNetworkConnectivityEnabled ->
-        if (isCheckNetworkConnectivityEnabled) {
-          binding.networkStatusFlag.tvNetworkStatus.visibility = View.VISIBLE
-        } else {
-          binding.networkStatusFlag.tvNetworkStatus.visibility = View.GONE
-        }
-      }
-    }
-  }
-
   private fun showSendDiagnosticReportDialog() {
     AlertDialog.Builder(this)
       .setTitle(getString(R.string.send_diagnostics))
@@ -642,8 +780,8 @@ class MainActivity : AppCompatActivity() {
       Intent(Intent.ACTION_SEND).apply {
         type = "application/zip"
         putExtra(Intent.EXTRA_EMAIL, arrayOf(getString(R.string.support_email)))
-        putExtra(Intent.EXTRA_SUBJECT, "Diagnostic Report")
-        putExtra(Intent.EXTRA_TEXT, "Attached is the diagnostic report.")
+        putExtra(Intent.EXTRA_SUBJECT, getString(R.string.diagnostic_report_subject))
+        putExtra(Intent.EXTRA_TEXT, getString(R.string.diagnostic_report_body))
         putExtra(
           Intent.EXTRA_STREAM,
           FileProvider.getUriForFile(
@@ -654,7 +792,7 @@ class MainActivity : AppCompatActivity() {
         )
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
       }
-    startActivity(Intent.createChooser(emailIntent, "Send Email"))
+    startActivity(Intent.createChooser(emailIntent, getString(R.string.send_email_chooser_title)))
   }
 
   private suspend fun createDiagnosticZip(password: String): File {
