@@ -74,10 +74,6 @@ constructor(
     return context.dataStore.data.first().get(PreferenceKeys.USER_UUID)
   }
 
-  suspend fun getAuthenticatedUserName(): String? {
-    return context.dataStore.data.first().get(PreferenceKeys.USER_NAME)
-  }
-
   suspend fun getAuthenticatedProviderName(): String? {
     return context.dataStore.data.first().get(PreferenceKeys.USER_PROVIDER_NAME)
   }
@@ -95,7 +91,7 @@ constructor(
   suspend fun getVisits(
     patientId: String,
   ): Map<Encounter, List<Encounter>> {
-    val visits: MutableMap<Encounter, List<Encounter>> = HashMap()
+    val visits = linkedMapOf<Encounter, List<Encounter>>()
 
     val allEncounters = LinkedList<Encounter>()
 
@@ -108,15 +104,23 @@ constructor(
       .let { allEncounters.addAll(it) }
 
     val visitEncounters =
-      allEncounters.filter { encounter ->
-        encounter.type.any { type ->
-          type.coding.any { coding -> coding.system == Constants.VISIT_TYPE_CODE_SYSTEM }
+      allEncounters
+        .filter { encounter ->
+          encounter.type.any { type ->
+            type.coding.any { coding -> coding.system == Constants.VISIT_TYPE_CODE_SYSTEM }
+          }
         }
-      }
+        .sortedByDescending { encounter ->
+          encounter.period?.start ?: encounter.period?.end ?: Date(0)
+        }
 
     visitEncounters.forEach { visit ->
       visits[visit] =
-        allEncounters.filter { it.partOf?.reference.equals("Encounter/" + visit.idPart) }
+        allEncounters
+          .filter { it.partOf?.reference.equals("Encounter/" + visit.idPart) }
+          .sortedByDescending { encounter ->
+            encounter.period?.start ?: encounter.period?.end ?: Date(0)
+          }
     }
 
     return visits
@@ -237,7 +241,7 @@ constructor(
         // Add the current item's ID
         if (item.linkId != null && personAttributeQuestionnaireLinkIds.contains(item.linkId)) {
           if (item.answer.isNotEmpty()) {
-            var extensionValue = item.answer[0].value
+            val extensionValue = item.answer[0].value
             extensionList.add(getPersonAttributeExtension(extensionValue, item.linkId))
           }
         }
