@@ -111,7 +111,7 @@ constructor(
     val visits = openMRSHelper.getVisits(patientId)
     data.addPatientDetailData(patientResource)
     data.add(PatientDetailHeader(getString(R.string.header_encounters)))
-    visits.forEach { (visit, encounters) ->
+    for ((visit, encounters) in visits) {
       if (!Constants.WRAP_ENCOUNTER) {
         data.addVisitData(visit, encounterTypeCodeToQuestionnaireMap)
       }
@@ -319,7 +319,6 @@ constructor(
   private fun getString(resId: Int) = applicationContext.resources.getString(resId)
 
   companion object {
-    private const val MAX_RESOURCE_COUNT = 10
     private const val TRANSLATION_EXTENSION_URL =
       "http://hl7.org/fhir/StructureDefinition/translation"
     private const val LANGUAGE_EXTENSION_URL = "lang"
