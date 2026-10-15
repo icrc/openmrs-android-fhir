@@ -102,16 +102,12 @@ class TimestampBasedDownloadWorkManagerImpl(
         updatedUrl = "$updatedUrl${separator}cohort-type=$cohortType"
       }
 
-      if (updatedUrl.contains(PATIENT_LIST_PLACEHOLDER)) {
-        val selectedPatientLists = runBlocking {
-          context.applicationContext.dataStore.data
-            .first()[PreferenceKeys.Companion.SELECTED_PATIENT_LISTS]
-        }
-        applyPatientListScope(updatedUrl, selectedPatientLists).also {
-          if (it == null) Timber.w("No patient list selected, skipping unscoped request: %s", url)
-        }
-      } else {
-        updatedUrl
+      val selectedPatientLists = runBlocking {
+        context.applicationContext.dataStore.data
+          .first()[PreferenceKeys.Companion.SELECTED_PATIENT_LISTS]
+      }
+      applyPatientListScope(updatedUrl, selectedPatientLists).also {
+        if (it == null) Timber.w("No patient list selected, skipping patient data: %s", url)
       }
     }
   }
@@ -206,19 +202,51 @@ class TimestampBasedDownloadWorkManagerImpl(
 
 private const val PATIENT_LIST_PLACEHOLDER = "_has:Group:member:id="
 
+/** Resource types that hold data about patients; none of it may be downloaded without a list. */
+private val PATIENT_DATA_TYPES =
+  setOf(
+    "Patient",
+    "Encounter",
+    "Observation",
+    "Condition",
+    "Procedure",
+    "MedicationRequest",
+    "MedicationStatement",
+    "AllergyIntolerance",
+    "Immunization",
+    "DiagnosticReport",
+    "RiskAssessment",
+    "ServiceRequest",
+    "Appointment",
+    "EpisodeOfCare",
+    "Flag",
+    "Person",
+  )
+
 /**
- * Restricts a patient request to the selected patient lists (Groups).
+ * Restricts patient requests to the selected patient lists (Groups).
+ * - A request that already carries the `_has:Group:member:id=` placeholder has it filled in.
+ * - A `Patient` request without it gets the filter added, so the scope does not depend on how the
+ *   sync URLs were configured.
+ * - When no list is selected, every patient-data request is skipped (`null`) instead of being sent
+ *   unscoped, which would download the patients of the whole server.
  *
- * Returns `null` when no list is selected: the request is then skipped instead of being sent
- * without the `_has:Group:member:id` filter, which would download every patient on the server.
+ * Requests for anything else (locations, questionnaires, patient lists) are returned unchanged.
  */
 internal fun applyPatientListScope(url: String, selectedPatientLists: Set<String>?): String? {
-  if (!url.contains(PATIENT_LIST_PLACEHOLDER)) return url
+  val resourceType = url.substringBefore("?").substringBefore("/")
+  val hasPlaceholder = url.contains(PATIENT_LIST_PLACEHOLDER)
+  if (!hasPlaceholder && resourceType !in PATIENT_DATA_TYPES) return url
   if (selectedPatientLists.isNullOrEmpty()) return null
-  return url.replace(
-    "?$PATIENT_LIST_PLACEHOLDER",
-    "?$PATIENT_LIST_PLACEHOLDER" + selectedPatientLists.joinToString(","),
-  )
+  val ids = selectedPatientLists.joinToString(",")
+  if (hasPlaceholder) {
+    return url.replace(Regex("([?&])" + Regex.escape(PATIENT_LIST_PLACEHOLDER) + "(?=&|$)")) {
+      it.groupValues[1] + PATIENT_LIST_PLACEHOLDER + ids
+    }
+  }
+  if (resourceType != "Patient") return url
+  val separator = if (url.contains("?")) "&" else "?"
+  return url + separator + PATIENT_LIST_PLACEHOLDER + ids
 }
 
 /**
