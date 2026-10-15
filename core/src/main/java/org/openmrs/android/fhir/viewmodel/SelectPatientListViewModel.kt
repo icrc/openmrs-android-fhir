@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Reference
+import org.hl7.fhir.r4.model.StringType
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -175,17 +176,22 @@ constructor(
       .any { it.equals(locationId, ignoreCase = true) }
   }
 
+  /**
+   * The location a patient list is tied to. The server publishes it as a plain string holding the
+   * location uuid; a `Location/<uuid>` reference is accepted as well.
+   */
   private fun org.hl7.fhir.r4.model.Extension.extractLocationReferenceId(): String? {
     if (url != GROUP_LOCATION_EXTENSION_URL) {
       return null
     }
 
-    val reference = value as? Reference ?: return null
-    val referenceValue = reference.reference ?: return null
-
-    return referenceValue.substringAfter("Location/", missingDelimiterValue = "").takeIf {
-      it.isNotBlank()
-    }
+    val raw =
+      when (val extensionValue = value) {
+        is StringType -> extensionValue.value
+        is Reference -> extensionValue.reference
+        else -> null
+      }
+    return raw?.substringAfterLast("/")?.trim()?.takeIf { it.isNotBlank() }
   }
 
   companion object {
