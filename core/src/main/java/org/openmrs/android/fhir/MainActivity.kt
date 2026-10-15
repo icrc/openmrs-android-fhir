@@ -67,7 +67,9 @@ import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.lingala.zip4j.ZipFile
@@ -185,6 +187,24 @@ class MainActivity : AppCompatActivity() {
     }
     updateOverlayVisibility()
     registerBackHandler()
+    // Fragments switch the drawer on and off through the ViewModel, so the toolbar icon (menu vs.
+    // back arrow) and the drawer's swipe lock must follow that state rather than the Activity
+    // method alone, which they never call.
+    lifecycleScope.launch {
+      repeatOnLifecycle(Lifecycle.State.STARTED) {
+        viewModel.uiState
+          .map { it.drawerEnabled }
+          .distinctUntilChanged()
+          .collect { enabled ->
+            drawerLayout?.setDrawerLockMode(
+              if (enabled) DrawerLayout.LOCK_MODE_UNLOCKED
+              else DrawerLayout.LOCK_MODE_LOCKED_CLOSED,
+              GravityCompat.START,
+            )
+            updateToolbarNavigationIcon()
+          }
+      }
+    }
     lifecycleScope.launch {
       repeatOnLifecycle(Lifecycle.State.STARTED) {
         viewModel.uiEvents.collect { event ->
