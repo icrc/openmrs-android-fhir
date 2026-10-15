@@ -34,7 +34,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.search.Operation
 import com.google.android.fhir.search.Order
+import com.google.android.fhir.search.Search
 import com.google.android.fhir.search.StringFilterModifier
 import com.google.android.fhir.search.count
 import com.google.android.fhir.search.search
@@ -140,17 +142,7 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
    * which only returns a fixed range.
    */
   private suspend fun count(nameQuery: String = ""): Long {
-    return fhirEngine.count<Patient> {
-      if (nameQuery.isNotEmpty()) {
-        filter(
-          Patient.NAME,
-          {
-            modifier = StringFilterModifier.CONTAINS
-            value = nameQuery
-          },
-        )
-      }
-    }
+    return fhirEngine.count<Patient> { applyPatientTextQuery(nameQuery) }
   }
 
   /*
@@ -168,15 +160,7 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
     val patients: MutableList<PatientItem> = mutableListOf()
     fhirEngine
       .search<Patient> {
-        if (nameQuery.isNotEmpty()) {
-          filter(
-            Patient.NAME,
-            {
-              modifier = StringFilterModifier.CONTAINS
-              value = nameQuery
-            },
-          )
-        }
+        applyPatientTextQuery(nameQuery)
         sort(Patient.GIVEN, Order.ASCENDING)
         count = 100
         from = 0
@@ -277,6 +261,26 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
   ) {
     override fun toString(): String = encounterId ?: type
   }
+}
+
+/**
+ * Applies the free-text patient query: a partial match on the name, or an exact match on an
+ * identifier or phone number. The three are OR-ed so that scanning/typing an identifier finds the
+ * patient the same way a name does. An empty query leaves the search unfiltered.
+ */
+internal fun Search.applyPatientTextQuery(query: String) {
+  val text = query.trim()
+  if (text.isEmpty()) return
+  filter(
+    Patient.NAME,
+    {
+      modifier = StringFilterModifier.CONTAINS
+      value = text
+    },
+  )
+  filter(Patient.IDENTIFIER, { value = of(text) })
+  filter(Patient.PHONE, { value = of(text) })
+  operation = Operation.OR
 }
 
 internal fun filterSelectedIdsForPatients(
