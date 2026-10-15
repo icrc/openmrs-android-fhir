@@ -46,9 +46,11 @@ import com.google.android.fhir.sync.SyncJobStatus
 import com.google.android.fhir.sync.SyncOperation
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
@@ -61,6 +63,7 @@ import org.openmrs.android.fhir.data.sync.FhirSyncWorker
 import org.openmrs.android.fhir.di.DaggerWorkerComponent
 import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.extensions.PermissionChecker
+import timber.log.Timber
 
 class SyncInfoDatabaseWriterWorker(
   context: Context,
@@ -128,8 +131,15 @@ class SyncInfoDatabaseWriterWorker(
         )
         Result.failure()
       }
+    } catch (e: CancellationException) {
+      // The work was stopped (for example replaced by a newer request). Let WorkManager see it.
+      throw e
     } catch (e: Exception) {
+      Timber.e(e, "Sync info worker failed")
       Result.failure()
+    } finally {
+      // shareIn(Eagerly) keeps collecting from the sync flow until its scope is cancelled.
+      workerScope.cancel()
     }
   }
 
@@ -293,7 +303,7 @@ class SyncInfoDatabaseWriterWorker(
     try {
       notificationHelper.showSyncCompleted()
     } catch (e: Exception) {
-      println("Failed to show sync completed notification: ${e.message}")
+      Timber.w(e, "Failed to show sync notification")
     }
   }
 
@@ -302,7 +312,7 @@ class SyncInfoDatabaseWriterWorker(
     try {
       notificationHelper.updateSyncProgress(currentCount, totalCount, isDownload)
     } catch (e: Exception) {
-      println("Failed to show sync completed notification: ${e.message}")
+      Timber.w(e, "Failed to show sync notification")
     }
   }
 
@@ -313,7 +323,7 @@ class SyncInfoDatabaseWriterWorker(
         applicationContext.getString(R.string.please_try_again_later),
       )
     } catch (e: Exception) {
-      println("Failed to show sync failed notification: ${e.message}")
+      Timber.w(e, "Failed to show sync notification")
     }
   }
 
