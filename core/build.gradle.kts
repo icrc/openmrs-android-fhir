@@ -89,42 +89,42 @@ publishing {
 }
 
 object Versions {
-  const val androidXCore = "1.12.0"
-  const val composeNavigation = "2.7.7"
-  const val desugar_jdk_libs = "2.1.0"
+  const val androidXCore = "1.17.0"
+  const val composeNavigation = "2.9.6"
+  const val desugar_jdk_libs = "2.1.5"
   const val appauth = "0.11.1"
   const val timber = "5.0.1"
-  const val jwtdecode = "2.0.2"
+  const val jwtdecode = "2.1.0"
   const val fhirEngine = "1.2.0"
   const val fhirDataCapture = "1.3.1"
-  const val lifecycle = "2.8.4"
-  const val navigation = "2.7.7"
-  const val datastore = "1.1.1"
-  const val coroutines = "1.8.1"
-  const val constraintlayout = "2.1.4"
-  const val appcompat = "1.7.0"
-  const val fragment = "1.8.2"
-  const val activity = "1.9.1"
-  const val recyclerview = "1.3.2"
-  const val work = "2.9.1"
-  const val material = "1.12.0"
-  const val retrofitVersion = "2.9.0"
-  const val room = "2.8.4"
+  const val lifecycle = "2.10.0"
+  const val navigation = "2.9.6"
+  const val datastore = "1.2.1"
+  const val coroutines = "1.11.0"
+  const val constraintlayout = "2.2.2"
+  const val appcompat = "1.8.0"
+  const val fragment = "1.9.1"
+  const val activity = "1.13.0"
+  const val recyclerview = "1.4.0"
+  const val work = "2.12.0"
+  const val material = "1.14.0"
+  const val retrofitVersion = "2.12.0"
+  const val room = "2.8.5"
   const val junit = "4.13.2"
   const val coreTesting = "2.2.0"
   const val androidXTest = "1.6.1"
   const val androidTestTruth = "1.6.0"
   const val androidXTestRunner = "1.6.2"
   const val androidXTestJunit = "1.2.1"
-  const val coroutineTest = "1.8.1"
-  const val mockito = "4.0.0"
-  const val mockitoKotlin = "4.0.0"
-  const val daggerVersion = "2.57.2"
+  const val coroutineTest = "1.11.0"
+  const val mockito = "5.24.0"
+  const val mockitoKotlin = "6.4.0"
+  const val daggerVersion = "2.60.1"
   const val eventBus = "3.3.1"
-  const val moshi = "1.14.0"
-  const val loggingInterceptor = "5.0.0-alpha.2"
+  const val moshi = "1.15.2"
+  const val loggingInterceptor = "4.12.0"
   const val biometric = "1.1.0"
-  const val zip4j = "2.11.5"
+  const val zip4j = "2.11.6"
 }
 
 dependencies {
@@ -200,8 +200,6 @@ dependencies {
 
   // Mockito for mocking dependencies
   testImplementation("org.mockito:mockito-core:${Versions.mockito}")
-  testImplementation("org.mockito:mockito-inline:${Versions.mockito}")
-  testImplementation("org.mockito:mockito-android:${Versions.mockito}")
   testImplementation("org.mockito.kotlin:mockito-kotlin:${Versions.mockitoKotlin}")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.coroutineTest}")
 
