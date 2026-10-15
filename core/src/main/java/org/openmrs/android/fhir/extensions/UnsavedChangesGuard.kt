@@ -31,40 +31,24 @@ package org.openmrs.android.fhir.extensions
 import androidx.activity.addCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.lifecycleScope
-import com.google.android.fhir.datacapture.QuestionnaireFragment
-import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.util.answerSignature
+import org.openmrs.android.fhir.ui.components.TapObservingConstraintLayout
 
 /**
- * Asks for confirmation before a questionnaire screen is left with unsaved changes.
+ * Asks for confirmation before a form screen is left after the user has interacted with it.
  *
- * The answers are snapshotted when the questionnaire first resumes; the user is only asked when the
- * current answers differ from that snapshot, so opening a form and backing out never prompts. If no
- * snapshot could be taken the guard stays out of the way.
+ * "Interacted" means a tap inside the screen, so opening a form and backing out never prompts.
+ *
+ * Deliberately does not read the questionnaire response: asking the form library for its response
+ * early changes its internal state (it dropped conditional items and later answers such as gender),
+ * so the only safe moment to read it is when the user submits.
  */
-class UnsavedChangesGuard(
-  private val fragment: Fragment,
-  private val questionnaireTag: String,
-) {
-  private var baseline: String? = null
+class UnsavedChangesGuard(private val fragment: Fragment) {
+  private var interacted = false
 
   /** Call from `onViewCreated`. Also intercepts the system back button. */
-  fun attach() {
-    fragment.childFragmentManager.registerFragmentLifecycleCallbacks(
-      object : FragmentManager.FragmentLifecycleCallbacks() {
-        override fun onFragmentResumed(fm: FragmentManager, f: Fragment) {
-          if (f is QuestionnaireFragment && f.tag == questionnaireTag && baseline == null) {
-            fragment.viewLifecycleOwner.lifecycleScope.launch {
-              baseline = f.getQuestionnaireResponse().answerSignature()
-            }
-          }
-        }
-      },
-      false,
-    )
+  fun attach(container: TapObservingConstraintLayout) {
+    container.onTap = { interacted = true }
     val dispatcher = fragment.requireActivity().onBackPressedDispatcher
     dispatcher.addCallback(fragment.viewLifecycleOwner) {
       confirmLeave {
@@ -74,26 +58,17 @@ class UnsavedChangesGuard(
     }
   }
 
-  /** Runs [onLeave] immediately when nothing changed, otherwise after the user confirms. */
+  /** Runs [onLeave] immediately when untouched, otherwise after the user confirms. */
   fun confirmLeave(onLeave: () -> Unit) {
-    fragment.viewLifecycleOwner.lifecycleScope.launch {
-      val questionnaire =
-        fragment.childFragmentManager.findFragmentByTag(questionnaireTag) as? QuestionnaireFragment
-      val snapshot = baseline
-      val changed =
-        questionnaire != null &&
-          snapshot != null &&
-          questionnaire.getQuestionnaireResponse().answerSignature() != snapshot
-      if (!changed) {
-        onLeave()
-        return@launch
-      }
-      AlertDialog.Builder(fragment.requireContext())
-        .setTitle(R.string.discard_changes_title)
-        .setMessage(R.string.discard_changes_message)
-        .setPositiveButton(R.string.discard_changes_confirm) { _, _ -> onLeave() }
-        .setNegativeButton(R.string.discard_changes_keep_editing, null)
-        .show()
+    if (!interacted) {
+      onLeave()
+      return
     }
+    AlertDialog.Builder(fragment.requireContext())
+      .setTitle(R.string.discard_changes_title)
+      .setMessage(R.string.discard_changes_message)
+      .setPositiveButton(R.string.discard_changes_confirm) { _, _ -> onLeave() }
+      .setNegativeButton(R.string.discard_changes_keep_editing, null)
+      .show()
   }
 }

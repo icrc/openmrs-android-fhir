@@ -69,7 +69,7 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
   private val binding
     get() = _binding!!
 
-  private val unsavedChangesGuard by lazy { UnsavedChangesGuard(this, QUESTIONNAIRE_FRAGMENT_TAG) }
+  private val unsavedChangesGuard by lazy { UnsavedChangesGuard(this) }
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -117,7 +117,7 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
     observeQuestionnaire()
     observePatientSaveAction()
     mainActivityViewModel.setDrawerEnabled(false)
-    unsavedChangesGuard.attach()
+    unsavedChangesGuard.attach(binding.root)
 
     /** Use the provided cancel|submit buttons from the sdc library */
     childFragmentManager.setFragmentResultListener(
