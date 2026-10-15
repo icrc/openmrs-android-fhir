@@ -36,32 +36,35 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Type
 
 /**
- * A stable, order-preserving summary of every answer in the response, used to tell whether a user
- * changed a form. Two responses with the same answers produce the same signature regardless of
- * generated ids or metadata.
+ * A stable, order-preserving summary of the *answered* questions in the response, used to tell
+ * whether a user changed a form.
+ *
+ * Unanswered items are ignored on purpose: the questionnaire engine adds and drops empty items as
+ * it re-renders, so they would make an untouched form look modified. Two responses with the same
+ * answers produce the same signature regardless of generated ids or metadata, and clearing an
+ * answer returns the signature to its original value.
  */
-fun QuestionnaireResponse.answerSignature(): String = buildString { appendItems(item) }
+fun QuestionnaireResponse.answerSignature(): String = buildString { appendAnswers(item) }
 
-private fun StringBuilder.appendItems(
+private fun StringBuilder.appendAnswers(
   items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>,
 ) {
   for (item in items) {
-    append(item.linkId).append('=')
     for (answer in item.answer) {
-      append(answer.value.signature()).append('|')
-      appendItems(answer.item)
+      val value = answer.value.signature()
+      if (value.isNotEmpty()) append(item.linkId).append('=').append(value).append(';')
+      appendAnswers(answer.item)
     }
-    appendItems(item.item)
-    append(';')
+    appendAnswers(item.item)
   }
 }
 
 private fun Type?.signature(): String =
   when (this) {
     null -> ""
-    is Coding -> "$system|$code"
-    is Quantity -> "$value $unit"
+    is Coding -> if (code.isNullOrEmpty()) "" else "$system|$code"
+    is Quantity -> if (value == null) "" else "$value $unit"
     is Reference -> reference.orEmpty()
     is Attachment -> url.orEmpty() + title.orEmpty()
-    else -> primitiveValue() ?: ""
+    else -> primitiveValue().orEmpty()
   }

@@ -93,4 +93,31 @@ class QuestionnaireResponseSignatureTest {
       genderResponse("male").answerSignature(),
     )
   }
+
+  @Test
+  fun unansweredItems_doNotAffectTheSignature() {
+    val answered = response("given" to "Jane")
+    val withEmptyItems =
+      response("given" to "Jane").apply {
+        addItem().linkId = "family"
+        addItem().apply {
+          linkId = "group"
+          addItem().linkId = "city"
+        }
+      }
+    assertEquals(answered.answerSignature(), withEmptyItems.answerSignature())
+  }
+
+  @Test
+  fun clearingAnAnswer_returnsToTheOriginalSignature() {
+    val untouched = QuestionnaireResponse().apply { addItem().linkId = "given" }
+    val typedThenCleared =
+      QuestionnaireResponse().apply {
+        addItem().apply {
+          linkId = "given"
+          addAnswer().value = StringType("")
+        }
+      }
+    assertEquals(untouched.answerSignature(), typedThenCleared.answerSignature())
+  }
 }
