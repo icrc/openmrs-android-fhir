@@ -47,6 +47,8 @@ import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
+import org.openmrs.android.fhir.extensions.onQuestionnaireResult
 import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
@@ -115,18 +117,10 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
     mainActivityViewModel.setDrawerEnabled(false)
 
     /** Use the provided cancel|submit buttons from the sdc library */
-    childFragmentManager.setFragmentResultListener(
-      QuestionnaireFragment.SUBMIT_REQUEST_KEY,
-      viewLifecycleOwner,
-    ) { _, _ ->
-      onSubmitAction()
-    }
-    childFragmentManager.setFragmentResultListener(
-      QuestionnaireFragment.CANCEL_REQUEST_KEY,
-      viewLifecycleOwner,
-    ) { _, _ ->
-      NavHostFragment.findNavController(this@EditEncounterFragment).navigateUp()
-    }
+    onQuestionnaireResult(
+      onSubmit = ::onSubmitAction,
+      onCancel = { NavHostFragment.findNavController(this@EditEncounterFragment).navigateUp() },
+    )
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -147,15 +141,7 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
         childFragmentManager.commit {
           add(
             R.id.form_entry_container,
-            QuestionnaireFragment.builder()
-              .setQuestionnaire(questionnaireJson)
-              .setQuestionnaireResponse(pair.second)
-              .showOptionalText(true)
-              .showRequiredText(false)
-              .showReviewPageBeforeSubmit(
-                requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
-              )
-              .build(),
+            newQuestionnaireFragment(questionnaireJson, responseJson = pair.second),
             QUESTIONNAIRE_FRAGMENT_TAG,
           )
         }

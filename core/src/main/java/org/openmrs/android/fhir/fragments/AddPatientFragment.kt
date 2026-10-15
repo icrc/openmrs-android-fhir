@@ -53,6 +53,8 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.AddPatientFragmentBinding
 import org.openmrs.android.fhir.extensions.UnsavedChangesGuard
+import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
+import org.openmrs.android.fhir.extensions.onQuestionnaireResult
 import org.openmrs.android.fhir.viewmodel.AddPatientViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
@@ -120,18 +122,12 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
     unsavedChangesGuard.attach(binding.root)
 
     /** Use the provided cancel|submit buttons from the sdc library */
-    childFragmentManager.setFragmentResultListener(
-      QuestionnaireFragment.SUBMIT_REQUEST_KEY,
-      viewLifecycleOwner,
-    ) { _, _ ->
-      onSubmitAction()
-    }
-    childFragmentManager.setFragmentResultListener(
-      QuestionnaireFragment.CANCEL_REQUEST_KEY,
-      viewLifecycleOwner,
-    ) { _, _ ->
-      unsavedChangesGuard.confirmLeave { NavHostFragment.findNavController(this).navigateUp() }
-    }
+    onQuestionnaireResult(
+      onSubmit = ::onSubmitAction,
+      onCancel = {
+        unsavedChangesGuard.confirmLeave { NavHostFragment.findNavController(this).navigateUp() }
+      },
+    )
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -155,16 +151,11 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
     childFragmentManager.commit {
       add(
         R.id.add_patient_container,
-        QuestionnaireFragment.builder()
-          .setQuestionnaire(questionnaire)
-          .showReviewPageBeforeSubmit(
-            requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
-          )
-          .setShowCancelButton(true)
-          .setShowSubmitButton(true)
-          .showOptionalText(true)
-          .showRequiredText(false)
-          .build(),
+        newQuestionnaireFragment(
+          questionnaire,
+          showCancelButton = true,
+          showSubmitButton = true,
+        ),
         QUESTIONNAIRE_FRAGMENT_TAG,
       )
     }

@@ -61,6 +61,7 @@ import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.databinding.GroupFormentryFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.generateUuid
+import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
 import org.openmrs.android.fhir.extensions.showSnackBar
 import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
@@ -224,20 +225,13 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   private fun addScreenerQuestionnaireFragment(questionnaireJson: String) {
-    val fragmentBuilder =
-      QuestionnaireFragment.builder()
-        .showReviewPageBeforeSubmit(
-          requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
-        )
-        .setSubmitButtonText(getString(R.string.submit))
-        .setShowSubmitButton(true)
-        .showOptionalText(true)
-        .showRequiredText(false)
-        .setQuestionnaire(questionnaireJson)
-
-    viewModel.screenerResponseJson?.let { fragmentBuilder.setQuestionnaireResponse(it) }
-
-    val fragment = fragmentBuilder.build()
+    val fragment =
+      newQuestionnaireFragment(
+        questionnaireJson,
+        responseJson = viewModel.screenerResponseJson,
+        showSubmitButton = true,
+        submitButtonText = getString(R.string.submit),
+      )
     childFragmentManager.commit {
       replace(R.id.form_entry_container, fragment, SCREENER_FRAGMENT_TAG)
     }
@@ -255,22 +249,14 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       return
     }
 
-    val questionnaireFragmentBuilder =
-      QuestionnaireFragment.builder()
-        .showReviewPageBeforeSubmit(
-          requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
-        )
-        .setSubmitButtonText(getString(R.string.submit))
-        .setShowSubmitButton(true)
-        .showOptionalText(true)
-        .showRequiredText(false)
-        .setQuestionnaire(questionnaireJson)
-
     // Restore previous response if exists
-    viewModel.patientResponses[patientId]?.let { savedResponse ->
-      questionnaireFragmentBuilder.setQuestionnaireResponse(savedResponse)
-    }
-    val newFragment = questionnaireFragmentBuilder.build()
+    val newFragment =
+      newQuestionnaireFragment(
+        questionnaireJson,
+        responseJson = viewModel.patientResponses[patientId],
+        showSubmitButton = true,
+        submitButtonText = getString(R.string.submit),
+      )
     childFragmentManager.commit {
       replace(
         R.id.form_entry_container,

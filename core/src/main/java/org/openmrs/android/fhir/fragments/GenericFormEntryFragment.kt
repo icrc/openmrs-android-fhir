@@ -52,6 +52,8 @@ import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.databinding.GenericFormentryFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
+import org.openmrs.android.fhir.extensions.onQuestionnaireResult
 import org.openmrs.android.fhir.extensions.showSnackBar
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
 
@@ -90,12 +92,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
     }
     observeLoading()
     observeQuestionnaire()
-    childFragmentManager.setFragmentResultListener(
-      QuestionnaireFragment.SUBMIT_REQUEST_KEY,
-      viewLifecycleOwner,
-    ) { _, _ ->
-      onSubmitAction()
-    }
+    onQuestionnaireResult(onSubmit = ::onSubmitAction)
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -125,14 +122,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
       } else {
         add(
           R.id.form_entry_container,
-          QuestionnaireFragment.builder()
-            .showReviewPageBeforeSubmit(
-              requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
-            )
-            .showOptionalText(true)
-            .showRequiredText(false)
-            .setQuestionnaire(questionnaireJson)
-            .build(),
+          newQuestionnaireFragment(questionnaireJson),
           QUESTIONNAIRE_FRAGMENT_TAG,
         )
       }
