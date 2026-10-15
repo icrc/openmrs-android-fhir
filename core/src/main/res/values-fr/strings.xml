@@ -661,4 +661,5 @@
     <string name="questionnaires_up_to_date">Les questionnaires sont à jour.</string>
     <string name="questionnaires_fetch_failed">Impossible de récupérer les questionnaires. Vérifiez la connexion et réessayez.</string>
     <string name="questionnaires_added">Nouveaux questionnaires ajoutés : %d</string>
+    <string name="questionnaire_required_answers_missing">Répondez aux questions obligatoires de cette page pour continuer. Elles sont marquées en rouge.</string>
 </resources>

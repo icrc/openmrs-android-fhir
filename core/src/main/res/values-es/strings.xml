@@ -633,4 +633,5 @@
     <string name="questionnaires_up_to_date">Los cuestionarios están al día.</string>
     <string name="questionnaires_fetch_failed">No se pudieron obtener los cuestionarios. Compruebe la conexión e inténtelo de nuevo.</string>
     <string name="questionnaires_added">Cuestionarios nuevos añadidos: %d</string>
+    <string name="questionnaire_required_answers_missing">Responda las preguntas obligatorias de esta página para continuar. Están marcadas en rojo.</string>
 </resources>

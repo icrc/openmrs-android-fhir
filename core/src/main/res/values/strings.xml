@@ -594,4 +594,5 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="questionnaires_up_to_date">Questionnaires are up to date.</string>
     <string name="questionnaires_fetch_failed">Could not fetch questionnaires. Check the connection and try again.</string>
     <string name="questionnaires_added">New questionnaires added: %d</string>
+    <string name="questionnaire_required_answers_missing">Answer the required questions on this page to continue. They are marked in red.</string>
 </resources>

@@ -652,4 +652,5 @@
     <string name="questionnaires_up_to_date">Анкеты актуальны.</string>
     <string name="questionnaires_fetch_failed">Не удалось загрузить анкеты. Проверьте соединение и повторите попытку.</string>
     <string name="questionnaires_added">Добавлено новых анкет: %d</string>
+    <string name="questionnaire_required_answers_missing">Ответьте на обязательные вопросы на этой странице, чтобы продолжить. Они отмечены красным.</string>
 </resources>
