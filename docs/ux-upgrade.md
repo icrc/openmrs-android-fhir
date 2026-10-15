@@ -25,7 +25,7 @@ Findings that shape this design (all verified; see audit §4 and the CHANGELOG):
 |---|---|---|---|
 | 1 | **At least one patient list is required** before continuing; the sync never downloads patients unscoped | Observed on the real server: with no list the app started pulling all 128k patients (≈1 day) | `SelectPatientListFragment`, `TimestampBasedDownloadWorkManagerImpl.applyPatientListScope` |
 | 2 | **Search by identifier and phone**, not only name | What clinicians have on a card/referral slip; works offline | `PatientListViewModel` |
-| 3 | **Unsaved-changes guard** on patient registration / edit | A field worker pressing back after typing 5 minutes loses everything | `AddPatientFragment`, `EditPatientFragment`, `QuestionnaireResponse.hasAnswers()` |
+| 3 | **Unsaved-changes guard** on patient registration / edit (tap-based; never reads the questionnaire response) | A field worker pressing back after typing 5 minutes loses everything | `AddPatientFragment`, `EditPatientFragment`, `UnsavedChangesGuard`, `TapObservingConstraintLayout` |
 | 4 | **Consistent inset/padding and fragment hosting** | Less duplicated layout code, one place to fix edge-to-edge | `InsetsExt`, `ComposeExt` |
 
 ## Slice 1 verification (on the real server, emulator, basic auth)
@@ -34,10 +34,10 @@ Findings that shape this design (all verified; see audit §4 and the CHANGELOG):
 |---|---|
 | Patient list required / no unscoped download | 0 patients downloaded with no list (before: 560 in 7 min) |
 | Identifier search | exact identifier finds the patient; no match shows the empty state |
-| Unsaved-changes guard | untouched → no prompt; edited → prompt. The first version prompted on untouched forms, found on device and fixed |
+| Unsaved-changes guard | untouched → no prompt; tapped/typed → prompt. **The first version broke registration** (it read the questionnaire response early; gender was dropped and uploads were rejected). Found only by the offline-create → upload test, fixed in `2673803` |
 | Instrumentation tests | all pass except one class that already failed at baseline |
 
-Also found and fixed while testing: login was impossible with stored credentials because of a duplicate `Authorization` header (audit A14).
+Also found and fixed while testing: login was impossible with stored credentials because of a duplicate `Authorization` header (audit A14), and offline-create → upload now works end to end (patient uploaded, server-assigned identifier).
 
 ## Slice 2 — proposed, needs your decision
 

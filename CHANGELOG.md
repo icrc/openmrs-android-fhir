@@ -31,7 +31,8 @@ Recorded on `main` @ `cdd4117`, Windows, JDK 17 toolchain, no emulator.
 - **A13 fixed** (`f305227`): at least one patient list must be selected; the sync never downloads patients unscoped. Verified on device.
 - **A14 fixed** (`fab0b4a`): login no longer sends two `Authorization` headers when credentials are stored (400 → 200). Verified on device.
 - **Search by identifier or phone** (`3750098`, hint text `85ec694`): verified on device.
-- **Unsaved-changes guard** on registration/edit (`9e474a4`, corrected in `82f9698`): verified on device.
+- **Unsaved-changes guard** on registration/edit: first version (`9e474a4`, `82f9698`) **broke registration** (see below); rewritten in `2673803` to be tap-based and to never read the questionnaire response. Verified on device.
+- **Regression found and fixed (`2673803`):** the first guard read the questionnaire response early, which made the form library drop conditional items and later answers; patients were saved without gender and rejected by the server (422). Caught by the offline-create → upload test, **not** by the unit or instrumentation suites. Offline create → upload now verified end to end (patient uploaded, identifier assigned).
 - **UI reuse** (`3927482`): shared inset helper, `composeView {}` fragment hosting, Home card table. 51/51 instrumentation tests that pass at baseline still pass.
 - Tests: 18 → 40 unit tests (sync URL helpers, patient-list scoping, auth header, answer signature, unsynced scan characterization).
 
