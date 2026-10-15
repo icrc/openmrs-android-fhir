@@ -69,7 +69,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
@@ -441,29 +440,6 @@ class MainActivity : AppCompatActivity() {
     val connectivityState = viewModel.networkStatus.value
     when {
       !isTokenExpired() && connectivityState.isServerReachable() -> {
-        /*runBlocking {
-          val selectedLocationId =
-            applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
-          if (selectedLocationId != null) {
-            apiManager.setLocationSession(SessionLocation(selectedLocationId))
-            val isCurrentLocationValid =
-              viewModel.checkLocationIdAndPurgeUnassignedLocations(
-                applicationContext,
-                selectedLocationId,
-              )
-            if (!isCurrentLocationValid) {
-              applicationContext.dataStore.edit { preferences ->
-                preferences.remove(PreferenceKeys.LOCATION_ID)
-                preferences.remove(PreferenceKeys.LOCATION_NAME)
-              }
-              showSnackBar(
-                this@MainActivity,
-                getString(R.string.location_unassigned_select_location),
-              )
-              getNavController()?.navigate(R.id.locationFragment)
-            }
-          }
-        }*/
         checkNotificationPermission()
         val fetchIdentifiers = applicationContext.resources.getBoolean(R.bool.fetch_identifiers)
         viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers)
@@ -766,7 +742,7 @@ class MainActivity : AppCompatActivity() {
       .setMessage(getString(R.string.diagnostics_message))
       .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
         dialog.dismiss()
-        runBlocking { sendDiagnosticsEmail() }
+        lifecycleScope.launch { sendDiagnosticsEmail() }
       }
       .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
       .setCancelable(false)
@@ -795,20 +771,23 @@ class MainActivity : AppCompatActivity() {
     startActivity(Intent.createChooser(emailIntent, getString(R.string.send_email_chooser_title)))
   }
 
-  private suspend fun createDiagnosticZip(password: String): File {
-    val zipFile = File(applicationContext.cacheDir, "diagnostics.zip")
-    val zip = ZipFile(zipFile, password.toCharArray())
-    val params =
-      ZipParameters().apply {
-        isEncryptFiles = true
-        encryptionMethod = EncryptionMethod.AES
-        aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256
-      }
-    val logFile = getApplicationLogs(applicationContext, password)
-    listOfNotNull(logFile, getSyncInfoFile()).forEach { file -> zip.addFile(file, params) }
-    logFile?.delete()
-    return zipFile
-  }
+  private suspend fun createDiagnosticZip(password: String): File =
+    // Reading the logs and AES-encrypting the archive is disk/CPU heavy; keep it off the main
+    // thread.
+    withContext(Dispatchers.IO) {
+      val zipFile = File(applicationContext.cacheDir, "diagnostics.zip")
+      val zip = ZipFile(zipFile, password.toCharArray())
+      val params =
+        ZipParameters().apply {
+          isEncryptFiles = true
+          encryptionMethod = EncryptionMethod.AES
+          aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256
+        }
+      val logFile = getApplicationLogs(applicationContext, password)
+      listOfNotNull(logFile, getSyncInfoFile()).forEach { file -> zip.addFile(file, params) }
+      logFile?.delete()
+      zipFile
+    }
 
   private suspend fun getSyncInfoFile(): File? {
     return withContext(Dispatchers.IO) {
