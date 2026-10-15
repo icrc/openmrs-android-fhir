@@ -12,8 +12,12 @@ The app builds from public artifacts (Google Maven, Maven Central); **no GitHub 
    - Copy the file `local.properties.default` and rename it to `local.properties`.
    - Set `sdk.dir` to your Android SDK path (Android Studio does this for you).
 
-2. **Modify Additional Properties:**
-   - Modify other properties (e.g., URLs, OAuth2) **only if** you are using a custom OpenMRS or Keycloak setup.
+2. **Point the app at your server:**
+   - Set `openmrs_server_url` (for example `http://10.0.2.2:8080/openmrs` from the Android emulator). The FHIR, REST and connectivity-check URLs are derived from it.
+   - Set `auth_method` to `basic` or `openid` (see below).
+
+3. **Modify Additional Properties:**
+   - Modify other properties (e.g., explicit URLs, OAuth2) **only if** you are using a custom OpenMRS or Keycloak setup. A misspelled property name is reported as a warning during the build.
 
 ---
 

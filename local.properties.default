@@ -1,9 +1,14 @@
 # Mandatory
 sdk.dir=<path to Android SDK>
 
+# Quick start: this one setting is enough to point the app at your server.
+# The FHIR, REST and connectivity-check URLs below are derived from it.
+# From the Android emulator the host machine is 10.0.2.2.
+#openmrs_server_url=http://10.0.2.2:8080/openmrs
+
 
 # Optional values. Default values are already defined for local development.
-# URLs default values for development setup:
+# Explicit URLs override the ones derived from openmrs_server_url:
 #fhir_base_url=http://127.0.0.1:8080/openmrs/ws/fhir2/R4/
 #fhir_sync_urls=Location?_sort=_lastUpdated&_summary=data,Patient?_sort=_lastUpdated,Encounter?_sort=_lastUpdated,Observation?_sort=_lastUpdated
 #openmrs_rest_url=http://127.0.0.1:8080/openmrs/ws/rest/v1/
