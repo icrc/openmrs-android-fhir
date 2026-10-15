@@ -27,6 +27,17 @@ Recorded on `main` @ `cdd4117`, Windows, JDK 17 toolchain, no emulator.
 ### Removed (dead code)
 - 11 unreferenced RecyclerView adapter/view-holder files and the `activity_login`, `activity_basic_login`, `activity_splash` layouts. Verified by compiling main + unit-test + androidTest sources and assembling the debug app. Commit `8795853`.
 
+### Features and fixes added after the patient-list decision
+- **A13 fixed** (`f305227`): at least one patient list must be selected; the sync never downloads patients unscoped. Verified on device.
+- **A14 fixed** (`fab0b4a`): login no longer sends two `Authorization` headers when credentials are stored (400 → 200). Verified on device.
+- **Search by identifier or phone** (`3750098`, hint text `85ec694`): verified on device.
+- **Unsaved-changes guard** on registration/edit (`9e474a4`, corrected in `82f9698`): verified on device.
+- **UI reuse** (`3927482`): shared inset helper, `composeView {}` fragment hosting, Home card table. 51/51 instrumentation tests that pass at baseline still pass.
+- Tests: 18 → 40 unit tests (sync URL helpers, patient-list scoping, auth header, answer signature, unsynced scan characterization).
+
+### Tried and rejected (measured)
+- Running the unsynced-resources local-change lookups concurrently: 37–46 s vs ≈31 s sequential. Reverted. Timing instrumentation showed the cost is `search<Observation>` (26 s), not the lookups (3.6 s).
+
 ### Audit corrections
 - A6 (`+` in `_lastUpdated`) closed: server accepts it (verified).
 - C1 not batchable via the public `FhirEngine` API; C2 negligible on this backend (no `RiskAssessment` resource).
@@ -43,4 +54,6 @@ Emulator `emulator-5554` (Android 13, x86_64), debug build, test backend.
 | Release APK (x86_64, unminified) | 72.8 MB |
 | First sync (Location + Questionnaire), then bounded patient sync (10 patients) | ≈ 2.5 min total; DB: 10 Patient, 197 Encounter, 1,890 Observation, 26 Questionnaire, 11 Location |
 | Unscoped patient sync (no list selected) | 560 Patient + 5,016 Encounter in ~7 min (stopped) |
-| `core` unit tests | 18 pass (16 baseline + 2 new) |
+| `core` unit tests | 16 baseline → 40 now, all pass |
+| Instrumentation tests (52) | baseline: 35 pass, 17 fail (all from `MainNavigationContainerTest` onward, deterministic). Excluding that one class, 51/51 pass at baseline and 51/51 pass after the changes |
+| Unsynced-resources screen (1,890 obs) | ≈30 s (26 s in `search<Observation>`) |
