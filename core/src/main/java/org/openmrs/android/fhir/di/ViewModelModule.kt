@@ -40,6 +40,7 @@ import org.openmrs.android.fhir.viewmodel.IdentifierSelectionViewModel
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 import org.openmrs.android.fhir.viewmodel.LoginActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
+import org.openmrs.android.fhir.viewmodel.QuestionnaireFetchViewModel
 import org.openmrs.android.fhir.viewmodel.SelectPatientListViewModel
 import org.openmrs.android.fhir.viewmodel.SettingsViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
@@ -106,6 +107,11 @@ abstract class ViewModelModule {
   @IntoMap
   @ViewModelKey(BasicLoginActivityViewModel::class)
   abstract fun bindBasicLoginActivityViewModel(viewmodel: BasicLoginActivityViewModel): ViewModel
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(QuestionnaireFetchViewModel::class)
+  abstract fun bindQuestionnaireFetchViewModel(viewmodel: QuestionnaireFetchViewModel): ViewModel
 
   @Binds
   @IntoMap

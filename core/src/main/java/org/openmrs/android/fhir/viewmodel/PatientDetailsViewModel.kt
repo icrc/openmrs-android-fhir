@@ -56,8 +56,7 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.database.model.FormData
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
-import org.openmrs.android.fhir.extensions.getJsonFileNames
-import org.openmrs.android.fhir.extensions.readFileFromAssets
+import org.openmrs.android.fhir.extensions.readAssetQuestionnaires
 import org.openmrs.android.fhir.extensions.toLocalString
 
 /**
@@ -272,13 +271,12 @@ constructor(
 
   private suspend fun loadQuestionnaires(): List<Questionnaire> {
     val questionnaires = fhirEngine.search<Questionnaire> {}.map { it.resource }.toMutableList()
-    val assetQuestionnaireFileNames = applicationContext.getJsonFileNames()
-    assetQuestionnaireFileNames.forEach { fileName ->
-      val questionnaireString = applicationContext.readFileFromAssets(fileName)
-      if (questionnaireString.isNotEmpty()) {
-        questionnaires.add(parser.parseResource(Questionnaire::class.java, questionnaireString))
-      }
-    }
+    questionnaires.addAll(
+      applicationContext.readAssetQuestionnaires(
+        parser,
+        questionnaires.map { it.idElement.idPart }.toSet(),
+      ),
+    )
     return questionnaires
   }
 

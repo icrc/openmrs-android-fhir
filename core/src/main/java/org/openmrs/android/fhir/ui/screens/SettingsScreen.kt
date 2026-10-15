@@ -79,6 +79,7 @@ object SettingsTestTags {
   const val TokenDelayField = "SettingsTokenDelayField"
   const val PeriodicDelayField = "SettingsPeriodicDelayField"
   const val InitialSyncButton = "SettingsInitialSyncButton"
+  const val FetchQuestionnairesButton = "SettingsFetchQuestionnairesButton"
   const val CancelButton = "SettingsCancelButton"
   const val SaveButton = "SettingsSaveButton"
 }
@@ -96,6 +97,8 @@ fun SettingsScreen(
   onCancelClicked: () -> Unit,
   onSaveClicked: () -> Unit,
   topPadding: androidx.compose.ui.unit.Dp = 0.dp,
+  isFetchingQuestionnaires: Boolean = false,
+  onFetchQuestionnairesClicked: (() -> Unit)? = null,
   modifier: Modifier = Modifier,
 ) {
   val startMargin = 12.dp
@@ -177,6 +180,37 @@ fun SettingsScreen(
         modifier = Modifier.testTag(SettingsTestTags.InitialSyncButton),
       ) {
         Text(text = stringResource(R.string.initial_sync))
+      }
+
+      if (onFetchQuestionnairesClicked != null) {
+        Spacer(modifier = Modifier.height(sectionSpacing))
+        Text(
+          text = stringResource(R.string.fetch_questionnaires_description),
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+          onClick = onFetchQuestionnairesClicked,
+          enabled = !isFetchingQuestionnaires,
+          colors =
+            ButtonDefaults.buttonColors(
+              containerColor = greyButtonColor,
+              contentColor = greyButtonContent,
+            ),
+          modifier = Modifier.testTag(SettingsTestTags.FetchQuestionnairesButton),
+        ) {
+          Text(
+            text =
+              stringResource(
+                if (isFetchingQuestionnaires) {
+                  R.string.fetching_questionnaires
+                } else {
+                  R.string.fetch_questionnaires
+                },
+              ),
+          )
+        }
       }
 
       Spacer(modifier = Modifier.weight(1f))

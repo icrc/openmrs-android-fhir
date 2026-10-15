@@ -646,4 +646,10 @@
     <string name="nav_group_session">Группа</string>
     <string name="nav_sync">Синхр.</string>
     <string name="clear_search">Очистить поиск</string>
+    <string name="fetch_questionnaires">Загрузить другие анкеты</string>
+    <string name="fetching_questionnaires">Загрузка анкет…</string>
+    <string name="fetch_questionnaires_description">Проверяет сервер на наличие анкет, которых ещё нет в приложении, и добавляет их.</string>
+    <string name="questionnaires_up_to_date">Анкеты актуальны.</string>
+    <string name="questionnaires_fetch_failed">Не удалось загрузить анкеты. Проверьте соединение и повторите попытку.</string>
+    <string name="questionnaires_added">Добавлено новых анкет: %d</string>
 </resources>

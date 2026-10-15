@@ -655,4 +655,10 @@
     <string name="nav_group_session">Groupe</string>
     <string name="nav_sync">Synchro</string>
     <string name="clear_search">Effacer la recherche</string>
+    <string name="fetch_questionnaires">Récupérer d\'autres questionnaires</string>
+    <string name="fetching_questionnaires">Récupération des questionnaires…</string>
+    <string name="fetch_questionnaires_description">Recherche sur le serveur les questionnaires absents de l\'application et les ajoute.</string>
+    <string name="questionnaires_up_to_date">Les questionnaires sont à jour.</string>
+    <string name="questionnaires_fetch_failed">Impossible de récupérer les questionnaires. Vérifiez la connexion et réessayez.</string>
+    <string name="questionnaires_added">Nouveaux questionnaires ajoutés : %d</string>
 </resources>

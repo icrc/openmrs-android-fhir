@@ -29,11 +29,13 @@
 package org.openmrs.android.fhir.data.remote
 
 import android.content.Context
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.hl7.fhir.r4.model.Location
+import org.hl7.fhir.r4.model.Questionnaire
 import org.openmrs.android.fhir.LoginRepository
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.remote.interceptor.AddCookiesInterceptor
@@ -46,6 +48,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 class ApiManager @Inject constructor(context: Context) : Api {
+  private val appContext = context.applicationContext
+
   private val accessToken = LoginRepository.getInstance(context).getAccessToken()
   private val basicAuthEncodedString =
     LoginRepository.getInstance(context).getBasicAuthEncodedString()
@@ -121,6 +125,27 @@ class ApiManager @Inject constructor(context: Context) : Api {
     return executeApiHelper { apiService.validateSession(authorization) }
   }
 
+  /**
+   * Every Questionnaire the server publishes, following the search bundle's `next` links. Read
+   * only: nothing is written to the server.
+   */
+  suspend fun fetchQuestionnaires(): List<Questionnaire> {
+    val questionnaires = mutableListOf<Questionnaire>()
+    var url: String? =
+      appContext.resources.getString(R.string.fhir_base_url) + "Questionnaire?_count=100"
+    var pages = 0
+    while (url != null && pages++ < MAX_QUESTIONNAIRE_PAGES) {
+      val response = fhirApiService.getQuestionnaires(url)
+      if (!response.isSuccessful) {
+        throw IOException("Server answered ${response.code()} for $url")
+      }
+      val bundle = response.body() ?: break
+      bundle.entry.mapNotNullTo(questionnaires) { it.resource as? Questionnaire }
+      url = bundle.link.firstOrNull { it.relation == "next" }?.url
+    }
+    return questionnaires
+  }
+
   suspend fun checkServerConnection(url: String): Boolean {
     return try {
       val response = apiService.checkServerStatus(url)
@@ -149,3 +174,5 @@ internal fun resolveAuthorizationHeader(
     accessToken.isNotEmpty() -> "Bearer $accessToken"
     else -> null
   }
+
+private const val MAX_QUESTIONNAIRE_PAGES = 20

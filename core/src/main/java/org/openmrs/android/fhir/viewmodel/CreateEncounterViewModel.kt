@@ -47,9 +47,8 @@ import org.openmrs.android.fhir.data.database.model.FormData
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.FormSection
 import org.openmrs.android.fhir.data.database.model.FormSectionItem
-import org.openmrs.android.fhir.extensions.getJsonFileNames
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
-import org.openmrs.android.fhir.extensions.readFileFromAssets
+import org.openmrs.android.fhir.extensions.readAssetQuestionnaires
 
 class CreateEncounterViewModel
 @Inject
@@ -84,14 +83,13 @@ constructor(
         val deviceLanguageOverrides = translationOverrides[Locale.getDefault().language].orEmpty()
         val deviceLanguage = Locale.getDefault().language.lowercase(Locale.ROOT)
         val questionnaires = fhirEngine.search<Questionnaire> {}.map { it.resource }.toMutableList()
-        // This code can be refactored once there's possiblity to add assets file to fhirEngine.
-        val assetQuestionnaireFileNames = applicationContext.getJsonFileNames()
-        assetQuestionnaireFileNames.forEach {
-          val questionnaireString = applicationContext.readFileFromAssets(it)
-          if (questionnaireString.isNotEmpty()) {
-            questionnaires.add(parser.parseResource(Questionnaire::class.java, questionnaireString))
-          }
-        }
+        // Forms shipped with the app are listed too; the ones the engine already has are skipped.
+        questionnaires.addAll(
+          applicationContext.readAssetQuestionnaires(
+            parser,
+            questionnaires.map { it.idElement.idPart }.toSet(),
+          ),
+        )
 
         val encounterTypeCodeToQuestionnaireIdMap = mutableMapOf<String, String>()
         questionnaires.forEach { questionnaire ->

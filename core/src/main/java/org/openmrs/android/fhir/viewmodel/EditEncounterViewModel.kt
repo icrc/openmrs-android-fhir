@@ -68,10 +68,9 @@ import org.openmrs.android.fhir.extensions.convertQuantityObsToIntegerObs
 import org.openmrs.android.fhir.extensions.ensurePageGroupsHaveTrailingSpacer
 import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
-import org.openmrs.android.fhir.extensions.getJsonFileNames
 import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
-import org.openmrs.android.fhir.extensions.readFileFromAssets
+import org.openmrs.android.fhir.extensions.readAssetQuestionnaires
 import org.openmrs.android.fhir.extensions.utcDateToLocalDate
 import org.openmrs.android.fhir.util.ExistingObservationIndex
 import org.openmrs.android.fhir.util.ObservationChildInfo
@@ -107,6 +106,22 @@ constructor(
 
   private var pendingResourceOperations: MutableList<suspend () -> Unit>? = null
 
+  /**
+   * The questionnaire shipped with the app for this encounter type (the engine is checked first by
+   * the callers).
+   */
+  private suspend fun findBundledQuestionnaire(encounterType: String): Questionnaire? {
+    val engineIds = fhirEngine.search<Questionnaire> {}.map { it.resource.idElement.idPart }.toSet()
+    return applicationContext.readAssetQuestionnaires(parser, engineIds).firstOrNull { candidate ->
+      candidate.code.any {
+        it.hasSystem() &&
+          it.system == "http://fhir.openmrs.org/code-system/encounter-type" &&
+          it.hasCode() &&
+          it.code == encounterType
+      }
+    }
+  }
+
   fun prepareEditEncounter(encounterId: String, encounterType: String) {
     viewModelScope.launch {
       val observations = getObservationsEncounterId(encounterId)
@@ -120,28 +135,7 @@ constructor(
             ?.resource
         if (questionnaire == null) {
           // Look into assets folder
-          val assetQuestionnaireFileNames = applicationContext.getJsonFileNames()
-          assetQuestionnaireFileNames.forEach {
-            val questionnaireString = applicationContext.readFileFromAssets(it)
-            if (questionnaireString.isNotEmpty()) {
-              val assetsQuestionnaire =
-                parser.parseResource(Questionnaire::class.java, questionnaireString)
-              if (assetsQuestionnaire.hasCode()) {
-                assetsQuestionnaire.code.forEach {
-                  if (
-                    it.hasSystem() and
-                      (it?.system.toString() ==
-                        "http://fhir.openmrs.org/code-system/encounter-type") and
-                      it.hasCode() and
-                      (it.code == encounterType)
-                  ) {
-                    questionnaire = assetsQuestionnaire
-                    return@forEach
-                  }
-                }
-              }
-            }
-          }
+          questionnaire = findBundledQuestionnaire(encounterType)
         }
 
         questionnaire?.ensurePageGroupsHaveTrailingSpacer()
@@ -207,28 +201,7 @@ constructor(
           ?.resource
       if (questionnaire == null) {
         // Look into assets folder
-        val assetQuestionnaireFileNames = applicationContext.getJsonFileNames()
-        assetQuestionnaireFileNames.forEach {
-          val questionnaireString = applicationContext.readFileFromAssets(it)
-          if (questionnaireString.isNotEmpty()) {
-            val assetsQuestionnaire =
-              parser.parseResource(Questionnaire::class.java, questionnaireString)
-            if (assetsQuestionnaire.hasCode()) {
-              assetsQuestionnaire.code.forEach {
-                if (
-                  it.hasSystem() and
-                    (it?.system.toString() ==
-                      "http://fhir.openmrs.org/code-system/encounter-type") and
-                    it.hasCode() and
-                    (it.code == encounterType)
-                ) {
-                  questionnaire = assetsQuestionnaire
-                  return@forEach
-                }
-              }
-            }
-          }
-        }
+        questionnaire = findBundledQuestionnaire(encounterType)
       }
 
       questionnaire?.ensurePageGroupsHaveTrailingSpacer()

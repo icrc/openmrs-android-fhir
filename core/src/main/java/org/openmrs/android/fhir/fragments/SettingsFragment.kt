@@ -35,6 +35,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
@@ -50,11 +51,13 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.data.QuestionnaireUpdater
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.screens.SettingsDefaults
 import org.openmrs.android.fhir.ui.screens.SettingsScreen
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
+import org.openmrs.android.fhir.viewmodel.QuestionnaireFetchViewModel
 import org.openmrs.android.fhir.viewmodel.SettingsEvent
 import org.openmrs.android.fhir.viewmodel.SettingsViewModel
 
@@ -63,6 +66,8 @@ class SettingsFragment : Fragment() {
   private val mainActivityViewModel by
     activityViewModels<MainActivityViewModel> { viewModelFactory }
   private val settingsViewModel by viewModels<SettingsViewModel> { viewModelFactory }
+  private val questionnaireFetchViewModel by
+    viewModels<QuestionnaireFetchViewModel> { viewModelFactory }
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -76,6 +81,8 @@ class SettingsFragment : Fragment() {
     composeView.setContent {
       val appBarHeight = rememberAppBarHeight()
       val uiState = settingsViewModel.uiState.collectAsStateWithLifecycle().value
+      val isFetchingQuestionnaires by
+        questionnaireFetchViewModel.isFetching.collectAsStateWithLifecycle()
       OpenMrsTheme {
         SettingsScreen(
           uiState = uiState,
@@ -89,6 +96,8 @@ class SettingsFragment : Fragment() {
           onCancelClicked = settingsViewModel::onCancelClicked,
           onSaveClicked = settingsViewModel::onSaveClicked,
           topPadding = appBarHeight,
+          isFetchingQuestionnaires = isFetchingQuestionnaires,
+          onFetchQuestionnairesClicked = questionnaireFetchViewModel::fetchQuestionnaires,
         )
       }
     }
@@ -117,9 +126,25 @@ class SettingsFragment : Fragment() {
   private fun observeSettingsEvents() {
     viewLifecycleOwner.lifecycleScope.launch {
       viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-        settingsViewModel.events.collect { event -> handleSettingsEvent(event) }
+        launch { settingsViewModel.events.collect { event -> handleSettingsEvent(event) } }
+        launch {
+          questionnaireFetchViewModel.outcomes.collect { outcome ->
+            showQuestionnaireOutcome(outcome)
+          }
+        }
       }
     }
+  }
+
+  private fun showQuestionnaireOutcome(outcome: QuestionnaireUpdater.Outcome) {
+    val message =
+      when (outcome) {
+        is QuestionnaireUpdater.Outcome.Added ->
+          getString(R.string.questionnaires_added, outcome.added)
+        is QuestionnaireUpdater.Outcome.UpToDate -> getString(R.string.questionnaires_up_to_date)
+        is QuestionnaireUpdater.Outcome.Failed -> getString(R.string.questionnaires_fetch_failed)
+      }
+    Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
   }
 
   private fun handleSettingsEvent(event: SettingsEvent) {

@@ -43,7 +43,9 @@ suspend fun FhirEngine.getQuestionnaireOrFromAssets(
     this.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire
   } catch (e: Exception) {
     try {
-      val questionnaireString = applicationContext.readFileFromAssets("$questionnaireId.json")
+      val questionnaireString =
+        applicationContext.readBundledQuestionnaire(questionnaireId)
+          ?: applicationContext.readFileFromAssets("$questionnaireId.json")
       parser.parseResource(Questionnaire::class.java, questionnaireString)
     } catch (e: Exception) {
       null
@@ -61,7 +63,8 @@ suspend fun FhirEngine.getQuestionnaireOrFromAssetsAsString(
     parser.encodeResourceToString(questionnaire)
   } catch (e: Exception) {
     try {
-      applicationContext.readFileFromAssets("$questionnaireId.json")
+      applicationContext.readBundledQuestionnaire(questionnaireId)
+        ?: applicationContext.readFileFromAssets("$questionnaireId.json")
     } catch (e: Exception) {
       ""
     }

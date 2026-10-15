@@ -588,4 +588,10 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="nav_group_session">Group</string>
     <string name="nav_sync">Sync</string>
     <string name="clear_search">Clear search</string>
+    <string name="fetch_questionnaires">Fetch more questionnaires</string>
+    <string name="fetching_questionnaires">Fetching questionnaires…</string>
+    <string name="fetch_questionnaires_description">Check the server for questionnaires that are not in the app yet and add them.</string>
+    <string name="questionnaires_up_to_date">Questionnaires are up to date.</string>
+    <string name="questionnaires_fetch_failed">Could not fetch questionnaires. Check the connection and try again.</string>
+    <string name="questionnaires_added">New questionnaires added: %d</string>
 </resources>
