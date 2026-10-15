@@ -35,7 +35,7 @@ Working tree already contained your uncommitted local config (server URL, `x86_6
 | A3 | Identifier embedding before sync: if `fetchIdentifierFromEndpoint` returns `null`, the identifier value is set to `null`, the `"unsynced"` marker is removed with `removeAt(0)` and the patient is saved. The patient no longer matches the `unsynced` search, so it is never retried and uploads with a null identifier. | `MainActivityViewModel.kt:198-243` (esp. 236, 239) | **High** | Med | Confirmed in code; needs characterization test first — **ASK** |
 | A4 | `navigateToLogin` uses `invokeOnCompletion`, which fires even if `clearAppData()` threw or was cancelled → partial wipe followed by navigation to login. | `MainActivity.kt:695` | Med | Low | Confirmed |
 | A5 | The per-resource `lastUpdated` timestamp is persisted inside `processResponse`, i.e. *before* the SDK has stored that page. If storing fails or the process dies in between, the next incremental sync starts after resources that were never saved. | `TimestampBasedDownloadWorkManagerImpl.kt:196-208` | Med–High | **High** (changes sync) | Verify (SDK ordering) — **ASK** |
-| A6 | Timestamp is formatted with offset (`XXX` → `+02:00`) and appended to the URL unencoded. A literal `+` in a query string is decoded as a space by most servers. Only positive-UTC-offset devices are affected (`Z` and `-05:00` are fine). | `TimestampBasedDownloadWorkManagerImpl.kt:251-256`, `affixLastUpdatedTimestamp` | Med | Low (`%2B` or format in UTC) | Verify against the real server with device TZ set to e.g. +02:00 — **ASK** |
+| A6 | Timestamp is formatted with offset (`XXX` → `+02:00`) and appended to the URL unencoded. A literal `+` in a query string is decoded as a space by most servers. Only positive-UTC-offset devices are affected (`Z` and `-05:00` are fine). | `TimestampBasedDownloadWorkManagerImpl.kt:251-256`, `affixLastUpdatedTimestamp` | Med | Low (`%2B` or format in UTC) | **Not reproducible on the test server (2026-10-15):** raw `+02:00`, `%2B02:00` and the UTC form all returned the same result for a boundary query (see §4). Downgraded to informational; no change planned. |
 | A7 | Resource type is derived by prefix: `resourceTypeList.find { url.startsWith(it) }` / `findAnyOf`. Enum order is alphabetical, so `QuestionnaireResponse`, `MedicationRequest`, `PractitionerRole`… resolve to `Questionnaire`, `Medication`, `Practitioner`. Effects: `distinctBy` silently drops one of two URLs; wrong timestamp looked up (full re-download or skipped updates). | `TimestampBasedDownloadWorkManagerImpl.kt:78-80, 128` | Med | Low | **Latent** (default URLs don't collide) |
 | A8 | `findAnyOf(...)!!` throws NPE (crashing the sync worker) on any URL not containing a known resource name. | `TimestampBasedDownloadWorkManagerImpl.kt:128` | Low | Low | Confirmed |
 | A9 | `SyncInfoDatabaseWriterWorker`: (a) `workerScope` is never cancelled and `shareIn(..., Eagerly)` keeps collecting after `doWork` returns → leak per sync; (b) `catch (e: Exception)` swallows `CancellationException` and logs nothing; (c) enqueued with `ExistingWorkPolicy.REPLACE`, so a second trigger can cancel a run mid-flight, leaving an `ONGOING` session row that later runs reuse; (d) uses `println` instead of Timber. | `SyncInfoDatabaseWriterWorker.kt:77, 99, 131-132, 295-315, 336` | Med | Low (a, b, d) / Med (c) | (a,b,d) Confirmed; (c) Verify |
@@ -134,8 +134,33 @@ What I would deliberately **not** touch: the questionnaire/form entry fragments 
 | 4 | **ASK first** (each is a behaviour/sync/auth/schema decision): A1, A2, A3 fix, A4, A5, A6, A11, B1–B5, C3 paging, C8 minification/signing. | Your approval per item |
 | 5 | **Features** from section F, one at a time, behind config flags. | Your approval per feature |
 
-## 4. What I have not verified
+## 4. Server verification log (test backend `192.168.1.20:8080`)
 
-- Nothing has been run against the backend at `192.168.1.20:8080` yet (login, full sync, offline create → upload). I'd do this at the end of step 1 to confirm the baseline behaviour before changing anything, and for A6/B4 specifically.
+Ground rules: the backend is for testing only. I do not change its configuration or software and use no admin/maintenance endpoints. Everything below was read-only (`GET`). Any data written later is created by the app through its normal upload path and tagged so it can be recognised as test data.
+
+| Date | Check | Result |
+|---|---|---|
+| 2026-10-15 | `GET /ws/rest/v1/session` (unauthenticated) | 200, `authenticated:false` — matches the app's `check_server_url` |
+| 2026-10-15 | `GET /ws/fhir2/R4/metadata` | 200; HAPI FHIR 5.7.9, FHIR 4.0.1, 21 resource types (below) |
+| 2026-10-15 | `GET /ws/rest/v1/session` with Basic auth (credentials from CLAUDE.md) | 200, `authenticated:true` → REST **and** FHIR accept Basic auth on this server, so API-level tests don't need the OpenID browser flow. The app itself is configured `auth_method=openid`, so the OpenID path still needs a device. |
+| 2026-10-15 | `GET Patient?_summary=count` | 128,505 patients on the server — a full unscoped `Patient` download is not viable; the `_has:Group:member:id=` scoping in `fhir_sync_urls` matters |
+| 2026-10-15 | **A6** boundary query on `_lastUpdated` with raw `+02:00` / `%2B02:00` / `Z` | All three: `total=3`. Server accepts the unencoded offset → A6 closed as informational |
+
+Server FHIR capabilities (interactions) relevant to section F:
+
+| Resource | Interactions | Note |
+|---|---|---|
+| Patient, Encounter, Observation, Condition, Location, Group | create, read, update, patch, delete, search | Already used by the app |
+| AllergyIntolerance, Immunization, Task, DiagnosticReport, Medication, MedicationDispense, Person, Practitioner | create, read, update, patch, delete, search | Candidates for new features, FHIR-only |
+| MedicationRequest | read, patch, search (**no create**) | View-only on FHIR; ordering would need REST |
+| Questionnaire, ServiceRequest, RelatedPerson, ValueSet | read, search | Read-only |
+| EpisodeOfCare | read only | Programs/enrolment not writable via FHIR |
+| Appointment | **absent** | Would have to be REST (if the module is installed) |
+
+`PATCH` is supported for the types above, which matches `UploadStrategy.forIndividualRequest(update = PATCH)` in `BaseFhirSyncWorker`.
+
+## 5. What I have not verified
+
+- Only read-only API probes have been run against the backend (§4). Still to do, and needing a device/emulator: the app's OpenID login, a real app-driven full sync, and offline create → upload, to confirm baseline behaviour before changing anything. B4 (token refresh on 401) and A5 (timestamp persisted before storage) also need this.
 - No device/emulator was used: `androidTest` suites, startup time, scroll jank and APK size are unmeasured.
 - Server-side FHIR capability for section F items.
