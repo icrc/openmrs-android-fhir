@@ -28,12 +28,15 @@
 */
 package org.openmrs.android.fhir.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.db.ResourceNotFoundException
+import com.google.android.fhir.get
 import com.google.android.fhir.search.Operation
 import com.google.android.fhir.search.Order
 import com.google.android.fhir.search.Search
@@ -48,13 +51,17 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.RiskAssessment
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
 import timber.log.Timber
 
 /**
@@ -68,7 +75,12 @@ data class PatientListUiState(
   val isRefreshing: Boolean = false,
 )
 
-class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngine) : ViewModel() {
+class PatientListViewModel
+@Inject
+constructor(
+  private val fhirEngine: FhirEngine,
+  private val applicationContext: Context,
+) : ViewModel() {
 
   private val _uiState = MutableStateFlow(PatientListUiState())
   val uiState: StateFlow<PatientListUiState> = _uiState.asStateFlow()
@@ -77,6 +89,9 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
   val patientCount = MutableLiveData<Long>()
 
   private var loadJob: Job? = null
+
+  /** Number of patients that match the current search *and* are visible, set by each search. */
+  private var visibleCount: Long? = null
 
   init {
     loadPatients()
@@ -142,7 +157,35 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
    * which only returns a fixed range.
    */
   private suspend fun count(nameQuery: String = ""): Long {
-    return fhirEngine.count<Patient> { applyPatientTextQuery(nameQuery) }
+    return visibleCount ?: fhirEngine.count<Patient> { applyPatientTextQuery(nameQuery) }
+  }
+
+  /**
+   * Ids of the patients that belong to the patient lists selected in settings, or `null` when
+   * nothing restricts the view (no list selected, or the lists have not been downloaded yet).
+   */
+  private suspend fun selectedListMemberIds(): Set<String>? {
+    val selectedLists =
+      try {
+        applicationContext.dataStore.data.first()[PreferenceKeys.SELECTED_PATIENT_LISTS]
+      } catch (e: CancellationException) {
+        throw e
+      } catch (e: Exception) {
+        null
+      }
+    if (selectedLists.isNullOrEmpty()) return null
+    var listsFound = 0
+    val memberIds = mutableSetOf<String>()
+    selectedLists.forEach { listId ->
+      try {
+        val group = fhirEngine.get<Group>(listId)
+        listsFound++
+        group.member.mapNotNullTo(memberIds) { it.entity?.referenceElement?.idPart }
+      } catch (e: ResourceNotFoundException) {
+        Timber.w("Selected patient list %s is not on the device yet", listId)
+      }
+    }
+    return if (listsFound == 0) null else memberIds
   }
 
   /*
@@ -158,14 +201,33 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
       _uiState.update { it.copy(isLoading = true) }
     }
     val patients: MutableList<PatientItem> = mutableListOf()
-    fhirEngine
-      .search<Patient> {
-        applyPatientTextQuery(nameQuery)
-        sort(Patient.GIVEN, Order.ASCENDING)
-        count = 100
-        from = 0
+    val memberIds = selectedListMemberIds()
+    val matches =
+      fhirEngine
+        .search<Patient> {
+          applyPatientTextQuery(nameQuery)
+          sort(Patient.GIVEN, Order.ASCENDING)
+          // Without a list restriction the page is the result; with one, look at more candidates
+          // because the ones outside the selected lists are dropped below.
+          count = if (memberIds == null) PAGE_SIZE else CANDIDATE_LIMIT
+          from = 0
+        }
+        .map { it.resource }
+    // Only patients of the selected lists are shown. A patient registered on this device is kept
+    // until it is uploaded, otherwise it would vanish right after being saved.
+    val visible =
+      if (memberIds == null) {
+        matches
+      } else {
+        matches.filter { patient ->
+          patient.idElement.idPart in memberIds ||
+            fhirEngine.getLocalChanges(ResourceType.Patient, patient.idElement.idPart).isNotEmpty()
+        }
       }
-      .mapIndexed { index, fhirPatient -> fhirPatient.resource.toPatientItem(index + 1) }
+    visibleCount = if (memberIds == null) null else visible.size.toLong()
+    visible
+      .take(PAGE_SIZE)
+      .mapIndexed { index, fhirPatient -> fhirPatient.toPatientItem(index + 1) }
       .let {
         patients.addAll(it)
         patients.map { patientItem ->
@@ -198,6 +260,11 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
           .maxByOrNull { it.resource.occurrenceDateTimeType.value }
           ?.resource
       }
+  }
+
+  private companion object {
+    const val PAGE_SIZE = 100
+    const val CANDIDATE_LIMIT = 1000
   }
 
   /** The Patient's details for display purposes. */

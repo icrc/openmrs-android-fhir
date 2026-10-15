@@ -104,7 +104,7 @@ class PatientListViewModelSearchTest {
         onBlocking { count(any<Search>()) } doReturn 0L
         onBlocking { getLocalChanges(any<ResourceType>(), any()) } doReturn emptyList()
       }
-    val viewModel = PatientListViewModel(fhirEngine)
+    val viewModel = PatientListViewModel(fhirEngine, mock())
     dispatcher.scheduler.advanceUntilIdle()
 
     viewModel.searchPatientsByName("a")
@@ -137,7 +137,7 @@ class PatientListViewModelSearchTest {
         onBlocking { getLocalChanges(any<ResourceType>(), any()) } doReturn emptyList()
       }
 
-    val viewModel = PatientListViewModel(fhirEngine)
+    val viewModel = PatientListViewModel(fhirEngine, mock())
     dispatcher.scheduler.advanceUntilIdle()
 
     assertFalse(viewModel.uiState.value.isLoading)

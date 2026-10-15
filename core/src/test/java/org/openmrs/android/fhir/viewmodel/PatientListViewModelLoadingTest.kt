@@ -80,6 +80,7 @@ class PatientListViewModelLoadingTest {
     val viewModel =
       PatientListViewModel(
         fhirEngine = fhirEngine,
+        applicationContext = mock(),
       )
 
     dispatcher.scheduler.advanceUntilIdle()
