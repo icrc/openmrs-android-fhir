@@ -19,7 +19,7 @@ Branch: `chore/audit-and-cleanup` (from `main` @ `cdd4117`). No production code 
 | `spotlessCheck` — Gradle scripts | **Fail** | `app/build.gradle.kts:71` — the *uncommitted local edit* `include("x86_64","arm64-v8a",…)` is missing a space after the comma. Not on `main`. |
 | `spotlessCheck` — XML | **Cannot run locally** | Prettier step needs Node/npm, which is not installed on this machine. Environment issue; CI is unaffected. |
 | `./gradlew test` | **Pass** | 7 suites, 16 tests, 0 failures, 0 skipped (`core` only; `app`/`dev3-app` have no test sources). |
-| `./gradlew build` (tests excluded) | see `CHANGELOG.md` | Run after the audit commit; result recorded there. |
+| `./gradlew build` (tests excluded, `--continue`) | **Compiles and assembles; fails only on the spotless tasks above** | 315 tasks, 7m14s. Only `spotlessXml` (×4, no npm) and `app:spotlessKotlinGradleCheck` (local `x86_64` edit) failed. |
 | `androidTest` (19 Compose/activity UI tests) | **Not run** | Needs an emulator/device. |
 
 Working tree already contained your uncommitted local config (server URL, `x86_64` ABI, cleartext domain for `192.168.1.20`, regenerated `core/schemas/.../2.json`). I am **not** committing those.
