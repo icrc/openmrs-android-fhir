@@ -58,3 +58,13 @@ Emulator `emulator-5554` (Android 13, x86_64), debug build, test backend.
 | `core` unit tests | 16 baseline → 40 now, all pass |
 | Instrumentation tests (52) | baseline: 35 pass, 17 fail (all from `MainNavigationContainerTest` onward, deterministic). Excluding that one class, 51/51 pass at baseline and 51/51 pass after the changes |
 | Unsynced-resources screen (1,890 obs) | ≈30 s (26 s in `search<Observation>`) |
+
+## Dependencies, settings and UI (branch `chore/upgrade-dependencies`)
+
+- **Stable Open Health Stack**: FHIR engine 1.2.0 and data-capture 1.3.1 from Google Maven; the GitHub Packages repository and token are gone. AndroidX, coroutines, Retrofit, Moshi, Dagger, Room, Mockito and the Compose BOM (2026.06.01) are on current stable versions.
+- **Settings**: one script (`gradle/app-config.gradle.kts`) turns `local.properties` into app resources; server URLs are derived from `openmrs_server_url`.
+- **Look and feel**: OpenMRS 3 teal/Carbon palette (light and dark) for Compose, XML and the data-capture form; bottom navigation (Home / Patients / Group / Sync); Home status header; avatar patient rows; one rounded search field.
+- **Top bar no longer covers content**: main and login activities are edge-to-edge on every API level and screens pad by the measured app-bar height (before, only API 35+ was right). The content also clears the navigation bar and keyboard.
+- **Data capture**: `newQuestionnaireFragment` / `onQuestionnaireResult` replace five copies of the builder and result wiring; registration loads each identifier type once.
+- **Bug fixed**: the bottom-bar "Group" tab crashed (wrong navigation argument keys, `patientId` / `isGroupEncounter` instead of `patient_id` / `is_group_encounter`); it now builds the arguments with the generated `CreateEncountersFragmentArgs`.
+- **Verification note**: the UI, edge-to-edge and data-capture changes were checked by building, installing on the emulator and looking at the screens (home, patient list, settings, registration, group session flow). The automated suites were **not** re-run after these changes, at the owner's request; run them before merging.
