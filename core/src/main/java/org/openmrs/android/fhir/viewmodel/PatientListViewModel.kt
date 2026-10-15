@@ -41,6 +41,8 @@ import com.google.android.fhir.search.search
 import java.time.LocalDate
 import java.time.ZoneOffset
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -71,6 +73,8 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
 
   val liveSearchedPatients: LiveData<List<PatientItem>> = uiState.map { it.patients }.asLiveData()
   val patientCount = MutableLiveData<Long>()
+
+  private var loadJob: Job? = null
 
   init {
     loadPatients()
@@ -112,11 +116,23 @@ class PatientListViewModel @Inject constructor(private val fhirEngine: FhirEngin
     search: suspend () -> List<PatientItem>,
     count: suspend () -> Long,
   ) {
-    viewModelScope.launch {
-      val patients = search()
-      _uiState.update { it.copy(patients = patients) }
-      patientCount.value = count()
-    }
+    // Only the most recent request may publish results, otherwise a slow older query can
+    // overwrite the list for the current search text.
+    loadJob?.cancel()
+    loadJob =
+      viewModelScope.launch {
+        try {
+          val patients = search()
+          // A superseded refresh never reaches its own "finished" update, so clear both flags here.
+          _uiState.update { it.copy(patients = patients, isLoading = false, isRefreshing = false) }
+          patientCount.value = count()
+        } catch (e: CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          Timber.e(e, "Failed to load patients")
+          _uiState.update { it.copy(isLoading = false, isRefreshing = false) }
+        }
+      }
   }
 
   /**
