@@ -199,14 +199,12 @@ class SelectPatientListFragment : Fragment() {
     val hasSelection = selectPatientListViewModel.uiState.value.selectedPatientListIds.isNotEmpty()
     val hasLists = !selectPatientListViewModel.selectPatientListItems.value.isNullOrEmpty()
     if (!hasSelection && hasLists) {
+      // At least one list is required: continuing without one would otherwise download every
+      // patient on the server.
       AlertDialog.Builder(requireContext()).apply {
         setTitle(getString(R.string.select_patient_list_dialog_title))
-        setMessage(getString(R.string.no_patient_list_selected_message))
-        setPositiveButton(getString(R.string.yes)) { dialog, _ -> dialog.dismiss() }
-        setNegativeButton(getString(R.string.no)) { dialog, _ ->
-          proceedToHomeFragment()
-          dialog.dismiss()
-        }
+        setMessage(getString(R.string.select_at_least_one_patient_list))
+        setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }
         show()
       }
     } else {

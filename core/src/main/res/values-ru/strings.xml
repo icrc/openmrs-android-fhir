@@ -607,6 +607,9 @@
     <string
         name="no_patient_list_selected_message"
     >Список пациентов не выбран. Хотите выбрать его?</string>
+    <string
+        name="select_at_least_one_patient_list"
+    >Выберите хотя бы один список пациентов, чтобы продолжить.</string>
     <string name="diagnostic_report_subject">Диагностический отчёт</string>
     <string
         name="diagnostic_report_body"

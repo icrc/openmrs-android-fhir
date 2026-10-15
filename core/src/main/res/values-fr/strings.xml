@@ -612,6 +612,9 @@
     <string
         name="no_patient_list_selected_message"
     >Aucune liste de patients n\'est sélectionnée. Voulez-vous en sélectionner une ?</string>
+    <string
+        name="select_at_least_one_patient_list"
+    >Veuillez sélectionner au moins une liste de patients pour continuer.</string>
     <string name="diagnostic_report_subject">Rapport de diagnostic</string>
     <string
         name="diagnostic_report_body"

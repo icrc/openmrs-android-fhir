@@ -50,6 +50,7 @@ import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import timber.log.Timber
 
 class TimestampBasedDownloadWorkManagerImpl(
   private val dataStore: DemoDataStore,
@@ -79,7 +80,7 @@ class TimestampBasedDownloadWorkManagerImpl(
         resourceTypeList.find { resourceType -> url.startsWith(resourceType, ignoreCase = true) }
       }
 
-    return urlList.map { url ->
+    return urlList.mapNotNull { url ->
       var updatedUrl = url
 
       if (
@@ -101,19 +102,13 @@ class TimestampBasedDownloadWorkManagerImpl(
         updatedUrl = "$updatedUrl${separator}cohort-type=$cohortType"
       }
 
-      if (updatedUrl.contains("_has:Group:member:id=")) {
+      if (updatedUrl.contains(PATIENT_LIST_PLACEHOLDER)) {
         val selectedPatientLists = runBlocking {
           context.applicationContext.dataStore.data
             .first()[PreferenceKeys.Companion.SELECTED_PATIENT_LISTS]
         }
-
-        if (selectedPatientLists.isNullOrEmpty()) {
-          updatedUrl.replace("_has:Group:member:id=&", "")
-        } else {
-          updatedUrl.replace(
-            "?_has:Group:member:id=",
-            "?_has:Group:member:id=" + selectedPatientLists.joinToString(","),
-          )
+        applyPatientListScope(updatedUrl, selectedPatientLists).also {
+          if (it == null) Timber.w("No patient list selected, skipping unscoped request: %s", url)
         }
       } else {
         updatedUrl
@@ -209,6 +204,23 @@ class TimestampBasedDownloadWorkManagerImpl(
   }
 }
 
+private const val PATIENT_LIST_PLACEHOLDER = "_has:Group:member:id="
+
+/**
+ * Restricts a patient request to the selected patient lists (Groups).
+ *
+ * Returns `null` when no list is selected: the request is then skipped instead of being sent
+ * without the `_has:Group:member:id` filter, which would download every patient on the server.
+ */
+internal fun applyPatientListScope(url: String, selectedPatientLists: Set<String>?): String? {
+  if (!url.contains(PATIENT_LIST_PLACEHOLDER)) return url
+  if (selectedPatientLists.isNullOrEmpty()) return null
+  return url.replace(
+    "?$PATIENT_LIST_PLACEHOLDER",
+    "?$PATIENT_LIST_PLACEHOLDER" + selectedPatientLists.joinToString(","),
+  )
+}
+
 /**
  * Affixes the last updated timestamp to the request URL.
  *
@@ -216,7 +228,7 @@ class TimestampBasedDownloadWorkManagerImpl(
  * attached using the `_since` parameter. Otherwise, the last updated timestamp will be attached
  * using the `_lastUpdated` parameter.
  */
-private fun affixLastUpdatedTimestamp(url: String, lastUpdated: String): String {
+internal fun affixLastUpdatedTimestamp(url: String, lastUpdated: String): String {
   var downloadUrl = url
 
   // Affix lastUpdate to a $everything query using _since as per:
@@ -255,6 +267,6 @@ private fun Date.toTimeZoneString(): String {
   return simpleDateFormat.format(this.toInstant())
 }
 
-private fun removeSummaryParameter(url: String): String {
+internal fun removeSummaryParameter(url: String): String {
   return url.replace(Regex("&_summary=[^&]*"), "")
 }

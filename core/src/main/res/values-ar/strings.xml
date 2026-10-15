@@ -526,6 +526,9 @@
     <string
         name="no_patient_list_selected_message"
     >لم يتم اختيار قائمة مرضى. هل تريد اختيار واحدة؟</string>
+    <string
+        name="select_at_least_one_patient_list"
+    >يرجى اختيار قائمة مرضى واحدة على الأقل للمتابعة.</string>
     <string name="diagnostic_report_subject">تقرير تشخيصي</string>
     <string name="diagnostic_report_body">تم إرفاق التقرير التشخيصي.</string>
     <string name="send_email_chooser_title">إرسال بريد إلكتروني</string>
