@@ -50,6 +50,7 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.AddPatientFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.extensions.UnsavedChangesGuard
 import org.openmrs.android.fhir.viewmodel.EditPatientViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
@@ -65,6 +66,8 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
 
   private val binding
     get() = _binding!!
+
+  private val unsavedChangesGuard by lazy { UnsavedChangesGuard(this, QUESTIONNAIRE_FRAGMENT_TAG) }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -97,6 +100,7 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
       NavHostFragment.findNavController(this).navigateUp()
     }
     mainActivityViewModel.setDrawerEnabled(false)
+    unsavedChangesGuard.attach()
 
     /** Use the provided cancel|submit buttons from the sdc library */
     childFragmentManager.setFragmentResultListener(
@@ -109,14 +113,18 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
       QuestionnaireFragment.CANCEL_REQUEST_KEY,
       viewLifecycleOwner,
     ) { _, _ ->
-      NavHostFragment.findNavController(this@EditPatientFragment).navigateUp()
+      unsavedChangesGuard.confirmLeave {
+        NavHostFragment.findNavController(this@EditPatientFragment).navigateUp()
+      }
     }
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
       android.R.id.home -> {
-        NavHostFragment.findNavController(this@EditPatientFragment).navigateUp()
+        unsavedChangesGuard.confirmLeave {
+          NavHostFragment.findNavController(this@EditPatientFragment).navigateUp()
+        }
         true
       }
       else -> false

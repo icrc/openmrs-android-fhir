@@ -607,4 +607,16 @@
     <string name="unsynced_encounter_fallback_title">Encuentro: %1$s</string>
     <string name="unsynced_patient_fallback_name">Paciente: %1$s</string>
 
+    <string
+        name="discard_changes_title"
+    >¿Descartar los cambios?</string>
+    <string
+        name="discard_changes_message"
+    >Tienes cambios sin guardar. Si sales ahora, se perderán.</string>
+    <string
+        name="discard_changes_confirm"
+    >Descartar</string>
+    <string
+        name="discard_changes_keep_editing"
+    >Seguir editando</string>
 </resources>

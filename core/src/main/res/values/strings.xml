@@ -568,4 +568,16 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="unsynced_encounter_fallback_title">Encounter: %1$s</string>
     <string name="unsynced_patient_fallback_name">Patient: %1$s</string>
 
+    <string
+        name="discard_changes_title"
+    >Discard changes?</string>
+    <string
+        name="discard_changes_message"
+    >You have unsaved changes. If you leave now they will be lost.</string>
+    <string
+        name="discard_changes_confirm"
+    >Discard</string>
+    <string
+        name="discard_changes_keep_editing"
+    >Keep editing</string>
 </resources>

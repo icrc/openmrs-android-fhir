@@ -541,4 +541,16 @@
     <string name="unsynced_encounter_fallback_title">مقابلة: %1$s</string>
     <string name="unsynced_patient_fallback_name">مريض: %1$s</string>
 
+    <string
+        name="discard_changes_title"
+    >تجاهل التغييرات؟</string>
+    <string
+        name="discard_changes_message"
+    >لديك تغييرات غير محفوظة. إذا غادرت الآن فستفقد.</string>
+    <string
+        name="discard_changes_confirm"
+    >تجاهل</string>
+    <string
+        name="discard_changes_keep_editing"
+    >متابعة التحرير</string>
 </resources>

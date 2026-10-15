@@ -626,4 +626,16 @@
     <string name="unsynced_encounter_fallback_title">Приём: %1$s</string>
     <string name="unsynced_patient_fallback_name">Пациент: %1$s</string>
 
+    <string
+        name="discard_changes_title"
+    >Отменить изменения?</string>
+    <string
+        name="discard_changes_message"
+    >У вас есть несохранённые изменения. Если вы выйдете сейчас, они будут потеряны.</string>
+    <string
+        name="discard_changes_confirm"
+    >Отменить</string>
+    <string
+        name="discard_changes_keep_editing"
+    >Продолжить редактирование</string>
 </resources>

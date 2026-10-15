@@ -635,4 +635,16 @@
     <string name="unsynced_encounter_fallback_title">Rencontre : %1$s</string>
     <string name="unsynced_patient_fallback_name">Patient : %1$s</string>
 
+    <string
+        name="discard_changes_title"
+    >Abandonner les modifications ?</string>
+    <string
+        name="discard_changes_message"
+    >Vous avez des modifications non enregistrées. Si vous quittez maintenant, elles seront perdues.</string>
+    <string
+        name="discard_changes_confirm"
+    >Abandonner</string>
+    <string
+        name="discard_changes_keep_editing"
+    >Continuer la saisie</string>
 </resources>
