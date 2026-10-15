@@ -57,19 +57,14 @@ class ApiManager @Inject constructor(context: Context) : Api {
         .readTimeout(60, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
         .addInterceptor { chain ->
-          val request = chain.request().newBuilder()
-          if (accessToken.isNotEmpty()) {
-            request.addHeader(
-              "Authorization",
-              "Bearer $accessToken",
+          val original = chain.request()
+          val request = original.newBuilder()
+          resolveAuthorizationHeader(
+              existing = original.header("Authorization"),
+              accessToken = accessToken,
+              basicAuthEncodedString = basicAuthEncodedString,
             )
-          }
-          if (basicAuthEncodedString.isNotEmpty()) {
-            request.addHeader(
-              "Authorization",
-              "Bearer $basicAuthEncodedString",
-            )
-          }
+            ?.let { request.header("Authorization", it) }
           return@addInterceptor chain.proceed(request.build())
         }
         .addInterceptor(AddCookiesInterceptor(context))
@@ -135,3 +130,22 @@ class ApiManager @Inject constructor(context: Context) : Api {
     }
   }
 }
+
+/**
+ * Chooses the single `Authorization` header for a REST request.
+ *
+ * A request that already carries one (for example the explicit Basic header used to validate a
+ * session at login) is left alone. Sending two `Authorization` headers makes the reverse proxy
+ * answer 400, which used to make login impossible whenever credentials were already stored.
+ */
+internal fun resolveAuthorizationHeader(
+  existing: String?,
+  accessToken: String,
+  basicAuthEncodedString: String,
+): String? =
+  when {
+    existing != null -> null
+    basicAuthEncodedString.isNotEmpty() -> "Bearer $basicAuthEncodedString"
+    accessToken.isNotEmpty() -> "Bearer $accessToken"
+    else -> null
+  }
