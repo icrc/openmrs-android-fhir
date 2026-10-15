@@ -16,4 +16,4 @@ Recorded on `main` @ `cdd4117`, Windows, JDK 17 toolchain, no emulator.
 
 ## Unreleased
 
-- docs: add `docs/audit.md` (Phase 1 audit, ranked findings, plan).
+- docs: add `docs/audit.md` (Phase 1 audit, ranked findings, plan), including a UI-layer section (G1–G9) and UI reuse steps 3a–3c.
