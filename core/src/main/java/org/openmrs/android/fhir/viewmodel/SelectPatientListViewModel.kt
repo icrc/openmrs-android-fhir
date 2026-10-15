@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Reference
+import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.sync.GroupFhirSyncWorker
@@ -76,11 +77,8 @@ constructor(
 
   fun getSelectPatientListItems() {
     viewModelScope.launch {
-      // TODO Pending for cohort-module
-      //
-      // val filterPatientListsByGroup =
-      // applicationContext.resources.getBoolean(R.bool.filter_patient_lists_by_group)
-      val filterPatientListsByGroup = false
+      val filterPatientListsByGroup =
+        applicationContext.resources.getBoolean(R.bool.filter_patient_lists_by_group)
       val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
       val selectPatientListItemList: MutableList<SelectPatientListItem> = mutableListOf()
       val groups = fhirEngine.search<Group> {}.map { it.resource }
@@ -94,9 +92,25 @@ constructor(
       filteredGroups
         .mapIndexed { index, group -> group.toSelectPatientListItem(index + 1) }
         .let { selectPatientListItemList.addAll(it) }
+      if (filterPatientListsByGroup && groups.isNotEmpty()) {
+        dropSelectionsOutside(selectPatientListItemList.map { it.resourceId }.toSet())
+      }
       masterSelectPatientListItemList = selectPatientListItemList
       selectPatientListItems.value = selectPatientListItemList
     }
+  }
+
+  /**
+   * After a location change the previously ticked lists may belong to the old location; they must
+   * not keep scoping the patient download.
+   */
+  private suspend fun dropSelectionsOutside(availableIds: Set<String>) {
+    val selected = applicationContext.dataStore.data.first()[PreferenceKeys.SELECTED_PATIENT_LISTS]
+    if (selected.isNullOrEmpty()) return
+    val kept = selected.filter { it in availableIds }.toSet()
+    if (kept.size == selected.size) return
+    applicationContext.dataStore.edit { it[PreferenceKeys.SELECTED_PATIENT_LISTS] = kept }
+    _uiState.update { it.copy(selectedPatientListIds = kept) }
   }
 
   fun fetchPatientListItems() {

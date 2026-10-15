@@ -568,4 +568,5 @@
     <string name="questionnaires_fetch_failed">تعذّر جلب الاستبيانات. تحقق من الاتصال وحاول مرة أخرى.</string>
     <string name="questionnaires_added">الاستبيانات الجديدة المضافة: %d</string>
     <string name="questionnaire_required_answers_missing">أجب عن الأسئلة المطلوبة في هذه الصفحة للمتابعة. وهي مُعلَّمة باللون الأحمر.</string>
+    <string name="change_location">تغيير الموقع</string>
 </resources>

@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,6 +51,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -276,6 +278,8 @@ fun PatientListSelectionScreen(
   onActionClick: () -> Unit,
   topPadding: Dp = selectionScreenContentPadding().calculateTopPadding(),
   modifier: Modifier = Modifier,
+  locationName: String? = null,
+  onChangeLocationClick: (() -> Unit)? = null,
 ) {
   Box(
     modifier = modifier.fillMaxSize().testTag("PatientListSelectionScreen"),
@@ -287,6 +291,26 @@ fun PatientListSelectionScreen(
           text = stringResource(id = R.string.select_patient_list),
           style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
         )
+      }
+
+      if (onChangeLocationClick != null) {
+        Row(
+          modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Text(
+            modifier = Modifier.weight(1f).testTag("PatientListLocationName"),
+            text = locationName.orEmpty(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+          TextButton(
+            modifier = Modifier.testTag("PatientListChangeLocation"),
+            onClick = onChangeLocationClick,
+          ) {
+            Text(text = stringResource(id = R.string.change_location))
+          }
+        }
       }
 
       SelectionSearchField(

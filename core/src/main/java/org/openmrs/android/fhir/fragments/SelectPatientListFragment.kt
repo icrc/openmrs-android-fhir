@@ -52,6 +52,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import javax.inject.Inject
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
@@ -79,6 +80,7 @@ class SelectPatientListFragment : Fragment() {
 
   private var fromLogin = false
   private var filterPatientListsByGroup = false
+  private val locationName = androidx.compose.runtime.mutableStateOf<String?>(null)
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -112,6 +114,8 @@ class SelectPatientListFragment : Fragment() {
           isLoading = uiState.isLoading,
           onPatientListToggle = ::onSelectPatientListItemClicked,
           onActionClick = ::handleActionClick,
+          locationName = locationName.value,
+          onChangeLocationClick = if (fromLogin) ::changeLocation else null,
           topPadding =
             if (fromLogin) {
               20.dp
@@ -131,6 +135,10 @@ class SelectPatientListFragment : Fragment() {
     filterPatientListsByGroup =
       requireContext().resources.getBoolean(R.bool.filter_patient_lists_by_group)
 
+    viewLifecycleOwner.lifecycleScope.launch {
+      locationName.value =
+        requireContext().applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_NAME]
+    }
     lifecycleScope.launch {
       actionBar?.title = requireContext().getString(R.string.select_patient_lists)
       configureUi(actionBar)
@@ -175,6 +183,11 @@ class SelectPatientListFragment : Fragment() {
           }
       }
     }
+  }
+
+  /** Back to the location list; the lists are rebuilt for whichever location is chosen. */
+  private fun changeLocation() {
+    findNavController().navigateUp()
   }
 
   private fun proceedToHomeFragment() {
