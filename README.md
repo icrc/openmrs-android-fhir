@@ -6,11 +6,11 @@ Welcome to the project! Follow the instructions below to set up the environment 
 
 ## 🛠️ Setup Instructions
 
-Accessing artifacts hosted on GitHub requires a GitHub account for downloading purposes. Please follow these steps:
+The app builds from public artifacts (Google Maven, Maven Central); **no GitHub account or token is needed**.
 
 1. **Duplicate and Rename Configuration File:**
    - Copy the file `local.properties.default` and rename it to `local.properties`.
-   - Open the `local.properties` file and insert your **GitHub account/token details**.
+   - Set `sdk.dir` to your Android SDK path (Android Studio does this for you).
 
 2. **Modify Additional Properties:**
    - Modify other properties (e.g., URLs, OAuth2) **only if** you are using a custom OpenMRS or Keycloak setup.

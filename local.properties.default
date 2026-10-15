@@ -1,7 +1,5 @@
-# Mandatory Fill these values
+# Mandatory
 sdk.dir=<path to Android SDK>
-gpr.user=<Your GitHub Account>
-gpr.key=<A GitHub token>
 
 
 # Optional values. Default values are already defined for local development.

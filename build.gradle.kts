@@ -1,5 +1,3 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
   repositories {
@@ -32,14 +30,6 @@ allprojects {
     google()
     mavenCentral()
     gradlePluginPortal()
-    maven {
-      name = "google-android-fhir"
-      url = uri("https://maven.pkg.github.com/ohs-foundation/android-fhir")
-      credentials {
-        username = localPropertyOrEnv(providers, "gpr.user", "USERNAME")
-        password = localPropertyOrEnv(providers, "gpr.key", "TOKEN")
-      }
-    }
   }
 
   configureSpotless()
@@ -73,6 +63,3 @@ fun Project.configureSpotless() {
     }
   }
 }
-
-fun localPropertyOrEnv(providers: ProviderFactory, propertyName: String, envName: String): String? =
-  gradleLocalProperties(rootDir, providers).getProperty(propertyName) ?: System.getenv(envName)
