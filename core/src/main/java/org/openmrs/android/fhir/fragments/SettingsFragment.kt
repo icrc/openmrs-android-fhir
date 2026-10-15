@@ -35,11 +35,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -54,9 +50,10 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.extensions.resolveActionBarHeightPx
+import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.screens.SettingsDefaults
 import org.openmrs.android.fhir.ui.screens.SettingsScreen
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.SettingsEvent
 import org.openmrs.android.fhir.viewmodel.SettingsViewModel
@@ -77,12 +74,9 @@ class SettingsFragment : Fragment() {
       ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
     )
     composeView.setContent {
-      val context = LocalContext.current
-      val density = LocalDensity.current
-      val actionBarHeightPx = remember { context.resolveActionBarHeightPx() }
-      val actionBarHeightDp = with(density) { actionBarHeightPx.toDp() }
+      val appBarHeight = rememberAppBarHeight()
       val uiState = settingsViewModel.uiState.collectAsStateWithLifecycle().value
-      MaterialTheme {
+      OpenMrsTheme {
         SettingsScreen(
           uiState = uiState,
           tokenDelayOptions = SettingsDefaults.TokenDelayOptions,
@@ -94,7 +88,7 @@ class SettingsFragment : Fragment() {
           onInitialSyncClicked = settingsViewModel::onInitialSyncClicked,
           onCancelClicked = settingsViewModel::onCancelClicked,
           onSaveClicked = settingsViewModel::onSaveClicked,
-          topPadding = actionBarHeightDp,
+          topPadding = appBarHeight,
         )
       }
     }

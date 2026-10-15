@@ -647,4 +647,12 @@
     <string
         name="discard_changes_keep_editing"
     >Continuer la saisie</string>
+    <string name="age_years_short">%d a</string>
+    <string name="age_months_short">%d m</string>
+    <string name="age_days_short">%d j</string>
+    <string name="nav_home">Accueil</string>
+    <string name="nav_patients">Patients</string>
+    <string name="nav_group_session">Groupe</string>
+    <string name="nav_sync">Synchro</string>
+    <string name="clear_search">Effacer la recherche</string>
 </resources>

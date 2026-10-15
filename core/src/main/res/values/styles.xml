@@ -16,7 +16,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/outline_neutral_variant_60</item>
+        <item name="colorPrimary">@color/primary_blue_40</item>
         <item name="colorOnPrimary">@color/onPrimary_blue_100</item>
         <item
             name="colorPrimaryContainer"
@@ -142,6 +142,17 @@
         <item name="backgroundTint">@color/white</item>
     </style>
     <style name="Questionnaire" parent="Theme.Questionnaire">
+        <item name="colorPrimary">@color/o3_primary</item>
+        <item name="colorOnPrimary">@color/o3_on_primary</item>
+        <item name="colorPrimaryContainer">@color/o3_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/o3_on_primary_container</item>
+        <item name="colorSecondary">@color/o3_secondary</item>
+        <item name="colorSurface">@color/o3_surface</item>
+        <item name="colorOnSurface">@color/o3_on_surface</item>
+        <item name="colorSurfaceVariant">@color/o3_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/o3_on_surface_variant</item>
+        <item name="colorOutline">@color/o3_outline</item>
+        <item name="android:colorBackground">@color/o3_background</item>
         <item
             name="questionnaireQuestionTextStyle"
         >@style/Questionnaire.questionnaireQuestionTextStyle</item>

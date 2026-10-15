@@ -553,4 +553,12 @@
     <string
         name="discard_changes_keep_editing"
     >متابعة التحرير</string>
+    <string name="age_years_short">%d سنة</string>
+    <string name="age_months_short">%d شهر</string>
+    <string name="age_days_short">%d يوم</string>
+    <string name="nav_home">الرئيسية</string>
+    <string name="nav_patients">المرضى</string>
+    <string name="nav_group_session">المجموعة</string>
+    <string name="nav_sync">المزامنة</string>
+    <string name="clear_search">مسح البحث</string>
 </resources>

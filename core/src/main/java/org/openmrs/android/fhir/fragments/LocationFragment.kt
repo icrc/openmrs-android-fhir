@@ -38,12 +38,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -71,6 +69,7 @@ import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.ui.screens.LocationSelectionScreen
 import org.openmrs.android.fhir.ui.screens.selectionScreenContentPadding
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
@@ -96,7 +95,7 @@ class LocationFragment : Fragment() {
     savedInstanceState: Bundle?,
   ): View {
     return composeView {
-      MaterialTheme {
+      OpenMrsTheme {
         val locations by locationViewModel.locations.observeAsState(emptyList())
         val uiState by locationViewModel.uiState.collectAsStateWithLifecycle()
         val filteredFavorites =
@@ -136,7 +135,7 @@ class LocationFragment : Fragment() {
               },
           )
         } else {
-          Box(modifier = Modifier.fillMaxSize().background(Color(0xFFE8F0FE)))
+          Box(modifier = Modifier.fillMaxSize().background(OpenMrsTheme.colors.highlightContainer))
         }
       }
     }

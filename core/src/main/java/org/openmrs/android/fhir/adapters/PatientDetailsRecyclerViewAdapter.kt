@@ -30,7 +30,6 @@ package org.openmrs.android.fhir.adapters
 
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -43,6 +42,7 @@ import org.openmrs.android.fhir.ui.components.PatientDetailsOverviewHeader
 import org.openmrs.android.fhir.ui.components.PatientPropertyRow
 import org.openmrs.android.fhir.ui.components.PatientUnsyncedCard
 import org.openmrs.android.fhir.ui.components.VisitListItemRow
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.PatientDetailCondition
 import org.openmrs.android.fhir.viewmodel.PatientDetailData
 import org.openmrs.android.fhir.viewmodel.PatientDetailEncounter
@@ -136,7 +136,7 @@ class PatientOverviewItemViewHolder(composeView: ComposeView) :
 
   init {
     composeView.setContent {
-      MaterialTheme {
+      OpenMrsTheme {
         overviewState.value?.let { overview ->
           PatientDetailsOverviewHeader(
             name = overview.patient.name,
@@ -158,7 +158,7 @@ class PatientPropertyItemViewHolder(composeView: ComposeView) :
 
   init {
     composeView.setContent {
-      MaterialTheme {
+      OpenMrsTheme {
         propertyState.value?.let { property ->
           PatientPropertyRow(
             header = property.patientProperty.header,
@@ -180,7 +180,7 @@ class PatientDetailsHeaderItemViewHolder(composeView: ComposeView) :
   private val headerState = mutableStateOf("")
 
   init {
-    composeView.setContent { MaterialTheme { PatientDetailsHeaderRow(title = headerState.value) } }
+    composeView.setContent { OpenMrsTheme { PatientDetailsHeaderRow(title = headerState.value) } }
   }
 
   override fun bind(data: PatientDetailData) {
@@ -191,7 +191,7 @@ class PatientDetailsHeaderItemViewHolder(composeView: ComposeView) :
 class PatientDetailsUnsyncedItemViewHolder(composeView: ComposeView) :
   PatientDetailItemViewHolder(composeView) {
   init {
-    composeView.setContent { MaterialTheme { PatientUnsyncedCard() } }
+    composeView.setContent { OpenMrsTheme { PatientUnsyncedCard() } }
   }
 
   override fun bind(data: PatientDetailData) {
@@ -205,7 +205,7 @@ class PatientDetailsObservationItemViewHolder(composeView: ComposeView) :
 
   init {
     composeView.setContent {
-      MaterialTheme {
+      OpenMrsTheme {
         observationState.value?.let { observation ->
           PatientPropertyRow(
             header = observation.observation.code,
@@ -230,7 +230,7 @@ class PatientDetailsEncounterItemViewHolder(
 
   init {
     composeView.setContent {
-      MaterialTheme {
+      OpenMrsTheme {
         encounterState.value?.let { encounter ->
           EncounterListItemRow(
             encounterType = encounter.encounter.type,
@@ -264,7 +264,7 @@ class PatientDetailsVisitItemViewHolder(
 
   init {
     composeView.setContent {
-      MaterialTheme {
+      OpenMrsTheme {
         visitState.value?.let { visit ->
           VisitListItemRow(
             encounterType = visit.visit.code,
@@ -286,7 +286,7 @@ class PatientDetailsVisitItemViewHolder(
 
     init {
       composeView.setContent {
-        MaterialTheme {
+        OpenMrsTheme {
           conditionState.value?.let { condition ->
             PatientPropertyRow(
               header = condition.condition.code,

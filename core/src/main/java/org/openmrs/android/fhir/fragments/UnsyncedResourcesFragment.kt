@@ -34,7 +34,6 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
@@ -50,6 +49,7 @@ import org.openmrs.android.fhir.data.database.model.UnsyncedResource
 import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.extensions.saveToFile
 import org.openmrs.android.fhir.ui.screens.UnsyncedResourcesScreen
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.UnsyncedResourcesViewModel
 
@@ -69,7 +69,7 @@ class UnsyncedResourcesFragment : Fragment() {
     return composeView {
       val resources = viewModel.resources.observeAsState(emptyList()).value
       val isLoading = viewModel.isLoading.observeAsState(false).value
-      MaterialTheme {
+      OpenMrsTheme {
         UnsyncedResourcesScreen(
           resources = resources,
           isLoading = isLoading,

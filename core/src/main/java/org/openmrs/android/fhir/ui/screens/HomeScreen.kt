@@ -31,31 +31,39 @@ package org.openmrs.android.fhir.ui.screens
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.extensions.rememberActionBarContentPadding
 
@@ -157,6 +165,8 @@ fun HomeScreen(
   onGroupEncounterClicked: () -> Unit,
   onSyncInfoClicked: () -> Unit,
   onUnsyncedResourcesClicked: () -> Unit,
+  locationName: String = "",
+  lastSyncText: String = "",
 ) {
   val contentPadding = rememberActionBarContentPadding(extraTop = 8.dp)
   val rows = HomeRows
@@ -165,6 +175,11 @@ fun HomeScreen(
     modifier = Modifier.fillMaxSize().testTag(HomeTestTags.Screen),
     contentPadding = contentPadding,
   ) {
+    if (locationName.isNotBlank() || lastSyncText.isNotBlank()) {
+      item(key = "status-header") {
+        HomeStatusHeader(locationName = locationName, lastSyncText = lastSyncText)
+      }
+    }
     items(rows, key = { row -> row.hashCode() }) { row ->
       when (row) {
         is HomeRow.SectionHeader -> HomeSectionHeader(titleRes = row.titleRes)
@@ -186,14 +201,50 @@ fun HomeScreen(
   }
 }
 
+/** Where the user is working and when the data was last synced, at a glance. */
+@Composable
+private fun HomeStatusHeader(locationName: String, lastSyncText: String) {
+  Card(
+    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).testTag("HomeStatusHeader"),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+    shape = RoundedCornerShape(16.dp),
+  ) {
+    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+      if (locationName.isNotBlank()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Icon(
+            imageVector = Icons.Default.LocationOn,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+          )
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(
+            text = locationName,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+          )
+        }
+      }
+      if (lastSyncText.isNotBlank()) {
+        Text(
+          modifier = Modifier.padding(top = 4.dp),
+          text = stringResource(id = R.string.last_sync) + ": " + lastSyncText,
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSecondaryContainer,
+        )
+      }
+    }
+  }
+}
+
 @Composable
 private fun HomeSectionHeader(titleRes: Int) {
   Text(
     text = stringResource(id = titleRes),
-    color = colorResource(id = R.color.black),
-    fontSize = 14.sp,
+    color = MaterialTheme.colorScheme.primary,
+    style = MaterialTheme.typography.labelLarge,
     fontWeight = FontWeight.Bold,
-    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+    modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 4.dp),
   )
 }
 
@@ -202,46 +253,55 @@ private fun HomeDashboardCard(
   config: HomeCardConfig,
   onClick: () -> Unit,
 ) {
-  val verticalSpacing = dimensionResource(id = R.dimen.cardView_margin_vertical)
-  val horizontalSpacing = dimensionResource(id = R.dimen.new_patient_horizontal_margin)
-  val padding = dimensionResource(id = R.dimen.new_patient_padding)
-  val titleColor = colorResource(id = R.color.dashboard_cardview_textcolor)
-  val titleStyle = MaterialTheme.typography.titleLarge
   Card(
     modifier =
       Modifier.fillMaxWidth()
-        .padding(vertical = verticalSpacing)
+        .padding(vertical = 6.dp)
         .testTag(config.testTag)
         .clickable(onClick = onClick),
-    colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.white)),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    shape = RoundedCornerShape(dimensionResource(id = R.dimen.cardView_radius_corner)),
+    shape = RoundedCornerShape(16.dp),
   ) {
     Row(
-      modifier = Modifier.fillMaxWidth().padding(padding),
+      modifier = Modifier.fillMaxWidth().padding(16.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      Image(
-        painter = painterResource(id = config.iconRes),
-        colorFilter = ColorFilter.tint(titleColor),
-        contentDescription = stringResource(id = R.string.task_image),
-      )
+      Box(
+        modifier =
+          Modifier.size(48.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primaryContainer),
+        contentAlignment = Alignment.Center,
+      ) {
+        Image(
+          painter = painterResource(id = config.iconRes),
+          colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
+          contentDescription = stringResource(id = R.string.task_image),
+          modifier = Modifier.size(24.dp),
+        )
+      }
       Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = horizontalSpacing),
+        modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
       ) {
         Text(
           text = stringResource(id = config.titleRes),
-          color = titleColor,
-          style = titleStyle,
-          maxLines = 1,
+          color = MaterialTheme.colorScheme.onSurface,
+          style = MaterialTheme.typography.titleMedium,
+          maxLines = 2,
         )
         Text(
           text = stringResource(id = config.subtitleRes),
-          color = titleColor,
-          fontSize = 12.sp,
-          maxLines = 1,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          style = MaterialTheme.typography.bodyMedium,
+          maxLines = 2,
         )
       }
+      Icon(
+        imageVector = Icons.Default.ChevronRight,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
     }
   }
 }

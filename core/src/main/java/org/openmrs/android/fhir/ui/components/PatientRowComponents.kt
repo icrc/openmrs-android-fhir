@@ -28,16 +28,21 @@
 */
 package org.openmrs.android.fhir.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,21 +53,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
+/**
+ * One row of the patient list: an initials avatar, the name with the identifier underneath, then
+ * age/gender and, for patients that have not been uploaded yet, a sync marker.
+ */
 @Composable
 fun PatientListItemRow(
   name: String,
   ageGenderLabel: String,
   isSynced: Boolean?,
   modifier: Modifier = Modifier,
+  identifier: String? = null,
   onClick: (() -> Unit)? = null,
 ) {
   Surface(
@@ -70,36 +81,81 @@ fun PatientListItemRow(
       modifier.testTag("PatientListItemRow").let { base ->
         onClick?.let { base.clickable(onClick = it) } ?: base
       },
-    color = colorResource(id = R.color.white),
+    color = MaterialTheme.colorScheme.surface,
   ) {
-    Row(
-      modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.Start,
-    ) {
-      if (isSynced != true) {
-        Icon(
-          modifier = Modifier.size(20.dp).testTag("PatientSyncIcon"),
-          painter = painterResource(id = R.drawable.ic_baseline_sync_24),
-          contentDescription = stringResource(id = R.string.description_status),
-          tint = MaterialTheme.colorScheme.error,
+    Column {
+      Row(
+        modifier =
+          Modifier.fillMaxWidth()
+            .heightIn(min = 64.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        PatientAvatar(name = name)
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+            modifier = Modifier.testTag("PatientName"),
+            text = name,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+          )
+          if (!identifier.isNullOrBlank()) {
+            Text(
+              modifier = Modifier.testTag("PatientIdentifier"),
+              text = identifier,
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+            )
+          }
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+          modifier = Modifier.testTag("PatientAgeGender"),
+          text = ageGenderLabel,
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        if (isSynced != true) {
+          Spacer(modifier = Modifier.width(12.dp))
+          Icon(
+            modifier = Modifier.size(20.dp).testTag("PatientSyncIcon"),
+            painter = painterResource(id = R.drawable.ic_baseline_sync_24),
+            contentDescription = stringResource(id = R.string.description_status),
+            tint = MaterialTheme.colorScheme.error,
+          )
+        }
       }
-
-      Spacer(modifier = Modifier.width(12.dp))
-      Text(
-        modifier = Modifier.weight(1f).testTag("PatientName"),
-        text = name,
-        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Normal),
-      )
-      Spacer(modifier = Modifier.width(12.dp))
-      Text(
-        modifier = Modifier.testTag("PatientAgeGender").padding(end = 8.dp),
-        text = ageGenderLabel,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      HorizontalDivider(
+        modifier = Modifier.padding(start = 72.dp),
+        color = MaterialTheme.colorScheme.outlineVariant,
       )
     }
+  }
+}
+
+@Composable
+private fun PatientAvatar(name: String, modifier: Modifier = Modifier) {
+  val initials =
+    name
+      .split(' ', '-')
+      .filter { it.isNotBlank() }
+      .take(2)
+      .joinToString("") { it.first().uppercase() }
+      .ifEmpty { "?" }
+  Box(
+    modifier =
+      modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+    contentAlignment = Alignment.Center,
+  ) {
+    Text(
+      text = initials,
+      style = MaterialTheme.typography.labelLarge,
+      color = MaterialTheme.colorScheme.onPrimaryContainer,
+    )
   }
 }
 
@@ -114,9 +170,9 @@ fun IdentifierTypeListItemRow(
   val showIcon = isSelected || isRequired
   val background =
     if (isSelected) {
-      colorResource(id = R.color.selected_item_background)
+      OpenMrsTheme.colors.highlightContainer
     } else {
-      colorResource(id = R.color.white)
+      MaterialTheme.colorScheme.surface
     }
 
   Surface(
@@ -180,9 +236,9 @@ fun LocationListItemRow(
 ) {
   val backgroundColor =
     if (isSelected) {
-      colorResource(id = R.color.selected_item_background)
+      OpenMrsTheme.colors.highlightContainer
     } else {
-      colorResource(id = R.color.white)
+      MaterialTheme.colorScheme.surface
     }
 
   Surface(

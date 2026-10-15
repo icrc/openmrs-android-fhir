@@ -36,7 +36,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
@@ -56,6 +55,7 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.ui.patient.PatientListScreen
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 
@@ -87,7 +87,7 @@ class PatientListFragment : Fragment() {
       ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
     )
     composeView.setContent {
-      MaterialTheme {
+      OpenMrsTheme {
         val uiState by patientListViewModel.uiState.collectAsState()
         PatientListScreen(
           uiState = uiState,

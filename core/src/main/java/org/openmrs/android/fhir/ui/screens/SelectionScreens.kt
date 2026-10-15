@@ -48,16 +48,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -69,9 +65,11 @@ import androidx.compose.ui.unit.sp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.extensions.rememberActionBarContentPadding
+import org.openmrs.android.fhir.ui.components.AppSearchField
 import org.openmrs.android.fhir.ui.components.IdentifierTypeListItemRow
 import org.openmrs.android.fhir.ui.components.LocationListItemRow
 import org.openmrs.android.fhir.ui.components.SelectPatientListItemRow
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 import org.openmrs.android.fhir.viewmodel.SelectPatientListViewModel
 
@@ -94,11 +92,14 @@ fun LocationSelectionScreen(
 ) {
   Box(
     modifier =
-      modifier.fillMaxSize().background(Color(0xFFE8F0FE)).testTag("LocationSelectionScreen"),
+      modifier
+        .fillMaxSize()
+        .background(OpenMrsTheme.colors.highlightContainer)
+        .testTag("LocationSelectionScreen"),
   ) {
     Surface(
       modifier = Modifier.fillMaxSize(),
-      color = colorResource(id = R.color.white),
+      color = MaterialTheme.colorScheme.surface,
     ) {
       Column(modifier = Modifier.fillMaxSize().padding(top = topPadding)) {
         if (showTitle) {
@@ -148,7 +149,7 @@ fun LocationSelectionScreen(
         if (favoriteLocations.isNotEmpty() || locations.isNotEmpty()) {
           Divider(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-            color = colorResource(id = R.color.light_grey),
+            color = MaterialTheme.colorScheme.surface,
           )
         }
 
@@ -174,8 +175,8 @@ fun LocationSelectionScreen(
             modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("LocationActionButton"),
             colors =
               ButtonDefaults.buttonColors(
-                containerColor = colorResource(id = R.color.dashboard_cardview_textcolor),
-                contentColor = Color.White,
+                containerColor = OpenMrsTheme.colors.actionButton,
+                contentColor = OpenMrsTheme.colors.onActionButton,
               ),
             shape = RoundedCornerShape(4.dp),
             onClick = onActionClick,
@@ -191,7 +192,7 @@ fun LocationSelectionScreen(
         modifier = Modifier.fillMaxSize().testTag("LocationLoading"),
         contentAlignment = Alignment.Center,
       ) {
-        CircularProgressIndicator(color = Color(0xFF4285F4))
+        CircularProgressIndicator(color = OpenMrsTheme.colors.progress)
       }
     }
   }
@@ -223,7 +224,7 @@ fun IdentifierSelectionScreen(
         modifier =
           Modifier.fillMaxWidth()
             .weight(1f)
-            .background(colorResource(id = R.color.white))
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 12.dp)
             .testTag("IdentifierList"),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -255,7 +256,7 @@ fun IdentifierSelectionScreen(
         modifier = Modifier.fillMaxSize().testTag("IdentifierLoading"),
         contentAlignment = Alignment.Center,
       ) {
-        CircularProgressIndicator(color = Color(0xFF4285F4))
+        CircularProgressIndicator(color = OpenMrsTheme.colors.progress)
       }
     }
   }
@@ -307,7 +308,7 @@ fun PatientListSelectionScreen(
         modifier =
           Modifier.fillMaxWidth()
             .weight(1f)
-            .background(colorResource(id = R.color.white))
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 12.dp)
             .testTag("PatientListList"),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -332,8 +333,8 @@ fun PatientListSelectionScreen(
           modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("PatientListActionButton"),
           colors =
             ButtonDefaults.buttonColors(
-              containerColor = colorResource(id = R.color.dashboard_cardview_textcolor),
-              contentColor = Color.White,
+              containerColor = OpenMrsTheme.colors.actionButton,
+              contentColor = OpenMrsTheme.colors.onActionButton,
             ),
           shape = RoundedCornerShape(4.dp),
           onClick = onActionClick,
@@ -348,7 +349,7 @@ fun PatientListSelectionScreen(
         modifier = Modifier.fillMaxSize().testTag("PatientListLoading"),
         contentAlignment = Alignment.Center,
       ) {
-        CircularProgressIndicator(color = Color(0xFF4285F4))
+        CircularProgressIndicator(color = OpenMrsTheme.colors.progress)
       }
     }
   }
@@ -361,33 +362,11 @@ private fun SelectionSearchField(
   hintResId: Int,
   modifier: Modifier = Modifier,
 ) {
-  OutlinedTextField(
+  AppSearchField(
     value = value,
     onValueChange = onValueChange,
-    modifier = modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 12.dp),
-    placeholder = {
-      Text(
-        text = stringResource(id = hintResId),
-        style = MaterialTheme.typography.bodyMedium,
-        color = colorResource(id = R.color.outline_neutral_variant_60),
-      )
-    },
-    trailingIcon = {
-      androidx.compose.material3.Icon(
-        painter = painterResource(id = R.drawable.ic_home_search),
-        contentDescription = null,
-        tint = colorResource(id = R.color.outline_neutral_variant_60),
-      )
-    },
-    shape = RoundedCornerShape(8.dp),
-    colors =
-      OutlinedTextFieldDefaults.colors(
-        focusedBorderColor = colorResource(id = R.color.outline_neutral_variant_60),
-        unfocusedBorderColor = colorResource(id = R.color.outline_neutral_variant_60),
-        focusedContainerColor = Color.Transparent,
-        unfocusedContainerColor = Color.Transparent,
-      ),
-    singleLine = true,
+    placeholder = stringResource(id = hintResId),
+    modifier = modifier,
   )
 }
 
@@ -409,14 +388,14 @@ private fun SelectionEmptyState(
       modifier = Modifier.size(80.dp),
       painter = painterResource(id = iconResId),
       contentDescription = null,
-      tint = colorResource(id = R.color.dashboard_cardview_textcolor),
+      tint = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     Text(
       modifier = Modifier.padding(top = 8.dp),
       text = stringResource(id = messageResId),
       fontSize = 16.sp,
       fontStyle = FontStyle.Italic,
-      color = colorResource(id = R.color.black),
+      color = MaterialTheme.colorScheme.onSurface,
       maxLines = 2,
       overflow = TextOverflow.Ellipsis,
     )

@@ -29,6 +29,8 @@
 package org.openmrs.android.fhir.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,8 +39,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -58,8 +62,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -69,6 +75,23 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.viewmodel.LoginUiState
+
+/** The logo artwork has dark lettering, so in dark mode it sits on a white plate. */
+@Composable
+private fun OpenMrsLogo(modifier: Modifier = Modifier) {
+  val plate =
+    if (isSystemInDarkTheme()) {
+      Modifier.clip(RoundedCornerShape(16.dp)).background(Color.White).padding(horizontal = 12.dp)
+    } else {
+      Modifier
+    }
+  Image(
+    painter = painterResource(id = R.drawable.openmrs_logo),
+    contentDescription = null,
+    contentScale = ContentScale.Fit,
+    modifier = modifier.then(plate),
+  )
+}
 
 @Composable
 fun LoginScreen(
@@ -82,11 +105,7 @@ fun LoginScreen(
       horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.Center,
     ) {
-      Image(
-        painter = painterResource(id = R.drawable.openmrs_logo),
-        contentDescription = null,
-        modifier = Modifier.width(300.dp).height(140.dp).testTag("LoginLogo"),
-      )
+      OpenMrsLogo(modifier = Modifier.width(300.dp).height(140.dp).testTag("LoginLogo"))
       Spacer(modifier = Modifier.height(100.dp))
       Button(
         onClick = onLoginClick,
@@ -109,7 +128,8 @@ fun BasicLoginScreen(
   var password by remember { mutableStateOf("") }
   var isPasswordVisible by remember { mutableStateOf(false) }
   Column(
-    modifier = modifier.fillMaxSize().padding(20.dp).testTag("BasicLoginScreen"),
+    modifier =
+      modifier.fillMaxSize().statusBarsPadding().padding(20.dp).testTag("BasicLoginScreen"),
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     if (uiState is LoginUiState.Loading) {
@@ -120,11 +140,7 @@ fun BasicLoginScreen(
       Spacer(modifier = Modifier.height(4.dp))
     }
     Spacer(modifier = Modifier.height(200.dp))
-    Image(
-      painter = painterResource(id = R.drawable.openmrs_logo),
-      contentDescription = null,
-      modifier = Modifier.fillMaxWidth().testTag("BasicLoginLogo"),
-    )
+    OpenMrsLogo(modifier = Modifier.fillMaxWidth().height(120.dp).testTag("BasicLoginLogo"))
     Spacer(modifier = Modifier.height(16.dp))
     OutlinedTextField(
       value = username,
@@ -190,7 +206,7 @@ fun SplashScreen(
         Text(
           text = statusText,
           style = MaterialTheme.typography.bodyMedium,
-          color = colorResource(id = R.color.black),
+          color = MaterialTheme.colorScheme.onSurface,
           modifier = Modifier.testTag("SplashStatusText"),
         )
       }

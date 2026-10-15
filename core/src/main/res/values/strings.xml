@@ -580,4 +580,12 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="discard_changes_keep_editing"
     >Keep editing</string>
+    <string name="age_years_short">%d y</string>
+    <string name="age_months_short">%d mo</string>
+    <string name="age_days_short">%d d</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_patients">Patients</string>
+    <string name="nav_group_session">Group</string>
+    <string name="nav_sync">Sync</string>
+    <string name="clear_search">Clear search</string>
 </resources>

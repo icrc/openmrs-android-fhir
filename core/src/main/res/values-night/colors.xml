@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+    <!-- OpenMRS 3 palette, dark -->
+    <color name="o3_primary">#08BDBA</color>
+    <color name="o3_on_primary">#003A3A</color>
+    <color name="o3_primary_container">#005D5D</color>
+    <color name="o3_on_primary_container">#D9FBFB</color>
+    <color name="o3_secondary">#3DDBD9</color>
+    <color name="o3_surface">#262626</color>
+    <color name="o3_on_surface">#F4F4F4</color>
+    <color name="o3_surface_variant">#393939</color>
+    <color name="o3_on_surface_variant">#C6C6C6</color>
+    <color name="o3_outline">#8D8D8D</color>
+    <color name="o3_background">#161616</color>
+</resources>

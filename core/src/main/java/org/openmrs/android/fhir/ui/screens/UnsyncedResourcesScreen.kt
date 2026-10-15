@@ -48,6 +48,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -57,10 +58,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -72,6 +71,7 @@ import org.openmrs.android.fhir.extensions.rememberActionBarContentPadding
 import org.openmrs.android.fhir.ui.components.UnsyncedEncounterRow
 import org.openmrs.android.fhir.ui.components.UnsyncedObservationRow
 import org.openmrs.android.fhir.ui.components.UnsyncedPatientRow
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
 object UnsyncedResourcesTestTags {
   const val Screen = "UnsyncedResourcesScreen"
@@ -115,8 +115,7 @@ fun UnsyncedResourcesScreen(
               Image(
                 modifier = Modifier.size(80.dp),
                 painter = painterResource(id = R.drawable.ic_baseline_sync_24),
-                colorFilter =
-                  ColorFilter.tint(colorResource(id = R.color.dashboard_cardview_textcolor)),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
                 contentDescription = stringResource(id = R.string.empty_state_icon),
               )
               Spacer(modifier = Modifier.height(8.dp))
@@ -125,7 +124,7 @@ fun UnsyncedResourcesScreen(
                 text = stringResource(id = R.string.no_unsynced_resources_available),
                 fontSize = 16.sp,
                 fontStyle = FontStyle.Italic,
-                color = colorResource(id = R.color.black),
+                color = MaterialTheme.colorScheme.onSurface,
               )
             }
           }
@@ -134,7 +133,7 @@ fun UnsyncedResourcesScreen(
           if (isLoading) {
             LinearProgressIndicator(
               modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-              color = Color(0xFF4285F4),
+              color = OpenMrsTheme.colors.progress,
             )
           }
           LazyColumn(
@@ -184,8 +183,8 @@ fun UnsyncedResourcesScreen(
           onClick = { showDeleteAllDialog = true },
           colors =
             ButtonDefaults.buttonColors(
-              containerColor = colorResource(id = R.color.dashboard_cardview_textcolor),
-              contentColor = Color.White,
+              containerColor = OpenMrsTheme.colors.actionButton,
+              contentColor = OpenMrsTheme.colors.onActionButton,
             ),
         ) {
           Text(text = stringResource(id = R.string.delete_all), fontSize = 12.sp)
@@ -196,8 +195,8 @@ fun UnsyncedResourcesScreen(
           onClick = onDownloadAll,
           colors =
             ButtonDefaults.buttonColors(
-              containerColor = colorResource(id = R.color.dashboard_cardview_textcolor),
-              contentColor = Color.White,
+              containerColor = OpenMrsTheme.colors.actionButton,
+              contentColor = OpenMrsTheme.colors.onActionButton,
             ),
         ) {
           Text(text = stringResource(id = R.string.download_all), fontSize = 12.sp)
@@ -209,7 +208,7 @@ fun UnsyncedResourcesScreen(
       Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         CircularProgressIndicator(
           modifier = Modifier.testTag(UnsyncedResourcesTestTags.LoadingIndicator),
-          color = Color(0xFF4285F4),
+          color = OpenMrsTheme.colors.progress,
         )
       }
     }

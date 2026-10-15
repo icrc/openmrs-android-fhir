@@ -34,7 +34,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.fragment.app.Fragment
@@ -49,6 +48,7 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.ui.screens.IdentifierSelectionScreen
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.IdentifierSelectionViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
@@ -72,7 +72,7 @@ class IdentifierFragment : Fragment() {
     savedInstanceState: Bundle?,
   ): View {
     return composeView {
-      MaterialTheme {
+      OpenMrsTheme {
         val uiState by identifierSelectionViewModel.uiState.collectAsStateWithLifecycle()
         val filteredIdentifiers =
           remember(uiState.identifierTypes, uiState.query) {

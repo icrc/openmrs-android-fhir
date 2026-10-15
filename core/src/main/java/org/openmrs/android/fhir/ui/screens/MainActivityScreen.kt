@@ -72,7 +72,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -84,6 +83,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.ui.components.DrawerHeader
 import org.openmrs.android.fhir.ui.components.NetworkStatusBanner
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
 @Stable
 data class DrawerItem(
@@ -125,7 +125,7 @@ fun DrawerContent(
   Column(
     modifier =
       modifier
-        .background(colorResource(id = R.color.white))
+        .background(MaterialTheme.colorScheme.surface)
         .verticalScroll(rememberScrollState())
         .padding(bottom = 16.dp),
   ) {
@@ -186,7 +186,7 @@ private fun IconResource(@DrawableRes iconRes: Int) {
 private fun ToolbarHost(onToolbarReady: (MaterialToolbar) -> Unit) {
   val context = LocalContext.current
   val toolbarState: MutableState<MaterialToolbar?> = remember { mutableStateOf(null) }
-  val toolbarColor = colorResource(id = R.color.white)
+  val toolbarColor = MaterialTheme.colorScheme.surface
   AndroidView(
     modifier = Modifier.fillMaxWidth().testTag("MainToolbar"),
     factory = {
@@ -225,15 +225,15 @@ private fun SyncTasksOverlay(
   Box(
     modifier =
       Modifier.fillMaxSize()
-        .background(colorResource(id = R.color.primaryContainer_blue_90))
+        .background(MaterialTheme.colorScheme.primaryContainer)
         .testTag("SyncTasksOverlay"),
     contentAlignment = Alignment.Center,
   ) {
     Card(
       modifier = Modifier.padding(24.dp),
       shape = MaterialTheme.shapes.large,
-      border = BorderStroke(1.dp, Color(0xFFE0E7FF)),
-      colors = CardDefaults.cardColors(containerColor = Color.White),
+      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
       Column(
         modifier = Modifier.padding(32.dp),
@@ -242,15 +242,15 @@ private fun SyncTasksOverlay(
         Text(
           text = headerText,
           fontSize = 18.sp,
-          color = Color(0xFF666666),
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
           textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(8.dp))
         LinearProgressIndicator(
           progress = { progressFraction },
           modifier = Modifier.fillMaxWidth().height(4.dp),
-          color = Color(0xFF1976D2),
-          trackColor = Color(0xFFE0E0E0),
+          color = OpenMrsTheme.colors.progress,
+          trackColor = MaterialTheme.colorScheme.surfaceVariant,
           strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
         )
         Spacer(modifier = Modifier.height(32.dp))
@@ -258,7 +258,7 @@ private fun SyncTasksOverlay(
           text = stringResource(id = R.string.syncing_resources),
           fontSize = 32.sp,
           fontWeight = FontWeight.Bold,
-          color = Color(0xFF333333),
+          color = MaterialTheme.colorScheme.onSurface,
           textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -268,7 +268,7 @@ private fun SyncTasksOverlay(
               id = R.string.this_can_take_up_to_10_minutes_depending_on_your_internet_connection,
             ),
           fontSize = 16.sp,
-          color = Color(0xFF666666),
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
           textAlign = TextAlign.Center,
         )
         Spacer(modifier = Modifier.height(32.dp))
@@ -294,8 +294,8 @@ private fun SyncTasksOverlay(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             colors =
               ButtonDefaults.buttonColors(
-                containerColor = colorResource(id = R.color.dashboard_cardview_textcolor),
-                contentColor = Color.White,
+                containerColor = OpenMrsTheme.colors.actionButton,
+                contentColor = OpenMrsTheme.colors.onActionButton,
               ),
             shape = MaterialTheme.shapes.extraSmall,
             contentPadding = PaddingValues(vertical = 12.dp),
@@ -317,7 +317,7 @@ private fun SyncChecklistItem(text: String) {
       modifier = Modifier.size(24.dp),
     )
     Spacer(modifier = Modifier.width(16.dp))
-    Text(text = text, fontSize = 16.sp, color = Color(0xFF333333))
+    Text(text = text, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
   }
 }
 
@@ -325,10 +325,10 @@ private fun SyncChecklistItem(text: String) {
 private fun LoadingOverlay() {
   Surface(
     modifier = Modifier.fillMaxSize().testTag("MainLoadingOverlay"),
-    color = Color.White,
+    color = MaterialTheme.colorScheme.surface,
   ) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-      androidx.compose.material3.CircularProgressIndicator(color = Color(0xFF4285F4))
+      androidx.compose.material3.CircularProgressIndicator(color = OpenMrsTheme.colors.progress)
     }
   }
 }

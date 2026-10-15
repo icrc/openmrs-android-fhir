@@ -35,7 +35,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
@@ -65,6 +64,7 @@ import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.ui.screens.PatientListSelectionScreen
 import org.openmrs.android.fhir.ui.screens.selectionScreenContentPadding
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.SelectPatientListViewModel
 
@@ -92,7 +92,7 @@ class SelectPatientListFragment : Fragment() {
     savedInstanceState: Bundle?,
   ): View {
     return composeView {
-      MaterialTheme {
+      OpenMrsTheme {
         val patientLists by
           selectPatientListViewModel.selectPatientListItems.observeAsState(emptyList())
         val uiState by selectPatientListViewModel.uiState.collectAsStateWithLifecycle()

@@ -32,6 +32,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.VisibleForTesting
@@ -58,6 +59,7 @@ import org.openmrs.android.fhir.extensions.AuthDialogs
 import org.openmrs.android.fhir.extensions.BiometricPromptHelper
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.ui.screens.BasicLoginScreen
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.BasicLoginActivityViewModel
 import org.openmrs.android.fhir.viewmodel.LoginUiState
 
@@ -86,49 +88,52 @@ class BasicLoginActivity : AppCompatActivity() {
     }
 
   override fun onCreate(savedInstanceState: Bundle?) {
+    enableEdgeToEdge()
     super.onCreate(savedInstanceState)
     (application as FhirApplication).appComponent.inject(this)
     setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "basic_login") {
-        composable("basic_login") {
-          BasicLoginScreen(
-            uiState = loginUiState,
-            onLoginClick = { username, password -> viewModel.login(username, password) },
+      OpenMrsTheme {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "basic_login") {
+          composable("basic_login") {
+            BasicLoginScreen(
+              uiState = loginUiState,
+              onLoginClick = { username, password -> viewModel.login(username, password) },
+            )
+          }
+        }
+        LaunchedEffect(loginUiState) {
+          when (loginUiState) {
+            is LoginUiState.Failure ->
+              showToastMessage(getString((loginUiState as LoginUiState.Failure).resId))
+            is LoginUiState.LockedOut -> showToastMessage(getString(R.string.locked_out_message))
+            is LoginUiState.Success ->
+              AuthDialogs.showOfflineLoginOptIn(
+                activity = this@BasicLoginActivity,
+                onProceedWithBiometric = { promptBiometricEncryption() },
+                navigateToMain = { navigateToMain() },
+              )
+            else -> Unit
+          }
+        }
+        val dialogConfig = dialogStateForTest.value
+        if (dialogConfig != null) {
+          androidx.compose.material3.AlertDialog(
+            onDismissRequest = dialogConfig.onDismiss,
+            confirmButton = {
+              androidx.compose.material3.TextButton(onClick = dialogConfig.onConfirm) {
+                androidx.compose.material3.Text(text = dialogConfig.positiveText.toString())
+              }
+            },
+            dismissButton = {
+              androidx.compose.material3.TextButton(onClick = dialogConfig.onDismiss) {
+                androidx.compose.material3.Text(text = dialogConfig.negativeText.toString())
+              }
+            },
+            title = { androidx.compose.material3.Text(text = dialogConfig.title.toString()) },
+            text = { androidx.compose.material3.Text(text = dialogConfig.message.toString()) },
           )
         }
-      }
-      LaunchedEffect(loginUiState) {
-        when (loginUiState) {
-          is LoginUiState.Failure ->
-            showToastMessage(getString((loginUiState as LoginUiState.Failure).resId))
-          is LoginUiState.LockedOut -> showToastMessage(getString(R.string.locked_out_message))
-          is LoginUiState.Success ->
-            AuthDialogs.showOfflineLoginOptIn(
-              activity = this@BasicLoginActivity,
-              onProceedWithBiometric = { promptBiometricEncryption() },
-              navigateToMain = { navigateToMain() },
-            )
-          else -> Unit
-        }
-      }
-      val dialogConfig = dialogStateForTest.value
-      if (dialogConfig != null) {
-        androidx.compose.material3.AlertDialog(
-          onDismissRequest = dialogConfig.onDismiss,
-          confirmButton = {
-            androidx.compose.material3.TextButton(onClick = dialogConfig.onConfirm) {
-              androidx.compose.material3.Text(text = dialogConfig.positiveText.toString())
-            }
-          },
-          dismissButton = {
-            androidx.compose.material3.TextButton(onClick = dialogConfig.onDismiss) {
-              androidx.compose.material3.Text(text = dialogConfig.negativeText.toString())
-            }
-          },
-          title = { androidx.compose.material3.Text(text = dialogConfig.title.toString()) },
-          text = { androidx.compose.material3.Text(text = dialogConfig.message.toString()) },
-        )
       }
     }
 

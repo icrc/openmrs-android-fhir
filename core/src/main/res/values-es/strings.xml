@@ -619,4 +619,12 @@
     <string
         name="discard_changes_keep_editing"
     >Seguir editando</string>
+    <string name="age_years_short">%d a</string>
+    <string name="age_months_short">%d m</string>
+    <string name="age_days_short">%d d</string>
+    <string name="nav_home">Inicio</string>
+    <string name="nav_patients">Pacientes</string>
+    <string name="nav_group_session">Grupo</string>
+    <string name="nav_sync">Sincronizar</string>
+    <string name="clear_search">Borrar búsqueda</string>
 </resources>

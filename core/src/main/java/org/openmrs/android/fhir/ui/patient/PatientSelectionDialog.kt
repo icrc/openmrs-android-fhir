@@ -51,14 +51,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 
 @Composable
@@ -78,11 +77,10 @@ fun PatientSelectionDialogContent(
 
   val buttonColors =
     ButtonDefaults.buttonColors(
-      containerColor = colorResource(id = R.color.dashboard_cardview_textcolor),
-      disabledContainerColor =
-        colorResource(id = R.color.dashboard_cardview_textcolor).copy(alpha = 0.38f),
-      contentColor = Color.White,
-      disabledContentColor = Color.White.copy(alpha = 0.38f),
+      containerColor = OpenMrsTheme.colors.actionButton,
+      disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
+      contentColor = OpenMrsTheme.colors.onActionButton,
+      disabledContentColor = OpenMrsTheme.colors.onActionButton.copy(alpha = 0.38f),
     )
 
   Surface(modifier = modifier.fillMaxWidth().testTag("PatientSelectionDialog")) {

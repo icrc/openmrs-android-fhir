@@ -39,6 +39,7 @@ import android.os.Looper
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
@@ -49,7 +50,10 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.FileProvider
 import androidx.core.view.GravityCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.datastore.preferences.core.edit
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Lifecycle
@@ -58,6 +62,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
@@ -67,6 +72,7 @@ import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -86,6 +92,7 @@ import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.extensions.AppBarInsets
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.extensions.PermissionHelper
@@ -95,10 +102,15 @@ import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
 import org.openmrs.android.fhir.extensions.getApplicationLogs
 import org.openmrs.android.fhir.extensions.saveToFile
 import org.openmrs.android.fhir.extensions.showSnackBar
+import org.openmrs.android.fhir.fragments.CreateEncountersFragmentArgs
+import org.openmrs.android.fhir.ui.components.MainBottomBar
+import org.openmrs.android.fhir.ui.components.TopLevelDestination
+import org.openmrs.android.fhir.ui.components.topLevelDestinationFor
 import org.openmrs.android.fhir.ui.screens.DrawerContent
 import org.openmrs.android.fhir.ui.screens.DrawerItem
 import org.openmrs.android.fhir.ui.screens.MainActivityOverlays
 import org.openmrs.android.fhir.ui.screens.MainActivityScaffold
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
 import timber.log.Timber
@@ -133,8 +145,11 @@ class MainActivity : AppCompatActivity() {
   private var drawerLayout: DrawerLayout? = null
   private var toolbar: MaterialToolbar? = null
   private var overlayComposeView: ComposeView? = null
+  private val bottomBarSelection = MutableStateFlow<TopLevelDestination?>(null)
 
   override fun onCreate(savedInstanceState: Bundle?) {
+    // Same window mode on every API level: the compose app bar already pads for the status bar.
+    enableEdgeToEdge()
     super.onCreate(savedInstanceState)
     Thread.setDefaultUncaughtExceptionHandler(
       UncaughtExceptionHandler(this, Thread.getDefaultUncaughtExceptionHandler()),
@@ -148,42 +163,74 @@ class MainActivity : AppCompatActivity() {
     setContentView(R.layout.activity_main)
     ensureNavHost(navHostFragmentId)
     drawerLayout = findViewById(R.id.drawer)
+    // Edge-to-edge: keep the screens and the bottom bar clear of the navigation bar and keyboard.
+    findViewById<View>(R.id.main_content_container).let { content ->
+      ViewCompat.setOnApplyWindowInsetsListener(content) { view, insets ->
+        val bottom =
+          insets
+            .getInsets(WindowInsetsCompat.Type.navigationBars() or WindowInsetsCompat.Type.ime())
+            .bottom
+        view.updatePadding(bottom = bottom)
+        insets
+      }
+    }
     findViewById<ComposeView>(R.id.top_bar_compose_container).setContent {
-      val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-      MainActivityScaffold(
-        networkStatusText = uiState.networkStatusText,
-        isNetworkStatusVisible = uiState.isNetworkStatusVisible,
-        onToolbarReady = ::configureToolbar,
-      )
+      OpenMrsTheme {
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        MainActivityScaffold(
+          networkStatusText = uiState.networkStatusText,
+          isNetworkStatusVisible = uiState.isNetworkStatusVisible,
+          onToolbarReady = ::configureToolbar,
+        )
+      }
     }
     findViewById<ComposeView>(R.id.drawer_compose_container).setContent {
-      val activityContext = LocalContext.current
-      val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-      val drawerItems =
-        androidx.compose.runtime.remember(uiState.locationMenuTitle, uiState.versionMenuTitle) {
-          buildDrawerItems(
-            activityContext,
-            uiState.locationMenuTitle,
-            uiState.versionMenuTitle,
+      OpenMrsTheme {
+        val activityContext = LocalContext.current
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        val drawerItems =
+          androidx.compose.runtime.remember(uiState.locationMenuTitle, uiState.versionMenuTitle) {
+            buildDrawerItems(
+              activityContext,
+              uiState.locationMenuTitle,
+              uiState.versionMenuTitle,
+            )
+          }
+        DrawerContent(
+          lastSyncText = uiState.lastSyncText,
+          drawerItems = drawerItems,
+          onDrawerItemSelected = ::onNavigationItemSelected,
+        )
+      }
+    }
+    findViewById<ComposeView>(R.id.bottom_bar_compose_container).setContent {
+      OpenMrsTheme {
+        val selected by bottomBarSelection.collectAsStateWithLifecycle()
+        selected?.let { MainBottomBar(selected = it, onDestinationSelected = ::onTopLevelSelected) }
+      }
+    }
+    lifecycleScope.launch {
+      waitForNavController()?.addOnDestinationChangedListener { _, destination, arguments ->
+        bottomBarSelection.value =
+          topLevelDestinationFor(
+            destinationId = destination.id,
+            isGroupEncounter = arguments?.getBoolean("is_group_encounter", false) == true,
           )
-        }
-      DrawerContent(
-        lastSyncText = uiState.lastSyncText,
-        drawerItems = drawerItems,
-        onDrawerItemSelected = ::onNavigationItemSelected,
-      )
+      }
     }
     overlayComposeView = findViewById(R.id.overlay_compose_container)
     overlayComposeView?.setContent {
-      val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-      MainActivityOverlays(
-        isSyncTasksVisible = uiState.isSyncTasksVisible,
-        syncProgressState = uiState.syncProgressState,
-        syncHeaderText = uiState.syncHeaderText,
-        showSyncCloseButton = uiState.showSyncCloseButton,
-        onCloseSyncTasks = ::hideSyncTasksScreen,
-        isLoading = uiState.loading,
-      )
+      OpenMrsTheme {
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        MainActivityOverlays(
+          isSyncTasksVisible = uiState.isSyncTasksVisible,
+          syncProgressState = uiState.syncProgressState,
+          syncHeaderText = uiState.syncHeaderText,
+          showSyncCloseButton = uiState.showSyncCloseButton,
+          onCloseSyncTasks = ::hideSyncTasksScreen,
+          isLoading = uiState.loading,
+        )
+      }
     }
     updateOverlayVisibility()
     registerBackHandler()
@@ -197,8 +244,11 @@ class MainActivity : AppCompatActivity() {
           .distinctUntilChanged()
           .collect { enabled ->
             drawerLayout?.setDrawerLockMode(
-              if (enabled) DrawerLayout.LOCK_MODE_UNLOCKED
-              else DrawerLayout.LOCK_MODE_LOCKED_CLOSED,
+              if (enabled) {
+                DrawerLayout.LOCK_MODE_UNLOCKED
+              } else {
+                DrawerLayout.LOCK_MODE_LOCKED_CLOSED
+              },
               GravityCompat.START,
             )
             updateToolbarNavigationIcon()
@@ -315,6 +365,13 @@ class MainActivity : AppCompatActivity() {
       return
     }
     this.toolbar = toolbar
+    // The drawer lays its overlay out full height, so the toolbar's own bottom edge is the real
+    // height of the app bar that screens have to pad for.
+    toolbar.addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
+      val location = IntArray(2)
+      view.getLocationInWindow(location)
+      AppBarInsets.heightPx.value = location[1] + view.height
+    }
     setSupportActionBar(toolbar)
     updateToolbarNavigationIcon()
     toolbar.setNavigationOnClickListener {
@@ -323,6 +380,23 @@ class MainActivity : AppCompatActivity() {
       } else {
         onBackPressedDispatcher.onBackPressed()
       }
+    }
+  }
+
+  private fun onTopLevelSelected(destination: TopLevelDestination) {
+    val navController = getNavController() ?: return
+    if (destination == bottomBarSelection.value) return
+    val options =
+      NavOptions.Builder().setLaunchSingleTop(true).setPopUpTo(R.id.home_fragment, false).build()
+    when (destination) {
+      TopLevelDestination.Home -> navController.popBackStack(R.id.home_fragment, false)
+      TopLevelDestination.GroupSession ->
+        navController.navigate(
+          destination.destinationId,
+          CreateEncountersFragmentArgs(patientId = "", isGroupEncounter = true).toBundle(),
+          options,
+        )
+      else -> navController.navigate(destination.destinationId, null, options)
     }
   }
 

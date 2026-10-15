@@ -35,7 +35,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
@@ -43,6 +43,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
@@ -51,6 +52,7 @@ import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.ui.screens.HomeScreen
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.HomeEvent
 import org.openmrs.android.fhir.viewmodel.HomeViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
@@ -73,8 +75,11 @@ class HomeFragment : Fragment() {
       ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
     )
     composeView.setContent {
-      MaterialTheme {
+      OpenMrsTheme {
+        val activityState by mainActivityViewModel.uiState.collectAsStateWithLifecycle()
         HomeScreen(
+          locationName = activityState.locationMenuTitle,
+          lastSyncText = activityState.lastSyncText,
           onNewPatientClicked = homeViewModel::onNewPatientClicked,
           onPatientListClicked = homeViewModel::onPatientListClicked,
           onCustomPatientListClicked = homeViewModel::onCustomPatientListClicked,

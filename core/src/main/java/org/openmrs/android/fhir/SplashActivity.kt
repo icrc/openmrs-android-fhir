@@ -63,6 +63,7 @@ import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.ui.screens.SplashScreen
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
 class SplashActivity : AppCompatActivity() {
   companion object {
@@ -98,10 +99,12 @@ class SplashActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
     setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "splash") {
-        composable("splash") {
-          SplashScreen(isProgressVisible = isProgressVisible, statusText = statusText)
+      OpenMrsTheme {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "splash") {
+          composable("splash") {
+            SplashScreen(isProgressVisible = isProgressVisible, statusText = statusText)
+          }
         }
       }
     }

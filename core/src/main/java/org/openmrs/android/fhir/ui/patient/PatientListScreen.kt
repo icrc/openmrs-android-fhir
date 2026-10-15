@@ -34,17 +34,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -62,6 +58,7 @@ import java.time.LocalDate
 import java.time.Period
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.extensions.rememberActionBarContentPadding
+import org.openmrs.android.fhir.ui.components.AppSearchField
 import org.openmrs.android.fhir.ui.components.PatientListContainerScreen
 import org.openmrs.android.fhir.ui.components.PatientListItemRow
 import org.openmrs.android.fhir.viewmodel.PatientListUiState
@@ -85,7 +82,7 @@ fun PatientListScreen(
   modifier: Modifier = Modifier,
 ) {
   val contentPadding = rememberActionBarContentPadding()
-  val surfaceColor = colorResource(id = R.color.white)
+  val surfaceColor = MaterialTheme.colorScheme.surface
   Box(modifier = modifier.fillMaxSize().background(surfaceColor)) {
     Scaffold(
       modifier = Modifier.fillMaxSize(),
@@ -96,8 +93,8 @@ fun PatientListScreen(
           onClick = onFabClick,
           icon = { Icon(imageVector = Icons.Default.Add, contentDescription = null) },
           text = { Text(text = stringResource(id = R.string.register_patient)) },
-          containerColor = colorResource(id = R.color.surfaceVariant_neutral_variant_30),
-          contentColor = surfaceColor,
+          containerColor = MaterialTheme.colorScheme.primary,
+          contentColor = MaterialTheme.colorScheme.onPrimary,
         )
       },
     ) { paddingValues ->
@@ -123,8 +120,9 @@ fun PatientListScreen(
         ) { patient ->
           PatientListItemRow(
             name = patient.name,
-            ageGenderLabel = "${getFormattedAge(patient)},${patient.gender[0].uppercase()}",
+            ageGenderLabel = formatAgeGender(patient),
             isSynced = patient.isSynced,
+            identifier = patient.displayIdentifier(),
             onClick = { onPatientClick(patient) },
           )
         }
@@ -139,35 +137,11 @@ private fun PatientSearchField(
   onQueryChange: (String) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  val outlineColor = colorResource(id = R.color.outline_neutral_variant_60)
-  val surfaceColor = colorResource(id = R.color.white)
-  OutlinedTextField(
+  AppSearchField(
     value = query,
     onValueChange = onQueryChange,
-    modifier =
-      modifier
-        .fillMaxWidth()
-        .padding(horizontal = 12.dp, vertical = 12.dp)
-        .testTag(PatientListScreenTestTags.SearchField),
-    label = { Text(text = stringResource(id = R.string.query_hint_patient_search)) },
-    trailingIcon = {
-      Icon(
-        painter = painterResource(id = R.drawable.ic_home_search),
-        contentDescription = null,
-        tint = outlineColor,
-      )
-    },
-    singleLine = true,
-    shape = RoundedCornerShape(4.dp),
-    colors =
-      OutlinedTextFieldDefaults.colors(
-        unfocusedBorderColor = outlineColor,
-        focusedBorderColor = outlineColor,
-        unfocusedLabelColor = outlineColor,
-        focusedLabelColor = outlineColor,
-        focusedContainerColor = surfaceColor,
-        unfocusedContainerColor = surfaceColor,
-      ),
+    placeholder = stringResource(id = R.string.query_hint_patient_search),
+    modifier = modifier.testTag(PatientListScreenTestTags.SearchField),
   )
 }
 
@@ -185,7 +159,7 @@ private fun PatientListEmptyState(
         modifier = Modifier.size(80.dp),
         painter = painterResource(id = R.drawable.ic_home_new_patient),
         contentDescription = null,
-        colorFilter = ColorFilter.tint(colorResource(id = R.color.dashboard_cardview_textcolor)),
+        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
       )
       Spacer(modifier = Modifier.height(8.dp))
       Text(
@@ -194,7 +168,7 @@ private fun PatientListEmptyState(
           stringResource(
             id = R.string.no_patients_available_register_a_new_one_using_the_button_below,
           ),
-        color = colorResource(id = R.color.black),
+        color = MaterialTheme.colorScheme.onSurface,
         fontSize = 16.sp,
         fontStyle = FontStyle.Italic,
       )
@@ -202,15 +176,22 @@ private fun PatientListEmptyState(
   }
 }
 
-private fun getFormattedAge(
-  patientItem: PatientListViewModel.PatientItem,
-): String {
-  if (patientItem.dob == null) return ""
-  return Period.between(patientItem.dob, LocalDate.now()).let {
-    when {
-      it.years > 0 -> it.years.toString()
-      it.months > 0 -> it.months.toString() + " months"
-      else -> it.days.toString() + " months"
+/** First real identifier of the patient; the "unsynced" marker used while syncing is skipped. */
+internal fun PatientListViewModel.PatientItem.displayIdentifier(): String? =
+  identifiers.map { it.value }.firstOrNull { !it.isNullOrBlank() && it != "unsynced" }
+
+/** "34 y, F" style label. Safe for patients with no birth date and/or no gender. */
+@Composable
+private fun formatAgeGender(patientItem: PatientListViewModel.PatientItem): String {
+  val age =
+    patientItem.dob?.let { dob ->
+      val period = Period.between(dob, LocalDate.now())
+      when {
+        period.years > 0 -> stringResource(R.string.age_years_short, period.years)
+        period.months > 0 -> stringResource(R.string.age_months_short, period.months)
+        else -> stringResource(R.string.age_days_short, period.days.coerceAtLeast(0))
+      }
     }
-  }
+  val gender = patientItem.gender.firstOrNull()?.uppercase()
+  return listOfNotNull(age, gender).joinToString(", ")
 }

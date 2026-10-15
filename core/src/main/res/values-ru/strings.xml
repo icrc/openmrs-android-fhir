@@ -638,4 +638,12 @@
     <string
         name="discard_changes_keep_editing"
     >Продолжить редактирование</string>
+    <string name="age_years_short">%d л.</string>
+    <string name="age_months_short">%d мес.</string>
+    <string name="age_days_short">%d дн.</string>
+    <string name="nav_home">Главная</string>
+    <string name="nav_patients">Пациенты</string>
+    <string name="nav_group_session">Группа</string>
+    <string name="nav_sync">Синхр.</string>
+    <string name="clear_search">Очистить поиск</string>
 </resources>

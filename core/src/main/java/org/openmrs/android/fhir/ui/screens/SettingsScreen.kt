@@ -61,11 +61,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.SettingsUiState
 
 object SettingsDefaults {
@@ -103,12 +103,12 @@ fun SettingsScreen(
   val switchPadding = dimensionResource(R.dimen.patient_count_start_margin)
   val bottomPadding = 16.dp
   val topContentPadding = topPadding + 24.dp
-  val greyButtonColor = colorResource(R.color.dashboard_cardview_textcolor)
-  val greyButtonContent = colorResource(R.color.white)
-  val greySwitchThumbChecked = colorResource(R.color.dashboard_cardview_textcolor)
-  val greySwitchThumbUnchecked = colorResource(R.color.default_item_border)
-  val greySwitchTrackChecked = colorResource(R.color.default_item_border)
-  val greySwitchTrackUnchecked = colorResource(R.color.light_grey)
+  val greyButtonColor = OpenMrsTheme.colors.actionButton
+  val greyButtonContent = OpenMrsTheme.colors.onActionButton
+  val greySwitchThumbChecked = OpenMrsTheme.colors.actionButton
+  val greySwitchThumbUnchecked = MaterialTheme.colorScheme.outlineVariant
+  val greySwitchTrackChecked = MaterialTheme.colorScheme.outlineVariant
+  val greySwitchTrackUnchecked = MaterialTheme.colorScheme.surfaceVariant
 
   Box(modifier = modifier.fillMaxSize()) {
     Column(

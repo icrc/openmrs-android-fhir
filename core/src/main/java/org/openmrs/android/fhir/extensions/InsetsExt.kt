@@ -35,11 +35,14 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.MutableStateFlow
 
 fun Context.resolveActionBarHeightPx(): Int {
   val typedValue = TypedValue()
@@ -53,26 +56,36 @@ fun Context.resolveActionBarHeightPx(): Int {
   }
 }
 
-@Composable
-fun statusBarAndActionBarTopInset(): Dp {
-  val context = LocalContext.current
-  val density = LocalDensity.current
-  val actionBarHeightPx = remember { context.resolveActionBarHeightPx() }
-  val actionBarHeightDp = with(density) { actionBarHeightPx.toDp() }
-  return WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + actionBarHeightDp + 16.dp
+/**
+ * Bottom edge, in pixels, of the app bar overlay (status bar + network banner + toolbar). Published
+ * by the main activity so screens drawn under the bar can pad by what is really there instead of
+ * assuming a toolbar height.
+ */
+object AppBarInsets {
+  val heightPx = MutableStateFlow(0)
 }
 
+/** Height of the app bar overlay; falls back to status bar + toolbar until it is measured. */
+@Composable
+fun rememberAppBarHeight(): Dp {
+  val context = LocalContext.current
+  val density = LocalDensity.current
+  val measuredPx by AppBarInsets.heightPx.collectAsState()
+  val actionBarHeightPx = remember { context.resolveActionBarHeightPx() }
+  val fallback =
+    WindowInsets.statusBars.asPaddingValues().calculateTopPadding() +
+      with(density) { actionBarHeightPx.toDp() }
+  return if (measuredPx > 0) with(density) { measuredPx.toDp() } else fallback
+}
+
+@Composable fun statusBarAndActionBarTopInset(): Dp = rememberAppBarHeight() + 16.dp
+
 /**
- * Content padding for screens drawn under the app bar: 16dp gutters plus the status bar and action
- * bar heights on top. [extraTop] adds screen specific spacing below the bar.
+ * Content padding for screens drawn under the app bar: 16dp gutters plus the app bar height on top.
+ * [extraTop] adds screen specific spacing below the bar.
  */
 @Composable
 fun rememberActionBarContentPadding(extraTop: Dp = 0.dp): PaddingValues {
-  val context = LocalContext.current
-  val density = LocalDensity.current
-  val actionBarHeightPx = remember { context.resolveActionBarHeightPx() }
-  val actionBarHeightDp = with(density) { actionBarHeightPx.toDp() }
-  val topInset =
-    WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + actionBarHeightDp + extraTop
+  val topInset = rememberAppBarHeight() + extraTop
   return PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 16.dp + topInset)
 }

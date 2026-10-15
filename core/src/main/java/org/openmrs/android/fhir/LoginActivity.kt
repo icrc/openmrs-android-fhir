@@ -32,6 +32,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.VisibleForTesting
@@ -59,6 +60,7 @@ import org.openmrs.android.fhir.extensions.AuthDialogs
 import org.openmrs.android.fhir.extensions.BiometricPromptHelper
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.ui.screens.LoginScreen
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.LoginActivityViewModel
 import timber.log.Timber
 
@@ -114,41 +116,44 @@ class LoginActivity : AppCompatActivity() {
     }
 
   override fun onCreate(savedInstanceState: Bundle?) {
+    enableEdgeToEdge()
     super.onCreate(savedInstanceState)
     (application as FhirApplication).appComponent.inject(this)
     setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "login") {
-        composable("login") {
-          LoginScreen(
-            isButtonEnabled = loginClickAction != LoginClickAction.Disabled,
-            onLoginClick = {
-              when (val action = loginClickAction) {
-                is LoginClickAction.LaunchIntent -> getContent.launch(action.intent)
-                LoginClickAction.RestartActivity -> restartLoginFlow()
-                LoginClickAction.Disabled -> Unit
+      OpenMrsTheme {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "login") {
+          composable("login") {
+            LoginScreen(
+              isButtonEnabled = loginClickAction != LoginClickAction.Disabled,
+              onLoginClick = {
+                when (val action = loginClickAction) {
+                  is LoginClickAction.LaunchIntent -> getContent.launch(action.intent)
+                  LoginClickAction.RestartActivity -> restartLoginFlow()
+                  LoginClickAction.Disabled -> Unit
+                }
+              },
+            )
+          }
+        }
+        val dialogConfig = dialogStateForTest.value
+        if (dialogConfig != null) {
+          androidx.compose.material3.AlertDialog(
+            onDismissRequest = dialogConfig.onDismiss,
+            confirmButton = {
+              androidx.compose.material3.TextButton(onClick = dialogConfig.onConfirm) {
+                androidx.compose.material3.Text(text = dialogConfig.positiveText.toString())
               }
             },
+            dismissButton = {
+              androidx.compose.material3.TextButton(onClick = dialogConfig.onDismiss) {
+                androidx.compose.material3.Text(text = dialogConfig.negativeText.toString())
+              }
+            },
+            title = { androidx.compose.material3.Text(text = dialogConfig.title.toString()) },
+            text = { androidx.compose.material3.Text(text = dialogConfig.message.toString()) },
           )
         }
-      }
-      val dialogConfig = dialogStateForTest.value
-      if (dialogConfig != null) {
-        androidx.compose.material3.AlertDialog(
-          onDismissRequest = dialogConfig.onDismiss,
-          confirmButton = {
-            androidx.compose.material3.TextButton(onClick = dialogConfig.onConfirm) {
-              androidx.compose.material3.Text(text = dialogConfig.positiveText.toString())
-            }
-          },
-          dismissButton = {
-            androidx.compose.material3.TextButton(onClick = dialogConfig.onDismiss) {
-              androidx.compose.material3.Text(text = dialogConfig.negativeText.toString())
-            }
-          },
-          title = { androidx.compose.material3.Text(text = dialogConfig.title.toString()) },
-          text = { androidx.compose.material3.Text(text = dialogConfig.message.toString()) },
-        )
       }
     }
 

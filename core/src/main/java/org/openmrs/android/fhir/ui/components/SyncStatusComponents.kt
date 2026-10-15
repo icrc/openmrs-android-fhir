@@ -76,6 +76,7 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.SyncSession
 import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.extensions.statusBarAndActionBarTopInset
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
 @Immutable
 sealed class SyncStatusUiState {
@@ -103,8 +104,8 @@ fun SyncStatusLayout(
         val fraction = (progress.toFloat() / total).coerceIn(0f, 1f)
         val percent = (fraction * 100).toInt()
         Quintuple(
-          colorResource(id = R.color.syncing_background),
-          colorResource(id = R.color.dashboard_cardview_textcolor),
+          OpenMrsTheme.colors.highlightContainer,
+          MaterialTheme.colorScheme.onSurfaceVariant,
           R.drawable.ic_baseline_sync_24,
           stringResource(id = R.string.syncing),
           fraction,
@@ -114,23 +115,23 @@ fun SyncStatusLayout(
       }
       is SyncStatusUiState.Success ->
         Quintuple(
-          colorResource(id = R.color.tertiary_green_80),
-          colorResource(id = R.color.white),
+          OpenMrsTheme.colors.success,
+          MaterialTheme.colorScheme.surface,
           R.drawable.ic_check_circle,
           state.message,
           1f,
           stringResource(id = R.string._100),
-          colorResource(id = R.color.tertiary_green_80),
+          OpenMrsTheme.colors.success,
         )
       is SyncStatusUiState.Error ->
         Quintuple(
-          colorResource(id = R.color.error_red_40),
-          colorResource(id = R.color.white),
+          MaterialTheme.colorScheme.error,
+          MaterialTheme.colorScheme.surface,
           R.drawable.ic_error,
           state.message,
           1f,
           stringResource(id = R.string._0),
-          colorResource(id = R.color.error_red_40),
+          MaterialTheme.colorScheme.error,
         )
       SyncStatusUiState.Idle -> throw IllegalStateException("Idle state should return early")
     }
@@ -138,7 +139,7 @@ fun SyncStatusLayout(
   Card(
     modifier =
       modifier.fillMaxWidth().padding(vertical = dimensionResource(id = R.dimen.text_margin)),
-    colors = CardDefaults.cardColors(containerColor = Color.White),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     elevation =
       CardDefaults.cardElevation(defaultElevation = dimensionResource(id = R.dimen.status_margin)),
   ) {
@@ -200,7 +201,7 @@ fun SyncSessionCard(
           horizontal = dimensionResource(id = R.dimen.cardView_margin_horizontal) / 2,
           vertical = 4.dp,
         ),
-    colors = CardDefaults.cardColors(containerColor = Color.White),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     elevation =
       CardDefaults.cardElevation(defaultElevation = dimensionResource(id = R.dimen.status_margin)),
     shape = RoundedCornerShape(dimensionResource(id = R.dimen.cardView_radius_corner)),
@@ -223,7 +224,7 @@ fun SyncSessionCard(
           text = stringResource(id = R.string.start_time_with_value, session.startTime),
           fontSize = 16.sp,
           fontWeight = FontWeight.Bold,
-          color = colorResource(id = R.color.dashboard_cardview_textcolor),
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
           modifier = Modifier.padding(top = 8.dp),
@@ -236,7 +237,7 @@ fun SyncSessionCard(
               session.totalPatientsToUpload,
             ),
           fontSize = 14.sp,
-          color = colorResource(id = R.color.dashboard_cardview_textcolor),
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
           modifier = Modifier.padding(top = 8.dp),
@@ -246,7 +247,7 @@ fun SyncSessionCard(
             }
               ?: stringResource(id = R.string.in_progress),
           fontSize = 14.sp,
-          color = colorResource(id = R.color.dashboard_cardview_textcolor),
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         if (session.status == SyncStatus.COMPLETED_WITH_ERRORS && session.errors.isNotEmpty()) {
@@ -255,13 +256,13 @@ fun SyncSessionCard(
               text = stringResource(id = R.string.errors_with_count, session.errors.size),
               fontSize = 14.sp,
               fontWeight = FontWeight.Bold,
-              color = colorResource(id = R.color.dashboard_cardview_textcolor),
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
               modifier = Modifier.padding(top = 8.dp),
               text = session.errors.joinToString(separator = "\n") { "- $it" },
               fontSize = 12.sp,
-              color = colorResource(id = R.color.dashboard_cardview_textcolor),
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
           }
         }
@@ -274,12 +275,12 @@ fun SyncSessionCard(
               .background(colorResource(id = R.color.unknown_risk_background), shape = CircleShape),
           onClick = { onDeleteSession(session) },
           colors =
-            IconButtonDefaults.iconButtonColors(contentColor = colorResource(id = R.color.white)),
+            IconButtonDefaults.iconButtonColors(contentColor = MaterialTheme.colorScheme.surface),
         ) {
           Icon(
             painter = painterResource(id = R.drawable.ic_delete),
             contentDescription = stringResource(id = R.string.delete),
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.surface,
           )
         }
       }
@@ -305,14 +306,14 @@ fun SyncInfoContent(
             modifier = Modifier.size(80.dp),
             painter = painterResource(id = R.drawable.ic_baseline_sync_24),
             contentDescription = stringResource(id = R.string.no_sync_info_available),
-            tint = colorResource(id = R.color.dashboard_cardview_textcolor),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
           )
           Text(
             modifier = Modifier.padding(top = 8.dp),
             text = stringResource(id = R.string.no_sync_info_available),
             fontSize = 16.sp,
             fontStyle = FontStyle.Italic,
-            color = colorResource(id = R.color.black),
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
           )
         }
@@ -337,15 +338,15 @@ fun SyncInfoContent(
       enabled = syncSessions.isNotEmpty(),
       colors =
         ButtonDefaults.buttonColors(
-          containerColor = colorResource(id = R.color.dashboard_cardview_textcolor),
-          contentColor = colorResource(id = R.color.white),
+          containerColor = OpenMrsTheme.colors.actionButton,
+          contentColor = MaterialTheme.colorScheme.surface,
         ),
       shape = RoundedCornerShape(4.dp),
     ) {
       Icon(
         painter = painterResource(id = R.drawable.ic_delete),
         contentDescription = stringResource(id = R.string.delete),
-        tint = Color.White,
+        tint = OpenMrsTheme.colors.onActionButton,
       )
       Spacer(modifier = Modifier.width(8.dp))
       Text(text = stringResource(id = R.string.clear_sync_data), fontSize = 12.sp)

@@ -58,7 +58,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -72,6 +71,7 @@ import org.hl7.fhir.r4.model.Identifier
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.SyncSession
 import org.openmrs.android.fhir.data.database.model.SyncStatus
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
 @Composable
 fun PatientPropertyRow(
@@ -81,7 +81,7 @@ fun PatientPropertyRow(
   modifier: Modifier = Modifier,
   onPrimaryClick: (() -> Unit)? = null,
 ) {
-  Surface(color = colorResource(id = R.color.white)) {
+  Surface(color = MaterialTheme.colorScheme.surface) {
     Row(
       modifier =
         modifier
@@ -100,7 +100,7 @@ fun PatientPropertyRow(
           modifier = Modifier.size(20.dp).padding(end = 8.dp).testTag("SyncStatusIcon"),
           painter = painterResource(id = R.drawable.ic_baseline_sync_24),
           contentDescription = stringResource(id = R.string.description_status),
-          tint = colorResource(id = R.color.moderate_risk),
+          tint = OpenMrsTheme.colors.warning,
         )
       } else {
         Spacer(modifier = Modifier.width(28.dp))
@@ -140,7 +140,7 @@ fun PatientDetailsHeaderRow(title: String, modifier: Modifier = Modifier) {
         .padding(start = 20.dp, end = 8.dp, top = 10.dp, bottom = 10.dp)
         .testTag("PatientDetailsHeader"),
     text = title,
-    color = colorResource(id = R.color.black),
+    color = MaterialTheme.colorScheme.onSurface,
     fontSize = 20.sp,
     fontWeight = FontWeight.SemiBold,
   )
@@ -163,7 +163,7 @@ fun PatientDetailsOverviewHeader(
         .padding(1.dp)
         .padding(bottom = 12.dp)
         .testTag("PatientDetailsOverviewHeader"),
-    color = colorResource(id = R.color.white),
+    color = MaterialTheme.colorScheme.surface,
   ) {
     Row(
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -173,7 +173,8 @@ fun PatientDetailsOverviewHeader(
         modifier = Modifier.size(120.dp),
         painter = painterResource(id = R.drawable.ic_user),
         contentDescription = null,
-        colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color(0xFFF1F2F4)),
+        colorFilter =
+          androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.surfaceVariant),
       )
       Column(
         modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
@@ -250,7 +251,7 @@ fun VisitListItemRow(
   encounterDate: String,
   onDateClick: (() -> Unit)? = null,
 ) {
-  Surface(color = colorResource(id = R.color.white)) {
+  Surface(color = MaterialTheme.colorScheme.surface) {
     Column(
       modifier =
         Modifier.fillMaxWidth()
@@ -289,7 +290,7 @@ fun EncounterListItemRow(
   showSyncIcon: Boolean,
   onTitleClick: (() -> Unit)? = null,
 ) {
-  Surface(color = colorResource(id = R.color.white)) {
+  Surface(color = MaterialTheme.colorScheme.surface) {
     Column(
       modifier = modifier.fillMaxWidth().padding(8.dp).testTag("EncounterListItemRow"),
     ) {
@@ -308,7 +309,7 @@ fun EncounterListItemRow(
             modifier = Modifier.size(20.dp).testTag("EncounterSyncIcon"),
             painter = painterResource(id = R.drawable.ic_baseline_sync_24),
             contentDescription = stringResource(id = R.string.description_status),
-            tint = colorResource(id = R.color.moderate_risk),
+            tint = OpenMrsTheme.colors.warning,
           )
           Spacer(modifier = Modifier.width(8.dp))
         }
@@ -337,7 +338,7 @@ fun UnsyncedEncounterRow(
   Row(
     modifier =
       Modifier.fillMaxWidth()
-        .background(Color(0xFFF5F5F5))
+        .background(OpenMrsTheme.colors.neutralContainer)
         .padding(horizontal = 16.dp, vertical = 8.dp)
         .testTag("UnsyncedEncounterRow"),
     verticalAlignment = Alignment.CenterVertically,
@@ -473,7 +474,7 @@ fun UnsyncedObservationRow(
   Row(
     modifier =
       Modifier.fillMaxWidth()
-        .background(Color(0xFFEEEEEE))
+        .background(MaterialTheme.colorScheme.surfaceVariant)
         .padding(horizontal = 16.dp, vertical = 8.dp)
         .testTag("UnsyncedObservationRow"),
     verticalAlignment = Alignment.CenterVertically,
@@ -516,9 +517,9 @@ fun SelectPatientListItemRow(
 ) {
   val backgroundColor =
     if (checked) {
-      colorResource(id = R.color.selected_item_background)
+      OpenMrsTheme.colors.highlightContainer
     } else {
-      colorResource(id = R.color.default_item_background)
+      MaterialTheme.colorScheme.surface
     }
   Row(
     modifier =
@@ -549,7 +550,7 @@ fun PatientSelectableRow(
   checked: Boolean,
   onToggle: () -> Unit,
 ) {
-  Surface(color = colorResource(id = R.color.white)) {
+  Surface(color = MaterialTheme.colorScheme.surface) {
     Row(
       modifier =
         Modifier.fillMaxWidth()
@@ -581,15 +582,15 @@ fun SyncSessionRow(
 ) {
   val statusColor =
     when (session.status) {
-      SyncStatus.ONGOING -> colorResource(id = R.color.orange)
-      SyncStatus.COMPLETED -> colorResource(id = R.color.tertiary_green_80)
-      SyncStatus.COMPLETED_WITH_ERRORS -> colorResource(id = R.color.error_red_40)
+      SyncStatus.ONGOING -> OpenMrsTheme.colors.warning
+      SyncStatus.COMPLETED -> OpenMrsTheme.colors.success
+      SyncStatus.COMPLETED_WITH_ERRORS -> MaterialTheme.colorScheme.error
     }
 
   Card(
     modifier =
       modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp).testTag("SyncSessionRow"),
-    colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.white)),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     shape = RoundedCornerShape(dimensionResource(id = R.dimen.cardView_radius_corner)),
   ) {
     Row(modifier = Modifier.padding(12.dp)) {
@@ -654,13 +655,13 @@ fun SyncSessionRow(
       if (session.status != SyncStatus.ONGOING && onDelete != null) {
         Surface(
           shape = RoundedCornerShape(8.dp),
-          color = colorResource(id = R.color.error_red_40),
+          color = MaterialTheme.colorScheme.error,
         ) {
           IconButton(modifier = Modifier.testTag("DeleteSyncSession"), onClick = onDelete) {
             Icon(
               painter = painterResource(id = R.drawable.ic_delete),
               contentDescription = stringResource(id = R.string.delete),
-              tint = colorResource(id = R.color.white),
+              tint = MaterialTheme.colorScheme.surface,
             )
           }
         }
