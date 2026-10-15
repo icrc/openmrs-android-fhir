@@ -33,8 +33,6 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -43,6 +41,7 @@ import androidx.navigation.fragment.NavHostFragment
 import javax.inject.Inject
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.ui.components.SyncInfoContent
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
@@ -65,15 +64,12 @@ class SyncInfoFragment : Fragment() {
     savedInstanceState: Bundle?,
   ): View {
     (requireActivity().application as FhirApplication).appComponent.inject(this)
-    return ComposeView(requireContext()).apply {
-      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-      setContent {
-        SyncInfoContent(
-          syncSessions = viewModel.syncSessions.observeAsState(emptyList()).value,
-          onDeleteSession = { viewModel.deleteSyncSession(it) },
-          onClearAll = { viewModel.clearAllSyncSessions() },
-        )
-      }
+    return composeView {
+      SyncInfoContent(
+        syncSessions = viewModel.syncSessions.observeAsState(emptyList()).value,
+        onDeleteSession = { viewModel.deleteSyncSession(it) },
+        onClearAll = { viewModel.clearAllSyncSessions() },
+      )
     }
   }
 

@@ -37,8 +37,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -49,6 +47,7 @@ import javax.inject.Inject
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.IdentifierType
+import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.ui.screens.IdentifierSelectionScreen
 import org.openmrs.android.fhir.viewmodel.IdentifierSelectionViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
@@ -72,25 +71,22 @@ class IdentifierFragment : Fragment() {
     container: ViewGroup?,
     savedInstanceState: Bundle?,
   ): View {
-    return ComposeView(requireContext()).apply {
-      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-      setContent {
-        MaterialTheme {
-          val uiState by identifierSelectionViewModel.uiState.collectAsStateWithLifecycle()
-          val filteredIdentifiers =
-            remember(uiState.identifierTypes, uiState.query) {
-              uiState.identifierTypes.filter { it.display?.contains(uiState.query) ?: true }
-            }
+    return composeView {
+      MaterialTheme {
+        val uiState by identifierSelectionViewModel.uiState.collectAsStateWithLifecycle()
+        val filteredIdentifiers =
+          remember(uiState.identifierTypes, uiState.query) {
+            uiState.identifierTypes.filter { it.display?.contains(uiState.query) ?: true }
+          }
 
-          IdentifierSelectionScreen(
-            query = uiState.query,
-            onQueryChange = identifierSelectionViewModel::onQueryChanged,
-            identifierTypes = filteredIdentifiers,
-            selectedIdentifierIds = uiState.selectedIdentifierIds,
-            isLoading = uiState.isLoading,
-            onIdentifierToggle = ::onIdentifierTypeItemClicked,
-          )
-        }
+        IdentifierSelectionScreen(
+          query = uiState.query,
+          onQueryChange = identifierSelectionViewModel::onQueryChanged,
+          identifierTypes = filteredIdentifiers,
+          selectedIdentifierIds = uiState.selectedIdentifierIds,
+          isLoading = uiState.isLoading,
+          onIdentifierToggle = ::onIdentifierTypeItemClicked,
+        )
       }
     }
   }

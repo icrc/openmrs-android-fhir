@@ -28,18 +28,15 @@
 */
 package org.openmrs.android.fhir.ui.screens
 
-import android.util.TypedValue
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,12 +45,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
@@ -63,6 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.extensions.rememberActionBarContentPadding
 
 object HomeTestTags {
   const val Screen = "HomeScreen"
@@ -97,6 +92,63 @@ private sealed class HomeRow {
   data class Card(val config: HomeCardConfig) : HomeRow()
 }
 
+private fun homeCard(
+  type: HomeCardType,
+  @StringRes titleRes: Int,
+  @StringRes subtitleRes: Int,
+  @DrawableRes iconRes: Int,
+  testTag: String,
+) = HomeRow.Card(HomeCardConfig(type, titleRes, subtitleRes, iconRes, testTag))
+
+private val HomeRows: List<HomeRow> =
+  listOf(
+    HomeRow.SectionHeader(R.string.section_patient_management),
+    homeCard(
+      HomeCardType.NewPatient,
+      R.string.title_add_patient,
+      R.string.subtitle_add_patient,
+      R.drawable.ic_home_new_patient,
+      HomeTestTags.NewPatientCard,
+    ),
+    homeCard(
+      HomeCardType.PatientList,
+      R.string.title_search_patient,
+      R.string.subtitle_search_patient,
+      R.drawable.ic_home_search,
+      HomeTestTags.PatientListCard,
+    ),
+    homeCard(
+      HomeCardType.CustomPatientList,
+      R.string.title_custom_patient_list,
+      R.string.subtitle_custom_patient_list,
+      R.drawable.cloud_sync_24px,
+      HomeTestTags.CustomPatientListCard,
+    ),
+    HomeRow.SectionHeader(R.string.section_encounters),
+    homeCard(
+      HomeCardType.GroupEncounter,
+      R.string.title_group_encounter,
+      R.string.subtitle_group_encounter,
+      R.drawable.baseline_group_24,
+      HomeTestTags.GroupEncounterCard,
+    ),
+    HomeRow.SectionHeader(R.string.section_system),
+    homeCard(
+      HomeCardType.SyncInfo,
+      R.string.title_sync_info,
+      R.string.subtitle_sync_info,
+      R.drawable.ic_baseline_sync_24,
+      HomeTestTags.SyncInfoCard,
+    ),
+    homeCard(
+      HomeCardType.UnsyncedResources,
+      R.string.title_unsynced_resources,
+      R.string.subtitle_unsynced_resources,
+      R.drawable.ic_offline_resource,
+      HomeTestTags.UnsyncedResourcesCard,
+    ),
+  )
+
 @Composable
 fun HomeScreen(
   onNewPatientClicked: () -> Unit,
@@ -106,80 +158,8 @@ fun HomeScreen(
   onSyncInfoClicked: () -> Unit,
   onUnsyncedResourcesClicked: () -> Unit,
 ) {
-  val context = LocalContext.current
-  val actionBarHeightPx = remember {
-    val typedValue = TypedValue()
-    if (context.theme.resolveAttribute(androidx.appcompat.R.attr.actionBarSize, typedValue, true)) {
-      TypedValue.complexToDimensionPixelSize(typedValue.data, context.resources.displayMetrics)
-    } else {
-      0
-    }
-  }
-  val actionBarHeightDp = with(LocalDensity.current) { actionBarHeightPx.toDp() }
-  val topInset =
-    WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + actionBarHeightDp + 8.dp
-  val contentPadding =
-    PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 16.dp + topInset)
-  val rows =
-    listOf(
-      HomeRow.SectionHeader(R.string.section_patient_management),
-      HomeRow.Card(
-        HomeCardConfig(
-          type = HomeCardType.NewPatient,
-          titleRes = R.string.title_add_patient,
-          subtitleRes = R.string.subtitle_add_patient,
-          iconRes = R.drawable.ic_home_new_patient,
-          testTag = HomeTestTags.NewPatientCard,
-        ),
-      ),
-      HomeRow.Card(
-        HomeCardConfig(
-          type = HomeCardType.PatientList,
-          titleRes = R.string.title_search_patient,
-          subtitleRes = R.string.subtitle_search_patient,
-          iconRes = R.drawable.ic_home_search,
-          testTag = HomeTestTags.PatientListCard,
-        ),
-      ),
-      HomeRow.Card(
-        HomeCardConfig(
-          type = HomeCardType.CustomPatientList,
-          titleRes = R.string.title_custom_patient_list,
-          subtitleRes = R.string.subtitle_custom_patient_list,
-          iconRes = R.drawable.cloud_sync_24px,
-          testTag = HomeTestTags.CustomPatientListCard,
-        ),
-      ),
-      HomeRow.SectionHeader(R.string.section_encounters),
-      HomeRow.Card(
-        HomeCardConfig(
-          type = HomeCardType.GroupEncounter,
-          titleRes = R.string.title_group_encounter,
-          subtitleRes = R.string.subtitle_group_encounter,
-          iconRes = R.drawable.baseline_group_24,
-          testTag = HomeTestTags.GroupEncounterCard,
-        ),
-      ),
-      HomeRow.SectionHeader(R.string.section_system),
-      HomeRow.Card(
-        HomeCardConfig(
-          type = HomeCardType.SyncInfo,
-          titleRes = R.string.title_sync_info,
-          subtitleRes = R.string.subtitle_sync_info,
-          iconRes = R.drawable.ic_baseline_sync_24,
-          testTag = HomeTestTags.SyncInfoCard,
-        ),
-      ),
-      HomeRow.Card(
-        HomeCardConfig(
-          type = HomeCardType.UnsyncedResources,
-          titleRes = R.string.title_unsynced_resources,
-          subtitleRes = R.string.subtitle_unsynced_resources,
-          iconRes = R.drawable.ic_offline_resource,
-          testTag = HomeTestTags.UnsyncedResourcesCard,
-        ),
-      ),
-    )
+  val contentPadding = rememberActionBarContentPadding(extraTop = 8.dp)
+  val rows = HomeRows
 
   LazyColumn(
     modifier = Modifier.fillMaxSize().testTag(HomeTestTags.Screen),

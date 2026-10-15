@@ -29,7 +29,6 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -55,6 +54,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.extensions.resolveActionBarHeightPx
 import org.openmrs.android.fhir.ui.screens.SettingsDefaults
 import org.openmrs.android.fhir.ui.screens.SettingsScreen
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
@@ -79,7 +79,7 @@ class SettingsFragment : Fragment() {
     composeView.setContent {
       val context = LocalContext.current
       val density = LocalDensity.current
-      val actionBarHeightPx = remember { resolveActionBarHeightPx(context) }
+      val actionBarHeightPx = remember { context.resolveActionBarHeightPx() }
       val actionBarHeightDp = with(density) { actionBarHeightPx.toDp() }
       val uiState = settingsViewModel.uiState.collectAsStateWithLifecycle().value
       MaterialTheme {
@@ -182,20 +182,5 @@ internal fun resolveSettingsEvent(event: SettingsEvent): SettingsEventAction {
         messageResId = R.string.initial_sync_failed,
         navigateUp = false,
       )
-  }
-}
-
-private fun resolveActionBarHeightPx(context: android.content.Context): Int {
-  val typedValue = TypedValue()
-  val resolved =
-    context.theme.resolveAttribute(androidx.appcompat.R.attr.actionBarSize, typedValue, true) ||
-      context.theme.resolveAttribute(android.R.attr.actionBarSize, typedValue, true)
-  return if (resolved) {
-    TypedValue.complexToDimensionPixelSize(
-      typedValue.data,
-      context.resources.displayMetrics,
-    )
-  } else {
-    0
   }
 }

@@ -39,8 +39,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -63,6 +61,7 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.ui.screens.PatientListSelectionScreen
 import org.openmrs.android.fhir.ui.screens.selectionScreenContentPadding
@@ -92,37 +91,34 @@ class SelectPatientListFragment : Fragment() {
     container: ViewGroup?,
     savedInstanceState: Bundle?,
   ): View {
-    return ComposeView(requireContext()).apply {
-      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-      setContent {
-        MaterialTheme {
-          val patientLists by
-            selectPatientListViewModel.selectPatientListItems.observeAsState(emptyList())
-          val uiState by selectPatientListViewModel.uiState.collectAsStateWithLifecycle()
-          val filteredPatientLists =
-            remember(patientLists, uiState.query) {
-              patientLists.filter { it.name.contains(uiState.query, true) }
-            }
+    return composeView {
+      MaterialTheme {
+        val patientLists by
+          selectPatientListViewModel.selectPatientListItems.observeAsState(emptyList())
+        val uiState by selectPatientListViewModel.uiState.collectAsStateWithLifecycle()
+        val filteredPatientLists =
+          remember(patientLists, uiState.query) {
+            patientLists.filter { it.name.contains(uiState.query, true) }
+          }
 
-          PatientListSelectionScreen(
-            query = uiState.query,
-            onQueryChange = selectPatientListViewModel::onQueryChanged,
-            patientLists = filteredPatientLists,
-            selectedPatientListIds = uiState.selectedPatientListIds,
-            showTitle = fromLogin,
-            showActionButton = fromLogin,
-            showEmptyState = patientLists.isEmpty(),
-            isLoading = uiState.isLoading,
-            onPatientListToggle = ::onSelectPatientListItemClicked,
-            onActionClick = ::handleActionClick,
-            topPadding =
-              if (fromLogin) {
-                20.dp
-              } else {
-                selectionScreenContentPadding().calculateTopPadding()
-              },
-          )
-        }
+        PatientListSelectionScreen(
+          query = uiState.query,
+          onQueryChange = selectPatientListViewModel::onQueryChanged,
+          patientLists = filteredPatientLists,
+          selectedPatientListIds = uiState.selectedPatientListIds,
+          showTitle = fromLogin,
+          showActionButton = fromLogin,
+          showEmptyState = patientLists.isEmpty(),
+          isLoading = uiState.isLoading,
+          onPatientListToggle = ::onSelectPatientListItemClicked,
+          onActionClick = ::handleActionClick,
+          topPadding =
+            if (fromLogin) {
+              20.dp
+            } else {
+              selectionScreenContentPadding().calculateTopPadding()
+            },
+        )
       }
     }
   }

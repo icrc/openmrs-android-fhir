@@ -36,8 +36,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -49,6 +47,7 @@ import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
+import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.extensions.saveToFile
 import org.openmrs.android.fhir.ui.screens.UnsyncedResourcesScreen
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
@@ -67,50 +66,47 @@ class UnsyncedResourcesFragment : Fragment() {
     savedInstanceState: Bundle?,
   ): View {
     (requireActivity().application as FhirApplication).appComponent.inject(this)
-    return ComposeView(requireContext()).apply {
-      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-      setContent {
-        val resources = viewModel.resources.observeAsState(emptyList()).value
-        val isLoading = viewModel.isLoading.observeAsState(false).value
-        MaterialTheme {
-          UnsyncedResourcesScreen(
-            resources = resources,
-            isLoading = isLoading,
-            onTogglePatientExpand = viewModel::togglePatientExpansion,
-            onToggleEncounterExpand = viewModel::toggleEncounterExpansion,
-            onDeleteResource = { resource ->
-              viewModel.deleteResource(resource)
-              Toast.makeText(
-                  requireContext(),
-                  getString(R.string.resource_deleted),
-                  Toast.LENGTH_SHORT,
-                )
-                .show()
-            },
-            onDownloadResource = { resource ->
-              viewModel.downloadResource(resource)
-              showDownloadToast(resource)
-            },
-            onDeleteAll = {
-              viewModel.deleteAll()
-              Toast.makeText(
-                  requireContext(),
-                  getString(R.string.all_resources_deleted),
-                  Toast.LENGTH_SHORT,
-                )
-                .show()
-            },
-            onDownloadAll = {
-              viewModel.downloadAll()
-              Toast.makeText(
-                  requireContext(),
-                  getString(R.string.downloading_all_resources),
-                  Toast.LENGTH_SHORT,
-                )
-                .show()
-            },
-          )
-        }
+    return composeView {
+      val resources = viewModel.resources.observeAsState(emptyList()).value
+      val isLoading = viewModel.isLoading.observeAsState(false).value
+      MaterialTheme {
+        UnsyncedResourcesScreen(
+          resources = resources,
+          isLoading = isLoading,
+          onTogglePatientExpand = viewModel::togglePatientExpansion,
+          onToggleEncounterExpand = viewModel::toggleEncounterExpansion,
+          onDeleteResource = { resource ->
+            viewModel.deleteResource(resource)
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.resource_deleted),
+                Toast.LENGTH_SHORT,
+              )
+              .show()
+          },
+          onDownloadResource = { resource ->
+            viewModel.downloadResource(resource)
+            showDownloadToast(resource)
+          },
+          onDeleteAll = {
+            viewModel.deleteAll()
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.all_resources_deleted),
+                Toast.LENGTH_SHORT,
+              )
+              .show()
+          },
+          onDownloadAll = {
+            viewModel.downloadAll()
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.downloading_all_resources),
+                Toast.LENGTH_SHORT,
+              )
+              .show()
+          },
+        )
       }
     }
   }

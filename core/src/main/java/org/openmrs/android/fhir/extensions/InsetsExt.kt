@@ -30,6 +30,7 @@ package org.openmrs.android.fhir.extensions
 
 import android.content.Context
 import android.util.TypedValue
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.statusBars
@@ -59,4 +60,19 @@ fun statusBarAndActionBarTopInset(): Dp {
   val actionBarHeightPx = remember { context.resolveActionBarHeightPx() }
   val actionBarHeightDp = with(density) { actionBarHeightPx.toDp() }
   return WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + actionBarHeightDp + 16.dp
+}
+
+/**
+ * Content padding for screens drawn under the app bar: 16dp gutters plus the status bar and action
+ * bar heights on top. [extraTop] adds screen specific spacing below the bar.
+ */
+@Composable
+fun rememberActionBarContentPadding(extraTop: Dp = 0.dp): PaddingValues {
+  val context = LocalContext.current
+  val density = LocalDensity.current
+  val actionBarHeightPx = remember { context.resolveActionBarHeightPx() }
+  val actionBarHeightDp = with(density) { actionBarHeightPx.toDp() }
+  val topInset =
+    WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + actionBarHeightDp + extraTop
+  return PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 16.dp + topInset)
 }

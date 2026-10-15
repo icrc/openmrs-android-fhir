@@ -44,8 +44,6 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -69,6 +67,7 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.ui.screens.LocationSelectionScreen
 import org.openmrs.android.fhir.ui.screens.selectionScreenContentPadding
@@ -96,51 +95,48 @@ class LocationFragment : Fragment() {
     container: ViewGroup?,
     savedInstanceState: Bundle?,
   ): View {
-    return ComposeView(requireContext()).apply {
-      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-      setContent {
-        MaterialTheme {
-          val locations by locationViewModel.locations.observeAsState(emptyList())
-          val uiState by locationViewModel.uiState.collectAsStateWithLifecycle()
-          val filteredFavorites =
-            remember(locations, uiState.favoriteLocationIds, uiState.query) {
-              locations.filter {
-                uiState.favoriteLocationIds.contains(it.resourceId) &&
-                  it.name.contains(uiState.query, true)
-              }
+    return composeView {
+      MaterialTheme {
+        val locations by locationViewModel.locations.observeAsState(emptyList())
+        val uiState by locationViewModel.uiState.collectAsStateWithLifecycle()
+        val filteredFavorites =
+          remember(locations, uiState.favoriteLocationIds, uiState.query) {
+            locations.filter {
+              uiState.favoriteLocationIds.contains(it.resourceId) &&
+                it.name.contains(uiState.query, true)
             }
-          val filteredLocations =
-            remember(locations, uiState.favoriteLocationIds, uiState.query) {
-              locations.filter {
-                !uiState.favoriteLocationIds.contains(it.resourceId) &&
-                  it.name.contains(uiState.query, true)
-              }
-            }
-
-          if (uiState.showContent) {
-            LocationSelectionScreen(
-              query = uiState.query,
-              onQueryChange = locationViewModel::onQueryChanged,
-              favoriteLocations = filteredFavorites,
-              locations = filteredLocations,
-              selectedLocationId = uiState.selectedLocationId,
-              showTitle = fromLogin,
-              showActionButton = fromLogin,
-              showEmptyState = locations.isEmpty(),
-              isLoading = uiState.isLoading,
-              onLocationClick = ::selectLocationItem,
-              onFavoriteToggle = ::onFavoriteLocationToggle,
-              onActionClick = ::handleActionClick,
-              topPadding =
-                if (fromLogin) {
-                  20.dp
-                } else {
-                  selectionScreenContentPadding().calculateTopPadding()
-                },
-            )
-          } else {
-            Box(modifier = Modifier.fillMaxSize().background(Color(0xFFE8F0FE)))
           }
+        val filteredLocations =
+          remember(locations, uiState.favoriteLocationIds, uiState.query) {
+            locations.filter {
+              !uiState.favoriteLocationIds.contains(it.resourceId) &&
+                it.name.contains(uiState.query, true)
+            }
+          }
+
+        if (uiState.showContent) {
+          LocationSelectionScreen(
+            query = uiState.query,
+            onQueryChange = locationViewModel::onQueryChanged,
+            favoriteLocations = filteredFavorites,
+            locations = filteredLocations,
+            selectedLocationId = uiState.selectedLocationId,
+            showTitle = fromLogin,
+            showActionButton = fromLogin,
+            showEmptyState = locations.isEmpty(),
+            isLoading = uiState.isLoading,
+            onLocationClick = ::selectLocationItem,
+            onFavoriteToggle = ::onFavoriteLocationToggle,
+            onActionClick = ::handleActionClick,
+            topPadding =
+              if (fromLogin) {
+                20.dp
+              } else {
+                selectionScreenContentPadding().calculateTopPadding()
+              },
+          )
+        } else {
+          Box(modifier = Modifier.fillMaxSize().background(Color(0xFFE8F0FE)))
         }
       }
     }

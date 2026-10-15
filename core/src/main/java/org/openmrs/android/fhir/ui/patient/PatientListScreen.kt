@@ -32,16 +32,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -52,12 +48,9 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -68,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import java.time.LocalDate
 import java.time.Period
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.extensions.rememberActionBarContentPadding
 import org.openmrs.android.fhir.ui.components.PatientListContainerScreen
 import org.openmrs.android.fhir.ui.components.PatientListItemRow
 import org.openmrs.android.fhir.viewmodel.PatientListUiState
@@ -219,23 +213,4 @@ private fun getFormattedAge(
       else -> it.days.toString() + " months"
     }
   }
-}
-
-@Composable
-private fun rememberActionBarContentPadding(): PaddingValues {
-  val context = LocalContext.current
-  val actionBarHeightPx = remember {
-    val typedValue = android.util.TypedValue()
-    if (context.theme.resolveAttribute(androidx.appcompat.R.attr.actionBarSize, typedValue, true)) {
-      android.util.TypedValue.complexToDimensionPixelSize(
-        typedValue.data,
-        context.resources.displayMetrics,
-      )
-    } else {
-      0
-    }
-  }
-  val actionBarHeightDp = with(LocalDensity.current) { actionBarHeightPx.toDp() }
-  val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + actionBarHeightDp
-  return PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 16.dp + topInset)
 }

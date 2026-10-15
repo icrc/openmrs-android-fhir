@@ -39,7 +39,6 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
@@ -48,6 +47,7 @@ import androidx.navigation.fragment.navArgs
 import javax.inject.Inject
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.ui.patient.PatientSelectionDialogContent
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import org.openmrs.android.fhir.viewmodel.filterSelectedIdsForPatients
@@ -70,31 +70,28 @@ class PatientSelectionDialogFragment : DialogFragment() {
     savedInstanceState: Bundle?,
   ): ComposeView {
     dialog?.setCanceledOnTouchOutside(false)
-    return ComposeView(requireContext()).apply {
-      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-      setContent {
-        val patients by viewModel.liveSearchedPatients.observeAsState(emptyList())
-        var selectedPatientIds by
-          rememberSaveable(stateSaver = stringSetSaver) { mutableStateOf(setOf<String>()) }
+    return composeView {
+      val patients by viewModel.liveSearchedPatients.observeAsState(emptyList())
+      var selectedPatientIds by
+        rememberSaveable(stateSaver = stringSetSaver) { mutableStateOf(setOf<String>()) }
 
-        LaunchedEffect(patients) {
-          selectedPatientIds = filterSelectedIdsForPatients(patients, selectedPatientIds)
-        }
-
-        PatientSelectionDialogContent(
-          patients = patients,
-          selectedIds = selectedPatientIds,
-          onDismissRequest = { dismiss() },
-          onPatientToggle = { patient ->
-            selectedPatientIds = selectedPatientIds.toggleSelection(patient.resourceId)
-          },
-          onSelectAllToggle = { shouldSelectAll ->
-            selectedPatientIds =
-              if (shouldSelectAll) patients.map { it.resourceId }.toSet() else emptySet()
-          },
-          onStartEncounter = { handleStartEncounter(selectedPatientIds) },
-        )
+      LaunchedEffect(patients) {
+        selectedPatientIds = filterSelectedIdsForPatients(patients, selectedPatientIds)
       }
+
+      PatientSelectionDialogContent(
+        patients = patients,
+        selectedIds = selectedPatientIds,
+        onDismissRequest = { dismiss() },
+        onPatientToggle = { patient ->
+          selectedPatientIds = selectedPatientIds.toggleSelection(patient.resourceId)
+        },
+        onSelectAllToggle = { shouldSelectAll ->
+          selectedPatientIds =
+            if (shouldSelectAll) patients.map { it.resourceId }.toSet() else emptySet()
+        },
+        onStartEncounter = { handleStartEncounter(selectedPatientIds) },
+      )
     }
   }
 
