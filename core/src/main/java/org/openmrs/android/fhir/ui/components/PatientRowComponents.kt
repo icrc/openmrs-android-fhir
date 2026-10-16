@@ -183,7 +183,7 @@ private fun LastEncounterLine(label: LastEncounterLabel, modifier: Modifier = Mo
       is LastEncounterLabel.Value -> {
         val date =
           label.date?.format(
-            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)
+            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale),
           )
         listOfNotNull(
             label.name ?: stringResource(id = R.string.last_encounter_unknown_type),
@@ -195,7 +195,7 @@ private fun LastEncounterLine(label: LastEncounterLabel, modifier: Modifier = Mo
   val hasValue = label is LastEncounterLabel.Value
   Row(
     modifier = modifier.testTag("PatientLastEncounter"),
-    verticalAlignment = Alignment.CenterVertically
+    verticalAlignment = Alignment.CenterVertically,
   ) {
     Icon(
       imageVector = Icons.Filled.Description,

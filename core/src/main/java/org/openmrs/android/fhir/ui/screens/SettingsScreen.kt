@@ -46,6 +46,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -103,6 +104,7 @@ object SettingsTestTags {
   const val PeriodicDelayField = "SettingsPeriodicDelayField"
   const val AutoSyncSwitch = "SettingsAutoSyncSwitch"
   const val FavoriteFormsButton = "SettingsFavoriteFormsButton"
+  const val IdentifierTypesButton = "SettingsIdentifierTypesButton"
   const val FormSectionsButton = "SettingsFormSectionsButton"
   const val FormSectionsStatus = "SettingsFormSectionsStatus"
   const val FormSectionsReset = "SettingsFormSectionsReset"
@@ -143,6 +145,7 @@ fun SettingsScreen(
   favoriteFormOptions: List<FormItem>? = null,
   favoriteFormIds: List<String> = emptyList(),
   onFavoriteFormsSaved: ((List<String>) -> Unit)? = null,
+  onSelectIdentifierTypesClicked: (() -> Unit)? = null,
   customFormSections: List<CustomFormSection>? = null,
   defaultFormSections: List<CustomFormSection> = emptyList(),
   onFormSectionsSaved: ((List<CustomFormSection>) -> Unit)? = null,
@@ -240,6 +243,20 @@ fun SettingsScreen(
             enabled = offlineLoginEnabled != null,
             inProgress = false,
             testTag = SettingsTestTags.ResetOfflineLoginButton,
+          )
+        }
+      }
+
+      if (onSelectIdentifierTypesClicked != null) {
+        SettingsSection(title = stringResource(R.string.settings_section_identifiers)) {
+          SettingsAction(
+            description = stringResource(R.string.settings_identifiers_description),
+            buttonText = stringResource(R.string.select_identifier_types),
+            icon = Icons.Default.Tag,
+            onClick = onSelectIdentifierTypesClicked,
+            enabled = true,
+            inProgress = false,
+            testTag = SettingsTestTags.IdentifierTypesButton,
           )
         }
       }

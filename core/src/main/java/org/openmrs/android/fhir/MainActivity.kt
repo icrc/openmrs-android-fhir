@@ -526,12 +526,6 @@ class MainActivity : AppCompatActivity() {
           testTag = "DrawerItemLocation",
         ),
         DrawerItem(
-          id = R.id.menu_select_identifier,
-          iconRes = R.drawable.baseline_tag_24,
-          title = context.getString(R.string.select_identifier_types),
-          testTag = "DrawerItemIdentifier",
-        ),
-        DrawerItem(
           id = R.id.menu_settings,
           iconRes = R.drawable.baseline_settings_24,
           title = context.getString(R.string.settings),
@@ -566,13 +560,9 @@ class MainActivity : AppCompatActivity() {
         if (!guest) {
           items
         } else {
-          // No server session: no location or identifier setup, and "sign in" replaces logout.
+          // No server session: no location setup, and "sign in" replaces logout.
           items
-            .filter {
-              it.id != R.id.menu_current_location &&
-                it.id != R.id.menu_select_identifier &&
-                it.id != R.id.menu_logout
-            }
+            .filter { it.id != R.id.menu_current_location && it.id != R.id.menu_logout }
             .plus(
               DrawerItem(
                 id = R.id.menu_sign_in,
@@ -629,9 +619,6 @@ class MainActivity : AppCompatActivity() {
       }
       R.id.menu_diagnostics -> {
         showSendDiagnosticReportDialog()
-      }
-      R.id.menu_select_identifier -> {
-        getNavController()?.navigate(R.id.identifierFragment)
       }
       R.id.menu_current_location -> {
         getNavController()?.navigate(R.id.locationFragment)

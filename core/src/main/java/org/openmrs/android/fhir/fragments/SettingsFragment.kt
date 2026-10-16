@@ -119,6 +119,16 @@ class SettingsFragment : Fragment() {
           favoriteFormOptions = favoriteForms,
           favoriteFormIds = favoriteIds,
           onFavoriteFormsSaved = favoriteFormsViewModel::setFavorites,
+          // Identifier types come from the server: not for someone working as a guest.
+          onSelectIdentifierTypesClicked =
+            if (GuestSession.isActive(context)) {
+              null
+            } else {
+              {
+                NavHostFragment.findNavController(this@SettingsFragment)
+                  .navigate(R.id.identifierFragment)
+              }
+            },
           customFormSections = customSections,
           defaultFormSections = defaultSections,
           onFormSectionsSaved = favoriteFormsViewModel::setCustomSections,

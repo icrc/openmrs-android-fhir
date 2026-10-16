@@ -132,6 +132,8 @@
     <string name="login_expired">Connexion Expirée</string>
     <string name="settings_auto_sync">Synchroniser automatiquement</string>
     <string name="settings_language">Langue</string>
+    <string name="settings_section_identifiers">Identifiants des patients</string>
+    <string name="settings_identifiers_description">Choisissez les types d’identifiants attribués aux nouveaux patients.</string>
     <string name="last_encounter">Dernière rencontre</string>
     <string name="last_encounter_none">Aucune rencontre pour l’instant</string>
     <string name="last_encounter_unknown_type">Rencontre</string>

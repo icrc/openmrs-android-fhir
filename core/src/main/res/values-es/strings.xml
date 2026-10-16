@@ -117,6 +117,8 @@
     <string name="login_expired">Sesión expirada</string>
     <string name="settings_auto_sync">Sincronizar automáticamente</string>
     <string name="settings_language">Idioma</string>
+    <string name="settings_section_identifiers">Identificadores de pacientes</string>
+    <string name="settings_identifiers_description">Elija los tipos de identificador que reciben los pacientes nuevos.</string>
     <string name="last_encounter">Último encuentro</string>
     <string name="last_encounter_none">Aún no hay encuentros</string>
     <string name="last_encounter_unknown_type">Encuentro</string>

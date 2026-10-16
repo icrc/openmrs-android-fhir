@@ -110,6 +110,8 @@
     <string name="login_expired">انتهت صلاحية تسجيل الدخول</string>
     <string name="settings_auto_sync">المزامنة تلقائياً</string>
     <string name="settings_language">اللغة</string>
+    <string name="settings_section_identifiers">معرّفات المرضى</string>
+    <string name="settings_identifiers_description">اختر أنواع المعرّفات التي يحصل عليها المرضى الجدد.</string>
     <string name="last_encounter">آخر لقاء</string>
     <string name="last_encounter_none">لا توجد لقاءات بعد</string>
     <string name="last_encounter_unknown_type">لقاء</string>

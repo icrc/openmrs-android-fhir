@@ -147,6 +147,8 @@
     <string name="login_expired">Сессия истекла</string>
     <string name="settings_auto_sync">Синхронизировать автоматически</string>
     <string name="settings_language">Язык</string>
+    <string name="settings_section_identifiers">Идентификаторы пациентов</string>
+    <string name="settings_identifiers_description">Выберите типы идентификаторов для новых пациентов.</string>
     <string name="last_encounter">Последний визит</string>
     <string name="last_encounter_none">Пока нет визитов</string>
     <string name="last_encounter_unknown_type">Визит</string>
