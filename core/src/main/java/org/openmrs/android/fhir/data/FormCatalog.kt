@@ -33,15 +33,15 @@ import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.logicalId
 import com.google.android.fhir.search.search
-import com.squareup.moshi.Moshi
 import java.util.Locale
 import javax.inject.Inject
 import org.hl7.fhir.r4.model.Questionnaire
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.data.database.model.FormData
+import org.openmrs.android.fhir.config.AppConfig
+import org.openmrs.android.fhir.config.FormSectionConfig
 import org.openmrs.android.fhir.data.database.model.FormItem
+import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.readAssetQuestionnaires
-import timber.log.Timber
 
 /**
  * The encounter forms available on this device: the questionnaires the server synced plus the ones
@@ -57,13 +57,13 @@ constructor(
   private val parser = FhirContext.forR4Cached().newJsonParser()
 
   /**
-   * @property formData the parsed `questionnaires` setting, null when none is configured
-   * @property translationOverrides the configured name translations for the current language
+   * @property sections the sections declared in the app configuration
+   * @property language the language code names are shown in
    * @property formsByCode encounter type code -> the form that declares it (the first one wins)
    */
   class Catalog(
-    val formData: FormData?,
-    val translationOverrides: Map<String, String>,
+    val sections: List<FormSectionConfig>,
+    val language: String,
     val formsByCode: Map<String, FormItem>,
   ) {
     /** Every form once, alphabetically. */
@@ -74,14 +74,8 @@ constructor(
     }
   }
 
-  /**
-   * [formDataString] is the `questionnaires` setting (sections of encounter-type codes plus
-   * optional translations); a blank or unreadable one means "no sections configured".
-   */
-  suspend fun load(formDataString: String, encounterTypeSystemUrl: String): Catalog {
-    val formData = parseFormData(formDataString)
-    val deviceLanguage = Locale.getDefault().language.lowercase(Locale.ROOT)
-    val translationOverrides = formData?.translationOverrides?.get(deviceLanguage).orEmpty()
+  suspend fun load(): Catalog {
+    val language = AppLanguage.currentTag(applicationContext).lowercase(Locale.ROOT)
 
     val questionnaires = fhirEngine.search<Questionnaire> {}.map { it.resource }.toMutableList()
     // Forms shipped with the app are listed too; the ones the engine already has are skipped.
@@ -94,36 +88,21 @@ constructor(
 
     fun Questionnaire.toFormItem() =
       FormItem(
-        name = getTranslatedTitle(deviceLanguage)
-            ?: title?.let { translationOverrides[it] ?: it }
-              ?: applicationContext.getString(R.string.no_name_provided),
+        name = getTranslatedTitle(language)
+            ?: title ?: applicationContext.getString(R.string.no_name_provided),
         questionnaireId = logicalId,
       )
 
     val formsByCode = linkedMapOf<String, FormItem>()
     questionnaires.forEach { questionnaire ->
       questionnaire.code
-        .filter { it.hasSystem() && it.system == encounterTypeSystemUrl && it.hasCode() }
+        .filter { it.hasSystem() && it.system == ENCOUNTER_TYPE_SYSTEM_URL && it.hasCode() }
         .forEach { formsByCode.putIfAbsent(it.code, questionnaire.toFormItem()) }
     }
-    return Catalog(formData, translationOverrides, formsByCode)
+    return Catalog(AppConfig.get(applicationContext).formSections, language, formsByCode)
   }
 
-  private fun parseFormData(formDataString: String): FormData? {
-    if (formDataString.isBlank()) return null
-    return try {
-      Moshi.Builder()
-        .build()
-        .adapter(FormData::class.java)
-        .lenient()
-        .fromJson(formDataString.trim())
-    } catch (e: Exception) {
-      Timber.w(e, "The questionnaires setting is not valid JSON; listing every encounter form")
-      null
-    }
-  }
-
-  private fun Questionnaire.getTranslatedTitle(deviceLanguage: String): String? {
+  private fun Questionnaire.getTranslatedTitle(language: String): String? {
     return this.titleElement
       ?.extension
       ?.asSequence()
@@ -140,14 +119,18 @@ constructor(
             .firstOrNull { it.url == CONTENT_EXTENSION_URL }
             ?.value
             ?.primitiveValue()
-        if (lang != null && lang == deviceLanguage) content else null
+        if (lang != null && lang == language) content else null
       }
       ?.firstOrNull()
   }
 
-  private companion object {
-    const val TRANSLATION_EXTENSION_URL = "http://hl7.org/fhir/StructureDefinition/translation"
-    const val LANGUAGE_EXTENSION_URL = "lang"
-    const val CONTENT_EXTENSION_URL = "content"
+  companion object {
+    /** The code system OpenMRS uses for encounter types; forms are matched by their code. */
+    const val ENCOUNTER_TYPE_SYSTEM_URL = "http://fhir.openmrs.org/code-system/encounter-type"
+
+    private const val TRANSLATION_EXTENSION_URL =
+      "http://hl7.org/fhir/StructureDefinition/translation"
+    private const val LANGUAGE_EXTENSION_URL = "lang"
+    private const val CONTENT_EXTENSION_URL = "content"
   }
 }

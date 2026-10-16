@@ -47,7 +47,6 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.DemoDataStore
-import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import timber.log.Timber
@@ -57,56 +56,15 @@ class TimestampBasedDownloadWorkManagerImpl(
   private val context: Context,
 ) : DownloadWorkManager {
   private val resourceTypeList = ResourceType.entries.map { it.name }
-  private val urls = LinkedList(loadUrlsFromProperties())
+  private val urls = LinkedList(loadUrls())
 
-  private fun loadUrlsFromProperties(): List<String> {
-    val syncUrls = context.getString(R.string.fhir_sync_urls).split(',')
-    val firstTimeUrls = context.getString(R.string.first_fhir_sync_url).split(',')
-    val cohortType = context.getString(R.string.cohort_type).trim().takeIf { it.isNotEmpty() }
-
-    val shouldFilterGroupsByLocation =
-      context.resources.getBoolean(R.bool.filter_patient_lists_by_group)
-    val selectedLocationId =
-      if (shouldFilterGroupsByLocation) {
-        runBlocking {
-          context.applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
-        }
-      } else {
-        null
-      }
-
-    val urlList =
-      (firstTimeUrls + syncUrls).distinctBy { url ->
-        resourceTypeList.find { resourceType -> url.startsWith(resourceType, ignoreCase = true) }
-      }
-
-    return urlList.mapNotNull { url ->
-      var updatedUrl = url
-
-      if (
-        shouldFilterGroupsByLocation &&
-          !selectedLocationId.isNullOrBlank() &&
-          updatedUrl.substringBefore("?").equals(ResourceType.Group.name, ignoreCase = true) &&
-          !updatedUrl.contains("location=")
-      ) {
-        val separator = if (updatedUrl.contains("?")) "&" else "?"
-        updatedUrl = "$updatedUrl${separator}location=$selectedLocationId"
-      }
-
-      if (
-        cohortType != null &&
-          updatedUrl.substringBefore("?").equals(ResourceType.Group.name, ignoreCase = true) &&
-          !updatedUrl.contains("cohort-type=")
-      ) {
-        val separator = if (updatedUrl.contains("?")) "&" else "?"
-        updatedUrl = "$updatedUrl${separator}cohort-type=$cohortType"
-      }
-
-      val selectedPatientLists = runBlocking {
-        context.applicationContext.dataStore.data
-          .first()[PreferenceKeys.Companion.SELECTED_PATIENT_LISTS]
-      }
-      applyPatientListScope(updatedUrl, selectedPatientLists).also {
+  private fun loadUrls(): List<String> {
+    val selectedPatientLists = runBlocking {
+      context.applicationContext.dataStore.data
+        .first()[PreferenceKeys.Companion.SELECTED_PATIENT_LISTS]
+    }
+    return SyncUrls.periodic(context).mapNotNull { url ->
+      applyPatientListScope(url, selectedPatientLists).also {
         if (it == null) Timber.w("No patient list selected, skipping patient data: %s", url)
       }
     }

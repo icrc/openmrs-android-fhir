@@ -64,13 +64,10 @@ constructor(
       .getFavoriteFormIdsFlow()
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-  fun load(formDataString: String, encounterTypeSystemUrl: String) {
+  fun load() {
     viewModelScope.launch {
       try {
-        _forms.value =
-          withContext(Dispatchers.Default) {
-            formCatalog.load(formDataString, encounterTypeSystemUrl).allForms
-          }
+        _forms.value = withContext(Dispatchers.Default) { formCatalog.load().allForms }
       } catch (e: Exception) {
         Timber.e(e, "Could not load the forms")
         _forms.value = emptyList()

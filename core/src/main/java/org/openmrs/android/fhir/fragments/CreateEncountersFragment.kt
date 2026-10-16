@@ -107,10 +107,7 @@ class CreateEncountersFragment : Fragment() {
     }
     (requireActivity().application as FhirApplication).appComponent.inject(this)
 
-    viewModel.loadFormData(
-      getString(R.string.questionnaires),
-      getString(R.string.encounter_type_system_url),
-    )
+    viewModel.loadFormData()
 
     viewModel.formData.observe(viewLifecycleOwner) { formData ->
       formData?.let { maybePromptToResumeDraft(it) }

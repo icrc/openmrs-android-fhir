@@ -52,8 +52,8 @@ import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.StringType
-import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.sync.GroupFhirSyncWorker
 
@@ -81,7 +81,7 @@ constructor(
   fun getSelectPatientListItems() {
     viewModelScope.launch {
       val filterPatientListsByGroup =
-        applicationContext.resources.getBoolean(R.bool.filter_patient_lists_by_group)
+        AppConfig.get(applicationContext).sync.filterPatientListsByLocation
       val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
       // Reading and filtering every Group can take a moment on big servers: keep it off main.
       val (groups, selectPatientListItemList) =

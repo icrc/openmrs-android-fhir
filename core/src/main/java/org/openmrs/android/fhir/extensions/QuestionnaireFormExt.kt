@@ -62,9 +62,7 @@ fun Fragment.newQuestionnaireFragment(
     .apply {
       setQuestionnaire(questionnaireJson)
       responseJson?.let { setQuestionnaireResponse(it) }
-      showReviewPageBeforeSubmit(
-        requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
-      )
+      showReviewPageBeforeSubmit(true)
       showOptionalText(true)
       showRequiredText(false)
       showCancelButton?.let { setShowCancelButton(it) }

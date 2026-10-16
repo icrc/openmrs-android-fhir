@@ -8,16 +8,11 @@ Welcome to the project! Follow the instructions below to set up the environment 
 
 The app builds from public artifacts (Google Maven, Maven Central); **no GitHub account or token is needed**.
 
-1. **Duplicate and Rename Configuration File:**
-   - Copy the file `local.properties.default` and rename it to `local.properties`.
-   - Set `sdk.dir` to your Android SDK path (Android Studio does this for you).
+1. **Duplicate and rename the machine file:**
+   - Copy `local.properties.default` to `local.properties` and set `sdk.dir` to your Android SDK path (Android Studio does this for you). Nothing else goes in this file.
 
-2. **Point the app at your server:**
-   - Set `openmrs_server_url` (for example `http://10.0.2.2:8080/openmrs` from the Android emulator). The FHIR, REST and connectivity-check URLs are derived from it.
-   - Set `auth_method` to `basic`, `openid` or `both` (see below).
-
-3. **Modify Additional Properties:**
-   - Modify other properties (e.g., explicit URLs, OAuth2) **only if** you are using a custom OpenMRS or Keycloak setup. A misspelled property name is reported as a warning during the build.
+2. **Configure the app:**
+   - Everything the app needs (server, login, what to download, forms) is in **one file per app**: `app/src/main/res/xml/app_config.xml` (and `dev3-app/src/main/res/xml/app_config.xml` for the dev3 build). Open it and set `<server url=...>`; see [Configuration](#️-configuration) below. The file in `core` is only the fallback and the reference.
 
 ---
 
@@ -38,99 +33,57 @@ You can run the OpenMRS Server and Keycloak using one of the following options:
 
 ---
 
-## 🔒 Authentication Methods
+## ⚙️ Configuration
 
-There is **one login page**. The `auth_method` build setting (in `local.properties`) decides what it offers:
+An app is configured by one file, `res/xml/app_config.xml`, in its module. It is read when the app starts; a missing or contradictory setting stops the app with a message that says what to fix. Every attribute that is not listed here has a default, so a small file is enough:
 
-| `auth_method` | Login page |
-| --- | --- |
-| `basic` | username and password |
-| `openid` | single sign-on (SSO) button |
-| `both` | the form, then an **or** divider and the SSO button |
-
-The SSO provider is configured at build level too (all optional when the provider publishes a discovery document):
-
-| Property | Meaning |
-| --- | --- |
-| `auth_discovery_uri` | OpenID Connect discovery URL (`.../.well-known/openid-configuration`) |
-| `auth_client_id`, `auth_authorization_scope` | client registered for the app and the scopes requested |
-| `auth_redirect_uri_host`, `auth_redirect_uri_path` | redirect the provider returns to |
-| `auth_authorization_endpoint_uri`, `auth_token_endpoint_uri`, `auth_user_info_endpoint_uri`, `auth_registration_endpoint_uri`, `auth_end_session_endpoint` | explicit endpoints, used when there is no discovery URL |
-| `auth_https_required`, `auth_replace_localhost_by_10_0_2_2` | allow plain http / map `localhost` to the emulator host (development) |
-| `sso_provider_name` | label of the button: `Sign in with <name>` (default `Sign in with SSO`) |
-
-With `both` the app remembers which method the session was opened with, so API calls and logout use the right one.
-`skip_login=true` adds **Continue without signing in** to the same page.
-
----
-
-## 🔗 Configuring FHIR Sync URLs
-
-To enable **FHIR synchronization**, set the `fhir_sync_urls` property with the required resource URLs in your `local.properties` file.
-
-Each resource type should be separated by a comma (,).
-
-### Example:
-```properties
-fhir_sync_urls=Location?_sort=_lastUpdated&_summary=data,Patient?_sort=_lastUpdated,Encounter?_sort=_lastUpdated,Observation?_sort=_lastUpdated
+```xml
+<app-config>
+    <server url="http://10.0.2.2:8080/openmrs" />
+    <auth method="both" guest-mode="false">
+        <sso discovery-url="http://10.0.2.2:8081/realms/main/.well-known/openid-configuration"
+             client-id="openmrs-fhir" />
+    </auth>
+</app-config>
 ```
 
-### Controlling first-time downloads
+| Element | Attribute | Meaning |
+| --- | --- | --- |
+| `<server>` | `url` | The OpenMRS server. The FHIR, REST and connectivity-check URLs are derived from it (from the emulator the host is `10.0.2.2`). On the login screen the gear can point a device at another server without rebuilding. |
+| `<auth>` | `method` | What the login page offers: `basic` (username and password), `openid` (single sign-on) or `both` (the form, an **or** divider and the SSO button). With `both` the app remembers which one the session was opened with. |
+| | `guest-mode` | `true` adds **Continue without signing in**: patients and forms are filled offline and syncing asks the user to sign in; what was entered is kept. |
+| `<sso>` | `discovery-url`, `client-id` | The OpenID Connect provider (needed for `openid` and `both`). The scope (`openid`), the redirect (`<application id>:/oauth2redirect`), http vs https and the endpoints are worked out from these. |
+| | `provider-name` | Optional label: the button reads **Sign in with <name>**. |
+| `<sync>` | `location-tag` | Tag of the locations offered at login (default `Login Location`). |
+| | `cohort-type` | Optional cohort type (UUID): only patient lists of that cohort are downloaded. |
+| | `filter-patient-lists-by-location` | `true` (default): only the lists of the location the user picked. |
+| | `patients-since` | Optional ISO date: patients last updated before it are not downloaded. |
+| `<patients>` | `registration-form` | Id of a synced questionnaire, or the file name of one in `assets`, used to register patients. |
+| | `fetch-identifiers` | `true`: the device fetches auto-generated identifiers and adds them to new patients; `false`: the server creates them. |
+| `<support>` | `email` | Where **Send diagnostics** and exported unsynced data go. |
+| | `diagnostics-password` | Optional password of the diagnostics archive. |
+| `<form-sections>` | | The Create Encounter screen, see below. |
 
-Use the optional `first_fhir_sync_url` property when you need a different search scope for the very first download. The app always queues all URLs from `first_fhir_sync_url` and `fhir_sync_urls`, then deduplicates them by resource type so subsequent syncs do not re-run broader first-time queries. This behavior is implemented in `TimestampBasedDownloadWorkManagerImpl` where the two lists are merged and filtered with `distinctBy` on the resource type derived from each URL.
+### What is downloaded
 
-### Scoping patient list downloads
+It is the same everywhere, so it is not configured URL by URL: the locations with the tag above, the patient lists (Groups), the questionnaires, and the patients of the lists the user selects together with their encounters and observations. Patient data is only ever downloaded for the selected lists; with no list selected none is. Later syncs fetch only what changed since the last one.
 
-Two properties help control how patient lists are filtered during syncs driven by group resources:
+### Form sections
 
+The Create Encounter screen lists forms in the sections declared in `<form-sections>`; a form is identified by the encounter type code its questionnaire declares (code system `http://fhir.openmrs.org/code-system/encounter-type`), and questionnaires come from the server or from `assets`:
 
-- `skip_login` (boolean, default `false`) adds **Continue without signing in** to the login page. The user can then register patients and fill the bundled questionnaires without a server; syncing asks them to sign in, and everything entered is kept.
-- `filter_patient_lists_by_group` (boolean) limits Group queries to the user’s selected location by adding a `location` search parameter when enabled.
-- `cohort-type` (UUID) appends a `cohort-type` parameter to Group requests when provided, allowing you to scope patient lists to a specific cohort definition on both initial and incremental sync paths.
-  Define these properties in `local.properties` (see `local.properties.default` for examples and defaults).
----
+```xml
+<form-sections>
+    <section name="MHPSS Forms">
+        <name lang="fr">Formulaires MHPSS</name>
+        <name lang="es">Formularios de MHPSS</name>
+        <form code="encounter.assessment" />
+        <form code="encounter.followup" />
+    </section>
+</form-sections>
+```
 
-## 🌐 Server connectivity checks
-
-Configure the lightweight connectivity probe using two properties:
-
-- `check_server_url` is the endpoint the app pings to verify the server is reachable before launching sync or login flows.
-- `server_connectivity_timeout_seconds` defines how long the probe waits before failing; values below one second are automatically clamped to a one-second timeout before being converted to milliseconds.
-
-Both settings live in `local.properties` (see `local.properties.default` for their default values) so you can point to custom health-check endpoints or adjust the responsiveness of the status indicator.
-
----
-
-## 🔗 Configuring Patient Registration Questionnaire
-
-To Configure **Patient Registration Questionnaire**, set the `registration_questionnaire_name` property to either of the following:
-1. `resourceId` of the registration questionnaire synced from the server.
-2. `file name` of the registration questionnaire in the assets folder.
-
-Use the `show_review_page_before_submit` toggle to decide whether a review screen is displayed before users submit questionnaire responses. The fragment builders read this boolean and call `showReviewPageBeforeSubmit(...)` so disabling it skips the intermediate review page for workflows such as patient registration or encounter capture. Configure the flag in `local.properties`; the default value is documented in `local.properties.default`.
-
----
-
-## 🔗 Configuring Fetch Identifiers flag
-
-To configure **patient identifier creation**, set the `fetch_identifiers` property to either of the following:
-1. `true`: fetch auto-generated identifier values on the Android app and embed them on the patient before uploading to the server.
-2. `false`: skip fetching auto-generated identifier values so they can be created entirely on the backend (or when you do not rely on autogenerated identifiers).
-
----
-
-## 🔗 Configuring Create Encounter Questionnaire
-
-To configure the questionnaire list on click of the **Create Encounter** button in the patient screen, update the `questionnaires` & `encounter_type_system_url` property with the encounter type of the encounter's questionnaire:
-Similar to registration questionnaire, it either takes the questionnaire from assets folder or after sync from the server.
-
-The screen lists the sections in the order they are configured. Sections can be collapsed, and a search box appears when there are more than a few forms. A form is shown only when a questionnaire (synced or bundled in the app) declares its encounter type code; codes without a questionnaire are skipped.
-
-The `questionnaires` property is optional: when it is empty, malformed, or none of its codes matches a questionnaire, every available encounter form is listed alphabetically in one **All forms** section. Titles and section names are translated through `Translation overrides` (per language) or the questionnaire's own title translations.
-
-Note:
-In the `questionnaires` property, write the code for `encounter type` instead of the `questionnaire.id` & make sure you use the correct `url` value.
-Reference: [Example property](https://github.com/parthfloyd/openmrs-android-fhir/blob/integrate-create-encounter-screen/core/src/main/res/values/server.xml)
+`name` is the section title; a `<name lang="xx">` child translates it. Form titles come from the questionnaire (and its own title translations). Sections show in the order declared, can be collapsed, and a search box appears when there are many forms. A code without a questionnaire is skipped. Leave `<form-sections>` out (or empty) and every available form is listed alphabetically in one **All forms** section. Each user can also pick up to five favorites in Settings; they are shown first.
 
 ### Understanding the Encounter Screener Template
 
@@ -151,17 +104,6 @@ Encounter forms can optionally show the shared screener questionnaire before the
     }
 }
 ```
----
-
-## 📧 Configuring the Developer Email for Application Diagnostics
-
-To ensure application diagnostics are sent to the correct developer email upon user request:
-
-1. Open the `local.properties` file.
-2. Update the `support_email` property with the desired email address.
-
-You can also protect exported diagnostic archives by setting the optional `diagnostics_password` property. When populated, the app passes the value to the `FileLoggingTree` initializer so generated ZIP files require that password to be opened. Add the secret to `local.properties`; a placeholder entry is available in `local.properties.default`.
-
 ---
 
 ## 📝 OpenMRS Notes

@@ -10,9 +10,6 @@ plugins {
   id("org.jetbrains.kotlin.plugin.compose")
 }
 
-// local.properties -> generated resources (shared by every application module)
-apply(from = rootProject.file("gradle/app-config.gradle.kts"))
-
 android {
   namespace = "org.openmrs.android.fhir.dev3_app"
   compileSdk = 36

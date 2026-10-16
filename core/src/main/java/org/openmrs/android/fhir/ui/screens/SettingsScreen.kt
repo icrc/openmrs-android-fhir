@@ -404,7 +404,7 @@ private fun FavoriteFormsSetting(
       Icon(
         imageVector = Icons.Default.Star,
         contentDescription = null,
-        modifier = Modifier.size(18.dp)
+        modifier = Modifier.size(18.dp),
       )
       Spacer(modifier = Modifier.width(8.dp))
       Text(

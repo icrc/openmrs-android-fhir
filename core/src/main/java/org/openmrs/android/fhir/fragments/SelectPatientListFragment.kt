@@ -57,6 +57,7 @@ import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
@@ -126,8 +127,7 @@ class SelectPatientListFragment : Fragment() {
     val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
     (requireActivity().application as FhirApplication).appComponent.inject(this)
 
-    filterPatientListsByGroup =
-      requireContext().resources.getBoolean(R.bool.filter_patient_lists_by_group)
+    filterPatientListsByGroup = AppConfig.get(requireContext()).sync.filterPatientListsByLocation
 
     viewLifecycleOwner.lifecycleScope.launch {
       locationName.value =

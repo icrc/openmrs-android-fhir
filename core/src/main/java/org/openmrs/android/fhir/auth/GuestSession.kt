@@ -29,7 +29,7 @@
 package org.openmrs.android.fhir.auth
 
 import android.content.Context
-import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.config.AppConfig
 
 /**
  * "Continue without signing in": the user works on this device without a server session. Nothing is
@@ -46,7 +46,7 @@ object GuestSession {
   /** Extra on the login activities: they were opened from a guest session to sign in. */
   const val EXTRA_SIGN_IN_FROM_GUEST = "sign_in_from_guest"
 
-  fun isAllowed(context: Context): Boolean = context.resources.getBoolean(R.bool.skip_login)
+  fun isAllowed(context: Context): Boolean = AppConfig.get(context).guestMode
 
   fun isActive(context: Context): Boolean =
     isAllowed(context) && prefs(context).getBoolean(KEY_ACTIVE, false)

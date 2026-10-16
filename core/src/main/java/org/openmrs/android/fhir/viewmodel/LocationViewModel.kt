@@ -53,8 +53,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Location
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.sync.FirstFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.LocationFhirSyncWorker
@@ -85,7 +85,7 @@ constructor(
   fun fetchPreSyncData() {
     viewModelScope.launch {
       val filterPatientListsByGroup =
-        applicationContext.resources.getBoolean(R.bool.filter_patient_lists_by_group)
+        AppConfig.get(applicationContext).sync.filterPatientListsByLocation
 
       val syncFlow =
         if (filterPatientListsByGroup) {

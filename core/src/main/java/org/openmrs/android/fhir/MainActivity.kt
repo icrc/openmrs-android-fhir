@@ -92,6 +92,7 @@ import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncStatus
@@ -677,7 +678,7 @@ class MainActivity : AppCompatActivity() {
     when {
       !isTokenExpired() && connectivityState.isServerReachable() -> {
         checkNotificationPermission()
-        val fetchIdentifiers = applicationContext.resources.getBoolean(R.bool.fetch_identifiers)
+        val fetchIdentifiers = AppConfig.get(applicationContext).fetchIdentifiers
         viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers)
         closeNavigationDrawer()
       }
@@ -893,7 +894,7 @@ class MainActivity : AppCompatActivity() {
         if (connectivityState is ServerConnectivityState.ServerConnected) {
           monitorTokenExpiry()
         }
-        val fetchIdentifiers = applicationContext.resources.getBoolean(R.bool.fetch_identifiers)
+        val fetchIdentifiers = AppConfig.get(applicationContext).fetchIdentifiers
         viewModel.handleConnectivityState(connectivityState, fetchIdentifiers)
       }
     }
@@ -1088,12 +1089,12 @@ class MainActivity : AppCompatActivity() {
   }
 
   private suspend fun sendDiagnosticsEmail() {
-    val password = getString(R.string.diagnostics_password)
+    val password = AppConfig.get(this).diagnosticsPassword
     val zipFile = createDiagnosticZip(password)
     val emailIntent =
       Intent(Intent.ACTION_SEND).apply {
         type = "application/zip"
-        putExtra(Intent.EXTRA_EMAIL, arrayOf(getString(R.string.support_email)))
+        putExtra(Intent.EXTRA_EMAIL, arrayOf(AppConfig.get(this@MainActivity).supportEmail))
         putExtra(Intent.EXTRA_SUBJECT, getString(R.string.diagnostic_report_subject))
         putExtra(Intent.EXTRA_TEXT, getString(R.string.diagnostic_report_body))
         putExtra(

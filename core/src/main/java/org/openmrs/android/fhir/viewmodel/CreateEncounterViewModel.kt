@@ -79,20 +79,17 @@ constructor(
   /**
    * Builds the sections of the **Create Encounter** screen.
    *
-   * [formDataString] is the `questionnaires` setting: sections of encounter-type codes plus
-   * optional translations. Each code is resolved to the questionnaire (synced or bundled in the
-   * app) that declares it, and codes without a questionnaire are skipped. When no sections are
-   * configured, every available encounter form is offered in one list, so the setting can be left
-   * out entirely. The favorite forms (picked in Settings) come first, in a section of their own.
+   * The sections are the ones declared in the app configuration. Each code is resolved to the
+   * questionnaire (synced or bundled in the app) that declares it, and codes without a
+   * questionnaire are skipped. When no sections are configured, every available encounter form is
+   * offered in one list, so the setting can be left out entirely. The favorite forms (picked in
+   * Settings) come first, in a section of their own.
    */
-  fun loadFormData(formDataString: String, encounterTypeSystemUrl: String) {
+  fun loadFormData() {
     viewModelScope.launch {
       _isLoading.value = true
       try {
-        val catalog =
-          withContext(Dispatchers.Default) {
-            formCatalog.load(formDataString, encounterTypeSystemUrl)
-          }
+        val catalog = withContext(Dispatchers.Default) { formCatalog.load() }
         formsById = catalog.allForms.associateBy { it.questionnaireId }
         sections = buildSections(catalog)
         publish()
@@ -123,14 +120,11 @@ constructor(
   }
 
   private fun buildSections(catalog: FormCatalog.Catalog): List<FormSectionItem> {
-    val overrides = catalog.translationOverrides
     val configured =
-      catalog.formData
-        ?.formSections
-        .orEmpty()
+      catalog.sections
         .map { section ->
           FormSectionItem(
-            name = overrides[section.name] ?: section.name,
+            name = section.nameFor(catalog.language),
             forms = section.forms.mapNotNull { code -> catalog.formsByCode[code] },
           )
         }
@@ -138,7 +132,7 @@ constructor(
     if (configured.isNotEmpty()) return configured
 
     // Nothing configured, or none of the configured codes has a questionnaire: offer every form.
-    if (!catalog.formData?.formSections.isNullOrEmpty()) {
+    if (catalog.sections.isNotEmpty()) {
       Timber.w("No questionnaire matches the configured encounter types; listing every form")
     }
     val all = catalog.allForms

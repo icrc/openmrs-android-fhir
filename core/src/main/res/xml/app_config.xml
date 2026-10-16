@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  The app's configuration. Every application module (app, dev3-app) has its own copy of this file
+  in res/xml/, which replaces this one: one file describes one app.
+-->
+<app-config>
+
+    <!-- The OpenMRS server. The FHIR, REST and connectivity-check URLs are derived from it.
+         From the Android emulator the host machine is 10.0.2.2. -->
+    <server url="http://10.0.2.2:8080/openmrs" />
+
+    <!-- What the login page offers: basic (username and password), openid (single sign-on) or
+         both. guest-mode adds "Continue without signing in": work offline, sign in to sync. -->
+    <auth method="both" guest-mode="false">
+        <!-- Needed for openid and both. provider-name is optional: "Sign in with <name>". -->
+        <sso
+            provider-name=""
+            discovery-url="http://10.0.2.2:8081/realms/main/.well-known/openid-configuration"
+            client-id="openmrs-fhir"
+        />
+    </auth>
+
+    <!-- What is downloaded. Locations (with this tag), patient lists (Groups), questionnaires, and
+         the patients of the lists the user selects with their encounters and observations.
+         cohort-type (UUID, optional): only download the lists of that cohort.
+         filter-patient-lists-by-location: only the lists of the location the user picked.
+         patients-since (ISO date, optional): skip patients last updated before it. -->
+    <sync
+        location-tag="Login Location"
+        cohort-type=""
+        filter-patient-lists-by-location="true"
+        patients-since=""
+    />
+
+    <!-- registration-form: id of a synced questionnaire or file name in assets.
+         fetch-identifiers: fetch auto-generated identifiers on the device and embed them in new
+         patients (false: the server creates them). -->
+    <patients registration-form="new-patient-registration-paginated" fetch-identifiers="true" />
+
+    <!-- Where "Send diagnostics" goes; the optional password protects the archive. -->
+    <support email="support@example.com" diagnostics-password="" />
+
+    <!-- The Create Encounter screen: sections of forms, identified by the encounter type code the
+         questionnaire declares. A section name can be translated with <name lang="xx">. Without
+         sections every available form is listed, alphabetically, in one "All forms" section. -->
+    <form-sections>
+        <section name="Test Forms">
+            <name lang="fr">Formulaires de test</name>
+            <name lang="es">Formularios de prueba</name>
+            <form code="encounter.type.code" />
+            <form code="encounter.malaria.formBeta" />
+            <form code="encounter.cholera.formCharlie" />
+        </section>
+        <section name="Test B Form">
+            <name lang="fr">Formulaire B de test</name>
+            <name lang="es">Formulario B de prueba</name>
+            <form code="encounter.bForm" />
+            <form code="encounter.cForm" />
+        </section>
+    </form-sections>
+</app-config>

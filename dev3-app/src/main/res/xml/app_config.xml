@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<app-config>
+    <server url="https://dev3.openmrs.org/openmrs" />
+
+    <auth method="basic" />
+
+    <sync location-tag="Login Location" filter-patient-lists-by-location="true" />
+
+    <patients registration-form="new-patient-registration-paginated" fetch-identifiers="true" />
+
+    <support email="support@example.com" diagnostics-password="changeit" />
+</app-config>

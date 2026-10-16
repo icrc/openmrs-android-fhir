@@ -40,8 +40,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.SplashActivity
+import org.openmrs.android.fhir.config.AppConfig
 
 /**
  * The OpenMRS server the app talks to. It defaults to the build configuration, but the login screen
@@ -75,21 +75,16 @@ object ServerSettings {
   }
 
   /** The server from the build configuration, as a base URL. */
-  fun defaultUrl(context: Context): String =
-    context.getString(R.string.fhir_base_url).substringBefore("/ws/").trimEnd('/')
+  fun defaultUrl(context: Context): String = AppConfig.get(context).serverUrl
 
   /** The server in use right now. */
   fun activeUrl(context: Context): String = override(context) ?: defaultUrl(context)
 
-  fun fhirBaseUrl(context: Context): String =
-    override(context)?.let { it + FHIR_PATH } ?: context.getString(R.string.fhir_base_url)
+  fun fhirBaseUrl(context: Context): String = activeUrl(context) + FHIR_PATH
 
-  fun restUrl(context: Context): String =
-    override(context)?.let { it + REST_PATH } ?: context.getString(R.string.openmrs_rest_url)
+  fun restUrl(context: Context): String = activeUrl(context) + REST_PATH
 
-  fun checkServerUrl(context: Context): String =
-    override(context)?.let { it + REST_PATH + "session" }
-      ?: context.getString(R.string.check_server_url)
+  fun checkServerUrl(context: Context): String = activeUrl(context) + REST_PATH + "session"
 
   /**
    * Turns what the user typed into a base URL, or `null` when it cannot be a server address.

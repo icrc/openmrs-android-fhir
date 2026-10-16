@@ -59,6 +59,13 @@ enum class AppLanguage(val tag: String, val flag: String, val nativeName: String
       return entries.firstOrNull { it.tag == language } ?: ENGLISH
     }
 
+    /** The language code in use (`en`, `fr`, ...), whether or not the app is translated into it. */
+    fun currentTag(context: Context): String {
+      val chosen = AppCompatDelegate.getApplicationLocales()
+      return (if (chosen.isEmpty) null else chosen[0]?.language)
+        ?: context.resources.configuration.locales[0].language
+    }
+
     fun apply(context: Context, language: AppLanguage) {
       val locale = Locale.forLanguageTag(language.tag)
       Locale.setDefault(locale)

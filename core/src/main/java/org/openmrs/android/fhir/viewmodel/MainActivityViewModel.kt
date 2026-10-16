@@ -75,6 +75,7 @@ import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.SessionStatus
 import org.openmrs.android.fhir.auth.SessionValidator
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.GuestDataCompleter
 import org.openmrs.android.fhir.data.IdentifierTypeManager
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -287,7 +288,7 @@ constructor(
     viewModelScope.launch {
       completeGuestData(
         applicationContext,
-        applicationContext.resources.getBoolean(R.bool.fetch_identifiers),
+        AppConfig.get(applicationContext).fetchIdentifiers,
       )
     }
   }
@@ -505,7 +506,7 @@ constructor(
       SessionStatus.Valid ->
         startSync(
           applicationContext,
-          applicationContext.resources.getBoolean(R.bool.fetch_identifiers),
+          AppConfig.get(applicationContext).fetchIdentifiers,
           background = true,
         )
       SessionStatus.Invalid -> _uiState.update { it.copy(isSessionPromptPending = true) }

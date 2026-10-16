@@ -47,6 +47,7 @@ import javax.inject.Inject
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
 import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.extensions.saveToFile
@@ -160,7 +161,7 @@ class SyncInfoFragment : Fragment() {
         val emailIntent =
           Intent(Intent.ACTION_SEND).apply {
             type = "application/json"
-            putExtra(Intent.EXTRA_EMAIL, arrayOf(getString(R.string.support_email)))
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(AppConfig.get(requireContext()).supportEmail))
             putExtra(Intent.EXTRA_SUBJECT, getString(R.string.unsynced_resources_email_subject))
             putExtra(Intent.EXTRA_TEXT, getString(R.string.unsynced_resources_email_body))
             putExtra(

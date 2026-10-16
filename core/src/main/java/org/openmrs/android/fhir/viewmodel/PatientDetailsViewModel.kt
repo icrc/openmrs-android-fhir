@@ -37,7 +37,6 @@ import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
-import com.squareup.moshi.Moshi
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -53,9 +52,10 @@ import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.data.FormCatalog
 import org.openmrs.android.fhir.data.OpenMRSHelper
-import org.openmrs.android.fhir.data.database.model.FormData
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
+import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.readAssetQuestionnaires
 import org.openmrs.android.fhir.extensions.toLocalString
 
@@ -83,10 +83,7 @@ constructor(
   val livePatientData = MutableLiveData<List<PatientDetailData>>()
 
   private val parser = FhirContext.forR4Cached().newJsonParser()
-  private val deviceLanguage = Locale.getDefault().language.lowercase(Locale.ROOT)
-  private val translationOverrides: Map<String, String> by lazy {
-    loadTranslationOverrides(deviceLanguage)
-  }
+  private val deviceLanguage = AppLanguage.currentTag(applicationContext).lowercase(Locale.ROOT)
 
   /** Emits list of [PatientDetailData]. */
   fun getPatientDetailData() {
@@ -94,9 +91,8 @@ constructor(
   }
 
   private suspend fun getPatientDetailDataModel(): List<PatientDetailData> {
-    val encounterTypeSystemUrl = applicationContext.getString(R.string.encounter_type_system_url)
     val encounterTypeCodeToQuestionnaireMap =
-      mapEncounterTypeCodesToQuestionnaires(encounterTypeSystemUrl)
+      mapEncounterTypeCodesToQuestionnaires(FormCatalog.ENCOUNTER_TYPE_SYSTEM_URL)
 
     val searchResult =
       fhirEngine.search<Patient> {
@@ -257,16 +253,14 @@ constructor(
     val encounterCode = encounterType?.coding?.firstOrNull()?.code
     val questionnaire = encounterCode?.let { encounterTypeCodeToQuestionnaireMap[it] }
 
-    val localizedTitle =
-      questionnaire?.getTranslatedTitle(deviceLanguage)
-        ?: questionnaire?.title?.let { translationOverrides[it] ?: it }
+    val localizedTitle = questionnaire?.getTranslatedTitle(deviceLanguage) ?: questionnaire?.title
 
     if (localizedTitle != null) {
       return localizedTitle
     }
 
     val fallback = encounterType?.coding?.firstOrNull()?.display ?: encounterType?.text ?: "Type"
-    return translationOverrides[fallback] ?: fallback
+    return fallback
   }
 
   private suspend fun loadQuestionnaires(): List<Questionnaire> {
@@ -278,18 +272,6 @@ constructor(
       ),
     )
     return questionnaires
-  }
-
-  private fun loadTranslationOverrides(deviceLanguage: String): Map<String, String> {
-    val formDataString = applicationContext.resources.getString(R.string.questionnaires)
-    return try {
-      val moshi = Moshi.Builder().build()
-      val adapter = moshi.adapter(FormData::class.java).lenient()
-      val formData = adapter.fromJson(formDataString.trim())
-      formData?.translationOverrides?.get(deviceLanguage).orEmpty()
-    } catch (e: Exception) {
-      emptyMap()
-    }
   }
 
   private fun Questionnaire.getTranslatedTitle(deviceLanguage: String): String? {

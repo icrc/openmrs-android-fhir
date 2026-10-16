@@ -57,6 +57,7 @@ import net.openid.appauth.AuthorizationResponse
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.extensions.AuthDialogs
 import org.openmrs.android.fhir.extensions.BiometricPromptHelper
 import org.openmrs.android.fhir.extensions.BiometricUtils
@@ -139,7 +140,7 @@ class LoginActivity : AppCompatActivity() {
           initialUsername = viewModel.lastUsername,
           onBasicLogin = { username, password -> viewModel.login(username, password) },
           onSsoLogin = ::onSsoLoginClick,
-          ssoProviderName = getString(R.string.sso_provider_name),
+          ssoProviderName = AppConfig.get(this@LoginActivity).sso?.providerName.orEmpty(),
           onContinueWithoutLogin =
             if (GuestSession.isAllowed(this@LoginActivity) && !signInFromGuest) {
               ::continueWithoutLogin

@@ -161,10 +161,7 @@ class SettingsFragment : Fragment() {
     setHasOptionsMenu(true)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     setUpActionBar()
-    favoriteFormsViewModel.load(
-      getString(R.string.questionnaires),
-      getString(R.string.encounter_type_system_url),
-    )
+    favoriteFormsViewModel.load()
     mainActivityViewModel.setDrawerEnabled(false)
     observeSettingsEvents()
   }

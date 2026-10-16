@@ -59,6 +59,7 @@ import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.composeView
@@ -266,7 +267,7 @@ class PatientDetailsFragment : Fragment() {
       .navigate(
         PatientDetailsFragmentDirections.navigateToEditPatient(
           args.patientId,
-          getString(R.string.registration_questionnaire_name),
+          AppConfig.get(requireContext()).registrationForm,
         ),
       )
   }

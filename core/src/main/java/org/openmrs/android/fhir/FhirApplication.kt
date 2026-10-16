@@ -45,6 +45,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.RestApiManager
 import org.openmrs.android.fhir.data.remote.ServerSettings
@@ -70,7 +71,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     Timber.e("FHIR Application started. Test Error log. Is Debug %s", BuildConfig.DEBUG)
     Timber.d("FHIR Application started. Test Debug log")
     val loggingMaxFileSize = 5 * 1024 * 1024L // 5MB
-    val loggingPassword = getString(R.string.diagnostics_password)
+    val loggingPassword = AppConfig.get(this).diagnosticsPassword
     Timber.plant(FileLoggingTree(this, loggingMaxFileSize, loggingPassword))
     FhirEngineProvider.init(
       FhirEngineConfiguration(
@@ -133,15 +134,16 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
 
     fun fhirBaseURl(context: Context) = ServerSettings.fhirBaseUrl(context)
 
-    fun authMethod(context: Context) = context.getString(R.string.auth_method)
+    fun authMethod(context: Context) = AppConfig.get(context).authMethod
 
     fun checkServerUrl(context: Context) = ServerSettings.checkServerUrl(context)
 
-    fun serverConnectivityTimeoutMillis(context: Context): Long {
-      val seconds = context.resources.getInteger(R.integer.server_connectivity_timeout_seconds)
-      val clampedSeconds = seconds.coerceAtLeast(1)
-      return TimeUnit.SECONDS.toMillis(clampedSeconds.toLong())
-    }
+    /** How long the connectivity probe waits for the server before reporting it unreachable. */
+    @Suppress("UNUSED_PARAMETER")
+    fun serverConnectivityTimeoutMillis(context: Context): Long =
+      TimeUnit.SECONDS.toMillis(CONNECTIVITY_TIMEOUT_SECONDS)
+
+    private const val CONNECTIVITY_TIMEOUT_SECONDS = 10L
   }
 
   override fun getDataCaptureConfig(): DataCaptureConfig = dataCaptureConfig ?: DataCaptureConfig()

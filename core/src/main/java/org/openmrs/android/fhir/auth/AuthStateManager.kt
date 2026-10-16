@@ -49,7 +49,6 @@ import net.openid.appauth.TokenResponse
 import org.openmrs.android.fhir.EncryptionHelper
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.KeystoreHelper
-import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.model.BasicAuthState
 import org.openmrs.android.fhir.extensions.decodeToByteArray
 import org.openmrs.android.fhir.extensions.encodeToString
@@ -263,15 +262,12 @@ class AuthStateManager private constructor(private val context: Context) {
     private const val ACTIVE_METHOD_KEY = "method"
     private const val MAX_FAILED_ATTEMPTS = 5
     private const val MAX_LOCKOUT_DURATION_MINS = 5
-    private var BASIC_AUTH_EXPIRY_HOURS = 24
+    private const val BASIC_AUTH_EXPIRY_HOURS = 24
 
     @Synchronized
     fun getInstance(context: Context): AuthStateManager {
       if (INSTANCE == null) {
         INSTANCE = AuthStateManager(context.applicationContext)
-        val expiryAuthExpiryHours =
-          context.applicationContext.resources.getInteger(R.integer.basic_auth_expiry_hours)
-        BASIC_AUTH_EXPIRY_HOURS = expiryAuthExpiryHours
       }
       return INSTANCE as AuthStateManager
     }

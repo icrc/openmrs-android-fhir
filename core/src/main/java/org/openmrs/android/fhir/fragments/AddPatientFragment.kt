@@ -49,6 +49,7 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.AddPatientFragmentBinding
 import org.openmrs.android.fhir.extensions.UnsavedChangesGuard
@@ -114,7 +115,7 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
     observeLoading()
     if (savedInstanceState == null) {
       viewModel.getEmbeddedQuestionnaire(
-        getString(R.string.registration_questionnaire_name),
+        AppConfig.get(requireContext()).registrationForm,
       )
     }
     setFormLoading(true)
@@ -173,8 +174,7 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
   }
 
   private fun savePatient(questionnaireResponse: QuestionnaireResponse) {
-    val fetchIdentifiers =
-      requireContext().applicationContext.resources.getBoolean(R.bool.fetch_identifiers)
+    val fetchIdentifiers = AppConfig.get(requireContext()).fetchIdentifiers
     viewModel.savePatient(questionnaireResponse, fetchIdentifiers)
   }
 
