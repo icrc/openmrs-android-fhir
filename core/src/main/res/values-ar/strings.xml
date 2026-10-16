@@ -523,6 +523,7 @@
 
 
 
+    <string name="end_visit">إنهاء الزيارة</string>
     <string
         name="end_visit_confirmation_message"
     >هل أنت متأكد أنك تريد إنهاء الزيارة الآن؟</string>

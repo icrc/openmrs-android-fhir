@@ -182,7 +182,7 @@ internal fun PatientListViewModel.PatientItem.displayIdentifier(): String? =
 
 /** "34 y, F" style label. Safe for patients with no birth date and/or no gender. */
 @Composable
-private fun formatAgeGender(patientItem: PatientListViewModel.PatientItem): String {
+internal fun formatAgeGender(patientItem: PatientListViewModel.PatientItem): String {
   val age =
     patientItem.dob?.let { dob ->
       val period = Period.between(dob, LocalDate.now())

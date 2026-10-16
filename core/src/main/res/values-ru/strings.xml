@@ -602,6 +602,7 @@
     >Местоположение не выбрано. Хотите выбрать одно?</string>
 
 
+    <string name="end_visit">Завершить визит</string>
     <string
         name="end_visit_confirmation_message"
     >Вы уверены, что хотите завершить визит сейчас?</string>

@@ -603,6 +603,7 @@
     >Aucun emplacement n’est sélectionné. Souhaitez-vous en sélectionner un ?</string>
 
 
+    <string name="end_visit">Terminer la visite</string>
     <string
         name="end_visit_confirmation_message"
     >Voulez-vous vraiment terminer la visite maintenant ?</string>

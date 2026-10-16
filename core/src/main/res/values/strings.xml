@@ -544,6 +544,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     >No location is selected. Do you want to select one?</string>
 
 
+    <string name="end_visit">End visit</string>
     <string
         name="end_visit_confirmation_message"
     >Are you sure you want to end the visit now?</string>

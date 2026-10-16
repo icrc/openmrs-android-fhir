@@ -29,12 +29,13 @@
 package org.openmrs.android.fhir.ui.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -43,29 +44,35 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -134,157 +141,271 @@ fun PatientPropertyRow(
   }
 }
 
+/** Section title with an optional count, e.g. "ENCOUNTERS 4". */
 @Composable
-fun PatientDetailsHeaderRow(title: String, modifier: Modifier = Modifier) {
-  Text(
+fun PatientDetailsHeaderRow(title: String, modifier: Modifier = Modifier, count: Int? = null) {
+  Row(
     modifier =
       modifier
         .fillMaxWidth()
-        .padding(start = 20.dp, end = 8.dp, top = 10.dp, bottom = 10.dp)
+        .padding(start = 4.dp, end = 4.dp, top = 12.dp, bottom = 2.dp)
         .testTag("PatientDetailsHeader"),
-    text = title,
-    color = MaterialTheme.colorScheme.onSurface,
-    fontSize = 20.sp,
-    fontWeight = FontWeight.SemiBold,
-  )
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text(
+      text = title.uppercase(),
+      style = MaterialTheme.typography.labelLarge,
+      fontWeight = FontWeight.SemiBold,
+      color = MaterialTheme.colorScheme.primary,
+    )
+    if (count != null) {
+      Spacer(modifier = Modifier.width(8.dp))
+      Text(
+        text = count.toString(),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+    }
+  }
 }
 
+/** One line of the patient's profile: a small icon, a caption and the value. */
+data class PatientDetailLine(val icon: ImageVector, val label: String, val value: String)
+
+/**
+ * The patient's profile card: initials avatar, name, age and gender, the identifiers as chips and
+ * (when given) the contact details and an edit button.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PatientDetailsOverviewHeader(
   name: String,
   identifiers: List<Identifier>,
   modifier: Modifier = Modifier,
+  ageGender: String = "",
+  details: List<PatientDetailLine> = emptyList(),
+  onEditClick: (() -> Unit)? = null,
 ) {
   val visibleIdentifiers =
-    identifiers.filterNot { identifier ->
-      identifier.type?.text?.equals("unsynced", ignoreCase = true) == true
-    }
+    identifiers
+      .filterNot { identifier ->
+        identifier.type?.text?.equals("unsynced", ignoreCase = true) == true
+      }
+      .mapNotNull { identifier ->
+        val typeText = identifier.type?.text.orEmpty()
+        val valueText = identifier.value.orEmpty()
+        when {
+          valueText.isBlank() -> null
+          typeText.isNotBlank() -> "$typeText: $valueText"
+          else -> valueText
+        }
+      }
   Surface(
-    modifier =
-      modifier
-        .fillMaxWidth()
-        .padding(1.dp)
-        .padding(bottom = 12.dp)
-        .testTag("PatientDetailsOverviewHeader"),
+    modifier = modifier.fillMaxWidth().testTag("PatientDetailsOverviewHeader"),
+    shape = RoundedCornerShape(24.dp),
     color = MaterialTheme.colorScheme.surface,
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    shadowElevation = 1.dp,
   ) {
-    Row(
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Image(
-        modifier = Modifier.size(120.dp),
-        painter = painterResource(id = R.drawable.ic_user),
-        contentDescription = null,
-        colorFilter =
-          androidx.compose.ui.graphics.ColorFilter.tint(MaterialTheme.colorScheme.surfaceVariant),
-      )
-      Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-      ) {
-        Text(
-          modifier = Modifier.testTag("PatientDetailsName"),
-          text = name,
-          fontSize = 26.sp,
-          fontFamily = FontFamily(Font(R.font.inter_semibold)),
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        visibleIdentifiers.forEach { identifier ->
-          val typeText = identifier.type?.text.orEmpty()
-          val valueText = identifier.value.orEmpty()
-          val label =
-            if (typeText.isNotBlank()) {
-              "$typeText: $valueText"
-            } else {
-              valueText
-            }
-          if (label.isNotBlank()) {
+    Column(modifier = Modifier.padding(20.dp)) {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+          modifier =
+            Modifier.size(64.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
+          contentAlignment = Alignment.Center,
+        ) {
+          Text(
+            text = initialsOf(name),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onPrimary,
+          )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+            modifier = Modifier.testTag("PatientDetailsName"),
+            text = name,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+          )
+          if (ageGender.isNotBlank()) {
             Text(
-              modifier = Modifier.testTag("PatientDetailsIdentifier"),
-              text = label,
-              fontSize = 16.sp,
-              fontFamily = FontFamily(Font(R.font.inter)),
+              modifier = Modifier.testTag("PatientDetailsAgeGender"),
+              text = ageGender,
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
           }
+        }
+      }
+
+      if (visibleIdentifiers.isNotEmpty()) {
+        FlowRow(
+          modifier = Modifier.padding(top = 16.dp),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+          visibleIdentifiers.forEach { label ->
+            Surface(
+              shape = RoundedCornerShape(8.dp),
+              color = OpenMrsTheme.colors.highlightContainer,
+            ) {
+              Text(
+                modifier =
+                  Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    .testTag("PatientDetailsIdentifier"),
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+              )
+            }
+          }
+        }
+      }
+
+      if (details.isNotEmpty()) {
+        HorizontalDivider(
+          modifier = Modifier.padding(vertical = 16.dp),
+          color = MaterialTheme.colorScheme.outlineVariant,
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+          details.forEach { line ->
+            Row(
+              modifier = Modifier.testTag("PatientDetailLine"),
+              verticalAlignment = Alignment.CenterVertically,
+            ) {
+              Icon(
+                imageVector = line.icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp),
+              )
+              Spacer(modifier = Modifier.width(14.dp))
+              Column {
+                Text(
+                  text = line.label,
+                  style = MaterialTheme.typography.labelSmall,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(text = line.value, style = MaterialTheme.typography.bodyLarge)
+              }
+            }
+          }
+        }
+      }
+
+      if (onEditClick != null) {
+        FilledTonalButton(
+          onClick = onEditClick,
+          modifier = Modifier.fillMaxWidth().padding(top = 16.dp).testTag("PatientEditButton"),
+        ) {
+          Icon(
+            imageVector = Icons.Filled.Edit,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+          )
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(text = stringResource(id = R.string.edit_patient))
         }
       }
     }
   }
 }
 
+private fun initialsOf(name: String): String =
+  name
+    .split(' ', '-')
+    .filter { it.isNotBlank() }
+    .take(2)
+    .joinToString("") { it.first().uppercase() }
+    .ifEmpty { "?" }
+
+/** Tells the user the patient has changes that were not uploaded yet. */
 @Composable
 fun PatientUnsyncedCard(modifier: Modifier = Modifier) {
-  val backgroundColor = Color(0xFFfef3e6)
-  val accentColor = Color(0xFFb16e1c)
-  Card(
-    modifier =
-      modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp, vertical = 12.dp)
-        .testTag("PatientUnsyncedCard"),
-    colors = CardDefaults.cardColors(containerColor = backgroundColor),
-    border = BorderStroke(4.dp, Color(0xFFFFDCB3)),
-    shape = RoundedCornerShape(dimensionResource(id = R.dimen.cardView_radius_corner)),
+  val warning = OpenMrsTheme.colors.warning
+  Surface(
+    modifier = modifier.fillMaxWidth().testTag("PatientUnsyncedCard"),
+    shape = RoundedCornerShape(16.dp),
+    color = warning.copy(alpha = 0.12f),
+    border = BorderStroke(1.dp, warning.copy(alpha = 0.4f)),
   ) {
     Row(
-      modifier =
-        Modifier.fillMaxWidth()
-          .padding(all = dimensionResource(id = R.dimen.new_patient_padding))
-          .background(backgroundColor),
+      modifier = Modifier.fillMaxWidth().padding(14.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Icon(
-        painter = painterResource(id = android.R.drawable.ic_dialog_alert),
+        painter = painterResource(id = R.drawable.ic_baseline_sync_24),
         contentDescription = stringResource(id = R.string.task_image),
-        tint = accentColor,
+        tint = warning,
       )
       Spacer(modifier = Modifier.width(12.dp))
       Text(
         text = stringResource(id = R.string.patient_unsynced_info),
-        color = accentColor,
-        fontSize = 14.sp,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurface,
       )
     }
   }
 }
 
+/** A visit: its type and period; an open visit offers **End visit** through [onDateClick]. */
 @Composable
 fun VisitListItemRow(
   encounterType: String,
   encounterDate: String,
+  modifier: Modifier = Modifier,
   onDateClick: (() -> Unit)? = null,
 ) {
-  Surface(color = MaterialTheme.colorScheme.surface) {
-    Column(
-      modifier =
-        Modifier.fillMaxWidth()
-          .padding(
-            start = dimensionResource(id = R.dimen.text_margin),
-            end = 8.dp,
-            top = 8.dp,
-            bottom = 8.dp,
-          )
-          .testTag("VisitListItemRow"),
+  Surface(
+    modifier = modifier.fillMaxWidth().testTag("VisitListItemRow"),
+    shape = RoundedCornerShape(16.dp),
+    color = MaterialTheme.colorScheme.surface,
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+  ) {
+    Row(
+      modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
+      verticalAlignment = Alignment.CenterVertically,
     ) {
-      Text(
-        modifier = Modifier.testTag("VisitType"),
-        text = encounterType,
-        fontSize = 16.sp,
-      )
-      Spacer(modifier = Modifier.height(4.dp))
-      Text(
+      Box(
         modifier =
-          Modifier.testTag("VisitDate").let { base ->
-            onDateClick?.let { base.clickable(onClick = it) } ?: base
-          },
-        text = encounterDate,
-        fontSize = 14.sp,
-        color = Color.DarkGray,
-      )
+          Modifier.size(40.dp).clip(CircleShape).background(OpenMrsTheme.colors.highlightContainer),
+        contentAlignment = Alignment.Center,
+      ) {
+        Icon(
+          imageVector = Icons.Filled.CalendarMonth,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.primary,
+          modifier = Modifier.size(22.dp),
+        )
+      }
+      Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
+        Text(
+          modifier = Modifier.testTag("VisitType"),
+          text = encounterType,
+          style = MaterialTheme.typography.bodyLarge,
+          fontWeight = FontWeight.Medium,
+        )
+        Text(
+          modifier = Modifier.testTag("VisitDate"),
+          text = encounterDate,
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+      if (onDateClick != null) {
+        TextButton(onClick = onDateClick, modifier = Modifier.testTag("VisitEndButton")) {
+          Text(text = stringResource(id = R.string.end_visit))
+        }
+      }
     }
   }
 }
 
+/** An encounter: type, date and a sync marker; the whole card opens it for editing. */
 @Composable
 fun EncounterListItemRow(
   modifier: Modifier = Modifier,
@@ -293,36 +414,62 @@ fun EncounterListItemRow(
   showSyncIcon: Boolean,
   onTitleClick: (() -> Unit)? = null,
 ) {
-  Surface(color = MaterialTheme.colorScheme.surface) {
-    Column(
-      modifier = modifier.fillMaxWidth().padding(8.dp).testTag("EncounterListItemRow"),
+  Surface(
+    modifier = modifier.fillMaxWidth().testTag("EncounterListItemRow"),
+    shape = RoundedCornerShape(16.dp),
+    color = MaterialTheme.colorScheme.surface,
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+  ) {
+    Row(
+      modifier =
+        Modifier.fillMaxWidth()
+          .let { base -> onTitleClick?.let { base.clickable(onClick = it) } ?: base }
+          .padding(start = 12.dp, top = 10.dp, bottom = 10.dp, end = 8.dp),
+      verticalAlignment = Alignment.CenterVertically,
     ) {
-      Text(
-        modifier = Modifier.testTag("EncounterDate").padding(start = 20.dp),
-        text = encounterDate,
-        fontSize = 14.sp,
-        color = Color.DarkGray,
-      )
-      Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(start = 20.dp),
+      Box(
+        modifier =
+          Modifier.size(40.dp).clip(CircleShape).background(OpenMrsTheme.colors.highlightContainer),
+        contentAlignment = Alignment.Center,
       ) {
-        if (showSyncIcon) {
-          Icon(
-            modifier = Modifier.size(20.dp).testTag("EncounterSyncIcon"),
-            painter = painterResource(id = R.drawable.ic_baseline_sync_24),
-            contentDescription = stringResource(id = R.string.description_status),
-            tint = OpenMrsTheme.colors.warning,
-          )
-          Spacer(modifier = Modifier.width(8.dp))
-        }
+        Icon(
+          imageVector = Icons.Filled.Description,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.primary,
+          modifier = Modifier.size(22.dp),
+        )
+      }
+      Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
         Text(
-          modifier =
-            Modifier.testTag("EncounterType").let { base ->
-              onTitleClick?.let { base.clickable(onClick = it) } ?: base
-            },
+          modifier = Modifier.testTag("EncounterType"),
           text = encounterType,
-          fontSize = 16.sp,
+          style = MaterialTheme.typography.bodyLarge,
+          fontWeight = FontWeight.Medium,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis,
+        )
+        Text(
+          modifier = Modifier.testTag("EncounterDate"),
+          text = encounterDate,
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+      if (showSyncIcon) {
+        Icon(
+          modifier = Modifier.size(20.dp).testTag("EncounterSyncIcon"),
+          painter = painterResource(id = R.drawable.ic_baseline_sync_24),
+          contentDescription = stringResource(id = R.string.description_status),
+          tint = OpenMrsTheme.colors.warning,
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+      }
+      if (onTitleClick != null) {
+        Icon(
+          imageVector = Icons.Filled.Edit,
+          contentDescription = stringResource(id = R.string.edit_encounter),
+          tint = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.size(20.dp),
         )
       }
     }

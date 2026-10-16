@@ -41,6 +41,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -57,10 +59,11 @@ import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.adapters.PatientDetailsRecyclerViewAdapter
 import org.openmrs.android.fhir.data.OpenMRSHelper
-import org.openmrs.android.fhir.databinding.PatientDetailBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.extensions.composeView
+import org.openmrs.android.fhir.ui.patient.PatientDetailsScreen
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
 
@@ -80,9 +83,6 @@ class PatientDetailsFragment : Fragment() {
     activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   private val args: PatientDetailsFragmentArgs by navArgs()
-  private var _binding: PatientDetailBinding? = null
-  private val binding
-    get() = _binding!!
 
   var editMenuItem: MenuItem? = null
 
@@ -95,22 +95,23 @@ class PatientDetailsFragment : Fragment() {
     inflater: LayoutInflater,
     container: ViewGroup?,
     savedInstanceState: Bundle?,
-  ): View {
-    _binding = PatientDetailBinding.inflate(inflater, container, false)
-    return binding.root
+  ): View = composeView {
+    OpenMrsTheme {
+      val patientData by patientDetailsViewModel.livePatientData.observeAsState(null)
+      PatientDetailsScreen(
+        patientData = patientData,
+        onEditPatient = ::onEditPatientClick,
+        onEditEncounter = ::onEditEncounterClick,
+        onEndVisit = ::onEditVisitClick,
+        onCreateEncounter = ::onCreateEncounterClick,
+      )
+    }
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     updateArguments(args.patientId)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
-    val adapter =
-      PatientDetailsRecyclerViewAdapter(
-        ::onEditEncounterClick,
-        ::onEditVisitClick,
-      )
-    binding.createEncounterFloatingButton.setOnClickListener { onCreateEncounterClick() }
-    binding.recycler.adapter = adapter
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title = getString(R.string.patient_details_title)
       setDisplayHomeAsUpEnabled(true)
@@ -119,7 +120,6 @@ class PatientDetailsFragment : Fragment() {
       )
     }
     patientDetailsViewModel.livePatientData.observe(viewLifecycleOwner) {
-      adapter.submitList(it)
       requireActivity().invalidateOptionsMenu()
     }
     patientDetailsViewModel.getPatientDetailData()
@@ -234,7 +234,10 @@ class PatientDetailsFragment : Fragment() {
   private fun onEditVisitClick(visitId: String) {
     context?.let { ctx ->
       showEndVisitDialog(ctx, visitId) { id ->
-        lifecycleScope.launch { openMRSHelper.endVisit(id) }
+        lifecycleScope.launch {
+          openMRSHelper.endVisit(id)
+          patientDetailsViewModel.getPatientDetailData()
+        }
       }
     }
   }
@@ -251,25 +254,24 @@ class PatientDetailsFragment : Fragment() {
         true
       }
       R.id.menu_patient_edit -> {
-        findNavController()
-          .navigate(
-            PatientDetailsFragmentDirections.navigateToEditPatient(
-              args.patientId,
-              getString(R.string.registration_questionnaire_name),
-            ),
-          )
+        onEditPatientClick()
         true
       }
       else -> super.onOptionsItemSelected(item)
     }
   }
 
-  private fun updateArguments(patientId: String) {
-    requireArguments().putString("patient_id", patientId)
+  private fun onEditPatientClick() {
+    findNavController()
+      .navigate(
+        PatientDetailsFragmentDirections.navigateToEditPatient(
+          args.patientId,
+          getString(R.string.registration_questionnaire_name),
+        ),
+      )
   }
 
-  override fun onDestroyView() {
-    super.onDestroyView()
-    _binding = null
+  private fun updateArguments(patientId: String) {
+    requireArguments().putString("patient_id", patientId)
   }
 }
