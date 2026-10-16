@@ -119,6 +119,9 @@
     <string name="settings_language">Idioma</string>
     <string name="settings_section_identifiers">Identificadores de pacientes</string>
     <string name="settings_identifiers_description">Elija los tipos de identificador que reciben los pacientes nuevos.</string>
+    <string name="identifier_types_hint">Elija los tipos de identificador de los pacientes nuevos. Los obligatorios siempre se incluyen.</string>
+    <string name="identifier_type_required">Obligatorio</string>
+    <string name="identifier_types_empty">Aún no hay tipos de identificador disponibles. Revise la conexión e inténtelo de nuevo.</string>
     <string name="last_encounter">Último encuentro</string>
     <string name="last_encounter_none">Aún no hay encuentros</string>
     <string name="last_encounter_unknown_type">Encuentro</string>

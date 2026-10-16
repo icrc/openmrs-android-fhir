@@ -32,10 +32,8 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -45,13 +43,17 @@ import androidx.navigation.fragment.NavHostFragment
 import javax.inject.Inject
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.extensions.composeView
-import org.openmrs.android.fhir.ui.screens.IdentifierSelectionScreen
+import org.openmrs.android.fhir.ui.components.IdentifierTypesDialog
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.IdentifierSelectionViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
+/**
+ * Opens the identifier types popup over an empty screen; closing it goes back. Settings shows the
+ * same popup in place, this is for the places that send the user here (a guest's patients cannot be
+ * uploaded before the types are chosen).
+ */
 class IdentifierFragment : Fragment() {
 
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -74,18 +76,15 @@ class IdentifierFragment : Fragment() {
     return composeView {
       OpenMrsTheme {
         val uiState by identifierSelectionViewModel.uiState.collectAsStateWithLifecycle()
-        val filteredIdentifiers =
-          remember(uiState.identifierTypes, uiState.query) {
-            uiState.identifierTypes.filter { it.display?.contains(uiState.query) ?: true }
-          }
-
-        IdentifierSelectionScreen(
-          query = uiState.query,
-          onQueryChange = identifierSelectionViewModel::onQueryChanged,
-          identifierTypes = filteredIdentifiers,
-          selectedIdentifierIds = uiState.selectedIdentifierIds,
+        IdentifierTypesDialog(
+          identifierTypes = uiState.identifierTypes,
+          selectedIds = uiState.selectedIdentifierIds,
           isLoading = uiState.isLoading,
-          onIdentifierToggle = ::onIdentifierTypeItemClicked,
+          onSave = {
+            identifierSelectionViewModel.saveSelection(it)
+            close()
+          },
+          onDismiss = ::close,
         )
       }
     }
@@ -102,26 +101,14 @@ class IdentifierFragment : Fragment() {
     mainActivityViewModel.setDrawerEnabled(false)
   }
 
-  private fun onIdentifierTypeItemClicked(identifierTypeItem: IdentifierType, isSelected: Boolean) {
-    if (!identifierTypeItem.required) {
-      identifierSelectionViewModel.onIdentifierToggle(identifierTypeItem, isSelected)
-      Toast.makeText(
-          context,
-          if (isSelected) {
-            getString(R.string.identifier_removed)
-          } else {
-            getString(R.string.identifier_added)
-          },
-          Toast.LENGTH_SHORT,
-        )
-        .show()
-    }
+  private fun close() {
+    NavHostFragment.findNavController(this).navigateUp()
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
       android.R.id.home -> {
-        NavHostFragment.findNavController(this).navigateUp()
+        close()
         true
       }
       else -> false

@@ -112,6 +112,9 @@
     <string name="settings_language">اللغة</string>
     <string name="settings_section_identifiers">معرّفات المرضى</string>
     <string name="settings_identifiers_description">اختر أنواع المعرّفات التي يحصل عليها المرضى الجدد.</string>
+    <string name="identifier_types_hint">اختر أنواع المعرّفات للمرضى الجدد. الأنواع الإلزامية مضمّنة دائماً.</string>
+    <string name="identifier_type_required">إلزامي</string>
+    <string name="identifier_types_empty">لا توجد أنواع معرّفات متاحة بعد. تحقق من الاتصال وحاول مجدداً.</string>
     <string name="last_encounter">آخر لقاء</string>
     <string name="last_encounter_none">لا توجد لقاءات بعد</string>
     <string name="last_encounter_unknown_type">لقاء</string>

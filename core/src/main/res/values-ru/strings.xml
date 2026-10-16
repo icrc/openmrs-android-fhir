@@ -149,6 +149,9 @@
     <string name="settings_language">Язык</string>
     <string name="settings_section_identifiers">Идентификаторы пациентов</string>
     <string name="settings_identifiers_description">Выберите типы идентификаторов для новых пациентов.</string>
+    <string name="identifier_types_hint">Выберите типы идентификаторов для новых пациентов. Обязательные включены всегда.</string>
+    <string name="identifier_type_required">Обязательно</string>
+    <string name="identifier_types_empty">Типы идентификаторов пока недоступны. Проверьте соединение и повторите попытку.</string>
     <string name="last_encounter">Последний визит</string>
     <string name="last_encounter_none">Пока нет визитов</string>
     <string name="last_encounter_unknown_type">Визит</string>

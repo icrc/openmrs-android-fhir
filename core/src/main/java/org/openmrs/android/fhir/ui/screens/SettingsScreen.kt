@@ -84,10 +84,12 @@ import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.CustomFormSection
 import org.openmrs.android.fhir.data.database.model.FormItem
+import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.ThemeMode
 import org.openmrs.android.fhir.ui.components.FavoriteFormsDialog
 import org.openmrs.android.fhir.ui.components.FormSectionsEditorDialog
+import org.openmrs.android.fhir.ui.components.IdentifierTypesDialog
 import org.openmrs.android.fhir.ui.components.LanguagePicker
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.SettingsUiState
@@ -145,7 +147,11 @@ fun SettingsScreen(
   favoriteFormOptions: List<FormItem>? = null,
   favoriteFormIds: List<String> = emptyList(),
   onFavoriteFormsSaved: ((List<String>) -> Unit)? = null,
-  onSelectIdentifierTypesClicked: (() -> Unit)? = null,
+  identifierTypes: List<IdentifierType>? = null,
+  selectedIdentifierIds: Set<String> = emptySet(),
+  isLoadingIdentifierTypes: Boolean = false,
+  onIdentifierTypesRequested: () -> Unit = {},
+  onIdentifierTypesSaved: ((Set<String>) -> Unit)? = null,
   customFormSections: List<CustomFormSection>? = null,
   defaultFormSections: List<CustomFormSection> = emptyList(),
   onFormSectionsSaved: ((List<CustomFormSection>) -> Unit)? = null,
@@ -247,16 +253,14 @@ fun SettingsScreen(
         }
       }
 
-      if (onSelectIdentifierTypesClicked != null) {
+      if (identifierTypes != null && onIdentifierTypesSaved != null) {
         SettingsSection(title = stringResource(R.string.settings_section_identifiers)) {
-          SettingsAction(
-            description = stringResource(R.string.settings_identifiers_description),
-            buttonText = stringResource(R.string.select_identifier_types),
-            icon = Icons.Default.Tag,
-            onClick = onSelectIdentifierTypesClicked,
-            enabled = true,
-            inProgress = false,
-            testTag = SettingsTestTags.IdentifierTypesButton,
+          IdentifierTypesSetting(
+            identifierTypes = identifierTypes,
+            selectedIds = selectedIdentifierIds,
+            isLoading = isLoadingIdentifierTypes,
+            onOpen = onIdentifierTypesRequested,
+            onSaved = onIdentifierTypesSaved,
           )
         }
       }
@@ -400,6 +404,62 @@ private fun ThemeModeChoice(selected: ThemeMode, onSelected: (ThemeMode) -> Unit
           modifier = Modifier.testTag(tag),
         )
       }
+  }
+}
+
+/** How many identifier types are in use, and the button that opens the popup to change them. */
+@Composable
+private fun IdentifierTypesSetting(
+  identifierTypes: List<IdentifierType>,
+  selectedIds: Set<String>,
+  isLoading: Boolean,
+  onOpen: () -> Unit,
+  onSaved: (Set<String>) -> Unit,
+) {
+  var showPicker by remember { mutableStateOf(false) }
+  Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Text(
+      text = stringResource(R.string.settings_identifiers_description),
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    OutlinedButton(
+      onClick = {
+        onOpen()
+        showPicker = true
+      },
+      modifier =
+        Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.IdentifierTypesButton),
+    ) {
+      Icon(
+        imageVector = Icons.Default.Tag,
+        contentDescription = null,
+        modifier = Modifier.size(18.dp),
+      )
+      Spacer(modifier = Modifier.width(8.dp))
+      Text(
+        text =
+          if (selectedIds.isEmpty()) {
+            stringResource(R.string.select_identifier_types)
+          } else {
+            stringResource(R.string.forms_selected_count, selectedIds.size) +
+              " · " +
+              stringResource(R.string.select_identifier_types)
+          },
+      )
+    }
+  }
+  if (showPicker) {
+    IdentifierTypesDialog(
+      identifierTypes = identifierTypes,
+      selectedIds = selectedIds,
+      isLoading = isLoading,
+      onSave = {
+        showPicker = false
+        onSaved(it)
+      },
+      onDismiss = { showPicker = false },
+    )
   }
 }
 

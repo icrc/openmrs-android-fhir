@@ -93,6 +93,18 @@ constructor(
     }
   }
 
+  /** Applies the chosen identifier types (the required ones are always included). */
+  fun saveSelection(ids: Set<String>) {
+    val required = _uiState.value.identifierTypes.filter { it.required }.map { it.uuid }
+    val selection = ids + required
+    _uiState.update { it.copy(selectedIdentifierIds = selection) }
+    viewModelScope.launch {
+      applicationContext.dataStore.edit { preferences ->
+        preferences[PreferenceKeys.SELECTED_IDENTIFIER_TYPES] = selection
+      }
+    }
+  }
+
   private fun loadSelectedIdentifiers() {
     viewModelScope.launch {
       val selected =

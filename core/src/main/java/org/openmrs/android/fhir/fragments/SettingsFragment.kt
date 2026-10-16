@@ -67,6 +67,7 @@ import org.openmrs.android.fhir.ui.screens.SettingsDefaults
 import org.openmrs.android.fhir.ui.screens.SettingsScreen
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.FavoriteFormsViewModel
+import org.openmrs.android.fhir.viewmodel.IdentifierSelectionViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.QuestionnaireFetchViewModel
 import org.openmrs.android.fhir.viewmodel.SettingsEvent
@@ -80,6 +81,8 @@ class SettingsFragment : Fragment() {
   private val questionnaireFetchViewModel by
     viewModels<QuestionnaireFetchViewModel> { viewModelFactory }
   private val favoriteFormsViewModel by viewModels<FavoriteFormsViewModel> { viewModelFactory }
+  private val identifierSelectionViewModel by
+    viewModels<IdentifierSelectionViewModel> { viewModelFactory }
   private val themeSelection = mutableStateOf(ThemeMode.SYSTEM)
 
   /** true: enabled, false: declined, null: not answered yet. */
@@ -109,6 +112,7 @@ class SettingsFragment : Fragment() {
       val uiState = settingsViewModel.uiState.collectAsStateWithLifecycle().value
       val isFetchingQuestionnaires by
         questionnaireFetchViewModel.isFetching.collectAsStateWithLifecycle()
+      val identifierState by identifierSelectionViewModel.uiState.collectAsStateWithLifecycle()
       val favoriteForms by favoriteFormsViewModel.forms.collectAsStateWithLifecycle()
       val favoriteIds by favoriteFormsViewModel.favoriteIds.collectAsStateWithLifecycle()
       val customSections by favoriteFormsViewModel.customSections.collectAsStateWithLifecycle()
@@ -120,15 +124,12 @@ class SettingsFragment : Fragment() {
           favoriteFormIds = favoriteIds,
           onFavoriteFormsSaved = favoriteFormsViewModel::setFavorites,
           // Identifier types come from the server: not for someone working as a guest.
-          onSelectIdentifierTypesClicked =
-            if (GuestSession.isActive(context)) {
-              null
-            } else {
-              {
-                NavHostFragment.findNavController(this@SettingsFragment)
-                  .navigate(R.id.identifierFragment)
-              }
-            },
+          identifierTypes =
+            if (GuestSession.isActive(context)) null else identifierState.identifierTypes,
+          selectedIdentifierIds = identifierState.selectedIdentifierIds,
+          isLoadingIdentifierTypes = identifierState.isLoading,
+          onIdentifierTypesRequested = identifierSelectionViewModel::loadIdentifiers,
+          onIdentifierTypesSaved = identifierSelectionViewModel::saveSelection,
           customFormSections = customSections,
           defaultFormSections = defaultSections,
           onFormSectionsSaved = favoriteFormsViewModel::setCustomSections,

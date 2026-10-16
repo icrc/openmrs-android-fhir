@@ -71,10 +71,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.extensions.rememberActionBarContentPadding
 import org.openmrs.android.fhir.ui.components.AppSearchField
-import org.openmrs.android.fhir.ui.components.IdentifierTypeListItemRow
 import org.openmrs.android.fhir.ui.components.LocationListItemRow
 import org.openmrs.android.fhir.ui.components.SelectPatientListItemRow
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
@@ -293,70 +291,6 @@ private fun LocationSectionHeader(
       style = MaterialTheme.typography.labelMedium,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-  }
-}
-
-@Composable
-fun IdentifierSelectionScreen(
-  query: String,
-  onQueryChange: (String) -> Unit,
-  identifierTypes: List<IdentifierType>,
-  selectedIdentifierIds: Set<String>,
-  isLoading: Boolean,
-  onIdentifierToggle: (IdentifierType, Boolean) -> Unit,
-  modifier: Modifier = Modifier,
-) {
-  val contentPadding = selectionScreenContentPadding()
-  Box(
-    modifier = modifier.fillMaxSize().testTag("IdentifierSelectionScreen"),
-  ) {
-    Column(modifier = Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding())) {
-      SelectionSearchField(
-        value = query,
-        onValueChange = onQueryChange,
-        hintResId = R.string.search_identifier_types,
-        modifier = Modifier.testTag("IdentifierSearchField"),
-      )
-
-      LazyColumn(
-        modifier =
-          Modifier.fillMaxWidth()
-            .weight(1f)
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 12.dp)
-            .testTag("IdentifierList"),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(vertical = 8.dp),
-      ) {
-        items(identifierTypes, key = { it.uuid }) { identifierType ->
-          IdentifierTypeListItemRow(
-            name = identifierType.display ?: "",
-            isRequired = identifierType.required,
-            isSelected = selectedIdentifierIds.contains(identifierType.uuid),
-            onClick =
-              if (identifierType.required) {
-                null
-              } else {
-                {
-                  onIdentifierToggle(
-                    identifierType,
-                    selectedIdentifierIds.contains(identifierType.uuid),
-                  )
-                }
-              },
-          )
-        }
-      }
-    }
-
-    if (isLoading) {
-      Box(
-        modifier = Modifier.fillMaxSize().testTag("IdentifierLoading"),
-        contentAlignment = Alignment.Center,
-      ) {
-        CircularProgressIndicator(color = OpenMrsTheme.colors.progress)
-      }
-    }
   }
 }
 

@@ -160,6 +160,9 @@
     <string name="settings_language">Language</string>
     <string name="settings_section_identifiers">Patient identifiers</string>
     <string name="settings_identifiers_description">Choose which identifier types new patients get.</string>
+    <string name="identifier_types_hint">Choose the identifier types new patients get. Required ones are always included.</string>
+    <string name="identifier_type_required">Required</string>
+    <string name="identifier_types_empty">No identifier types available yet. Check the connection and try again.</string>
     <string name="last_encounter">Last encounter</string>
     <string name="last_encounter_none">No encounters yet</string>
     <string name="last_encounter_unknown_type">Encounter</string>

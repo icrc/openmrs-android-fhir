@@ -31,7 +31,6 @@ package org.openmrs.android.fhir.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -59,8 +58,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.hideFromAccessibility
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -246,72 +243,6 @@ private fun PatientAvatar(name: String, modifier: Modifier = Modifier) {
       fontWeight = FontWeight.SemiBold,
       color = MaterialTheme.colorScheme.onPrimaryContainer,
     )
-  }
-}
-
-@Composable
-fun IdentifierTypeListItemRow(
-  name: String,
-  isRequired: Boolean,
-  isSelected: Boolean,
-  modifier: Modifier = Modifier,
-  onClick: (() -> Unit)? = null,
-) {
-  val showIcon = isSelected || isRequired
-  val background =
-    if (isSelected) {
-      OpenMrsTheme.colors.highlightContainer
-    } else {
-      MaterialTheme.colorScheme.surface
-    }
-
-  Surface(
-    modifier = modifier.testTag("IdentifierTypeRow").clip(RoundedCornerShape(8.dp)),
-    color = background,
-    shadowElevation = if (isSelected) 1.dp else 0.dp,
-  ) {
-    Row(
-      modifier =
-        Modifier.padding(horizontal = 12.dp, vertical = 10.dp).let { base ->
-          if (onClick != null && !isRequired) base.clickable(onClick = onClick) else base
-        },
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-      Text(
-        modifier = Modifier.weight(1f).testTag("IdentifierTypeName"),
-        text = name,
-        style = MaterialTheme.typography.bodyLarge,
-      )
-
-      val iconTint =
-        if (isRequired) {
-          MaterialTheme.colorScheme.primary
-        } else {
-          MaterialTheme.colorScheme.onSurfaceVariant
-        }
-      val iconModifier = Modifier.testTag("IdentifierTypeIcon")
-
-      if (showIcon) {
-        Icon(
-          modifier = iconModifier.size(20.dp),
-          painter =
-            painterResource(
-              id =
-                if (isRequired) {
-                  R.drawable.ic_check_decagram_green
-                } else {
-                  R.drawable.ic_check_decagram
-                },
-            ),
-          contentDescription = stringResource(id = R.string.description_status),
-          tint = iconTint,
-        )
-      } else {
-        // Keep a tagged node for testing while preventing the icon from being laid out/visible.
-        Box(modifier = iconModifier.size(0.dp).semantics { hideFromAccessibility() })
-      }
-    }
   }
 }
 
