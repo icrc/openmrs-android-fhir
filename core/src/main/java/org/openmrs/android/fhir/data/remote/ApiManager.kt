@@ -50,9 +50,9 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 class ApiManager @Inject constructor(context: Context) : Api {
   private val appContext = context.applicationContext
 
-  private val accessToken = LoginRepository.getInstance(context).getAccessToken()
-  private val basicAuthEncodedString =
-    LoginRepository.getInstance(context).getBasicAuthEncodedString()
+  // Read for every request: the user may sign in after this object was created (a guest session
+  // that signs in to sync), and a token captured at construction would stay empty.
+  private val loginRepository = LoginRepository.getInstance(context)
   private val okHttpClientBuilder: OkHttpClient.Builder by lazy {
     val okHttpClientBuilder =
       OkHttpClient.Builder()
@@ -65,8 +65,8 @@ class ApiManager @Inject constructor(context: Context) : Api {
           val request = original.newBuilder()
           resolveAuthorizationHeader(
               existing = original.header("Authorization"),
-              accessToken = accessToken,
-              basicAuthEncodedString = basicAuthEncodedString,
+              accessToken = loginRepository.getAccessToken(),
+              basicAuthEncodedString = loginRepository.getBasicAuthEncodedString(),
             )
             ?.let { request.header("Authorization", it) }
           return@addInterceptor chain.proceed(request.build())
