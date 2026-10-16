@@ -114,6 +114,7 @@ class SettingsFragment : Fragment() {
           onNotificationsToggle = settingsViewModel::onNotificationsToggle,
           onTokenDelaySelected = settingsViewModel::onTokenDelaySelected,
           onPeriodicSyncDelaySelected = settingsViewModel::onPeriodicSyncDelaySelected,
+          onAutoSyncToggle = settingsViewModel::onAutoSyncToggle,
           onInitialSyncClicked = {
             if (GuestSession.isActive(context)) {
               (activity as? MainActivity)?.onSyncPress()

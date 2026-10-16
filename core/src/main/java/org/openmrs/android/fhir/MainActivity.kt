@@ -162,7 +162,8 @@ class MainActivity : AppCompatActivity() {
     registerForActivityResult(
       androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
     ) { result ->
-      if (result.resultCode == RESULT_OK) onSignedInFromGuest()
+      if (result.resultCode != RESULT_OK) return@registerForActivityResult
+      if (isGuest.value) onSignedInFromGuest() else onSessionRenewed()
     }
   private var drawerLayout: DrawerLayout? = null
   private var toolbar: MaterialToolbar? = null
@@ -205,6 +206,9 @@ class MainActivity : AppCompatActivity() {
           networkStatusText = uiState.networkStatusText,
           isNetworkStatusVisible = uiState.isNetworkStatusVisible,
           connectivityState = uiState.connectivityState,
+          isSyncing = uiState.isSyncing,
+          syncProgress = uiState.syncProgressState,
+          nextSyncMinutes = uiState.autoSyncCountdownMinutes,
           onToolbarReady = ::configureToolbar,
         )
       }
@@ -309,6 +313,14 @@ class MainActivity : AppCompatActivity() {
             )
             updateToolbarNavigationIcon()
           }
+      }
+    }
+    lifecycleScope.launch {
+      repeatOnLifecycle(Lifecycle.State.STARTED) {
+        viewModel.uiState
+          .map { it.isSessionPromptPending }
+          .distinctUntilChanged()
+          .collect { pending -> if (pending) showSessionExpiredDialog() }
       }
     }
     // While the sync popup is open the app behind it is blurred (where the system supports it).
@@ -722,8 +734,33 @@ class MainActivity : AppCompatActivity() {
    */
   private fun onSignedInFromGuest() {
     isGuest.value = false
+    viewModel.restartAutoSync()
     viewModel.setHasHandledPostLoginNavigation(false)
     viewModel.triggerIdentifierTypeSync()
+  }
+
+  /** Signed in again after the session had expired: what was waiting to be synced goes now. */
+  private fun onSessionRenewed() {
+    viewModel.restartAutoSync()
+    onSyncPress()
+  }
+
+  private var sessionExpiredDialog: AlertDialog? = null
+
+  /** The automatic sync found the session no longer valid: ask the user to sign in again. */
+  private fun showSessionExpiredDialog() {
+    if (sessionExpiredDialog?.isShowing == true) return
+    sessionExpiredDialog =
+      AlertDialog.Builder(this)
+        .setTitle(getString(R.string.login_expired))
+        .setMessage(getString(R.string.auto_sync_session_expired_message))
+        .setPositiveButton(getString(R.string.sign_in)) { dialog, _ ->
+          dialog.dismiss()
+          launchSignIn()
+        }
+        .setNegativeButton(getString(R.string.later)) { dialog, _ -> dialog.dismiss() }
+        .setOnDismissListener { viewModel.onSessionPromptHandled() }
+        .show()
   }
 
   private fun checkNotificationPermission() {

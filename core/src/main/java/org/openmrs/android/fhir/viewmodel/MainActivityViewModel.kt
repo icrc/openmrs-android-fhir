@@ -34,6 +34,7 @@ import android.net.Network
 import android.text.format.DateFormat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
@@ -51,19 +52,28 @@ import dagger.assisted.AssistedInject
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Patient
 import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.GuestSession
+import org.openmrs.android.fhir.auth.SessionStatus
+import org.openmrs.android.fhir.auth.SessionValidator
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.GuestDataCompleter
 import org.openmrs.android.fhir.data.IdentifierTypeManager
@@ -73,6 +83,7 @@ import org.openmrs.android.fhir.data.database.model.SyncSession
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ApiResponse
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.data.remote.model.IdentifierWrapper
 import org.openmrs.android.fhir.data.remote.model.SessionLocation
 import org.openmrs.android.fhir.data.sync.FhirSyncWorker
@@ -132,6 +143,20 @@ constructor(
 
   private val syncMutex = Mutex()
 
+  private val demoDataStore = DemoDataStore(applicationContext)
+  private val sessionValidator = SessionValidator(applicationContext, apiManager)
+  private val syncingFlow = MutableStateFlow(false)
+  private val autoSyncGeneration = MutableStateFlow(0)
+
+  /** The running sync was started by the timer: it stays out of the way (no popup, no snackbar). */
+  private var backgroundSync = false
+
+  private val syncingObserver =
+    Observer<Boolean> { syncing ->
+      syncingFlow.value = syncing
+      _uiState.update { it.copy(isSyncing = syncing) }
+    }
+
   private val formatter =
     DateTimeFormatter.ofPattern(
       if (DateFormat.is24HourFormat(applicationContext)) formatString24 else formatString12,
@@ -167,42 +192,72 @@ constructor(
     observeDrawerTitles()
     observeNetworkStatusVisibility()
     observeInProgressSyncSession()
+    _isSyncing.observeForever(syncingObserver)
+    observeAutoSync()
+  }
+
+  override fun onCleared() {
+    _isSyncing.removeObserver(syncingObserver)
+    super.onCleared()
   }
 
   fun triggerOneTimeSync(context: Context, fetchIdentifiers: Boolean = true) {
-    viewModelScope.launch {
-      val shouldSync =
-        syncMutex.withLock {
-          if (!stopSync && (_isSyncing.value != true)) {
-            _isSyncing.postValue(true)
-            true // Signal that we should proceed with sync
-          } else {
-            false // Don't sync
-          }
-        }
+    viewModelScope.launch { startSync(context, fetchIdentifiers, background = false) }
+  }
 
-      if (shouldSync && !hasLocation(context)) {
-        // The location is stamped on what is uploaded (identifiers, encounters); without it the
-        // server rejects the data.
-        _isSyncing.postValue(false)
-        _uiEvents.tryEmit(MainActivityEvent.ShowLocationRequired)
-        return@launch
+  /**
+   * Enqueues a sync. A [background] one (the timer's) never asks anything of the user: without a
+   * location or identifier types it simply does not run.
+   *
+   * @return true when a sync was enqueued.
+   */
+  private suspend fun startSync(
+    context: Context,
+    fetchIdentifiers: Boolean,
+    background: Boolean,
+  ): Boolean {
+    val shouldSync =
+      syncMutex.withLock {
+        if (!stopSync && (_isSyncing.value != true)) {
+          // Main thread: observers (and the auto-sync timer) see the sync as running right away.
+          _isSyncing.value = true
+          true
+        } else {
+          false
+        }
       }
+    if (!shouldSync) return false
+    backgroundSync = background
+    updateSyncProgress(0, 0)
 
-      if (shouldSync) {
-        // Actual sync work happens outside the mutex
-        if (!completeGuestData(context, fetchIdentifiers)) {
-          // The patients registered as a guest need an identifier type first; ask the user.
-          _isSyncing.postValue(false)
-          _uiEvents.tryEmit(MainActivityEvent.ShowIdentifierTypesRequired)
-          return@launch
-        }
-        if (fetchIdentifiers) {
-          fetchIdentifierTypesIfEmpty()
-          embeddIdentifierToUnsyncedPatients(context)
-        }
-        SyncInfoDatabaseWriterWorker.enqueue(applicationContext)
+    if (!hasLocation(context)) {
+      // The location is stamped on what is uploaded (identifiers, encounters); without it the
+      // server rejects the data.
+      _isSyncing.value = false
+      if (!background) _uiEvents.tryEmit(MainActivityEvent.ShowLocationRequired)
+      return false
+    }
+
+    try {
+      if (!completeGuestData(context, fetchIdentifiers)) {
+        // The patients registered as a guest need an identifier type first; ask the user.
+        _isSyncing.value = false
+        if (!background) _uiEvents.tryEmit(MainActivityEvent.ShowIdentifierTypesRequired)
+        return false
       }
+      if (fetchIdentifiers) {
+        fetchIdentifierTypesIfEmpty()
+        embeddIdentifierToUnsyncedPatients(context)
+      }
+      SyncInfoDatabaseWriterWorker.enqueue(applicationContext)
+      return true
+    } catch (e: CancellationException) {
+      _isSyncing.value = false
+      throw e
+    } catch (e: Exception) {
+      Timber.e(e, "Could not start the sync")
+      _isSyncing.value = false
+      return false
     }
   }
 
@@ -354,15 +409,111 @@ constructor(
 
   private fun updateConnectivityState() {
     viewModelScope.launch {
-      val connectivityState = applicationContext.getServerConnectivityState(apiManager)
-      _networkStatus.value = connectivityState
-      _uiState.update { current ->
-        current.copy(
-          networkStatusText = networkStatusText(connectivityState),
-          connectivityState = connectivityState,
-        )
+      publishConnectivity(applicationContext.getServerConnectivityState(apiManager))
+    }
+  }
+
+  private fun publishConnectivity(connectivityState: ServerConnectivityState) {
+    _networkStatus.value = connectivityState
+    _uiState.update { current ->
+      current.copy(
+        networkStatusText = networkStatusText(connectivityState),
+        connectivityState = connectivityState,
+      )
+    }
+  }
+
+  // ---- Automatic sync ---------------------------------------------------------------------
+
+  private data class AutoSyncConditions(
+    val active: Boolean,
+    val intervalMinutes: Int,
+    val run: Int,
+  )
+
+  /**
+   * Counts down to the next automatic sync while it can happen: the setting is on, the server is
+   * reachable, the user is signed in and no sync is running. Anything else stops the count; it
+   * starts over, from the full interval, once the conditions hold again (back online, a sync that
+   * has finished, the setting turned on).
+   */
+  private fun observeAutoSync() {
+    viewModelScope.launch {
+      combine(
+          demoDataStore.getAutoSyncEnabledFlow(),
+          demoDataStore.getPeriodicSyncDelayMinutesFlow(),
+          networkStatus.map { it.isServerReachable() },
+          syncingFlow,
+          autoSyncGeneration,
+        ) { enabled, minutes, online, syncing, run ->
+          AutoSyncConditions(
+            active = enabled && online && !syncing && !GuestSession.isActive(applicationContext),
+            intervalMinutes = minutes,
+            run = run,
+          )
+        }
+        .distinctUntilChanged()
+        .collectLatest { conditions ->
+          if (conditions.active) {
+            runAutoSyncCountdown(conditions.intervalMinutes)
+          } else {
+            setAutoSyncCountdown(null)
+          }
+        }
+    }
+  }
+
+  private suspend fun runAutoSyncCountdown(intervalMinutes: Int) {
+    val dueAt = System.currentTimeMillis() + intervalMinutes.coerceAtLeast(1) * MILLIS_PER_MINUTE
+    while (true) {
+      val remaining = dueAt - System.currentTimeMillis()
+      if (remaining <= 0) break
+      setAutoSyncCountdown(((remaining + MILLIS_PER_MINUTE - 1) / MILLIS_PER_MINUTE).toInt())
+      // Wake up on the minute, not every second: the banner only shows minutes.
+      val untilNextMinute = remaining % MILLIS_PER_MINUTE
+      delay(if (untilNextMinute == 0L) MILLIS_PER_MINUTE else untilNextMinute + 50)
+    }
+    setAutoSyncCountdown(null)
+    // Once started, the attempt must not be cut short by the state changes it causes itself.
+    withContext(NonCancellable) { attemptAutoSync() }
+    // Nothing started (invalid session, server gone): count again.
+    autoSyncGeneration.update { it + 1 }
+  }
+
+  private fun setAutoSyncCountdown(minutes: Int?) {
+    _uiState.update {
+      if (it.autoSyncCountdownMinutes == minutes) {
+        it
+      } else {
+        it.copy(autoSyncCountdownMinutes = minutes)
       }
     }
+  }
+
+  private suspend fun attemptAutoSync() {
+    if (stopSync || _isSyncing.value == true) return
+    val connectivity = applicationContext.getServerConnectivityState(apiManager)
+    publishConnectivity(connectivity)
+    if (!connectivity.isServerReachable()) return
+    when (sessionValidator.check()) {
+      SessionStatus.Valid ->
+        startSync(
+          applicationContext,
+          applicationContext.resources.getBoolean(R.bool.fetch_identifiers),
+          background = true,
+        )
+      SessionStatus.Invalid -> _uiState.update { it.copy(isSessionPromptPending = true) }
+      SessionStatus.Unknown -> Timber.w("Automatic sync skipped: the session could not be checked")
+    }
+  }
+
+  /** The user signed in (again): count from scratch. */
+  fun restartAutoSync() {
+    autoSyncGeneration.update { it + 1 }
+  }
+
+  fun onSessionPromptHandled() {
+    _uiState.update { it.copy(isSessionPromptPending = false) }
   }
 
   fun cancelPeriodicSyncWorker(context: Context) {
@@ -468,8 +619,10 @@ constructor(
           progressStatus == "STARTED" &&
             savedStateHandle.get<String>(KEY_LAST_PROGRESS_STATUS) != "STARTED"
         ) {
-          _uiEvents.tryEmit(MainActivityEvent.ShowSyncTasks)
-          _uiEvents.tryEmit(MainActivityEvent.SyncStarted)
+          if (!backgroundSync) {
+            _uiEvents.tryEmit(MainActivityEvent.ShowSyncTasks)
+            _uiEvents.tryEmit(MainActivityEvent.SyncStarted)
+          }
         }
         savedStateHandle[KEY_LAST_PROGRESS_STATUS] = progressStatus
       }
@@ -477,9 +630,10 @@ constructor(
         if (lastState != currentState) {
           if (activeSyncWorkId == workId) {
             _uiEvents.tryEmit(MainActivityEvent.HideSyncTasks)
-            _uiEvents.tryEmit(MainActivityEvent.SyncCompleted)
+            if (!backgroundSync) _uiEvents.tryEmit(MainActivityEvent.SyncCompleted)
             activeSyncWorkId = null
           }
+          backgroundSync = false
           updateLastSyncTimestamp()
           setIsSyncing(false)
         }
@@ -491,6 +645,7 @@ constructor(
             _uiEvents.tryEmit(MainActivityEvent.SyncFailed)
             activeSyncWorkId = null
           }
+          backgroundSync = false
           updateLastSyncTimestamp()
           setIsSyncing(false)
         }
@@ -617,6 +772,7 @@ constructor(
   companion object {
     private const val formatString24 = "yyyy-MM-dd HH:mm:ss"
     private const val formatString12 = "yyyy-MM-dd hh:mm:ss a"
+    private const val MILLIS_PER_MINUTE = 60_000L
     private const val KEY_POST_LOGIN_NAVIGATION_HANDLED = "post_login_navigation_handled"
     private const val KEY_TOKEN_DIALOG_SHOWING = "token_dialog_showing"
     private const val KEY_LAST_CONNECTIVITY_STATE = "last_connectivity_state"
@@ -631,6 +787,12 @@ data class MainUiState(
   val drawerEnabled: Boolean = true,
   val isSyncTasksVisible: Boolean = false,
   val isSyncMinimized: Boolean = false,
+  /** Any sync is running (manual or automatic). */
+  val isSyncing: Boolean = false,
+  /** Minutes until the automatic sync, null when none is scheduled (off, offline, guest). */
+  val autoSyncCountdownMinutes: Int? = null,
+  /** The automatic sync found the session invalid: the user has to sign in again. */
+  val isSessionPromptPending: Boolean = false,
   val syncProgressState: SyncProgressState = SyncProgressState(0, 0),
   val syncHeaderText: String = "",
   val showSyncCloseButton: Boolean = true,

@@ -48,6 +48,7 @@ data class SettingsUiState(
   val isNotificationsEnabled: Boolean = true,
   val tokenCheckDelayMinutes: Int = DemoDataStore.INITIAL_TOKEN_CHECK_DELAY.toInt(),
   val periodicSyncDelayMinutes: Int = DemoDataStore.INITIAL_PERIODIC_SYNC_DELAY.toInt(),
+  val isAutoSyncEnabled: Boolean = true,
   val isInitialSyncInProgress: Boolean = false,
 )
 
@@ -94,6 +95,10 @@ constructor(
     _uiState.update { it.copy(tokenCheckDelayMinutes = minutes) }
   }
 
+  fun onAutoSyncToggle(enabled: Boolean) {
+    _uiState.update { it.copy(isAutoSyncEnabled = enabled) }
+  }
+
   fun onPeriodicSyncDelaySelected(minutes: Int) {
     _uiState.update { it.copy(periodicSyncDelayMinutes = minutes) }
   }
@@ -105,6 +110,7 @@ constructor(
       settingsRepository.setNotificationsEnabled(currentState.isNotificationsEnabled)
       settingsRepository.setTokenExpiryDelayMinutes(currentState.tokenCheckDelayMinutes)
       settingsRepository.setPeriodicSyncDelayMinutes(currentState.periodicSyncDelayMinutes)
+      settingsRepository.setAutoSyncEnabled(currentState.isAutoSyncEnabled)
       _events.emit(SettingsEvent.SettingsSaved)
     }
   }
@@ -132,12 +138,14 @@ constructor(
     val notificationsEnabled = settingsRepository.getNotificationsEnabled()
     val tokenDelayMinutes = settingsRepository.getTokenExpiryDelayMinutes()
     val periodicDelayMinutes = settingsRepository.getPeriodicSyncDelayMinutes()
+    val autoSyncEnabled = settingsRepository.getAutoSyncEnabled()
     _uiState.update {
       it.copy(
         isNetworkStatusVisible = networkStatusVisible,
         isNotificationsEnabled = notificationsEnabled,
         tokenCheckDelayMinutes = tokenDelayMinutes,
         periodicSyncDelayMinutes = periodicDelayMinutes,
+        isAutoSyncEnabled = autoSyncEnabled,
       )
     }
   }

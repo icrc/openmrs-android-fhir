@@ -133,6 +133,9 @@ fun MainActivityScaffold(
   onToolbarReady: (MaterialToolbar) -> Unit,
   modifier: Modifier = Modifier,
   connectivityState: ServerConnectivityState = ServerConnectivityState.ServerConnected,
+  isSyncing: Boolean = false,
+  syncProgress: SyncProgressState = SyncProgressState(0, 0),
+  nextSyncMinutes: Int? = null,
 ) {
   // One bar: the surface color runs up behind the status bar, with the connection strip and the
   // toolbar inside it and a soft shadow underneath.
@@ -144,7 +147,27 @@ fun MainActivityScaffold(
   ) {
     Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
       if (isNetworkStatusVisible) {
-        NetworkStatusBanner(text = networkStatusText, state = connectivityState)
+        val fraction =
+          if (syncProgress.total > 0) {
+            (syncProgress.current.toFloat() / syncProgress.total).coerceIn(0f, 1f)
+          } else {
+            null
+          }
+        val syncing = stringResource(id = R.string.syncing)
+        NetworkStatusBanner(
+          text = networkStatusText,
+          state = connectivityState,
+          syncText =
+            when {
+              !isSyncing -> null
+              fraction == null -> syncing
+              else ->
+                "$syncing · ${stringResource(id = R.string.sync_percent, (fraction * 100).toInt())}"
+            },
+          syncProgress = fraction,
+          nextSyncText =
+            nextSyncMinutes?.let { stringResource(id = R.string.next_sync_in_minutes, it) },
+        )
       }
       ToolbarHost(onToolbarReady = onToolbarReady)
     }
@@ -455,7 +478,7 @@ private fun SyncPopupCard(
         SyncTip(
           text =
             stringResource(
-              id = R.string.leave_the_device_in_a_location_with_good_internet_reception
+              id = R.string.leave_the_device_in_a_location_with_good_internet_reception,
             ),
         )
         SyncTip(
@@ -532,7 +555,7 @@ private fun SyncTip(text: String) {
 private fun SyncPill(
   progress: SyncProgressState,
   onExpand: () -> Unit,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
 ) {
   val fraction = progress.fractionOrNull()
   val label =

@@ -49,6 +49,10 @@ interface SettingsRepository {
   suspend fun setTokenExpiryDelayMinutes(minutes: Int)
 
   suspend fun setPeriodicSyncDelayMinutes(minutes: Int)
+
+  suspend fun getAutoSyncEnabled(): Boolean = true
+
+  suspend fun setAutoSyncEnabled(enabled: Boolean) {}
 }
 
 class DemoSettingsRepository
@@ -88,6 +92,14 @@ constructor(
 
   override suspend fun setPeriodicSyncDelayMinutes(minutes: Int) {
     dataStore.savePeriodicSyncDelay(minutes.toString())
+  }
+
+  override suspend fun getAutoSyncEnabled(): Boolean {
+    return dataStore.getAutoSyncEnabledFlow().first()
+  }
+
+  override suspend fun setAutoSyncEnabled(enabled: Boolean) {
+    dataStore.setAutoSyncEnabled(enabled)
   }
 
   private companion object {

@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.ui.components
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -44,9 +45,12 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,40 +67,91 @@ import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
  * A slim strip under the status bar that says whether the server can be reached: a colored dot and
  * the status on a soft tint of the same color (green connected, amber server unreachable, red
  * offline).
+ *
+ * While a sync runs ([syncText] set) it turns into the sync's progress: a spinner, "Syncing" with
+ * the percentage, and a thin progress bar along its bottom edge ([syncProgress] null while the
+ * amount of work is not known yet). Otherwise [nextSyncText] says when the automatic sync is due.
  */
 @Composable
 fun NetworkStatusBanner(
   text: String,
   modifier: Modifier = Modifier,
   state: ServerConnectivityState = ServerConnectivityState.ServerConnected,
+  syncText: String? = null,
+  syncProgress: Float? = null,
+  nextSyncText: String? = null,
 ) {
+  val isSyncing = syncText != null
   val accent =
-    when (state) {
-      ServerConnectivityState.ServerConnected -> OpenMrsTheme.colors.success
-      ServerConnectivityState.InternetOnly -> OpenMrsTheme.colors.warning
-      ServerConnectivityState.Offline -> MaterialTheme.colorScheme.error
+    when {
+      isSyncing -> MaterialTheme.colorScheme.primary
+      state == ServerConnectivityState.ServerConnected -> OpenMrsTheme.colors.success
+      state == ServerConnectivityState.InternetOnly -> OpenMrsTheme.colors.warning
+      else -> MaterialTheme.colorScheme.error
     }
-  Row(
+  Column(
     modifier =
-      modifier
-        .fillMaxWidth()
-        .background(accent.copy(alpha = 0.14f))
-        .heightIn(min = 28.dp)
-        .padding(horizontal = 16.dp, vertical = 4.dp)
-        .testTag("NetworkStatusBanner"),
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.Center,
+      modifier.fillMaxWidth().background(accent.copy(alpha = 0.14f)).testTag("NetworkStatusBanner"),
   ) {
-    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accent))
-    Spacer(modifier = Modifier.width(8.dp))
-    Text(
-      modifier = Modifier.testTag("NetworkStatusText"),
-      text = text,
-      style = MaterialTheme.typography.labelMedium,
-      fontWeight = FontWeight.SemiBold,
-      color = MaterialTheme.colorScheme.onSurface,
-      maxLines = 1,
-    )
+    Row(
+      modifier =
+        Modifier.fillMaxWidth().heightIn(min = 28.dp).padding(horizontal = 16.dp, vertical = 4.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.Center,
+    ) {
+      if (isSyncing) {
+        CircularProgressIndicator(
+          modifier = Modifier.size(12.dp),
+          strokeWidth = 2.dp,
+          color = accent,
+        )
+      } else {
+        Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accent))
+      }
+      Spacer(modifier = Modifier.width(8.dp))
+      Text(
+        modifier = Modifier.testTag("NetworkStatusText"),
+        text = syncText ?: text,
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface,
+        maxLines = 1,
+      )
+      if (!isSyncing && nextSyncText != null) {
+        Text(
+          modifier = Modifier.padding(start = 6.dp).testTag("NextSyncText"),
+          text = "· $nextSyncText",
+          style = MaterialTheme.typography.labelMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          maxLines = 1,
+        )
+      }
+    }
+    if (isSyncing) {
+      val barModifier = Modifier.fillMaxWidth().height(3.dp).testTag("NetworkSyncProgress")
+      if (syncProgress != null) {
+        val animated by
+          animateFloatAsState(targetValue = syncProgress, label = "banner-sync-progress")
+        LinearProgressIndicator(
+          progress = { animated },
+          modifier = barModifier,
+          color = accent,
+          trackColor = accent.copy(alpha = 0.18f),
+          gapSize = 0.dp,
+          drawStopIndicator = {},
+        )
+      } else {
+        LinearProgressIndicator(
+          modifier = barModifier,
+          color = accent,
+          trackColor = accent.copy(alpha = 0.18f),
+        )
+      }
+    } else {
+      // Same height as with the progress bar, so the content below does not jump when a sync
+      // starts.
+      Spacer(modifier = Modifier.height(3.dp))
+    }
   }
 }
 

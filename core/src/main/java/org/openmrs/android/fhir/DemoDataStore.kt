@@ -87,6 +87,20 @@ class DemoDataStore(private val context: Context) {
       ?: INITIAL_PERIODIC_SYNC_DELAY.times(60)) * 1000
   }
 
+  suspend fun setAutoSyncEnabled(isEnabled: Boolean) {
+    context.dataStorage.edit { pref -> pref[booleanPreferencesKey(AUTO_SYNC_ENABLED)] = isEnabled }
+  }
+
+  /** Whether the app syncs by itself every [getPeriodicSyncDelayMinutesFlow] minutes. */
+  fun getAutoSyncEnabledFlow() =
+    context.dataStorage.data.map { pref -> pref[booleanPreferencesKey(AUTO_SYNC_ENABLED)] ?: true }
+
+  fun getPeriodicSyncDelayMinutesFlow() =
+    context.dataStorage.data.map { pref ->
+      pref[stringPreferencesKey(PERIODIC_SYNC_DELAY)]?.toIntOrNull()?.takeIf { it > 0 }
+        ?: INITIAL_PERIODIC_SYNC_DELAY.toInt()
+    }
+
   suspend fun setCheckNetworkConnectivity(isEnabled: Boolean) {
     context.dataStore.edit { pref ->
       pref[booleanPreferencesKey(CHECK_NETWORK_CONNECTIVITY)] = isEnabled
@@ -110,6 +124,7 @@ class DemoDataStore(private val context: Context) {
   companion object {
     const val TOKEN_EXPIRY_DELAY = "token-expiry-delay"
     const val PERIODIC_SYNC_DELAY = "periodic-sync-delay"
+    const val AUTO_SYNC_ENABLED = "auto-sync-enabled"
     const val CHECK_NETWORK_CONNECTIVITY = "check-network-connectivity"
     const val ENABLE_NOTIFICATIONS = "enable-notifications"
     const val INITIAL_TOKEN_CHECK_DELAY: Long = 1

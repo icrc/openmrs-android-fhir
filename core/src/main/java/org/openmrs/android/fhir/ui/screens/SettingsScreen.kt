@@ -81,7 +81,7 @@ import org.openmrs.android.fhir.viewmodel.SettingsUiState
 
 object SettingsDefaults {
   val TokenDelayOptions = listOf(1, 2, 4, 5, 10)
-  val PeriodicSyncDelayOptions = listOf(15, 20, 25, 30)
+  val PeriodicSyncDelayOptions = listOf(5, 10, 15, 20, 30, 60)
 }
 
 object SettingsTestTags {
@@ -89,6 +89,7 @@ object SettingsTestTags {
   const val NotificationsSwitch = "SettingsNotificationsSwitch"
   const val TokenDelayField = "SettingsTokenDelayField"
   const val PeriodicDelayField = "SettingsPeriodicDelayField"
+  const val AutoSyncSwitch = "SettingsAutoSyncSwitch"
   const val InitialSyncButton = "SettingsInitialSyncButton"
   const val FetchQuestionnairesButton = "SettingsFetchQuestionnairesButton"
   const val ResetOfflineLoginButton = "SettingsResetOfflineLoginButton"
@@ -122,6 +123,7 @@ fun SettingsScreen(
   onThemeModeSelected: ((ThemeMode) -> Unit)? = null,
   offlineLoginEnabled: Boolean? = null,
   onResetOfflineLoginClicked: (() -> Unit)? = null,
+  onAutoSyncToggle: (Boolean) -> Unit = {},
   modifier: Modifier = Modifier,
 ) {
   Column(modifier = modifier.fillMaxSize()) {
@@ -156,6 +158,13 @@ fun SettingsScreen(
       }
 
       SettingsSection(title = stringResource(R.string.settings_section_sync)) {
+        SettingsSwitchRow(
+          label = stringResource(R.string.settings_auto_sync),
+          checked = uiState.isAutoSyncEnabled,
+          onCheckedChange = onAutoSyncToggle,
+          testTag = SettingsTestTags.AutoSyncSwitch,
+        )
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         SettingsDropdown(
           label = stringResource(R.string.token_check_delay_in_minutes),
           selectedValue = uiState.tokenCheckDelayMinutes,
@@ -169,6 +178,7 @@ fun SettingsScreen(
           options = periodicSyncDelayOptions,
           onOptionSelected = onPeriodicSyncDelaySelected,
           testTag = SettingsTestTags.PeriodicDelayField,
+          enabled = uiState.isAutoSyncEnabled,
         )
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         SettingsAction(
@@ -362,16 +372,18 @@ private fun SettingsDropdown(
   onOptionSelected: (Int) -> Unit,
   testTag: String,
   modifier: Modifier = Modifier,
+  enabled: Boolean = true,
 ) {
   var expanded by remember { mutableStateOf(false) }
 
   ExposedDropdownMenuBox(
     expanded = expanded,
-    onExpandedChange = { expanded = !expanded },
+    onExpandedChange = { if (enabled) expanded = !expanded },
     modifier = modifier.fillMaxWidth(),
   ) {
     OutlinedTextField(
       readOnly = true,
+      enabled = enabled,
       value = selectedValue.toString(),
       onValueChange = {},
       label = { Text(text = label) },
