@@ -28,15 +28,30 @@
 */
 package org.openmrs.android.fhir.ui.screens
 
+import android.os.Build
 import android.view.ViewGroup
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -48,32 +63,37 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -82,11 +102,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.material.appbar.MaterialToolbar
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.components.DrawerHeader
 import org.openmrs.android.fhir.ui.components.NetworkStatusBanner
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
@@ -230,19 +250,23 @@ fun MainActivityOverlays(
   syncHeaderText: String,
   showSyncCloseButton: Boolean,
   isSyncTasksVisible: Boolean,
+  isSyncMinimized: Boolean,
   isLoading: Boolean,
-  onCloseSyncTasks: () -> Unit,
+  onMinimizeSyncTasks: () -> Unit,
+  onExpandSyncTasks: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Box(modifier = modifier.fillMaxSize()) {
-    if (isSyncTasksVisible) {
-      SyncTasksOverlay(
-        syncProgressState = syncProgressState,
-        headerText = syncHeaderText,
-        showCloseButton = showSyncCloseButton,
-        onClose = onCloseSyncTasks,
-      )
-    }
+    SyncPopup(
+      visible = isSyncTasksVisible,
+      // The blocking first sync cannot be tucked away: it is the only way forward.
+      minimized = isSyncMinimized && showSyncCloseButton,
+      canMinimize = showSyncCloseButton,
+      progress = syncProgressState,
+      headerText = syncHeaderText,
+      onMinimize = onMinimizeSyncTasks,
+      onExpand = onExpandSyncTasks,
+    )
     if (isLoading) {
       LoadingOverlay()
     }
@@ -291,115 +315,274 @@ private fun ToolbarHost(onToolbarReady: (MaterialToolbar) -> Unit) {
   )
 }
 
+/**
+ * The sync progress as a popup over a dimmed (and, where the system can, blurred) app, so what is
+ * behind stays recognisable. It can be minimised to a small pill under the app bar that leaves the
+ * app usable; tapping the pill brings the popup back.
+ */
 @Composable
-private fun SyncTasksOverlay(
-  syncProgressState: SyncProgressState,
+private fun BoxScope.SyncPopup(
+  visible: Boolean,
+  minimized: Boolean,
+  canMinimize: Boolean,
+  progress: SyncProgressState,
   headerText: String,
-  showCloseButton: Boolean,
-  onClose: () -> Unit,
+  onMinimize: () -> Unit,
+  onExpand: () -> Unit,
 ) {
-  val progressFraction =
-    if (syncProgressState.total > 0) {
-      syncProgressState.current.toFloat() / syncProgressState.total.toFloat()
-    } else {
-      0f
-    }
-  Box(
-    modifier =
-      Modifier.fillMaxSize()
-        .background(MaterialTheme.colorScheme.primaryContainer)
-        .testTag("SyncTasksOverlay"),
-    contentAlignment = Alignment.Center,
+  // The activity blurs the content itself where it can; elsewhere the scrim has to do more.
+  val scrimAlpha = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) 0.2f else 0.5f
+  val noRipple = remember { MutableInteractionSource() }
+
+  AnimatedVisibility(
+    visible = visible && !minimized,
+    enter = fadeIn(),
+    exit = fadeOut(),
   ) {
-    Card(
-      modifier = Modifier.padding(24.dp),
-      shape = MaterialTheme.shapes.large,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    Box(
+      modifier =
+        Modifier.fillMaxSize()
+          .background(Color.Black.copy(alpha = scrimAlpha))
+          .clickable(interactionSource = noRipple, indication = null) {
+            if (canMinimize) onMinimize()
+          }
+          .testTag("SyncTasksOverlay"),
+      contentAlignment = Alignment.Center,
     ) {
-      Column(
-        modifier = Modifier.padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+      AnimatedVisibility(
+        visible = visible && !minimized,
+        enter = fadeIn() + scaleIn(initialScale = 0.92f),
+        exit = fadeOut() + scaleOut(targetScale = 0.92f),
       ) {
-        Text(
-          text = headerText,
-          fontSize = 18.sp,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-          textAlign = TextAlign.Center,
+        SyncPopupCard(
+          progress = progress,
+          headerText = headerText,
+          canMinimize = canMinimize,
+          onMinimize = onMinimize,
+          modifier =
+            Modifier.padding(24.dp).clickable(interactionSource = noRipple, indication = null) {},
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        LinearProgressIndicator(
-          progress = { progressFraction },
-          modifier = Modifier.fillMaxWidth().height(4.dp),
-          color = OpenMrsTheme.colors.progress,
-          trackColor = MaterialTheme.colorScheme.surfaceVariant,
-          strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-        Text(
-          text = stringResource(id = R.string.syncing_resources),
-          fontSize = 32.sp,
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.onSurface,
-          textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-          text =
-            stringResource(
-              id = R.string.this_can_take_up_to_10_minutes_depending_on_your_internet_connection,
-            ),
-          fontSize = 16.sp,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-          textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-          SyncChecklistItem(text = stringResource(id = R.string.stay_connected_to_wi_fi_or_data))
-          SyncChecklistItem(
-            text =
-              stringResource(
-                id = R.string.leave_the_device_in_a_location_with_good_internet_reception,
-              ),
+      }
+    }
+  }
+
+  AnimatedVisibility(
+    visible = visible && minimized,
+    modifier = Modifier.align(Alignment.TopCenter),
+    enter = fadeIn() + slideInVertically { -it },
+    exit = fadeOut() + slideOutVertically { -it },
+  ) {
+    SyncPill(
+      progress = progress,
+      onExpand = onExpand,
+      modifier = Modifier.padding(top = rememberAppBarHeight() + 8.dp),
+    )
+  }
+}
+
+private fun SyncProgressState.fractionOrNull(): Float? =
+  if (total > 0) (current.toFloat() / total).coerceIn(0f, 1f) else null
+
+@Composable
+private fun SyncPopupCard(
+  progress: SyncProgressState,
+  headerText: String,
+  canMinimize: Boolean,
+  onMinimize: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val fraction = progress.fractionOrNull()
+  Surface(
+    modifier = modifier.widthIn(max = 400.dp).fillMaxWidth(),
+    shape = RoundedCornerShape(28.dp),
+    color = MaterialTheme.colorScheme.surface,
+    shadowElevation = 12.dp,
+  ) {
+    Column(
+      modifier = Modifier.padding(horizontal = 24.dp, vertical = 28.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      SyncBadge()
+      Spacer(modifier = Modifier.height(16.dp))
+      Text(
+        text = headerText,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface,
+        textAlign = TextAlign.Center,
+      )
+      Spacer(modifier = Modifier.height(6.dp))
+      Text(
+        text =
+          stringResource(
+            id = R.string.this_can_take_up_to_10_minutes_depending_on_your_internet_connection,
+          ),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+      )
+      Spacer(modifier = Modifier.height(20.dp))
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        val barModifier = Modifier.weight(1f).height(8.dp).clip(CircleShape)
+        if (fraction != null) {
+          LinearProgressIndicator(
+            progress = { fraction },
+            modifier = barModifier,
+            color = OpenMrsTheme.colors.progress,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            strokeCap = StrokeCap.Round,
+            drawStopIndicator = {},
           )
-          SyncChecklistItem(
-            text =
-              stringResource(
-                id = R.string.you_can_do_other_things_on_the_device_while_it_syncs,
-              ),
+          Spacer(modifier = Modifier.width(12.dp))
+          Text(
+            text = stringResource(id = R.string.sync_percent, (fraction * 100).toInt()),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+          )
+        } else {
+          LinearProgressIndicator(
+            modifier = barModifier,
+            color = OpenMrsTheme.colors.progress,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            strokeCap = StrokeCap.Round,
           )
         }
-        Spacer(modifier = Modifier.height(32.dp))
-        if (showCloseButton) {
-          Button(
-            onClick = onClose,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
-            colors =
-              ButtonDefaults.buttonColors(
-                containerColor = OpenMrsTheme.colors.actionButton,
-                contentColor = OpenMrsTheme.colors.onActionButton,
-              ),
-            shape = MaterialTheme.shapes.extraSmall,
-            contentPadding = PaddingValues(vertical = 12.dp),
-          ) {
-            Text(text = stringResource(id = R.string.close_this_window), fontSize = 12.sp)
-          }
+      }
+      Spacer(modifier = Modifier.height(20.dp))
+      Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        SyncTip(text = stringResource(id = R.string.stay_connected_to_wi_fi_or_data))
+        SyncTip(
+          text =
+            stringResource(
+              id = R.string.leave_the_device_in_a_location_with_good_internet_reception
+            ),
+        )
+        SyncTip(
+          text = stringResource(id = R.string.you_can_do_other_things_on_the_device_while_it_syncs),
+        )
+      }
+      if (canMinimize) {
+        Spacer(modifier = Modifier.height(24.dp))
+        FilledTonalButton(
+          onClick = onMinimize,
+          modifier = Modifier.fillMaxWidth().height(48.dp).testTag("SyncMinimizeButton"),
+          shape = RoundedCornerShape(14.dp),
+        ) {
+          Icon(
+            imageVector = Icons.Filled.KeyboardArrowDown,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+          )
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(text = stringResource(id = R.string.sync_minimize))
         }
       }
     }
   }
 }
 
+/** The turning sync icon; the rotation is applied while drawing, so nothing recomposes. */
 @Composable
-private fun SyncChecklistItem(text: String) {
-  Row(modifier = Modifier.fillMaxWidth()) {
-    Image(
+private fun SyncBadge() {
+  val turn = rememberInfiniteTransition(label = "sync-turn")
+  val angle by
+    turn.animateFloat(
+      initialValue = 0f,
+      targetValue = -360f,
+      animationSpec = infiniteRepeatable(tween(durationMillis = 1600, easing = LinearEasing)),
+      label = "sync-angle",
+    )
+  Box(
+    modifier =
+      Modifier.size(64.dp)
+        .clip(CircleShape)
+        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+    contentAlignment = Alignment.Center,
+  ) {
+    Icon(
+      painter = painterResource(id = R.drawable.ic_baseline_sync_24),
+      contentDescription = null,
+      tint = MaterialTheme.colorScheme.primary,
+      modifier = Modifier.size(32.dp).graphicsLayer { rotationZ = angle },
+    )
+  }
+}
+
+@Composable
+private fun SyncTip(text: String) {
+  Row(verticalAlignment = Alignment.Top) {
+    Icon(
       painter = painterResource(id = R.drawable.ic_check_circle),
       contentDescription = null,
-      modifier = Modifier.size(24.dp),
+      tint = OpenMrsTheme.colors.success,
+      modifier = Modifier.padding(top = 1.dp).size(18.dp),
     )
-    Spacer(modifier = Modifier.width(16.dp))
-    Text(text = text, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+    Spacer(modifier = Modifier.width(12.dp))
+    Text(
+      text = text,
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
+  }
+}
+
+/** What is left of the sync once minimised: a small pill with the progress, tap to expand. */
+@Composable
+private fun SyncPill(
+  progress: SyncProgressState,
+  onExpand: () -> Unit,
+  modifier: Modifier = Modifier
+) {
+  val fraction = progress.fractionOrNull()
+  val label =
+    if (fraction != null) {
+      "${stringResource(id = R.string.syncing)} · ${stringResource(id = R.string.sync_percent, (fraction * 100).toInt())}"
+    } else {
+      stringResource(id = R.string.syncing)
+    }
+  Surface(
+    onClick = onExpand,
+    modifier = modifier.testTag("SyncMinimizedPill"),
+    shape = CircleShape,
+    color = MaterialTheme.colorScheme.surface,
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    shadowElevation = 6.dp,
+  ) {
+    Row(
+      modifier = Modifier.padding(start = 14.dp, end = 10.dp, top = 8.dp, bottom = 8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      if (fraction != null) {
+        CircularProgressIndicator(
+          progress = { fraction },
+          modifier = Modifier.size(18.dp),
+          strokeWidth = 2.5.dp,
+          color = OpenMrsTheme.colors.progress,
+          trackColor = MaterialTheme.colorScheme.surfaceVariant,
+        )
+      } else {
+        CircularProgressIndicator(
+          modifier = Modifier.size(18.dp),
+          strokeWidth = 2.5.dp,
+          color = OpenMrsTheme.colors.progress,
+        )
+      }
+      Spacer(modifier = Modifier.width(10.dp))
+      Text(
+        text = label,
+        style = MaterialTheme.typography.labelLarge,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface,
+      )
+      Spacer(modifier = Modifier.width(6.dp))
+      Icon(
+        imageVector = Icons.Filled.KeyboardArrowDown,
+        contentDescription = stringResource(id = R.string.sync_show_progress),
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.size(20.dp),
+      )
+    }
   }
 }
 

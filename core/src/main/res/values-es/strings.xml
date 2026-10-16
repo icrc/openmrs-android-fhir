@@ -336,6 +336,8 @@
         name="all_encounters_saved_do_you_want_to_exit"
     >¡Todas las consultas guardadas! ¿Quieres salir?</string>
     <string name="close_this_window">Cerrar esta ventana</string>
+    <string name="sync_minimize">Minimizar</string>
+    <string name="sync_show_progress">Mostrar el progreso de la sincronización</string>
     <string
         name="you_can_do_other_things_on_the_device_while_it_syncs"
     >Puede hacer otras cosas en el dispositivo mientras se sincroniza.</string>

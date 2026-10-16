@@ -395,6 +395,8 @@
         name="all_encounters_saved_do_you_want_to_exit"
     >Все встречи сохранены! Выйти?</string>
     <string name="close_this_window">Закрыть окно</string>
+    <string name="sync_minimize">Свернуть</string>
+    <string name="sync_show_progress">Показать ход синхронизации</string>
 
     <string
         name="you_can_do_other_things_on_the_device_while_it_syncs"

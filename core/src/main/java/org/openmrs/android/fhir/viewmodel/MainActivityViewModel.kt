@@ -387,13 +387,24 @@ constructor(
       it.copy(
         syncHeaderText = applicationContext.getString(headerTextResId),
         showSyncCloseButton = showCloseButton,
+        // A sync that is already on screen keeps the way the user left it.
+        isSyncMinimized = it.isSyncTasksVisible && it.isSyncMinimized,
         isSyncTasksVisible = true,
       )
     }
   }
 
   fun hideSyncTasksScreen() {
-    _uiState.update { it.copy(isSyncTasksVisible = false) }
+    _uiState.update { it.copy(isSyncTasksVisible = false, isSyncMinimized = false) }
+  }
+
+  /** Tucks the sync popup away into a small pill; the app stays usable while it runs. */
+  fun minimizeSyncTasks() {
+    _uiState.update { if (it.showSyncCloseButton) it.copy(isSyncMinimized = true) else it }
+  }
+
+  fun expandSyncTasks() {
+    _uiState.update { it.copy(isSyncMinimized = false) }
   }
 
   fun updateSyncProgress(current: Int, total: Int) {
@@ -619,6 +630,7 @@ constructor(
 data class MainUiState(
   val drawerEnabled: Boolean = true,
   val isSyncTasksVisible: Boolean = false,
+  val isSyncMinimized: Boolean = false,
   val syncProgressState: SyncProgressState = SyncProgressState(0, 0),
   val syncHeaderText: String = "",
   val showSyncCloseButton: Boolean = true,

@@ -417,6 +417,9 @@
         name="all_encounters_saved_do_you_want_to_exit"
     >All encounters saved! Do you want to exit?</string>
     <string name="close_this_window">Close this window</string>
+    <string name="sync_minimize">Minimize</string>
+    <string name="sync_show_progress">Show sync progress</string>
+    <string name="sync_percent" translatable="false">%1$d%%</string>
     <string
         name="you_can_do_other_things_on_the_device_while_it_syncs"
     >You can do other things on the device while it syncs.</string>

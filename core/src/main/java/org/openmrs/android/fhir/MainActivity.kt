@@ -28,11 +28,15 @@
 */
 package org.openmrs.android.fhir
 
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.RenderEffect
+import android.graphics.Shader
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -119,6 +123,9 @@ import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
 import timber.log.Timber
+
+/** Blur radius, in pixels, of the app behind the sync popup. */
+private const val BACKGROUND_BLUR_RADIUS = 18f
 
 class MainActivity : AppCompatActivity() {
   private lateinit var authStateManager: AuthStateManager
@@ -260,10 +267,12 @@ class MainActivity : AppCompatActivity() {
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
         MainActivityOverlays(
           isSyncTasksVisible = uiState.isSyncTasksVisible,
+          isSyncMinimized = uiState.isSyncMinimized,
           syncProgressState = uiState.syncProgressState,
           syncHeaderText = uiState.syncHeaderText,
           showSyncCloseButton = uiState.showSyncCloseButton,
-          onCloseSyncTasks = ::hideSyncTasksScreen,
+          onMinimizeSyncTasks = viewModel::minimizeSyncTasks,
+          onExpandSyncTasks = viewModel::expandSyncTasks,
           isLoading = uiState.loading,
         )
       }
@@ -300,6 +309,15 @@ class MainActivity : AppCompatActivity() {
             )
             updateToolbarNavigationIcon()
           }
+      }
+    }
+    // While the sync popup is open the app behind it is blurred (where the system supports it).
+    lifecycleScope.launch {
+      repeatOnLifecycle(Lifecycle.State.STARTED) {
+        viewModel.uiState
+          .map { it.isSyncTasksVisible && !(it.isSyncMinimized && it.showSyncCloseButton) }
+          .distinctUntilChanged()
+          .collect { blurred -> setBackgroundBlurred(blurred) }
       }
     }
     lifecycleScope.launch {
@@ -377,6 +395,11 @@ class MainActivity : AppCompatActivity() {
         override fun handleOnBackPressed() {
           if (drawerLayout?.isDrawerOpen(GravityCompat.START) == true) {
             drawerLayout?.closeDrawer(GravityCompat.START)
+            return
+          }
+          val state = viewModel.uiState.value
+          if (state.isSyncTasksVisible && !state.isSyncMinimized && state.showSyncCloseButton) {
+            viewModel.minimizeSyncTasks()
             return
           }
           lifecycleScope.launch {
@@ -836,6 +859,38 @@ class MainActivity : AppCompatActivity() {
         viewModel.handleConnectivityState(connectivityState, fetchIdentifiers)
       }
     }
+  }
+
+  private var blurAnimator: ValueAnimator? = null
+  private var backgroundBlur = 0f
+
+  /**
+   * Fades a blur in or out on what is behind the sync popup; API 31+, the scrim covers the rest.
+   */
+  private fun setBackgroundBlurred(blurred: Boolean) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+    val targets =
+      listOfNotNull<View>(
+        findViewById(R.id.main_content_container),
+        findViewById(R.id.top_bar_compose_container),
+      )
+    blurAnimator?.cancel()
+    val to = if (blurred) BACKGROUND_BLUR_RADIUS else 0f
+    blurAnimator =
+      ValueAnimator.ofFloat(backgroundBlur, to).apply {
+        duration = 220
+        addUpdateListener {
+          backgroundBlur = it.animatedValue as Float
+          val effect =
+            if (backgroundBlur < 0.5f) {
+              null
+            } else {
+              RenderEffect.createBlurEffect(backgroundBlur, backgroundBlur, Shader.TileMode.CLAMP)
+            }
+          targets.forEach { view -> view.setRenderEffect(effect) }
+        }
+        start()
+      }
   }
 
   private fun updateOverlayVisibility() {
