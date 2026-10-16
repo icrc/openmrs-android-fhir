@@ -286,6 +286,8 @@ class LocationFragment : Fragment() {
       mainActivityViewModel.updateLocationName(locationItem.name)
       (requireActivity() as AppCompatActivity).supportActionBar?.title = locationItem.name
       locationViewModel.updateSessionLocation(locationItem.resourceId)
+      // Data entered as a guest gets this location now.
+      mainActivityViewModel.completeGuestDataForNewLocation()
     }
 
     Toast.makeText(context, getString(R.string.location_updated), Toast.LENGTH_SHORT).show()

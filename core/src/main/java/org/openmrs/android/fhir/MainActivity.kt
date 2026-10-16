@@ -294,6 +294,8 @@ class MainActivity : AppCompatActivity() {
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.TriggerSync -> onSyncPress()
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.ShowIdentifierTypesRequired ->
               showIdentifierTypesRequiredDialog()
+            is org.openmrs.android.fhir.viewmodel.MainActivityEvent.ShowLocationRequired ->
+              sendToLocationSelection()
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.ShowSyncTasks ->
               showSyncTasksScreen()
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.HideSyncTasks ->
@@ -590,6 +592,30 @@ class MainActivity : AppCompatActivity() {
       promptSignInToSync()
       return
     }
+    lifecycleScope.launch {
+      // Nothing is uploaded before a location is chosen: it is stamped on what the user entered.
+      if (applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID].isNullOrBlank()) {
+        sendToLocationSelection()
+        return@launch
+      }
+      syncWithLocation()
+    }
+  }
+
+  private fun sendToLocationSelection() {
+    closeNavigationDrawer()
+    showSnackBar(this, getString(R.string.please_select_a_location_first))
+    getNavController()?.let { navController ->
+      if (navController.currentDestination?.id != R.id.locationFragment) {
+        navController.navigate(
+          R.id.locationFragment,
+          Bundle().apply { putBoolean("from_login", true) }
+        )
+      }
+    }
+  }
+
+  private fun syncWithLocation() {
     val connectivityState = viewModel.networkStatus.value
     when {
       !isTokenExpired() && connectivityState.isServerReachable() -> {

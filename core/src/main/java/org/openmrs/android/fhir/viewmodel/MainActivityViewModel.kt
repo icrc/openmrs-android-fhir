@@ -181,6 +181,14 @@ constructor(
           }
         }
 
+      if (shouldSync && !hasLocation(context)) {
+        // The location is stamped on what is uploaded (identifiers, encounters); without it the
+        // server rejects the data.
+        _isSyncing.postValue(false)
+        _uiEvents.tryEmit(MainActivityEvent.ShowLocationRequired)
+        return@launch
+      }
+
       if (shouldSync) {
         // Actual sync work happens outside the mutex
         if (!completeGuestData(context, fetchIdentifiers)) {
@@ -198,6 +206,9 @@ constructor(
     }
   }
 
+  private suspend fun hasLocation(context: Context): Boolean =
+    !context.dataStore.data.first()[PreferenceKeys.LOCATION_ID].isNullOrBlank()
+
   fun triggerIdentifierTypeSync() {
     viewModelScope.launch {
       if (!stopSync) {
@@ -210,7 +221,29 @@ constructor(
    * Data entered as a guest has no location, identifiers or provider yet (see
    * [GuestDataCompleter]); it is completed right before the first sync after signing in.
    */
-  private suspend fun completeGuestData(context: Context, fetchIdentifiers: Boolean): Boolean {
+  private val guestCompletionMutex = Mutex()
+
+  /**
+   * Called as soon as the user has picked a location after signing in: the encounters (and
+   * patients, once identifier types are known) entered as a guest get that location right away,
+   * instead of waiting for the sync.
+   */
+  fun completeGuestDataForNewLocation() {
+    viewModelScope.launch {
+      completeGuestData(
+        applicationContext,
+        applicationContext.resources.getBoolean(R.bool.fetch_identifiers),
+      )
+    }
+  }
+
+  private suspend fun completeGuestData(context: Context, fetchIdentifiers: Boolean): Boolean =
+    guestCompletionMutex.withLock { completeGuestDataLocked(context, fetchIdentifiers) }
+
+  private suspend fun completeGuestDataLocked(
+    context: Context,
+    fetchIdentifiers: Boolean,
+  ): Boolean {
     if (!GuestSession.isCompletionPending(context)) return true
     return try {
       // Which identifiers a patient gets depends on the identifier types, so make sure they are
@@ -599,6 +632,8 @@ sealed class MainActivityEvent {
   data object OpenDrawer : MainActivityEvent()
 
   data object ShowIdentifierTypesRequired : MainActivityEvent()
+
+  data object ShowLocationRequired : MainActivityEvent()
 
   data object TriggerSync : MainActivityEvent()
 
