@@ -687,4 +687,22 @@
     <string name="sign_in_for_patient_lists">Connectez-vous pour télécharger les listes de patients.</string>
     <string name="identifier_types_required_title">Identifiant requis</string>
     <string name="identifier_types_required_message">Les patients enregistrés sans compte ont besoin d’un identifiant avant d’être envoyés. Sélectionnez les types d’identifiant à utiliser, puis synchronisez à nouveau.</string>
+    <string name="login_welcome">Bon retour</string>
+    <string name="login_subtitle">Connectez-vous pour continuer</string>
+    <string name="app_version_footer">Version %1$s</string>
+    <string name="server_settings_title">Serveur</string>
+    <string name="server_settings_description">Connectez-vous à un autre serveur OpenMRS par adresse IP ou domaine. L\u2019application redémarre à l\u2019enregistrement.</string>
+    <string name="server_address">Adresse du serveur</string>
+    <string name="server_will_use">Connexion à %1$s</string>
+    <string name="server_address_invalid">Saisissez une adresse valide, par ex. 192.168.1.10:8080</string>
+    <string name="test_connection">Tester la connexion</string>
+    <string name="testing_connection">Test en cours…</string>
+    <string name="connection_success">Connecté en %1$d ms</string>
+    <string name="connection_error_not_found">Serveur introuvable</string>
+    <string name="connection_error_timeout">Aucune réponse (délai dépassé)</string>
+    <string name="connection_error_certificate">Problème de certificat</string>
+    <string name="connection_error_cleartext">http n\u2019est pas autorisé pour ce serveur dans cette version ; utilisez https</string>
+    <string name="connection_error_unexpected">Réponse inattendue du serveur</string>
+    <string name="connection_error_unreachable">Impossible de joindre le serveur</string>
+    <string name="use_default_server">Par défaut</string>
 </resources>

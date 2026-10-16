@@ -91,6 +91,7 @@ import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import org.openmrs.android.fhir.data.remote.ServerSettings
 import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.AppBarInsets
@@ -609,7 +610,7 @@ class MainActivity : AppCompatActivity() {
       if (navController.currentDestination?.id != R.id.locationFragment) {
         navController.navigate(
           R.id.locationFragment,
-          Bundle().apply { putBoolean("from_login", true) }
+          Bundle().apply { putBoolean("from_login", true) },
         )
       }
     }
@@ -1030,7 +1031,7 @@ class MainActivity : AppCompatActivity() {
         fileContent.append("========================\n\n")
 
         fileContent.append(
-          "FHIR Server URL: ${applicationContext.getString(R.string.fhir_base_url)}\n\n",
+          "FHIR Server URL: ${ServerSettings.fhirBaseUrl(applicationContext)}\n\n",
         )
 
         viewModel.lastSyncTimestampLiveData.value?.let {

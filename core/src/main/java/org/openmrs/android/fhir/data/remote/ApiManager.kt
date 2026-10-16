@@ -81,7 +81,7 @@ class ApiManager @Inject constructor(context: Context) : Api {
 
   private val apiService: ApiService by lazy {
     return@lazy Retrofit.Builder()
-      .baseUrl(context.resources.getString(R.string.openmrs_rest_url))
+      .baseUrl(ServerSettings.restUrl(context))
       .client(okHttpClientBuilder.build())
       .addConverterFactory(MoshiConverterFactory.create())
       .build()
@@ -90,7 +90,7 @@ class ApiManager @Inject constructor(context: Context) : Api {
 
   private val fhirApiService: FhirApiService by lazy {
     return@lazy Retrofit.Builder()
-      .baseUrl(context.resources.getString(R.string.fhir_base_url))
+      .baseUrl(ServerSettings.fhirBaseUrl(context))
       .client(okHttpClientBuilder.build())
       .addConverterFactory(FhirConverterFactory.create())
       .build()
@@ -112,7 +112,7 @@ class ApiManager @Inject constructor(context: Context) : Api {
       val matchResult = regex.find(context.resources.getString(R.string.first_fhir_sync_url))
       val extractedPart = matchResult?.value ?: "Location?_tag=Login+Location"
       fhirApiService.getLocation(
-        context.resources.getString(R.string.fhir_base_url) + extractedPart + "/$locationId",
+        ServerSettings.fhirBaseUrl(context) + extractedPart + "/$locationId",
       )
     }
   }
@@ -131,8 +131,7 @@ class ApiManager @Inject constructor(context: Context) : Api {
    */
   suspend fun fetchQuestionnaires(): List<Questionnaire> {
     val questionnaires = mutableListOf<Questionnaire>()
-    var url: String? =
-      appContext.resources.getString(R.string.fhir_base_url) + "Questionnaire?_count=100"
+    var url: String? = ServerSettings.fhirBaseUrl(appContext) + "Questionnaire?_count=100"
     var pages = 0
     while (url != null && pages++ < MAX_QUESTIONNAIRE_PAGES) {
       val response = fhirApiService.getQuestionnaires(url)

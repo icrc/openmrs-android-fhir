@@ -620,4 +620,22 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="sign_in_for_patient_lists">Sign in to download patient lists.</string>
     <string name="identifier_types_required_title">Identifier needed</string>
     <string name="identifier_types_required_message">The patients you registered without an account need an identifier before they can be uploaded. Select the identifier types to use, then sync again.</string>
+    <string name="login_welcome">Welcome back</string>
+    <string name="login_subtitle">Sign in to continue</string>
+    <string name="app_version_footer">Version %1$s</string>
+    <string name="server_settings_title">Server</string>
+    <string name="server_settings_description">Connect to another OpenMRS server by IP address or domain. The app restarts when you save.</string>
+    <string name="server_address">Server address</string>
+    <string name="server_will_use">Will connect to %1$s</string>
+    <string name="server_address_invalid">Enter a valid address, such as 192.168.1.10:8080</string>
+    <string name="test_connection">Test connection</string>
+    <string name="testing_connection">Testing…</string>
+    <string name="connection_success">Connected in %1$d ms</string>
+    <string name="connection_error_not_found">Server not found</string>
+    <string name="connection_error_timeout">No answer (timed out)</string>
+    <string name="connection_error_certificate">Certificate problem</string>
+    <string name="connection_error_cleartext">http is not allowed for this server in this build; use https</string>
+    <string name="connection_error_unexpected">Unexpected answer from the server</string>
+    <string name="connection_error_unreachable">Could not reach the server</string>
+    <string name="use_default_server">Use default</string>
 </resources>

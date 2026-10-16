@@ -678,4 +678,22 @@
     <string name="sign_in_for_patient_lists">Войдите, чтобы загрузить списки пациентов.</string>
     <string name="identifier_types_required_title">Нужен идентификатор</string>
     <string name="identifier_types_required_message">Пациентам, зарегистрированным без учётной записи, нужен идентификатор перед отправкой. Выберите типы идентификаторов и синхронизируйте снова.</string>
+    <string name="login_welcome">С возвращением</string>
+    <string name="login_subtitle">Войдите, чтобы продолжить</string>
+    <string name="app_version_footer">Версия %1$s</string>
+    <string name="server_settings_title">Сервер</string>
+    <string name="server_settings_description">Подключитесь к другому серверу OpenMRS по IP-адресу или домену. Приложение перезапустится после сохранения.</string>
+    <string name="server_address">Адрес сервера</string>
+    <string name="server_will_use">Подключение к %1$s</string>
+    <string name="server_address_invalid">Введите корректный адрес, например 192.168.1.10:8080</string>
+    <string name="test_connection">Проверить соединение</string>
+    <string name="testing_connection">Проверка…</string>
+    <string name="connection_success">Подключено за %1$d мс</string>
+    <string name="connection_error_not_found">Сервер не найден</string>
+    <string name="connection_error_timeout">Нет ответа (тайм-аут)</string>
+    <string name="connection_error_certificate">Проблема с сертификатом</string>
+    <string name="connection_error_cleartext">http не разрешён для этого сервера в этой сборке; используйте https</string>
+    <string name="connection_error_unexpected">Неожиданный ответ сервера</string>
+    <string name="connection_error_unreachable">Не удалось связаться с сервером</string>
+    <string name="use_default_server">По умолчанию</string>
 </resources>

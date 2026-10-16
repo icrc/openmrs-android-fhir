@@ -47,6 +47,7 @@ import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.RestApiManager
+import org.openmrs.android.fhir.data.remote.ServerSettings
 import org.openmrs.android.fhir.di.AppComponent
 import org.openmrs.android.fhir.di.DaggerAppComponent
 import org.openmrs.android.fhir.extensions.FileLoggingTree
@@ -130,11 +131,11 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     fun restApiClient(context: Context) =
       (context.applicationContext as FhirApplication).restApiClient
 
-    fun fhirBaseURl(context: Context) = context.getString(R.string.fhir_base_url)
+    fun fhirBaseURl(context: Context) = ServerSettings.fhirBaseUrl(context)
 
     fun authMethod(context: Context) = context.getString(R.string.auth_method)
 
-    fun checkServerUrl(context: Context) = context.getString(R.string.check_server_url)
+    fun checkServerUrl(context: Context) = ServerSettings.checkServerUrl(context)
 
     fun serverConnectivityTimeoutMillis(context: Context): Long {
       val seconds = context.resources.getInteger(R.integer.server_connectivity_timeout_seconds)

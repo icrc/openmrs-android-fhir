@@ -593,4 +593,22 @@
     <string name="sign_in_for_patient_lists">سجّل الدخول لتنزيل قوائم المرضى.</string>
     <string name="identifier_types_required_title">المعرّف مطلوب</string>
     <string name="identifier_types_required_message">يحتاج المرضى الذين سجّلتهم دون حساب إلى معرّف قبل رفعهم. اختر أنواع المعرّفات المراد استخدامها ثم زامن مجددًا.</string>
+    <string name="login_welcome">مرحبًا بعودتك</string>
+    <string name="login_subtitle">سجّل الدخول للمتابعة</string>
+    <string name="app_version_footer">الإصدار %1$s</string>
+    <string name="server_settings_title">الخادم</string>
+    <string name="server_settings_description">اتصل بخادم OpenMRS آخر عبر عنوان IP أو نطاق. يعاد تشغيل التطبيق عند الحفظ.</string>
+    <string name="server_address">عنوان الخادم</string>
+    <string name="server_will_use">سيتم الاتصال بـ %1$s</string>
+    <string name="server_address_invalid">أدخل عنوانًا صالحًا مثل 192.168.1.10:8080</string>
+    <string name="test_connection">اختبار الاتصال</string>
+    <string name="testing_connection">جارٍ الاختبار…</string>
+    <string name="connection_success">تم الاتصال خلال %1$d مللي ثانية</string>
+    <string name="connection_error_not_found">الخادم غير موجود</string>
+    <string name="connection_error_timeout">لا توجد استجابة (انتهت المهلة)</string>
+    <string name="connection_error_certificate">مشكلة في الشهادة</string>
+    <string name="connection_error_cleartext">http غير مسموح لهذا الخادم في هذا الإصدار؛ استخدم https</string>
+    <string name="connection_error_unexpected">استجابة غير متوقعة من الخادم</string>
+    <string name="connection_error_unreachable">تعذّر الوصول إلى الخادم</string>
+    <string name="use_default_server">الافتراضي</string>
 </resources>
