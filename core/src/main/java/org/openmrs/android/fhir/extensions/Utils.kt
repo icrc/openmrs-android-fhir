@@ -35,6 +35,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Base64
 import android.view.View
+import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum
 import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.datacapture.validation.Invalid
@@ -57,6 +58,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.DateType
+import org.hl7.fhir.r4.model.Element
 import org.hl7.fhir.r4.model.IntegerType
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Questionnaire
@@ -198,6 +200,35 @@ fun Date.toLocalString(
   val fmt = DateTimeFormatter.ofPattern(pattern, locale).withZone(zone)
   return fmt.format(this.toInstant())
 }
+
+/**
+ * Drops the translations of other languages from every text of the form. The form library only ever
+ * shows the translation of the device language (falling back to the base text), so the others only
+ * make the form several times larger to write, parse and hold in memory.
+ */
+fun Questionnaire.pruneOtherLanguageTranslations(locale: Locale = Locale.getDefault()) {
+  val language = locale.language.lowercase(Locale.ROOT)
+  val tag = locale.toLanguageTag().lowercase(Locale.ROOT)
+  FhirContext.forR4Cached()
+    .newTerser()
+    .getAllPopulatedChildElementsOfType(this, Element::class.java)
+    .forEach { element ->
+      if (!element.hasExtension()) return@forEach
+      element.extension.removeAll { extension ->
+        if (extension.url != TRANSLATION_EXTENSION_URL) return@removeAll false
+        val lang =
+          extension
+            .getExtensionByUrl(TRANSLATION_LANG_URL)
+            ?.value
+            ?.primitiveValue()
+            ?.lowercase(Locale.ROOT)
+        lang != null && lang != tag && lang.substringBefore('-') != language
+      }
+    }
+}
+
+private const val TRANSLATION_EXTENSION_URL = "http://hl7.org/fhir/StructureDefinition/translation"
+private const val TRANSLATION_LANG_URL = "lang"
 
 fun findItemByLinkId(
   items: List<QuestionnaireItemComponent>?,

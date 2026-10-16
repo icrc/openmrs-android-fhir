@@ -48,6 +48,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Period
 import java.time.ZoneId
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Address
 import org.hl7.fhir.r4.model.BooleanType
@@ -92,7 +93,8 @@ constructor(
   private val patientId: String = requireNotNull(state["patient_id"])
   private val registrationQuestionnaireName: String =
     requireNotNull(state["registration_questionnaire_name"])
-  val livePatientData = liveData { emit(prepareEditPatient(registrationQuestionnaireName)) }
+  val livePatientData =
+    liveData(Dispatchers.Default) { emit(prepareEditPatient(registrationQuestionnaireName)) }
   lateinit var originalPatient: Patient
   lateinit var questionnaireResource: Questionnaire
   val isPatientSaved = MutableLiveData<Boolean>()

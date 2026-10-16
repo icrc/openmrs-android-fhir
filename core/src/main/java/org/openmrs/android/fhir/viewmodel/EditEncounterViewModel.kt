@@ -45,6 +45,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import java.util.UUID
 import kotlin.collections.forEach
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
@@ -70,6 +71,7 @@ import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
+import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
 import org.openmrs.android.fhir.extensions.readAssetQuestionnaires
 import org.openmrs.android.fhir.extensions.utcDateToLocalDate
 import org.openmrs.android.fhir.util.ExistingObservationIndex
@@ -123,7 +125,9 @@ constructor(
   }
 
   fun prepareEditEncounter(encounterId: String, encounterType: String) {
-    viewModelScope.launch {
+    // Reading the encounter, filling the form from its observations and writing both as JSON is the
+    // slow part of opening this screen: keep all of it off the main thread.
+    viewModelScope.launch(Dispatchers.Default) {
       val observations = getObservationsEncounterId(encounterId)
       try {
         var questionnaire =
@@ -139,6 +143,7 @@ constructor(
         }
 
         questionnaire?.ensurePageGroupsHaveTrailingSpacer()
+        questionnaire?.pruneOtherLanguageTranslations()
 
         val encounter = fhirEngine.get<Encounter>(encounterId)
         val encounterDate = encounter.period?.start?.let { utcDateToLocalDate(it) }
@@ -178,10 +183,10 @@ constructor(
           ) // if questionnaire is null it'll throw exception while encoding to string.
         convertDateTimeAnswersToDate(questionnaireResponse)
         val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
-        _encounterDataPair.value = questionnaireJson to questionnaireResponseJson
+        _encounterDataPair.postValue(questionnaireJson to questionnaireResponseJson)
       } catch (e: Exception) {
         Timber.e(e.localizedMessage)
-        _encounterDataPair.value = Pair("", "")
+        _encounterDataPair.postValue(Pair("", ""))
       }
     }
   }

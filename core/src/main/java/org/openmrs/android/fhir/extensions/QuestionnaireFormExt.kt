@@ -32,10 +32,12 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewTreeObserver
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.commit
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import com.google.android.fhir.datacapture.R as SdcR
 import java.util.Collections
@@ -72,6 +74,40 @@ fun Fragment.newQuestionnaireFragment(
     .build()
 }
 
+/**
+ * Adds the form to [containerId] once the screen has drawn a first frame. Building a data-capture
+ * form is heavy; doing it before the first frame makes the transition stutter and shows nothing.
+ * The progress indicator of the screen (if it has one) is shown until the form is in place.
+ */
+fun Fragment.addQuestionnaireWhenDrawn(
+  containerId: Int,
+  tag: String,
+  create: () -> QuestionnaireFragment,
+  onAdded: () -> Unit = {},
+) {
+  val root = view ?: return
+  setFormLoading(true)
+  // One frame to show the indicator, then build the form right after it has been drawn.
+  root.postOnAnimation {
+    root.post {
+      if (!isAdded || view == null || childFragmentManager.isStateSaved) return@post
+      if (childFragmentManager.findFragmentByTag(tag) == null) {
+        childFragmentManager.commit { add(containerId, create(), tag) }
+      }
+      // The form lays itself out on the next frames; keep the indicator until then.
+      root.postDelayed({ if (isAdded) setFormLoading(false) }, FORM_LOADING_MIN_MS)
+      onAdded()
+    }
+  }
+}
+
+/** Shows or hides the screen's progress indicator without blocking touches. */
+fun Fragment.setFormLoading(loading: Boolean) {
+  view?.findViewById<View>(R.id.progressBar)?.visibility = if (loading) View.VISIBLE else View.GONE
+}
+
+private const val FORM_LOADING_MIN_MS = 250L
+
 /** Hosts whose child fragment manager already carries the callback below. */
 private val hostsWithNavigationHint: MutableSet<Fragment> = Collections.newSetFromMap(WeakHashMap())
 
@@ -99,20 +135,40 @@ private fun explainBlockedNavigationIn(host: Fragment) {
 
 private fun View.watchNavigationButtons() {
   val root = this
-  viewTreeObserver.addOnGlobalLayoutListener {
-    root.findViewById<View>(SdcR.id.pagination_next_button)?.let { button ->
-      if (button.getTag(SdcR.id.pagination_next_button) == null) {
-        button.setTag(SdcR.id.pagination_next_button, true)
-        button.onPressed { root.hintIfPageDidNotChange(button) }
+  // The buttons are part of the form's fixed layout: find them once and stop listening, instead of
+  // searching the hierarchy after every layout pass while the user scrolls or types.
+  var nextHooked = false
+  var reviewHooked = false
+  val listener =
+    object : ViewTreeObserver.OnGlobalLayoutListener {
+      override fun onGlobalLayout() {
+        if (!nextHooked) {
+          root.findViewById<View>(SdcR.id.pagination_next_button)?.let { button ->
+            nextHooked = true
+            button.onPressed { root.hintIfPageDidNotChange(button) }
+          }
+        }
+        if (!reviewHooked) {
+          root.findViewById<View>(SdcR.id.review_mode_button)?.let { button ->
+            reviewHooked = true
+            button.onPressed { root.hintIfReviewDidNotOpen() }
+          }
+        }
+        if (nextHooked && reviewHooked && root.viewTreeObserver.isAlive) {
+          root.viewTreeObserver.removeOnGlobalLayoutListener(this)
+        }
       }
     }
-    root.findViewById<View>(SdcR.id.review_mode_button)?.let { button ->
-      if (button.getTag(SdcR.id.review_mode_button) == null) {
-        button.setTag(SdcR.id.review_mode_button, true)
-        button.onPressed { root.hintIfReviewDidNotOpen() }
+  viewTreeObserver.addOnGlobalLayoutListener(listener)
+  // A form without one of the buttons never finishes; stop after the first few frames anyway.
+  postDelayed(
+    {
+      if (root.viewTreeObserver.isAlive) {
+        root.viewTreeObserver.removeOnGlobalLayoutListener(listener)
       }
-    }
-  }
+    },
+    HOOK_WINDOW_MS,
+  )
 }
 
 /** Runs [action] when the button is released, leaving the library's own click handling alone. */
@@ -151,6 +207,7 @@ private fun View.showRequiredHint() {
 }
 
 private const val BLOCKED_CHECK_DELAY_MS = 700L
+private const val HOOK_WINDOW_MS = 5_000L
 
 /** Calls [onSubmit] / [onCancel] when the form's own submit / cancel button is pressed. */
 fun Fragment.onQuestionnaireResult(onSubmit: () -> Unit, onCancel: (() -> Unit)? = null) {

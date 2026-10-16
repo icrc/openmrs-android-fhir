@@ -37,7 +37,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -53,8 +52,10 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.AddPatientFragmentBinding
 import org.openmrs.android.fhir.extensions.UnsavedChangesGuard
+import org.openmrs.android.fhir.extensions.addQuestionnaireWhenDrawn
 import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
 import org.openmrs.android.fhir.extensions.onQuestionnaireResult
+import org.openmrs.android.fhir.extensions.setFormLoading
 import org.openmrs.android.fhir.viewmodel.AddPatientViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
@@ -116,6 +117,7 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
         getString(R.string.registration_questionnaire_name),
       )
     }
+    setFormLoading(true)
     observeQuestionnaire()
     observePatientSaveAction()
     mainActivityViewModel.setDrawerEnabled(false)
@@ -148,17 +150,17 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
   }
 
   private fun addQuestionnaireFragment(questionnaire: String) {
-    childFragmentManager.commit {
-      add(
-        R.id.add_patient_container,
+    addQuestionnaireWhenDrawn(
+      containerId = R.id.add_patient_container,
+      tag = QUESTIONNAIRE_FRAGMENT_TAG,
+      create = {
         newQuestionnaireFragment(
           questionnaire,
           showCancelButton = true,
           showSubmitButton = true,
-        ),
-        QUESTIONNAIRE_FRAGMENT_TAG,
-      )
-    }
+        )
+      },
+    )
   }
 
   private fun onSubmitAction() {

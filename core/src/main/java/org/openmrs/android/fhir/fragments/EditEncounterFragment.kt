@@ -35,7 +35,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -47,8 +46,10 @@ import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.extensions.addQuestionnaireWhenDrawn
 import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
 import org.openmrs.android.fhir.extensions.onQuestionnaireResult
+import org.openmrs.android.fhir.extensions.setFormLoading
 import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
@@ -89,6 +90,7 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title = requireContext().getString(R.string.edit_encounter)
     }
+    setFormLoading(true)
     viewModel.prepareEditEncounter(encounterId, encounterType)
     viewModel.encounterDataPair.observe(viewLifecycleOwner) {
       if (it.first.isBlank()) {
@@ -135,17 +137,11 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   private fun addQuestionnaireFragment(pair: Pair<String, String>) {
     if (pair.first.isNotBlank()) {
-      lifecycleScope.launch {
-        val questionnaireJson = pair.first
-
-        childFragmentManager.commit {
-          add(
-            R.id.form_entry_container,
-            newQuestionnaireFragment(questionnaireJson, responseJson = pair.second),
-            QUESTIONNAIRE_FRAGMENT_TAG,
-          )
-        }
-      }
+      addQuestionnaireWhenDrawn(
+        containerId = R.id.form_entry_container,
+        tag = QUESTIONNAIRE_FRAGMENT_TAG,
+        create = { newQuestionnaireFragment(pair.first, responseJson = pair.second) },
+      )
     }
   }
 

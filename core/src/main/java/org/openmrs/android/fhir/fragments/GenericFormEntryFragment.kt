@@ -38,7 +38,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
@@ -52,8 +51,10 @@ import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.databinding.GenericFormentryFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.extensions.addQuestionnaireWhenDrawn
 import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
 import org.openmrs.android.fhir.extensions.onQuestionnaireResult
+import org.openmrs.android.fhir.extensions.setFormLoading
 import org.openmrs.android.fhir.extensions.showSnackBar
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
 
@@ -88,6 +89,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
     if (savedInstanceState == null) {
       viewModel.getEncounterQuestionnaire(
         args.questionnaireId,
+        startOnToday = true,
       )
     }
     observeLoading()
@@ -112,21 +114,19 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
   }
 
   private fun addQuestionnaireFragment(questionnaireJson: String) {
-    childFragmentManager.commit {
-      if (questionnaireJson.isEmpty()) {
-        showSnackBar(
-          requireActivity(),
-          getString(R.string.questionnaire_error_message),
-        )
-        NavHostFragment.findNavController(this@GenericFormEntryFragment).navigateUp()
-      } else {
-        add(
-          R.id.form_entry_container,
-          newQuestionnaireFragment(questionnaireJson),
-          QUESTIONNAIRE_FRAGMENT_TAG,
-        )
-      }
+    if (questionnaireJson.isEmpty()) {
+      showSnackBar(
+        requireActivity(),
+        getString(R.string.questionnaire_error_message),
+      )
+      NavHostFragment.findNavController(this).navigateUp()
+      return
     }
+    addQuestionnaireWhenDrawn(
+      containerId = R.id.form_entry_container,
+      tag = QUESTIONNAIRE_FRAGMENT_TAG,
+      create = { newQuestionnaireFragment(questionnaireJson) },
+    )
   }
 
   private fun onSubmitAction() {
@@ -189,21 +189,9 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
   }
 
   private fun observeQuestionnaire() {
-    viewModel.questionnaire.observe(viewLifecycleOwner) { questionnaire ->
-      if (questionnaire != null) {
-        viewModel.prepareEnterEncounter(questionnaire)
-
-        val questionnaireJson = viewModel.parser.encodeResourceToString(questionnaire)
-        addQuestionnaireFragment(questionnaireJson)
-      } else {
-        Toast.makeText(
-            requireContext(),
-            getString(R.string.questionnaire_error_message),
-            Toast.LENGTH_SHORT,
-          )
-          .show()
-        NavHostFragment.findNavController(this).navigateUp()
-      }
+    setFormLoading(true)
+    viewModel.questionnaireJson.observe(viewLifecycleOwner) { questionnaireJson ->
+      addQuestionnaireFragment(questionnaireJson)
     }
   }
 

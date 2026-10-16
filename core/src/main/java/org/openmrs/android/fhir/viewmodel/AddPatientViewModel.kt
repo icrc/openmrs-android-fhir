@@ -42,8 +42,10 @@ import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValid
 import com.google.android.fhir.get
 import java.util.UUID
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Identifier
@@ -248,15 +250,16 @@ constructor(
 
   fun getEmbeddedQuestionnaire(questionnaireName: String) {
     viewModelScope.launch {
-      val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-      questionnaire =
-        fhirEngine.getQuestionnaireOrFromAssets(questionnaireName, applicationContext, parser)
-      if (questionnaire != null) {
-        embeddedQuestionnaire.value =
-          parser.encodeResourceToString(embeddIdentifierInQuestionnaire(questionnaire!!))
-      } else {
-        embeddedQuestionnaire.value = ""
-      }
+      // Loading the form and writing it as JSON is heavy for the registration form: not on main.
+      val json =
+        withContext(Dispatchers.Default) {
+          val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+          questionnaire =
+            fhirEngine.getQuestionnaireOrFromAssets(questionnaireName, applicationContext, parser)
+          questionnaire?.let { parser.encodeResourceToString(embeddIdentifierInQuestionnaire(it)) }
+            ?: ""
+        }
+      embeddedQuestionnaire.value = json
     }
   }
 

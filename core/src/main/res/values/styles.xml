@@ -99,32 +99,41 @@
         >?attr/textAppearanceBodyMedium</item>
     </style>
     
+    <!-- Look of the data-capture forms. Fonts are kept to what the form really needs: every text
+         with its own font family costs a typeface lookup for each row that is inflated. -->
     <style name="Questionnaire.questionnaireQuestionTextStyle">
-        <item name="fontFamily">@font/inter_semibold</item>
-        <item name="android:textSize">14sp</item>
-        <item name="android:paddingBottom">4sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:paddingBottom">6dp</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
     <style name="Questionnaire.questionnaireGroupTypeQuestionTextStyle">
-        <item name="android:textSize">24sp</item>
-        <item name="fontFamily">@font/inter_bold</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
     </style>
 
     <style name="Questionnaire.questionnaireTextInputEditTextStyle">
-        <item name="fontFamily">@font/inter_bold</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:layout_margin">0sp</item>
     </style>
 
-    <style name="Questionnaire.questionnaireTextInputLayoutStyle">
-        <item name="fontFamily">@font/inter_bold</item>
+    <style
+        name="Questionnaire.questionnaireTextInputLayoutStyle"
+        parent="Widget.Material3.TextInputLayout.OutlinedBox"
+    >
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
     </style>
 
     <style
         name="Questionnaire.questionnaireRadioButtonStyle"
         parent="Widget.Material3.CompoundButton.RadioButton"
     >
-        <item name="fontFamily">@font/inter</item>
-        <item name="buttonTint">@color/dashboard_cardview_textcolor</item>
+        <item name="buttonTint">?attr/colorPrimary</item>
     </style>
 
     <style
@@ -133,13 +142,13 @@
     >
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="fontFamily">@font/inter</item>
-        <item name="cornerRadius">4sp</item>
-        <item name="backgroundTint">@color/dashboard_cardview_textcolor</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="backgroundTint">?attr/colorPrimary</item>
     </style>
     <style name="Questionnaire.questionnaireBottomNavContainerStyle">
-        <item name="android:background">@color/white</item>
-        <item name="backgroundTint">@color/white</item>
+        <item name="android:background">?attr/colorSurface</item>
+        <item name="backgroundTint">?attr/colorSurface</item>
     </style>
     <style name="Questionnaire" parent="Theme.Questionnaire">
         <item name="colorPrimary">@color/o3_primary</item>

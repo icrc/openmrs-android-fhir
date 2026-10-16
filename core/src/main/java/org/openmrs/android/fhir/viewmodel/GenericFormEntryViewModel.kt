@@ -43,8 +43,10 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import java.util.Date
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
@@ -71,6 +73,7 @@ import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
+import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
 import org.openmrs.android.fhir.util.ParentKey
 import org.openmrs.android.fhir.util.buildObservationGroupLookup
 import org.openmrs.android.fhir.util.createParentObservation
@@ -100,16 +103,26 @@ constructor(
   val encounterType = getEncounterTypeValue()
   val isLoading = MutableLiveData<Boolean>()
 
-  fun getEncounterQuestionnaire(questionnaireId: String) {
+  /**
+   * Loads the form and prepares it for the screen: everything heavy (reading, adding the page
+   * spacers, writing the JSON the form library takes) runs off the main thread, once.
+   *
+   * @param startOnToday fills the encounter date with today (a single-patient encounter); group
+   *   sessions take the date from the screener instead.
+   */
+  fun getEncounterQuestionnaire(questionnaireId: String, startOnToday: Boolean = false) {
     viewModelScope.launch {
-      val q = fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
-      q?.ensurePageGroupsHaveTrailingSpacer()
-      _questionnaire.value = q
-      if (_questionnaire.value == null) {
-        _questionnaireJson.value = ""
-      } else {
-        _questionnaireJson.value = parser.encodeResourceToString(_questionnaire.value)
-      }
+      val (loaded, json) =
+        withContext(Dispatchers.Default) {
+          val q =
+            fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
+          q?.ensurePageGroupsHaveTrailingSpacer()
+          q?.pruneOtherLanguageTranslations()
+          if (startOnToday && q != null) prepareEnterEncounter(q)
+          q to (q?.let { parser.encodeResourceToString(it) } ?: "")
+        }
+      _questionnaire.value = loaded
+      _questionnaireJson.value = json
     }
   }
 

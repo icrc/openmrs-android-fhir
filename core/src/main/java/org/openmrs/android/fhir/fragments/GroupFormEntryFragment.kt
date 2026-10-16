@@ -37,6 +37,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
@@ -60,6 +61,7 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.databinding.GroupFormentryFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.extensions.AppBarInsets
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
 import org.openmrs.android.fhir.extensions.showSnackBar
@@ -117,6 +119,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     setHasOptionsMenu(true)
     setUpActionBar()
     (requireActivity().application as FhirApplication).appComponent.inject(this)
+    keepBelowAppBar()
     observeLoading()
     binding.patientTabLayout.visibility = View.GONE
     viewModel.getPatients(args.patientIds.toSet())
@@ -184,6 +187,17 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     addBackPressedListener()
     mainActivityViewModel.setDrawerEnabled(false)
     observePatients()
+  }
+
+  /** The screen is drawn under the app bar overlay: pad by what is really there. */
+  private fun keepBelowAppBar() {
+    viewLifecycleOwner.lifecycleScope.launch {
+      AppBarInsets.heightPx.collect { barBottomPx ->
+        binding.root.updatePadding(
+          top = barBottomPx + (resources.displayMetrics.density * 4).toInt()
+        )
+      }
+    }
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {

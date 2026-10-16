@@ -78,6 +78,7 @@ import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
 import org.openmrs.android.fhir.extensions.nowLocalDateTime
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
+import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
 
 class GroupFormEntryViewModel
 @AssistedInject
@@ -143,6 +144,7 @@ constructor(
   fun prepareScreenerQuestionnaire(encounterQuestionnaire: Questionnaire) {
     viewModelScope.launch {
       encounterQuestionnaire.ensurePageGroupsHaveTrailingSpacer()
+      encounterQuestionnaire.pruneOtherLanguageTranslations()
       this@GroupFormEntryViewModel.encounterQuestionnaire = encounterQuestionnaire
       val screener =
         fhirEngine.getQuestionnaireOrFromAssets(
@@ -179,7 +181,8 @@ constructor(
         collectTemplateLinkIds(s.item)
         collectEncounterExtras(encounterQuestionnaire.item)
         extras.forEach { s.addItem(it) }
-        screenerQuestionnaireJson.value = parser.encodeResourceToString(s)
+        screenerQuestionnaireJson.value =
+          withContext(Dispatchers.Default) { parser.encodeResourceToString(s) }
       }
     }
   }

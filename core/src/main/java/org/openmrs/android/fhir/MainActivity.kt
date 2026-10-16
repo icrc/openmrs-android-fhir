@@ -96,6 +96,7 @@ import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.AppBarInsets
 import org.openmrs.android.fhir.extensions.BiometricUtils
+import org.openmrs.android.fhir.extensions.FormEngineWarmUp
 import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.extensions.PermissionHelper
 import org.openmrs.android.fhir.extensions.PermissionHelperFactory
@@ -163,6 +164,7 @@ class MainActivity : AppCompatActivity() {
     // Same window mode on every API level: the compose app bar already pads for the status bar.
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
+    FormEngineWarmUp.start()
     Thread.setDefaultUncaughtExceptionHandler(
       UncaughtExceptionHandler(this, Thread.getDefaultUncaughtExceptionHandler()),
     )
