@@ -331,6 +331,14 @@
     <string name="patient_lists_selected_count">%1$d selected</string>
     <string name="no_sync_info_available">No Sync Info Available</string>
     <string name="clear_sync_data">Clear Sync Data</string>
+    <string name="sync_downloaded">Downloaded</string>
+    <string name="sync_uploaded">Uploaded</string>
+    <string name="sync_status_completed">Completed</string>
+    <string name="sync_status_completed_errors">Completed with errors</string>
+    <string name="sync_errors_show_all">Show all (%1$d)</string>
+    <string name="sync_errors_show_less">Show less</string>
+    <string name="sync_history">Sync history</string>
+    <string name="clear_sync_data_confirm">Delete all finished sync records? A sync in progress is kept.</string>
     <string name="hsu_id" translatable="false">HSU ID</string>
     <string name="encounter_date">Encounter Date</string>
     <string name="encounter_name">Encounter Name</string>

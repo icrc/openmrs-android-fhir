@@ -302,6 +302,14 @@
 
     <string name="no_sync_info_available">Нет данных о синхронизации</string>
     <string name="clear_sync_data">Очистить данные синхронизации</string>
+    <string name="sync_downloaded">Загружено</string>
+    <string name="sync_uploaded">Отправлено</string>
+    <string name="sync_status_completed">Завершена</string>
+    <string name="sync_status_completed_errors">Завершена с ошибками</string>
+    <string name="sync_errors_show_all">Показать все (%1$d)</string>
+    <string name="sync_errors_show_less">Показать меньше</string>
+    <string name="sync_history">История синхронизации</string>
+    <string name="clear_sync_data_confirm">Удалить все завершённые записи синхронизации? Текущая синхронизация сохранится.</string>
 
     <string name="hsu_id" translatable="false">HSU ID</string>
 

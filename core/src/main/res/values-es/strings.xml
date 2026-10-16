@@ -242,6 +242,14 @@
         name="no_sync_info_available"
     >No Hay Información de Sincronización Disponible</string>
     <string name="clear_sync_data">Borrar Datos de Sincronización</string>
+    <string name="sync_downloaded">Descargados</string>
+    <string name="sync_uploaded">Enviados</string>
+    <string name="sync_status_completed">Completada</string>
+    <string name="sync_status_completed_errors">Completada con errores</string>
+    <string name="sync_errors_show_all">Mostrar todo (%1$d)</string>
+    <string name="sync_errors_show_less">Mostrar menos</string>
+    <string name="sync_history">Historial de sincronización</string>
+    <string name="clear_sync_data_confirm">¿Eliminar todos los registros de sincronización terminados? Se conserva una sincronización en curso.</string>
     <string name="encounter_date">Fecha del Encuentro</string>
     <string name="encounter_name">Nombre del Encuentro</string>
     <string name="location_1">Ubicación 1</string>

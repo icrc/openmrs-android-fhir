@@ -219,6 +219,14 @@
         name="no_sync_info_available"
     >لا توجد معلومات المزامنة متوفرة</string>
     <string name="clear_sync_data">مسح بيانات مزامنة</string>
+    <string name="sync_downloaded">تم التنزيل</string>
+    <string name="sync_uploaded">تم الرفع</string>
+    <string name="sync_status_completed">اكتملت</string>
+    <string name="sync_status_completed_errors">اكتملت مع أخطاء</string>
+    <string name="sync_errors_show_all">عرض الكل (%1$d)</string>
+    <string name="sync_errors_show_less">عرض أقل</string>
+    <string name="sync_history">سجل المزامنة</string>
+    <string name="clear_sync_data_confirm">حذف كل سجلات المزامنة المنتهية؟ يتم الاحتفاظ بالمزامنة الجارية.</string>
     <string name="hsu_id" translatable="false">HSU ID</string>
     <string name="encounter_date">تاريخ لقاء</string>
     <string name="encounter_name">اسم اللقاء</string>
