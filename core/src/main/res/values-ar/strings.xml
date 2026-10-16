@@ -110,6 +110,10 @@
     <string name="login_expired">انتهت صلاحية تسجيل الدخول</string>
     <string name="settings_auto_sync">المزامنة تلقائياً</string>
     <string name="settings_language">اللغة</string>
+    <string name="favorite_forms">النماذج المفضلة</string>
+    <string name="favorite_forms_description">اختر حتى %1$d نماذج لتظهر أولاً عند إنشاء لقاء.</string>
+    <string name="favorite_forms_count">تم اختيار %1$d من %2$d</string>
+    <string name="favorite_forms_choose">اختيار المفضلة</string>
     <string name="next_sync_in_minutes">المزامنة التالية خلال %1$d دقيقة</string>
     <string name="auto_sync_session_expired_message">لم تعد جلستك صالحة، لذلك تعذّر تشغيل المزامنة التلقائية. سجّل الدخول مجدداً لإبقاء بياناتك متزامنة. ما أدخلته على هذا الجهاز محفوظ.</string>
     <string name="later">لاحقاً</string>

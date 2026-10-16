@@ -43,6 +43,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -75,10 +76,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.ThemeMode
+import org.openmrs.android.fhir.ui.components.FavoriteFormsDialog
 import org.openmrs.android.fhir.ui.components.LanguagePicker
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.SettingsUiState
 
 object SettingsDefaults {
@@ -92,6 +97,7 @@ object SettingsTestTags {
   const val TokenDelayField = "SettingsTokenDelayField"
   const val PeriodicDelayField = "SettingsPeriodicDelayField"
   const val AutoSyncSwitch = "SettingsAutoSyncSwitch"
+  const val FavoriteFormsButton = "SettingsFavoriteFormsButton"
   const val InitialSyncButton = "SettingsInitialSyncButton"
   const val FetchQuestionnairesButton = "SettingsFetchQuestionnairesButton"
   const val ResetOfflineLoginButton = "SettingsResetOfflineLoginButton"
@@ -126,6 +132,9 @@ fun SettingsScreen(
   offlineLoginEnabled: Boolean? = null,
   onResetOfflineLoginClicked: (() -> Unit)? = null,
   onAutoSyncToggle: (Boolean) -> Unit = {},
+  favoriteFormOptions: List<FormItem>? = null,
+  favoriteFormIds: List<String> = emptyList(),
+  onFavoriteFormsSaved: ((List<String>) -> Unit)? = null,
   selectedLanguage: AppLanguage? = null,
   onLanguageSelected: ((AppLanguage) -> Unit)? = null,
   modifier: Modifier = Modifier,
@@ -219,6 +228,16 @@ fun SettingsScreen(
             enabled = offlineLoginEnabled != null,
             inProgress = false,
             testTag = SettingsTestTags.ResetOfflineLoginButton,
+          )
+        }
+      }
+
+      if (favoriteFormOptions != null && onFavoriteFormsSaved != null) {
+        SettingsSection(title = stringResource(R.string.favorite_forms)) {
+          FavoriteFormsSetting(
+            options = favoriteFormOptions,
+            selectedIds = favoriteFormIds,
+            onSaved = onFavoriteFormsSaved,
           )
         }
       }
@@ -338,6 +357,77 @@ private fun ThemeModeChoice(selected: ThemeMode, onSelected: (ThemeMode) -> Unit
           modifier = Modifier.testTag(tag),
         )
       }
+  }
+}
+
+/** The favorites picked so far and the button that opens the picker. */
+@Composable
+private fun FavoriteFormsSetting(
+  options: List<FormItem>,
+  selectedIds: List<String>,
+  onSaved: (List<String>) -> Unit,
+) {
+  var showPicker by remember { mutableStateOf(false) }
+  val byId = remember(options) { options.associateBy { it.questionnaireId } }
+  val selected = selectedIds.mapNotNull { byId[it] }
+  Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Text(
+      text = stringResource(R.string.favorite_forms_description, DemoDataStore.MAX_FAVORITE_FORMS),
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    if (selected.isNotEmpty()) {
+      Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        selected.forEach { form ->
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+              imageVector = Icons.Default.Star,
+              contentDescription = null,
+              tint = OpenMrsTheme.colors.warning,
+              modifier = Modifier.size(18.dp),
+            )
+            Text(
+              text = form.name,
+              style = MaterialTheme.typography.bodyLarge,
+              modifier = Modifier.padding(start = 8.dp),
+            )
+          }
+        }
+      }
+    }
+    OutlinedButton(
+      onClick = { showPicker = true },
+      enabled = options.isNotEmpty(),
+      modifier =
+        Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.FavoriteFormsButton),
+    ) {
+      Icon(
+        imageVector = Icons.Default.Star,
+        contentDescription = null,
+        modifier = Modifier.size(18.dp)
+      )
+      Spacer(modifier = Modifier.width(8.dp))
+      Text(
+        text =
+          stringResource(
+            R.string.favorite_forms_count,
+            selected.size,
+            DemoDataStore.MAX_FAVORITE_FORMS,
+          ) + " · " + stringResource(R.string.favorite_forms_choose),
+      )
+    }
+  }
+  if (showPicker) {
+    FavoriteFormsDialog(
+      forms = options,
+      selectedIds = selected.map { it.questionnaireId },
+      maxFavorites = DemoDataStore.MAX_FAVORITE_FORMS,
+      onSave = {
+        showPicker = false
+        onSaved(it)
+      },
+      onDismiss = { showPicker = false },
+    )
   }
 }
 

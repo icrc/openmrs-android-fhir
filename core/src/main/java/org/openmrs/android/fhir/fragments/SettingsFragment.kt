@@ -66,6 +66,7 @@ import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.screens.SettingsDefaults
 import org.openmrs.android.fhir.ui.screens.SettingsScreen
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.viewmodel.FavoriteFormsViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.QuestionnaireFetchViewModel
 import org.openmrs.android.fhir.viewmodel.SettingsEvent
@@ -78,6 +79,7 @@ class SettingsFragment : Fragment() {
   private val settingsViewModel by viewModels<SettingsViewModel> { viewModelFactory }
   private val questionnaireFetchViewModel by
     viewModels<QuestionnaireFetchViewModel> { viewModelFactory }
+  private val favoriteFormsViewModel by viewModels<FavoriteFormsViewModel> { viewModelFactory }
   private val themeSelection = mutableStateOf(ThemeMode.SYSTEM)
 
   /** true: enabled, false: declined, null: not answered yet. */
@@ -107,9 +109,14 @@ class SettingsFragment : Fragment() {
       val uiState = settingsViewModel.uiState.collectAsStateWithLifecycle().value
       val isFetchingQuestionnaires by
         questionnaireFetchViewModel.isFetching.collectAsStateWithLifecycle()
+      val favoriteForms by favoriteFormsViewModel.forms.collectAsStateWithLifecycle()
+      val favoriteIds by favoriteFormsViewModel.favoriteIds.collectAsStateWithLifecycle()
       OpenMrsTheme {
         SettingsScreen(
           uiState = uiState,
+          favoriteFormOptions = favoriteForms,
+          favoriteFormIds = favoriteIds,
+          onFavoriteFormsSaved = favoriteFormsViewModel::setFavorites,
           tokenDelayOptions = SettingsDefaults.TokenDelayOptions,
           periodicSyncDelayOptions = SettingsDefaults.PeriodicSyncDelayOptions,
           onNetworkStatusToggle = settingsViewModel::onNetworkStatusToggle,
@@ -154,6 +161,10 @@ class SettingsFragment : Fragment() {
     setHasOptionsMenu(true)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     setUpActionBar()
+    favoriteFormsViewModel.load(
+      getString(R.string.questionnaires),
+      getString(R.string.encounter_type_system_url),
+    )
     mainActivityViewModel.setDrawerEnabled(false)
     observeSettingsEvents()
   }

@@ -147,6 +147,10 @@
     <string name="login_expired">Сессия истекла</string>
     <string name="settings_auto_sync">Синхронизировать автоматически</string>
     <string name="settings_language">Язык</string>
+    <string name="favorite_forms">Избранные формы</string>
+    <string name="favorite_forms_description">Выберите до %1$d форм, которые будут показаны первыми при создании визита.</string>
+    <string name="favorite_forms_count">Выбрано %1$d из %2$d</string>
+    <string name="favorite_forms_choose">Выбрать избранное</string>
     <string name="next_sync_in_minutes">Следующая синхронизация через %1$d мин</string>
     <string name="auto_sync_session_expired_message">Ваш сеанс больше недействителен, поэтому автоматическая синхронизация не выполнена. Войдите снова, чтобы данные продолжали синхронизироваться. Введённые на этом устройстве данные сохранены.</string>
     <string name="later">Позже</string>

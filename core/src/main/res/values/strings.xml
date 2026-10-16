@@ -158,6 +158,10 @@
     <string name="login_expired">Login Expired</string>
     <string name="settings_auto_sync">Sync automatically</string>
     <string name="settings_language">Language</string>
+    <string name="favorite_forms">Favorite forms</string>
+    <string name="favorite_forms_description">Choose up to %1$d forms to show first when creating an encounter.</string>
+    <string name="favorite_forms_count">%1$d of %2$d selected</string>
+    <string name="favorite_forms_choose">Choose favorites</string>
     <string name="next_sync_in_minutes">Next sync in %1$d min</string>
     <string name="auto_sync_session_expired_message">Your session is no longer valid, so the automatic sync could not run. Sign in again to keep your data in sync. What you entered on this device is kept.</string>
     <string name="later">Later</string>

@@ -101,6 +101,21 @@ class DemoDataStore(private val context: Context) {
         ?: INITIAL_PERIODIC_SYNC_DELAY.toInt()
     }
 
+  /** The ids of the favorite forms, in the order they were picked. */
+  fun getFavoriteFormIdsFlow() =
+    context.dataStorage.data.map { pref ->
+      pref[stringPreferencesKey(FAVORITE_FORMS)]
+        ?.split(FAVORITE_FORMS_SEPARATOR)
+        ?.filter { it.isNotBlank() }
+        .orEmpty()
+    }
+
+  suspend fun setFavoriteFormIds(ids: List<String>) {
+    context.dataStorage.edit { pref ->
+      pref[stringPreferencesKey(FAVORITE_FORMS)] = ids.joinToString(FAVORITE_FORMS_SEPARATOR)
+    }
+  }
+
   suspend fun setCheckNetworkConnectivity(isEnabled: Boolean) {
     context.dataStore.edit { pref ->
       pref[booleanPreferencesKey(CHECK_NETWORK_CONNECTIVITY)] = isEnabled
@@ -125,6 +140,11 @@ class DemoDataStore(private val context: Context) {
     const val TOKEN_EXPIRY_DELAY = "token-expiry-delay"
     const val PERIODIC_SYNC_DELAY = "periodic-sync-delay"
     const val AUTO_SYNC_ENABLED = "auto-sync-enabled"
+    const val FAVORITE_FORMS = "favorite-forms"
+    private const val FAVORITE_FORMS_SEPARATOR = ","
+
+    /** How many forms can be favorites. */
+    const val MAX_FAVORITE_FORMS = 5
     const val CHECK_NETWORK_CONNECTIVITY = "check-network-connectivity"
     const val ENABLE_NOTIFICATIONS = "enable-notifications"
     const val INITIAL_TOKEN_CHECK_DELAY: Long = 1

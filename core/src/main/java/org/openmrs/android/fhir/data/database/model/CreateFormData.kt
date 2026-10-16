@@ -47,6 +47,8 @@ data class FormSection(
 data class FormSectionItem(
   val name: String,
   val forms: List<FormItem>,
+  /** The user's favorite forms, shown first. */
+  val isFavorites: Boolean = false,
 )
 
 data class FormItem(

@@ -52,6 +52,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -168,6 +169,7 @@ fun CreateEncounterScreen(
                 FormSectionHeader(
                   title = section.name,
                   count = section.forms.size,
+                  isFavorites = section.isFavorites,
                   isCollapsed = isCollapsed,
                   onClick =
                     if (isSearching) {
@@ -222,6 +224,7 @@ private fun FormSectionHeader(
   count: Int,
   isCollapsed: Boolean,
   onClick: (() -> Unit)?,
+  isFavorites: Boolean = false,
 ) {
   Row(
     modifier =
@@ -233,6 +236,14 @@ private fun FormSectionHeader(
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+      if (isFavorites) {
+        Icon(
+          imageVector = Icons.Filled.Star,
+          contentDescription = null,
+          tint = OpenMrsTheme.colors.warning,
+          modifier = Modifier.padding(end = 6.dp).size(18.dp),
+        )
+      }
       Text(
         text = title.uppercase(),
         style = MaterialTheme.typography.labelLarge,

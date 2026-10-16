@@ -33,30 +33,25 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import ca.uhn.fhir.context.FhirContext
-import com.google.android.fhir.FhirEngine
-import com.google.android.fhir.datacapture.extensions.logicalId
-import com.google.android.fhir.search.search
-import com.squareup.moshi.Moshi
-import java.util.Locale
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.hl7.fhir.r4.model.Questionnaire
+import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.data.database.model.FormData
+import org.openmrs.android.fhir.data.FormCatalog
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.FormSectionItem
-import org.openmrs.android.fhir.extensions.readAssetQuestionnaires
 import timber.log.Timber
 
 class CreateEncounterViewModel
 @Inject
 constructor(
   private val applicationContext: Context,
-  private val fhirEngine: FhirEngine,
+  private val formCatalog: FormCatalog,
 ) : ViewModel() {
+
+  private val demoDataStore = DemoDataStore(applicationContext)
 
   private val _formData = MutableLiveData<List<FormSectionItem>?>()
   val formData: LiveData<List<FormSectionItem>?> = _formData
@@ -67,7 +62,19 @@ constructor(
   private val _error = MutableLiveData<String>()
   val error: LiveData<String> = _error
 
-  private val parser = FhirContext.forR4Cached().newJsonParser()
+  private var sections: List<FormSectionItem>? = null
+  private var formsById: Map<String, FormItem> = emptyMap()
+  private var favoriteIds: List<String> = emptyList()
+
+  init {
+    // The favorites follow the settings: a change shows up without reloading the forms.
+    viewModelScope.launch {
+      demoDataStore.getFavoriteFormIdsFlow().collect {
+        favoriteIds = it
+        publish()
+      }
+    }
+  }
 
   /**
    * Builds the sections of the **Create Encounter** screen.
@@ -76,15 +83,19 @@ constructor(
    * optional translations. Each code is resolved to the questionnaire (synced or bundled in the
    * app) that declares it, and codes without a questionnaire are skipped. When no sections are
    * configured, every available encounter form is offered in one list, so the setting can be left
-   * out entirely.
+   * out entirely. The favorite forms (picked in Settings) come first, in a section of their own.
    */
   fun loadFormData(formDataString: String, encounterTypeSystemUrl: String) {
     viewModelScope.launch {
       _isLoading.value = true
       try {
-        val sections =
-          withContext(Dispatchers.Default) { buildSections(formDataString, encounterTypeSystemUrl) }
-        _formData.value = sections
+        val catalog =
+          withContext(Dispatchers.Default) {
+            formCatalog.load(formDataString, encounterTypeSystemUrl)
+          }
+        formsById = catalog.allForms.associateBy { it.questionnaireId }
+        sections = buildSections(catalog)
+        publish()
       } catch (e: Exception) {
         Timber.e(e, "Could not load the encounter forms")
         _error.value = "Failed to load form data: ${e.localizedMessage}"
@@ -94,109 +105,47 @@ constructor(
     }
   }
 
-  private suspend fun buildSections(
-    formDataString: String,
-    encounterTypeSystemUrl: String,
-  ): List<FormSectionItem> {
-    val formData = parseFormData(formDataString)
-    val deviceLanguage = Locale.getDefault().language.lowercase(Locale.ROOT)
-    val translationOverrides = formData?.translationOverrides?.get(deviceLanguage).orEmpty()
+  private fun publish() {
+    val base = sections ?: return
+    val favorites = favoriteIds.mapNotNull { formsById[it] }
+    _formData.value =
+      if (favorites.isEmpty()) {
+        base
+      } else {
+        listOf(
+          FormSectionItem(
+            name = applicationContext.getString(R.string.favorite_forms),
+            forms = favorites,
+            isFavorites = true,
+          ),
+        ) + base
+      }
+  }
 
-    val questionnaires = fhirEngine.search<Questionnaire> {}.map { it.resource }.toMutableList()
-    // Forms shipped with the app are listed too; the ones the engine already has are skipped.
-    questionnaires.addAll(
-      applicationContext.readAssetQuestionnaires(
-        parser,
-        questionnaires.map { it.idElement.idPart }.toSet(),
-      ),
-    )
-
-    // Encounter type code -> the questionnaire that declares it (the first one wins).
-    val questionnaireByCode = linkedMapOf<String, Questionnaire>()
-    questionnaires.forEach { questionnaire ->
-      questionnaire.code
-        .filter { it.hasSystem() && it.system == encounterTypeSystemUrl && it.hasCode() }
-        .forEach { questionnaireByCode.putIfAbsent(it.code, questionnaire) }
-    }
-
-    fun Questionnaire.toFormItem() =
-      FormItem(
-        name = getTranslatedTitle(deviceLanguage)
-            ?: title?.let { translationOverrides[it] ?: it }
-              ?: applicationContext.getString(R.string.no_name_provided),
-        questionnaireId = logicalId,
-      )
-
+  private fun buildSections(catalog: FormCatalog.Catalog): List<FormSectionItem> {
+    val overrides = catalog.translationOverrides
     val configured =
-      formData
+      catalog.formData
         ?.formSections
         .orEmpty()
         .map { section ->
           FormSectionItem(
-            name = translationOverrides[section.name] ?: section.name,
-            forms = section.forms.mapNotNull { code -> questionnaireByCode[code]?.toFormItem() },
+            name = overrides[section.name] ?: section.name,
+            forms = section.forms.mapNotNull { code -> catalog.formsByCode[code] },
           )
         }
         .filter { it.forms.isNotEmpty() }
     if (configured.isNotEmpty()) return configured
 
     // Nothing configured, or none of the configured codes has a questionnaire: offer every form.
-    if (!formData?.formSections.isNullOrEmpty()) {
+    if (!catalog.formData?.formSections.isNullOrEmpty()) {
       Timber.w("No questionnaire matches the configured encounter types; listing every form")
     }
-    val all =
-      questionnaireByCode.values
-        .distinctBy { it.logicalId }
-        .map { it.toFormItem() }
-        .sortedBy { it.name.lowercase(Locale.ROOT) }
+    val all = catalog.allForms
     return if (all.isEmpty()) {
       emptyList()
     } else {
       listOf(FormSectionItem(applicationContext.getString(R.string.all_forms), all))
     }
-  }
-
-  /** The `questionnaires` setting; a blank or unreadable value means "no sections configured". */
-  private fun parseFormData(formDataString: String): FormData? {
-    if (formDataString.isBlank()) return null
-    return try {
-      Moshi.Builder()
-        .build()
-        .adapter(FormData::class.java)
-        .lenient()
-        .fromJson(formDataString.trim())
-    } catch (e: Exception) {
-      Timber.w(e, "The questionnaires setting is not valid JSON; listing every encounter form")
-      null
-    }
-  }
-
-  private fun Questionnaire.getTranslatedTitle(deviceLanguage: String): String? {
-    return this.titleElement
-      ?.extension
-      ?.asSequence()
-      ?.filter { it.url == TRANSLATION_EXTENSION_URL }
-      ?.mapNotNull { translationExtension ->
-        val lang =
-          translationExtension.extension
-            .firstOrNull { it.url == LANGUAGE_EXTENSION_URL }
-            ?.value
-            ?.primitiveValue()
-            ?.lowercase(Locale.ROOT)
-        val content =
-          translationExtension.extension
-            .firstOrNull { it.url == CONTENT_EXTENSION_URL }
-            ?.value
-            ?.primitiveValue()
-        if (lang != null && lang == deviceLanguage) content else null
-      }
-      ?.firstOrNull()
-  }
-
-  companion object {
-    private const val TRANSLATION_EXTENSION_URL =
-      "http://hl7.org/fhir/StructureDefinition/translation"
-    private const val LANGUAGE_EXTENSION_URL = "lang"
-    private const val CONTENT_EXTENSION_URL = "content"
   }
 }
