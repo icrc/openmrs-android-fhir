@@ -74,6 +74,14 @@ constructor(
 
   var sessionTokenToEncrypt: String? = null
 
+  private val loginPrefs by lazy {
+    applicationContext.getSharedPreferences(LOGIN_PREFS, Context.MODE_PRIVATE)
+  }
+
+  /** The username of the last successful sign-in, so only the password has to be typed again. */
+  val lastUsername: String
+    get() = loginPrefs.getString(KEY_LAST_USERNAME, "").orEmpty()
+
   // ---- Single sign-on (OpenID) ----------------------------------------------------------------
 
   suspend fun createIntent(): Intent? {
@@ -143,6 +151,7 @@ constructor(
         }
 
         authStateManager.updateBasicAuthCredentials(username, password)
+        loginPrefs.edit().putString(KEY_LAST_USERNAME, username).apply()
         authStateManager.setActiveAuthMethod(AuthMethod.BASIC)
         createBiometricKey()
 
@@ -201,6 +210,9 @@ constructor(
     }
   }
 }
+
+private const val LOGIN_PREFS = "login"
+private const val KEY_LAST_USERNAME = "last_username"
 
 sealed class LoginUiState {
   object Idle : LoginUiState()

@@ -68,6 +68,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -230,6 +231,7 @@ fun LoginScreen(
   onSsoLogin: () -> Unit,
   modifier: Modifier = Modifier,
   ssoProviderName: String? = null,
+  initialUsername: String = "",
   onContinueWithoutLogin: (() -> Unit)? = null,
 ) {
   LoginFrame(
@@ -239,7 +241,11 @@ fun LoginScreen(
     showServerSettings = showBasic,
   ) {
     if (showBasic) {
-      BasicLoginForm(uiState = uiState, onLoginClick = onBasicLogin)
+      BasicLoginForm(
+        uiState = uiState,
+        onLoginClick = onBasicLogin,
+        initialUsername = initialUsername,
+      )
     }
     if (showBasic && showSso) {
       OrDivider()
@@ -262,12 +268,16 @@ fun LoginScreen(
 private fun ColumnScope.BasicLoginForm(
   uiState: LoginUiState,
   onLoginClick: (String, String) -> Unit,
+  initialUsername: String = "",
 ) {
-  var username by remember { mutableStateOf("") }
+  var username by remember { mutableStateOf(initialUsername) }
   var password by remember { mutableStateOf("") }
   var isPasswordVisible by remember { mutableStateOf(false) }
   val passwordFocus = remember { FocusRequester() }
   val isLoading = uiState is LoginUiState.Loading
+
+  // A remembered username leaves only the password to type.
+  LaunchedEffect(Unit) { if (initialUsername.isNotEmpty()) passwordFocus.requestFocus() }
 
   if (isLoading) {
     LinearProgressIndicator(

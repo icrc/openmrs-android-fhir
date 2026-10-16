@@ -136,6 +136,7 @@ class LoginActivity : AppCompatActivity() {
           showSso = showSso,
           uiState = loginUiState,
           isSsoEnabled = ssoAction != SsoAction.Disabled,
+          initialUsername = viewModel.lastUsername,
           onBasicLogin = { username, password -> viewModel.login(username, password) },
           onSsoLogin = ::onSsoLoginClick,
           ssoProviderName = getString(R.string.sso_provider_name),
