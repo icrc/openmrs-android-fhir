@@ -28,20 +28,24 @@
 */
 package org.openmrs.android.fhir.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -70,6 +74,10 @@ fun NetworkStatusBanner(text: String, modifier: Modifier = Modifier) {
   }
 }
 
+/**
+ * Top of the side menu: the brand color behind the status bar, the logo on a white plate and when
+ * the data was last synchronized.
+ */
 @Composable
 fun DrawerHeader(
   label: String,
@@ -80,23 +88,33 @@ fun DrawerHeader(
     modifier =
       modifier
         .fillMaxWidth()
-        .height(dimensionResource(id = R.dimen.header_height))
-        .padding(horizontal = 16.dp)
-        .padding(top = 16.dp)
+        .background(MaterialTheme.colorScheme.primary)
+        .statusBarsPadding()
+        .padding(horizontal = 20.dp, vertical = 20.dp)
         .testTag("DrawerHeader"),
     horizontalAlignment = Alignment.Start,
   ) {
-    Text(
-      modifier = Modifier.padding(top = 16.dp).testTag("DrawerHeaderLabel"),
-      text = label,
-      color = MaterialTheme.colorScheme.onSurface,
-      fontWeight = FontWeight.Medium,
+    Image(
+      painter = painterResource(id = R.drawable.openmrs_logo),
+      contentDescription = null,
+      modifier =
+        Modifier.height(44.dp)
+          .clip(RoundedCornerShape(10.dp))
+          .background(Color.White)
+          .padding(horizontal = 10.dp, vertical = 4.dp),
     )
     Text(
-      modifier = Modifier.padding(top = 8.dp).testTag("DrawerHeaderValue"),
+      modifier = Modifier.padding(top = 20.dp).testTag("DrawerHeaderLabel"),
+      text = label,
+      style = MaterialTheme.typography.labelMedium,
+      color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+    )
+    Text(
+      modifier = Modifier.padding(top = 2.dp).testTag("DrawerHeaderValue"),
       text = lastSyncValue,
-      color = MaterialTheme.colorScheme.onSurface,
+      style = MaterialTheme.typography.titleSmall,
       fontWeight = FontWeight.SemiBold,
+      color = MaterialTheme.colorScheme.onPrimary,
     )
   }
 }

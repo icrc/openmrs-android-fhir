@@ -184,25 +184,41 @@ class MainActivity : AppCompatActivity() {
         )
       }
     }
-    findViewById<ComposeView>(R.id.drawer_compose_container).setContent {
-      OpenMrsTheme {
-        val activityContext = LocalContext.current
-        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-        val drawerItems =
-          androidx.compose.runtime.remember(uiState.locationMenuTitle, uiState.versionMenuTitle) {
-            buildDrawerItems(
-              activityContext,
-              uiState.locationMenuTitle,
-              uiState.versionMenuTitle,
+    // The side menu is composed the first time the drawer is pulled, not while the app starts.
+    val drawerComposeView = findViewById<ComposeView>(R.id.drawer_compose_container)
+    var isDrawerContentSet = false
+    val setDrawerContent = {
+      if (!isDrawerContentSet) {
+        isDrawerContentSet = true
+        drawerComposeView.setContent {
+          OpenMrsTheme {
+            val activityContext = LocalContext.current
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            val drawerItems =
+              androidx.compose.runtime.remember(
+                uiState.locationMenuTitle,
+                uiState.versionMenuTitle,
+              ) {
+                buildDrawerItems(
+                  activityContext,
+                  uiState.locationMenuTitle,
+                  uiState.versionMenuTitle,
+                )
+              }
+            DrawerContent(
+              lastSyncText = uiState.lastSyncText,
+              drawerItems = drawerItems,
+              onDrawerItemSelected = ::onNavigationItemSelected,
             )
           }
-        DrawerContent(
-          lastSyncText = uiState.lastSyncText,
-          drawerItems = drawerItems,
-          onDrawerItemSelected = ::onNavigationItemSelected,
-        )
+        }
       }
     }
+    drawerLayout?.addDrawerListener(
+      object : DrawerLayout.SimpleDrawerListener() {
+        override fun onDrawerSlide(drawerView: View, slideOffset: Float) = setDrawerContent()
+      },
+    )
     findViewById<ComposeView>(R.id.bottom_bar_compose_container).setContent {
       OpenMrsTheme {
         val selected by bottomBarSelection.collectAsStateWithLifecycle()

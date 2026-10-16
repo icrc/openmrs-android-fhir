@@ -39,20 +39,24 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
@@ -115,6 +119,14 @@ fun MainActivityScaffold(
   }
 }
 
+/** Items grouped so related actions sit together; the version is a quiet footer. */
+private val DrawerGroups =
+  listOf(
+    listOf(R.id.menu_sync, R.id.menu_current_location, R.id.menu_select_identifier),
+    listOf(R.id.menu_settings, R.id.menu_diagnostics),
+    listOf(R.id.menu_logout),
+  )
+
 @Composable
 fun DrawerContent(
   lastSyncText: String,
@@ -122,30 +134,82 @@ fun DrawerContent(
   onDrawerItemSelected: (Int) -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  val itemsById = remember(drawerItems) { drawerItems.associateBy { it.id } }
+  val versionItem = itemsById[R.id.menu_version]
+
   Column(
-    modifier =
-      modifier
-        .background(MaterialTheme.colorScheme.surface)
-        .verticalScroll(rememberScrollState())
-        .padding(bottom = 16.dp),
+    modifier = modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surface),
   ) {
     DrawerHeader(label = stringResource(R.string.last_sync), lastSyncValue = lastSyncText)
-    Divider()
-    drawerItems.forEach { item ->
-      NavigationDrawerItem(
+
+    Column(
+      modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(vertical = 8.dp),
+    ) {
+      DrawerGroups.forEachIndexed { index, ids ->
+        if (index > 0) {
+          HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            color = MaterialTheme.colorScheme.outlineVariant,
+          )
+        }
+        ids
+          .mapNotNull { itemsById[it] }
+          .forEach { item -> DrawerEntry(item = item, onClick = { onDrawerItemSelected(item.id) }) }
+      }
+    }
+
+    if (versionItem != null) {
+      Text(
+        text = versionItem.title,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier =
-          Modifier.fillMaxWidth().alpha(if (item.enabled) 1f else 0.6f).testTag(item.testTag),
-        label = { Text(text = item.title) },
-        icon = { IconResource(iconRes = item.iconRes) },
-        selected = false,
-        onClick = { if (item.enabled) onDrawerItemSelected(item.id) },
-        colors =
-          NavigationDrawerItemDefaults.colors(
-            unselectedContainerColor = Color.Transparent,
-          ),
+          Modifier.fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 24.dp, vertical = 12.dp)
+            .testTag(versionItem.testTag),
       )
     }
   }
+}
+
+@Composable
+private fun DrawerEntry(item: DrawerItem, onClick: () -> Unit) {
+  val isLogout = item.id == R.id.menu_logout
+  val contentColor =
+    if (isLogout) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+  val iconColor =
+    if (isLogout) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+  NavigationDrawerItem(
+    modifier =
+      Modifier.padding(horizontal = 12.dp)
+        .fillMaxWidth()
+        .alpha(if (item.enabled) 1f else 0.6f)
+        .testTag(item.testTag),
+    label = {
+      Text(
+        text = item.title,
+        style = MaterialTheme.typography.bodyLarge,
+        maxLines = 2,
+      )
+    },
+    icon = {
+      Icon(
+        painter = painterResource(item.iconRes),
+        contentDescription = null,
+        modifier = Modifier.size(24.dp),
+      )
+    },
+    selected = false,
+    onClick = { if (item.enabled) onClick() },
+    shape = RoundedCornerShape(12.dp),
+    colors =
+      NavigationDrawerItemDefaults.colors(
+        unselectedContainerColor = Color.Transparent,
+        unselectedIconColor = iconColor,
+        unselectedTextColor = contentColor,
+      ),
+  )
 }
 
 @Composable
