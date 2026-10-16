@@ -38,6 +38,7 @@ import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.Sync
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,6 +48,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.StringType
@@ -81,18 +83,21 @@ constructor(
       val filterPatientListsByGroup =
         applicationContext.resources.getBoolean(R.bool.filter_patient_lists_by_group)
       val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
-      val selectPatientListItemList: MutableList<SelectPatientListItem> = mutableListOf()
-      val groups = fhirEngine.search<Group> {}.map { it.resource }
-      val filteredGroups =
-        if (filterPatientListsByGroup) {
-          groups.filter { it.belongsToLocation(locationId) }
-        } else {
-          groups
+      // Reading and filtering every Group can take a moment on big servers: keep it off main.
+      val (groups, selectPatientListItemList) =
+        withContext(Dispatchers.Default) {
+          val groups = fhirEngine.search<Group> {}.map { it.resource }
+          val filteredGroups =
+            if (filterPatientListsByGroup) {
+              groups.filter { it.belongsToLocation(locationId) }
+            } else {
+              groups
+            }
+          groups to
+            filteredGroups
+              .mapIndexed { index, group -> group.toSelectPatientListItem(index + 1) }
+              .toMutableList()
         }
-
-      filteredGroups
-        .mapIndexed { index, group -> group.toSelectPatientListItem(index + 1) }
-        .let { selectPatientListItemList.addAll(it) }
       if (filterPatientListsByGroup && groups.isNotEmpty()) {
         dropSelectionsOutside(selectPatientListItemList.map { it.resourceId }.toSet())
       }

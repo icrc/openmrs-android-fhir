@@ -38,7 +38,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -116,12 +115,7 @@ class SelectPatientListFragment : Fragment() {
           onActionClick = ::handleActionClick,
           locationName = locationName.value,
           onChangeLocationClick = if (fromLogin) ::changeLocation else null,
-          topPadding =
-            if (fromLogin) {
-              20.dp
-            } else {
-              selectionScreenContentPadding().calculateTopPadding()
-            },
+          topPadding = selectionScreenContentPadding().calculateTopPadding(),
         )
       }
     }

@@ -234,6 +234,10 @@
     <string name="location_current_badge">Ubicación actual</string>
     <string name="next">Siguiente</string>
     <string name="search_patient_lists">Buscar listas de pacientes</string>
+    <string name="select_patient_list_subtitle">Elija las listas cuyos pacientes quiere en este dispositivo. Solo se descargan sus pacientes.</string>
+    <string name="patient_lists_header">Listas de pacientes</string>
+    <string name="patient_lists_no_match">Ninguna lista de pacientes coincide con «%1$s»</string>
+    <string name="patient_lists_selected_count">%1$d seleccionada(s)</string>
     <string
         name="no_sync_info_available"
     >No Hay Información de Sincronización Disponible</string>

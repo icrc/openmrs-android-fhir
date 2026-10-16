@@ -44,6 +44,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -56,6 +58,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
@@ -509,38 +512,69 @@ fun UnsyncedObservationRow(
   }
 }
 
+/**
+ * A selectable patient list: tonal group icon, name and a checkbox. The whole card toggles it; a
+ * selected list gets the brand border and tint.
+ */
 @Composable
 fun SelectPatientListItemRow(
   text: String,
   checked: Boolean,
   onToggle: () -> Unit,
+  modifier: Modifier = Modifier,
 ) {
-  val backgroundColor =
-    if (checked) {
-      OpenMrsTheme.colors.highlightContainer
-    } else {
-      MaterialTheme.colorScheme.surface
-    }
-  Row(
-    modifier =
-      Modifier.fillMaxWidth()
-        .background(backgroundColor, shape = RoundedCornerShape(8.dp))
-        .padding(horizontal = 12.dp, vertical = 6.dp)
-        .testTag("SelectPatientRow"),
-    verticalAlignment = Alignment.CenterVertically,
+  val primary = MaterialTheme.colorScheme.primary
+  Surface(
+    onClick = onToggle,
+    modifier = modifier.fillMaxWidth().testTag("SelectPatientRow"),
+    shape = RoundedCornerShape(16.dp),
+    color =
+      if (checked) {
+        OpenMrsTheme.colors.highlightContainer
+      } else {
+        MaterialTheme.colorScheme.surface
+      },
+    border =
+      BorderStroke(
+        width = if (checked) 2.dp else 1.dp,
+        color = if (checked) primary else MaterialTheme.colorScheme.outlineVariant,
+      ),
   ) {
-    Text(
-      modifier = Modifier.weight(1f).padding(horizontal = 8.dp).testTag("SelectPatientText"),
-      text = text,
-      maxLines = 1,
-      overflow = TextOverflow.Ellipsis,
-      style = MaterialTheme.typography.bodyLarge,
-    )
-    Checkbox(
-      modifier = Modifier.testTag("SelectPatientCheckbox"),
-      checked = checked,
-      onCheckedChange = { onToggle() },
-    )
+    Row(
+      modifier = Modifier.padding(start = 12.dp, top = 6.dp, bottom = 6.dp, end = 6.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Box(
+        modifier =
+          Modifier.size(40.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (checked) primary else OpenMrsTheme.colors.highlightContainer),
+        contentAlignment = Alignment.Center,
+      ) {
+        Icon(
+          imageVector = Icons.Filled.Groups,
+          contentDescription = null,
+          tint = if (checked) MaterialTheme.colorScheme.onPrimary else primary,
+          modifier = Modifier.size(22.dp),
+        )
+      }
+      Text(
+        modifier =
+          Modifier.weight(1f)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .testTag("SelectPatientText"),
+        text = text,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        style = MaterialTheme.typography.bodyLarge,
+        fontWeight = if (checked) FontWeight.SemiBold else FontWeight.Normal,
+      )
+      Checkbox(
+        modifier = Modifier.testTag("SelectPatientCheckbox"),
+        checked = checked,
+        onCheckedChange = { onToggle() },
+      )
+    }
   }
 }
 

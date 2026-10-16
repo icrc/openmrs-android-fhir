@@ -247,6 +247,10 @@
     <string
         name="search_patient_lists"
     >Rechercher des listes de patients</string>
+    <string name="select_patient_list_subtitle">Choisissez les listes dont vous voulez les patients sur cet appareil. Seuls leurs patients sont téléchargés.</string>
+    <string name="patient_lists_header">Listes de patients</string>
+    <string name="patient_lists_no_match">Aucune liste de patients ne correspond à « %1$s »</string>
+    <string name="patient_lists_selected_count">%1$d sélectionnée(s)</string>
     <string
         name="no_sync_info_available"
     >Aucune information de synchronisation disponible</string>

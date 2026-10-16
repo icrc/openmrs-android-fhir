@@ -321,6 +321,10 @@
     <string name="location_current_badge">Current location</string>
     <string name="next">Next</string>
     <string name="search_patient_lists">Search patient lists</string>
+    <string name="select_patient_list_subtitle">Pick the lists whose patients you want on this device. Only their patients are downloaded.</string>
+    <string name="patient_lists_header">Patient lists</string>
+    <string name="patient_lists_no_match">No patient lists match “%1$s”</string>
+    <string name="patient_lists_selected_count">%1$d selected</string>
     <string name="no_sync_info_available">No Sync Info Available</string>
     <string name="clear_sync_data">Clear Sync Data</string>
     <string name="hsu_id" translatable="false">HSU ID</string>

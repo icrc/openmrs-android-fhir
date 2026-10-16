@@ -207,6 +207,10 @@
     <string name="location_current_badge">الموقع الحالي</string>
     <string name="next">التالي</string>
     <string name="search_patient_lists">البحث عن قوائم المريض</string>
+    <string name="select_patient_list_subtitle">اختر القوائم التي تريد مرضاها على هذا الجهاز. يتم تنزيل مرضاها فقط.</string>
+    <string name="patient_lists_header">قوائم المرضى</string>
+    <string name="patient_lists_no_match">لا توجد قوائم مرضى تطابق «%1$s»</string>
+    <string name="patient_lists_selected_count">تم اختيار %1$d</string>
     <string
         name="no_sync_info_available"
     >لا توجد معلومات المزامنة متوفرة</string>

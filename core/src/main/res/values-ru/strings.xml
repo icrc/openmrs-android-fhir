@@ -291,6 +291,10 @@
 
     <string name="next">Далее</string>
     <string name="search_patient_lists">Поиск списков пациентов</string>
+    <string name="select_patient_list_subtitle">Выберите списки, пациенты которых нужны на этом устройстве. Загружаются только их пациенты.</string>
+    <string name="patient_lists_header">Списки пациентов</string>
+    <string name="patient_lists_no_match">Нет списков пациентов, соответствующих «%1$s»</string>
+    <string name="patient_lists_selected_count">Выбрано: %1$d</string>
 
     <string name="no_sync_info_available">Нет данных о синхронизации</string>
     <string name="clear_sync_data">Очистить данные синхронизации</string>

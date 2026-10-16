@@ -47,7 +47,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -111,8 +110,9 @@ fun LocationSelectionScreen(
 
   // Bring the current location into view once, the first time the list is there.
   LaunchedEffect(selectedLocationId, favoriteLocations.size, locations.size) {
-    if (scrolledToSelection || selectedLocationId == null || query.isNotEmpty())
+    if (scrolledToSelection || selectedLocationId == null || query.isNotEmpty()) {
       return@LaunchedEffect
+    }
     if (favoriteLocations.isEmpty() && locations.isEmpty()) return@LaunchedEffect
     val inFavorites = favoriteLocations.indexOfFirst { it.resourceId == selectedLocationId }
     val inAll = locations.indexOfFirst { it.resourceId == selectedLocationId }
@@ -238,7 +238,7 @@ fun LocationSelectionScreen(
           ) {
             Text(
               text = stringResource(id = R.string.next),
-              style = MaterialTheme.typography.labelLarge
+              style = MaterialTheme.typography.labelLarge,
             )
           }
         }
@@ -360,6 +360,12 @@ fun IdentifierSelectionScreen(
   }
 }
 
+/**
+ * Choose which patient lists are downloaded. Used right after the location step (full screen, title
+ * and **Submit**) and later from the home screen (under the app bar). The location the lists belong
+ * to is shown with a shortcut to change it; the selection count is always visible.
+ */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PatientListSelectionScreen(
   query: String,
@@ -378,33 +384,63 @@ fun PatientListSelectionScreen(
   onChangeLocationClick: (() -> Unit)? = null,
 ) {
   Box(
-    modifier = modifier.fillMaxSize().testTag("PatientListSelectionScreen"),
+    modifier =
+      modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)
+        .testTag("PatientListSelectionScreen"),
   ) {
     Column(modifier = Modifier.fillMaxSize().padding(top = topPadding)) {
       if (showTitle) {
-        Text(
-          modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
-          text = stringResource(id = R.string.select_patient_list),
-          style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-        )
+        Column(modifier = Modifier.padding(horizontal = 20.dp).padding(top = 4.dp, bottom = 4.dp)) {
+          Text(
+            text = stringResource(id = R.string.select_patient_list),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.testTag("PatientListTitle"),
+          )
+          Text(
+            text = stringResource(id = R.string.select_patient_list_subtitle),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp),
+          )
+        }
       }
 
       if (onChangeLocationClick != null) {
-        Row(
-          modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
-          verticalAlignment = Alignment.CenterVertically,
+        Surface(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+          shape = RoundedCornerShape(16.dp),
+          color = OpenMrsTheme.colors.highlightContainer,
         ) {
-          Text(
-            modifier = Modifier.weight(1f).testTag("PatientListLocationName"),
-            text = locationName.orEmpty(),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-          TextButton(
-            modifier = Modifier.testTag("PatientListChangeLocation"),
-            onClick = onChangeLocationClick,
+          Row(
+            modifier = Modifier.padding(start = 14.dp, top = 2.dp, bottom = 2.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
           ) {
-            Text(text = stringResource(id = R.string.change_location))
+            androidx.compose.material3.Icon(
+              painter = painterResource(id = R.drawable.ic_location),
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.primary,
+              modifier = Modifier.size(20.dp),
+            )
+            Text(
+              modifier =
+                Modifier.weight(1f).padding(horizontal = 10.dp).testTag("PatientListLocationName"),
+              text = locationName.orEmpty(),
+              style = MaterialTheme.typography.bodyMedium,
+              fontWeight = FontWeight.Medium,
+              color = MaterialTheme.colorScheme.onSurface,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+            )
+            TextButton(
+              modifier = Modifier.testTag("PatientListChangeLocation"),
+              onClick = onChangeLocationClick,
+            ) {
+              Text(text = stringResource(id = R.string.change_location))
+            }
           }
         }
       }
@@ -422,44 +458,56 @@ fun PatientListSelectionScreen(
           messageResId = R.string.no_patient_list_available,
           modifier = Modifier.testTag("PatientListEmptyState"),
         )
+      } else if (!isLoading && patientLists.isEmpty()) {
+        Text(
+          text = stringResource(id = R.string.patient_lists_no_match, query),
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          textAlign = TextAlign.Center,
+          modifier = Modifier.fillMaxWidth().padding(24.dp).testTag("PatientListNoMatch"),
+        )
       }
 
       LazyColumn(
-        modifier =
-          Modifier.fillMaxWidth()
-            .weight(1f)
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 12.dp)
-            .testTag("PatientListList"),
+        modifier = Modifier.fillMaxWidth().weight(1f).testTag("PatientListList"),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(vertical = 8.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
       ) {
-        items(patientLists, key = { it.resourceId }) { patientList ->
+        if (patientLists.isNotEmpty()) {
+          stickyHeader(key = "lists-header", contentType = "header") {
+            PatientListSectionHeader(
+              total = patientLists.size,
+              selected = selectedPatientListIds.size,
+            )
+          }
+        }
+        items(patientLists, key = { it.resourceId }, contentType = { "row" }) { patientList ->
+          val checked = selectedPatientListIds.contains(patientList.resourceId)
           SelectPatientListItemRow(
             text = patientList.name,
-            checked = selectedPatientListIds.contains(patientList.resourceId),
-            onToggle = {
-              onPatientListToggle(
-                patientList,
-                selectedPatientListIds.contains(patientList.resourceId),
-              )
-            },
+            checked = checked,
+            onToggle = { onPatientListToggle(patientList, checked) },
+            modifier = Modifier.animateItem(),
           )
         }
       }
 
       if (showActionButton) {
-        Button(
-          modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("PatientListActionButton"),
-          colors =
-            ButtonDefaults.buttonColors(
-              containerColor = OpenMrsTheme.colors.actionButton,
-              contentColor = OpenMrsTheme.colors.onActionButton,
-            ),
-          shape = RoundedCornerShape(4.dp),
-          onClick = onActionClick,
-        ) {
-          Text(text = stringResource(id = R.string.submit), fontSize = 12.sp)
+        Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 8.dp) {
+          Button(
+            modifier =
+              Modifier.fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .height(52.dp)
+                .testTag("PatientListActionButton"),
+            shape = RoundedCornerShape(16.dp),
+            onClick = onActionClick,
+          ) {
+            Text(
+              text = stringResource(id = R.string.submit),
+              style = MaterialTheme.typography.labelLarge,
+            )
+          }
         }
       }
     }
@@ -470,6 +518,46 @@ fun PatientListSelectionScreen(
         contentAlignment = Alignment.Center,
       ) {
         CircularProgressIndicator(color = OpenMrsTheme.colors.progress)
+      }
+    }
+  }
+}
+
+/** Pinned label above the lists: how many there are and how many are ticked. */
+@Composable
+private fun PatientListSectionHeader(total: Int, selected: Int, modifier: Modifier = Modifier) {
+  Row(
+    modifier =
+      modifier
+        .fillMaxWidth()
+        .background(MaterialTheme.colorScheme.background)
+        .padding(horizontal = 4.dp, vertical = 8.dp)
+        .testTag("PatientListHeader"),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text(
+      text = stringResource(id = R.string.patient_lists_header).uppercase(),
+      style = MaterialTheme.typography.labelMedium,
+      fontWeight = FontWeight.SemiBold,
+      color = MaterialTheme.colorScheme.primary,
+    )
+    Spacer(modifier = Modifier.width(8.dp))
+    Text(
+      text = total.toString(),
+      style = MaterialTheme.typography.labelMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Spacer(modifier = Modifier.weight(1f))
+    if (selected > 0) {
+      Surface(shape = RoundedCornerShape(50), color = MaterialTheme.colorScheme.primary) {
+        Text(
+          text = stringResource(id = R.string.patient_lists_selected_count, selected),
+          style = MaterialTheme.typography.labelMedium,
+          color = MaterialTheme.colorScheme.onPrimary,
+          modifier =
+            Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+              .testTag("PatientListSelectedCount"),
+        )
       }
     }
   }
