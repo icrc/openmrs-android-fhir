@@ -413,6 +413,12 @@ constructor(
     }
   }
 
+  /** The app language changed: texts kept as strings are written again in the new one. */
+  fun refreshLocalizedTexts() {
+    publishConnectivity(_networkStatus.value)
+    observeDrawerTitles()
+  }
+
   private fun publishConnectivity(connectivityState: ServerConnectivityState) {
     _networkStatus.value = connectivityState
     _uiState.update { current ->

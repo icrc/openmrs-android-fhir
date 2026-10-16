@@ -76,7 +76,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.ThemeMode
+import org.openmrs.android.fhir.ui.components.LanguagePicker
 import org.openmrs.android.fhir.viewmodel.SettingsUiState
 
 object SettingsDefaults {
@@ -124,6 +126,8 @@ fun SettingsScreen(
   offlineLoginEnabled: Boolean? = null,
   onResetOfflineLoginClicked: (() -> Unit)? = null,
   onAutoSyncToggle: (Boolean) -> Unit = {},
+  selectedLanguage: AppLanguage? = null,
+  onLanguageSelected: ((AppLanguage) -> Unit)? = null,
   modifier: Modifier = Modifier,
 ) {
   Column(modifier = modifier.fillMaxSize()) {
@@ -149,6 +153,12 @@ fun SettingsScreen(
           onCheckedChange = onNotificationsToggle,
           testTag = SettingsTestTags.NotificationsSwitch,
         )
+      }
+
+      if (selectedLanguage != null && onLanguageSelected != null) {
+        SettingsSection(title = stringResource(R.string.settings_language)) {
+          LanguagePicker(selected = selectedLanguage, onSelected = onLanguageSelected)
+        }
       }
 
       if (onThemeModeSelected != null) {

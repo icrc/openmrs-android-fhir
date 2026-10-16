@@ -51,12 +51,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import javax.inject.Inject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.data.QuestionnaireUpdater
+import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.ThemeMode
 import org.openmrs.android.fhir.extensions.ThemeModeStore
@@ -115,6 +117,8 @@ class SettingsFragment : Fragment() {
           onTokenDelaySelected = settingsViewModel::onTokenDelaySelected,
           onPeriodicSyncDelaySelected = settingsViewModel::onPeriodicSyncDelaySelected,
           onAutoSyncToggle = settingsViewModel::onAutoSyncToggle,
+          selectedLanguage = AppLanguage.current(context),
+          onLanguageSelected = { AppLanguage.apply(context, it) },
           onInitialSyncClicked = {
             if (GuestSession.isActive(context)) {
               (activity as? MainActivity)?.onSyncPress()
@@ -213,9 +217,18 @@ class SettingsFragment : Fragment() {
   }
 
   private fun setUpActionBar() {
-    (requireActivity() as? AppCompatActivity)?.supportActionBar?.apply {
-      title = getString(R.string.settings)
-      setDisplayHomeAsUpEnabled(true)
+    // After the language is switched the screen is recreated and the app bar is composed a moment
+    // after the fragment: wait for it instead of leaving the app name as the title.
+    viewLifecycleOwner.lifecycleScope.launch {
+      repeat(ACTION_BAR_WAIT_ATTEMPTS) {
+        val actionBar = (activity as? AppCompatActivity)?.supportActionBar
+        if (actionBar != null) {
+          actionBar.title = getString(R.string.settings)
+          actionBar.setDisplayHomeAsUpEnabled(true)
+          return@launch
+        }
+        delay(ACTION_BAR_WAIT_MILLIS)
+      }
     }
   }
 
@@ -223,6 +236,9 @@ class SettingsFragment : Fragment() {
     NavHostFragment.findNavController(this).navigateUp()
   }
 }
+
+private const val ACTION_BAR_WAIT_ATTEMPTS = 60
+private const val ACTION_BAR_WAIT_MILLIS = 50L
 
 internal data class SettingsEventAction(
   val messageResId: Int?,

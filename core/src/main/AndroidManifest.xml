@@ -8,7 +8,18 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
-    <application android:supportsRtl="true">
+    <application
+        android:supportsRtl="true"
+        android:localeConfig="@xml/locales_config"
+    >
+        <!-- Keeps the language chosen in the app on Android 12 and older. -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false"
+        >
+            <meta-data android:name="autoStoreLocales" android:value="true" />
+        </service>
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

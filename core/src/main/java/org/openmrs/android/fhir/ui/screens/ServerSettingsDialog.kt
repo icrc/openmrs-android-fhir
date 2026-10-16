@@ -35,10 +35,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -55,12 +58,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.remote.ServerSettings
+import org.openmrs.android.fhir.extensions.AppLanguage
+import org.openmrs.android.fhir.ui.components.LanguagePicker
 
 private sealed interface TestState {
   data object Idle : TestState
@@ -75,7 +81,7 @@ private sealed interface TestState {
  * answers before saving. Saving restarts the app so every component uses the new server.
  */
 @Composable
-fun ServerSettingsDialog(onDismiss: () -> Unit) {
+fun ServerSettingsDialog(onDismiss: () -> Unit, showServer: Boolean = true) {
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
   val defaultUrl = remember { ServerSettings.defaultUrl(context) }
@@ -92,9 +98,30 @@ fun ServerSettingsDialog(onDismiss: () -> Unit) {
   AlertDialog(
     onDismissRequest = onDismiss,
     shape = RoundedCornerShape(24.dp),
-    title = { Text(text = stringResource(R.string.server_settings_title)) },
+    title = { Text(text = stringResource(R.string.settings)) },
     text = {
-      Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+      Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.verticalScroll(rememberScrollState()),
+      ) {
+        Text(
+          text = stringResource(R.string.settings_language),
+          style = MaterialTheme.typography.labelLarge,
+          fontWeight = FontWeight.Bold,
+          color = MaterialTheme.colorScheme.primary,
+        )
+        LanguagePicker(
+          selected = AppLanguage.current(context),
+          onSelected = { AppLanguage.apply(context, it) },
+        )
+        if (!showServer) return@Column
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Text(
+          text = stringResource(R.string.server_settings_title),
+          style = MaterialTheme.typography.labelLarge,
+          fontWeight = FontWeight.Bold,
+          color = MaterialTheme.colorScheme.primary,
+        )
         Text(
           text = stringResource(R.string.server_settings_description),
           style = MaterialTheme.typography.bodyMedium,
@@ -144,25 +171,31 @@ fun ServerSettingsDialog(onDismiss: () -> Unit) {
       }
     },
     confirmButton = {
-      TextButton(
-        onClick = {
-          val target = normalized ?: return@TextButton
-          if (target == defaultUrl) save(null) else save(target)
-        },
-        enabled = normalized != null,
-        modifier = Modifier.testTag("ServerSaveButton"),
-      ) {
-        Text(text = stringResource(R.string.save))
+      if (showServer) {
+        TextButton(
+          onClick = {
+            val target = normalized ?: return@TextButton
+            if (target == defaultUrl) save(null) else save(target)
+          },
+          enabled = normalized != null,
+          modifier = Modifier.testTag("ServerSaveButton"),
+        ) {
+          Text(text = stringResource(R.string.save))
+        }
+      } else {
+        TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.close)) }
       }
     },
     dismissButton = {
-      Row {
-        if (currentOverride != null) {
-          TextButton(onClick = { save(null) }) {
-            Text(text = stringResource(R.string.use_default_server))
+      if (showServer) {
+        Row {
+          if (currentOverride != null) {
+            TextButton(onClick = { save(null) }) {
+              Text(text = stringResource(R.string.use_default_server))
+            }
           }
+          TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.cancel)) }
         }
-        TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.cancel)) }
       }
     },
   )

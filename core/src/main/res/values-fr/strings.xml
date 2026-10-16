@@ -131,6 +131,7 @@
     >Non, et ne plus me demander</string>
     <string name="login_expired">Connexion Expirée</string>
     <string name="settings_auto_sync">Synchroniser automatiquement</string>
+    <string name="settings_language">Langue</string>
     <string name="next_sync_in_minutes">Prochaine synchro dans %1$d min</string>
     <string name="auto_sync_session_expired_message">Votre session n’est plus valide : la synchronisation automatique n’a pas pu s’exécuter. Reconnectez-vous pour garder vos données synchronisées. Ce que vous avez saisi sur cet appareil est conservé.</string>
     <string name="later">Plus tard</string>

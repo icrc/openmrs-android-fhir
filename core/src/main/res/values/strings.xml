@@ -157,6 +157,7 @@
     >No, and don\'t ask me again</string>
     <string name="login_expired">Login Expired</string>
     <string name="settings_auto_sync">Sync automatically</string>
+    <string name="settings_language">Language</string>
     <string name="next_sync_in_minutes">Next sync in %1$d min</string>
     <string name="auto_sync_session_expired_message">Your session is no longer valid, so the automatic sync could not run. Sign in again to keep your data in sync. What you entered on this device is kept.</string>
     <string name="later">Later</string>

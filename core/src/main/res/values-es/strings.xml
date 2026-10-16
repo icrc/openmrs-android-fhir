@@ -116,6 +116,7 @@
     >No, y no volver a preguntar</string>
     <string name="login_expired">Sesión expirada</string>
     <string name="settings_auto_sync">Sincronizar automáticamente</string>
+    <string name="settings_language">Idioma</string>
     <string name="next_sync_in_minutes">Próxima sincronización en %1$d min</string>
     <string name="auto_sync_session_expired_message">Su sesión ya no es válida, por lo que no se pudo ejecutar la sincronización automática. Inicie sesión de nuevo para mantener sus datos sincronizados. Lo que introdujo en este dispositivo se conserva.</string>
     <string name="later">Más tarde</string>

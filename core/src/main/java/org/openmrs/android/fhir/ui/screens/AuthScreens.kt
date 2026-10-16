@@ -149,23 +149,24 @@ private fun LoginFrame(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.weight(1f).testTag("LoginVersion"),
       )
-      if (showServerSettings) {
-        IconButton(
-          onClick = { showServerDialog = true },
-          modifier = Modifier.size(40.dp).testTag("ServerSettingsButton"),
-        ) {
-          Icon(
-            imageVector = Icons.Filled.Settings,
-            contentDescription = stringResource(R.string.server_settings_title),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-        }
+      IconButton(
+        onClick = { showServerDialog = true },
+        modifier = Modifier.size(40.dp).testTag("ServerSettingsButton"),
+      ) {
+        Icon(
+          imageVector = Icons.Filled.Settings,
+          contentDescription = stringResource(R.string.settings),
+          tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
       }
     }
   }
 
   if (showServerDialog) {
-    ServerSettingsDialog(onDismiss = { showServerDialog = false })
+    ServerSettingsDialog(
+      onDismiss = { showServerDialog = false },
+      showServer = showServerSettings,
+    )
   }
 }
 

@@ -109,6 +109,7 @@
     <string name="no_and_don_t_ask_me_again">لا ، ولا تسألني مرة أخرى</string>
     <string name="login_expired">انتهت صلاحية تسجيل الدخول</string>
     <string name="settings_auto_sync">المزامنة تلقائياً</string>
+    <string name="settings_language">اللغة</string>
     <string name="next_sync_in_minutes">المزامنة التالية خلال %1$d دقيقة</string>
     <string name="auto_sync_session_expired_message">لم تعد جلستك صالحة، لذلك تعذّر تشغيل المزامنة التلقائية. سجّل الدخول مجدداً لإبقاء بياناتك متزامنة. ما أدخلته على هذا الجهاز محفوظ.</string>
     <string name="later">لاحقاً</string>
