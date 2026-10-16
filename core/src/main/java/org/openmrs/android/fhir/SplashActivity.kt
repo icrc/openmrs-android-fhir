@@ -315,6 +315,7 @@ class SplashActivity : AppCompatActivity() {
         lifecycleScope.launch { handleAuthenticationFlow() }
       }
       .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
+      .withGuestOption()
       .setCancelable(false)
       .show()
   }
@@ -327,6 +328,7 @@ class SplashActivity : AppCompatActivity() {
         lifecycleScope.launch { handleConnectivityForAuth() }
       }
       .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
+      .withGuestOption()
       .setCancelable(false)
       .show()
   }
@@ -341,8 +343,22 @@ class SplashActivity : AppCompatActivity() {
         lifecycleScope.launch { redirectToAuthFlow() }
       }
       .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
+      .withGuestOption()
       .setCancelable(false)
       .show()
+  }
+
+  /**
+   * Without a server there is nothing to sign in to, but the user can still work: when guest mode
+   * is enabled the dialog also offers to continue without signing in (the data is completed and
+   * uploaded after a later sign-in).
+   */
+  private fun AlertDialog.Builder.withGuestOption(): AlertDialog.Builder {
+    if (!GuestSession.isAllowed(this@SplashActivity)) return this
+    return setNeutralButton(getString(R.string.continue_without_login)) { _, _ ->
+      GuestSession.start(this@SplashActivity)
+      navigateToMainActivity()
+    }
   }
 
   private fun resetBiometricKeyIfNeeded() {
