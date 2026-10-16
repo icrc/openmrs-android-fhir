@@ -117,6 +117,9 @@
     <string name="login_expired">Sesión expirada</string>
     <string name="settings_auto_sync">Sincronizar automáticamente</string>
     <string name="settings_language">Idioma</string>
+    <string name="last_encounter">Último encuentro</string>
+    <string name="last_encounter_none">Aún no hay encuentros</string>
+    <string name="last_encounter_unknown_type">Encuentro</string>
     <string name="favorite_forms">Formularios favoritos</string>
     <string name="favorite_forms_description">Elija hasta %1$d formularios para mostrar primero al crear un encuentro.</string>
     <string name="favorite_forms_count">%1$d de %2$d seleccionados</string>

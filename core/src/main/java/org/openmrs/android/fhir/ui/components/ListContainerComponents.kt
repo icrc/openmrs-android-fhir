@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.ui.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -72,6 +73,7 @@ fun <T> SwipeRefreshListContainer(
     )
   },
   contentPadding: PaddingValues = PaddingValues(0.dp),
+  verticalArrangement: Arrangement.Vertical = Arrangement.Top,
   itemKey: ((T) -> Any)? = null,
   itemContent: @Composable (T) -> Unit,
 ) {
@@ -84,6 +86,7 @@ fun <T> SwipeRefreshListContainer(
       LazyColumn(
         modifier = listModifier.fillMaxSize().testTag(listTestTag),
         contentPadding = contentPadding,
+        verticalArrangement = verticalArrangement,
       ) {
         if (itemKey == null) {
           items(items) { item -> itemContent(item) }
@@ -115,6 +118,8 @@ fun PatientListContainerScreen(
   isRefreshing: Boolean,
   onRefresh: () -> Unit,
   modifier: Modifier = Modifier,
+  contentPadding: PaddingValues = PaddingValues(0.dp),
+  verticalArrangement: Arrangement.Vertical = Arrangement.Top,
   emptyContent: @Composable (() -> Unit) = {
     Text(
       modifier = Modifier.testTag(ListContainerTestTags.EmptyState),
@@ -132,6 +137,8 @@ fun PatientListContainerScreen(
     modifier = modifier,
     listTestTag = ListContainerTestTags.PatientList,
     emptyContent = emptyContent,
+    contentPadding = contentPadding,
+    verticalArrangement = verticalArrangement,
     itemKey = { it.resourceId },
     itemContent = itemContent,
   )

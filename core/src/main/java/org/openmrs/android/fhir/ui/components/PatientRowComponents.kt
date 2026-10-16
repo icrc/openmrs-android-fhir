@@ -45,7 +45,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -60,15 +61,31 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
+/** What is known of a patient's most recent encounter, for the list row. */
+sealed interface LastEncounterLabel {
+  /** Not looked up yet. */
+  data object Loading : LastEncounterLabel
+
+  data object None : LastEncounterLabel
+
+  data class Value(val name: String?, val date: LocalDate?) : LastEncounterLabel
+}
+
 /**
- * One row of the patient list: an initials avatar, the name with the identifier underneath, then
- * age/gender and, for patients that have not been uploaded yet, a sync marker.
+ * One patient of the list, as a card: an initials avatar, the name, the identifier with age and
+ * gender, the patient's last encounter (what and when) and, for patients that have not been
+ * uploaded yet, a sync marker.
  */
 @Composable
 fun PatientListItemRow(
@@ -77,66 +94,135 @@ fun PatientListItemRow(
   isSynced: Boolean?,
   modifier: Modifier = Modifier,
   identifier: String? = null,
+  lastEncounter: LastEncounterLabel = LastEncounterLabel.Loading,
   onClick: (() -> Unit)? = null,
 ) {
   Surface(
     modifier =
-      modifier.testTag("PatientListItemRow").let { base ->
+      modifier.fillMaxWidth().testTag("PatientListItemRow").let { base ->
         onClick?.let { base.clickable(onClick = it) } ?: base
       },
+    shape = RoundedCornerShape(20.dp),
     color = MaterialTheme.colorScheme.surface,
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    shadowElevation = 1.dp,
   ) {
-    Column {
-      Row(
-        modifier =
-          Modifier.fillMaxWidth()
-            .heightIn(min = 64.dp)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        PatientAvatar(name = name)
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
+    Row(
+      modifier = Modifier.fillMaxWidth().heightIn(min = 104.dp).padding(16.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      PatientAvatar(name = name)
+      Spacer(modifier = Modifier.width(16.dp))
+      Column(modifier = Modifier.weight(1f)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
           Text(
-            modifier = Modifier.testTag("PatientName"),
+            modifier = Modifier.weight(1f, fill = false).testTag("PatientName"),
             text = name,
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
           )
+          if (isSynced != true) {
+            Icon(
+              modifier = Modifier.padding(start = 8.dp).size(20.dp).testTag("PatientSyncIcon"),
+              painter = painterResource(id = R.drawable.ic_baseline_sync_24),
+              contentDescription = stringResource(id = R.string.description_status),
+              tint = MaterialTheme.colorScheme.error,
+            )
+          }
+        }
+        Row(
+          modifier = Modifier.padding(top = 4.dp),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
           if (!identifier.isNullOrBlank()) {
             Text(
-              modifier = Modifier.testTag("PatientIdentifier"),
+              modifier = Modifier.weight(1f, fill = false).testTag("PatientIdentifier"),
               text = identifier,
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
               maxLines = 1,
               overflow = TextOverflow.Ellipsis,
             )
+            Spacer(modifier = Modifier.width(10.dp))
+          }
+          if (ageGenderLabel.isNotBlank()) {
+            Text(
+              modifier =
+                Modifier.clip(RoundedCornerShape(50))
+                  .background(MaterialTheme.colorScheme.secondaryContainer)
+                  .padding(horizontal = 10.dp, vertical = 2.dp)
+                  .testTag("PatientAgeGender"),
+              text = ageGenderLabel,
+              style = MaterialTheme.typography.labelLarge,
+              color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+          } else {
+            Box(modifier = Modifier.size(0.dp).testTag("PatientAgeGender"))
           }
         }
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-          modifier = Modifier.testTag("PatientAgeGender"),
-          text = ageGenderLabel,
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        if (isSynced != true) {
-          Spacer(modifier = Modifier.width(12.dp))
-          Icon(
-            modifier = Modifier.size(20.dp).testTag("PatientSyncIcon"),
-            painter = painterResource(id = R.drawable.ic_baseline_sync_24),
-            contentDescription = stringResource(id = R.string.description_status),
-            tint = MaterialTheme.colorScheme.error,
-          )
-        }
+        LastEncounterLine(lastEncounter, modifier = Modifier.padding(top = 8.dp))
       }
-      HorizontalDivider(
-        modifier = Modifier.padding(start = 72.dp),
-        color = MaterialTheme.colorScheme.outlineVariant,
+      Icon(
+        imageVector = Icons.Filled.ChevronRight,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(start = 8.dp).size(26.dp),
       )
     }
+  }
+}
+
+@Composable
+private fun LastEncounterLine(label: LastEncounterLabel, modifier: Modifier = Modifier) {
+  val locale = Locale.getDefault()
+  val text =
+    when (label) {
+      LastEncounterLabel.Loading -> "…"
+      LastEncounterLabel.None -> stringResource(id = R.string.last_encounter_none)
+      is LastEncounterLabel.Value -> {
+        val date =
+          label.date?.format(
+            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)
+          )
+        listOfNotNull(
+            label.name ?: stringResource(id = R.string.last_encounter_unknown_type),
+            date,
+          )
+          .joinToString(" · ")
+      }
+    }
+  val hasValue = label is LastEncounterLabel.Value
+  Row(
+    modifier = modifier.testTag("PatientLastEncounter"),
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    Icon(
+      imageVector = Icons.Filled.Description,
+      contentDescription = stringResource(id = R.string.last_encounter),
+      tint =
+        if (hasValue) {
+          MaterialTheme.colorScheme.primary
+        } else {
+          MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+        },
+      modifier = Modifier.size(18.dp),
+    )
+    Text(
+      modifier = Modifier.padding(start = 8.dp),
+      text = text,
+      style = MaterialTheme.typography.bodyMedium,
+      fontWeight = if (hasValue) FontWeight.Medium else FontWeight.Normal,
+      fontStyle = if (hasValue) FontStyle.Normal else FontStyle.Italic,
+      color =
+        if (hasValue) {
+          MaterialTheme.colorScheme.onSurface
+        } else {
+          MaterialTheme.colorScheme.onSurfaceVariant
+        },
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis,
+    )
   }
 }
 
@@ -151,12 +237,13 @@ private fun PatientAvatar(name: String, modifier: Modifier = Modifier) {
       .ifEmpty { "?" }
   Box(
     modifier =
-      modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+      modifier.size(56.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
     contentAlignment = Alignment.Center,
   ) {
     Text(
       text = initials,
-      style = MaterialTheme.typography.labelLarge,
+      style = MaterialTheme.typography.titleMedium,
+      fontWeight = FontWeight.SemiBold,
       color = MaterialTheme.colorScheme.onPrimaryContainer,
     )
   }

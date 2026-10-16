@@ -30,8 +30,10 @@ package org.openmrs.android.fhir.ui.patient
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -59,6 +61,7 @@ import java.time.Period
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.extensions.rememberActionBarContentPadding
 import org.openmrs.android.fhir.ui.components.AppSearchField
+import org.openmrs.android.fhir.ui.components.LastEncounterLabel
 import org.openmrs.android.fhir.ui.components.PatientListContainerScreen
 import org.openmrs.android.fhir.ui.components.PatientListItemRow
 import org.openmrs.android.fhir.viewmodel.PatientListUiState
@@ -82,7 +85,7 @@ fun PatientListScreen(
   modifier: Modifier = Modifier,
 ) {
   val contentPadding = rememberActionBarContentPadding()
-  val surfaceColor = MaterialTheme.colorScheme.surface
+  val surfaceColor = MaterialTheme.colorScheme.background
   Box(modifier = modifier.fillMaxSize().background(surfaceColor)) {
     Scaffold(
       modifier = Modifier.fillMaxSize(),
@@ -116,6 +119,9 @@ fun PatientListScreen(
           isRefreshing = uiState.isRefreshing,
           onRefresh = onRefresh,
           modifier = Modifier.weight(1f).background(surfaceColor),
+          // Room under the last card for the floating button.
+          contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 96.dp),
+          verticalArrangement = Arrangement.spacedBy(10.dp),
           emptyContent = { PatientListEmptyState() },
         ) { patient ->
           PatientListItemRow(
@@ -123,6 +129,7 @@ fun PatientListScreen(
             ageGenderLabel = formatAgeGender(patient),
             isSynced = patient.isSynced,
             identifier = patient.displayIdentifier(),
+            lastEncounter = patient.lastEncounter.toLabel(),
             onClick = { onPatientClick(patient) },
           )
         }
@@ -175,6 +182,13 @@ private fun PatientListEmptyState(
     }
   }
 }
+
+private fun PatientListViewModel.LastEncounter?.toLabel(): LastEncounterLabel =
+  when {
+    this == null -> LastEncounterLabel.Loading
+    !exists -> LastEncounterLabel.None
+    else -> LastEncounterLabel.Value(name, date)
+  }
 
 /** First real identifier of the patient; the "unsynced" marker used while syncing is skipped. */
 internal fun PatientListViewModel.PatientItem.displayIdentifier(): String? =

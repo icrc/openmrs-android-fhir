@@ -42,11 +42,15 @@ import com.google.android.fhir.search.Order
 import com.google.android.fhir.search.Search
 import com.google.android.fhir.search.StringFilterModifier
 import com.google.android.fhir.search.count
+import com.google.android.fhir.search.filter.ReferenceParamFilterCriterion
 import com.google.android.fhir.search.search
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.ZoneOffset
+import java.util.Date
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -55,12 +59,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.RiskAssessment
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.FormCatalog
 import org.openmrs.android.fhir.data.PreferenceKeys
 import timber.log.Timber
 
@@ -143,6 +150,9 @@ constructor(
           // A superseded refresh never reaches its own "finished" update, so clear both flags here.
           _uiState.update { it.copy(patients = patients, isLoading = false, isRefreshing = false) }
           patientCount.value = count()
+          // The list is on screen; the last encounters follow, one query for the whole page.
+          val withEncounters = withContext(Dispatchers.Default) { withLastEncounters(patients) }
+          _uiState.update { it.copy(patients = withEncounters) }
         } catch (e: CancellationException) {
           throw e
         } catch (e: Exception) {
@@ -250,6 +260,82 @@ constructor(
     return patients
   }
 
+  /** Form names by encounter type code, read once. */
+  private var formNamesByCode: Map<String, String>? = null
+
+  private suspend fun encounterTypeNames(): Map<String, String> =
+    formNamesByCode
+      ?: try {
+          FormCatalog(applicationContext, fhirEngine).load().formsByCode.mapValues { it.value.name }
+        } catch (e: CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          Timber.w(e, "Could not read the form names")
+          emptyMap()
+        }
+        .also { formNamesByCode = it }
+
+  /** Adds each patient's most recent encounter (what it was and when). */
+  private suspend fun withLastEncounters(patients: List<PatientItem>): List<PatientItem> {
+    val ids = patients.map { it.resourceId }.filter { it.isNotBlank() }
+    if (ids.isEmpty()) return patients
+    val names = encounterTypeNames()
+    val latest = mutableMapOf<String, Encounter>()
+    ids.chunked(ENCOUNTER_QUERY_CHUNK).forEach { chunk ->
+      val filters =
+        chunk.map { id ->
+          val filter: ReferenceParamFilterCriterion.() -> Unit = { value = "Patient/$id" }
+          filter
+        }
+      fhirEngine
+        .search<Encounter> { filter(Encounter.SUBJECT, *filters.toTypedArray()) }
+        .map { it.resource }
+        .filter {
+          it.status != Encounter.EncounterStatus.CANCELLED &&
+            it.status != Encounter.EncounterStatus.ENTEREDINERROR
+        }
+        .forEach { encounter ->
+          val patientId = encounter.subject?.reference?.substringAfter("Patient/") ?: return@forEach
+          val current = latest[patientId]
+          if (current == null || encounter.happenedAt() > current.happenedAt()) {
+            latest[patientId] = encounter
+          }
+        }
+    }
+    return patients.map { patient ->
+      val encounter = latest[patient.resourceId]
+      patient.copy(
+        lastEncounter =
+          if (encounter == null) {
+            LastEncounter()
+          } else {
+            LastEncounter(
+              name = encounter.typeName(names),
+              date =
+                encounter
+                  .happenedAtDate()
+                  ?.toInstant()
+                  ?.atZone(ZoneId.systemDefault())
+                  ?.toLocalDate(),
+            )
+          },
+      )
+    }
+  }
+
+  private fun Encounter.happenedAtDate(): Date? =
+    if (hasPeriod() && period.hasStart()) period.start else meta?.lastUpdated
+
+  private fun Encounter.happenedAt(): Long = happenedAtDate()?.time ?: 0L
+
+  /** The form the encounter was recorded with, else the type's own label. */
+  private fun Encounter.typeName(names: Map<String, String>): String? {
+    val coding = type.firstOrNull()?.coding?.firstOrNull()
+    return coding?.code?.let { names[it] }
+      ?: coding?.display?.takeIf { it.isNotBlank() }
+        ?: type.firstOrNull()?.text?.takeIf { it.isNotBlank() }
+  }
+
   private suspend fun getRiskAssessments(): Map<String, RiskAssessment?> {
     return fhirEngine
       .search<RiskAssessment> {}
@@ -264,7 +350,17 @@ constructor(
 
   private companion object {
     const val PAGE_SIZE = 100
+    private const val ENCOUNTER_QUERY_CHUNK = 30
     const val CANDIDATE_LIMIT = 1000
+  }
+
+  /**
+   * The most recent encounter of a patient. [name] is the form it was recorded with (when known);
+   * both are null for a patient that has none.
+   */
+  data class LastEncounter(val name: String? = null, val date: LocalDate? = null) {
+    val exists: Boolean
+      get() = name != null || date != null
   }
 
   /** The Patient's details for display purposes. */
@@ -283,6 +379,8 @@ constructor(
     var isSynced: Boolean? = false,
     var risk: String? = "",
     var riskItem: RiskAssessmentItem? = null,
+    /** The patient's most recent encounter; null until it has been looked up. */
+    val lastEncounter: LastEncounter? = null,
   ) {
     override fun toString(): String = name
   }

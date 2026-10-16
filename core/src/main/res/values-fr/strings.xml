@@ -132,6 +132,9 @@
     <string name="login_expired">Connexion Expirée</string>
     <string name="settings_auto_sync">Synchroniser automatiquement</string>
     <string name="settings_language">Langue</string>
+    <string name="last_encounter">Dernière rencontre</string>
+    <string name="last_encounter_none">Aucune rencontre pour l’instant</string>
+    <string name="last_encounter_unknown_type">Rencontre</string>
     <string name="favorite_forms">Formulaires favoris</string>
     <string name="favorite_forms_description">Choisissez jusqu’à %1$d formulaires à afficher en premier lors de la création d’une rencontre.</string>
     <string name="favorite_forms_count">%1$d sur %2$d sélectionnés</string>

@@ -158,6 +158,9 @@
     <string name="login_expired">Login Expired</string>
     <string name="settings_auto_sync">Sync automatically</string>
     <string name="settings_language">Language</string>
+    <string name="last_encounter">Last encounter</string>
+    <string name="last_encounter_none">No encounters yet</string>
+    <string name="last_encounter_unknown_type">Encounter</string>
     <string name="favorite_forms">Favorite forms</string>
     <string name="favorite_forms_description">Choose up to %1$d forms to show first when creating an encounter.</string>
     <string name="favorite_forms_count">%1$d of %2$d selected</string>
