@@ -30,18 +30,18 @@ package org.openmrs.android.fhir.ui.screens
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -196,31 +196,41 @@ private fun HomeStatusHeader(locationName: String, lastSyncText: String) {
   Card(
     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).testTag("HomeStatusHeader"),
     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-    shape = RoundedCornerShape(16.dp),
+    shape = RoundedCornerShape(20.dp),
   ) {
-    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-      if (locationName.isNotBlank()) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Icon(
-            imageVector = Icons.Default.LocationOn,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSecondaryContainer,
-          )
-          Spacer(modifier = Modifier.width(8.dp))
+    Row(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Box(
+        modifier =
+          Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
+        contentAlignment = Alignment.Center,
+      ) {
+        Icon(
+          imageVector = Icons.Default.LocationOn,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.onPrimary,
+          modifier = Modifier.size(24.dp),
+        )
+      }
+      Column(modifier = Modifier.weight(1f).padding(start = 14.dp)) {
+        if (locationName.isNotBlank()) {
           Text(
             text = locationName,
             style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
           )
         }
-      }
-      if (lastSyncText.isNotBlank()) {
-        Text(
-          modifier = Modifier.padding(top = 4.dp),
-          text = stringResource(id = R.string.last_sync) + ": " + lastSyncText,
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSecondaryContainer,
-        )
+        if (lastSyncText.isNotBlank()) {
+          Text(
+            modifier = Modifier.padding(top = 2.dp),
+            text = stringResource(id = R.string.last_sync) + ": " + lastSyncText,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f),
+          )
+        }
       }
     }
   }
@@ -231,9 +241,9 @@ private fun HomeSectionHeader(titleRes: Int) {
   Text(
     text = stringResource(id = titleRes),
     color = MaterialTheme.colorScheme.primary,
-    style = MaterialTheme.typography.labelLarge,
+    style = MaterialTheme.typography.titleSmall,
     fontWeight = FontWeight.Bold,
-    modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 4.dp),
+    modifier = Modifier.fillMaxWidth().padding(start = 4.dp, top = 20.dp, bottom = 6.dp),
   )
 }
 
@@ -250,15 +260,17 @@ private fun HomeDashboardCard(
         .clickable(onClick = onClick),
     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    shape = RoundedCornerShape(16.dp),
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    shape = RoundedCornerShape(20.dp),
   ) {
     Row(
-      modifier = Modifier.fillMaxWidth().padding(16.dp),
+      modifier =
+        Modifier.fillMaxWidth().heightIn(min = 96.dp).padding(horizontal = 20.dp, vertical = 18.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Box(
         modifier =
-          Modifier.size(48.dp)
+          Modifier.size(60.dp)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.primaryContainer),
         contentAlignment = Alignment.Center,
@@ -267,22 +279,24 @@ private fun HomeDashboardCard(
           painter = painterResource(id = config.iconRes),
           colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
           contentDescription = stringResource(id = R.string.task_image),
-          modifier = Modifier.size(24.dp),
+          modifier = Modifier.size(30.dp),
         )
       }
       Column(
-        modifier = Modifier.weight(1f).padding(horizontal = 16.dp),
+        modifier = Modifier.weight(1f).padding(horizontal = 18.dp),
       ) {
         Text(
           text = stringResource(id = config.titleRes),
           color = MaterialTheme.colorScheme.onSurface,
-          style = MaterialTheme.typography.titleMedium,
+          style = MaterialTheme.typography.titleLarge,
+          fontWeight = FontWeight.SemiBold,
           maxLines = 2,
         )
         Text(
+          modifier = Modifier.padding(top = 2.dp),
           text = stringResource(id = config.subtitleRes),
           color = MaterialTheme.colorScheme.onSurfaceVariant,
-          style = MaterialTheme.typography.bodyMedium,
+          style = MaterialTheme.typography.bodyLarge,
           maxLines = 2,
         )
       }
@@ -290,6 +304,7 @@ private fun HomeDashboardCard(
         imageVector = Icons.Default.ChevronRight,
         contentDescription = null,
         tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.size(28.dp),
       )
     }
   }

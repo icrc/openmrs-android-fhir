@@ -23,19 +23,19 @@
     <color name="high_risk_background">#ffebee</color>
     <color name="unknown_risk_background">#77DADCE0</color>
     <color name="unknown_risk">#FFDADCE0</color>
-    <color name="syncing_background">#D9FBFB</color>
+    <color name="syncing_background">#E6F1F0</color>
     <color name="disable_state">#9AFFFFFF</color>
 
     <color name="primary_blue_40">#005D5D</color>
     <color name="blue">#007D79</color>
     <color name="onPrimary_blue_100">#FFFFFF</color>
-    <color name="primaryContainer_blue_90">#D9FBFB</color>
+    <color name="primaryContainer_blue_90">#E6F1F0</color>
     <color name="onPrimaryContainer_blue_10">#004144</color>
     <color name="orange">#FFA500</color>
 
     <color name="secondary_blue_40">#007D79</color>
     <color name="onSecondary_blue_100">#FFFFFF</color>
-    <color name="secondaryContainer_blue_90">#D9FBFB</color>
+    <color name="secondaryContainer_blue_90">#E6F1F0</color>
     <color name="onSecondaryContainer_blue_10">#004144</color>
 
     <color name="tertiary_green_40">#198038</color>

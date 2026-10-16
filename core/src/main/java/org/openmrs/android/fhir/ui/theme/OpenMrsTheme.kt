@@ -68,7 +68,7 @@ private val LightAppColors =
     success = Color(0xFF198038),
     progress = Color(0xFF007D79),
     warning = Color(0xFFF1C21B),
-    highlightContainer = Color(0xFFD9FBFB),
+    highlightContainer = Color(0xFFE6F1F0),
     neutralContainer = Color(0xFFF4F4F4),
   )
 
@@ -87,12 +87,12 @@ private val LightColorScheme: ColorScheme =
   lightColorScheme(
     primary = Color(0xFF005D5D),
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFD9FBFB),
-    onPrimaryContainer = Color(0xFF004144),
+    primaryContainer = Color(0xFFE6F1F0),
+    onPrimaryContainer = Color(0xFF00403F),
     secondary = Color(0xFF007D79),
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFD9FBFB),
-    onSecondaryContainer = Color(0xFF004144),
+    secondaryContainer = Color(0xFFE6F1F0),
+    onSecondaryContainer = Color(0xFF00403F),
     tertiary = Color(0xFF198038),
     background = Color(0xFFF4F4F4),
     onBackground = Color(0xFF161616),
