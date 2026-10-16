@@ -39,7 +39,10 @@ import com.google.android.fhir.sync.DownloadWorkManager
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import org.hl7.fhir.r4.model.ResourceType
+import org.json.JSONArray
+import org.json.JSONObject
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.database.model.CustomFormSection
 
 private val Context.dataStorage: DataStore<Preferences> by
   preferencesDataStore(name = "demo_app_storage")
@@ -116,6 +119,48 @@ class DemoDataStore(private val context: Context) {
     }
   }
 
+  /** The sections the user made for the Create Encounter screen; null: the app's own. */
+  fun getCustomFormSectionsFlow() =
+    context.dataStorage.data.map { pref ->
+      pref[stringPreferencesKey(CUSTOM_FORM_SECTIONS)]?.let { parseCustomFormSections(it) }
+    }
+
+  /** Saves the user's own sections; null (or none) brings back the app's. */
+  suspend fun setCustomFormSections(sections: List<CustomFormSection>?) {
+    context.dataStorage.edit { pref ->
+      val key = stringPreferencesKey(CUSTOM_FORM_SECTIONS)
+      if (sections.isNullOrEmpty()) {
+        pref.remove(key)
+      } else {
+        pref[key] =
+          JSONArray()
+            .apply {
+              sections.forEach {
+                put(JSONObject().put("name", it.name).put("forms", JSONArray(it.formIds)))
+              }
+            }
+            .toString()
+      }
+    }
+  }
+
+  private fun parseCustomFormSections(json: String): List<CustomFormSection>? =
+    try {
+      val array = JSONArray(json)
+      (0 until array.length())
+        .map { array.getJSONObject(it) }
+        .map { section ->
+          val forms = section.getJSONArray("forms")
+          CustomFormSection(
+            name = section.getString("name"),
+            formIds = (0 until forms.length()).map { forms.getString(it) },
+          )
+        }
+        .takeIf { it.isNotEmpty() }
+    } catch (e: Exception) {
+      null
+    }
+
   suspend fun setCheckNetworkConnectivity(isEnabled: Boolean) {
     context.dataStore.edit { pref ->
       pref[booleanPreferencesKey(CHECK_NETWORK_CONNECTIVITY)] = isEnabled
@@ -141,6 +186,7 @@ class DemoDataStore(private val context: Context) {
     const val PERIODIC_SYNC_DELAY = "periodic-sync-delay"
     const val AUTO_SYNC_ENABLED = "auto-sync-enabled"
     const val FAVORITE_FORMS = "favorite-forms"
+    const val CUSTOM_FORM_SECTIONS = "custom-form-sections"
     private const val FAVORITE_FORMS_SEPARATOR = ","
 
     /** How many forms can be favorites. */

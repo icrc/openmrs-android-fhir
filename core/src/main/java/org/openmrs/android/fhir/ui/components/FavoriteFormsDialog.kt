@@ -78,9 +78,10 @@ object FavoriteFormsTestTags {
 fun FavoriteFormsDialog(
   forms: List<FormItem>,
   selectedIds: List<String>,
-  maxFavorites: Int,
+  maxFavorites: Int?,
   onSave: (List<String>) -> Unit,
   onDismiss: () -> Unit,
+  title: String = stringResource(R.string.favorite_forms),
 ) {
   var selection by remember { mutableStateOf(selectedIds) }
   var query by rememberSaveable { mutableStateOf("") }
@@ -88,17 +89,22 @@ fun FavoriteFormsDialog(
     remember(forms, query) {
       if (query.isBlank()) forms else forms.filter { it.name.contains(query, ignoreCase = true) }
     }
-  val limitReached = selection.size >= maxFavorites
+  val limitReached = maxFavorites != null && selection.size >= maxFavorites
 
   AlertDialog(
     onDismissRequest = onDismiss,
     modifier = Modifier.testTag(FavoriteFormsTestTags.Dialog),
     shape = RoundedCornerShape(24.dp),
-    title = { Text(text = stringResource(R.string.favorite_forms)) },
+    title = { Text(text = title) },
     text = {
       Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-          text = stringResource(R.string.favorite_forms_count, selection.size, maxFavorites),
+          text =
+            if (maxFavorites != null) {
+              stringResource(R.string.favorite_forms_count, selection.size, maxFavorites)
+            } else {
+              stringResource(R.string.forms_selected_count, selection.size)
+            },
           style = MaterialTheme.typography.labelLarge,
           fontWeight = FontWeight.SemiBold,
           color =

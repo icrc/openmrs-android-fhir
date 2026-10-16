@@ -111,12 +111,18 @@ class SettingsFragment : Fragment() {
         questionnaireFetchViewModel.isFetching.collectAsStateWithLifecycle()
       val favoriteForms by favoriteFormsViewModel.forms.collectAsStateWithLifecycle()
       val favoriteIds by favoriteFormsViewModel.favoriteIds.collectAsStateWithLifecycle()
+      val customSections by favoriteFormsViewModel.customSections.collectAsStateWithLifecycle()
+      val defaultSections by favoriteFormsViewModel.defaultSections.collectAsStateWithLifecycle()
       OpenMrsTheme {
         SettingsScreen(
           uiState = uiState,
           favoriteFormOptions = favoriteForms,
           favoriteFormIds = favoriteIds,
           onFavoriteFormsSaved = favoriteFormsViewModel::setFavorites,
+          customFormSections = customSections,
+          defaultFormSections = defaultSections,
+          onFormSectionsSaved = favoriteFormsViewModel::setCustomSections,
+          onFormSectionsReset = favoriteFormsViewModel::resetSections,
           tokenDelayOptions = SettingsDefaults.TokenDelayOptions,
           periodicSyncDelayOptions = SettingsDefaults.PeriodicSyncDelayOptions,
           onNetworkStatusToggle = settingsViewModel::onNetworkStatusToggle,

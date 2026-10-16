@@ -35,11 +35,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.FormCatalog
+import org.openmrs.android.fhir.data.database.model.CustomFormSection
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.FormSectionItem
 import timber.log.Timber
@@ -65,14 +67,23 @@ constructor(
   private var sections: List<FormSectionItem>? = null
   private var formsById: Map<String, FormItem> = emptyMap()
   private var favoriteIds: List<String> = emptyList()
+  private var customSections: List<CustomFormSection>? = null
 
   init {
-    // The favorites follow the settings: a change shows up without reloading the forms.
+    // Favorites and the user's own sections follow the settings: a change shows up without
+    // reloading the forms.
     viewModelScope.launch {
-      demoDataStore.getFavoriteFormIdsFlow().collect {
-        favoriteIds = it
-        publish()
-      }
+      combine(demoDataStore.getFavoriteFormIdsFlow(), demoDataStore.getCustomFormSectionsFlow()) {
+          favorites,
+          custom,
+          ->
+          favorites to custom
+        }
+        .collect { (favorites, custom) ->
+          favoriteIds = favorites
+          customSections = custom
+          publish()
+        }
     }
   }
 
@@ -103,7 +114,12 @@ constructor(
   }
 
   private fun publish() {
-    val base = sections ?: return
+    val own =
+      customSections
+        ?.map { FormSectionItem(it.name, it.formIds.mapNotNull { id -> formsById[id] }) }
+        ?.filter { it.forms.isNotEmpty() }
+        ?.takeIf { it.isNotEmpty() }
+    val base = own ?: sections ?: return
     val favorites = favoriteIds.mapNotNull { formsById[it] }
     _formData.value =
       if (favorites.isEmpty()) {

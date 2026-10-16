@@ -42,9 +42,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -64,6 +66,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,10 +81,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.data.database.model.CustomFormSection
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.ThemeMode
 import org.openmrs.android.fhir.ui.components.FavoriteFormsDialog
+import org.openmrs.android.fhir.ui.components.FormSectionsEditorDialog
 import org.openmrs.android.fhir.ui.components.LanguagePicker
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.SettingsUiState
@@ -98,6 +103,9 @@ object SettingsTestTags {
   const val PeriodicDelayField = "SettingsPeriodicDelayField"
   const val AutoSyncSwitch = "SettingsAutoSyncSwitch"
   const val FavoriteFormsButton = "SettingsFavoriteFormsButton"
+  const val FormSectionsButton = "SettingsFormSectionsButton"
+  const val FormSectionsStatus = "SettingsFormSectionsStatus"
+  const val FormSectionsReset = "SettingsFormSectionsReset"
   const val InitialSyncButton = "SettingsInitialSyncButton"
   const val FetchQuestionnairesButton = "SettingsFetchQuestionnairesButton"
   const val ResetOfflineLoginButton = "SettingsResetOfflineLoginButton"
@@ -135,6 +143,10 @@ fun SettingsScreen(
   favoriteFormOptions: List<FormItem>? = null,
   favoriteFormIds: List<String> = emptyList(),
   onFavoriteFormsSaved: ((List<String>) -> Unit)? = null,
+  customFormSections: List<CustomFormSection>? = null,
+  defaultFormSections: List<CustomFormSection> = emptyList(),
+  onFormSectionsSaved: ((List<CustomFormSection>) -> Unit)? = null,
+  onFormSectionsReset: (() -> Unit)? = null,
   selectedLanguage: AppLanguage? = null,
   onLanguageSelected: ((AppLanguage) -> Unit)? = null,
   modifier: Modifier = Modifier,
@@ -238,6 +250,20 @@ fun SettingsScreen(
             options = favoriteFormOptions,
             selectedIds = favoriteFormIds,
             onSaved = onFavoriteFormsSaved,
+          )
+        }
+      }
+
+      if (
+        favoriteFormOptions != null && onFormSectionsSaved != null && onFormSectionsReset != null
+      ) {
+        SettingsSection(title = stringResource(R.string.form_sections_title)) {
+          FormSectionsSetting(
+            options = favoriteFormOptions,
+            custom = customFormSections,
+            defaults = defaultFormSections,
+            onSaved = onFormSectionsSaved,
+            onReset = onFormSectionsReset,
           )
         }
       }
@@ -427,6 +453,92 @@ private fun FavoriteFormsSetting(
         onSaved(it)
       },
       onDismiss = { showPicker = false },
+    )
+  }
+}
+
+/** Whose sections the Create Encounter screen uses, with the way to change or undo it. */
+@Composable
+private fun FormSectionsSetting(
+  options: List<FormItem>,
+  custom: List<CustomFormSection>?,
+  defaults: List<CustomFormSection>,
+  onSaved: (List<CustomFormSection>) -> Unit,
+  onReset: () -> Unit,
+) {
+  var showEditor by remember { mutableStateOf(false) }
+  var confirmReset by remember { mutableStateOf(false) }
+  Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Text(
+      text = stringResource(R.string.form_sections_description),
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Text(
+      text =
+        if (custom != null) {
+          stringResource(R.string.form_sections_custom_status, custom.size)
+        } else {
+          stringResource(R.string.form_sections_default_status)
+        },
+      style = MaterialTheme.typography.labelLarge,
+      fontWeight = FontWeight.SemiBold,
+      color = MaterialTheme.colorScheme.primary,
+      modifier = Modifier.testTag(SettingsTestTags.FormSectionsStatus),
+    )
+    OutlinedButton(
+      onClick = { showEditor = true },
+      enabled = options.isNotEmpty(),
+      modifier = Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.FormSectionsButton),
+    ) {
+      Icon(
+        imageVector = Icons.Default.Edit,
+        contentDescription = null,
+        modifier = Modifier.size(18.dp)
+      )
+      Spacer(modifier = Modifier.width(8.dp))
+      Text(text = stringResource(R.string.form_sections_customize))
+    }
+    if (custom != null) {
+      TextButton(
+        onClick = { confirmReset = true },
+        modifier = Modifier.testTag(SettingsTestTags.FormSectionsReset),
+      ) {
+        Text(text = stringResource(R.string.form_sections_reset))
+      }
+    }
+  }
+  if (showEditor) {
+    FormSectionsEditorDialog(
+      forms = options,
+      initial = custom ?: defaults,
+      onSave = {
+        showEditor = false
+        onSaved(it)
+      },
+      onDismiss = { showEditor = false },
+    )
+  }
+  if (confirmReset) {
+    AlertDialog(
+      onDismissRequest = { confirmReset = false },
+      title = { Text(text = stringResource(R.string.form_sections_reset)) },
+      text = { Text(text = stringResource(R.string.form_sections_reset_message)) },
+      confirmButton = {
+        TextButton(
+          onClick = {
+            confirmReset = false
+            onReset()
+          },
+        ) {
+          Text(text = stringResource(R.string.form_sections_reset))
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = { confirmReset = false }) {
+          Text(text = stringResource(R.string.cancel))
+        }
+      },
     )
   }
 }

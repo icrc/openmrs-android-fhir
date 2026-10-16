@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.data.FormCatalog
+import org.openmrs.android.fhir.data.database.model.CustomFormSection
 import org.openmrs.android.fhir.data.database.model.FormItem
 import timber.log.Timber
 
@@ -64,15 +65,45 @@ constructor(
       .getFavoriteFormIdsFlow()
       .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+  /** The user's own form sections; null while they use the app's. */
+  val customSections: StateFlow<List<CustomFormSection>?> =
+    demoDataStore
+      .getCustomFormSectionsFlow()
+      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+  private val _defaultSections = MutableStateFlow<List<CustomFormSection>>(emptyList())
+
+  /** The app's own sections, as the editor starts from them. */
+  val defaultSections: StateFlow<List<CustomFormSection>> = _defaultSections
+
   fun load() {
     viewModelScope.launch {
       try {
-        _forms.value = withContext(Dispatchers.Default) { formCatalog.load().allForms }
+        val catalog = withContext(Dispatchers.Default) { formCatalog.load() }
+        _forms.value = catalog.allForms
+        _defaultSections.value =
+          catalog.sections
+            .map { section ->
+              CustomFormSection(
+                name = section.nameFor(catalog.language),
+                formIds = section.forms.mapNotNull { catalog.formsByCode[it]?.questionnaireId },
+              )
+            }
+            .filter { it.formIds.isNotEmpty() }
       } catch (e: Exception) {
         Timber.e(e, "Could not load the forms")
         _forms.value = emptyList()
       }
     }
+  }
+
+  /** Saves the user's own sections; none brings back the app's. */
+  fun setCustomSections(sections: List<CustomFormSection>) {
+    viewModelScope.launch { demoDataStore.setCustomFormSections(sections) }
+  }
+
+  fun resetSections() {
+    viewModelScope.launch { demoDataStore.setCustomFormSections(null) }
   }
 
   fun setFavorites(ids: List<String>) {

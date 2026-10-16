@@ -39,3 +39,9 @@ data class FormItem(
   val name: String,
   val questionnaireId: String,
 )
+
+/** A section of the user's own (see Settings): a name and the ids of the forms placed in it. */
+data class CustomFormSection(
+  val name: String,
+  val formIds: List<String>,
+)
