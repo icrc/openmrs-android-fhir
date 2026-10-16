@@ -654,4 +654,8 @@
     <string name="questionnaires_added">Добавлено новых анкет: %d</string>
     <string name="questionnaire_required_answers_missing">Ответьте на обязательные вопросы на этой странице, чтобы продолжить. Они отмечены красным.</string>
     <string name="change_location">Сменить местоположение</string>
+    <string name="settings_section_general">Общие</string>
+    <string name="settings_section_sync">Синхронизация</string>
+    <string name="settings_section_forms">Формы</string>
+    <string name="settings_initial_sync_description">Запустить полную синхронизацию с сервером сейчас.</string>
 </resources>

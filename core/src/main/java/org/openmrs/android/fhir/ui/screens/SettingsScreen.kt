@@ -28,30 +28,39 @@
 */
 package org.openmrs.android.fhir.ui.screens
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -61,11 +70,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.SettingsUiState
 
 object SettingsDefaults {
@@ -84,6 +93,10 @@ object SettingsTestTags {
   const val SaveButton = "SettingsSaveButton"
 }
 
+/**
+ * The settings screen: grouped cards (general, synchronization, forms) above a fixed Save / Cancel
+ * bar. [topPadding] is the height of the app bar the content is drawn under.
+ */
 @Composable
 fun SettingsScreen(
   uiState: SettingsUiState,
@@ -96,112 +109,68 @@ fun SettingsScreen(
   onInitialSyncClicked: () -> Unit,
   onCancelClicked: () -> Unit,
   onSaveClicked: () -> Unit,
-  topPadding: androidx.compose.ui.unit.Dp = 0.dp,
+  topPadding: Dp = 0.dp,
   isFetchingQuestionnaires: Boolean = false,
   onFetchQuestionnairesClicked: (() -> Unit)? = null,
   modifier: Modifier = Modifier,
 ) {
-  val startMargin = 12.dp
-  val sectionSpacing = dimensionResource(R.dimen.search_patient_cardview_margin_top)
-  val switchPadding = dimensionResource(R.dimen.patient_count_start_margin)
-  val bottomPadding = 16.dp
-  val topContentPadding = topPadding + 24.dp
-  val greyButtonColor = OpenMrsTheme.colors.actionButton
-  val greyButtonContent = OpenMrsTheme.colors.onActionButton
-  val greySwitchThumbChecked = OpenMrsTheme.colors.actionButton
-  val greySwitchThumbUnchecked = MaterialTheme.colorScheme.outlineVariant
-  val greySwitchTrackChecked = MaterialTheme.colorScheme.outlineVariant
-  val greySwitchTrackUnchecked = MaterialTheme.colorScheme.surfaceVariant
-
-  Box(modifier = modifier.fillMaxSize()) {
+  Column(modifier = modifier.fillMaxSize()) {
     Column(
       modifier =
-        Modifier.fillMaxSize()
-          .padding(
-            start = startMargin,
-            end = startMargin,
-            bottom = bottomPadding + 56.dp,
-            top = topContentPadding,
-          )
-          .windowInsetsPadding(WindowInsets.safeDrawing),
+        Modifier.weight(1f)
+          .fillMaxWidth()
+          .verticalScroll(rememberScrollState())
+          .padding(start = 16.dp, end = 16.dp, top = topPadding + 16.dp, bottom = 16.dp),
+      verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-      SettingsSwitchRow(
-        label = stringResource(R.string.check_network_connectivity),
-        checked = uiState.isNetworkStatusVisible,
-        onCheckedChange = onNetworkStatusToggle,
-        testTag = SettingsTestTags.NetworkSwitch,
-        switchPadding = switchPadding,
-        thumbColorChecked = greySwitchThumbChecked,
-        thumbColorUnchecked = greySwitchThumbUnchecked,
-        trackColorChecked = greySwitchTrackChecked,
-        uncheckedTrackColor = greySwitchTrackUnchecked,
-      )
-      SettingsSwitchRow(
-        label = stringResource(R.string.enable_notifications),
-        checked = uiState.isNotificationsEnabled,
-        onCheckedChange = onNotificationsToggle,
-        testTag = SettingsTestTags.NotificationsSwitch,
-        switchPadding = switchPadding,
-        thumbColorChecked = greySwitchThumbChecked,
-        thumbColorUnchecked = greySwitchThumbUnchecked,
-        trackColorChecked = greySwitchTrackChecked,
-        uncheckedTrackColor = greySwitchTrackUnchecked,
-      )
+      SettingsSection(title = stringResource(R.string.settings_section_general)) {
+        SettingsSwitchRow(
+          label = stringResource(R.string.check_network_connectivity),
+          checked = uiState.isNetworkStatusVisible,
+          onCheckedChange = onNetworkStatusToggle,
+          testTag = SettingsTestTags.NetworkSwitch,
+        )
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        SettingsSwitchRow(
+          label = stringResource(R.string.enable_notifications),
+          checked = uiState.isNotificationsEnabled,
+          onCheckedChange = onNotificationsToggle,
+          testTag = SettingsTestTags.NotificationsSwitch,
+        )
+      }
 
-      Spacer(modifier = Modifier.height(sectionSpacing))
-      SettingsDropdown(
-        label = stringResource(R.string.token_check_delay_in_minutes),
-        fieldLabel = stringResource(R.string.token_check_delay),
-        selectedValue = uiState.tokenCheckDelayMinutes,
-        options = tokenDelayOptions,
-        onOptionSelected = onTokenDelaySelected,
-        testTag = SettingsTestTags.TokenDelayField,
-      )
-
-      Spacer(modifier = Modifier.height(sectionSpacing))
-      SettingsDropdown(
-        label = stringResource(R.string.periodic_sync_delay_in_minutes),
-        fieldLabel = stringResource(R.string.periodic_sync_delay),
-        selectedValue = uiState.periodicSyncDelayMinutes,
-        options = periodicSyncDelayOptions,
-        onOptionSelected = onPeriodicSyncDelaySelected,
-        testTag = SettingsTestTags.PeriodicDelayField,
-      )
-
-      Spacer(modifier = Modifier.height(sectionSpacing))
-      Button(
-        onClick = onInitialSyncClicked,
-        enabled = !uiState.isInitialSyncInProgress,
-        colors =
-          ButtonDefaults.buttonColors(
-            containerColor = greyButtonColor,
-            contentColor = greyButtonContent,
-          ),
-        modifier = Modifier.testTag(SettingsTestTags.InitialSyncButton),
-      ) {
-        Text(text = stringResource(R.string.initial_sync))
+      SettingsSection(title = stringResource(R.string.settings_section_sync)) {
+        SettingsDropdown(
+          label = stringResource(R.string.token_check_delay_in_minutes),
+          selectedValue = uiState.tokenCheckDelayMinutes,
+          options = tokenDelayOptions,
+          onOptionSelected = onTokenDelaySelected,
+          testTag = SettingsTestTags.TokenDelayField,
+        )
+        SettingsDropdown(
+          label = stringResource(R.string.periodic_sync_delay_in_minutes),
+          selectedValue = uiState.periodicSyncDelayMinutes,
+          options = periodicSyncDelayOptions,
+          onOptionSelected = onPeriodicSyncDelaySelected,
+          testTag = SettingsTestTags.PeriodicDelayField,
+        )
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        SettingsAction(
+          description = stringResource(R.string.settings_initial_sync_description),
+          buttonText = stringResource(R.string.initial_sync),
+          icon = Icons.Default.Sync,
+          onClick = onInitialSyncClicked,
+          enabled = !uiState.isInitialSyncInProgress,
+          inProgress = uiState.isInitialSyncInProgress,
+          testTag = SettingsTestTags.InitialSyncButton,
+        )
       }
 
       if (onFetchQuestionnairesClicked != null) {
-        Spacer(modifier = Modifier.height(sectionSpacing))
-        Text(
-          text = stringResource(R.string.fetch_questionnaires_description),
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
-          onClick = onFetchQuestionnairesClicked,
-          enabled = !isFetchingQuestionnaires,
-          colors =
-            ButtonDefaults.buttonColors(
-              containerColor = greyButtonColor,
-              contentColor = greyButtonContent,
-            ),
-          modifier = Modifier.testTag(SettingsTestTags.FetchQuestionnairesButton),
-        ) {
-          Text(
-            text =
+        SettingsSection(title = stringResource(R.string.settings_section_forms)) {
+          SettingsAction(
+            description = stringResource(R.string.fetch_questionnaires_description),
+            buttonText =
               stringResource(
                 if (isFetchingQuestionnaires) {
                   R.string.fetching_questionnaires
@@ -209,42 +178,60 @@ fun SettingsScreen(
                   R.string.fetch_questionnaires
                 },
               ),
+            icon = Icons.Default.Refresh,
+            onClick = onFetchQuestionnairesClicked,
+            enabled = !isFetchingQuestionnaires,
+            inProgress = isFetchingQuestionnaires,
+            testTag = SettingsTestTags.FetchQuestionnairesButton,
           )
         }
       }
-
-      Spacer(modifier = Modifier.weight(1f))
     }
 
-    Row(
-      modifier =
-        Modifier.fillMaxWidth()
-          .align(Alignment.BottomCenter)
-          .padding(start = startMargin, end = startMargin, bottom = bottomPadding),
-      horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Button(
-        onClick = onCancelClicked,
-        colors =
-          ButtonDefaults.buttonColors(
-            containerColor = greyButtonColor,
-            contentColor = greyButtonContent,
-          ),
-        modifier = Modifier.testTag(SettingsTestTags.CancelButton),
+    Surface(tonalElevation = 3.dp, shadowElevation = 6.dp, modifier = Modifier.fillMaxWidth()) {
+      Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
       ) {
-        Text(text = stringResource(R.string.cancel))
+        OutlinedButton(
+          onClick = onCancelClicked,
+          modifier = Modifier.weight(1f).height(48.dp).testTag(SettingsTestTags.CancelButton),
+        ) {
+          Text(text = stringResource(R.string.cancel))
+        }
+        Button(
+          onClick = onSaveClicked,
+          modifier = Modifier.weight(1f).height(48.dp).testTag(SettingsTestTags.SaveButton),
+        ) {
+          Text(text = stringResource(R.string.save))
+        }
       }
-      Button(
-        onClick = onSaveClicked,
-        colors =
-          ButtonDefaults.buttonColors(
-            containerColor = greyButtonColor,
-            contentColor = greyButtonContent,
-          ),
-        modifier = Modifier.testTag(SettingsTestTags.SaveButton),
+    }
+  }
+}
+
+@Composable
+private fun SettingsSection(title: String, content: @Composable () -> Unit) {
+  Column {
+    Text(
+      text = title,
+      style = MaterialTheme.typography.labelLarge,
+      fontWeight = FontWeight.Bold,
+      color = MaterialTheme.colorScheme.primary,
+      modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+    )
+    Card(
+      modifier = Modifier.fillMaxWidth(),
+      shape = RoundedCornerShape(16.dp),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+      elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    ) {
+      Column(
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
       ) {
-        Text(text = stringResource(R.string.save))
+        content()
       }
     }
   }
@@ -256,11 +243,6 @@ private fun SettingsSwitchRow(
   checked: Boolean,
   onCheckedChange: (Boolean) -> Unit,
   testTag: String,
-  switchPadding: androidx.compose.ui.unit.Dp,
-  thumbColorChecked: androidx.compose.ui.graphics.Color,
-  thumbColorUnchecked: androidx.compose.ui.graphics.Color,
-  trackColorChecked: androidx.compose.ui.graphics.Color,
-  uncheckedTrackColor: androidx.compose.ui.graphics.Color,
 ) {
   Row(
     modifier = Modifier.fillMaxWidth(),
@@ -269,20 +251,47 @@ private fun SettingsSwitchRow(
     Text(
       text = label,
       style = MaterialTheme.typography.bodyLarge,
+      color = MaterialTheme.colorScheme.onSurface,
+      modifier = Modifier.weight(1f),
     )
-    Spacer(modifier = Modifier.width(switchPadding))
+    Spacer(modifier = Modifier.width(16.dp))
     Switch(
       checked = checked,
       onCheckedChange = onCheckedChange,
-      colors =
-        SwitchDefaults.colors(
-          checkedThumbColor = thumbColorChecked,
-          uncheckedThumbColor = thumbColorUnchecked,
-          checkedTrackColor = trackColorChecked,
-          uncheckedTrackColor = uncheckedTrackColor,
-        ),
       modifier = Modifier.testTag(testTag),
     )
+  }
+}
+
+/** A short explanation, a button and (while it runs) a progress bar. */
+@Composable
+private fun SettingsAction(
+  description: String,
+  buttonText: String,
+  icon: androidx.compose.ui.graphics.vector.ImageVector,
+  onClick: () -> Unit,
+  enabled: Boolean,
+  inProgress: Boolean,
+  testTag: String,
+) {
+  Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Text(
+      text = description,
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    OutlinedButton(
+      onClick = onClick,
+      enabled = enabled,
+      modifier = Modifier.fillMaxWidth().height(48.dp).testTag(testTag),
+    ) {
+      Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp))
+      Spacer(modifier = Modifier.width(8.dp))
+      Text(text = buttonText)
+    }
+    if (inProgress) {
+      LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+    }
   }
 }
 
@@ -290,7 +299,6 @@ private fun SettingsSwitchRow(
 @Composable
 private fun SettingsDropdown(
   label: String,
-  fieldLabel: String,
   selectedValue: Int,
   options: List<Int>,
   onOptionSelected: (Int) -> Unit,
@@ -298,41 +306,35 @@ private fun SettingsDropdown(
   modifier: Modifier = Modifier,
 ) {
   var expanded by remember { mutableStateOf(false) }
-  val displayValue = selectedValue.toString()
 
-  Column(modifier = modifier.fillMaxWidth()) {
-    Text(
-      text = label,
-      style = MaterialTheme.typography.bodyLarge,
+  ExposedDropdownMenuBox(
+    expanded = expanded,
+    onExpandedChange = { expanded = !expanded },
+    modifier = modifier.fillMaxWidth(),
+  ) {
+    OutlinedTextField(
+      readOnly = true,
+      value = selectedValue.toString(),
+      onValueChange = {},
+      label = { Text(text = label) },
+      singleLine = true,
+      shape = RoundedCornerShape(12.dp),
+      modifier =
+        Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable).testTag(testTag),
+      trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
     )
-    Spacer(modifier = Modifier.height(4.dp))
-    ExposedDropdownMenuBox(
+    DropdownMenu(
       expanded = expanded,
-      onExpandedChange = { expanded = !expanded },
-      modifier = Modifier.fillMaxWidth(),
+      onDismissRequest = { expanded = false },
     ) {
-      OutlinedTextField(
-        readOnly = true,
-        value = displayValue,
-        onValueChange = {},
-        label = { Text(text = fieldLabel) },
-        modifier =
-          Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable).testTag(testTag),
-        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-      )
-      DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = { expanded = false },
-      ) {
-        options.forEach { option ->
-          DropdownMenuItem(
-            text = { Text(text = option.toString()) },
-            onClick = {
-              onOptionSelected(option)
-              expanded = false
-            },
-          )
-        }
+      options.forEach { option ->
+        DropdownMenuItem(
+          text = { Text(text = option.toString()) },
+          onClick = {
+            onOptionSelected(option)
+            expanded = false
+          },
+        )
       }
     }
   }

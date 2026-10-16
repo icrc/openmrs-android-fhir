@@ -663,4 +663,8 @@
     <string name="questionnaires_added">Nouveaux questionnaires ajoutés : %d</string>
     <string name="questionnaire_required_answers_missing">Répondez aux questions obligatoires de cette page pour continuer. Elles sont marquées en rouge.</string>
     <string name="change_location">Changer de lieu</string>
+    <string name="settings_section_general">Général</string>
+    <string name="settings_section_sync">Synchronisation</string>
+    <string name="settings_section_forms">Formulaires</string>
+    <string name="settings_initial_sync_description">Lance dès maintenant une synchronisation complète avec le serveur.</string>
 </resources>

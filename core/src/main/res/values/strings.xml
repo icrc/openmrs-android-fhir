@@ -596,4 +596,8 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="questionnaires_added">New questionnaires added: %d</string>
     <string name="questionnaire_required_answers_missing">Answer the required questions on this page to continue. They are marked in red.</string>
     <string name="change_location">Change location</string>
+    <string name="settings_section_general">General</string>
+    <string name="settings_section_sync">Synchronization</string>
+    <string name="settings_section_forms">Forms</string>
+    <string name="settings_initial_sync_description">Run a full synchronization with the server now.</string>
 </resources>
