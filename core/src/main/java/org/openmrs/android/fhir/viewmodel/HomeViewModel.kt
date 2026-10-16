@@ -56,8 +56,6 @@ sealed interface HomeEvent {
 
   data object NavigateToSyncInfo : HomeEvent
 
-  data object NavigateToUnsyncedResources : HomeEvent
-
   data class ShowMessage(@param:StringRes val messageResId: Int) : HomeEvent
 }
 
@@ -101,10 +99,6 @@ constructor(
 
   fun onSyncInfoClicked() {
     _events.tryEmit(HomeEvent.NavigateToSyncInfo)
-  }
-
-  fun onUnsyncedResourcesClicked() {
-    _events.tryEmit(HomeEvent.NavigateToUnsyncedResources)
   }
 
   private fun handleLocationRequiredClick(event: HomeEvent) {

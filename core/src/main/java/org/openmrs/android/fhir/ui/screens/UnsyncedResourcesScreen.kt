@@ -28,7 +28,6 @@
 */
 package org.openmrs.android.fhir.ui.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,16 +36,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -58,16 +55,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
-import org.openmrs.android.fhir.extensions.rememberActionBarContentPadding
 import org.openmrs.android.fhir.ui.components.UnsyncedEncounterRow
 import org.openmrs.android.fhir.ui.components.UnsyncedObservationRow
 import org.openmrs.android.fhir.ui.components.UnsyncedPatientRow
@@ -83,6 +78,11 @@ object UnsyncedResourcesTestTags {
   const val LoadingIndicator = "UnsyncedResourcesLoading"
 }
 
+/**
+ * The changes that have not been uploaded yet: patients, with their encounters and observations
+ * folded underneath. Each can be downloaded (to send it for support) or deleted, and the two
+ * actions at the top apply to everything. The screen around it provides the padding.
+ */
 @Composable
 fun UnsyncedResourcesScreen(
   resources: List<UnsyncedResource>,
@@ -93,54 +93,81 @@ fun UnsyncedResourcesScreen(
   onDownloadResource: (UnsyncedResource) -> Unit,
   onDeleteAll: () -> Unit,
   onDownloadAll: () -> Unit,
+  modifier: Modifier = Modifier,
 ) {
   var pendingDeleteResource by remember { mutableStateOf<UnsyncedResource?>(null) }
   var showDeleteAllDialog by remember { mutableStateOf(false) }
-  val contentPadding = rememberActionBarContentPadding()
 
-  Box(
-    modifier =
-      Modifier.fillMaxSize().padding(contentPadding).testTag(UnsyncedResourcesTestTags.Screen),
-  ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-      when {
-        isLoading && resources.isEmpty() -> Unit
-        resources.isEmpty() -> {
-          Box(
+  Box(modifier = modifier.fillMaxSize().testTag(UnsyncedResourcesTestTags.Screen)) {
+    when {
+      isLoading && resources.isEmpty() -> Unit
+      resources.isEmpty() ->
+        Column(
+          modifier = Modifier.fillMaxSize().testTag(UnsyncedResourcesTestTags.EmptyState),
+          verticalArrangement = Arrangement.Center,
+          horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+          Icon(
+            modifier = Modifier.size(72.dp),
+            painter = painterResource(id = R.drawable.ic_check_circle),
+            contentDescription = stringResource(id = R.string.empty_state_icon),
+            tint = OpenMrsTheme.colors.success,
+          )
+          Text(
             modifier =
-              Modifier.weight(1f).fillMaxWidth().testTag(UnsyncedResourcesTestTags.EmptyState),
-            contentAlignment = Alignment.Center,
-          ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-              Image(
-                modifier = Modifier.size(80.dp),
-                painter = painterResource(id = R.drawable.ic_baseline_sync_24),
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
-                contentDescription = stringResource(id = R.string.empty_state_icon),
-              )
-              Spacer(modifier = Modifier.height(8.dp))
-              Text(
-                modifier = Modifier.testTag(UnsyncedResourcesTestTags.EmptyStateMessage),
-                text = stringResource(id = R.string.no_unsynced_resources_available),
-                fontSize = 16.sp,
-                fontStyle = FontStyle.Italic,
-                color = MaterialTheme.colorScheme.onSurface,
-              )
-            }
-          }
+              Modifier.padding(top = 8.dp).testTag(UnsyncedResourcesTestTags.EmptyStateMessage),
+            text = stringResource(id = R.string.no_unsynced_resources_available),
+            style = MaterialTheme.typography.bodyLarge,
+            fontStyle = FontStyle.Italic,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+          )
         }
-        else -> {
+      else ->
+        Column(modifier = Modifier.fillMaxSize()) {
           if (isLoading) {
             LinearProgressIndicator(
-              modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+              modifier = Modifier.fillMaxWidth(),
               color = OpenMrsTheme.colors.progress,
             )
           }
           LazyColumn(
             modifier = Modifier.weight(1f).fillMaxWidth().testTag(UnsyncedResourcesTestTags.List),
-            contentPadding = PaddingValues(vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
           ) {
-            items(resources) { resource ->
+            item(key = "bulk-actions", contentType = "actions") {
+              Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+              ) {
+                TextButton(
+                  modifier = Modifier.testTag(UnsyncedResourcesTestTags.DownloadAllButton),
+                  onClick = onDownloadAll,
+                ) {
+                  Icon(
+                    modifier = Modifier.size(18.dp),
+                    painter = painterResource(id = R.drawable.ic_download),
+                    contentDescription = null,
+                  )
+                  Spacer(modifier = Modifier.width(6.dp))
+                  Text(text = stringResource(id = R.string.download_all))
+                }
+                TextButton(
+                  modifier = Modifier.testTag(UnsyncedResourcesTestTags.DeleteAllButton),
+                  onClick = { showDeleteAllDialog = true },
+                ) {
+                  Icon(
+                    modifier = Modifier.size(18.dp),
+                    painter = painterResource(id = R.drawable.ic_delete),
+                    contentDescription = null,
+                  )
+                  Spacer(modifier = Modifier.width(6.dp))
+                  Text(text = stringResource(id = R.string.delete_all))
+                }
+              }
+            }
+            items(resources, key = { it.listKey() }, contentType = { it::class }) { resource ->
               when (resource) {
                 is UnsyncedResource.PatientItem ->
                   UnsyncedPatientRow(
@@ -150,6 +177,7 @@ fun UnsyncedResourcesScreen(
                     onDelete = { pendingDeleteResource = resource },
                     showExpand = resource.patient.encounters.isNotEmpty(),
                     isSynced = resource.patient.isSynced,
+                    isExpanded = resource.patient.isExpanded,
                   )
                 is UnsyncedResource.EncounterItem ->
                   UnsyncedEncounterRow(
@@ -159,6 +187,7 @@ fun UnsyncedResourcesScreen(
                     onDownload = { onDownloadResource(resource) },
                     onDelete = { pendingDeleteResource = resource },
                     isSynced = resource.encounter.isSynced,
+                    isExpanded = resource.encounter.isExpanded,
                   )
                 is UnsyncedResource.ObservationItem ->
                   UnsyncedObservationRow(
@@ -171,37 +200,6 @@ fun UnsyncedResourcesScreen(
             }
           }
         }
-      }
-
-      Spacer(modifier = Modifier.height(16.dp))
-      Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-      ) {
-        Button(
-          modifier = Modifier.weight(1f).testTag(UnsyncedResourcesTestTags.DeleteAllButton),
-          onClick = { showDeleteAllDialog = true },
-          colors =
-            ButtonDefaults.buttonColors(
-              containerColor = OpenMrsTheme.colors.actionButton,
-              contentColor = OpenMrsTheme.colors.onActionButton,
-            ),
-        ) {
-          Text(text = stringResource(id = R.string.delete_all), fontSize = 12.sp)
-        }
-        Spacer(modifier = Modifier.width(16.dp))
-        Button(
-          modifier = Modifier.weight(1f).testTag(UnsyncedResourcesTestTags.DownloadAllButton),
-          onClick = onDownloadAll,
-          colors =
-            ButtonDefaults.buttonColors(
-              containerColor = OpenMrsTheme.colors.actionButton,
-              contentColor = OpenMrsTheme.colors.onActionButton,
-            ),
-        ) {
-          Text(text = stringResource(id = R.string.download_all), fontSize = 12.sp)
-        }
-      }
     }
 
     if (isLoading && resources.isEmpty()) {
@@ -267,3 +265,11 @@ fun UnsyncedResourcesScreen(
     )
   }
 }
+
+/** Stable identity of a row, so folding and unfolding keeps the list where it is. */
+private fun UnsyncedResource.listKey(): String =
+  when (this) {
+    is UnsyncedResource.PatientItem -> "patient-${patient.logicalId}"
+    is UnsyncedResource.EncounterItem -> "encounter-${encounter.logicalId}"
+    is UnsyncedResource.ObservationItem -> "observation-${observation.logicalId}"
+  }

@@ -52,7 +52,6 @@ import org.openmrs.android.fhir.fragments.PatientSelectionDialogFragment
 import org.openmrs.android.fhir.fragments.SelectPatientListFragment
 import org.openmrs.android.fhir.fragments.SettingsFragment
 import org.openmrs.android.fhir.fragments.SyncInfoFragment
-import org.openmrs.android.fhir.fragments.UnsyncedResourcesFragment
 
 @Singleton
 @Component(
@@ -109,8 +108,6 @@ interface AppComponent {
   fun inject(fragment: SettingsFragment)
 
   fun inject(fragment: CreateEncountersFragment)
-
-  fun inject(fragment: UnsyncedResourcesFragment)
 
   fun inject(fragment: SelectPatientListFragment)
 

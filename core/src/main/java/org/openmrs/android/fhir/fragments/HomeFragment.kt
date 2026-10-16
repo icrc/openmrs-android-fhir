@@ -85,7 +85,6 @@ class HomeFragment : Fragment() {
           onCustomPatientListClicked = homeViewModel::onCustomPatientListClicked,
           onGroupEncounterClicked = homeViewModel::onGroupEncounterClicked,
           onSyncInfoClicked = homeViewModel::onSyncInfoClicked,
-          onUnsyncedResourcesClicked = homeViewModel::onUnsyncedResourcesClicked,
         )
       }
     }
@@ -143,9 +142,6 @@ class HomeFragment : Fragment() {
           )
       HomeEvent.NavigateToSyncInfo ->
         findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSyncInfoFragment())
-      HomeEvent.NavigateToUnsyncedResources ->
-        findNavController()
-          .navigate(HomeFragmentDirections.actionHomeFragmentToUnsyncedResourcesFragment())
       is HomeEvent.ShowMessage ->
         Toast.makeText(requireContext(), getString(event.messageResId), Toast.LENGTH_LONG).show()
     }

@@ -74,7 +74,6 @@ object HomeTestTags {
   const val CustomPatientListCard = "HomeCustomPatientListCard"
   const val GroupEncounterCard = "HomeGroupEncounterCard"
   const val SyncInfoCard = "HomeSyncInfoCard"
-  const val UnsyncedResourcesCard = "HomeUnsyncedResourcesCard"
 }
 
 private enum class HomeCardType {
@@ -83,7 +82,6 @@ private enum class HomeCardType {
   CustomPatientList,
   GroupEncounter,
   SyncInfo,
-  UnsyncedResources,
 }
 
 private data class HomeCardConfig(
@@ -143,17 +141,10 @@ private val HomeRows: List<HomeRow> =
     HomeRow.SectionHeader(R.string.section_system),
     homeCard(
       HomeCardType.SyncInfo,
-      R.string.title_sync_info,
-      R.string.subtitle_sync_info,
+      R.string.nav_sync,
+      R.string.subtitle_sync_center,
       R.drawable.ic_baseline_sync_24,
       HomeTestTags.SyncInfoCard,
-    ),
-    homeCard(
-      HomeCardType.UnsyncedResources,
-      R.string.title_unsynced_resources,
-      R.string.subtitle_unsynced_resources,
-      R.drawable.ic_offline_resource,
-      HomeTestTags.UnsyncedResourcesCard,
     ),
   )
 
@@ -164,7 +155,6 @@ fun HomeScreen(
   onCustomPatientListClicked: () -> Unit,
   onGroupEncounterClicked: () -> Unit,
   onSyncInfoClicked: () -> Unit,
-  onUnsyncedResourcesClicked: () -> Unit,
   locationName: String = "",
   lastSyncText: String = "",
 ) {
@@ -193,7 +183,6 @@ fun HomeScreen(
                 HomeCardType.CustomPatientList -> onCustomPatientListClicked
                 HomeCardType.GroupEncounter -> onGroupEncounterClicked
                 HomeCardType.SyncInfo -> onSyncInfoClicked
-                HomeCardType.UnsyncedResources -> onUnsyncedResourcesClicked
               },
           )
       }

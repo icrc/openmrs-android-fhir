@@ -80,8 +80,7 @@ fun topLevelDestinationFor(destinationId: Int, isGroupEncounter: Boolean): TopLe
     R.id.home_fragment -> TopLevelDestination.Home
     R.id.patient_list -> TopLevelDestination.Patients
     R.id.createEncounterFragment -> if (isGroupEncounter) TopLevelDestination.GroupSession else null
-    R.id.syncInfoFragment,
-    R.id.unsyncedResourcesFragment, -> TopLevelDestination.Sync
+    R.id.syncInfoFragment -> TopLevelDestination.Sync
     else -> null
   }
 

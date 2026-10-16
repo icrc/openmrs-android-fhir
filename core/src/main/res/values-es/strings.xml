@@ -242,6 +242,13 @@
         name="no_sync_info_available"
     >No Hay Información de Sincronización Disponible</string>
     <string name="clear_sync_data">Borrar Datos de Sincronización</string>
+    <string name="sync_now">Sincronizar ahora</string>
+    <string name="sync_status_up_to_date">Todo está enviado</string>
+    <string name="sync_status_pending">Cambios pendientes: %1$d</string>
+    <string name="sync_last_value">Última sincronización: %1$s</string>
+    <string name="sync_tab_pending">Pendientes</string>
+    <string name="sync_tab_history">Historial</string>
+    <string name="subtitle_sync_center">Enviar cambios, ver lo pendiente y el historial</string>
     <string name="sync_downloaded">Descargados</string>
     <string name="sync_uploaded">Enviados</string>
     <string name="sync_status_completed">Completada</string>

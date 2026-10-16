@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.ui.components
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -51,6 +52,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -63,10 +65,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -476,6 +480,68 @@ fun EncounterListItemRow(
   }
 }
 
+/** Chevron that turns when the row it belongs to is open. */
+@Composable
+private fun ExpandChevron(
+  expanded: Boolean,
+  visible: Boolean,
+  onClick: () -> Unit,
+  tag: String,
+  modifier: Modifier = Modifier,
+) {
+  val rotation by animateFloatAsState(targetValue = if (expanded) 180f else 0f, label = "chevron")
+  IconButton(
+    modifier = modifier.size(32.dp).testTag(tag).alpha(if (visible) 1f else 0f),
+    enabled = visible,
+    onClick = onClick,
+  ) {
+    Icon(
+      modifier = Modifier.rotate(rotation),
+      painter = painterResource(id = R.drawable.ic_expand),
+      contentDescription = stringResource(id = R.string.expand),
+      tint = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+  }
+}
+
+/** Download (to share the data) and delete (or a check once uploaded) for one pending resource. */
+@Composable
+private fun PendingActions(
+  isSynced: Boolean,
+  onDownload: () -> Unit,
+  onDelete: () -> Unit,
+  downloadTag: String,
+  deleteTag: String,
+  downloadDescription: String,
+  deleteDescription: String,
+) {
+  IconButton(
+    modifier = Modifier.size(40.dp).testTag(downloadTag),
+    onClick = onDownload,
+  ) {
+    Icon(
+      painter = painterResource(id = R.drawable.ic_download),
+      contentDescription = downloadDescription,
+      tint = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+  }
+  IconButton(
+    modifier = Modifier.size(40.dp).testTag(deleteTag),
+    enabled = !isSynced,
+    onClick = onDelete,
+  ) {
+    Icon(
+      painter =
+        painterResource(
+          id = if (isSynced) R.drawable.ic_check_decagram_green else R.drawable.ic_delete,
+        ),
+      contentDescription = deleteDescription,
+      tint = if (isSynced) Color.Unspecified else MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+  }
+}
+
+/** An encounter waiting to be uploaded; indented under its patient. */
 @Composable
 fun UnsyncedEncounterRow(
   title: String,
@@ -484,59 +550,46 @@ fun UnsyncedEncounterRow(
   onDownload: () -> Unit,
   onDelete: () -> Unit,
   isSynced: Boolean,
+  modifier: Modifier = Modifier,
+  isExpanded: Boolean = false,
 ) {
-  Row(
-    modifier =
-      Modifier.fillMaxWidth()
-        .background(OpenMrsTheme.colors.neutralContainer)
-        .padding(horizontal = 16.dp, vertical = 8.dp)
-        .testTag("UnsyncedEncounterRow"),
-    verticalAlignment = Alignment.CenterVertically,
+  Surface(
+    modifier = modifier.fillMaxWidth().padding(start = 20.dp).testTag("UnsyncedEncounterRow"),
+    shape = RoundedCornerShape(12.dp),
+    color = MaterialTheme.colorScheme.surface,
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
   ) {
-    IconButton(
-      modifier =
-        Modifier.size(24.dp)
-          .padding(start = 24.dp)
-          .testTag("EncounterExpand")
-          .alpha(if (hasObservations) 1f else 0f),
-      enabled = hasObservations,
-      onClick = onToggleExpand,
+    Row(
+      modifier = Modifier.padding(start = 8.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
+      verticalAlignment = Alignment.CenterVertically,
     ) {
-      Icon(
-        painter = painterResource(id = R.drawable.ic_expand),
-        contentDescription = stringResource(id = R.string.expand),
+      ExpandChevron(
+        expanded = isExpanded,
+        visible = hasObservations,
+        onClick = onToggleExpand,
+        tag = "EncounterExpand",
       )
-    }
-    Text(
-      modifier = Modifier.weight(1f).padding(start = 8.dp).testTag("EncounterTitle"),
-      text = title,
-      fontSize = 14.sp,
-    )
-    IconButton(
-      modifier = Modifier.size(36.dp).testTag("DownloadEncounter"),
-      onClick = onDownload,
-    ) {
-      Icon(
-        painter = painterResource(id = R.drawable.ic_download),
-        contentDescription = stringResource(id = R.string.download_encounter),
+      Text(
+        modifier = Modifier.weight(1f).padding(horizontal = 8.dp).testTag("EncounterTitle"),
+        text = title,
+        style = MaterialTheme.typography.bodyMedium,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
       )
-    }
-    IconButton(
-      modifier = Modifier.size(36.dp).testTag("DeleteEncounter"),
-      enabled = !isSynced,
-      onClick = onDelete,
-    ) {
-      Icon(
-        painter =
-          painterResource(
-            id = if (isSynced) R.drawable.ic_check_decagram_green else R.drawable.ic_delete,
-          ),
-        contentDescription = stringResource(id = R.string.delete_encounter),
+      PendingActions(
+        isSynced = isSynced,
+        onDownload = onDownload,
+        onDelete = onDelete,
+        downloadTag = "DownloadEncounter",
+        deleteTag = "DeleteEncounter",
+        downloadDescription = stringResource(id = R.string.download_encounter),
+        deleteDescription = stringResource(id = R.string.delete_encounter),
       )
     }
   }
 }
 
+/** A patient with changes to upload: the top level of the pending list. */
 @Composable
 fun UnsyncedPatientRow(
   name: String,
@@ -545,57 +598,63 @@ fun UnsyncedPatientRow(
   onDelete: () -> Unit,
   showExpand: Boolean,
   isSynced: Boolean,
+  modifier: Modifier = Modifier,
+  isExpanded: Boolean = false,
 ) {
-  Card(
-    modifier =
-      Modifier.fillMaxWidth()
-        .padding(horizontal = 2.dp, vertical = 4.dp)
-        .testTag("UnsyncedPatientRow"),
-    shape = RoundedCornerShape(8.dp),
-    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+  Surface(
+    modifier = modifier.fillMaxWidth().testTag("UnsyncedPatientRow"),
+    shape = RoundedCornerShape(16.dp),
+    color = MaterialTheme.colorScheme.surface,
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
   ) {
     Row(
-      modifier = Modifier.fillMaxWidth().padding(12.dp),
+      modifier = Modifier.padding(start = 12.dp, top = 6.dp, bottom = 6.dp, end = 4.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      IconButton(
-        modifier = Modifier.size(24.dp).testTag("PatientExpand").alpha(if (showExpand) 1f else 0f),
-        enabled = showExpand,
-        onClick = onToggleExpand,
+      Box(
+        modifier =
+          Modifier.size(36.dp)
+            .clip(CircleShape)
+            .background(
+              if (isSynced) {
+                OpenMrsTheme.colors.highlightContainer
+              } else {
+                OpenMrsTheme.colors.warning.copy(alpha = 0.2f)
+              },
+            ),
+        contentAlignment = Alignment.Center,
       ) {
         Icon(
-          painter = painterResource(id = R.drawable.ic_expand),
-          contentDescription = stringResource(id = R.string.expand),
+          imageVector = Icons.Filled.Person,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.onSurface,
+          modifier = Modifier.size(20.dp),
         )
       }
       Text(
-        modifier = Modifier.weight(1f).padding(start = 8.dp).testTag("PatientName"),
+        modifier = Modifier.weight(1f).padding(horizontal = 12.dp).testTag("PatientName"),
         text = name,
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Bold,
+        style = MaterialTheme.typography.bodyLarge,
+        fontWeight = FontWeight.SemiBold,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
       )
-      IconButton(
-        modifier = Modifier.size(40.dp).testTag("DownloadPatient"),
-        onClick = onDownload,
-      ) {
-        Icon(
-          painter = painterResource(id = R.drawable.ic_download),
-          contentDescription = stringResource(id = R.string.download_patient),
-        )
-      }
-      IconButton(
-        modifier = Modifier.size(40.dp).testTag("DeletePatient"),
-        enabled = !isSynced,
-        onClick = onDelete,
-      ) {
-        Icon(
-          painter =
-            painterResource(
-              id = if (isSynced) R.drawable.ic_check_decagram_green else R.drawable.ic_delete,
-            ),
-          contentDescription = stringResource(id = R.string.delete_patient),
-        )
-      }
+      PendingActions(
+        isSynced = isSynced,
+        onDownload = onDownload,
+        onDelete = onDelete,
+        downloadTag = "DownloadPatient",
+        deleteTag = "DeletePatient",
+        downloadDescription = stringResource(id = R.string.download_patient),
+        deleteDescription = stringResource(id = R.string.delete_patient),
+      )
+      ExpandChevron(
+        expanded = isExpanded,
+        visible = showExpand,
+        onClick = onToggleExpand,
+        tag = "PatientExpand",
+        modifier = Modifier.padding(end = 4.dp),
+      )
     }
   }
 }
@@ -614,46 +673,39 @@ fun ObservationCardRow(text: String, modifier: Modifier = Modifier) {
   }
 }
 
+/** An observation waiting to be uploaded; the deepest level, indented under its encounter. */
 @Composable
 fun UnsyncedObservationRow(
   title: String,
   onDownload: () -> Unit,
   onDelete: () -> Unit,
   isSynced: Boolean,
+  modifier: Modifier = Modifier,
 ) {
-  Row(
-    modifier =
-      Modifier.fillMaxWidth()
-        .background(MaterialTheme.colorScheme.surfaceVariant)
-        .padding(horizontal = 16.dp, vertical = 8.dp)
-        .testTag("UnsyncedObservationRow"),
-    verticalAlignment = Alignment.CenterVertically,
+  Surface(
+    modifier = modifier.fillMaxWidth().padding(start = 40.dp).testTag("UnsyncedObservationRow"),
+    shape = RoundedCornerShape(10.dp),
+    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
   ) {
-    Text(
-      modifier = Modifier.weight(1f).padding(start = 64.dp).testTag("ObservationTitle"),
-      text = title,
-      fontSize = 14.sp,
-    )
-    IconButton(
-      modifier = Modifier.size(36.dp).testTag("DownloadObservation"),
-      onClick = onDownload,
+    Row(
+      modifier = Modifier.padding(start = 12.dp, top = 2.dp, bottom = 2.dp, end = 2.dp),
+      verticalAlignment = Alignment.CenterVertically,
     ) {
-      Icon(
-        painter = painterResource(id = R.drawable.ic_download),
-        contentDescription = stringResource(id = R.string.download_observation),
+      Text(
+        modifier = Modifier.weight(1f).padding(end = 8.dp).testTag("ObservationTitle"),
+        text = title,
+        style = MaterialTheme.typography.bodySmall,
+        maxLines = 3,
+        overflow = TextOverflow.Ellipsis,
       )
-    }
-    IconButton(
-      modifier = Modifier.size(36.dp).testTag("DeleteObservation"),
-      enabled = !isSynced,
-      onClick = onDelete,
-    ) {
-      Icon(
-        painter =
-          painterResource(
-            id = if (isSynced) R.drawable.ic_check_decagram_green else R.drawable.ic_delete_black,
-          ),
-        contentDescription = stringResource(id = R.string.delete_observation),
+      PendingActions(
+        isSynced = isSynced,
+        onDownload = onDownload,
+        onDelete = onDelete,
+        downloadTag = "DownloadObservation",
+        deleteTag = "DeleteObservation",
+        downloadDescription = stringResource(id = R.string.download_observation),
+        deleteDescription = stringResource(id = R.string.delete_observation),
       )
     }
   }

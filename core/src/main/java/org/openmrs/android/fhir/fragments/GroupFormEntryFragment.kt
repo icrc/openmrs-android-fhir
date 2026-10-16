@@ -194,7 +194,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     viewLifecycleOwner.lifecycleScope.launch {
       AppBarInsets.heightPx.collect { barBottomPx ->
         binding.root.updatePadding(
-          top = barBottomPx + (resources.displayMetrics.density * 4).toInt()
+          top = barBottomPx + (resources.displayMetrics.density * 4).toInt(),
         )
       }
     }

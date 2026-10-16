@@ -219,6 +219,13 @@
         name="no_sync_info_available"
     >لا توجد معلومات المزامنة متوفرة</string>
     <string name="clear_sync_data">مسح بيانات مزامنة</string>
+    <string name="sync_now">زامن الآن</string>
+    <string name="sync_status_up_to_date">تم رفع كل شيء</string>
+    <string name="sync_status_pending">تغييرات معلقة: %1$d</string>
+    <string name="sync_last_value">آخر مزامنة: %1$s</string>
+    <string name="sync_tab_pending">معلق</string>
+    <string name="sync_tab_history">السجل</string>
+    <string name="subtitle_sync_center">ارفع التغييرات واطّلع على المعلق وسجل المزامنة</string>
     <string name="sync_downloaded">تم التنزيل</string>
     <string name="sync_uploaded">تم الرفع</string>
     <string name="sync_status_completed">اكتملت</string>

@@ -302,6 +302,13 @@
 
     <string name="no_sync_info_available">Нет данных о синхронизации</string>
     <string name="clear_sync_data">Очистить данные синхронизации</string>
+    <string name="sync_now">Синхронизировать</string>
+    <string name="sync_status_up_to_date">Всё отправлено</string>
+    <string name="sync_status_pending">Ожидают отправки: %1$d</string>
+    <string name="sync_last_value">Последняя синхронизация: %1$s</string>
+    <string name="sync_tab_pending">Ожидают</string>
+    <string name="sync_tab_history">История</string>
+    <string name="subtitle_sync_center">Отправка изменений, ожидающие данные и история</string>
     <string name="sync_downloaded">Загружено</string>
     <string name="sync_uploaded">Отправлено</string>
     <string name="sync_status_completed">Завершена</string>

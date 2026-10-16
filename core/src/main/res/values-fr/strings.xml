@@ -257,6 +257,13 @@
     <string
         name="clear_sync_data"
     >Effacer les données de synchronisation</string>
+    <string name="sync_now">Synchroniser</string>
+    <string name="sync_status_up_to_date">Tout est envoyé</string>
+    <string name="sync_status_pending">Modifications en attente : %1$d</string>
+    <string name="sync_last_value">Dernière synchronisation : %1$s</string>
+    <string name="sync_tab_pending">En attente</string>
+    <string name="sync_tab_history">Historique</string>
+    <string name="subtitle_sync_center">Envoyer les modifications, voir ce qui attend et l’historique</string>
     <string name="sync_downloaded">Téléchargés</string>
     <string name="sync_uploaded">Envoyés</string>
     <string name="sync_status_completed">Terminée</string>

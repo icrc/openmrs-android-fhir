@@ -13,7 +13,7 @@
   <string
         name="auth_discovery_uri"
         translatable="false"
-    >http://127.0.0.1:8081/realms/main/.well-known/openid-configuration</string>
+    >http://192.168.1.20:8081/realms/main/.well-known/openid-configuration</string>
   <bool name="auth_https_required">false</bool>
   <bool name="auth_replace_localhost_by_10_0_2_2">true</bool>
   <!--  required if no discovery url-->

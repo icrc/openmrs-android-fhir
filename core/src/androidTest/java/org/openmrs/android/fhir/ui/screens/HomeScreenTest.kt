@@ -51,7 +51,6 @@ class HomeScreenTest {
           onCustomPatientListClicked = {},
           onGroupEncounterClicked = {},
           onSyncInfoClicked = {},
-          onUnsyncedResourcesClicked = {},
         )
       }
     }
@@ -61,7 +60,6 @@ class HomeScreenTest {
     composeRule.onNodeWithTag(HomeTestTags.CustomPatientListCard).assertIsDisplayed()
     composeRule.onNodeWithTag(HomeTestTags.GroupEncounterCard).assertIsDisplayed()
     composeRule.onNodeWithTag(HomeTestTags.SyncInfoCard).assertIsDisplayed()
-    composeRule.onNodeWithTag(HomeTestTags.UnsyncedResourcesCard).assertIsDisplayed()
   }
 
   @Test
@@ -76,7 +74,6 @@ class HomeScreenTest {
           onCustomPatientListClicked = { triggeredActions.add(HomeTestTags.CustomPatientListCard) },
           onGroupEncounterClicked = { triggeredActions.add(HomeTestTags.GroupEncounterCard) },
           onSyncInfoClicked = { triggeredActions.add(HomeTestTags.SyncInfoCard) },
-          onUnsyncedResourcesClicked = { triggeredActions.add(HomeTestTags.UnsyncedResourcesCard) },
         )
       }
     }
@@ -86,7 +83,6 @@ class HomeScreenTest {
     composeRule.onNodeWithTag(HomeTestTags.CustomPatientListCard).performClick()
     composeRule.onNodeWithTag(HomeTestTags.GroupEncounterCard).performClick()
     composeRule.onNodeWithTag(HomeTestTags.SyncInfoCard).performClick()
-    composeRule.onNodeWithTag(HomeTestTags.UnsyncedResourcesCard).performClick()
 
     composeRule.runOnIdle {
       assertTrue(triggeredActions.contains(HomeTestTags.NewPatientCard))
@@ -94,7 +90,6 @@ class HomeScreenTest {
       assertTrue(triggeredActions.contains(HomeTestTags.CustomPatientListCard))
       assertTrue(triggeredActions.contains(HomeTestTags.GroupEncounterCard))
       assertTrue(triggeredActions.contains(HomeTestTags.SyncInfoCard))
-      assertTrue(triggeredActions.contains(HomeTestTags.UnsyncedResourcesCard))
     }
   }
 }

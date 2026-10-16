@@ -30,7 +30,6 @@ package org.openmrs.android.fhir.ui.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -79,7 +78,6 @@ import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.SyncSession
 import org.openmrs.android.fhir.data.database.model.SyncStatus
-import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
 @Immutable
@@ -368,30 +366,28 @@ private fun SyncErrors(errors: List<String>, modifier: Modifier = Modifier) {
 private const val ERRORS_FOLDED = 3
 
 /**
- * The synchronization history: newest first, with a shortcut to clear what has finished. Clearing
- * asks first, as it cannot be undone.
+ * The synchronization history, newest first, with a shortcut to clear what has finished. Clearing
+ * asks first, as it cannot be undone. The screen around it provides the padding.
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SyncInfoContent(
+fun SyncHistoryList(
   syncSessions: List<SyncSession>,
   onDeleteSession: (SyncSession) -> Unit,
   onClearAll: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  val topInset = rememberAppBarHeight()
   var confirmClear by remember { mutableStateOf(false) }
   val hasFinished = syncSessions.any { it.status != SyncStatus.ONGOING }
 
   Box(modifier = modifier.fillMaxSize().testTag("SyncInfoScreen")) {
     if (syncSessions.isEmpty()) {
       Column(
-        modifier = Modifier.fillMaxSize().padding(top = topInset),
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
       ) {
         Icon(
-          modifier = Modifier.size(80.dp),
+          modifier = Modifier.size(72.dp),
           painter = painterResource(id = R.drawable.ic_baseline_sync_24),
           contentDescription = null,
           tint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -409,30 +405,13 @@ fun SyncInfoContent(
       LazyColumn(
         modifier = Modifier.fillMaxSize().testTag("SyncSessionList"),
         verticalArrangement = Arrangement.spacedBy(10.dp),
-        contentPadding =
-          PaddingValues(start = 16.dp, end = 16.dp, top = topInset + 8.dp, bottom = 24.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
       ) {
-        stickyHeader(key = "history-header", contentType = "header") {
+        item(key = "history-actions", contentType = "actions") {
           Row(
-            modifier =
-              Modifier.fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(start = 4.dp, top = 4.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
           ) {
-            Text(
-              text = stringResource(id = R.string.sync_history).uppercase(),
-              style = MaterialTheme.typography.labelLarge,
-              fontWeight = FontWeight.SemiBold,
-              color = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-              text = syncSessions.size.toString(),
-              style = MaterialTheme.typography.labelMedium,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(modifier = Modifier.weight(1f))
             TextButton(
               onClick = { confirmClear = true },
               enabled = hasFinished,

@@ -331,6 +331,13 @@
     <string name="patient_lists_selected_count">%1$d selected</string>
     <string name="no_sync_info_available">No Sync Info Available</string>
     <string name="clear_sync_data">Clear Sync Data</string>
+    <string name="sync_now">Sync now</string>
+    <string name="sync_status_up_to_date">Everything is uploaded</string>
+    <string name="sync_status_pending">Pending changes: %1$d</string>
+    <string name="sync_last_value">Last sync: %1$s</string>
+    <string name="sync_tab_pending">Pending</string>
+    <string name="sync_tab_history">History</string>
+    <string name="subtitle_sync_center">Upload changes, see what is waiting and past syncs</string>
     <string name="sync_downloaded">Downloaded</string>
     <string name="sync_uploaded">Uploaded</string>
     <string name="sync_status_completed">Completed</string>
