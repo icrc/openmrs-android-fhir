@@ -38,6 +38,7 @@ import androidx.activity.viewModels
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricPrompt
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,14 +48,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.withResumed
 import java.util.concurrent.Executor
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
+import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
 import org.openmrs.android.fhir.extensions.AuthDialogs
@@ -63,16 +63,22 @@ import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.ui.screens.LoginScreen
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.LoginActivityViewModel
+import org.openmrs.android.fhir.viewmodel.LoginUiState
 import timber.log.Timber
 
+/**
+ * The one login page. It offers username and password, single sign-on (OpenID) or both, as set by
+ * the `auth_method` build setting, plus "Continue without signing in" when `skip_login` is on.
+ */
 class LoginActivity : AppCompatActivity() {
 
-  private sealed interface LoginClickAction {
-    data class LaunchIntent(val intent: Intent) : LoginClickAction
+  private sealed interface SsoAction {
+    data class LaunchIntent(val intent: Intent) : SsoAction
 
-    data object RestartActivity : LoginClickAction
+    /** The provider configuration could not be read; tapping the button tries again. */
+    data object Retry : SsoAction
 
-    data object Disabled : LoginClickAction
+    data object Disabled : SsoAction
   }
 
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -82,30 +88,24 @@ class LoginActivity : AppCompatActivity() {
   private lateinit var executor: Executor
   private var offlineAuthMethod: OfflineAuthMethod? = null
 
-  private var loginClickAction: LoginClickAction by mutableStateOf(LoginClickAction.Disabled)
+  private val showBasic by lazy { AuthMethod.BASIC in viewModel.offeredMethods }
+  private val showSso by lazy { AuthMethod.OPENID in viewModel.offeredMethods }
+
+  private var ssoAction: SsoAction by mutableStateOf(SsoAction.Disabled)
+  private var loginUiState: LoginUiState by mutableStateOf(LoginUiState.Idle)
   val dialogStateForTest: MutableState<AuthDialogs.DialogConfig?> = mutableStateOf(null)
 
   private val getContent =
     registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
       lifecycleScope.launch {
-        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-          if (result.resultCode == RESULT_OK) {
-            Timber.i("Exchange for token")
-            val response = result.data?.let { AuthorizationResponse.fromIntent(it) }
-            val ex = AuthorizationException.fromIntent(result.data)
-            viewModel.handleLoginResponse(response, ex)
-            if (BiometricUtils.hasOfflineLoginDecision(this@LoginActivity)) {
-              navigateToMain()
-            } else {
-              AuthDialogs.showOfflineLoginOptIn(
-                activity = this@LoginActivity,
-                onProceedWithBiometric = { promptBiometricEncryption() },
-                navigateToMain = { navigateToMain() },
-                onDeclined = { BiometricUtils.setOfflineLoginDeclined(this@LoginActivity) },
-              )
-            }
-          }
-        }
+        if (result.resultCode != RESULT_OK) return@launch
+        // The response is handled once, when the page is back in front of the user.
+        lifecycle.withResumed {}
+        Timber.i("Exchange for token")
+        val response = result.data?.let { AuthorizationResponse.fromIntent(it) }
+        val ex = AuthorizationException.fromIntent(result.data)
+        viewModel.handleLoginResponse(response, ex)
+        onSignedIn()
       }
     }
 
@@ -131,25 +131,27 @@ class LoginActivity : AppCompatActivity() {
     (application as FhirApplication).appComponent.inject(this)
     setContent {
       OpenMrsTheme {
-        val navController = rememberNavController()
-        NavHost(navController = navController, startDestination = "login") {
-          composable("login") {
-            LoginScreen(
-              onContinueWithoutLogin =
-                if (GuestSession.isAllowed(this@LoginActivity) && !signInFromGuest) {
-                  ::continueWithoutLogin
-                } else {
-                  null
-                },
-              isButtonEnabled = loginClickAction != LoginClickAction.Disabled,
-              onLoginClick = {
-                when (val action = loginClickAction) {
-                  is LoginClickAction.LaunchIntent -> getContent.launch(action.intent)
-                  LoginClickAction.RestartActivity -> restartLoginFlow()
-                  LoginClickAction.Disabled -> Unit
-                }
-              },
-            )
+        LoginScreen(
+          showBasic = showBasic,
+          showSso = showSso,
+          uiState = loginUiState,
+          isSsoEnabled = ssoAction != SsoAction.Disabled,
+          onBasicLogin = { username, password -> viewModel.login(username, password) },
+          onSsoLogin = ::onSsoLoginClick,
+          ssoProviderName = getString(R.string.sso_provider_name),
+          onContinueWithoutLogin =
+            if (GuestSession.isAllowed(this@LoginActivity) && !signInFromGuest) {
+              ::continueWithoutLogin
+            } else {
+              null
+            },
+        )
+        LaunchedEffect(loginUiState) {
+          when (val state = loginUiState) {
+            is LoginUiState.Failure -> showToastMessage(getString(state.resId))
+            is LoginUiState.LockedOut -> showToastMessage(getString(R.string.locked_out_message))
+            is LoginUiState.Success -> onSignedIn()
+            else -> Unit
           }
         }
         val dialogConfig = dialogStateForTest.value
@@ -185,32 +187,67 @@ class LoginActivity : AppCompatActivity() {
       )
 
     lifecycleScope.launch {
-      lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-        val loginIntent = viewModel.createIntent()
-        val lastConfigurationError = viewModel.getLastConfigurationError()
-        if (lastConfigurationError != null) {
-          Toast.makeText(
-              this@LoginActivity,
-              lastConfigurationError.cause?.localizedMessage
-                ?: lastConfigurationError.localizedMessage,
-              Toast.LENGTH_LONG,
-            )
-            .show()
-          loginClickAction = LoginClickAction.RestartActivity
-        } else if (loginIntent != null) {
-          loginClickAction = LoginClickAction.LaunchIntent(loginIntent)
-        } else {
-          loginClickAction = LoginClickAction.Disabled
+      repeatOnLifecycle(Lifecycle.State.STARTED) {
+        viewModel.uiState.collect { state -> loginUiState = state }
+      }
+    }
+
+    if (showSso) {
+      lifecycleScope.launch {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+          // With username and password on the page too, an unreachable provider is only reported
+          // when the user taps the single sign-on button.
+          prepareSso(reportError = !showBasic)
         }
       }
     }
   }
 
-  private fun restartLoginFlow() {
-    Timber.i("restart current login activity as configuration can't be retrieved")
-    val intent = this@LoginActivity.intent
-    finish()
-    startActivity(intent)
+  /** Reads the provider configuration and prepares the authorization request. */
+  private suspend fun prepareSso(reportError: Boolean) {
+    val loginIntent = viewModel.createIntent()
+    val lastConfigurationError = viewModel.getLastConfigurationError()
+    if (lastConfigurationError != null) {
+      if (reportError) {
+        Toast.makeText(
+            this,
+            lastConfigurationError.cause?.localizedMessage
+              ?: lastConfigurationError.localizedMessage,
+            Toast.LENGTH_LONG,
+          )
+          .show()
+      }
+      ssoAction = SsoAction.Retry
+    } else if (loginIntent != null) {
+      ssoAction = SsoAction.LaunchIntent(loginIntent)
+    } else {
+      ssoAction = SsoAction.Disabled
+    }
+  }
+
+  private fun onSsoLoginClick() {
+    when (val action = ssoAction) {
+      is SsoAction.LaunchIntent -> getContent.launch(action.intent)
+      SsoAction.Retry -> {
+        Timber.i("retrying the provider configuration")
+        lifecycleScope.launch { prepareSso(reportError = true) }
+      }
+      SsoAction.Disabled -> Unit
+    }
+  }
+
+  /** A session exists (either method); ask about offline login once, then continue. */
+  private fun onSignedIn() {
+    if (BiometricUtils.hasOfflineLoginDecision(this)) {
+      navigateToMain()
+    } else {
+      AuthDialogs.showOfflineLoginOptIn(
+        activity = this,
+        onProceedWithBiometric = { promptBiometricEncryption() },
+        navigateToMain = { navigateToMain() },
+        onDeclined = { BiometricUtils.setOfflineLoginDeclined(this) },
+      )
+    }
   }
 
   private fun promptBiometricEncryption() {
@@ -226,12 +263,13 @@ class LoginActivity : AppCompatActivity() {
 
   private fun navigateToMain() {
     if (signInFromGuest) {
+      // Back to the guest session that asked for the sign-in; its data is kept.
       GuestSession.end(this)
       setResult(RESULT_OK)
       finish()
       return
     }
-    startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+    startActivity(Intent(this, MainActivity::class.java))
     finish()
   }
 
@@ -239,6 +277,15 @@ class LoginActivity : AppCompatActivity() {
     GuestSession.start(this)
     startActivity(Intent(this, MainActivity::class.java))
     finish()
+  }
+
+  private fun showToastMessage(message: String) {
+    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+  }
+
+  @VisibleForTesting
+  fun setLoginUiStateForTest(state: LoginUiState) {
+    loginUiState = state
   }
 
   @VisibleForTesting

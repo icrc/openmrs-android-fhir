@@ -613,6 +613,9 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="offline_login_reset_done">Offline login reset.</string>
     <string name="offline_login_not_set_status">Offline login is not set up yet. You will be asked at your next login.</string>
     <string name="continue_without_login">Continue without signing in</string>
+    <string name="sign_in_with_sso">Sign in with SSO</string>
+    <string name="sign_in_with_provider">Sign in with %1$s</string>
+    <string name="login_or">or</string>
     <string name="continue_without_login_hint">Register patients and fill the forms offline. You will be asked to sign in when you sync.</string>
     <string name="sign_in_to_sync_title">Sign in to sync</string>
     <string name="sign_in_to_sync_message">To upload the patients and forms you entered, sign in first. Everything you entered stays on this device.</string>

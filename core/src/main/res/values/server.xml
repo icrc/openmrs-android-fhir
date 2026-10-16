@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <resources>
   <string name="auth_method" translatable="false">openid</string>
+  <string name="sso_provider_name" translatable="false"></string>
   <integer name="basic_auth_expiry_hours">24</integer>
   <string
         name="fhir_base_url"

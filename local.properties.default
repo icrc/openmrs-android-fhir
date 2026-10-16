@@ -15,8 +15,14 @@ sdk.dir=<path to Android SDK>
 #check_server_url=http://127.0.0.1:8080/openmrs/ws/rest/v1/session
 server_connectivity_timeout_seconds=30
 
-# Authentication method: basic or openid
+# Authentication method shown on the login page:
+#   basic  - username and password
+#   openid - single sign-on (SSO); the auth_* endpoints below configure the provider
+#   both   - both on the same page ("Sign in with SSO" under the form)
 # auth_method=openid
+
+# Optional name of the SSO provider; the button then reads "Sign in with <name>"
+#sso_provider_name=
 
 # Optional value if selected basic auth method.
 #basic_auth_expiry_hours=48

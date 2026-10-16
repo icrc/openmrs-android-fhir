@@ -32,7 +32,6 @@ import android.content.Context
 import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Singleton
-import org.openmrs.android.fhir.BasicLoginActivity
 import org.openmrs.android.fhir.LoginActivity
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.data.database.AppDatabase
@@ -108,8 +107,6 @@ interface AppComponent {
   fun inject(activity: MainActivity)
 
   fun inject(fragment: SettingsFragment)
-
-  fun inject(activity: BasicLoginActivity)
 
   fun inject(fragment: CreateEncountersFragment)
 

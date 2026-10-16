@@ -95,8 +95,8 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.viewmodel.LoginUiState
 
 /**
- * The frame shared by both login screens: a brand header with the logo, a card for the form, and a
- * footer with the app version and (when [showServerSettings]) the server settings gear.
+ * The frame of the login page: a brand header with the logo, a card for the form, and a footer with
+ * the app version and (when [showServerSettings]) the server settings gear.
  */
 @Composable
 private fun LoginFrame(
@@ -215,21 +215,42 @@ private fun LoginHeader(logoTag: String) {
   }
 }
 
+/**
+ * The one login page. Depending on the `auth_method` build setting it shows the username and
+ * password form, the single sign-on button, or both (separated by "or"); the "Continue without
+ * signing in" action is added when [onContinueWithoutLogin] is set.
+ */
 @Composable
 fun LoginScreen(
-  isButtonEnabled: Boolean,
-  onLoginClick: () -> Unit,
+  showBasic: Boolean,
+  showSso: Boolean,
+  uiState: LoginUiState,
+  isSsoEnabled: Boolean,
+  onBasicLogin: (String, String) -> Unit,
+  onSsoLogin: () -> Unit,
   modifier: Modifier = Modifier,
+  ssoProviderName: String? = null,
   onContinueWithoutLogin: (() -> Unit)? = null,
 ) {
-  LoginFrame(logoTag = "LoginLogo", screenTag = "LoginScreen", modifier = modifier) {
-    Button(
-      onClick = onLoginClick,
-      enabled = isButtonEnabled,
-      shape = RoundedCornerShape(16.dp),
-      modifier = Modifier.fillMaxWidth().height(52.dp).testTag("LoginButton"),
-    ) {
-      Text(text = stringResource(id = R.string.button_login))
+  LoginFrame(
+    logoTag = "LoginLogo",
+    screenTag = "LoginScreen",
+    modifier = modifier,
+    showServerSettings = showBasic,
+  ) {
+    if (showBasic) {
+      BasicLoginForm(uiState = uiState, onLoginClick = onBasicLogin)
+    }
+    if (showBasic && showSso) {
+      OrDivider()
+    }
+    if (showSso) {
+      SsoLoginButton(
+        providerName = ssoProviderName,
+        isPrimary = !showBasic,
+        enabled = isSsoEnabled,
+        onClick = onSsoLogin,
+      )
     }
     if (onContinueWithoutLogin != null) {
       ContinueWithoutLogin(onClick = onContinueWithoutLogin)
@@ -237,7 +258,131 @@ fun LoginScreen(
   }
 }
 
-/** Secondary action under the login button; only shown when the `skip_login` setting is on. */
+@Composable
+private fun ColumnScope.BasicLoginForm(
+  uiState: LoginUiState,
+  onLoginClick: (String, String) -> Unit,
+) {
+  var username by remember { mutableStateOf("") }
+  var password by remember { mutableStateOf("") }
+  var isPasswordVisible by remember { mutableStateOf(false) }
+  val passwordFocus = remember { FocusRequester() }
+  val isLoading = uiState is LoginUiState.Loading
+
+  if (isLoading) {
+    LinearProgressIndicator(
+      modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag("BasicLoginProgress"),
+    )
+  }
+  OutlinedTextField(
+    value = username,
+    onValueChange = { username = it },
+    modifier = Modifier.fillMaxWidth().testTag("BasicLoginUsername"),
+    label = { Text(text = stringResource(id = R.string.username)) },
+    leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = null) },
+    singleLine = true,
+    shape = RoundedCornerShape(16.dp),
+    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+    keyboardActions = KeyboardActions(onNext = { passwordFocus.requestFocus() }),
+  )
+  Spacer(modifier = Modifier.height(16.dp))
+  OutlinedTextField(
+    value = password,
+    onValueChange = { password = it },
+    modifier = Modifier.fillMaxWidth().focusRequester(passwordFocus).testTag("BasicLoginPassword"),
+    label = { Text(text = stringResource(id = R.string.password)) },
+    leadingIcon = { Icon(imageVector = Icons.Filled.Lock, contentDescription = null) },
+    singleLine = true,
+    shape = RoundedCornerShape(16.dp),
+    visualTransformation =
+      if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+    keyboardOptions =
+      KeyboardOptions(imeAction = ImeAction.Done, keyboardType = KeyboardType.Password),
+    keyboardActions = KeyboardActions(onDone = { onLoginClick(username, password) }),
+    trailingIcon = {
+      val icon = if (isPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility
+      val contentDescription =
+        if (isPasswordVisible) {
+          stringResource(id = R.string.hide_password)
+        } else {
+          stringResource(id = R.string.show_password)
+        }
+      IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+        Icon(imageVector = icon, contentDescription = contentDescription)
+      }
+    },
+  )
+  Spacer(modifier = Modifier.height(24.dp))
+  Button(
+    onClick = { onLoginClick(username, password) },
+    enabled = !isLoading,
+    shape = RoundedCornerShape(16.dp),
+    modifier = Modifier.fillMaxWidth().height(52.dp).testTag("BasicLoginButton"),
+  ) {
+    Text(text = stringResource(id = R.string.button_login))
+  }
+}
+
+/** Single sign-on; the main action when it is the only method, otherwise the alternative. */
+@Composable
+private fun SsoLoginButton(
+  providerName: String?,
+  isPrimary: Boolean,
+  enabled: Boolean,
+  onClick: () -> Unit,
+) {
+  val label =
+    when {
+      !providerName.isNullOrBlank() -> stringResource(R.string.sign_in_with_provider, providerName)
+      isPrimary -> stringResource(R.string.button_login)
+      else -> stringResource(R.string.sign_in_with_sso)
+    }
+  val modifier = Modifier.fillMaxWidth().height(52.dp).testTag("LoginButton")
+  if (isPrimary) {
+    Button(
+      onClick = onClick,
+      enabled = enabled,
+      shape = RoundedCornerShape(16.dp),
+      modifier = modifier,
+    ) {
+      Text(text = label)
+    }
+  } else {
+    OutlinedButton(
+      onClick = onClick,
+      enabled = enabled,
+      shape = RoundedCornerShape(16.dp),
+      modifier = modifier,
+    ) {
+      Text(text = label)
+    }
+  }
+}
+
+@Composable
+private fun OrDivider() {
+  Row(
+    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    HorizontalDivider(
+      modifier = Modifier.weight(1f),
+      color = MaterialTheme.colorScheme.outlineVariant
+    )
+    Text(
+      text = stringResource(R.string.login_or),
+      style = MaterialTheme.typography.labelMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      modifier = Modifier.padding(horizontal = 12.dp),
+    )
+    HorizontalDivider(
+      modifier = Modifier.weight(1f),
+      color = MaterialTheme.colorScheme.outlineVariant
+    )
+  }
+}
+
+/** Secondary action under the sign-in options; only shown when the `skip_login` setting is on. */
 @Composable
 private fun ColumnScope.ContinueWithoutLogin(onClick: () -> Unit) {
   HorizontalDivider(
@@ -258,82 +403,6 @@ private fun ColumnScope.ContinueWithoutLogin(onClick: () -> Unit) {
     textAlign = TextAlign.Center,
     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
   )
-}
-
-@Composable
-fun BasicLoginScreen(
-  uiState: LoginUiState,
-  onLoginClick: (String, String) -> Unit,
-  modifier: Modifier = Modifier,
-  onContinueWithoutLogin: (() -> Unit)? = null,
-) {
-  var username by remember { mutableStateOf("") }
-  var password by remember { mutableStateOf("") }
-  var isPasswordVisible by remember { mutableStateOf(false) }
-  val passwordFocus = remember { FocusRequester() }
-
-  LoginFrame(
-    logoTag = "BasicLoginLogo",
-    screenTag = "BasicLoginScreen",
-    modifier = modifier,
-    showServerSettings = true,
-  ) {
-    if (uiState is LoginUiState.Loading) {
-      LinearProgressIndicator(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).testTag("BasicLoginProgress"),
-      )
-    }
-    OutlinedTextField(
-      value = username,
-      onValueChange = { username = it },
-      modifier = Modifier.fillMaxWidth().testTag("BasicLoginUsername"),
-      label = { Text(text = stringResource(id = R.string.username)) },
-      leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = null) },
-      singleLine = true,
-      shape = RoundedCornerShape(16.dp),
-      keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-      keyboardActions = KeyboardActions(onNext = { passwordFocus.requestFocus() }),
-    )
-    Spacer(modifier = Modifier.height(16.dp))
-    OutlinedTextField(
-      value = password,
-      onValueChange = { password = it },
-      modifier =
-        Modifier.fillMaxWidth().focusRequester(passwordFocus).testTag("BasicLoginPassword"),
-      label = { Text(text = stringResource(id = R.string.password)) },
-      leadingIcon = { Icon(imageVector = Icons.Filled.Lock, contentDescription = null) },
-      singleLine = true,
-      shape = RoundedCornerShape(16.dp),
-      visualTransformation =
-        if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-      keyboardOptions =
-        KeyboardOptions(imeAction = ImeAction.Done, keyboardType = KeyboardType.Password),
-      keyboardActions = KeyboardActions(onDone = { onLoginClick(username, password) }),
-      trailingIcon = {
-        val icon = if (isPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility
-        val contentDescription =
-          if (isPasswordVisible) {
-            stringResource(id = R.string.hide_password)
-          } else {
-            stringResource(id = R.string.show_password)
-          }
-        IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
-          Icon(imageVector = icon, contentDescription = contentDescription)
-        }
-      },
-    )
-    Spacer(modifier = Modifier.height(24.dp))
-    Button(
-      onClick = { onLoginClick(username, password) },
-      shape = RoundedCornerShape(16.dp),
-      modifier = Modifier.fillMaxWidth().height(52.dp).testTag("BasicLoginButton"),
-    ) {
-      Text(text = stringResource(id = R.string.button_login))
-    }
-    if (onContinueWithoutLogin != null) {
-      ContinueWithoutLogin(onClick = onContinueWithoutLogin)
-    }
-  }
 }
 
 @Composable

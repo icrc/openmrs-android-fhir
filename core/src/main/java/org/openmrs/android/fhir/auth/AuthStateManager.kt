@@ -118,10 +118,35 @@ class AuthStateManager private constructor(private val context: Context) {
     }
   }
 
+  /** The sign-in methods the login page offers, as configured by `auth_method`. */
+  fun getOfferedAuthMethods(): Set<AuthMethod> =
+    AuthMethod.offeredBy(FhirApplication.authMethod(context))
+
+  /**
+   * The method the current session was signed in with. With a single configured method that is the
+   * method; when the login page offers both, it is the one the user last signed in with.
+   */
   fun getAuthMethod(): AuthMethod {
-    val authMethod = FhirApplication.authMethod(context)
-    return AuthMethod.fromValue(authMethod)
+    val offered = getOfferedAuthMethods()
+    if (offered.size == 1) return offered.first()
+    val stored =
+      activeMethodPrefs.getString(ACTIVE_METHOD_KEY, null)?.let {
+        runCatching { AuthMethod.fromValue(it) }.getOrNull()
+      }
+    return stored?.takeIf { it in offered }
+      ?: if (AuthMethod.OPENID in offered && current.isAuthorized) {
+        AuthMethod.OPENID
+      } else {
+        AuthMethod.BASIC
+      }
   }
+
+  fun setActiveAuthMethod(method: AuthMethod) {
+    activeMethodPrefs.edit().putString(ACTIVE_METHOD_KEY, method.value).apply()
+  }
+
+  private val activeMethodPrefs
+    get() = context.getSharedPreferences(ACTIVE_METHOD_PREFS, Context.MODE_PRIVATE)
 
   suspend fun isAuthenticated(): Boolean {
     val authMethod = getAuthMethod()
@@ -228,11 +253,14 @@ class AuthStateManager private constructor(private val context: Context) {
 
   suspend fun clearAuthDataStore() {
     context.dataStore.edit { it.clear() }
+    activeMethodPrefs.edit().remove(ACTIVE_METHOD_KEY).apply()
   }
 
   companion object {
     @SuppressLint("StaticFieldLeak") private var INSTANCE: AuthStateManager? = null
 
+    private const val ACTIVE_METHOD_PREFS = "auth_active_method"
+    private const val ACTIVE_METHOD_KEY = "method"
     private const val MAX_FAILED_ATTEMPTS = 5
     private const val MAX_LOCKOUT_DURATION_MINS = 5
     private var BASIC_AUTH_EXPIRY_HOURS = 24

@@ -33,6 +33,7 @@ val stringSettings =
     "diagnostics_password",
     // authentication
     "auth_method",
+    "sso_provider_name",
     "auth_authorization_scope",
     "auth_client_id",
     "auth_redirect_uri_host",

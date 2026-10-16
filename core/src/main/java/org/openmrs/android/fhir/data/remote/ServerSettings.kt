@@ -65,8 +65,11 @@ object ServerSettings {
 
   fun setOverride(context: Context, baseUrl: String?) {
     val editor = prefs(context).edit()
-    if (baseUrl.isNullOrBlank()) editor.remove(KEY_SERVER_URL)
-    else editor.putString(KEY_SERVER_URL, baseUrl)
+    if (baseUrl.isNullOrBlank()) {
+      editor.remove(KEY_SERVER_URL)
+    } else {
+      editor.putString(KEY_SERVER_URL, baseUrl)
+    }
     // commit(), not apply(): the app is restarted right after and must not lose the choice.
     editor.commit()
   }

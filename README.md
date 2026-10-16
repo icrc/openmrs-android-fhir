@@ -14,7 +14,7 @@ The app builds from public artifacts (Google Maven, Maven Central); **no GitHub 
 
 2. **Point the app at your server:**
    - Set `openmrs_server_url` (for example `http://10.0.2.2:8080/openmrs` from the Android emulator). The FHIR, REST and connectivity-check URLs are derived from it.
-   - Set `auth_method` to `basic` or `openid` (see below).
+   - Set `auth_method` to `basic`, `openid` or `both` (see below).
 
 3. **Modify Additional Properties:**
    - Modify other properties (e.g., explicit URLs, OAuth2) **only if** you are using a custom OpenMRS or Keycloak setup. A misspelled property name is reported as a warning during the build.
@@ -40,13 +40,27 @@ You can run the OpenMRS Server and Keycloak using one of the following options:
 
 ## 🔒 Authentication Methods
 
-This project supports the following authentication methods:
-- **Basic Auth**
-- **OAuth2**
+There is **one login page**. The `auth_method` build setting (in `local.properties`) decides what it offers:
 
-Update the `auth_method` property in your configuration to:
-- `"basic"` for Basic Auth
-- `"openid"` for OAuth2
+| `auth_method` | Login page |
+| --- | --- |
+| `basic` | username and password |
+| `openid` | single sign-on (SSO) button |
+| `both` | the form, then an **or** divider and the SSO button |
+
+The SSO provider is configured at build level too (all optional when the provider publishes a discovery document):
+
+| Property | Meaning |
+| --- | --- |
+| `auth_discovery_uri` | OpenID Connect discovery URL (`.../.well-known/openid-configuration`) |
+| `auth_client_id`, `auth_authorization_scope` | client registered for the app and the scopes requested |
+| `auth_redirect_uri_host`, `auth_redirect_uri_path` | redirect the provider returns to |
+| `auth_authorization_endpoint_uri`, `auth_token_endpoint_uri`, `auth_user_info_endpoint_uri`, `auth_registration_endpoint_uri`, `auth_end_session_endpoint` | explicit endpoints, used when there is no discovery URL |
+| `auth_https_required`, `auth_replace_localhost_by_10_0_2_2` | allow plain http / map `localhost` to the emulator host (development) |
+| `sso_provider_name` | label of the button: `Sign in with <name>` (default `Sign in with SSO`) |
+
+With `both` the app remembers which method the session was opened with, so API calls and logout use the right one.
+`skip_login=true` adds **Continue without signing in** to the same page.
 
 ---
 
@@ -70,7 +84,7 @@ Use the optional `first_fhir_sync_url` property when you need a different search
 Two properties help control how patient lists are filtered during syncs driven by group resources:
 
 
-- `skip_login` (boolean, default `false`) adds **Continue without signing in** to the login screens. The user can then register patients and fill the bundled questionnaires without a server; syncing asks them to sign in, and everything entered is kept.
+- `skip_login` (boolean, default `false`) adds **Continue without signing in** to the login page. The user can then register patients and fill the bundled questionnaires without a server; syncing asks them to sign in, and everything entered is kept.
 - `filter_patient_lists_by_group` (boolean) limits Group queries to the user’s selected location by adding a `location` search parameter when enabled.
 - `cohort-type` (UUID) appends a `cohort-type` parameter to Group requests when provided, allowing you to scope patient lists to a specific cohort definition on both initial and incremental sync paths.
   Define these properties in `local.properties` (see `local.properties.default` for examples and defaults).

@@ -586,6 +586,9 @@
     <string name="offline_login_reset_done">تمت إعادة تعيين تسجيل الدخول دون اتصال.</string>
     <string name="offline_login_not_set_status">لم يتم إعداد تسجيل الدخول دون اتصال بعد. سيُطلب منك ذلك عند تسجيل الدخول التالي.</string>
     <string name="continue_without_login">المتابعة دون تسجيل الدخول</string>
+    <string name="sign_in_with_sso">تسجيل الدخول عبر SSO</string>
+    <string name="sign_in_with_provider">تسجيل الدخول عبر %1$s</string>
+    <string name="login_or">أو</string>
     <string name="continue_without_login_hint">سجّل المرضى واملأ النماذج دون اتصال. سيُطلب منك تسجيل الدخول عند المزامنة.</string>
     <string name="sign_in_to_sync_title">سجّل الدخول للمزامنة</string>
     <string name="sign_in_to_sync_message">لرفع المرضى والنماذج التي أدخلتها، سجّل الدخول أولاً. كل ما أدخلته يبقى على هذا الجهاز.</string>

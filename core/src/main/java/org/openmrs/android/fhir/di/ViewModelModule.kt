@@ -33,7 +33,6 @@ import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap
 import org.openmrs.android.fhir.viewmodel.AddPatientViewModel
-import org.openmrs.android.fhir.viewmodel.BasicLoginActivityViewModel
 import org.openmrs.android.fhir.viewmodel.CreateEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.HomeViewModel
 import org.openmrs.android.fhir.viewmodel.IdentifierSelectionViewModel
@@ -102,11 +101,6 @@ abstract class ViewModelModule {
   @IntoMap
   @ViewModelKey(HomeViewModel::class)
   abstract fun bindHomeViewModel(viewmodel: HomeViewModel): ViewModel
-
-  @Binds
-  @IntoMap
-  @ViewModelKey(BasicLoginActivityViewModel::class)
-  abstract fun bindBasicLoginActivityViewModel(viewmodel: BasicLoginActivityViewModel): ViewModel
 
   @Binds
   @IntoMap

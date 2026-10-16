@@ -671,6 +671,9 @@
     <string name="offline_login_reset_done">Вход без подключения сброшен.</string>
     <string name="offline_login_not_set_status">Вход без подключения ещё не настроен. Его предложат при следующем входе.</string>
     <string name="continue_without_login">Продолжить без входа</string>
+    <string name="sign_in_with_sso">Войти через SSO</string>
+    <string name="sign_in_with_provider">Войти через %1$s</string>
+    <string name="login_or">или</string>
     <string name="continue_without_login_hint">Регистрируйте пациентов и заполняйте формы без подключения. При синхронизации потребуется войти.</string>
     <string name="sign_in_to_sync_title">Войдите, чтобы синхронизировать</string>
     <string name="sign_in_to_sync_message">Чтобы отправить введённых пациентов и формы, сначала войдите. Всё введённое останется на этом устройстве.</string>

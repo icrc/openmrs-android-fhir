@@ -668,13 +668,8 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun launchSignIn() {
-    val loginActivity =
-      when (authStateManager.getAuthMethod()) {
-        AuthMethod.BASIC -> BasicLoginActivity::class.java
-        AuthMethod.OPENID -> LoginActivity::class.java
-      }
     signInLauncher.launch(
-      Intent(this, loginActivity).putExtra(GuestSession.EXTRA_SIGN_IN_FROM_GUEST, true),
+      Intent(this, LoginActivity::class.java).putExtra(GuestSession.EXTRA_SIGN_IN_FROM_GUEST, true),
     )
   }
 
@@ -953,7 +948,7 @@ class MainActivity : AppCompatActivity() {
           authStateManager.clearAuthDataStore()
           applicationContext.dataStore.edit { preferences -> preferences.clear() }
         }
-        startActivity(Intent(this, BasicLoginActivity::class.java))
+        startActivity(Intent(this, LoginActivity::class.java))
         finish()
       }
       AuthMethod.OPENID -> {

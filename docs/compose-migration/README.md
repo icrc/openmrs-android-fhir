@@ -16,7 +16,7 @@ The main entry-point activities now render their UI with Jetpack Compose while p
 
 ## Activity-level routing
 
-* `SplashActivity`, `LoginActivity`, `BasicLoginActivity`, and `MainActivity` now call `setContent {}` to host Compose UI.
+* `SplashActivity`, `LoginActivity` (basic and SSO on one page), and `MainActivity` now call `setContent {}` to host Compose UI.
 * Each activity owns a small Compose `NavHost` for its route (`splash`, `login`, `basic_login`, `main`) and preserves intent-based transitions between activities.
 * Remaining XML fragments stay in the `reference_nav_graph` navigation graph and are hosted from Compose.
 

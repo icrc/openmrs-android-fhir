@@ -31,24 +31,50 @@ package org.openmrs.android.fhir.viewmodel
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Base64
 import androidx.biometric.BiometricManager
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 import org.openmrs.android.fhir.LoginRepository
+import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.AuthMethod
+import org.openmrs.android.fhir.auth.AuthStateManager
+import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.remote.ApiResponse
+import org.openmrs.android.fhir.data.remote.model.SessionResponse
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import timber.log.Timber
 
+/**
+ * Backs the one login page: signing in with a username and password (basic) and with the single
+ * sign-on provider (OpenID). Which of the two the page offers is the `auth_method` build setting.
+ */
 class LoginActivityViewModel
 @Inject
 constructor(
   private val applicationContext: Context,
+  private val apiManager: ApiManager,
 ) : ViewModel() {
 
   private val loginRepository by lazy { LoginRepository.getInstance(applicationContext) }
+  private val authStateManager by lazy { AuthStateManager.getInstance(applicationContext) }
+
+  /** The sign-in methods the login page shows. */
+  val offeredMethods: Set<AuthMethod> by lazy { authStateManager.getOfferedAuthMethods() }
+
+  private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
+  val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
   var sessionTokenToEncrypt: String? = null
+
+  // ---- Single sign-on (OpenID) ----------------------------------------------------------------
 
   suspend fun createIntent(): Intent? {
     loginRepository.updateAuthIfConfigurationChanged()
@@ -67,48 +93,10 @@ constructor(
 
     when {
       response?.authorizationCode != null -> {
+        authStateManager.setActiveAuthMethod(AuthMethod.OPENID)
         loginRepository.exchangeCodeForToken(response, ex)
         try {
-          val bm = BiometricManager.from(applicationContext)
-
-          val canBioStrong = bm.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-          val canBioOrCred =
-            bm.canAuthenticate(
-              BiometricManager.Authenticators.BIOMETRIC_STRONG or
-                BiometricManager.Authenticators.DEVICE_CREDENTIAL,
-            )
-
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            // API 30+: always use per-use with biometrics or device credential
-            if (canBioOrCred == BiometricManager.BIOMETRIC_SUCCESS) {
-              BiometricUtils.createBiometricKeyIfNotExists(
-                applicationContext,
-                canBioStrong = canBioStrong == BiometricManager.BIOMETRIC_SUCCESS,
-              )
-            } else {
-              // TODO: Add intent for device credential setup
-              // handle no-credential/no-biometrics case (fallback UI, PIN setup, etc.)
-            }
-          } else {
-            // API 23–29: pick the flow
-            val legacyFlow =
-              when {
-                // If strong biometrics present, prefer per-use biometrics (CryptoObject path)
-                canBioStrong == BiometricManager.BIOMETRIC_SUCCESS ->
-                  LegacyAuthFlow.BIOMETRIC_PER_USE
-
-                // If (bio OR device PIN) is available, use validity window so PIN works
-                canBioOrCred == BiometricManager.BIOMETRIC_SUCCESS ->
-                  LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW
-                else -> LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW // conservative fallback
-              }
-
-            BiometricUtils.createBiometricKeyIfNotExists(
-              applicationContext,
-              legacyFlow = legacyFlow,
-              validityWindowSeconds = 30,
-            )
-          }
+          createBiometricKey()
           val token = loginRepository.getAccessToken()
           if (token.isNotBlank()) {
             sessionTokenToEncrypt = token
@@ -121,4 +109,112 @@ constructor(
       else -> Timber.e("No authorization state retained - reauthorization required")
     }
   }
+
+  // ---- Username and password (basic) ----------------------------------------------------------
+
+  fun login(username: String, password: String) =
+    viewModelScope.launch {
+      _uiState.value = LoginUiState.Loading
+
+      if (authStateManager.isLockedOut()) {
+        _uiState.value = LoginUiState.LockedOut
+        return@launch
+      }
+
+      validateCredentials(username, password)
+    }
+
+  private suspend fun validateCredentials(username: String, password: String) {
+    if (username.isEmpty() || password.isEmpty()) {
+      _uiState.value = LoginUiState.Failure(R.string.username_password_empty)
+      return
+    }
+
+    val credentials = "$username:$password"
+    val encodedCredentials = Base64.encodeToString(credentials.toByteArray(), Base64.NO_WRAP)
+
+    when (val response = apiManager.validateSession("Basic $encodedCredentials")) {
+      is ApiResponse.Success<SessionResponse> -> {
+        val authenticated = response.data?.authenticated == true
+        if (!authenticated) {
+          authStateManager.incrementFailedAttempts()
+          _uiState.value = LoginUiState.Failure(R.string.invalid_username_password)
+          return
+        }
+
+        authStateManager.updateBasicAuthCredentials(username, password)
+        authStateManager.setActiveAuthMethod(AuthMethod.BASIC)
+        createBiometricKey()
+
+        sessionTokenToEncrypt = encodedCredentials
+        _uiState.value = LoginUiState.Success
+      }
+      is ApiResponse.NoInternetConnection -> {
+        _uiState.value = LoginUiState.Failure(R.string.no_internet_connection)
+      }
+      else -> {
+        _uiState.value = LoginUiState.Failure(R.string.something_went_wrong)
+      }
+    }
+  }
+
+  /** The key that protects the offline login, created once a session exists. */
+  private fun createBiometricKey() {
+    val bm = BiometricManager.from(applicationContext)
+
+    val canBioStrong = bm.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+    val canBioOrCred =
+      bm.canAuthenticate(
+        BiometricManager.Authenticators.BIOMETRIC_STRONG or
+          BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+      )
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      // API 30+: always use per-use with biometrics or device credential
+      if (canBioOrCred == BiometricManager.BIOMETRIC_SUCCESS) {
+        BiometricUtils.createBiometricKeyIfNotExists(
+          applicationContext,
+          canBioStrong = canBioStrong == BiometricManager.BIOMETRIC_SUCCESS,
+        )
+      } else {
+        // TODO: Add intent for device credential setup
+        // handle no-credential/no-biometrics case (fallback UI, PIN setup, etc.)
+      }
+    } else {
+      // API 23–29: pick the flow
+      val legacyFlow =
+        when {
+          // If strong biometrics present, prefer per-use biometrics (CryptoObject path)
+          canBioStrong == BiometricManager.BIOMETRIC_SUCCESS -> LegacyAuthFlow.BIOMETRIC_PER_USE
+
+          // If (bio OR device PIN) is available, use validity window so PIN works
+          canBioOrCred == BiometricManager.BIOMETRIC_SUCCESS ->
+            LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW
+          else -> LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW // conservative fallback
+        }
+
+      BiometricUtils.createBiometricKeyIfNotExists(
+        applicationContext,
+        legacyFlow = legacyFlow,
+        validityWindowSeconds = 30,
+      )
+    }
+  }
+}
+
+sealed class LoginUiState {
+  object Idle : LoginUiState()
+
+  object LockedOut : LoginUiState()
+
+  object Loading : LoginUiState()
+
+  object Success : LoginUiState()
+
+  data class Failure(val resId: Int) : LoginUiState()
+}
+
+enum class LegacyAuthFlow {
+  BIOMETRIC_PER_USE, // per-use auth via CryptoObject (biometrics only)
+  DEVICE_CRED_VALIDITY_WINDOW, // allow device credential by using a validity window
 }

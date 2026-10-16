@@ -680,6 +680,9 @@
     <string name="offline_login_reset_done">Connexion hors ligne réinitialisée.</string>
     <string name="offline_login_not_set_status">La connexion hors ligne n\'est pas encore configurée. Elle vous sera proposée à la prochaine connexion.</string>
     <string name="continue_without_login">Continuer sans se connecter</string>
+    <string name="sign_in_with_sso">Se connecter avec le SSO</string>
+    <string name="sign_in_with_provider">Se connecter avec %1$s</string>
+    <string name="login_or">ou</string>
     <string name="continue_without_login_hint">Enregistrez des patients et remplissez les formulaires hors ligne. La connexion vous sera demandée à la synchronisation.</string>
     <string name="sign_in_to_sync_title">Se connecter pour synchroniser</string>
     <string name="sign_in_to_sync_message">Pour envoyer les patients et formulaires saisis, connectez-vous d\u2019abord. Tout ce que vous avez saisi reste sur cet appareil.</string>

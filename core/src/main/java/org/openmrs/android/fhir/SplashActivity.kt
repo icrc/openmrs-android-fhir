@@ -53,7 +53,6 @@ import androidx.navigation.compose.rememberNavController
 import java.util.concurrent.Executor
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
@@ -302,12 +301,7 @@ class SplashActivity : AppCompatActivity() {
   }
 
   private fun redirectToAuthFlow() {
-    val intent =
-      when (authStateManager.getAuthMethod()) {
-        AuthMethod.BASIC -> Intent(this, BasicLoginActivity::class.java)
-        AuthMethod.OPENID -> Intent(this, LoginActivity::class.java)
-      }
-    startActivity(intent)
+    startActivity(Intent(this, LoginActivity::class.java))
     finish()
   }
 

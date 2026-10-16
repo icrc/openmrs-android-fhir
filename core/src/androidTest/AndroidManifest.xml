@@ -15,15 +15,6 @@
       </intent-filter>
     </activity>
     <activity
-            android:name="org.openmrs.android.fhir.BasicLoginActivity"
-            android:theme="@style/TestAppTheme"
-        >
-      <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-      </intent-filter>
-    </activity>
-    <activity
             android:name="org.openmrs.android.fhir.SplashActivity"
             android:theme="@style/TestAppTheme"
         >

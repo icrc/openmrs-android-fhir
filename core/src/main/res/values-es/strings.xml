@@ -652,6 +652,9 @@
     <string name="offline_login_reset_done">Acceso sin conexión restablecido.</string>
     <string name="offline_login_not_set_status">El acceso sin conexión aún no está configurado. Se le preguntará en el próximo inicio de sesión.</string>
     <string name="continue_without_login">Continuar sin iniciar sesión</string>
+    <string name="sign_in_with_sso">Iniciar sesión con SSO</string>
+    <string name="sign_in_with_provider">Iniciar sesión con %1$s</string>
+    <string name="login_or">o</string>
     <string name="continue_without_login_hint">Registre pacientes y complete los formularios sin conexión. Se le pedirá iniciar sesión al sincronizar.</string>
     <string name="sign_in_to_sync_title">Inicie sesión para sincronizar</string>
     <string name="sign_in_to_sync_message">Para subir los pacientes y formularios que ingresó, inicie sesión primero. Todo lo que ingresó permanece en este dispositivo.</string>
