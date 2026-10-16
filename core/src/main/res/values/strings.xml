@@ -600,4 +600,16 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="settings_section_sync">Synchronization</string>
     <string name="settings_section_forms">Forms</string>
     <string name="settings_initial_sync_description">Run a full synchronization with the server now.</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="theme_system">System default</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="settings_section_security">Security</string>
+    <string name="offline_login_enabled_status">Offline login is on for this device.</string>
+    <string name="offline_login_disabled_status">Offline login was not enabled on this device. Reset to be asked again at your next login.</string>
+    <string name="reset_offline_login">Reset offline login</string>
+    <string name="reset_offline_login_confirm_title">Reset offline login?</string>
+    <string name="reset_offline_login_confirm_message">The saved offline login is removed. You will be asked to set it up again the next time you log in.</string>
+    <string name="offline_login_reset_done">Offline login reset.</string>
+    <string name="offline_login_not_set_status">Offline login is not set up yet. You will be asked at your next login.</string>
 </resources>

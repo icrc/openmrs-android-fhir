@@ -639,4 +639,16 @@
     <string name="settings_section_sync">Sincronización</string>
     <string name="settings_section_forms">Formularios</string>
     <string name="settings_initial_sync_description">Ejecuta ahora una sincronización completa con el servidor.</string>
+    <string name="settings_section_appearance">Apariencia</string>
+    <string name="theme_system">Predeterminado del sistema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+    <string name="settings_section_security">Seguridad</string>
+    <string name="offline_login_enabled_status">El acceso sin conexión está activado en este dispositivo.</string>
+    <string name="offline_login_disabled_status">El acceso sin conexión no se activó en este dispositivo. Restablezca para que se le pregunte en el próximo inicio de sesión.</string>
+    <string name="reset_offline_login">Restablecer acceso sin conexión</string>
+    <string name="reset_offline_login_confirm_title">¿Restablecer el acceso sin conexión?</string>
+    <string name="reset_offline_login_confirm_message">Se elimina el acceso sin conexión guardado. Se le pedirá configurarlo de nuevo en el próximo inicio de sesión.</string>
+    <string name="offline_login_reset_done">Acceso sin conexión restablecido.</string>
+    <string name="offline_login_not_set_status">El acceso sin conexión aún no está configurado. Se le preguntará en el próximo inicio de sesión.</string>
 </resources>

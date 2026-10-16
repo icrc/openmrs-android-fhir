@@ -108,11 +108,16 @@ class BasicLoginActivity : AppCompatActivity() {
               showToastMessage(getString((loginUiState as LoginUiState.Failure).resId))
             is LoginUiState.LockedOut -> showToastMessage(getString(R.string.locked_out_message))
             is LoginUiState.Success ->
-              AuthDialogs.showOfflineLoginOptIn(
-                activity = this@BasicLoginActivity,
-                onProceedWithBiometric = { promptBiometricEncryption() },
-                navigateToMain = { navigateToMain() },
-              )
+              if (BiometricUtils.hasOfflineLoginDecision(this@BasicLoginActivity)) {
+                navigateToMain()
+              } else {
+                AuthDialogs.showOfflineLoginOptIn(
+                  activity = this@BasicLoginActivity,
+                  onProceedWithBiometric = { promptBiometricEncryption() },
+                  navigateToMain = { navigateToMain() },
+                  onDeclined = { BiometricUtils.setOfflineLoginDeclined(this@BasicLoginActivity) },
+                )
+              }
             else -> Unit
           }
         }

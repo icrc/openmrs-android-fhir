@@ -667,4 +667,16 @@
     <string name="settings_section_sync">Synchronisation</string>
     <string name="settings_section_forms">Formulaires</string>
     <string name="settings_initial_sync_description">Lance dès maintenant une synchronisation complète avec le serveur.</string>
+    <string name="settings_section_appearance">Apparence</string>
+    <string name="theme_system">Par défaut du système</string>
+    <string name="theme_light">Clair</string>
+    <string name="theme_dark">Sombre</string>
+    <string name="settings_section_security">Sécurité</string>
+    <string name="offline_login_enabled_status">La connexion hors ligne est activée sur cet appareil.</string>
+    <string name="offline_login_disabled_status">La connexion hors ligne n\'a pas été activée sur cet appareil. Réinitialisez pour qu\'elle vous soit reproposée à la prochaine connexion.</string>
+    <string name="reset_offline_login">Réinitialiser la connexion hors ligne</string>
+    <string name="reset_offline_login_confirm_title">Réinitialiser la connexion hors ligne ?</string>
+    <string name="reset_offline_login_confirm_message">La connexion hors ligne enregistrée est supprimée. Elle vous sera proposée à nouveau à la prochaine connexion.</string>
+    <string name="offline_login_reset_done">Connexion hors ligne réinitialisée.</string>
+    <string name="offline_login_not_set_status">La connexion hors ligne n\'est pas encore configurée. Elle vous sera proposée à la prochaine connexion.</string>
 </resources>

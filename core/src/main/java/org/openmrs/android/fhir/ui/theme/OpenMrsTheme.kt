@@ -28,7 +28,6 @@
 */
 package org.openmrs.android.fhir.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -39,6 +38,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import org.openmrs.android.fhir.extensions.isAppInDarkTheme
 
 /**
  * Colors the Material 3 scheme has no role for: the dark action buttons used across the app and the
@@ -154,7 +154,7 @@ object OpenMrsTheme {
  * setting consistently with the XML screens, which already use a DayNight theme.
  */
 @Composable
-fun OpenMrsTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+fun OpenMrsTheme(darkTheme: Boolean = isAppInDarkTheme(), content: @Composable () -> Unit) {
   CompositionLocalProvider(
     LocalAppColors provides if (darkTheme) DarkAppColors else LightAppColors,
   ) {

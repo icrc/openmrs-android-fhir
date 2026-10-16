@@ -73,6 +73,7 @@ object AuthDialogs {
     activity: Activity,
     onProceedWithBiometric: () -> Unit,
     navigateToMain: () -> Unit,
+    onDeclined: () -> Unit = {},
     title: CharSequence = activity.getString(R.string.enable_offline_login_title),
     message: CharSequence = activity.getString(R.string.enable_offline_login_body),
     positiveText: CharSequence = activity.getString(R.string.enable_offline_login_positive),
@@ -104,7 +105,10 @@ object AuthDialogs {
             navigateToMain()
           }
         },
-        onDismiss = navigateToMain,
+        onDismiss = {
+          onDeclined()
+          navigateToMain()
+        },
       )
     if (composeDialogState != null) {
       return
@@ -133,7 +137,10 @@ object AuthDialogs {
           navigateToMain()
         }
       }
-      .setNegativeButton(negativeText) { _, _ -> navigateToMain() }
+      .setNegativeButton(negativeText) { _, _ ->
+        onDeclined()
+        navigateToMain()
+      }
       .setCancelable(false)
       .show()
   }

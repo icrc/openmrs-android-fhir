@@ -55,6 +55,7 @@ object BiometricUtils {
   private const val IV_KEY = "encrypted_iv"
   private const val BIOMETRIC_ENROLLED_KEY = "biometric_enrolled"
   private const val OFFLINE_AUTH_METHOD_KEY = "offline_auth_method"
+  private const val OFFLINE_LOGIN_DECLINED_KEY = "offline_login_declined"
 
   /** Creates a biometric key in the AndroidKeyStore if it does not already exist. */
   fun createBiometricKeyIfNotExists(
@@ -172,6 +173,30 @@ object BiometricUtils {
   fun updateBiometricEnrollmentState(context: Context) {
     val current = isBiometricEnrolled(context)
     getSharedPrefs(context).edit { putBoolean(BIOMETRIC_ENROLLED_KEY, current) }
+  }
+
+  /**
+   * True once the user has answered the "enable offline login?" question, either by enabling it or
+   * by choosing not to. The question is not asked again until [resetOfflineLogin].
+   */
+  fun hasOfflineLoginDecision(context: Context): Boolean =
+    getOfflineAuthMethod(context) != null ||
+      getSharedPrefs(context).getBoolean(OFFLINE_LOGIN_DECLINED_KEY, false)
+
+  fun setOfflineLoginDeclined(context: Context) {
+    getSharedPrefs(context).edit { putBoolean(OFFLINE_LOGIN_DECLINED_KEY, true) }
+  }
+
+  /** Forgets the saved offline login and the answer, so the next login asks again. */
+  fun resetOfflineLogin(context: Context) {
+    deleteBiometricKey(context)
+    getSharedPrefs(context).edit {
+      remove(TOKEN_KEY)
+      remove(IV_KEY)
+      remove(BIOMETRIC_ENROLLED_KEY)
+      remove(OFFLINE_AUTH_METHOD_KEY)
+      remove(OFFLINE_LOGIN_DECLINED_KEY)
+    }
   }
 
   fun setOfflineAuthMethod(context: Context, method: OfflineAuthMethod) {

@@ -93,11 +93,16 @@ class LoginActivity : AppCompatActivity() {
             val response = result.data?.let { AuthorizationResponse.fromIntent(it) }
             val ex = AuthorizationException.fromIntent(result.data)
             viewModel.handleLoginResponse(response, ex)
-            AuthDialogs.showOfflineLoginOptIn(
-              activity = this@LoginActivity,
-              onProceedWithBiometric = { promptBiometricEncryption() },
-              navigateToMain = { navigateToMain() },
-            )
+            if (BiometricUtils.hasOfflineLoginDecision(this@LoginActivity)) {
+              navigateToMain()
+            } else {
+              AuthDialogs.showOfflineLoginOptIn(
+                activity = this@LoginActivity,
+                onProceedWithBiometric = { promptBiometricEncryption() },
+                navigateToMain = { navigateToMain() },
+                onDeclined = { BiometricUtils.setOfflineLoginDeclined(this@LoginActivity) },
+              )
+            }
           }
         }
       }

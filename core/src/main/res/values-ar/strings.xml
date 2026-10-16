@@ -573,4 +573,16 @@
     <string name="settings_section_sync">المزامنة</string>
     <string name="settings_section_forms">النماذج</string>
     <string name="settings_initial_sync_description">تشغيل مزامنة كاملة مع الخادم الآن.</string>
+    <string name="settings_section_appearance">المظهر</string>
+    <string name="theme_system">افتراضي النظام</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_dark">داكن</string>
+    <string name="settings_section_security">الأمان</string>
+    <string name="offline_login_enabled_status">تسجيل الدخول دون اتصال مفعّل على هذا الجهاز.</string>
+    <string name="offline_login_disabled_status">لم يتم تفعيل تسجيل الدخول دون اتصال على هذا الجهاز. أعد التعيين ليُطلب منك مجددًا عند تسجيل الدخول التالي.</string>
+    <string name="reset_offline_login">إعادة تعيين تسجيل الدخول دون اتصال</string>
+    <string name="reset_offline_login_confirm_title">إعادة تعيين تسجيل الدخول دون اتصال؟</string>
+    <string name="reset_offline_login_confirm_message">سيتم حذف تسجيل الدخول دون اتصال المحفوظ. سيُطلب منك إعداده مجددًا عند تسجيل الدخول التالي.</string>
+    <string name="offline_login_reset_done">تمت إعادة تعيين تسجيل الدخول دون اتصال.</string>
+    <string name="offline_login_not_set_status">لم يتم إعداد تسجيل الدخول دون اتصال بعد. سيُطلب منك ذلك عند تسجيل الدخول التالي.</string>
 </resources>

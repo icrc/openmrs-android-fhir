@@ -658,4 +658,16 @@
     <string name="settings_section_sync">Синхронизация</string>
     <string name="settings_section_forms">Формы</string>
     <string name="settings_initial_sync_description">Запустить полную синхронизацию с сервером сейчас.</string>
+    <string name="settings_section_appearance">Оформление</string>
+    <string name="theme_system">Как в системе</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Тёмная</string>
+    <string name="settings_section_security">Безопасность</string>
+    <string name="offline_login_enabled_status">Вход без подключения включён на этом устройстве.</string>
+    <string name="offline_login_disabled_status">Вход без подключения не был включён на этом устройстве. Сбросьте, чтобы его снова предложили при следующем входе.</string>
+    <string name="reset_offline_login">Сбросить вход без подключения</string>
+    <string name="reset_offline_login_confirm_title">Сбросить вход без подключения?</string>
+    <string name="reset_offline_login_confirm_message">Сохранённый вход без подключения будет удалён. При следующем входе его снова предложат настроить.</string>
+    <string name="offline_login_reset_done">Вход без подключения сброшен.</string>
+    <string name="offline_login_not_set_status">Вход без подключения ещё не настроен. Его предложат при следующем входе.</string>
 </resources>

@@ -34,8 +34,11 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
@@ -52,6 +55,9 @@ import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.QuestionnaireUpdater
+import org.openmrs.android.fhir.extensions.BiometricUtils
+import org.openmrs.android.fhir.extensions.ThemeMode
+import org.openmrs.android.fhir.extensions.ThemeModeStore
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.screens.SettingsDefaults
 import org.openmrs.android.fhir.ui.screens.SettingsScreen
@@ -68,6 +74,10 @@ class SettingsFragment : Fragment() {
   private val settingsViewModel by viewModels<SettingsViewModel> { viewModelFactory }
   private val questionnaireFetchViewModel by
     viewModels<QuestionnaireFetchViewModel> { viewModelFactory }
+  private val themeSelection = mutableStateOf(ThemeMode.SYSTEM)
+
+  /** true: enabled, false: declined, null: not answered yet. */
+  private val offlineLoginEnabled = mutableStateOf<Boolean?>(null)
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -79,7 +89,17 @@ class SettingsFragment : Fragment() {
       ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
     )
     composeView.setContent {
+      val context = androidx.compose.ui.platform.LocalContext.current
       val appBarHeight = rememberAppBarHeight()
+      LaunchedEffect(Unit) {
+        themeSelection.value = ThemeModeStore.get(context)
+        offlineLoginEnabled.value =
+          when {
+            BiometricUtils.getOfflineAuthMethod(context) != null -> true
+            BiometricUtils.hasOfflineLoginDecision(context) -> false
+            else -> null
+          }
+      }
       val uiState = settingsViewModel.uiState.collectAsStateWithLifecycle().value
       val isFetchingQuestionnaires by
         questionnaireFetchViewModel.isFetching.collectAsStateWithLifecycle()
@@ -94,10 +114,17 @@ class SettingsFragment : Fragment() {
           onPeriodicSyncDelaySelected = settingsViewModel::onPeriodicSyncDelaySelected,
           onInitialSyncClicked = settingsViewModel::onInitialSyncClicked,
           onCancelClicked = settingsViewModel::onCancelClicked,
-          onSaveClicked = settingsViewModel::onSaveClicked,
+          onSaveClicked = {
+            settingsViewModel.onSaveClicked()
+            ThemeModeStore.set(context, themeSelection.value)
+          },
           topPadding = appBarHeight,
           isFetchingQuestionnaires = isFetchingQuestionnaires,
           onFetchQuestionnairesClicked = questionnaireFetchViewModel::fetchQuestionnaires,
+          themeMode = themeSelection.value,
+          onThemeModeSelected = { themeSelection.value = it },
+          offlineLoginEnabled = offlineLoginEnabled.value,
+          onResetOfflineLoginClicked = ::confirmResetOfflineLogin,
         )
       }
     }
@@ -134,6 +161,20 @@ class SettingsFragment : Fragment() {
         }
       }
     }
+  }
+
+  private fun confirmResetOfflineLogin() {
+    AlertDialog.Builder(requireContext())
+      .setTitle(R.string.reset_offline_login_confirm_title)
+      .setMessage(R.string.reset_offline_login_confirm_message)
+      .setPositiveButton(R.string.reset_offline_login) { _, _ ->
+        BiometricUtils.resetOfflineLogin(requireContext())
+        offlineLoginEnabled.value = null
+        Toast.makeText(requireContext(), R.string.offline_login_reset_done, Toast.LENGTH_LONG)
+          .show()
+      }
+      .setNegativeButton(R.string.cancel, null)
+      .show()
   }
 
   private fun showQuestionnaireOutcome(outcome: QuestionnaireUpdater.Outcome) {

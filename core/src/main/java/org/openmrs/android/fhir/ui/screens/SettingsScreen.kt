@@ -52,6 +52,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -75,6 +76,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.extensions.ThemeMode
 import org.openmrs.android.fhir.viewmodel.SettingsUiState
 
 object SettingsDefaults {
@@ -89,6 +91,10 @@ object SettingsTestTags {
   const val PeriodicDelayField = "SettingsPeriodicDelayField"
   const val InitialSyncButton = "SettingsInitialSyncButton"
   const val FetchQuestionnairesButton = "SettingsFetchQuestionnairesButton"
+  const val ResetOfflineLoginButton = "SettingsResetOfflineLoginButton"
+  const val ThemeSystem = "SettingsThemeSystem"
+  const val ThemeLight = "SettingsThemeLight"
+  const val ThemeDark = "SettingsThemeDark"
   const val CancelButton = "SettingsCancelButton"
   const val SaveButton = "SettingsSaveButton"
 }
@@ -112,6 +118,10 @@ fun SettingsScreen(
   topPadding: Dp = 0.dp,
   isFetchingQuestionnaires: Boolean = false,
   onFetchQuestionnairesClicked: (() -> Unit)? = null,
+  themeMode: ThemeMode = ThemeMode.SYSTEM,
+  onThemeModeSelected: ((ThemeMode) -> Unit)? = null,
+  offlineLoginEnabled: Boolean? = null,
+  onResetOfflineLoginClicked: (() -> Unit)? = null,
   modifier: Modifier = Modifier,
 ) {
   Column(modifier = modifier.fillMaxSize()) {
@@ -139,6 +149,12 @@ fun SettingsScreen(
         )
       }
 
+      if (onThemeModeSelected != null) {
+        SettingsSection(title = stringResource(R.string.settings_section_appearance)) {
+          ThemeModeChoice(selected = themeMode, onSelected = onThemeModeSelected)
+        }
+      }
+
       SettingsSection(title = stringResource(R.string.settings_section_sync)) {
         SettingsDropdown(
           label = stringResource(R.string.token_check_delay_in_minutes),
@@ -164,6 +180,27 @@ fun SettingsScreen(
           inProgress = uiState.isInitialSyncInProgress,
           testTag = SettingsTestTags.InitialSyncButton,
         )
+      }
+
+      if (onResetOfflineLoginClicked != null) {
+        SettingsSection(title = stringResource(R.string.settings_section_security)) {
+          SettingsAction(
+            description =
+              stringResource(
+                when (offlineLoginEnabled) {
+                  true -> R.string.offline_login_enabled_status
+                  false -> R.string.offline_login_disabled_status
+                  null -> R.string.offline_login_not_set_status
+                },
+              ),
+            buttonText = stringResource(R.string.reset_offline_login),
+            icon = Icons.Default.Refresh,
+            onClick = onResetOfflineLoginClicked,
+            enabled = offlineLoginEnabled != null,
+            inProgress = false,
+            testTag = SettingsTestTags.ResetOfflineLoginButton,
+          )
+        }
       }
 
       if (onFetchQuestionnairesClicked != null) {
@@ -260,6 +297,27 @@ private fun SettingsSwitchRow(
       onCheckedChange = onCheckedChange,
       modifier = Modifier.testTag(testTag),
     )
+  }
+}
+
+/** System / Light / Dark as three chips; the choice is applied when the settings are saved. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ThemeModeChoice(selected: ThemeMode, onSelected: (ThemeMode) -> Unit) {
+  Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+    listOf(
+        Triple(ThemeMode.SYSTEM, R.string.theme_system, SettingsTestTags.ThemeSystem),
+        Triple(ThemeMode.LIGHT, R.string.theme_light, SettingsTestTags.ThemeLight),
+        Triple(ThemeMode.DARK, R.string.theme_dark, SettingsTestTags.ThemeDark),
+      )
+      .forEach { (mode, label, tag) ->
+        FilterChip(
+          selected = selected == mode,
+          onClick = { onSelected(mode) },
+          label = { Text(text = stringResource(label)) },
+          modifier = Modifier.testTag(tag),
+        )
+      }
   }
 }
 
