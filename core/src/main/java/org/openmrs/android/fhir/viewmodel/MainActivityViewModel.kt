@@ -357,7 +357,10 @@ constructor(
       val connectivityState = applicationContext.getServerConnectivityState(apiManager)
       _networkStatus.value = connectivityState
       _uiState.update { current ->
-        current.copy(networkStatusText = networkStatusText(connectivityState))
+        current.copy(
+          networkStatusText = networkStatusText(connectivityState),
+          connectivityState = connectivityState,
+        )
       }
     }
   }
@@ -620,6 +623,7 @@ data class MainUiState(
   val syncHeaderText: String = "",
   val showSyncCloseButton: Boolean = true,
   val networkStatusText: String = "",
+  val connectivityState: ServerConnectivityState = ServerConnectivityState.Offline,
   val isNetworkStatusVisible: Boolean = true,
   val lastSyncText: String = "",
   val locationMenuTitle: String = "",

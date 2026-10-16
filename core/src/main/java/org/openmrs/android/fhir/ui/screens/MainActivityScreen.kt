@@ -48,6 +48,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -85,6 +86,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.material.appbar.MaterialToolbar
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.ui.components.DrawerHeader
 import org.openmrs.android.fhir.ui.components.NetworkStatusBanner
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
@@ -110,12 +112,22 @@ fun MainActivityScaffold(
   isNetworkStatusVisible: Boolean,
   onToolbarReady: (MaterialToolbar) -> Unit,
   modifier: Modifier = Modifier,
+  connectivityState: ServerConnectivityState = ServerConnectivityState.ServerConnected,
 ) {
-  Column(modifier = modifier.fillMaxWidth().statusBarsPadding()) {
-    if (isNetworkStatusVisible) {
-      NetworkStatusBanner(text = networkStatusText)
+  // One bar: the surface color runs up behind the status bar, with the connection strip and the
+  // toolbar inside it and a soft shadow underneath.
+  // The drawer lays this view out at full height; only the bar itself may take space and paint.
+  Surface(
+    modifier = modifier.fillMaxWidth().wrapContentHeight(Alignment.Top),
+    color = MaterialTheme.colorScheme.surface,
+    shadowElevation = 3.dp,
+  ) {
+    Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
+      if (isNetworkStatusVisible) {
+        NetworkStatusBanner(text = networkStatusText, state = connectivityState)
+      }
+      ToolbarHost(onToolbarReady = onToolbarReady)
     }
-    ToolbarHost(onToolbarReady = onToolbarReady)
   }
 }
 
@@ -246,11 +258,14 @@ private fun IconResource(@DrawableRes iconRes: Int) {
   )
 }
 
+private val TITLE_APPEARANCE =
+  com.google.android.material.R.style.TextAppearance_Material3_TitleLarge
+
 @Composable
 private fun ToolbarHost(onToolbarReady: (MaterialToolbar) -> Unit) {
   val context = LocalContext.current
   val toolbarState: MutableState<MaterialToolbar?> = remember { mutableStateOf(null) }
-  val toolbarColor = MaterialTheme.colorScheme.surface
+  val titleColor = MaterialTheme.colorScheme.onSurface.toArgb()
   AndroidView(
     modifier = Modifier.fillMaxWidth().testTag("MainToolbar"),
     factory = {
@@ -261,10 +276,13 @@ private fun ToolbarHost(onToolbarReady: (MaterialToolbar) -> Unit) {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT,
           )
-        setBackgroundColor(toolbarColor.toArgb())
+        // The bar's surface is drawn by the composable around it.
+        setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        setTitleTextAppearance(context, TITLE_APPEARANCE)
       }
     },
     update = { toolbar ->
+      toolbar.setTitleTextColor(titleColor)
       if (toolbarState.value != toolbar) {
         toolbarState.value = toolbar
         onToolbarReady(toolbar)

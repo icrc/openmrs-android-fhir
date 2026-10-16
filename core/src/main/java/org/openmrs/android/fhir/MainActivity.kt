@@ -56,6 +56,8 @@ import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.datastore.preferences.core.edit
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -195,6 +197,7 @@ class MainActivity : AppCompatActivity() {
         MainActivityScaffold(
           networkStatusText = uiState.networkStatusText,
           isNetworkStatusVisible = uiState.isNetworkStatusVisible,
+          connectivityState = uiState.connectivityState,
           onToolbarReady = ::configureToolbar,
         )
       }
@@ -267,6 +270,17 @@ class MainActivity : AppCompatActivity() {
     }
     updateOverlayVisibility()
     registerBackHandler()
+    // Screens call setDisplayHomeAsUpEnabled while they start, which puts the plain back arrow back
+    // on the toolbar; once a screen is resumed, draw the icon the drawer state asks for.
+    supportFragmentManager.registerFragmentLifecycleCallbacks(
+      object : FragmentManager.FragmentLifecycleCallbacks() {
+        override fun onFragmentResumed(fm: FragmentManager, f: Fragment) {
+          if (f is NavHostFragment) return
+          updateToolbarNavigationIcon()
+        }
+      },
+      true,
+    )
     // Fragments switch the drawer on and off through the ViewModel, so the toolbar icon (menu vs.
     // back arrow) and the drawer's swipe lock must follow that state rather than the Activity
     // method alone, which they never call.
@@ -442,8 +456,12 @@ class MainActivity : AppCompatActivity() {
       DrawerArrowDrawable(this).apply {
         progress = if (viewModel.uiState.value.drawerEnabled) 0f else 1f
       }
-    toolbar?.navigationIcon = drawable
-    supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    // Through the action bar, not the toolbar: enabling "home as up" makes it draw its own default
+    // arrow over anything set on the toolbar directly.
+    supportActionBar?.apply {
+      setDisplayHomeAsUpEnabled(true)
+      setHomeAsUpIndicator(drawable)
+    }
   }
 
   private fun buildDrawerItems(

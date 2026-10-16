@@ -30,14 +30,21 @@ package org.openmrs.android.fhir.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -47,29 +54,48 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
+/**
+ * A slim strip under the status bar that says whether the server can be reached: a colored dot and
+ * the status on a soft tint of the same color (green connected, amber server unreachable, red
+ * offline).
+ */
 @Composable
-fun NetworkStatusBanner(text: String, modifier: Modifier = Modifier) {
-  Surface(
-    modifier = modifier.fillMaxWidth().testTag("NetworkStatusBanner"),
-    color = Color.Transparent,
+fun NetworkStatusBanner(
+  text: String,
+  modifier: Modifier = Modifier,
+  state: ServerConnectivityState = ServerConnectivityState.ServerConnected,
+) {
+  val accent =
+    when (state) {
+      ServerConnectivityState.ServerConnected -> OpenMrsTheme.colors.success
+      ServerConnectivityState.InternetOnly -> OpenMrsTheme.colors.warning
+      ServerConnectivityState.Offline -> MaterialTheme.colorScheme.error
+    }
+  Row(
+    modifier =
+      modifier
+        .fillMaxWidth()
+        .background(accent.copy(alpha = 0.14f))
+        .heightIn(min = 28.dp)
+        .padding(horizontal = 16.dp, vertical = 4.dp)
+        .testTag("NetworkStatusBanner"),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.Center,
   ) {
+    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accent))
+    Spacer(modifier = Modifier.width(8.dp))
     Text(
-      modifier =
-        Modifier.fillMaxWidth()
-          .background(
-            OpenMrsTheme.colors.neutralContainer,
-          )
-          .padding(vertical = 8.dp)
-          .testTag("NetworkStatusText"),
+      modifier = Modifier.testTag("NetworkStatusText"),
       text = text,
+      style = MaterialTheme.typography.labelMedium,
+      fontWeight = FontWeight.SemiBold,
       color = MaterialTheme.colorScheme.onSurface,
-      fontWeight = FontWeight.Bold,
-      textAlign = TextAlign.Center,
+      maxLines = 1,
     )
   }
 }
