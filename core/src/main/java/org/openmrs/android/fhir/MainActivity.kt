@@ -84,6 +84,7 @@ import net.lingala.zip4j.model.enums.AesKeyStrength
 import net.lingala.zip4j.model.enums.EncryptionMethod
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
@@ -142,6 +143,16 @@ class MainActivity : AppCompatActivity() {
   private val syncInfoViewModel by viewModels<SyncInfoViewModel> { viewModelFactory }
 
   private val navHostFragmentId: Int = R.id.main_nav_host_container
+
+  /** True while the user works without an account ("Continue without signing in"). */
+  private val isGuest = androidx.compose.runtime.mutableStateOf(false)
+
+  private val signInLauncher =
+    registerForActivityResult(
+      androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+      if (result.resultCode == RESULT_OK) onSignedInFromGuest()
+    }
   private var drawerLayout: DrawerLayout? = null
   private var toolbar: MaterialToolbar? = null
   private var overlayComposeView: ComposeView? = null
@@ -158,6 +169,7 @@ class MainActivity : AppCompatActivity() {
     permissionHelper = permissionHelperFactory.create(this)
     loginRepository = LoginRepository.getInstance(applicationContext)
     authStateManager = AuthStateManager.getInstance(applicationContext)
+    isGuest.value = GuestSession.isActive(this)
     tokenExpiryHandler = Handler(Looper.getMainLooper())
     demoDataStore = DemoDataStore(this)
     setContentView(R.layout.activity_main)
@@ -198,11 +210,13 @@ class MainActivity : AppCompatActivity() {
               androidx.compose.runtime.remember(
                 uiState.locationMenuTitle,
                 uiState.versionMenuTitle,
+                isGuest.value,
               ) {
                 buildDrawerItems(
                   activityContext,
                   uiState.locationMenuTitle,
                   uiState.versionMenuTitle,
+                  isGuest.value,
                 )
               }
             DrawerContent(
@@ -278,6 +292,8 @@ class MainActivity : AppCompatActivity() {
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.OpenDrawer ->
               openNavigationDrawer()
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.TriggerSync -> onSyncPress()
+            is org.openmrs.android.fhir.viewmodel.MainActivityEvent.ShowIdentifierTypesRequired ->
+              showIdentifierTypesRequiredDialog()
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.ShowSyncTasks ->
               showSyncTasksScreen()
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.HideSyncTasks ->
@@ -303,13 +319,13 @@ class MainActivity : AppCompatActivity() {
     observeNetworkConnection(this)
     observeSyncState()
     viewModel.updateLastSyncTimestamp()
-    viewModel.triggerIdentifierTypeSync()
+    if (!isGuest.value) viewModel.triggerIdentifierTypeSync()
   }
 
   override fun onResume() {
     super.onResume()
     lifecycleScope.launch {
-      if (!viewModel.hasHandledPostLoginNavigation()) {
+      if (!isGuest.value && !viewModel.hasHandledPostLoginNavigation()) {
         val selectedLocationId =
           applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
         if (selectedLocationId == null) {
@@ -429,62 +445,84 @@ class MainActivity : AppCompatActivity() {
     context: Context,
     locationMenuTitle: String,
     versionMenuTitle: String,
+    guest: Boolean = false,
   ): List<DrawerItem> {
     return listOf(
-      DrawerItem(
-        id = R.id.menu_sync,
-        iconRes = R.drawable.cloud_sync_24px,
-        title = context.getString(R.string.sync_menu),
-        testTag = "DrawerItemSync",
-      ),
-      DrawerItem(
-        id = R.id.menu_current_location,
-        iconRes = R.drawable.ic_location,
-        title =
-          if (locationMenuTitle.isNotBlank()) {
-            locationMenuTitle
-          } else {
-            context.getString(R.string.no_location_selected)
-          },
-        testTag = "DrawerItemLocation",
-      ),
-      DrawerItem(
-        id = R.id.menu_select_identifier,
-        iconRes = R.drawable.baseline_tag_24,
-        title = context.getString(R.string.select_identifier_types),
-        testTag = "DrawerItemIdentifier",
-      ),
-      DrawerItem(
-        id = R.id.menu_settings,
-        iconRes = R.drawable.baseline_settings_24,
-        title = context.getString(R.string.settings),
-        testTag = "DrawerItemSettings",
-      ),
-      DrawerItem(
-        id = R.id.menu_diagnostics,
-        iconRes = R.drawable.ic_diagnostics,
-        title = context.getString(R.string.send_diagnostics),
-        testTag = "DrawerItemDiagnostics",
-      ),
-      DrawerItem(
-        id = R.id.menu_logout,
-        iconRes = R.drawable.ic_logout,
-        title = context.getString(R.string.logout),
-        testTag = "DrawerItemLogout",
-      ),
-      DrawerItem(
-        id = R.id.menu_version,
-        iconRes = R.drawable.ic_version_24,
-        title =
-          if (versionMenuTitle.isNotBlank()) {
-            versionMenuTitle
-          } else {
-            context.getString(R.string.version)
-          },
-        testTag = "DrawerItemVersion",
-        enabled = false,
-      ),
-    )
+        DrawerItem(
+          id = R.id.menu_sync,
+          iconRes = R.drawable.cloud_sync_24px,
+          title = context.getString(R.string.sync_menu),
+          testTag = "DrawerItemSync",
+        ),
+        DrawerItem(
+          id = R.id.menu_current_location,
+          iconRes = R.drawable.ic_location,
+          title =
+            if (locationMenuTitle.isNotBlank()) {
+              locationMenuTitle
+            } else {
+              context.getString(R.string.no_location_selected)
+            },
+          testTag = "DrawerItemLocation",
+        ),
+        DrawerItem(
+          id = R.id.menu_select_identifier,
+          iconRes = R.drawable.baseline_tag_24,
+          title = context.getString(R.string.select_identifier_types),
+          testTag = "DrawerItemIdentifier",
+        ),
+        DrawerItem(
+          id = R.id.menu_settings,
+          iconRes = R.drawable.baseline_settings_24,
+          title = context.getString(R.string.settings),
+          testTag = "DrawerItemSettings",
+        ),
+        DrawerItem(
+          id = R.id.menu_diagnostics,
+          iconRes = R.drawable.ic_diagnostics,
+          title = context.getString(R.string.send_diagnostics),
+          testTag = "DrawerItemDiagnostics",
+        ),
+        DrawerItem(
+          id = R.id.menu_logout,
+          iconRes = R.drawable.ic_logout,
+          title = context.getString(R.string.logout),
+          testTag = "DrawerItemLogout",
+        ),
+        DrawerItem(
+          id = R.id.menu_version,
+          iconRes = R.drawable.ic_version_24,
+          title =
+            if (versionMenuTitle.isNotBlank()) {
+              versionMenuTitle
+            } else {
+              context.getString(R.string.version)
+            },
+          testTag = "DrawerItemVersion",
+          enabled = false,
+        ),
+      )
+      .let { items ->
+        if (!guest) {
+          items
+        } else {
+          // No server session: no location or identifier setup, and "sign in" replaces logout.
+          items
+            .filter {
+              it.id != R.id.menu_current_location &&
+                it.id != R.id.menu_select_identifier &&
+                it.id != R.id.menu_logout
+            }
+            .plus(
+              DrawerItem(
+                id = R.id.menu_sign_in,
+                iconRes = R.drawable.ic_logout,
+                title = context.getString(R.string.sign_in),
+                testTag = "DrawerItemSignIn",
+              ),
+            )
+        }
+      }
   }
 
   private fun ensureNavHost(containerId: Int) {
@@ -538,6 +576,7 @@ class MainActivity : AppCompatActivity() {
       R.id.menu_current_location -> {
         getNavController()?.navigate(R.id.locationFragment)
       }
+      R.id.menu_sign_in -> launchSignIn()
     }
     closeNavigationDrawer()
   }
@@ -547,6 +586,10 @@ class MainActivity : AppCompatActivity() {
    * If not redirects user to the select location screen first and starts the sync.
    */
   fun onSyncPress() {
+    if (isGuest.value) {
+      promptSignInToSync()
+      return
+    }
     val connectivityState = viewModel.networkStatus.value
     when {
       !isTokenExpired() && connectivityState.isServerReachable() -> {
@@ -568,6 +611,54 @@ class MainActivity : AppCompatActivity() {
         showSnackBar(this@MainActivity, getString(R.string.sync_device_offline_message))
       }
     }
+  }
+
+  /** Guest patients cannot be uploaded without an identifier; let the user pick the types. */
+  private fun showIdentifierTypesRequiredDialog() {
+    AlertDialog.Builder(this)
+      .setTitle(getString(R.string.identifier_types_required_title))
+      .setMessage(getString(R.string.identifier_types_required_message))
+      .setPositiveButton(getString(R.string.select_identifier_types)) { dialog, _ ->
+        dialog.dismiss()
+        getNavController()?.navigate(R.id.identifierFragment)
+      }
+      .setNegativeButton(getString(android.R.string.cancel)) { dialog, _ -> dialog.dismiss() }
+      .show()
+  }
+
+  /** The guest has work to upload: ask them to sign in; what they entered is kept. */
+  private fun promptSignInToSync() {
+    closeNavigationDrawer()
+    AlertDialog.Builder(this)
+      .setTitle(getString(R.string.sign_in_to_sync_title))
+      .setMessage(getString(R.string.sign_in_to_sync_message))
+      .setPositiveButton(getString(R.string.sign_in)) { dialog, _ ->
+        dialog.dismiss()
+        launchSignIn()
+      }
+      .setNegativeButton(getString(android.R.string.cancel)) { dialog, _ -> dialog.dismiss() }
+      .show()
+  }
+
+  private fun launchSignIn() {
+    val loginActivity =
+      when (authStateManager.getAuthMethod()) {
+        AuthMethod.BASIC -> BasicLoginActivity::class.java
+        AuthMethod.OPENID -> LoginActivity::class.java
+      }
+    signInLauncher.launch(
+      Intent(this, loginActivity).putExtra(GuestSession.EXTRA_SIGN_IN_FROM_GUEST, true),
+    )
+  }
+
+  /**
+   * Back from the login screen with a session. The location screen is shown next (onResume), and
+   * the first sync gives the patients registered as a guest their identifiers.
+   */
+  private fun onSignedInFromGuest() {
+    isGuest.value = false
+    viewModel.setHasHandledPostLoginNavigation(false)
+    viewModel.triggerIdentifierTypeSync()
   }
 
   private fun checkNotificationPermission() {
@@ -694,6 +785,8 @@ class MainActivity : AppCompatActivity() {
   private fun observeNetworkConnection(context: Context) {
     lifecycleScope.launch {
       viewModel.networkStatus.collect { connectivityState ->
+        // No session as a guest: no token to watch and no sync to resume.
+        if (isGuest.value) return@collect
         if (connectivityState is ServerConnectivityState.ServerConnected) {
           monitorTokenExpiry()
         }

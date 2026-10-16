@@ -585,4 +585,12 @@
     <string name="reset_offline_login_confirm_message">سيتم حذف تسجيل الدخول دون اتصال المحفوظ. سيُطلب منك إعداده مجددًا عند تسجيل الدخول التالي.</string>
     <string name="offline_login_reset_done">تمت إعادة تعيين تسجيل الدخول دون اتصال.</string>
     <string name="offline_login_not_set_status">لم يتم إعداد تسجيل الدخول دون اتصال بعد. سيُطلب منك ذلك عند تسجيل الدخول التالي.</string>
+    <string name="continue_without_login">المتابعة دون تسجيل الدخول</string>
+    <string name="continue_without_login_hint">سجّل المرضى واملأ النماذج دون اتصال. سيُطلب منك تسجيل الدخول عند المزامنة.</string>
+    <string name="sign_in_to_sync_title">سجّل الدخول للمزامنة</string>
+    <string name="sign_in_to_sync_message">لرفع المرضى والنماذج التي أدخلتها، سجّل الدخول أولاً. كل ما أدخلته يبقى على هذا الجهاز.</string>
+    <string name="sign_in">تسجيل الدخول</string>
+    <string name="sign_in_for_patient_lists">سجّل الدخول لتنزيل قوائم المرضى.</string>
+    <string name="identifier_types_required_title">المعرّف مطلوب</string>
+    <string name="identifier_types_required_message">يحتاج المرضى الذين سجّلتهم دون حساب إلى معرّف قبل رفعهم. اختر أنواع المعرّفات المراد استخدامها ثم زامن مجددًا.</string>
 </resources>

@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.ApiManager
@@ -78,6 +79,10 @@ constructor(
   }
 
   fun onCustomPatientListClicked() {
+    if (GuestSession.isActive(applicationContext)) {
+      _events.tryEmit(HomeEvent.ShowMessage(R.string.sign_in_for_patient_lists))
+      return
+    }
     viewModelScope.launch {
       when (applicationContext.getServerConnectivityState(apiManager)) {
         ServerConnectivityState.ServerConnected ->
@@ -104,8 +109,10 @@ constructor(
 
   private fun handleLocationRequiredClick(event: HomeEvent) {
     viewModelScope.launch {
+      // A guest has no server session and so no location to pick; they work without one.
       val hasLocationSelected =
-        applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_NAME] != null
+        GuestSession.isActive(applicationContext) ||
+          applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_NAME] != null
       if (hasLocationSelected) {
         _events.emit(event)
       } else {

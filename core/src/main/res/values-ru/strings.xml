@@ -670,4 +670,12 @@
     <string name="reset_offline_login_confirm_message">Сохранённый вход без подключения будет удалён. При следующем входе его снова предложат настроить.</string>
     <string name="offline_login_reset_done">Вход без подключения сброшен.</string>
     <string name="offline_login_not_set_status">Вход без подключения ещё не настроен. Его предложат при следующем входе.</string>
+    <string name="continue_without_login">Продолжить без входа</string>
+    <string name="continue_without_login_hint">Регистрируйте пациентов и заполняйте формы без подключения. При синхронизации потребуется войти.</string>
+    <string name="sign_in_to_sync_title">Войдите, чтобы синхронизировать</string>
+    <string name="sign_in_to_sync_message">Чтобы отправить введённых пациентов и формы, сначала войдите. Всё введённое останется на этом устройстве.</string>
+    <string name="sign_in">Войти</string>
+    <string name="sign_in_for_patient_lists">Войдите, чтобы загрузить списки пациентов.</string>
+    <string name="identifier_types_required_title">Нужен идентификатор</string>
+    <string name="identifier_types_required_message">Пациентам, зарегистрированным без учётной записи, нужен идентификатор перед отправкой. Выберите типы идентификаторов и синхронизируйте снова.</string>
 </resources>

@@ -651,4 +651,12 @@
     <string name="reset_offline_login_confirm_message">Se elimina el acceso sin conexión guardado. Se le pedirá configurarlo de nuevo en el próximo inicio de sesión.</string>
     <string name="offline_login_reset_done">Acceso sin conexión restablecido.</string>
     <string name="offline_login_not_set_status">El acceso sin conexión aún no está configurado. Se le preguntará en el próximo inicio de sesión.</string>
+    <string name="continue_without_login">Continuar sin iniciar sesión</string>
+    <string name="continue_without_login_hint">Registre pacientes y complete los formularios sin conexión. Se le pedirá iniciar sesión al sincronizar.</string>
+    <string name="sign_in_to_sync_title">Inicie sesión para sincronizar</string>
+    <string name="sign_in_to_sync_message">Para subir los pacientes y formularios que ingresó, inicie sesión primero. Todo lo que ingresó permanece en este dispositivo.</string>
+    <string name="sign_in">Iniciar sesión</string>
+    <string name="sign_in_for_patient_lists">Inicie sesión para descargar las listas de pacientes.</string>
+    <string name="identifier_types_required_title">Se necesita un identificador</string>
+    <string name="identifier_types_required_message">Los pacientes registrados sin cuenta necesitan un identificador antes de subirse. Seleccione los tipos de identificador que usará y sincronice de nuevo.</string>
 </resources>

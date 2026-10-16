@@ -41,6 +41,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.get
 import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.PeriodicSyncJobStatus
 import com.google.android.fhir.sync.Sync
@@ -49,6 +50,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -61,7 +63,9 @@ import kotlinx.coroutines.sync.withLock
 import org.hl7.fhir.r4.model.Patient
 import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.GuestDataCompleter
 import org.openmrs.android.fhir.data.IdentifierTypeManager
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
@@ -75,6 +79,7 @@ import org.openmrs.android.fhir.data.sync.FhirSyncWorker
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.ui.screens.SyncProgressState
 import org.openmrs.android.fhir.worker.SyncInfoDatabaseWriterWorker
+import timber.log.Timber
 
 /** View model for [org.openmrs.android.fhir.MainActivity]. */
 class MainActivityViewModel
@@ -178,6 +183,12 @@ constructor(
 
       if (shouldSync) {
         // Actual sync work happens outside the mutex
+        if (!completeGuestData(context, fetchIdentifiers)) {
+          // The patients registered as a guest need an identifier type first; ask the user.
+          _isSyncing.postValue(false)
+          _uiEvents.tryEmit(MainActivityEvent.ShowIdentifierTypesRequired)
+          return@launch
+        }
         if (fetchIdentifiers) {
           fetchIdentifierTypesIfEmpty()
           embeddIdentifierToUnsyncedPatients(context)
@@ -192,6 +203,35 @@ constructor(
       if (!stopSync) {
         fetchIdentifierTypesIfEmpty()
       }
+    }
+  }
+
+  /**
+   * Data entered as a guest has no location, identifiers or provider yet (see
+   * [GuestDataCompleter]); it is completed right before the first sync after signing in.
+   */
+  private suspend fun completeGuestData(context: Context, fetchIdentifiers: Boolean): Boolean {
+    if (!GuestSession.isCompletionPending(context)) return true
+    return try {
+      // Which identifiers a patient gets depends on the identifier types, so make sure they are
+      // downloaded (and the session location is set) before completing the data.
+      context.dataStore.data.first()[PreferenceKeys.LOCATION_ID]?.let {
+        apiManager.setLocationSession(SessionLocation(it))
+      }
+      fetchIdentifierTypesIfEmpty()
+      when (GuestDataCompleter(context, fhirEngine, database).complete(fetchIdentifiers)) {
+        GuestDataCompleter.Result.Completed -> {
+          GuestSession.markCompleted(context)
+          true
+        }
+        GuestDataCompleter.Result.NoLocation -> true
+        GuestDataCompleter.Result.NeedsIdentifierTypes -> false
+      }
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      Timber.e(e, "Could not complete the data entered as a guest")
+      true
     }
   }
 
@@ -557,6 +597,8 @@ data class MainUiState(
 
 sealed class MainActivityEvent {
   data object OpenDrawer : MainActivityEvent()
+
+  data object ShowIdentifierTypesRequired : MainActivityEvent()
 
   data object TriggerSync : MainActivityEvent()
 

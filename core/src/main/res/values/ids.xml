@@ -2,4 +2,5 @@
 <resources>
   <item name="main_nav_host_container" type="id" />
   <item name="toolbar" type="id" />
+  <item name="menu_sign_in" type="id" />
 </resources>

@@ -55,6 +55,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
 import org.openmrs.android.fhir.extensions.AuthDialogs
 import org.openmrs.android.fhir.extensions.BiometricPromptHelper
@@ -120,6 +121,10 @@ class LoginActivity : AppCompatActivity() {
       )
     }
 
+  private val signInFromGuest by lazy {
+    intent.getBooleanExtra(GuestSession.EXTRA_SIGN_IN_FROM_GUEST, false)
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
@@ -130,6 +135,12 @@ class LoginActivity : AppCompatActivity() {
         NavHost(navController = navController, startDestination = "login") {
           composable("login") {
             LoginScreen(
+              onContinueWithoutLogin =
+                if (GuestSession.isAllowed(this@LoginActivity) && !signInFromGuest) {
+                  ::continueWithoutLogin
+                } else {
+                  null
+                },
               isButtonEnabled = loginClickAction != LoginClickAction.Disabled,
               onLoginClick = {
                 when (val action = loginClickAction) {
@@ -214,7 +225,19 @@ class LoginActivity : AppCompatActivity() {
   }
 
   private fun navigateToMain() {
+    if (signInFromGuest) {
+      GuestSession.end(this)
+      setResult(RESULT_OK)
+      finish()
+      return
+    }
     startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+    finish()
+  }
+
+  private fun continueWithoutLogin() {
+    GuestSession.start(this)
+    startActivity(Intent(this, MainActivity::class.java))
     finish()
   }
 

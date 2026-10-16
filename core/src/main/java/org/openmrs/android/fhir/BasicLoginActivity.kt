@@ -54,6 +54,7 @@ import androidx.navigation.compose.rememberNavController
 import java.util.concurrent.Executor
 import javax.inject.Inject
 import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
 import org.openmrs.android.fhir.extensions.AuthDialogs
 import org.openmrs.android.fhir.extensions.BiometricPromptHelper
@@ -71,6 +72,9 @@ class BasicLoginActivity : AppCompatActivity() {
   private lateinit var biometricPrompt: BiometricPrompt
   private lateinit var executor: Executor
   private var offlineAuthMethod: OfflineAuthMethod? = null
+  private val signInFromGuest by lazy {
+    intent.getBooleanExtra(GuestSession.EXTRA_SIGN_IN_FROM_GUEST, false)
+  }
 
   private var loginUiState: LoginUiState by mutableStateOf(LoginUiState.Idle)
   val dialogStateForTest: MutableState<AuthDialogs.DialogConfig?> = mutableStateOf(null)
@@ -99,6 +103,12 @@ class BasicLoginActivity : AppCompatActivity() {
             BasicLoginScreen(
               uiState = loginUiState,
               onLoginClick = { username, password -> viewModel.login(username, password) },
+              onContinueWithoutLogin =
+                if (GuestSession.isAllowed(this@BasicLoginActivity) && !signInFromGuest) {
+                  ::continueWithoutLogin
+                } else {
+                  null
+                },
             )
           }
         }
@@ -172,7 +182,20 @@ class BasicLoginActivity : AppCompatActivity() {
   }
 
   private fun navigateToMain() {
+    if (signInFromGuest) {
+      // Back to the guest session that asked for the sign-in; its data is kept.
+      GuestSession.end(this)
+      setResult(RESULT_OK)
+      finish()
+      return
+    }
     startActivity(Intent(this@BasicLoginActivity, MainActivity::class.java))
+    finish()
+  }
+
+  private fun continueWithoutLogin() {
+    GuestSession.start(this)
+    startActivity(Intent(this, MainActivity::class.java))
     finish()
   }
 

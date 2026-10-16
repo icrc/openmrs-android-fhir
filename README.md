@@ -70,6 +70,7 @@ Use the optional `first_fhir_sync_url` property when you need a different search
 Two properties help control how patient lists are filtered during syncs driven by group resources:
 
 
+- `skip_login` (boolean, default `false`) adds **Continue without signing in** to the login screens. The user can then register patients and fill the bundled questionnaires without a server; syncing asks them to sign in, and everything entered is kept.
 - `filter_patient_lists_by_group` (boolean) limits Group queries to the user’s selected location by adding a `location` search parameter when enabled.
 - `cohort-type` (UUID) appends a `cohort-type` parameter to Group requests when provided, allowing you to scope patient lists to a specific cohort definition on both initial and incremental sync paths.
   Define these properties in `local.properties` (see `local.properties.default` for examples and defaults).

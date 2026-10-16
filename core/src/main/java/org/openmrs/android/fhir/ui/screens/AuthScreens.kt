@@ -55,6 +55,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,6 +73,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.viewmodel.LoginUiState
@@ -98,6 +100,7 @@ fun LoginScreen(
   isButtonEnabled: Boolean,
   onLoginClick: () -> Unit,
   modifier: Modifier = Modifier,
+  onContinueWithoutLogin: (() -> Unit)? = null,
 ) {
   Box(modifier = modifier.fillMaxSize().testTag("LoginScreen")) {
     Column(
@@ -114,7 +117,29 @@ fun LoginScreen(
       ) {
         Text(text = stringResource(id = R.string.button_login))
       }
+      if (onContinueWithoutLogin != null) {
+        ContinueWithoutLogin(onClick = onContinueWithoutLogin)
+      }
     }
+  }
+}
+
+/** Secondary action under the login button; only shown when the `skip_login` setting is on. */
+@Composable
+private fun ContinueWithoutLogin(onClick: () -> Unit) {
+  Column(
+    horizontalAlignment = Alignment.CenterHorizontally,
+    modifier = Modifier.padding(top = 12.dp, start = 24.dp, end = 24.dp),
+  ) {
+    TextButton(onClick = onClick, modifier = Modifier.testTag("SkipLoginButton")) {
+      Text(text = stringResource(id = R.string.continue_without_login))
+    }
+    Text(
+      text = stringResource(id = R.string.continue_without_login_hint),
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      textAlign = TextAlign.Center,
+    )
   }
 }
 
@@ -123,6 +148,7 @@ fun BasicLoginScreen(
   uiState: LoginUiState,
   onLoginClick: (String, String) -> Unit,
   modifier: Modifier = Modifier,
+  onContinueWithoutLogin: (() -> Unit)? = null,
 ) {
   var username by remember { mutableStateOf("") }
   var password by remember { mutableStateOf("") }
@@ -180,6 +206,9 @@ fun BasicLoginScreen(
       modifier = Modifier.fillMaxWidth().testTag("BasicLoginButton"),
     ) {
       Text(text = stringResource(id = R.string.button_login))
+    }
+    if (onContinueWithoutLogin != null) {
+      ContinueWithoutLogin(onClick = onContinueWithoutLogin)
     }
   }
 }

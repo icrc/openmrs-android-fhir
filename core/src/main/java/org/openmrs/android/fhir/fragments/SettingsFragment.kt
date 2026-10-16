@@ -53,7 +53,9 @@ import androidx.navigation.fragment.NavHostFragment
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
+import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.data.QuestionnaireUpdater
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.ThemeMode
@@ -112,7 +114,13 @@ class SettingsFragment : Fragment() {
           onNotificationsToggle = settingsViewModel::onNotificationsToggle,
           onTokenDelaySelected = settingsViewModel::onTokenDelaySelected,
           onPeriodicSyncDelaySelected = settingsViewModel::onPeriodicSyncDelaySelected,
-          onInitialSyncClicked = settingsViewModel::onInitialSyncClicked,
+          onInitialSyncClicked = {
+            if (GuestSession.isActive(context)) {
+              (activity as? MainActivity)?.onSyncPress()
+            } else {
+              settingsViewModel.onInitialSyncClicked()
+            }
+          },
           onCancelClicked = settingsViewModel::onCancelClicked,
           onSaveClicked = {
             settingsViewModel.onSaveClicked()
@@ -120,7 +128,12 @@ class SettingsFragment : Fragment() {
           },
           topPadding = appBarHeight,
           isFetchingQuestionnaires = isFetchingQuestionnaires,
-          onFetchQuestionnairesClicked = questionnaireFetchViewModel::fetchQuestionnaires,
+          onFetchQuestionnairesClicked =
+            if (GuestSession.isActive(context)) {
+              null
+            } else {
+              questionnaireFetchViewModel::fetchQuestionnaires
+            },
           themeMode = themeSelection.value,
           onThemeModeSelected = { themeSelection.value = it },
           offlineLoginEnabled = offlineLoginEnabled.value,

@@ -50,6 +50,7 @@ val booleanSettings =
     "auth_replace_localhost_by_10_0_2_2",
     "show_review_page_before_submit",
     "filter_patient_lists_by_group",
+    "skip_login",
     "fetch_identifiers",
   )
 val integerSettings = listOf("basic_auth_expiry_hours", "server_connectivity_timeout_seconds")

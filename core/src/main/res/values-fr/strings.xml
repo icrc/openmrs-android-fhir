@@ -679,4 +679,12 @@
     <string name="reset_offline_login_confirm_message">La connexion hors ligne enregistrée est supprimée. Elle vous sera proposée à nouveau à la prochaine connexion.</string>
     <string name="offline_login_reset_done">Connexion hors ligne réinitialisée.</string>
     <string name="offline_login_not_set_status">La connexion hors ligne n\'est pas encore configurée. Elle vous sera proposée à la prochaine connexion.</string>
+    <string name="continue_without_login">Continuer sans se connecter</string>
+    <string name="continue_without_login_hint">Enregistrez des patients et remplissez les formulaires hors ligne. La connexion vous sera demandée à la synchronisation.</string>
+    <string name="sign_in_to_sync_title">Se connecter pour synchroniser</string>
+    <string name="sign_in_to_sync_message">Pour envoyer les patients et formulaires saisis, connectez-vous d\u2019abord. Tout ce que vous avez saisi reste sur cet appareil.</string>
+    <string name="sign_in">Se connecter</string>
+    <string name="sign_in_for_patient_lists">Connectez-vous pour télécharger les listes de patients.</string>
+    <string name="identifier_types_required_title">Identifiant requis</string>
+    <string name="identifier_types_required_message">Les patients enregistrés sans compte ont besoin d’un identifiant avant d’être envoyés. Sélectionnez les types d’identifiant à utiliser, puis synchronisez à nouveau.</string>
 </resources>

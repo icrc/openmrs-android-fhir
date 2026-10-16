@@ -55,6 +55,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -125,6 +126,11 @@ class SplashActivity : AppCompatActivity() {
   }
 
   private suspend fun handleAuthenticationFlow() {
+    if (GuestSession.isActive(this)) {
+      // Working without an account: nothing to authenticate until the user signs in.
+      navigateToMainActivity()
+      return
+    }
     val userUuid = getUserUuid()
     val offlineAuthMethod = BiometricUtils.getOfflineAuthMethod(this)
     if (userUuid == null || isBiometricReset || offlineAuthMethod == null) {

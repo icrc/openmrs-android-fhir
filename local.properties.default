@@ -50,3 +50,6 @@ fetch_identifiers=true
 
 #Diagnostic zip file password
 diagnostics_password=
+
+# Offer "Continue without signing in" on the login screen (work offline, sign in to sync)
+#skip_login=false

@@ -124,7 +124,7 @@ private val DrawerGroups =
   listOf(
     listOf(R.id.menu_sync, R.id.menu_current_location, R.id.menu_select_identifier),
     listOf(R.id.menu_settings, R.id.menu_diagnostics),
-    listOf(R.id.menu_logout),
+    listOf(R.id.menu_logout, R.id.menu_sign_in),
   )
 
 @Composable
