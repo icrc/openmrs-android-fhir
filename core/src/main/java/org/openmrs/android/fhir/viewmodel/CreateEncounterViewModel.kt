@@ -40,15 +40,16 @@ import com.google.android.fhir.search.search
 import com.squareup.moshi.Moshi
 import java.util.Locale
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Questionnaire
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.FormData
 import org.openmrs.android.fhir.data.database.model.FormItem
-import org.openmrs.android.fhir.data.database.model.FormSection
 import org.openmrs.android.fhir.data.database.model.FormSectionItem
-import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.readAssetQuestionnaires
+import timber.log.Timber
 
 class CreateEncounterViewModel
 @Inject
@@ -68,94 +69,106 @@ constructor(
 
   private val parser = FhirContext.forR4Cached().newJsonParser()
 
-  /*
-   * Load encounter form data from the config.
-   * Fetch all questionnaire & add to the formItem
+  /**
+   * Builds the sections of the **Create Encounter** screen.
+   *
+   * [formDataString] is the `questionnaires` setting: sections of encounter-type codes plus
+   * optional translations. Each code is resolved to the questionnaire (synced or bundled in the
+   * app) that declares it, and codes without a questionnaire are skipped. When no sections are
+   * configured, every available encounter form is offered in one list, so the setting can be left
+   * out entirely.
    */
   fun loadFormData(formDataString: String, encounterTypeSystemUrl: String) {
     viewModelScope.launch {
       _isLoading.value = true
       try {
-        val moshi = Moshi.Builder().build()
-        val adapter = moshi.adapter(FormData::class.java).lenient()
-        val formData = adapter.fromJson(formDataString.trim())
-        val translationOverrides = formData?.translationOverrides ?: emptyMap()
-        val deviceLanguageOverrides = translationOverrides[Locale.getDefault().language].orEmpty()
-        val deviceLanguage = Locale.getDefault().language.lowercase(Locale.ROOT)
-        val questionnaires = fhirEngine.search<Questionnaire> {}.map { it.resource }.toMutableList()
-        // Forms shipped with the app are listed too; the ones the engine already has are skipped.
-        questionnaires.addAll(
-          applicationContext.readAssetQuestionnaires(
-            parser,
-            questionnaires.map { it.idElement.idPart }.toSet(),
-          ),
-        )
-
-        val encounterTypeCodeToQuestionnaireIdMap = mutableMapOf<String, String>()
-        questionnaires.forEach { questionnaire ->
-          if (questionnaire.hasCode()) {
-            questionnaire.code.forEach {
-              if (it.hasSystem() and (it?.system.toString() == encounterTypeSystemUrl)) {
-                encounterTypeCodeToQuestionnaireIdMap.putIfAbsent(it.code, questionnaire.logicalId)
-              }
-            }
-          }
-        }
-
-        val formSectionItems =
-          formData
-            ?.formSections
-            ?.map {
-              it.toFormSectionItem(
-                encounterTypeCodeToQuestionnaireIdMap,
-                deviceLanguageOverrides,
-                deviceLanguage,
-              )
-            }
-            ?.filter { it.forms.isNotEmpty() }
-            ?: emptyList()
-        _formData.value = formSectionItems
-        _isLoading.value = false
+        val sections =
+          withContext(Dispatchers.Default) { buildSections(formDataString, encounterTypeSystemUrl) }
+        _formData.value = sections
       } catch (e: Exception) {
+        Timber.e(e, "Could not load the encounter forms")
         _error.value = "Failed to load form data: ${e.localizedMessage}"
+      } finally {
         _isLoading.value = false
       }
     }
   }
 
-  /*
-   * Only add forms to the Form Section whose questionaire
-   * are present in local database or in the assets folder.
-   */
-  internal suspend fun FormSection.toFormSectionItem(
-    encounterTypeCodeToQuestionnaireIdMap: Map<String, String>,
-    translationOverrides: Map<String, String>,
-    deviceLanguage: String,
-  ): FormSectionItem {
-    val formItems = mutableListOf<FormItem>()
-    forms.forEach { encounterTypeCode ->
-      val questionnaireId =
-        encounterTypeCodeToQuestionnaireIdMap[encounterTypeCode] ?: return@forEach
-      val questionnaire: Questionnaire? =
-        fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
-      if (questionnaire != null) {
-        val localizedQuestionnaireTitle =
-          questionnaire.getTranslatedTitle(deviceLanguage)
-            ?: questionnaire.title?.let { translationOverrides[it] ?: it }
-              ?: applicationContext.getString(R.string.no_name_provided)
-        formItems.add(
-          FormItem(
-            name = localizedQuestionnaireTitle,
-            questionnaireId = questionnaireId,
-          ),
-        )
-      }
-    }
-    val sectionName = translationOverrides[name] ?: name
-    return FormSectionItem(
-      name = sectionName,
-      forms = formItems,
+  private suspend fun buildSections(
+    formDataString: String,
+    encounterTypeSystemUrl: String,
+  ): List<FormSectionItem> {
+    val formData = parseFormData(formDataString)
+    val deviceLanguage = Locale.getDefault().language.lowercase(Locale.ROOT)
+    val translationOverrides = formData?.translationOverrides?.get(deviceLanguage).orEmpty()
+
+    val questionnaires = fhirEngine.search<Questionnaire> {}.map { it.resource }.toMutableList()
+    // Forms shipped with the app are listed too; the ones the engine already has are skipped.
+    questionnaires.addAll(
+      applicationContext.readAssetQuestionnaires(
+        parser,
+        questionnaires.map { it.idElement.idPart }.toSet(),
+      ),
     )
+
+    // Encounter type code -> the questionnaire that declares it (the first one wins).
+    val questionnaireByCode = linkedMapOf<String, Questionnaire>()
+    questionnaires.forEach { questionnaire ->
+      questionnaire.code
+        .filter { it.hasSystem() && it.system == encounterTypeSystemUrl && it.hasCode() }
+        .forEach { questionnaireByCode.putIfAbsent(it.code, questionnaire) }
+    }
+
+    fun Questionnaire.toFormItem() =
+      FormItem(
+        name = getTranslatedTitle(deviceLanguage)
+            ?: title?.let { translationOverrides[it] ?: it }
+              ?: applicationContext.getString(R.string.no_name_provided),
+        questionnaireId = logicalId,
+      )
+
+    val configured =
+      formData
+        ?.formSections
+        .orEmpty()
+        .map { section ->
+          FormSectionItem(
+            name = translationOverrides[section.name] ?: section.name,
+            forms = section.forms.mapNotNull { code -> questionnaireByCode[code]?.toFormItem() },
+          )
+        }
+        .filter { it.forms.isNotEmpty() }
+    if (configured.isNotEmpty()) return configured
+
+    // Nothing configured, or none of the configured codes has a questionnaire: offer every form.
+    if (!formData?.formSections.isNullOrEmpty()) {
+      Timber.w("No questionnaire matches the configured encounter types; listing every form")
+    }
+    val all =
+      questionnaireByCode.values
+        .distinctBy { it.logicalId }
+        .map { it.toFormItem() }
+        .sortedBy { it.name.lowercase(Locale.ROOT) }
+    return if (all.isEmpty()) {
+      emptyList()
+    } else {
+      listOf(FormSectionItem(applicationContext.getString(R.string.all_forms), all))
+    }
+  }
+
+  /** The `questionnaires` setting; a blank or unreadable value means "no sections configured". */
+  private fun parseFormData(formDataString: String): FormData? {
+    if (formDataString.isBlank()) return null
+    return try {
+      Moshi.Builder()
+        .build()
+        .adapter(FormData::class.java)
+        .lenient()
+        .fromJson(formDataString.trim())
+    } catch (e: Exception) {
+      Timber.w(e, "The questionnaires setting is not valid JSON; listing every encounter form")
+      null
+    }
   }
 
   private fun Questionnaire.getTranslatedTitle(deviceLanguage: String): String? {

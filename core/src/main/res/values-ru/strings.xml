@@ -65,6 +65,10 @@
     <string name="edit_patient">Редактировать пациента</string>
     <string name="new_encounter">Новая встреча</string>
     <string name="create_encounter">Создать встречу</string>
+    <string name="search_forms">Поиск форм</string>
+    <string name="all_forms">Все формы</string>
+    <string name="create_encounter_no_forms">Для визитов пока нет доступных форм.</string>
+    <string name="create_encounter_no_match">Нет форм, соответствующих «%1$s»</string>
     <string name="create_group_encounter">Создать групповую встречу</string>
     <string name="edit_encounter">Редактировать встречу</string>
 

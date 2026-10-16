@@ -29,12 +29,15 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
-import android.widget.ProgressBar
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -43,29 +46,26 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import javax.inject.Inject
 import kotlin.getValue
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.adapters.CreateFormSectionAdapter
 import org.openmrs.android.fhir.data.GroupSessionDraftRepository
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.FormSectionItem
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
-import org.openmrs.android.fhir.databinding.CreateEncounterFragmentBinding
+import org.openmrs.android.fhir.extensions.composeView
+import org.openmrs.android.fhir.ui.screens.CreateEncounterScreen
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.CreateEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
-class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
+class CreateEncountersFragment : Fragment() {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
   @Inject lateinit var groupSessionDraftRepository: GroupSessionDraftRepository
   private val viewModel by viewModels<CreateEncounterViewModel> { viewModelFactory }
-  private lateinit var recyclerView: RecyclerView
-  private lateinit var progressBar: ProgressBar
   private var draftResumeChecked = false
 
   private val mainActivityViewModel by
@@ -73,19 +73,29 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
 
   private val args: CreateEncountersFragmentArgs by navArgs()
 
-  private var _binding: CreateEncounterFragmentBinding? = null
-
-  private val binding
-    get() = _binding!!
-
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setHasOptionsMenu(true)
   }
 
+  override fun onCreateView(
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?,
+  ): View = composeView {
+    OpenMrsTheme {
+      val sections by viewModel.formData.observeAsState(null)
+      val isLoading by viewModel.isLoading.observeAsState(false)
+      CreateEncounterScreen(
+        sections = sections,
+        isLoading = isLoading,
+        onFormClick = ::handleFormClick,
+      )
+    }
+  }
+
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
-    _binding = CreateEncounterFragmentBinding.bind(view)
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title =
         if (args.isGroupEncounter) {
@@ -101,39 +111,14 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
       getString(R.string.questionnaires),
       getString(R.string.encounter_type_system_url),
     )
-    // Initialize views
-    recyclerView = binding.rvFormSections
-    progressBar = binding.progressBar
 
-    // Setup RecyclerView
-    recyclerView.layoutManager = LinearLayoutManager(requireContext())
-
-    // Observe data
-    setupObservers()
-    mainActivityViewModel.setDrawerEnabled(false)
-  }
-
-  private fun setupObservers() {
     viewModel.formData.observe(viewLifecycleOwner) { formData ->
-      formData?.let {
-        setupAdapter(it)
-        maybePromptToResumeDraft(it)
-      }
+      formData?.let { maybePromptToResumeDraft(it) }
     }
-
-    viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-      progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-    }
-
     viewModel.error.observe(viewLifecycleOwner) { errorMessage ->
       errorMessage?.let { Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show() }
     }
-  }
-
-  private fun setupAdapter(formSectionItems: List<FormSectionItem>) {
-    val adapter =
-      CreateFormSectionAdapter(formSectionItems) { formItem -> handleFormClick(formItem) }
-    recyclerView.adapter = adapter
+    mainActivityViewModel.setDrawerEnabled(false)
   }
 
   private fun maybePromptToResumeDraft(formSectionItems: List<FormSectionItem>) {
@@ -259,10 +244,5 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     }
 
     dialog.create().show()
-  }
-
-  override fun onDestroyView() {
-    super.onDestroyView()
-    _binding = null
   }
 }

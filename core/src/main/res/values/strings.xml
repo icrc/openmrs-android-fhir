@@ -85,6 +85,10 @@
     <string name="edit_patient">Edit Patient</string>
     <string name="new_encounter">New Encounter</string>
     <string name="create_encounter">Create Encounter</string>
+    <string name="search_forms">Search forms</string>
+    <string name="all_forms">All forms</string>
+    <string name="create_encounter_no_forms">No forms are available for encounters yet.</string>
+    <string name="create_encounter_no_match">No forms match “%1$s”</string>
     <string name="create_group_encounter">Create Group Encounter</string>
     <string name="edit_encounter">Edit Encounter</string>
     <string name="location">Location</string>

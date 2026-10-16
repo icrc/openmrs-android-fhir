@@ -280,6 +280,10 @@
         name="select_patients_for_group_encounter"
     >Seleccionar pacientes para el encuentro grupal</string>
     <string name="select_all_patients">Seleccionar todos los pacientes</string>
+    <string name="search_forms">Buscar formularios</string>
+    <string name="all_forms">Todos los formularios</string>
+    <string name="create_encounter_no_forms">Aún no hay formularios disponibles para encuentros.</string>
+    <string name="create_encounter_no_match">Ningún formulario coincide con «%1$s»</string>
     <string name="create_group_encounter">Crear encuentro grupal</string>
     <string name="patient_is_saved">El paciente ha sido guardado.</string>
     <string name="inputs_are_missing">Faltan datos.</string>

@@ -124,6 +124,10 @@ To configure **patient identifier creation**, set the `fetch_identifiers` proper
 To configure the questionnaire list on click of the **Create Encounter** button in the patient screen, update the `questionnaires` & `encounter_type_system_url` property with the encounter type of the encounter's questionnaire:
 Similar to registration questionnaire, it either takes the questionnaire from assets folder or after sync from the server.
 
+The screen lists the sections in the order they are configured. Sections can be collapsed, and a search box appears when there are more than a few forms. A form is shown only when a questionnaire (synced or bundled in the app) declares its encounter type code; codes without a questionnaire are skipped.
+
+The `questionnaires` property is optional: when it is empty, malformed, or none of its codes matches a questionnaire, every available encounter form is listed alphabetically in one **All forms** section. Titles and section names are translated through `Translation overrides` (per language) or the questionnaire's own title translations.
+
 Note:
 In the `questionnaires` property, write the code for `encounter type` instead of the `questionnaire.id` & make sure you use the correct `url` value.
 Reference: [Example property](https://github.com/parthfloyd/openmrs-android-fhir/blob/integrate-create-encounter-screen/core/src/main/res/values/server.xml)

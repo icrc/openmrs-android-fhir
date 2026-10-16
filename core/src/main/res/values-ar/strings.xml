@@ -49,6 +49,10 @@
     <string name="edit_patient">تحرير المريض</string>
     <string name="new_encounter">لقاء جديد</string>
     <string name="create_encounter">إنشاء لقاء</string>
+    <string name="search_forms">البحث عن نماذج</string>
+    <string name="all_forms">كل النماذج</string>
+    <string name="create_encounter_no_forms">لا توجد نماذج متاحة للزيارات بعد.</string>
+    <string name="create_encounter_no_match">لا توجد نماذج تطابق «%1$s»</string>
     <string name="create_group_encounter">إنشاء لقاء المجموعة</string>
     <string name="edit_encounter">تحرير اللقاء</string>
     <string name="location">موقع</string>
