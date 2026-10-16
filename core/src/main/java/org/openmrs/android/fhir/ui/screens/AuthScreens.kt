@@ -367,7 +367,7 @@ private fun OrDivider() {
   ) {
     HorizontalDivider(
       modifier = Modifier.weight(1f),
-      color = MaterialTheme.colorScheme.outlineVariant
+      color = MaterialTheme.colorScheme.outlineVariant,
     )
     Text(
       text = stringResource(R.string.login_or),
@@ -377,7 +377,7 @@ private fun OrDivider() {
     )
     HorizontalDivider(
       modifier = Modifier.weight(1f),
-      color = MaterialTheme.colorScheme.outlineVariant
+      color = MaterialTheme.colorScheme.outlineVariant,
     )
   }
 }
