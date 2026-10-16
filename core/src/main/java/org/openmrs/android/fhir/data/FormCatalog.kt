@@ -42,6 +42,7 @@ import org.openmrs.android.fhir.config.FormSectionConfig
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.readAssetQuestionnaires
+import org.openmrs.android.fhir.extensions.translatedTitle
 
 /**
  * The encounter forms available on this device: the questionnaires the server synced plus the ones
@@ -88,7 +89,7 @@ constructor(
 
     fun Questionnaire.toFormItem() =
       FormItem(
-        name = getTranslatedTitle(language)
+        name = translatedTitle(language)
             ?: title ?: applicationContext.getString(R.string.no_name_provided),
         questionnaireId = logicalId,
       )
@@ -102,35 +103,8 @@ constructor(
     return Catalog(AppConfig.get(applicationContext).formSections, language, formsByCode)
   }
 
-  private fun Questionnaire.getTranslatedTitle(language: String): String? {
-    return this.titleElement
-      ?.extension
-      ?.asSequence()
-      ?.filter { it.url == TRANSLATION_EXTENSION_URL }
-      ?.mapNotNull { translationExtension ->
-        val lang =
-          translationExtension.extension
-            .firstOrNull { it.url == LANGUAGE_EXTENSION_URL }
-            ?.value
-            ?.primitiveValue()
-            ?.lowercase(Locale.ROOT)
-        val content =
-          translationExtension.extension
-            .firstOrNull { it.url == CONTENT_EXTENSION_URL }
-            ?.value
-            ?.primitiveValue()
-        if (lang != null && lang == language) content else null
-      }
-      ?.firstOrNull()
-  }
-
   companion object {
     /** The code system OpenMRS uses for encounter types; forms are matched by their code. */
     const val ENCOUNTER_TYPE_SYSTEM_URL = "http://fhir.openmrs.org/code-system/encounter-type"
-
-    private const val TRANSLATION_EXTENSION_URL =
-      "http://hl7.org/fhir/StructureDefinition/translation"
-    private const val LANGUAGE_EXTENSION_URL = "lang"
-    private const val CONTENT_EXTENSION_URL = "content"
   }
 }

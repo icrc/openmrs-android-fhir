@@ -58,6 +58,7 @@ import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.readAssetQuestionnaires
 import org.openmrs.android.fhir.extensions.toLocalString
+import org.openmrs.android.fhir.extensions.translatedTitle
 
 /**
  * The ViewModel helper class for PatientItemRecyclerViewAdapter, that is responsible for preparing
@@ -253,7 +254,7 @@ constructor(
     val encounterCode = encounterType?.coding?.firstOrNull()?.code
     val questionnaire = encounterCode?.let { encounterTypeCodeToQuestionnaireMap[it] }
 
-    val localizedTitle = questionnaire?.getTranslatedTitle(deviceLanguage) ?: questionnaire?.title
+    val localizedTitle = questionnaire?.translatedTitle(deviceLanguage) ?: questionnaire?.title
 
     if (localizedTitle != null) {
       return localizedTitle
@@ -274,36 +275,7 @@ constructor(
     return questionnaires
   }
 
-  private fun Questionnaire.getTranslatedTitle(deviceLanguage: String): String? {
-    return this.titleElement
-      ?.extension
-      ?.asSequence()
-      ?.filter { it.url == TRANSLATION_EXTENSION_URL }
-      ?.mapNotNull { translationExtension ->
-        val lang =
-          translationExtension.extension
-            .firstOrNull { it.url == LANGUAGE_EXTENSION_URL }
-            ?.value
-            ?.primitiveValue()
-            ?.lowercase(Locale.ROOT)
-        val content =
-          translationExtension.extension
-            .firstOrNull { it.url == CONTENT_EXTENSION_URL }
-            ?.value
-            ?.primitiveValue()
-        if (lang != null && lang == deviceLanguage) content else null
-      }
-      ?.firstOrNull()
-  }
-
   private fun getString(resId: Int) = applicationContext.resources.getString(resId)
-
-  companion object {
-    private const val TRANSLATION_EXTENSION_URL =
-      "http://hl7.org/fhir/StructureDefinition/translation"
-    private const val LANGUAGE_EXTENSION_URL = "lang"
-    private const val CONTENT_EXTENSION_URL = "content"
-  }
 }
 
 interface PatientDetailData {

@@ -85,6 +85,15 @@ The Create Encounter screen lists forms in the sections declared in `<form-secti
 
 `name` is the section title; a `<name lang="xx">` child translates it. Form titles come from the questionnaire (and its own title translations). Sections show in the order declared, can be collapsed, and a search box appears when there are many forms. A code without a questionnaire is skipped. Leave `<form-sections>` out (or empty) and every available form is listed alphabetically in one **All forms** section. Each user can also pick up to five favorites in Settings; they are shown first.
 
+### Bundled questionnaires
+
+The forms that ship with the app (`core/src/main/assets/questionnaires/<id>.json`, plus the registration form) are the offline fallback for forms that have not been synced; a synced form always wins. They are stored in a compact form that the app turns back into plain FHIR JSON before parsing it, so rendering, translations, show/hide rules, obs groups and extraction behave exactly as with the original file:
+
+- translations read `"text:i18n": {"fr": "...", "es": "..."}` instead of the verbose `"_text": {"extension": [...]}`;
+- `url` / `system` values can start with a prefix name (`"@h/questionnaire-itemControl"`), listed under the first key, `"$compact"`.
+
+To bundle a new form, put the plain FHIR JSON in the folder and run `python tools/compact_questionnaires.py core/src/main/assets/questionnaires`; each file is expanded again and compared with the original before it is written.
+
 ### Understanding the Encounter Screener Template
 
 Encounter forms can optionally show the shared screener questionnaire before the main form renders. To enable this behavior:

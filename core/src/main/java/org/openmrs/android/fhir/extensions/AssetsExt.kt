@@ -32,8 +32,12 @@ package org.openmrs.android.fhir.extensions
 import android.content.Context
 import java.io.IOException
 
+/**
+ * The text of an asset file; a questionnaire stored in the compact form comes back as plain FHIR
+ * JSON.
+ */
 fun Context.readFileFromAssets(fileName: String): String =
-  assets.open(fileName).bufferedReader().use { it.readText() }
+  expandCompactQuestionnaire(assets.open(fileName).bufferedReader().use { it.readText() })
 
 /**
  * Get a list of all JSON file names in the assets folder
