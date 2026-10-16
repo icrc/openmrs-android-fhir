@@ -40,6 +40,7 @@ import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.Sync
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,6 +50,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Location
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
@@ -106,16 +108,19 @@ constructor(
 
   fun getLocations() {
     viewModelScope.launch {
-      val locationsList: MutableList<LocationItem> = mutableListOf()
-      fhirEngine
-        .search<Location> {
-          sort(
-            StringClientParam(Location.SP_NAME),
-            Order.ASCENDING,
-          )
+      // Reading and mapping every Location can take a moment on big servers: keep it off main.
+      val locationsList =
+        withContext(Dispatchers.Default) {
+          fhirEngine
+            .search<Location> {
+              sort(
+                StringClientParam(Location.SP_NAME),
+                Order.ASCENDING,
+              )
+            }
+            .mapIndexed { index, fhirLocation -> fhirLocation.resource.toLocationItem(index + 1) }
+            .toMutableList()
         }
-        .mapIndexed { index, fhirLocation -> fhirLocation.resource.toLocationItem(index + 1) }
-        .let { locationsList.addAll(it) }
       masterLocationsList = locationsList
       locations.value = locationsList
     }

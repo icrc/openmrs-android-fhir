@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +43,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -225,6 +228,10 @@ fun IdentifierTypeListItemRow(
   }
 }
 
+/**
+ * One location: a tonal pin (a check when it is the current location), the name, and the favorite
+ * star. The whole card selects the location; the star only toggles the favorite.
+ */
 @Composable
 fun LocationListItemRow(
   name: String,
@@ -234,29 +241,62 @@ fun LocationListItemRow(
   onFavoriteClick: () -> Unit,
   onClick: () -> Unit,
 ) {
-  val backgroundColor =
-    if (isSelected) {
-      OpenMrsTheme.colors.highlightContainer
-    } else {
-      MaterialTheme.colorScheme.surface
-    }
-
+  val primary = MaterialTheme.colorScheme.primary
   Surface(
-    modifier = modifier.clip(RoundedCornerShape(8.dp)).testTag("LocationListItem"),
-    color = backgroundColor,
-    tonalElevation = if (isSelected) 1.dp else 0.dp,
+    onClick = onClick,
+    modifier = modifier.fillMaxWidth().testTag("LocationListItem"),
+    shape = RoundedCornerShape(16.dp),
+    color = MaterialTheme.colorScheme.surface,
+    border =
+      BorderStroke(
+        width = if (isSelected) 2.dp else 1.dp,
+        color = if (isSelected) primary else MaterialTheme.colorScheme.outlineVariant,
+      ),
   ) {
     Row(
-      modifier =
-        Modifier.padding(horizontal = 12.dp, vertical = 12.dp).clickable(onClick = onClick),
+      modifier = Modifier.padding(start = 12.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      Column(modifier = Modifier.weight(1f)) {
+      Box(
+        modifier =
+          Modifier.size(40.dp)
+            .clip(CircleShape)
+            .background(if (isSelected) primary else OpenMrsTheme.colors.highlightContainer),
+        contentAlignment = Alignment.Center,
+      ) {
+        if (isSelected) {
+          Icon(
+            imageVector = Icons.Filled.Check,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier.size(22.dp),
+          )
+        } else {
+          Icon(
+            painter = painterResource(id = R.drawable.ic_location),
+            contentDescription = null,
+            tint = primary,
+            modifier = Modifier.size(22.dp),
+          )
+        }
+      }
+
+      Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 8.dp)) {
         Text(
           modifier = Modifier.testTag("LocationName"),
           text = name,
           style = MaterialTheme.typography.bodyLarge,
+          fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis,
         )
+        if (isSelected) {
+          Text(
+            text = stringResource(id = R.string.location_current_badge),
+            style = MaterialTheme.typography.labelSmall,
+            color = primary,
+          )
+        }
       }
 
       IconButton(modifier = Modifier.testTag("LocationFavorite"), onClick = onFavoriteClick) {
@@ -266,12 +306,7 @@ fun LocationListItemRow(
               id = if (isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outlined,
             ),
           contentDescription = stringResource(id = R.string.description_status),
-          tint =
-            if (isFavorite) {
-              MaterialTheme.colorScheme.primary
-            } else {
-              MaterialTheme.colorScheme.onSurfaceVariant
-            },
+          tint = if (isFavorite) primary else MaterialTheme.colorScheme.onSurfaceVariant,
         )
       }
     }

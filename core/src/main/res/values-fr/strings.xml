@@ -238,6 +238,11 @@
         name="search_identifier_types"
     >Rechercher des types d\'identifiants</string>
     <string name="search_a_location">Rechercher un lieu</string>
+    <string name="select_location_subtitle">Choisissez où vous travaillez. Vous pourrez le modifier plus tard depuis le menu.</string>
+    <string name="locations_favorites">Favoris</string>
+    <string name="locations_all">Tous les lieux</string>
+    <string name="locations_no_match">Aucun lieu ne correspond à « %1$s »</string>
+    <string name="location_current_badge">Lieu actuel</string>
     <string name="next">Suivant</string>
     <string
         name="search_patient_lists"

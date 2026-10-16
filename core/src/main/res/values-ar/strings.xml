@@ -200,6 +200,11 @@
     <string name="select_patient_list">حدد قائمة المريض</string>
     <string name="search_identifier_types">أنواع معرف البحث</string>
     <string name="search_a_location">ابحث في موقع</string>
+    <string name="select_location_subtitle">اختر مكان عملك. يمكنك تغييره لاحقًا من القائمة.</string>
+    <string name="locations_favorites">المفضلة</string>
+    <string name="locations_all">كل المواقع</string>
+    <string name="locations_no_match">لا توجد مواقع تطابق «%1$s»</string>
+    <string name="location_current_badge">الموقع الحالي</string>
     <string name="next">التالي</string>
     <string name="search_patient_lists">البحث عن قوائم المريض</string>
     <string

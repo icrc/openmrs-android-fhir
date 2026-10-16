@@ -42,7 +42,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -98,19 +97,12 @@ class LocationFragment : Fragment() {
       OpenMrsTheme {
         val locations by locationViewModel.locations.observeAsState(emptyList())
         val uiState by locationViewModel.uiState.collectAsStateWithLifecycle()
-        val filteredFavorites =
+        // One pass over the list: the matches, split into favorites and the rest.
+        val (filteredFavorites, filteredLocations) =
           remember(locations, uiState.favoriteLocationIds, uiState.query) {
-            locations.filter {
-              uiState.favoriteLocationIds.contains(it.resourceId) &&
-                it.name.contains(uiState.query, true)
-            }
-          }
-        val filteredLocations =
-          remember(locations, uiState.favoriteLocationIds, uiState.query) {
-            locations.filter {
-              !uiState.favoriteLocationIds.contains(it.resourceId) &&
-                it.name.contains(uiState.query, true)
-            }
+            locations
+              .filter { it.name.contains(uiState.query, true) }
+              .partition { uiState.favoriteLocationIds.contains(it.resourceId) }
           }
 
         if (uiState.showContent) {
@@ -127,12 +119,7 @@ class LocationFragment : Fragment() {
             onLocationClick = ::selectLocationItem,
             onFavoriteToggle = ::onFavoriteLocationToggle,
             onActionClick = ::handleActionClick,
-            topPadding =
-              if (fromLogin) {
-                20.dp
-              } else {
-                selectionScreenContentPadding().calculateTopPadding()
-              },
+            topPadding = selectionScreenContentPadding().calculateTopPadding(),
           )
         } else {
           Box(modifier = Modifier.fillMaxSize().background(OpenMrsTheme.colors.highlightContainer))

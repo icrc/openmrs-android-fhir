@@ -283,6 +283,11 @@
     <string name="select_patient_list">Выбрать список пациентов</string>
     <string name="search_identifier_types">Поиск типов идентификаторов</string>
     <string name="search_a_location">Поиск локации</string>
+    <string name="select_location_subtitle">Выберите место работы. Позже его можно изменить в меню.</string>
+    <string name="locations_favorites">Избранное</string>
+    <string name="locations_all">Все местоположения</string>
+    <string name="locations_no_match">Нет местоположений, соответствующих «%1$s»</string>
+    <string name="location_current_badge">Текущее местоположение</string>
 
     <string name="next">Далее</string>
     <string name="search_patient_lists">Поиск списков пациентов</string>

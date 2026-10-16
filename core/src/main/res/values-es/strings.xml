@@ -227,6 +227,11 @@
         name="search_identifier_types"
     >Buscar Tipos de Identificador</string>
     <string name="search_a_location">Buscar una ubicación</string>
+    <string name="select_location_subtitle">Elija dónde trabaja. Podrá cambiarlo más tarde desde el menú.</string>
+    <string name="locations_favorites">Favoritos</string>
+    <string name="locations_all">Todas las ubicaciones</string>
+    <string name="locations_no_match">Ninguna ubicación coincide con «%1$s»</string>
+    <string name="location_current_badge">Ubicación actual</string>
     <string name="next">Siguiente</string>
     <string name="search_patient_lists">Buscar listas de pacientes</string>
     <string
