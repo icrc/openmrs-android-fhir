@@ -53,6 +53,8 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
@@ -277,6 +279,8 @@ class LoginActivity : AppCompatActivity() {
 
   private fun continueWithoutLogin() {
     GuestSession.start(this)
+    AuditLog.setUser(null)
+    AuditLog.record(AuditAction.GUEST_SESSION_STARTED)
     startActivity(Intent(this, MainActivity::class.java))
     finish()
   }

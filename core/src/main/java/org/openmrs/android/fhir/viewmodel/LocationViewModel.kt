@@ -53,6 +53,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Location
 import org.openmrs.android.fhir.FhirApplication
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -159,6 +162,12 @@ constructor(
   }
 
   fun onLocationSelected(resourceId: String, name: String) {
+    AuditLog.record(
+      AuditAction.LOCATION_SELECTED,
+      AuditOutcome.SUCCESS,
+      "location" to resourceId,
+      "name" to name,
+    )
     _uiState.update { it.copy(selectedLocationId = resourceId) }
     viewModelScope.launch {
       applicationContext.dataStore.edit { preferences ->

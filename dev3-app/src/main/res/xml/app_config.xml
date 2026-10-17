@@ -9,4 +9,7 @@
     <patients registration-form="new-patient-registration-paginated" fetch-identifiers="true" />
 
     <support email="support@example.com" diagnostics-password="changeit" />
+    <!-- The audit trail kept for the support team (sign-ins, patients and encounters created or
+         edited, syncs...): the last max-actions steps (50-5000); older ones are overwritten. -->
+    <audit max-actions="500" />
 </app-config>

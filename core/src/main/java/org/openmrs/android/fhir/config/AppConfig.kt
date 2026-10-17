@@ -64,6 +64,9 @@ data class FormSectionConfig(
     names[language.lowercase()] ?: defaultName.ifBlank { names.values.firstOrNull().orEmpty() }
 }
 
+/** How much of the user's trail the audit log keeps. */
+class AuditConfig(val maxActions: Int)
+
 /**
  * The app's build-time configuration, read from `res/xml/app_config.xml`. Each application module
  * ships its own copy (it replaces the one in `core`), so one file describes one app.
@@ -87,8 +90,12 @@ internal constructor(
   val diagnosticsPassword: String,
   /** Empty: every available form is listed in one section. */
   val formSections: List<FormSectionConfig>,
+  val audit: AuditConfig = AuditConfig(DEFAULT_AUDIT_ACTIONS),
 ) {
   companion object {
+    /** Audit entries kept when the file does not say. */
+    const val DEFAULT_AUDIT_ACTIONS = 500
+
     @Volatile private var instance: AppConfig? = null
 
     fun get(context: Context): AppConfig =
@@ -114,6 +121,7 @@ internal constructor(
       var fetchIdentifiers = true
       var supportEmail = ""
       var diagnosticsPassword = ""
+      var auditActions = DEFAULT_AUDIT_ACTIONS
       val sections = mutableListOf<FormSectionConfig>()
 
       var sectionName = ""
@@ -156,6 +164,8 @@ internal constructor(
               supportEmail = attr("email").orEmpty()
               diagnosticsPassword = attr("diagnostics-password").orEmpty()
             }
+            "audit" ->
+              auditActions = (attr("max-actions")?.toIntOrNull() ?: auditActions).coerceIn(50, 5000)
             "section" -> {
               inSection = true
               sectionName = attr("name").orEmpty()
@@ -200,6 +210,7 @@ internal constructor(
         supportEmail = supportEmail,
         diagnosticsPassword = diagnosticsPassword,
         formSections = sections,
+        audit = AuditConfig(auditActions),
       )
     }
   }

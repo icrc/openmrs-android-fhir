@@ -55,6 +55,9 @@ import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.data.QuestionnaireUpdater
 import org.openmrs.android.fhir.extensions.AppLanguage
@@ -161,6 +164,22 @@ class SettingsFragment : Fragment() {
           onCancelClicked = settingsViewModel::onCancelClicked,
           onSaveClicked = {
             settingsViewModel.onSaveClicked()
+            AuditLog.record(
+              AuditAction.SETTINGS_CHANGED,
+              AuditOutcome.SUCCESS,
+              "changed" to
+                buildList {
+                  if (ThemeModeStore.get(context) != themeSelection.value) {
+                    add("theme=${themeSelection.value.value}")
+                  }
+                  if (ColorVisionStore.get(context) != colorVisionSelection.value) {
+                    add("color_vision=${colorVisionSelection.value.value}")
+                  }
+                  if (EmbeddedFormsStore.get(context) != embeddedFormsSelection.value) {
+                    add("embedded_forms_only=${embeddedFormsSelection.value}")
+                  }
+                },
+            )
             ThemeModeStore.set(context, themeSelection.value)
             EmbeddedFormsStore.set(context, embeddedFormsSelection.value)
             if (ColorVisionStore.get(context) != colorVisionSelection.value) {

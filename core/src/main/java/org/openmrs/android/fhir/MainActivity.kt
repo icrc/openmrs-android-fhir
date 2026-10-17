@@ -73,7 +73,6 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.material.appbar.MaterialToolbar
-import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -83,10 +82,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.lingala.zip4j.ZipFile
-import net.lingala.zip4j.model.ZipParameters
-import net.lingala.zip4j.model.enums.AesKeyStrength
-import net.lingala.zip4j.model.enums.EncryptionMethod
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.GuestSession
@@ -94,10 +92,10 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
-import org.openmrs.android.fhir.data.database.model.SyncStatus
+import org.openmrs.android.fhir.data.diagnostics.DiagnosticsBuilder
+import org.openmrs.android.fhir.data.diagnostics.DiagnosticsOption
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
-import org.openmrs.android.fhir.data.remote.ServerSettings
 import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.AppBarInsets
@@ -108,10 +106,9 @@ import org.openmrs.android.fhir.extensions.PermissionHelper
 import org.openmrs.android.fhir.extensions.PermissionHelperFactory
 import org.openmrs.android.fhir.extensions.UncaughtExceptionHandler
 import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
-import org.openmrs.android.fhir.extensions.getApplicationLogs
-import org.openmrs.android.fhir.extensions.saveToFile
 import org.openmrs.android.fhir.fragments.CreateEncountersFragmentArgs
 import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.DiagnosticsDialog
 import org.openmrs.android.fhir.ui.components.MainBottomBar
 import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.components.TopLevelDestination
@@ -146,6 +143,11 @@ class MainActivity : AppCompatActivity() {
   @Inject lateinit var apiManager: ApiManager
 
   @Inject lateinit var notificationHelper: NotificationHelper
+
+  @Inject lateinit var diagnosticsBuilder: DiagnosticsBuilder
+
+  private val diagnosticsVisible = androidx.compose.runtime.mutableStateOf(false)
+  private val diagnosticsBusy = androidx.compose.runtime.mutableStateOf(false)
 
   private lateinit var permissionHelper: PermissionHelper
 
@@ -283,6 +285,26 @@ class MainActivity : AppCompatActivity() {
       }
     }
     updateOverlayVisibility()
+    // The send-diagnostics choices: a dialog window, so this view takes no room.
+    addContentView(
+      ComposeView(this).apply {
+        setContent {
+          OpenMrsTheme {
+            if (diagnosticsVisible.value) {
+              DiagnosticsDialog(
+                busy = diagnosticsBusy.value,
+                onSend = ::sendDiagnostics,
+                onDismiss = { diagnosticsVisible.value = false },
+              )
+            }
+          }
+        }
+      },
+      android.view.ViewGroup.LayoutParams(
+        android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+        android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+      ),
+    )
     registerBackHandler()
     // Screens call setDisplayHomeAsUpEnabled while they start, which puts the plain back arrow back
     // on the toolbar; once a screen is resumed, draw the icon the drawer state asks for.
@@ -981,6 +1003,12 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun navigateToLogin() {
+    AuditLog.record(
+      AuditAction.LOGOUT,
+      AuditOutcome.SUCCESS,
+      "method" to authStateManager.getAuthMethod().name.lowercase(),
+    )
+    AuditLog.setUser(null)
     val loginIntent = Intent(this, LoginActivity::class.java)
 
     val pendingIntentSuccess = createPendingIntent(loginIntent, 0)
@@ -1028,7 +1056,10 @@ class MainActivity : AppCompatActivity() {
       )
     dirs.forEach { dir ->
       dir?.listFiles()?.forEach { file ->
-        if (dir == applicationContext.filesDir && file.name == "datastore") {
+        if (
+          dir == applicationContext.filesDir &&
+            (file.name == "datastore" || file.name == AuditLog.DIRECTORY)
+        ) {
           return@forEach
         }
         file.deleteRecursively()
@@ -1060,105 +1091,50 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun showSendDiagnosticReportDialog() {
-    AlertDialog.Builder(this)
-      .setTitle(getString(R.string.send_diagnostics))
-      .setMessage(getString(R.string.diagnostics_message))
-      .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
-        dialog.dismiss()
-        lifecycleScope.launch { sendDiagnosticsEmail() }
-      }
-      .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
-      .setCancelable(false)
-      .show()
+    diagnosticsVisible.value = true
   }
 
-  private suspend fun sendDiagnosticsEmail() {
-    val password = AppConfig.get(this).diagnosticsPassword
-    val zipFile = createDiagnosticZip(password)
-    val emailIntent =
-      Intent(Intent.ACTION_SEND).apply {
-        type = "application/zip"
-        putExtra(Intent.EXTRA_EMAIL, arrayOf(AppConfig.get(this@MainActivity).supportEmail))
-        putExtra(Intent.EXTRA_SUBJECT, getString(R.string.diagnostic_report_subject))
-        putExtra(Intent.EXTRA_TEXT, getString(R.string.diagnostic_report_body))
-        putExtra(
-          Intent.EXTRA_STREAM,
-          FileProvider.getUriForFile(
-            applicationContext,
-            "${applicationContext.packageName}.provider",
-            zipFile,
-          ),
-        )
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-      }
-    startActivity(Intent.createChooser(emailIntent, getString(R.string.send_email_chooser_title)))
-  }
-
-  private suspend fun createDiagnosticZip(password: String): File =
-    // Reading the logs and AES-encrypting the archive is disk/CPU heavy; keep it off the main
-    // thread.
-    withContext(Dispatchers.IO) {
-      val zipFile = File(applicationContext.cacheDir, "diagnostics.zip")
-      val zip = ZipFile(zipFile, password.toCharArray())
-      val params =
-        ZipParameters().apply {
-          isEncryptFiles = true
-          encryptionMethod = EncryptionMethod.AES
-          aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256
-        }
-      val logFile = getApplicationLogs(applicationContext, password)
-      listOfNotNull(logFile, getSyncInfoFile()).forEach { file -> zip.addFile(file, params) }
-      logFile?.delete()
-      zipFile
-    }
-
-  private suspend fun getSyncInfoFile(): File? {
-    return withContext(Dispatchers.IO) {
+  /** Builds the report the user chose on a background thread, then hands it to the mail app. */
+  private fun sendDiagnostics(options: Set<DiagnosticsOption>) {
+    if (diagnosticsBusy.value) return
+    diagnosticsBusy.value = true
+    lifecycleScope.launch {
       try {
-        // Fetch all sync session data
-        val syncSessions = syncInfoViewModel.getAllSyncSessions()
-
-        // Prepare file content
-        val fileContent = StringBuilder()
-        fileContent.append("Sync Session Information\n")
-        fileContent.append("========================\n\n")
-
-        fileContent.append(
-          "FHIR Server URL: ${ServerSettings.fhirBaseUrl(applicationContext)}\n\n",
+        val report =
+          diagnosticsBuilder.build(options, viewModel.lastSyncTimestampLiveData.value?.toString())
+        AuditLog.record(
+          AuditAction.DIAGNOSTICS_SENT,
+          AuditOutcome.SUCCESS,
+          "included" to report.included.map { it.name },
         )
-
-        viewModel.lastSyncTimestampLiveData.value?.let {
-          fileContent.append("Last sync: ${it}\n\n")
-        }
-
-        if (syncSessions.isEmpty()) {
-          fileContent.append("No Sync Info Available\n")
-        } else {
-          for (session in syncSessions) {
-            fileContent.append("Start Time: ${session.startTime}\n")
-            fileContent.append(
-              "Downloaded Resources: ${session.downloadedPatients}/${session.totalPatientsToDownload}\n",
+        diagnosticsVisible.value = false
+        val emailIntent =
+          Intent(Intent.ACTION_SEND).apply {
+            type = "application/zip"
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(AppConfig.get(this@MainActivity).supportEmail))
+            putExtra(Intent.EXTRA_SUBJECT, getString(R.string.diagnostic_report_subject))
+            putExtra(Intent.EXTRA_TEXT, getString(R.string.diagnostic_report_body))
+            putExtra(
+              Intent.EXTRA_STREAM,
+              FileProvider.getUriForFile(
+                applicationContext,
+                "${applicationContext.packageName}.provider",
+                report.file,
+              ),
             )
-            fileContent.append(
-              "Uploaded Resources: ${session.uploadedPatients}/${session.totalPatientsToUpload}\n",
-            )
-            fileContent.append("Completion Time: ${session.completionTime ?: "In Progress"}\n")
-            fileContent.append("Status: ${session.status}\n")
-
-            if (session.status == SyncStatus.COMPLETED_WITH_ERRORS && session.errors.isNotEmpty()) {
-              fileContent.append("Errors:\n")
-              session.errors.forEach { error -> fileContent.append("- $error\n") }
-            }
-            fileContent.append("\n")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
           }
-          fileContent.append("========================\n\n")
-        }
-
-        // Save the content to a file
-        saveToFile(applicationContext, "SyncInfo.txt", fileContent.toString())
+        startActivity(
+          Intent.createChooser(emailIntent, getString(R.string.send_email_chooser_title)),
+        )
+      } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
       } catch (e: Exception) {
-        e.printStackTrace()
-        null
+        Timber.e(e, "Preparing the diagnostics failed")
+        AuditLog.failure(AuditAction.DIAGNOSTICS_SENT, "error" to e.javaClass.simpleName)
+        AppMessage.show(this@MainActivity, R.string.diag_failed, MessageKind.Error)
+      } finally {
+        diagnosticsBusy.value = false
       }
     }
   }

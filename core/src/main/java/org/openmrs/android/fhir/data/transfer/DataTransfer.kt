@@ -53,6 +53,9 @@ import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import timber.log.Timber
 
 /** What was written by [DataTransfer.export]. */
@@ -84,6 +87,36 @@ constructor(
 
   /** How many resources are waiting to be uploaded. */
   suspend fun pendingCount(): Int = withContext(Dispatchers.IO) { pendingChanges().size }
+
+  /**
+   * Writes every resource with changes not uploaded yet to [target], one JSON object per line
+   * (`method`, `url`, `resource`), a resource at a time so a lot of data costs little memory.
+   * Returns how many were written.
+   */
+  suspend fun writeUnsynced(target: File): Int =
+    withContext(Dispatchers.IO) {
+      var written = 0
+      target.bufferedWriter().use { out ->
+        pendingChanges()
+          .sortedBy { dependencyOrder(it.type) }
+          .forEach { pending ->
+            val resource =
+              try {
+                fhirEngine.get(pending.type, pending.id)
+              } catch (e: ResourceNotFoundException) {
+                return@forEach
+              }
+            out.append("{\"method\":\"")
+            out.append(if (pending.isNew) "POST" else "PUT")
+            out.append("\",\"url\":\"${pending.type.name}/${pending.id}\",\"resource\":")
+            out.append(parser.encodeResourceToString(resource))
+            out.append("}")
+            out.newLine()
+            written++
+          }
+      }
+      written
+    }
 
   suspend fun export(pin: String): ExportResult =
     withContext(Dispatchers.IO) {
@@ -117,6 +150,7 @@ constructor(
       val name =
         "openmrs-export-${SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(Date())}.omrs"
       val file = File(dir, name).apply { writeBytes(sealed) }
+      AuditLog.record(AuditAction.DATA_EXPORTED, AuditOutcome.SUCCESS, "items" to bundle.entry.size)
       ExportResult(file, bundle.entry.size, file.length())
     }
 
@@ -134,6 +168,15 @@ constructor(
           throw InvalidTransferFileException()
         }
       withContext(Dispatchers.IO) { apply(bundle) }
+        .also {
+          AuditLog.record(
+            AuditAction.DATA_IMPORTED,
+            AuditOutcome.SUCCESS,
+            "added" to it.added,
+            "updated" to it.updated,
+            "skipped" to it.skipped,
+          )
+        }
     }
 
   /** New resources are created, edits are applied on top of the copy this device has. */

@@ -47,6 +47,9 @@ import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.database.model.UnsyncedEncounter
 import org.openmrs.android.fhir.data.database.model.UnsyncedObservation
 import org.openmrs.android.fhir.data.database.model.UnsyncedPatient
@@ -215,6 +218,11 @@ constructor(
               }
           }
         }
+        AuditLog.record(
+          AuditAction.UNSYNCED_DELETED,
+          AuditOutcome.SUCCESS,
+          "scope" to resource::class.simpleName,
+        )
         updateResourcesList()
       } finally {
         _isLoading.value = false
@@ -325,7 +333,9 @@ constructor(
           }
         }
         patients = emptyList()
+        AuditLog.record(AuditAction.UNSYNCED_DELETED, AuditOutcome.SUCCESS, "scope" to "all")
       } catch (_: Exception) {
+        AuditLog.failure(AuditAction.UNSYNCED_DELETED, "scope" to "all")
         patients = fetchUnsyncedPatientsWithEncounterAndObservations()
       } finally {
         updateResourcesList()

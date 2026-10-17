@@ -750,4 +750,18 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="embedded_forms_only_description">The app uses only the forms shipped with it and does not download questionnaires from the server.</string>
     <string name="fetch_questionnaires_sign_in">Sign in to check the server for new and updated forms.</string>
     <string name="questionnaires_changes">New forms: %1$d, updated: %2$d</string>
+    <string name="diag_message">Choose what to send to the support team. Everything is selected by default. The report is an encrypted archive that you send by email.</string>
+    <string name="diag_logs">Application logs</string>
+    <string name="diag_logs_description">What the app recorded while it ran, to find errors.</string>
+    <string name="diag_audit">Audit trail</string>
+    <string name="diag_audit_description">The recent steps taken in the app: sign-ins, patients and encounters created or edited, syncs.</string>
+    <string name="diag_sync">Sync information</string>
+    <string name="diag_sync_description">The latest synchronization sessions, with their counts and errors.</string>
+    <string name="diag_unsynced">Unsynced resources</string>
+    <string name="diag_unsynced_description">Everything still waiting to be uploaded, in full. Contains patient data.</string>
+    <string name="diag_device">Device and app information</string>
+    <string name="diag_device_description">Version, device, storage, network, settings and forms. No patient data.</string>
+    <string name="diag_preparing">Preparing the report…</string>
+    <string name="diag_send">Send</string>
+    <string name="diag_failed">Could not prepare the diagnostics report.</string>
 </resources>

@@ -52,6 +52,9 @@ import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.FormCatalog
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
@@ -81,6 +84,11 @@ constructor(
   }
 
   private val patientId: String = requireNotNull(state["patient_id"])
+
+  init {
+    AuditLog.record(AuditAction.PATIENT_OPENED, AuditOutcome.SUCCESS, "patient" to patientId)
+  }
+
   val livePatientData = MutableLiveData<List<PatientDetailData>>()
 
   private val parser = FhirContext.forR4Cached().newJsonParser()

@@ -816,4 +816,18 @@
     <string name="embedded_forms_only_description">L\'application n\'utilise que les formulaires fournis avec elle et ne télécharge pas de questionnaires depuis le serveur.</string>
     <string name="fetch_questionnaires_sign_in">Connectez-vous pour rechercher sur le serveur des formulaires nouveaux ou mis à jour.</string>
     <string name="questionnaires_changes">Nouveaux formulaires : %1$d, mis à jour : %2$d</string>
+    <string name="diag_message">Choisissez ce qu\'il faut envoyer à l\'équipe d\'assistance. Tout est sélectionné par défaut. Le rapport est une archive chiffrée envoyée par e-mail.</string>
+    <string name="diag_logs">Journaux de l\'application</string>
+    <string name="diag_logs_description">Ce que l\'application a enregistré pendant son fonctionnement, pour trouver les erreurs.</string>
+    <string name="diag_audit">Piste d\'audit</string>
+    <string name="diag_audit_description">Les dernières étapes dans l\'application : connexions, patients et rencontres créés ou modifiés, synchronisations.</string>
+    <string name="diag_sync">Informations de synchronisation</string>
+    <string name="diag_sync_description">Les dernières sessions de synchronisation, avec leurs compteurs et erreurs.</string>
+    <string name="diag_unsynced">Ressources non synchronisées</string>
+    <string name="diag_unsynced_description">Tout ce qui attend d\'être envoyé, en entier. Contient des données de patients.</string>
+    <string name="diag_device">Appareil et application</string>
+    <string name="diag_device_description">Version, appareil, stockage, réseau, paramètres et formulaires. Aucune donnée de patient.</string>
+    <string name="diag_preparing">Préparation du rapport…</string>
+    <string name="diag_send">Envoyer</string>
+    <string name="diag_failed">Impossible de préparer le rapport de diagnostic.</string>
 </resources>

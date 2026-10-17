@@ -44,6 +44,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -70,6 +73,14 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     super.onCreate()
     ThemeModeStore.applySaved(this)
     ColorVisionStore.install(this)
+    AuditLog.init(this)
+    AuditLog.record(
+      AuditAction.APP_STARTED,
+      AuditOutcome.SUCCESS,
+      "version" to packageManager.getPackageInfo(packageName, 0).versionName,
+      "android" to android.os.Build.VERSION.SDK_INT,
+      "device" to "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}",
+    )
     Timber.e("FHIR Application started. Test Error log. Is Debug %s", BuildConfig.DEBUG)
     Timber.d("FHIR Application started. Test Debug log")
     val loggingMaxFileSize = 5 * 1024 * 1024L // 5MB

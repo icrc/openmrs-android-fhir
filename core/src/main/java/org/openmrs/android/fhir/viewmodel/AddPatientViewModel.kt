@@ -58,6 +58,9 @@ import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.Constants.PATIENT_IDENTIFIER_DEFINITION_URL
 import org.openmrs.android.fhir.Constants.PATIENT_LOCATION_IDENTIFIER_URL
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PatientIdentifierFactory
@@ -109,6 +112,7 @@ constructor(
           .any { it is Invalid }
       ) {
         saveInProgress = false
+        AuditLog.failure(AuditAction.PATIENT_CREATED, "reason" to "invalid_answers")
         isPatientSaved.value = false
         return@launch
       }
@@ -130,6 +134,7 @@ constructor(
       val birthDate = openMRSHelper.birthDateFrom(questionnaireResponse)
       if (birthDate != null && openMRSHelper.isInTheFuture(birthDate)) {
         saveFailure.value = R.string.birth_date_in_the_future
+        AuditLog.failure(AuditAction.PATIENT_CREATED, "reason" to "birth_date_in_future")
         saveInProgress = false
         isPatientSaved.value = false
         return@launch
@@ -159,6 +164,11 @@ constructor(
       patient.extension = personAttributeExtensions
 
       fhirEngine.create(patient)
+      AuditLog.record(
+        AuditAction.PATIENT_CREATED,
+        AuditOutcome.SUCCESS,
+        "patient" to patient.idElement.idPart,
+      )
       // TODO Pending for cohort-module
       // addPatientToSelectedPatientList(patient)
       isPatientSaved.value = true

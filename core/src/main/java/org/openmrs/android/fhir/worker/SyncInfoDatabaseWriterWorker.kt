@@ -58,6 +58,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.data.sync.FhirSyncWorker
@@ -195,6 +198,7 @@ class SyncInfoDatabaseWriterWorker(
   }
 
   private suspend fun handleSyncStarted() {
+    AuditLog.record(AuditAction.SYNC, AuditOutcome.SUCCESS, "state" to "started")
     database.dao().getOrCreateInProgressSyncSession(formatter)
   }
 
@@ -259,6 +263,7 @@ class SyncInfoDatabaseWriterWorker(
   }
 
   private suspend fun handleSuccessSync(state: CurrentSyncJobStatus.Succeeded) {
+    AuditLog.record(AuditAction.SYNC, AuditOutcome.SUCCESS, "state" to "completed")
     val inProgressSyncSession = database.dao().getInProgressSyncSession()
     if (inProgressSyncSession != null) {
       if (inProgressSyncSession.downloadedPatients + inProgressSyncSession.uploadedPatients == 0) {
@@ -293,6 +298,7 @@ class SyncInfoDatabaseWriterWorker(
   }
 
   private suspend fun handleFailedSync(syncJobStatus: CurrentSyncJobStatus.Failed) {
+    AuditLog.failure(AuditAction.SYNC, "state" to "failed")
     val inProgressSyncSession = database.dao().getInProgressSyncSession()
     if (inProgressSyncSession != null) {
       database

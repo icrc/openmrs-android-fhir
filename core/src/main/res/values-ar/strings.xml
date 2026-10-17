@@ -722,4 +722,18 @@
     <string name="embedded_forms_only_description">يستخدم التطبيق النماذج المرفقة به فقط ولا ينزّل الاستبيانات من الخادم.</string>
     <string name="fetch_questionnaires_sign_in">سجّل الدخول للتحقق من النماذج الجديدة والمحدّثة على الخادم.</string>
     <string name="questionnaires_changes">نماذج جديدة: %1$d، محدّثة: %2$d</string>
+    <string name="diag_message">اختر ما سيُرسل إلى فريق الدعم. كل شيء محدد افتراضياً. التقرير أرشيف مشفّر يُرسل بالبريد الإلكتروني.</string>
+    <string name="diag_logs">سجلات التطبيق</string>
+    <string name="diag_logs_description">ما سجّله التطبيق أثناء عمله، لاكتشاف الأخطاء.</string>
+    <string name="diag_audit">سجل التدقيق</string>
+    <string name="diag_audit_description">آخر الخطوات في التطبيق: تسجيلات الدخول والمرضى واللقاءات المنشأة أو المعدّلة والمزامنات.</string>
+    <string name="diag_sync">معلومات المزامنة</string>
+    <string name="diag_sync_description">آخر جلسات المزامنة مع أعدادها وأخطائها.</string>
+    <string name="diag_unsynced">موارد غير متزامنة</string>
+    <string name="diag_unsynced_description">كل ما ينتظر الرفع، كاملاً. يحتوي على بيانات المرضى.</string>
+    <string name="diag_device">الجهاز والتطبيق</string>
+    <string name="diag_device_description">الإصدار والجهاز والتخزين والشبكة والإعدادات والنماذج. بلا بيانات مرضى.</string>
+    <string name="diag_preparing">جارٍ تحضير التقرير…</string>
+    <string name="diag_send">إرسال</string>
+    <string name="diag_failed">تعذّر تحضير تقرير التشخيص.</string>
 </resources>

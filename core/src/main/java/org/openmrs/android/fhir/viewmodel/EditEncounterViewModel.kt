@@ -62,6 +62,9 @@ import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.codesystems.ConditionCategory
 import org.openmrs.android.fhir.Constants
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.allQuestionnaires
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
@@ -278,9 +281,19 @@ constructor(
       }
 
       flushPendingResourceOperations()
+      AuditLog.record(
+        AuditAction.ENCOUNTER_EDITED,
+        AuditOutcome.SUCCESS,
+        "encounter" to encounterId,
+      )
       isResourcesSaved.value = "SAVED"
     } catch (e: Exception) {
       Timber.e(e.localizedMessage)
+      AuditLog.failure(
+        AuditAction.ENCOUNTER_EDITED,
+        "encounter" to encounterId,
+        "error" to e.javaClass.simpleName,
+      )
       isResourcesSaved.value = "MISSING"
       pendingResourceOperations?.clear()
     } finally {

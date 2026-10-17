@@ -38,6 +38,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Questionnaire
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.remote.ApiManager
 import timber.log.Timber
 
@@ -80,16 +83,31 @@ constructor(
           }
         val toStore = missing + newer
         if (toStore.isEmpty()) {
+          AuditLog.record(
+            AuditAction.FORMS_FETCHED,
+            AuditOutcome.SUCCESS,
+            "added" to 0,
+            "updated" to 0,
+            "available" to remote.size,
+          )
           Outcome.UpToDate(remote.size)
         } else {
           // Stored like a download, so no local change is queued for upload: the server owns them.
           fhirEngine.syncDownload(AcceptRemoteConflictResolver) { flowOf(toStore) }
+          AuditLog.record(
+            AuditAction.FORMS_FETCHED,
+            AuditOutcome.SUCCESS,
+            "added" to missing.size,
+            "updated" to newer.size,
+            "available" to remote.size,
+          )
           Outcome.Added(missing.size, newer.size, remote.size)
         }
       } catch (e: CancellationException) {
         throw e
       } catch (e: Exception) {
         Timber.e(e, "Fetching questionnaires failed")
+        AuditLog.failure(AuditAction.FORMS_FETCHED, "error" to e.javaClass.simpleName)
         Outcome.Failed(e.localizedMessage)
       }
     }

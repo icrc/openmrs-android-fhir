@@ -40,6 +40,10 @@
     <!-- Where "Send diagnostics" goes; the optional password protects the archive. -->
     <support email="support@example.com" diagnostics-password="" />
 
+    <!-- The audit trail kept for the support team (sign-ins, patients and encounters created or
+         edited, syncs...): the last max-actions steps (50-5000); older ones are overwritten. -->
+    <audit max-actions="500" />
+
     <!-- The Create Encounter screen: sections of forms, identified by the encounter type code the
          questionnaire declares. A section name can be translated with <name lang="xx">. Without
          sections every available form is listed, alphabetically, in one "All forms" section. -->

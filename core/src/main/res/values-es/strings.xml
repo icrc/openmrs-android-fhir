@@ -788,4 +788,18 @@
     <string name="embedded_forms_only_description">La aplicación usa solo los formularios incluidos y no descarga cuestionarios del servidor.</string>
     <string name="fetch_questionnaires_sign_in">Inicie sesión para buscar en el servidor formularios nuevos o actualizados.</string>
     <string name="questionnaires_changes">Formularios nuevos: %1$d, actualizados: %2$d</string>
+    <string name="diag_message">Elija qué enviar al equipo de soporte. Todo está seleccionado por defecto. El informe es un archivo cifrado que se envía por correo.</string>
+    <string name="diag_logs">Registros de la aplicación</string>
+    <string name="diag_logs_description">Lo que la aplicación registró mientras funcionaba, para encontrar errores.</string>
+    <string name="diag_audit">Registro de auditoría</string>
+    <string name="diag_audit_description">Los últimos pasos en la aplicación: inicios de sesión, pacientes y encuentros creados o editados, sincronizaciones.</string>
+    <string name="diag_sync">Información de sincronización</string>
+    <string name="diag_sync_description">Las últimas sesiones de sincronización, con sus contadores y errores.</string>
+    <string name="diag_unsynced">Recursos sin sincronizar</string>
+    <string name="diag_unsynced_description">Todo lo que espera ser enviado, completo. Contiene datos de pacientes.</string>
+    <string name="diag_device">Dispositivo y aplicación</string>
+    <string name="diag_device_description">Versión, dispositivo, almacenamiento, red, ajustes y formularios. Sin datos de pacientes.</string>
+    <string name="diag_preparing">Preparando el informe…</string>
+    <string name="diag_send">Enviar</string>
+    <string name="diag_failed">No se pudo preparar el informe de diagnóstico.</string>
 </resources>

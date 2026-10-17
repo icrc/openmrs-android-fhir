@@ -807,4 +807,18 @@
     <string name="embedded_forms_only_description">Приложение использует только встроенные формы и не загружает опросники с сервера.</string>
     <string name="fetch_questionnaires_sign_in">Войдите, чтобы проверить на сервере новые и обновлённые формы.</string>
     <string name="questionnaires_changes">Новых форм: %1$d, обновлено: %2$d</string>
+    <string name="diag_message">Выберите, что отправить в службу поддержки. По умолчанию выбрано всё. Отчёт — зашифрованный архив, который отправляется по электронной почте.</string>
+    <string name="diag_logs">Журналы приложения</string>
+    <string name="diag_logs_description">Что приложение записывало во время работы, для поиска ошибок.</string>
+    <string name="diag_audit">Журнал действий</string>
+    <string name="diag_audit_description">Последние шаги в приложении: входы, созданные или изменённые пациенты и визиты, синхронизации.</string>
+    <string name="diag_sync">Сведения о синхронизации</string>
+    <string name="diag_sync_description">Последние сеансы синхронизации с их счётчиками и ошибками.</string>
+    <string name="diag_unsynced">Несинхронизированные данные</string>
+    <string name="diag_unsynced_description">Всё, что ещё ждёт отправки, целиком. Содержит данные пациентов.</string>
+    <string name="diag_device">Устройство и приложение</string>
+    <string name="diag_device_description">Версия, устройство, память, сеть, настройки и формы. Без данных пациентов.</string>
+    <string name="diag_preparing">Подготовка отчёта…</string>
+    <string name="diag_send">Отправить</string>
+    <string name="diag_failed">Не удалось подготовить диагностический отчёт.</string>
 </resources>

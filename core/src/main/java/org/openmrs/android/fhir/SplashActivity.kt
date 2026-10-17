@@ -52,6 +52,9 @@ import androidx.navigation.compose.rememberNavController
 import java.util.concurrent.Executor
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
@@ -286,6 +289,12 @@ class SplashActivity : AppCompatActivity() {
             if (cipher != null) {
               val token = BiometricUtils.decryptToken(cipher, this@SplashActivity)
               if (token != null) {
+                AuditLog.record(
+                  AuditAction.LOGIN,
+                  AuditOutcome.SUCCESS,
+                  "method" to
+                    "offline_${BiometricUtils.getOfflineAuthMethod(this@SplashActivity)?.name?.lowercase()}",
+                )
                 navigateToMainActivity()
                 return
               }

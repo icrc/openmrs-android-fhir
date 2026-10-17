@@ -43,6 +43,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.data.transfer.DataTransfer
 import org.openmrs.android.fhir.data.transfer.ExportResult
 import org.openmrs.android.fhir.data.transfer.ImportResult
@@ -105,6 +107,7 @@ constructor(
         _uiState.update { it.copy(exported = result) }
       } catch (e: Exception) {
         Timber.e(e, "Export failed")
+        AuditLog.failure(AuditAction.DATA_EXPORTED, "error" to e.javaClass.simpleName)
         say(R.string.export_failed, MessageKind.Error)
       } finally {
         _uiState.update { it.copy(busy = false) }
@@ -132,12 +135,15 @@ constructor(
         _uiState.update { it.copy(importFile = null, imported = result) }
         refreshPending()
       } catch (e: WrongPinException) {
+        AuditLog.failure(AuditAction.DATA_IMPORTED, "reason" to "wrong_pin")
         _uiState.update { it.copy(wrongPin = true) }
       } catch (e: InvalidTransferFileException) {
+        AuditLog.failure(AuditAction.DATA_IMPORTED, "reason" to "invalid_file")
         _uiState.update { it.copy(importFile = null) }
         say(R.string.import_invalid_file, MessageKind.Error)
       } catch (e: Exception) {
         Timber.e(e, "Import failed")
+        AuditLog.failure(AuditAction.DATA_IMPORTED, "error" to e.javaClass.simpleName)
         _uiState.update { it.copy(importFile = null) }
         say(R.string.import_failed, MessageKind.Error)
       } finally {

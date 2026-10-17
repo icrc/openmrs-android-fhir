@@ -52,6 +52,9 @@ import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.StringType
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -146,6 +149,13 @@ constructor(
     } else {
       updatedSelection.add(resourceId)
     }
+    AuditLog.record(
+      AuditAction.PATIENT_LISTS_CHANGED,
+      AuditOutcome.SUCCESS,
+      "list" to resourceId,
+      "selected" to !isSelected,
+      "total" to updatedSelection.size,
+    )
     _uiState.update { it.copy(selectedPatientListIds = updatedSelection) }
     viewModelScope.launch {
       applicationContext.dataStore.edit { preferences ->

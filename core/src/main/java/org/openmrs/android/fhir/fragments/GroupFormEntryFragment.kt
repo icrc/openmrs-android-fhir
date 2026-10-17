@@ -58,6 +58,9 @@ import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.databinding.GroupFormentryFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
@@ -317,6 +320,12 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     if (hasStartedPatientForms) return
     if (viewModel.patients.value.isNullOrEmpty()) return
     hasStartedPatientForms = true
+    AuditLog.record(
+      AuditAction.GROUP_SESSION_STARTED,
+      AuditOutcome.SUCCESS,
+      "form" to args.questionnaireId,
+      "patients" to viewModel.patients.value?.size,
+    )
     binding.patientTabLayout.visibility = View.VISIBLE
     observeQuestionnaire()
     loadQuestionnaireForTab(currentSelectedTabPosition)
@@ -702,6 +711,12 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       }
 
       viewModel.submittedPatientIds.clear()
+      AuditLog.record(
+        AuditAction.GROUP_SESSION_SUBMITTED,
+        AuditOutcome.SUCCESS,
+        "form" to args.questionnaireId,
+        "patients" to patients.size,
+      )
       activeSubmissionSessionId = viewModel.sessionId
       patients.forEach { patient ->
         val patientId = patient.resourceId

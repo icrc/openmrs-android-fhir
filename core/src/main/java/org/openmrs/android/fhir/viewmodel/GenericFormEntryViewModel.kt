@@ -62,6 +62,9 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.codesystems.ConditionCategory
 import org.openmrs.android.fhir.Constants
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -217,6 +220,12 @@ constructor(
           applicationContext,
         )
       ) {
+        AuditLog.failure(
+          AuditAction.ENCOUNTER_CREATED,
+          "patient" to patientId,
+          "form" to questionnaireId,
+          "reason" to "invalid_answers",
+        )
         isResourcesSaved.value = "MISSING/$patientId"
         return@launch
       }
@@ -244,6 +253,13 @@ constructor(
         encounterId,
         visit.idPart,
         encounterDate,
+      )
+      AuditLog.record(
+        AuditAction.ENCOUNTER_CREATED,
+        AuditOutcome.SUCCESS,
+        "patient" to patientId,
+        "encounter" to encounterId,
+        "form" to questionnaireId,
       )
       isResourcesSaved.value = "SAVED/$patientId"
     }

@@ -44,6 +44,9 @@ import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 import org.openmrs.android.fhir.LoginRepository
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.data.remote.ApiManager
@@ -109,11 +112,16 @@ constructor(
           if (token.isNotBlank()) {
             sessionTokenToEncrypt = token
           }
+          AuditLog.setUser(userFromIdToken(authStateManager.current.idToken))
+          AuditLog.record(AuditAction.LOGIN, AuditOutcome.SUCCESS, "method" to "sso")
         } catch (e: Exception) {
           Timber.e("Biometric key error: ${e.message}")
         }
       }
-      ex != null -> Timber.e("Authorization flow failed: ${ex.message}")
+      ex != null -> {
+        Timber.e("Authorization flow failed: ${ex.message}")
+        AuditLog.failure(AuditAction.LOGIN, "method" to "sso", "reason" to ex.errorDescription)
+      }
       else -> Timber.e("No authorization state retained - reauthorization required")
     }
   }
@@ -125,6 +133,7 @@ constructor(
       _uiState.value = LoginUiState.Loading
 
       if (authStateManager.isLockedOut()) {
+        AuditLog.failure(AuditAction.LOGIN, "method" to "basic", "reason" to "locked_out")
         _uiState.value = LoginUiState.LockedOut
         return@launch
       }
@@ -146,6 +155,12 @@ constructor(
         val authenticated = response.data?.authenticated == true
         if (!authenticated) {
           authStateManager.incrementFailedAttempts()
+          AuditLog.failure(
+            AuditAction.LOGIN,
+            "method" to "basic",
+            "username" to username,
+            "reason" to "invalid_credentials",
+          )
           _uiState.value = LoginUiState.Failure(R.string.invalid_username_password)
           return
         }
@@ -156,16 +171,45 @@ constructor(
         createBiometricKey()
 
         sessionTokenToEncrypt = encodedCredentials
+        AuditLog.setUser(username)
+        AuditLog.record(AuditAction.LOGIN, AuditOutcome.SUCCESS, "method" to "basic")
         _uiState.value = LoginUiState.Success
       }
       is ApiResponse.NoInternetConnection -> {
+        AuditLog.failure(
+          AuditAction.LOGIN,
+          "method" to "basic",
+          "username" to username,
+          "reason" to "no_internet",
+        )
         _uiState.value = LoginUiState.Failure(R.string.no_internet_connection)
       }
       else -> {
+        AuditLog.failure(
+          AuditAction.LOGIN,
+          "method" to "basic",
+          "username" to username,
+          "reason" to "server_error",
+        )
         _uiState.value = LoginUiState.Failure(R.string.something_went_wrong)
       }
     }
   }
+
+  /** The signed-in user's name from the ID token's claims, if the provider sends one. */
+  private fun userFromIdToken(idToken: String?): String? =
+    try {
+      val payload = idToken?.split('.')?.getOrNull(1) ?: return null
+      val claims =
+        org.json.JSONObject(
+          String(Base64.decode(payload, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)),
+        )
+      listOf("preferred_username", "email", "name", "sub").firstNotNullOfOrNull {
+        claims.optString(it).takeIf { value -> value.isNotBlank() }
+      }
+    } catch (e: Exception) {
+      null
+    }
 
   /** The key that protects the offline login, created once a session exists. */
   private fun createBiometricKey() {
