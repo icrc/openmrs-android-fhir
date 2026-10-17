@@ -105,17 +105,6 @@
         name="default_item_background"
     >#FFFFFF</color> <!-- White background -->
     <color name="default_item_border">#E0E0E0</color> <!-- Light gray border -->
-    <color name="tab_selected_background_color">#D9FBFB</color>
-    <color
-        name="tab_unselected_background_color"
-    >#F5F5F5</color> <!-- A light grey/off-white -->
-    <color
-        name="tab_indicator_color_blue"
-    >#005D5D</color>     <!-- A darker blue for the indicator -->
-    <color
-        name="tab_text_color_primary"
-    >#DE000000</color>   <!-- 87% Black for text -->
-    <color name="tab_text_color_secondary">#99000000</color>
     <!-- OpenMRS 3 palette used by the data-capture form theme (night variants in values-night) -->
     <color name="o3_primary">#005D5D</color>
     <color name="o3_on_primary">#FFFFFF</color>

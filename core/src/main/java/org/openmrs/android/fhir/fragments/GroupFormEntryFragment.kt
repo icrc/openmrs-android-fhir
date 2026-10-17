@@ -40,6 +40,7 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
+import androidx.fragment.app.commitNow
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -97,6 +98,9 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
 
   // Keep track of current questionnaire fragment
   private var currentQuestionnaireFragment: QuestionnaireFragment? = null
+
+  /** Patients whose form is alive, the one in use first. */
+  private val recentForms = ArrayDeque<String>()
   private var currentPatientId: String? = null
   private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
@@ -260,26 +264,53 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       return
     }
 
-    // Restore previous response if exists
+    // Building a form is the slow part of switching patients, so the last few stay alive (hidden)
+    // and coming back to one is instant, with the answers and the open page as they were left.
+    // A form that is built again starts from the answers kept in the view model.
+    val tag = QUESTIONNAIRE_FRAGMENT_TAG + patientId
+    val kept = childFragmentManager.findFragmentByTag(tag) as? QuestionnaireFragment
     val newFragment =
-      newQuestionnaireFragment(
-        questionnaireJson,
-        responseJson = viewModel.patientResponses[patientId],
-        showSubmitButton = true,
-        submitButtonText = getString(R.string.submit),
-      )
+      kept
+        ?: newQuestionnaireFragment(
+          questionnaireJson,
+          responseJson = viewModel.patientResponses[patientId],
+          showSubmitButton = true,
+          submitButtonText = getString(R.string.submit),
+        )
+    recentForms.remove(patientId)
+    recentForms.addFirst(patientId)
+    val dropped = mutableSetOf<String>()
+    while (recentForms.size > MAX_LIVE_FORMS) dropped.add(recentForms.removeLast())
     childFragmentManager.commit {
-      replace(
-        R.id.form_entry_container,
-        newFragment,
-        QUESTIONNAIRE_FRAGMENT_TAG + patientId,
-      )
+      setReorderingAllowed(true)
+      childFragmentManager.fragments.forEach { fragment ->
+        val other = fragment.tag ?: return@forEach
+        when {
+          fragment === newFragment -> Unit
+          other == SCREENER_FRAGMENT_TAG -> remove(fragment)
+          other.startsWith(QUESTIONNAIRE_FRAGMENT_TAG) &&
+            other.removePrefix(QUESTIONNAIRE_FRAGMENT_TAG) in dropped -> remove(fragment)
+          else -> hide(fragment)
+        }
+      }
+      if (kept != null) show(kept) else add(R.id.form_entry_container, newFragment, tag)
     }
 
     currentQuestionnaireFragment = newFragment
     currentPatientId = patientId
 
     view?.post { viewModel.isLoading.value = false }
+  }
+
+  /** The forms are out of date (another questionnaire, a restored draft): build them again. */
+  private fun discardPatientForms() {
+    recentForms.clear()
+    val stale =
+      childFragmentManager.fragments.filter {
+        it.tag?.startsWith(QUESTIONNAIRE_FRAGMENT_TAG) == true
+      }
+    if (stale.isEmpty()) return
+    childFragmentManager.commitNow(allowStateLoss = true) { stale.forEach { remove(it) } }
   }
 
   private fun startPatientQuestionnaires() {
@@ -295,6 +326,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     patientId: String? = currentPatientId,
     questionnaireResponse: QuestionnaireResponse? = null,
     persist: Boolean = true,
+    validate: Boolean = true,
   ) {
     val response =
       questionnaireResponse
@@ -304,7 +336,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
 
     try {
       viewModel.patientResponses[patientId] = parser.encodeResourceToString(response)
-      updatePatientValidationIndicator(patientId, response)
+      if (validate) updatePatientValidationIndicator(patientId, response)
       if (persist) {
         viewModel.saveDraft(args.questionnaireId, patientIds)
       }
@@ -456,9 +488,13 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
 
             if (!hasValidationErrors) {
               switchToTab(newTabPosition)
+              saveDraftInBackground()
             } else {
               showIncompleteFormDialog(
-                onContinue = { switchToTab(newTabPosition) },
+                onContinue = {
+                  switchToTab(newTabPosition)
+                  saveDraftInBackground()
+                },
                 onStay = { /* keep current tab */},
               )
             }
@@ -479,6 +515,11 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     )
 
     lifecycleScope.launch { refreshTabValidationIndicators() }
+  }
+
+  /** The draft holds every answer and both forms: writing it must not hold up the next patient. */
+  private fun saveDraftInBackground() {
+    lifecycleScope.launch { viewModel.saveDraft(args.questionnaireId, patientIds) }
   }
 
   private fun createTabView(patientName: String, showIndicator: Boolean = false): View {
@@ -554,7 +595,13 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
             as QuestionnaireResponse
         }
           ?: return false
-    cacheCurrentPatientResponse(patientId, questionnaireResponse)
+    // Kept in memory now and validated once below; the draft is written after the switch.
+    cacheCurrentPatientResponse(
+      patientId,
+      questionnaireResponse,
+      persist = false,
+      validate = false,
+    )
 
     val questionnaire = genericFormEntryViewModel.questionnaire.value ?: return false
     val hasValidationErrors =
@@ -811,6 +858,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   private fun removeHiddenFragments() {
+    recentForms.retainAll(setOfNotNull(currentPatientId))
     childFragmentManager.fragments.forEach { fragment ->
       if (fragment != currentQuestionnaireFragment) {
         childFragmentManager.commit { remove(fragment) }
@@ -830,6 +878,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     genericFormEntryViewModel.questionnaireJson.observe(viewLifecycleOwner) {
       val patientId =
         viewModel.patients.value?.get(binding.patientTabLayout.selectedTabPosition)?.resourceId
+      discardPatientForms()
       if (patientId != null) {
         viewModel.isLoading.value = true
         it?.let {
@@ -872,5 +921,8 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   companion object {
     const val QUESTIONNAIRE_FRAGMENT_TAG = "questionnaire-fragment-tag"
     const val SCREENER_FRAGMENT_TAG = "screener-fragment-tag"
+
+    /** Forms kept alive: each holds all its views, so only a few are. */
+    private const val MAX_LIVE_FORMS = 3
   }
 }

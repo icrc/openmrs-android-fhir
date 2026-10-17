@@ -146,6 +146,18 @@
         <item name="cornerRadius">12dp</item>
         <item name="backgroundTint">?attr/colorPrimary</item>
     </style>
+    <!-- The page progress line of a form: the app colours, a track that reads as a track. -->
+    <style
+        name="Questionnaire.questionnaireLinearProgressIndicatorStyle"
+        parent="Widget.Material3.LinearProgressIndicator"
+    >
+        <item name="indicatorColor">?attr/colorPrimary</item>
+        <item name="trackColor">?attr/colorSurfaceVariant</item>
+        <item name="trackThickness">4dp</item>
+        <item name="indicatorTrackGapSize">0dp</item>
+        <item name="trackStopIndicatorSize">0dp</item>
+        <item name="trackCornerRadius">2dp</item>
+    </style>
     <style name="Questionnaire.questionnaireBottomNavContainerStyle">
         <item name="android:background">?attr/colorSurface</item>
         <item name="backgroundTint">?attr/colorSurface</item>
@@ -187,6 +199,9 @@
         <item
             name="questionnaireBottomNavContainerStyle"
         >@style/Questionnaire.questionnaireBottomNavContainerStyle</item>
+        <item
+            name="questionnaireLinearProgressIndicatorStyle"
+        >@style/Questionnaire.questionnaireLinearProgressIndicatorStyle</item>
     </style>
 
     <style name="CustomPatientTabLayout" parent="Widget.Material3.TabLayout">
@@ -196,19 +211,13 @@
         <!-- Custom background for each tab item -->
         <item name="tabBackground">@drawable/tab_background_selector</item>
 
-        <!-- Indicator color and height -->
-        <item name="tabIndicatorColor">@color/tab_indicator_color_blue</item>
-        <item name="tabIndicatorHeight">3dp</item>
-        <item
-            name="tabIndicatorFullWidth"
-        >false</item> <!-- Indicator only under the text -->
-        <item name="tabIndicatorGravity">bottom</item>
+        <!-- The selected tab is the filled one; a line under it would read as a second progress bar -->
+        <item name="tabIndicatorColor">@android:color/transparent</item>
+        <item name="tabIndicatorHeight">0dp</item>
 
         <!-- Text colors -->
-        <item name="tabSelectedTextColor">@color/tab_text_color_primary</item>
-        <item
-            name="tabTextColor"
-        >@color/tab_text_color_primary</item> <!-- Same color for unselected text as in image -->
+        <item name="tabSelectedTextColor">?attr/colorOnPrimaryContainer</item>
+        <item name="tabTextColor">?attr/colorOnSurfaceVariant</item>
 
         <!-- Tab padding -->
         <item name="tabPaddingStart">16dp</item>

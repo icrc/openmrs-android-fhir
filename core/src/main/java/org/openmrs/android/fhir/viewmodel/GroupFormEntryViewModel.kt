@@ -431,12 +431,14 @@ constructor(
     questionnaire: Questionnaire,
     questionnaireResponse: QuestionnaireResponse,
     applicationContext: Context,
-  ): Boolean {
-    return !questionnaire.hasInvalidAnswersIgnoringPageSpacers(
-      questionnaireResponse,
-      applicationContext,
-    )
-  }
+  ): Boolean =
+    // Validating walks the whole form; the screen must stay responsive while it does.
+    withContext(Dispatchers.Default) {
+      !questionnaire.hasInvalidAnswersIgnoringPageSpacers(
+        questionnaireResponse,
+        applicationContext,
+      )
+    }
 
   suspend fun saveDraft(questionnaireId: String, patientIds: List<String>) {
     val draft =
