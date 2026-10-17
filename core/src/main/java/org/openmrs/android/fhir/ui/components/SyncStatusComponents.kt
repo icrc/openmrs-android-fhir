@@ -266,12 +266,14 @@ fun SyncSessionCard(
           label = stringResource(id = R.string.sync_downloaded),
           done = session.downloadedPatients,
           total = session.totalPatientsToDownload,
+          inProgress = session.status == SyncStatus.ONGOING,
           color = statusColor,
         )
         SyncProgressLine(
           label = stringResource(id = R.string.sync_uploaded),
           done = session.uploadedPatients,
           total = session.totalPatientsToUpload,
+          inProgress = session.status == SyncStatus.ONGOING,
           color = statusColor,
         )
       }
@@ -293,9 +295,20 @@ fun SyncSessionCard(
   }
 }
 
-/** "Downloaded 12 / 30" with a bar showing how far it got. */
+/**
+ * "Downloaded 12 / 30" with a bar showing how far it got. While the sync is running and has passed
+ * the total it was given (that total only counts the patients, not their encounters and
+ * observations), only the amount so far is shown, with a bar that is not filled.
+ */
 @Composable
-private fun SyncProgressLine(label: String, done: Int, total: Int, color: Color) {
+private fun SyncProgressLine(
+  label: String,
+  done: Int,
+  total: Int,
+  inProgress: Boolean,
+  color: Color,
+) {
+  val totalUnknown = inProgress && done >= total
   val fraction = if (total > 0) (done.toFloat() / total).coerceIn(0f, 1f) else 1f
   Column {
     Row {
@@ -306,18 +319,26 @@ private fun SyncProgressLine(label: String, done: Int, total: Int, color: Color)
         modifier = Modifier.weight(1f),
       )
       Text(
-        text = "$done / $total",
+        text = if (totalUnknown) "$done" else "$done / $total",
         style = MaterialTheme.typography.bodyMedium,
         fontWeight = FontWeight.Medium,
         color = MaterialTheme.colorScheme.onSurface,
       )
     }
-    LinearProgressIndicator(
-      progress = { fraction },
-      color = color,
-      trackColor = MaterialTheme.colorScheme.surfaceVariant,
-      modifier = Modifier.fillMaxWidth().padding(top = 4.dp).height(6.dp).clip(CircleShape),
-    )
+    if (totalUnknown) {
+      LinearProgressIndicator(
+        color = color,
+        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp).height(6.dp).clip(CircleShape),
+      )
+    } else {
+      LinearProgressIndicator(
+        progress = { fraction },
+        color = color,
+        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp).height(6.dp).clip(CircleShape),
+      )
+    }
   }
 }
 

@@ -298,6 +298,8 @@
     <string name="sync_tab_history">Historique</string>
     <string name="subtitle_sync_center">Envoyer les modifications, voir ce qui attend et l’historique</string>
     <string name="sync_downloaded">Téléchargés</string>
+    <string name="sync_interrupted">La synchronisation a été interrompue avant la fin.</string>
+    <string name="sync_items_so_far">%1$d éléments synchronisés jusqu’ici</string>
     <string name="sync_uploaded">Envoyés</string>
     <string name="sync_status_completed">Terminée</string>
     <string name="sync_status_completed_errors">Terminée avec des erreurs</string>

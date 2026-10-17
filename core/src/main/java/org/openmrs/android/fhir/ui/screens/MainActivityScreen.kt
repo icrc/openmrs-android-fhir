@@ -124,7 +124,16 @@ data class DrawerItem(
 data class SyncProgressState(
   val current: Int,
   val total: Int,
-)
+) {
+  /**
+   * How far the sync is, or `null` when that is not known. The total the sync library reports only
+   * counts what the main searches match (the patients), while the download also brings their
+   * encounters and observations, so [current] passes it long before the sync is done. From then on
+   * only the amount received so far can be shown honestly, not a percentage.
+   */
+  val fraction: Float?
+    get() = if (total > 0 && current < total) current.toFloat() / total else null
+}
 
 @Composable
 fun MainActivityScaffold(
@@ -403,9 +412,6 @@ private fun BoxScope.SyncPopup(
   }
 }
 
-private fun SyncProgressState.fractionOrNull(): Float? =
-  if (total > 0) (current.toFloat() / total).coerceIn(0f, 1f) else null
-
 @Composable
 private fun SyncPopupCard(
   progress: SyncProgressState,
@@ -414,7 +420,7 @@ private fun SyncPopupCard(
   onMinimize: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  val fraction = progress.fractionOrNull()
+  val fraction = progress.fraction
   Surface(
     modifier = modifier.widthIn(max = 400.dp).fillMaxWidth(),
     shape = RoundedCornerShape(28.dp),
@@ -471,6 +477,15 @@ private fun SyncPopupCard(
             strokeCap = StrokeCap.Round,
           )
         }
+      }
+      if (fraction == null && progress.current > 0) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+          text = stringResource(id = R.string.sync_items_so_far, progress.current),
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.testTag("SyncItemsSoFar"),
+        )
       }
       Spacer(modifier = Modifier.height(20.dp))
       Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -557,10 +572,12 @@ private fun SyncPill(
   onExpand: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  val fraction = progress.fractionOrNull()
+  val fraction = progress.fraction
   val label =
     if (fraction != null) {
       "${stringResource(id = R.string.syncing)} · ${stringResource(id = R.string.sync_percent, (fraction * 100).toInt())}"
+    } else if (progress.current > 0) {
+      "${stringResource(id = R.string.syncing)} · ${progress.current}"
     } else {
       stringResource(id = R.string.syncing)
     }

@@ -69,6 +69,9 @@ interface Dao {
   @Query("SELECT * FROM syncsession WHERE status='ONGOING' ORDER BY startTime DESC LIMIT 1")
   suspend fun getInProgressSyncSession(): SyncSession?
 
+  @Query("SELECT * FROM syncsession WHERE status='ONGOING'")
+  suspend fun getOngoingSyncSessions(): List<SyncSession>
+
   @Query("SELECT * FROM syncsession WHERE status='ONGOING' ORDER BY startTime DESC LIMIT 1")
   fun getInProgressSyncSessionAsFlow(): Flow<SyncSession?>
 

@@ -453,6 +453,8 @@
     <string name="sync_minimize">Minimize</string>
     <string name="sync_show_progress">Show sync progress</string>
     <string name="sync_percent" translatable="false">%1$d%%</string>
+    <string name="sync_interrupted">The sync was interrupted before it finished.</string>
+    <string name="sync_items_so_far">%1$d items synced so far</string>
     <string
         name="you_can_do_other_things_on_the_device_while_it_syncs"
     >You can do other things on the device while it syncs.</string>

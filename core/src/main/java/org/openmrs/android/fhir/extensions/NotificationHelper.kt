@@ -96,23 +96,27 @@ constructor(
 
   @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
   fun updateSyncProgress(progress: Int, maxProgress: Int = 100, isDownload: Boolean = true) {
+    // The total only counts what the main searches match, so the download soon passes it: from then
+    // on show how much came in so far, with a bar that is not filled, instead of a stuck 100%.
+    val totalUnknown = maxProgress <= 0 || progress >= maxProgress
+    val count = if (totalUnknown) "$progress" else "$progress/$maxProgress"
     val notification =
       if (isDownload) {
         createBaseNotification(
             title = context.getString(R.string.syncing_patient_data),
-            message = "${context.getString(R.string.downloaded)}: $progress/$maxProgress",
+            message = "${context.getString(R.string.downloaded)}: $count",
             ongoing = true,
             setSilent = true,
           )
-          .setProgress(maxProgress, progress, false)
+          .setProgress(maxProgress, progress, totalUnknown)
       } else {
         createBaseNotification(
             title = context.getString(R.string.uploading_patient_data),
-            message = "${context.getString(R.string.uploaded)}: $progress/$maxProgress",
+            message = "${context.getString(R.string.uploaded)}: $count",
             ongoing = true,
             setSilent = true,
           )
-          .setProgress(maxProgress, progress, false)
+          .setProgress(maxProgress, progress, totalUnknown)
       }
 
     NotificationManagerCompat.from(context).notify(SYNC_NOTIFICATION_ID, notification.build())

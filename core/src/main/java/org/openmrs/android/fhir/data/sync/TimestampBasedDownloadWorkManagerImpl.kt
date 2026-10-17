@@ -143,17 +143,21 @@ class TimestampBasedDownloadWorkManagerImpl(
     return bundleCollection
   }
 
+  /**
+   * Remembers, per resource type, the newest `meta.lastUpdated` that came in, so the next sync only
+   * asks for what changed since. A resource without one (the server does not always set it, for
+   * example on questionnaires) is skipped instead of failing the whole page, and a type none of
+   * whose resources has a timestamp keeps the one it had.
+   */
   private suspend fun extractAndSaveLastUpdateTimestampToFetchFutureUpdates(
     resources: List<Resource>,
   ) {
     resources
       .groupBy { it.resourceType }
       .entries
-      .map { map ->
-        dataStore.saveLastUpdatedTimestamp(
-          map.key,
-          map.value.maxOfOrNull { it.meta.lastUpdated }?.toTimeZoneString() ?: "",
-        )
+      .forEach { (resourceType, ofType) ->
+        val newest = ofType.mapNotNull { it.meta?.lastUpdated }.maxOrNull() ?: return@forEach
+        dataStore.saveLastUpdatedTimestamp(resourceType, newest.toTimeZoneString())
       }
   }
 }

@@ -44,6 +44,7 @@ import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.Sync
 import com.google.android.fhir.sync.SyncJobStatus
 import com.google.android.fhir.sync.SyncOperation
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
@@ -87,8 +88,25 @@ class SyncInfoDatabaseWriterWorker(
       .inject(this)
   }
 
+  /**
+   * A sync that was cut short (the app was killed, the phone restarted) never closed its session.
+   * Left open, the next sync would carry on with its numbers, so it is closed as interrupted first.
+   */
+  private suspend fun closeInterruptedSessions() {
+    val dao = database.dao()
+    dao.getOngoingSyncSessions().forEach { session ->
+      dao.updateSyncSessionErrors(
+        session.id,
+        listOf(applicationContext.getString(R.string.sync_interrupted)),
+      )
+      dao.updateSyncSessionStatus(session.id, SyncStatus.COMPLETED_WITH_ERRORS)
+      dao.updateSyncSessionCompletionTime(session.id, LocalDateTime.now().format(formatter))
+    }
+  }
+
   override suspend fun doWork(): Result {
     return try {
+      closeInterruptedSessions()
       setProgress(
         workDataOf(
           PROGRESS_STATUS to "STARTED",

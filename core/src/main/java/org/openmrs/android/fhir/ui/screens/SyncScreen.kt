@@ -193,8 +193,7 @@ private fun SyncStatusCard(
         OpenMrsTheme.colors.warning to stringResource(R.string.sync_status_pending, pendingCount)
       else -> OpenMrsTheme.colors.success to stringResource(R.string.sync_status_up_to_date)
     }
-  val fraction =
-    if (progress.total > 0) (progress.current.toFloat() / progress.total).coerceIn(0f, 1f) else null
+  val fraction = progress.fraction
 
   Surface(
     modifier = modifier.fillMaxWidth().testTag(SyncScreenTestTags.StatusCard),
@@ -263,6 +262,14 @@ private fun SyncStatusCard(
             color = accent,
             trackColor = MaterialTheme.colorScheme.surfaceVariant,
           )
+          if (progress.current > 0) {
+            Text(
+              text = stringResource(R.string.sync_items_so_far, progress.current),
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              modifier = Modifier.padding(top = 6.dp),
+            )
+          }
         }
       }
       Button(

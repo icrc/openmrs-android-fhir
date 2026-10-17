@@ -343,6 +343,8 @@
     <string name="sync_tab_history">История</string>
     <string name="subtitle_sync_center">Отправка изменений, ожидающие данные и история</string>
     <string name="sync_downloaded">Загружено</string>
+    <string name="sync_interrupted">Синхронизация была прервана до завершения.</string>
+    <string name="sync_items_so_far">Синхронизировано элементов: %1$d</string>
     <string name="sync_uploaded">Отправлено</string>
     <string name="sync_status_completed">Завершена</string>
     <string name="sync_status_completed_errors">Завершена с ошибками</string>

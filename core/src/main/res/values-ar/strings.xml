@@ -260,6 +260,8 @@
     <string name="sync_tab_history">السجل</string>
     <string name="subtitle_sync_center">ارفع التغييرات واطّلع على المعلق وسجل المزامنة</string>
     <string name="sync_downloaded">تم التنزيل</string>
+    <string name="sync_interrupted">تم إيقاف المزامنة قبل اكتمالها.</string>
+    <string name="sync_items_so_far">تمت مزامنة %1$d عنصرًا حتى الآن</string>
     <string name="sync_uploaded">تم الرفع</string>
     <string name="sync_status_completed">اكتملت</string>
     <string name="sync_status_completed_errors">اكتملت مع أخطاء</string>
