@@ -830,4 +830,11 @@
     <string name="diag_est_entries">Записей: %d</string>
     <string name="diag_est_sessions">Сеансов: %d</string>
     <string name="diag_est_resources">Ресурсов: %d</string>
+    <plurals name="pending_session_patients">
+        <item quantity="one">%d пациент</item>
+        <item quantity="few">%d пациента</item>
+        <item quantity="many">%d пациентов</item>
+        <item quantity="other">%d пациента</item>
+    </plurals>
+    <string name="pending_session_line">Незавершённый сеанс · %1$s · %2$s</string>
 </resources>

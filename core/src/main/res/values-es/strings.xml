@@ -811,4 +811,10 @@
     <string name="diag_est_entries">Entradas: %d</string>
     <string name="diag_est_sessions">Sesiones: %d</string>
     <string name="diag_est_resources">Recursos: %d</string>
+    <plurals name="pending_session_patients">
+        <item quantity="one">%d paciente</item>
+        <item quantity="many">%d pacientes</item>
+        <item quantity="other">%d pacientes</item>
+    </plurals>
+    <string name="pending_session_line">Sesión pendiente · %1$s · %2$s</string>
 </resources>

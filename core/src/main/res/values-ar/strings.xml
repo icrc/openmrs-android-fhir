@@ -745,4 +745,13 @@
     <string name="diag_est_entries">الإدخالات: %d</string>
     <string name="diag_est_sessions">الجلسات: %d</string>
     <string name="diag_est_resources">الموارد: %d</string>
+    <plurals name="pending_session_patients">
+        <item quantity="zero">%d مريض</item>
+        <item quantity="one">مريض واحد</item>
+        <item quantity="two">مريضان</item>
+        <item quantity="few">%d مرضى</item>
+        <item quantity="many">%d مريضاً</item>
+        <item quantity="other">%d مريض</item>
+    </plurals>
+    <string name="pending_session_line">جلسة معلّقة · %1$s · %2$s</string>
 </resources>

@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.ui.screens
 
+import android.text.format.DateUtils
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -52,6 +53,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -66,7 +68,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -75,6 +79,7 @@ import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.FormSectionItem
+import org.openmrs.android.fhir.data.database.model.GroupSessionDraftSummary
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.components.AppSearchField
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
@@ -90,6 +95,7 @@ fun CreateEncounterScreen(
   isLoading: Boolean,
   onFormClick: (FormItem) -> Unit,
   modifier: Modifier = Modifier,
+  pendingSessions: Map<String, GroupSessionDraftSummary> = emptyMap(),
 ) {
   val topInset = rememberAppBarHeight()
   var query by remember { mutableStateOf("") }
@@ -194,6 +200,7 @@ fun CreateEncounterScreen(
                 ) { form ->
                   FormCard(
                     name = form.name,
+                    pending = pendingSessions[form.questionnaireId],
                     onClick = { onFormClick(form) },
                     modifier = Modifier.animateItem(),
                   )
@@ -271,13 +278,23 @@ private fun FormSectionHeader(
 }
 
 @Composable
-private fun FormCard(name: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun FormCard(
+  name: String,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+  pending: GroupSessionDraftSummary? = null,
+) {
   Surface(
     onClick = onClick,
     modifier = modifier.fillMaxWidth().testTag("FormItem"),
     shape = RoundedCornerShape(16.dp),
     color = MaterialTheme.colorScheme.surface,
-    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    border =
+      if (pending == null) {
+        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+      } else {
+        BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+      },
   ) {
     Row(
       modifier = Modifier.padding(start = 12.dp, top = 10.dp, bottom = 10.dp, end = 8.dp),
@@ -295,20 +312,62 @@ private fun FormCard(name: String, onClick: () -> Unit, modifier: Modifier = Mod
           modifier = Modifier.size(22.dp),
         )
       }
-      Text(
-        modifier = Modifier.weight(1f).padding(horizontal = 12.dp).testTag("FormName"),
-        text = name,
-        style = MaterialTheme.typography.bodyLarge,
-        fontWeight = FontWeight.Medium,
-        maxLines = 3,
-        overflow = TextOverflow.Ellipsis,
-      )
+      Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
+        Text(
+          modifier = Modifier.testTag("FormName"),
+          text = name,
+          style = MaterialTheme.typography.bodyLarge,
+          fontWeight = FontWeight.Medium,
+          maxLines = 3,
+          overflow = TextOverflow.Ellipsis,
+        )
+        if (pending != null) PendingSessionLine(pending)
+      }
       Icon(
         imageVector = Icons.Filled.ChevronRight,
         contentDescription = null,
         tint = MaterialTheme.colorScheme.onSurfaceVariant,
       )
     }
+  }
+}
+
+/** "Pending session · 3 patients · 2 hours ago", in the accent color, under the form's name. */
+@Composable
+private fun PendingSessionLine(pending: GroupSessionDraftSummary) {
+  val context = LocalContext.current
+  val patients =
+    pluralStringResource(
+      R.plurals.pending_session_patients,
+      pending.patientCount,
+      pending.patientCount
+    )
+  val ago =
+    DateUtils.getRelativeTimeSpanString(
+        pending.lastUpdated,
+        System.currentTimeMillis(),
+        DateUtils.MINUTE_IN_MILLIS,
+      )
+      .toString()
+  Row(
+    verticalAlignment = Alignment.CenterVertically,
+    modifier = Modifier.padding(top = 4.dp).testTag("PendingSession"),
+  ) {
+    Icon(
+      imageVector = Icons.Filled.History,
+      contentDescription = null,
+      tint = MaterialTheme.colorScheme.primary,
+      modifier = Modifier.size(16.dp),
+    )
+    Text(
+      text = context.getString(R.string.pending_session_line, patients, ago),
+      style = MaterialTheme.typography.labelMedium,
+      color = MaterialTheme.colorScheme.primary,
+      fontWeight = FontWeight.SemiBold,
+      modifier = Modifier.padding(start = 6.dp),
+      maxLines = 2,
+      overflow = TextOverflow.Ellipsis,
+    )
   }
 }
 

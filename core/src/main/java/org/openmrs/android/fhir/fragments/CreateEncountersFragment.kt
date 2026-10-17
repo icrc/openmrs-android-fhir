@@ -87,12 +87,20 @@ class CreateEncountersFragment : Fragment() {
     OpenMrsTheme {
       val sections by viewModel.formData.observeAsState(null)
       val isLoading by viewModel.isLoading.observeAsState(false)
+      val pending by viewModel.pendingSessions.observeAsState(emptyMap())
       CreateEncounterScreen(
         sections = sections,
         isLoading = isLoading,
+        pendingSessions = pending,
         onFormClick = ::handleFormClick,
       )
     }
+  }
+
+  override fun onResume() {
+    super.onResume()
+    // A session may have been started, resumed or finished since this list was last in front.
+    if (args.isGroupEncounter) viewModel.loadPendingSessions()
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -126,28 +134,16 @@ class CreateEncountersFragment : Fragment() {
     val formItems = formSectionItems.flatMap { section -> section.forms }
 
     viewLifecycleOwner.lifecycleScope.launch {
-      var latestDraft: Pair<FormItem, GroupSessionDraft>? = null
-
-      formItems.forEach { formItem ->
-        val draft = groupSessionDraftRepository.getDraft(formItem.questionnaireId)
-        when {
-          draft == null -> Unit
-          draft.hasContent() -> {
-            val currentLatest = latestDraft
-            if (currentLatest == null || draft.lastUpdated > currentLatest.second.lastUpdated) {
-              latestDraft = formItem to draft
-            }
-          }
-          else -> groupSessionDraftRepository.deleteDraft(formItem.questionnaireId)
+      groupSessionDraftRepository.deleteEmptyDrafts()
+      // The most recently touched pending session is offered first; the summaries are light.
+      val latest =
+        groupSessionDraftRepository.pendingSessions().values.maxByOrNull { it.lastUpdated }
+      val formItem =
+        latest?.let { draft ->
+          formItems.firstOrNull { it.questionnaireId == draft.questionnaireId }
         }
-      }
-
-      val draftEntry =
-        latestDraft?.let { (formItem, draft) -> formItem to draft.patientIds.toTypedArray() }
-
-      if (draftEntry != null && isAdded) {
-        val (formItem, patientIds) = draftEntry
-        showResumeDraftDialog(formItem, patientIds, true)
+      if (latest != null && formItem != null && isAdded) {
+        showResumeDraftDialog(formItem, latest.patientIds.toTypedArray(), true)
       }
     }
   }

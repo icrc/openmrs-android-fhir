@@ -41,9 +41,11 @@ import kotlinx.coroutines.withContext
 import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.FormCatalog
+import org.openmrs.android.fhir.data.GroupSessionDraftRepository
 import org.openmrs.android.fhir.data.database.model.CustomFormSection
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.FormSectionItem
+import org.openmrs.android.fhir.data.database.model.GroupSessionDraftSummary
 import timber.log.Timber
 
 class CreateEncounterViewModel
@@ -51,12 +53,18 @@ class CreateEncounterViewModel
 constructor(
   private val applicationContext: Context,
   private val formCatalog: FormCatalog,
+  private val groupSessionDraftRepository: GroupSessionDraftRepository,
 ) : ViewModel() {
 
   private val demoDataStore = DemoDataStore(applicationContext)
 
   private val _formData = MutableLiveData<List<FormSectionItem>?>()
   val formData: LiveData<List<FormSectionItem>?> = _formData
+
+  private val _pendingSessions = MutableLiveData<Map<String, GroupSessionDraftSummary>>(emptyMap())
+
+  /** The group sessions that can be resumed, by form id. */
+  val pendingSessions: LiveData<Map<String, GroupSessionDraftSummary>> = _pendingSessions
 
   private val _isLoading = MutableLiveData<Boolean>()
   val isLoading: LiveData<Boolean> = _isLoading
@@ -109,6 +117,18 @@ constructor(
         _error.value = "Failed to load form data: ${e.localizedMessage}"
       } finally {
         _isLoading.value = false
+      }
+    }
+  }
+
+  /** Looks again at the drafts; called whenever the screen comes back in front. */
+  fun loadPendingSessions() {
+    viewModelScope.launch {
+      try {
+        _pendingSessions.value =
+          withContext(Dispatchers.IO) { groupSessionDraftRepository.pendingSessions() }
+      } catch (e: Exception) {
+        Timber.e(e, "Could not read the pending group sessions")
       }
     }
   }

@@ -773,4 +773,9 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="diag_est_entries">Entries: %d</string>
     <string name="diag_est_sessions">Sessions: %d</string>
     <string name="diag_est_resources">Resources: %d</string>
+    <plurals name="pending_session_patients">
+        <item quantity="one">%d patient</item>
+        <item quantity="other">%d patients</item>
+    </plurals>
+    <string name="pending_session_line">Pending session · %1$s · %2$s</string>
 </resources>
