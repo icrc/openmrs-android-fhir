@@ -98,9 +98,12 @@ class PatientSelectionDialogFragment : DialogFragment() {
 
   override fun onStart() {
     super.onStart()
-    dialog
-      ?.window
-      ?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+    val window = dialog?.window ?: return
+    // The sheet draws its own rounded corners: nothing square behind it, and not wider than a card.
+    window.setBackgroundDrawableResource(android.R.color.transparent)
+    val metrics = resources.displayMetrics
+    val width = minOf((metrics.widthPixels * 0.92f).toInt(), (560 * metrics.density).toInt())
+    window.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
   }
 
   private fun handleStartEncounter(selectedPatientIds: Set<String>) {

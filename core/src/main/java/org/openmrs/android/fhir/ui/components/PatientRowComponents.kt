@@ -223,8 +223,13 @@ private fun LastEncounterLine(label: LastEncounterLabel, modifier: Modifier = Mo
   }
 }
 
+/** The patient's initials in a tonal circle. */
 @Composable
-private fun PatientAvatar(name: String, modifier: Modifier = Modifier) {
+internal fun PatientAvatar(
+  name: String,
+  modifier: Modifier = Modifier,
+  size: androidx.compose.ui.unit.Dp = 56.dp,
+) {
   val initials =
     name
       .split(' ', '-')
@@ -234,12 +239,14 @@ private fun PatientAvatar(name: String, modifier: Modifier = Modifier) {
       .ifEmpty { "?" }
   Box(
     modifier =
-      modifier.size(56.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+      modifier.size(size).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
     contentAlignment = Alignment.Center,
   ) {
     Text(
       text = initials,
-      style = MaterialTheme.typography.titleMedium,
+      style =
+        if (size < 48.dp) MaterialTheme.typography.titleSmall
+        else MaterialTheme.typography.titleMedium,
       fontWeight = FontWeight.SemiBold,
       color = MaterialTheme.colorScheme.onPrimaryContainer,
     )
