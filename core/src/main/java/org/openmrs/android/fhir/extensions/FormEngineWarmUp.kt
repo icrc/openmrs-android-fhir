@@ -28,8 +28,11 @@
 */
 package org.openmrs.android.fhir.extensions
 
+import android.content.Context
+import ca.uhn.fhir.context.FhirContext
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
+import org.openmrs.android.fhir.config.AppConfig
 import timber.log.Timber
 
 /**
@@ -43,12 +46,18 @@ import timber.log.Timber
 object FormEngineWarmUp {
   private val started = AtomicBoolean(false)
 
-  fun start() {
+  fun start(context: Context) {
     if (!started.compareAndSet(false, true)) return
+    val appContext = context.applicationContext
     thread(name = "form-engine-warm-up", priority = Thread.MIN_PRIORITY) {
       val startedAt = System.currentTimeMillis()
       try {
         Class.forName(FHIR_PATH_UTIL_CLASS)
+        // The registration form is the one opened most: have it parsed (it is kept for reuse).
+        appContext.bundledQuestionnaire(
+          AppConfig.get(appContext).registrationForm,
+          FhirContext.forR4Cached().newJsonParser(),
+        )
         Timber.i("Form engine ready in %d ms", System.currentTimeMillis() - startedAt)
       } catch (e: Throwable) {
         // Only an optimization: the form initializes it on first use if this fails.

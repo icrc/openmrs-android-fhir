@@ -46,6 +46,23 @@ private const val COMPACT_MARKER = "\$compact"
 private const val I18N_SUFFIX = ":i18n"
 private const val TRANSLATION_URL = "http://hl7.org/fhir/StructureDefinition/translation"
 
+/**
+ * A questionnaire copied from the bundled files to a server keeps the aliases in its urls (and
+ * loses the translations: the server's parser does not know `:i18n`). The data-capture library does
+ * not know the aliases, so such a copy shows none of what they stand for (radio buttons, rules that
+ * hide or show a question, hidden fields, limits). This turns them back into the full urls and
+ * touches nothing else.
+ */
+fun expandAliasedUrls(json: String): String {
+  val prefixes =
+    JSONObject()
+      .put("h", "http://hl7.org/fhir/StructureDefinition/")
+      .put("s", "http://hl7.org/fhir/uv/sdc/StructureDefinition/")
+      .put("o", "http://fhir.openmrs.org/ext/")
+      .put("q", "http://hl7.org/fhir/questionnaire-item-control")
+  return expandObject(JSONObject(json), prefixes).toString()
+}
+
 fun expandCompactQuestionnaire(json: String): String {
   if (!json.trimStart().startsWith("{\"$COMPACT_MARKER\"")) return json
   val root = JSONObject(json)
@@ -74,8 +91,13 @@ private fun expandObject(source: JSONObject, prefixes: JSONObject): JSONObject {
       key.endsWith(I18N_SUFFIX) && value is JSONObject ->
         out.put("_" + key.removeSuffix(I18N_SUFFIX), translations(value))
       (key == "url" || key == "system") && value is String && value.startsWith("@") -> {
-        val name = value.substring(1, value.indexOf('/'))
-        out.put(key, prefixes.getString(name) + value.substring(value.indexOf('/') + 1))
+        val slash = value.indexOf('/')
+        val prefix = if (slash > 1) prefixes.optString(value.substring(1, slash)) else ""
+        if (prefix.isEmpty()) {
+          out.put(key, value)
+        } else {
+          out.put(key, prefix + value.substring(slash + 1))
+        }
       }
       else -> out.put(key, expandValue(value, prefixes))
     }

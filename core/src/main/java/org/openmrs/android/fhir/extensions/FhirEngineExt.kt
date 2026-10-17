@@ -40,7 +40,10 @@ suspend fun FhirEngine.getQuestionnaireOrFromAssets(
   parser: IParser,
 ): Questionnaire? {
   return try {
-    this.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire
+    (this.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire).orBundledIfAliased(
+      applicationContext,
+      parser,
+    )
   } catch (e: Exception) {
     try {
       val questionnaireString =
@@ -59,7 +62,11 @@ suspend fun FhirEngine.getQuestionnaireOrFromAssetsAsString(
   parser: IParser,
 ): String {
   return try {
-    val questionnaire = this.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire
+    val questionnaire =
+      (this.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire).orBundledIfAliased(
+        applicationContext,
+        parser,
+      )
     parser.encodeResourceToString(questionnaire)
   } catch (e: Exception) {
     try {

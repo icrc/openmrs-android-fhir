@@ -56,7 +56,7 @@ import org.openmrs.android.fhir.data.FormCatalog
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.AppLanguage
-import org.openmrs.android.fhir.extensions.readAssetQuestionnaires
+import org.openmrs.android.fhir.extensions.allQuestionnaires
 import org.openmrs.android.fhir.extensions.toLocalString
 import org.openmrs.android.fhir.extensions.translatedTitle
 
@@ -264,16 +264,8 @@ constructor(
     return fallback
   }
 
-  private suspend fun loadQuestionnaires(): List<Questionnaire> {
-    val questionnaires = fhirEngine.search<Questionnaire> {}.map { it.resource }.toMutableList()
-    questionnaires.addAll(
-      applicationContext.readAssetQuestionnaires(
-        parser,
-        questionnaires.map { it.idElement.idPart }.toSet(),
-      ),
-    )
-    return questionnaires
-  }
+  private suspend fun loadQuestionnaires(): List<Questionnaire> =
+    fhirEngine.allQuestionnaires(applicationContext, parser)
 
   private fun getString(resId: Int) = applicationContext.resources.getString(resId)
 }

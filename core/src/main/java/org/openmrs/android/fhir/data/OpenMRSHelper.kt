@@ -31,6 +31,7 @@ package org.openmrs.android.fhir.data
 import android.content.Context
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.get
 import com.google.android.fhir.search.Order
 import com.google.android.fhir.search.search
@@ -308,6 +309,31 @@ constructor(
 
     return linkIds
   }
+
+  /**
+   * The birth date the registration answers describe: the date itself when it is known, otherwise
+   * today minus the estimated age (years, plus months where they were asked). `null` when neither
+   * was answered. Registering and editing a patient both use this one rule.
+   */
+  fun birthDateFrom(response: QuestionnaireResponse): DateType? {
+    fun answer(linkId: String) =
+      response.allItems.firstOrNull { it.linkId == linkId }?.answerFirstRep?.value
+    val known = (answer("dobKnown") as? BooleanType)?.booleanValue()
+    val date = answer("patient-0-birth-date") as? DateType
+    if (known != false && date != null) return date
+    val years = answer("estimatedDateOfBirthYears") as? Quantity ?: return null
+    return getDateDiffByQuantity(years, answer("estimatedDateOfBirthMonths") as? Quantity)
+  }
+
+  /** Whether [birthDate] lies after today: nobody is born in the future. */
+  fun isInTheFuture(birthDate: DateType): Boolean =
+    birthDate.value
+      ?.toInstant()
+      ?.atZone(ZoneId.systemDefault())
+      ?.toLocalDate()
+      ?.isAfter(
+        LocalDate.now(),
+      ) == true
 
   fun getDateDiffByQuantity(estimatedAgeYear: Quantity, estimatedAgeMonth: Quantity?): DateType {
     val now = LocalDate.now()

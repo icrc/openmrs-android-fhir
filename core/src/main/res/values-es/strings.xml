@@ -779,4 +779,5 @@
     <string name="pin_repeat_label">Repetir PIN</string>
     <string name="pin_mismatch">Los PIN no coinciden</string>
     <string name="pin_wrong">PIN incorrecto</string>
+    <string name="birth_date_in_the_future">La fecha de nacimiento no puede estar en el futuro</string>
 </resources>

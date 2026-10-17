@@ -54,7 +54,6 @@ import org.hl7.fhir.r4.model.Address
 import org.hl7.fhir.r4.model.BooleanType
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.ContactPoint
-import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Quantity
 import org.hl7.fhir.r4.model.Questionnaire
@@ -65,9 +64,11 @@ import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_TYPE_URL
 import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_URL
 import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_VALUE_URL
 import org.openmrs.android.fhir.Constants.PERSON_ATTRIBUTE_LINK_ID_PREFIX
+import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssetsAsString
+import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
 import org.openmrs.android.fhir.fragments.EditPatientFragment
 
 /**
@@ -99,18 +100,25 @@ constructor(
   lateinit var questionnaireResource: Questionnaire
   val isPatientSaved = MutableLiveData<Boolean>()
 
+  /** Why the last save was refused, when it is more specific than missing inputs. */
+  val saveFailure = MutableLiveData<Int?>()
+
   private suspend fun prepareEditPatient(questionnaireId: String): Pair<String, String> {
     val patient = fhirEngine.get<Patient>(patientId)
     originalPatient = patient
     val launchContexts = mapOf<String, Resource>("client" to patient)
     val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
-    val question =
+    val stored =
       fhirEngine.getQuestionnaireOrFromAssetsAsString(questionnaireId, applicationContext, parser)
 
-    return if (question.isNotEmpty()) {
+    return if (stored.isNotEmpty()) {
       questionnaireResource =
-        parser.parseResource(Questionnaire::class.java, question) as Questionnaire
+        (parser.parseResource(Questionnaire::class.java, stored) as Questionnaire).also {
+          // The form library parses and renders everything it is given, in every language.
+          it.pruneOtherLanguageTranslations()
+        }
+      val question = parser.encodeResourceToString(questionnaireResource)
 
       val questionnaireResponse: QuestionnaireResponse =
         getQuestionnaireResponseWithPersonAttribute(
@@ -210,7 +218,13 @@ constructor(
         }
 
         // Birth date and gender
-        originalPatient.birthDateElement = calculatePatientBirthDate(questionnaireResponse)
+        val birthDate = openMRSHelper.birthDateFrom(questionnaireResponse)
+        if (birthDate != null && openMRSHelper.isInTheFuture(birthDate)) {
+          saveFailure.value = R.string.birth_date_in_the_future
+          isPatientSaved.value = false
+          return@launch
+        }
+        originalPatient.birthDateElement = birthDate
         originalPatient.gender = patient.gender
 
         // Telecom
@@ -267,24 +281,6 @@ constructor(
 
       isPatientSaved.value = false
     }
-  }
-
-  fun calculatePatientBirthDate(response: QuestionnaireResponse): DateType? {
-    val dob = response.findItemByLinkId("patient-0-birth-date")?.answerFirstRep?.value as? DateType
-    val dobKnown = response.findItemByLinkId("dobKnown")?.answerFirstRep?.value as? BooleanType
-    val estimatedYears =
-      response.findItemByLinkId("estimatedDateOfBirthYears")?.answerFirstRep?.value as? Quantity
-    val estimatedMonths =
-      response.findItemByLinkId("estimatedDateOfBirthMonths")?.answerFirstRep?.value as? Quantity
-
-    val isDobUnknown = dobKnown?.booleanValue() == false
-    if (dob != null && !isDobUnknown) return dob
-
-    if (isDobUnknown && estimatedYears != null) {
-      return openMRSHelper.getDateDiffByQuantity(estimatedYears, estimatedMonths)
-    }
-
-    return null
   }
 
   fun QuestionnaireResponse.findItemByLinkId(

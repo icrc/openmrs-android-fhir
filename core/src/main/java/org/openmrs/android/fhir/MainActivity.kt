@@ -175,7 +175,7 @@ class MainActivity : AppCompatActivity() {
     // Same window mode on every API level: the compose app bar already pads for the status bar.
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
-    FormEngineWarmUp.start()
+    FormEngineWarmUp.start(this)
     Thread.setDefaultUncaughtExceptionHandler(
       UncaughtExceptionHandler(this, Thread.getDefaultUncaughtExceptionHandler()),
     )

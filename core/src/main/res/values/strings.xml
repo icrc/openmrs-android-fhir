@@ -741,4 +741,5 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="pin_repeat_label">Repeat PIN</string>
     <string name="pin_mismatch">The PINs do not match</string>
     <string name="pin_wrong">Wrong PIN</string>
+    <string name="birth_date_in_the_future">The date of birth cannot be in the future</string>
 </resources>

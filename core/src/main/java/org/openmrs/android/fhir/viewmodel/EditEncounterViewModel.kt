@@ -63,6 +63,7 @@ import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.codesystems.ConditionCategory
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
+import org.openmrs.android.fhir.extensions.allQuestionnaires
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
 import org.openmrs.android.fhir.extensions.convertQuantityObsToIntegerObs
@@ -71,8 +72,8 @@ import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
+import org.openmrs.android.fhir.extensions.orBundledIfAliased
 import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
-import org.openmrs.android.fhir.extensions.readAssetQuestionnaires
 import org.openmrs.android.fhir.extensions.utcDateToLocalDate
 import org.openmrs.android.fhir.util.ExistingObservationIndex
 import org.openmrs.android.fhir.util.ObservationChildInfo
@@ -112,9 +113,8 @@ constructor(
    * The questionnaire shipped with the app for this encounter type (the engine is checked first by
    * the callers).
    */
-  private suspend fun findBundledQuestionnaire(encounterType: String): Questionnaire? {
-    val engineIds = fhirEngine.search<Questionnaire> {}.map { it.resource.idElement.idPart }.toSet()
-    return applicationContext.readAssetQuestionnaires(parser, engineIds).firstOrNull { candidate ->
+  private suspend fun findBundledQuestionnaire(encounterType: String): Questionnaire? =
+    fhirEngine.allQuestionnaires(applicationContext, parser).firstOrNull { candidate ->
       candidate.code.any {
         it.hasSystem() &&
           it.system == "http://fhir.openmrs.org/code-system/encounter-type" &&
@@ -122,7 +122,6 @@ constructor(
           it.code == encounterType
       }
     }
-  }
 
   fun prepareEditEncounter(encounterId: String, encounterType: String) {
     // Reading the encounter, filling the form from its observations and writing both as JSON is the
@@ -137,6 +136,7 @@ constructor(
               questionnaire.resource.code.any { it.code == encounterType }
             }
             ?.resource
+            ?.orBundledIfAliased(applicationContext, parser)
         if (questionnaire == null) {
           // Look into assets folder
           questionnaire = findBundledQuestionnaire(encounterType)
@@ -204,6 +204,7 @@ constructor(
             questionnaire.resource.code.any { it.code == encounterType }
           }
           ?.resource
+          ?.orBundledIfAliased(applicationContext, parser)
       if (questionnaire == null) {
         // Look into assets folder
         questionnaire = findBundledQuestionnaire(encounterType)

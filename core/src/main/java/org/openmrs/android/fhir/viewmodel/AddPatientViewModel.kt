@@ -35,7 +35,6 @@ import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
-import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
@@ -51,7 +50,6 @@ import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
-import org.hl7.fhir.r4.model.Quantity
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.Questionnaire.QuestionnaireItemComponent
 import org.hl7.fhir.r4.model.QuestionnaireResponse
@@ -59,12 +57,14 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.Constants.PATIENT_IDENTIFIER_DEFINITION_URL
 import org.openmrs.android.fhir.Constants.PATIENT_LOCATION_IDENTIFIER_URL
+import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PatientIdentifierFactory
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
+import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
 import timber.log.Timber
 
 /** ViewModel for patient registration screen {@link AddPatientFragment}. */
@@ -80,6 +80,9 @@ constructor(
   var locationId: String? = null
   private val identifierFactory by lazy { PatientIdentifierFactory(applicationContext, database) }
   val isPatientSaved = MutableLiveData<Boolean>()
+
+  /** Why the last save was refused, when it is more specific than missing inputs. */
+  val saveFailure = MutableLiveData<Int?>()
   var questionnaire: Questionnaire? = Questionnaire()
   val embeddedQuestionnaire = MutableLiveData<String>()
   private var saveInProgress = false
@@ -117,31 +120,21 @@ constructor(
           )
           .entryFirstRep
       if (entry.resource !is Patient) {
+        saveInProgress = false
         return@launch
       }
 
       val patient = entry.resource as Patient
       patient.id = generateUuid()
 
-      if (patient.birthDate == null) {
-        val estimatedMonths =
-          questionnaireResponse.allItems
-            .firstOrNull { it.linkId == "estimatedDateOfBirthMonths" }
-            ?.answerFirstRep
-            ?.value as? Quantity
-        val estimatedYears =
-          questionnaireResponse.allItems
-            .firstOrNull { it.linkId == "estimatedDateOfBirthYears" }
-            ?.answerFirstRep
-            ?.value as? Quantity
-        patient.birthDateElement =
-          estimatedYears?.let {
-            openMRSHelper.getDateDiffByQuantity(
-              estimatedAgeYear = estimatedYears,
-              estimatedAgeMonth = estimatedMonths,
-            )
-          }
+      val birthDate = openMRSHelper.birthDateFrom(questionnaireResponse)
+      if (birthDate != null && openMRSHelper.isInTheFuture(birthDate)) {
+        saveFailure.value = R.string.birth_date_in_the_future
+        saveInProgress = false
+        isPatientSaved.value = false
+        return@launch
       }
+      patient.birthDateElement = birthDate
 
       val location = locationId?.let { fhirEngine.get(ResourceType.Location, it) } as Location?
       if (location != null) {
@@ -256,6 +249,8 @@ constructor(
           val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
           questionnaire =
             fhirEngine.getQuestionnaireOrFromAssets(questionnaireName, applicationContext, parser)
+          // The form library parses and renders everything it is given, in every language.
+          questionnaire?.pruneOtherLanguageTranslations()
           questionnaire?.let { parser.encodeResourceToString(embeddIdentifierInQuestionnaire(it)) }
             ?: ""
         }

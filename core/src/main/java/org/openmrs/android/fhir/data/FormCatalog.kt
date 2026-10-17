@@ -32,7 +32,6 @@ import android.content.Context
 import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.logicalId
-import com.google.android.fhir.search.search
 import java.util.Locale
 import javax.inject.Inject
 import org.hl7.fhir.r4.model.Questionnaire
@@ -41,7 +40,7 @@ import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.config.FormSectionConfig
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.extensions.AppLanguage
-import org.openmrs.android.fhir.extensions.readAssetQuestionnaires
+import org.openmrs.android.fhir.extensions.allQuestionnaires
 import org.openmrs.android.fhir.extensions.translatedTitle
 
 /**
@@ -78,14 +77,8 @@ constructor(
   suspend fun load(): Catalog {
     val language = AppLanguage.currentTag(applicationContext).lowercase(Locale.ROOT)
 
-    val questionnaires = fhirEngine.search<Questionnaire> {}.map { it.resource }.toMutableList()
-    // Forms shipped with the app are listed too; the ones the engine already has are skipped.
-    questionnaires.addAll(
-      applicationContext.readAssetQuestionnaires(
-        parser,
-        questionnaires.map { it.idElement.idPart }.toSet(),
-      ),
-    )
+    // The engine's forms, and the ones shipped with the app that the engine does not have.
+    val questionnaires = fhirEngine.allQuestionnaires(applicationContext, parser)
 
     fun Questionnaire.toFormItem() =
       FormItem(

@@ -183,7 +183,9 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
     viewModel.isPatientSaved.observe(viewLifecycleOwner) {
       viewModel.isLoading.value = false
       if (!it) {
-        AppMessage.show(requireContext(), getString(R.string.inputs_are_missing), MessageKind.Error)
+        val reason = viewModel.saveFailure.value ?: R.string.inputs_are_missing
+        viewModel.saveFailure.value = null
+        AppMessage.show(requireContext(), getString(reason), MessageKind.Error)
         return@observe
       }
       AppMessage.show(requireContext(), getString(R.string.patient_is_saved), MessageKind.Success)

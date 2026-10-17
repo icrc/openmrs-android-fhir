@@ -98,7 +98,9 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
     viewModel.livePatientData.observe(viewLifecycleOwner) { addQuestionnaireFragment(it) }
     viewModel.isPatientSaved.observe(viewLifecycleOwner) {
       if (!it) {
-        AppMessage.show(requireContext(), R.string.inputs_missing, MessageKind.Error)
+        val reason = viewModel.saveFailure.value ?: R.string.inputs_missing
+        viewModel.saveFailure.value = null
+        AppMessage.show(requireContext(), reason, MessageKind.Error)
         return@observe
       }
       AppMessage.show(requireContext(), R.string.message_patient_updated, MessageKind.Success)

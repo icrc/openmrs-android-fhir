@@ -83,7 +83,9 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
           httpLogger =
             HttpLogger(
               HttpLogger.Configuration(
-                HttpLogger.Level.BODY,
+                // Never the bodies: they are the patients' data, megabytes of it during a sync, and
+                // all of it was being kept in the app log.
+                HttpLogger.Level.BASIC,
               ),
             ) {
               Timber.tag("App-HttpLog").d(it)

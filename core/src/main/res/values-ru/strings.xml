@@ -798,4 +798,5 @@
     <string name="pin_repeat_label">Повторите PIN-код</string>
     <string name="pin_mismatch">PIN-коды не совпадают</string>
     <string name="pin_wrong">Неверный PIN-код</string>
+    <string name="birth_date_in_the_future">Дата рождения не может быть в будущем</string>
 </resources>
