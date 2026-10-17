@@ -61,6 +61,7 @@ import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.ColorVisionMode
 import org.openmrs.android.fhir.extensions.ColorVisionStore
+import org.openmrs.android.fhir.extensions.EmbeddedFormsStore
 import org.openmrs.android.fhir.extensions.ThemeMode
 import org.openmrs.android.fhir.extensions.ThemeModeStore
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
@@ -88,6 +89,7 @@ class SettingsFragment : Fragment() {
     viewModels<IdentifierSelectionViewModel> { viewModelFactory }
   private val themeSelection = mutableStateOf(ThemeMode.SYSTEM)
   private val colorVisionSelection = mutableStateOf(ColorVisionMode.STANDARD)
+  private val embeddedFormsSelection = mutableStateOf(true)
 
   /** true: enabled, false: declined, null: not answered yet. */
   private val offlineLoginEnabled = mutableStateOf<Boolean?>(null)
@@ -107,6 +109,7 @@ class SettingsFragment : Fragment() {
       LaunchedEffect(Unit) {
         themeSelection.value = ThemeModeStore.get(context)
         colorVisionSelection.value = ColorVisionStore.get(context)
+        embeddedFormsSelection.value = EmbeddedFormsStore.get(context)
         offlineLoginEnabled.value =
           when {
             BiometricUtils.getOfflineAuthMethod(context) != null -> true
@@ -159,6 +162,7 @@ class SettingsFragment : Fragment() {
           onSaveClicked = {
             settingsViewModel.onSaveClicked()
             ThemeModeStore.set(context, themeSelection.value)
+            EmbeddedFormsStore.set(context, embeddedFormsSelection.value)
             if (ColorVisionStore.get(context) != colorVisionSelection.value) {
               ColorVisionStore.set(context, colorVisionSelection.value)
               // The palette is read when a screen is built.
@@ -177,6 +181,8 @@ class SettingsFragment : Fragment() {
           onThemeModeSelected = { themeSelection.value = it },
           colorVision = colorVisionSelection.value,
           onColorVisionSelected = { colorVisionSelection.value = it },
+          embeddedFormsOnly = embeddedFormsSelection.value,
+          onEmbeddedFormsOnlyChange = { embeddedFormsSelection.value = it },
           offlineLoginEnabled = offlineLoginEnabled.value,
           onResetOfflineLoginClicked = ::confirmResetOfflineLogin,
         )

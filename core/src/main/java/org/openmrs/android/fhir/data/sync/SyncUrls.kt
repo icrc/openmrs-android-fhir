@@ -30,6 +30,7 @@ package org.openmrs.android.fhir.data.sync
 
 import android.content.Context
 import org.openmrs.android.fhir.config.AppConfig
+import org.openmrs.android.fhir.extensions.useEmbeddedFormsOnly
 
 /**
  * The FHIR searches the app downloads. They are the same in every deployment, so only the few
@@ -40,7 +41,9 @@ object SyncUrls {
     "Location?_sort=_lastUpdated&_summary=data&_tag=" +
       AppConfig.get(context).sync.locationTag.trim().replace(' ', '+')
 
-  fun questionnaires(): String = "Questionnaire?_sort=_lastUpdated"
+  /** The forms of the server; `null` while the app uses only the forms shipped with it. */
+  fun questionnaires(context: Context): String? =
+    if (context.useEmbeddedFormsOnly()) null else "Questionnaire?_sort=_lastUpdated"
 
   /** The patients of the selected patient lists; the lists are filled in when it is requested. */
   fun patients(context: Context): String {
@@ -62,9 +65,10 @@ object SyncUrls {
   }
 
   /** What the very first download fetches, before any patient list is chosen. */
-  fun firstSync(context: Context): List<String> = listOf(location(context), questionnaires())
+  fun firstSync(context: Context): List<String> =
+    listOfNotNull(location(context), questionnaires(context))
 
   /** What every later sync fetches. */
   fun periodic(context: Context): List<String> =
-    listOf(location(context), questionnaires(), patients(context))
+    listOfNotNull(location(context), questionnaires(context), patients(context))
 }

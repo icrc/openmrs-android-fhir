@@ -120,6 +120,7 @@ object SettingsTestTags {
   const val ThemeSystem = "SettingsThemeSystem"
   const val ThemeLight = "SettingsThemeLight"
   const val ThemeDark = "SettingsThemeDark"
+  const val EmbeddedFormsSwitch = "SettingsEmbeddedFormsSwitch"
   const val ColorVisionStandard = "SettingsColorVisionStandard"
   const val ColorVisionColorBlind = "SettingsColorVisionColorBlind"
   const val CancelButton = "SettingsCancelButton"
@@ -145,6 +146,8 @@ fun SettingsScreen(
   topPadding: Dp = 0.dp,
   isFetchingQuestionnaires: Boolean = false,
   onFetchQuestionnairesClicked: (() -> Unit)? = null,
+  embeddedFormsOnly: Boolean = true,
+  onEmbeddedFormsOnlyChange: ((Boolean) -> Unit)? = null,
   themeMode: ThemeMode = ThemeMode.SYSTEM,
   onThemeModeSelected: ((ThemeMode) -> Unit)? = null,
   colorVision: ColorVisionMode = ColorVisionMode.STANDARD,
@@ -287,38 +290,54 @@ fun SettingsScreen(
         }
       }
 
-      if (
+      val showSections =
         favoriteFormOptions != null && onFormSectionsSaved != null && onFormSectionsReset != null
-      ) {
-        SettingsSection(title = stringResource(R.string.form_sections_title)) {
-          FormSectionsSetting(
-            options = favoriteFormOptions,
-            custom = customFormSections,
-            defaults = defaultFormSections,
-            onSaved = onFormSectionsSaved,
-            onReset = onFormSectionsReset,
-          )
-        }
-      }
-
-      if (onFetchQuestionnairesClicked != null) {
+      val showFetch = onFetchQuestionnairesClicked != null && !embeddedFormsOnly
+      if (onEmbeddedFormsOnlyChange != null || showSections || showFetch) {
         SettingsSection(title = stringResource(R.string.settings_section_forms)) {
-          SettingsAction(
-            description = stringResource(R.string.fetch_questionnaires_description),
-            buttonText =
-              stringResource(
-                if (isFetchingQuestionnaires) {
-                  R.string.fetching_questionnaires
-                } else {
-                  R.string.fetch_questionnaires
-                },
-              ),
-            icon = Icons.Default.Refresh,
-            onClick = onFetchQuestionnairesClicked,
-            enabled = !isFetchingQuestionnaires,
-            inProgress = isFetchingQuestionnaires,
-            testTag = SettingsTestTags.FetchQuestionnairesButton,
-          )
+          if (onEmbeddedFormsOnlyChange != null) {
+            SettingsSwitchRow(
+              label = stringResource(R.string.embedded_forms_only),
+              description = stringResource(R.string.embedded_forms_only_description),
+              checked = embeddedFormsOnly,
+              onCheckedChange = onEmbeddedFormsOnlyChange,
+              testTag = SettingsTestTags.EmbeddedFormsSwitch,
+            )
+          }
+          if (showFetch && onFetchQuestionnairesClicked != null) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            SettingsAction(
+              description = stringResource(R.string.fetch_questionnaires_description),
+              buttonText =
+                stringResource(
+                  if (isFetchingQuestionnaires) {
+                    R.string.fetching_questionnaires
+                  } else {
+                    R.string.fetch_questionnaires
+                  },
+                ),
+              icon = Icons.Default.Refresh,
+              onClick = onFetchQuestionnairesClicked,
+              enabled = !isFetchingQuestionnaires,
+              inProgress = isFetchingQuestionnaires,
+              testTag = SettingsTestTags.FetchQuestionnairesButton,
+            )
+          }
+          if (showSections) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Text(
+              text = stringResource(R.string.form_sections_title),
+              style = MaterialTheme.typography.titleSmall,
+              color = MaterialTheme.colorScheme.onSurface,
+            )
+            FormSectionsSetting(
+              options = favoriteFormOptions.orEmpty(),
+              custom = customFormSections,
+              defaults = defaultFormSections,
+              onSaved = onFormSectionsSaved!!,
+              onReset = onFormSectionsReset!!,
+            )
+          }
         }
       }
     }
@@ -378,17 +397,26 @@ private fun SettingsSwitchRow(
   checked: Boolean,
   onCheckedChange: (Boolean) -> Unit,
   testTag: String,
+  description: String? = null,
 ) {
   Row(
     modifier = Modifier.fillMaxWidth(),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    Text(
-      text = label,
-      style = MaterialTheme.typography.bodyLarge,
-      color = MaterialTheme.colorScheme.onSurface,
-      modifier = Modifier.weight(1f),
-    )
+    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+      Text(
+        text = label,
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurface,
+      )
+      if (description != null) {
+        Text(
+          text = description,
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+    }
     Spacer(modifier = Modifier.width(16.dp))
     Switch(
       checked = checked,

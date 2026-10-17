@@ -40,6 +40,7 @@ import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Questionnaire
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.extensions.bundledQuestionnaireIds
+import org.openmrs.android.fhir.extensions.useEmbeddedFormsOnly
 import timber.log.Timber
 
 /**
@@ -66,6 +67,8 @@ constructor(
   suspend fun fetchMissing(): Outcome =
     withContext(Dispatchers.IO) {
       try {
+        // Only the forms shipped with the app are in use: the server's are not wanted.
+        if (applicationContext.useEmbeddedFormsOnly()) return@withContext Outcome.UpToDate(0)
         val remote = apiManager.fetchQuestionnaires()
         val known = knownQuestionnaireIds()
         val missing = remote.filter { it.idElement.idPart !in known }

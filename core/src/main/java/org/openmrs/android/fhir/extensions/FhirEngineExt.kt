@@ -40,6 +40,7 @@ suspend fun FhirEngine.getQuestionnaireOrFromAssets(
   parser: IParser,
 ): Questionnaire? {
   return try {
+    check(!applicationContext.useEmbeddedFormsOnly())
     (this.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire).orBundledIfAliased(
       applicationContext,
       parser,
@@ -62,6 +63,7 @@ suspend fun FhirEngine.getQuestionnaireOrFromAssetsAsString(
   parser: IParser,
 ): String {
   return try {
+    check(!applicationContext.useEmbeddedFormsOnly())
     val questionnaire =
       (this.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire).orBundledIfAliased(
         applicationContext,

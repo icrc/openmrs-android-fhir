@@ -812,4 +812,6 @@
     <string name="color_vision_description">Bleu et orange à la place du vert et du rouge, avec un contraste plus fort.</string>
     <string name="color_vision_standard">Standard</string>
     <string name="color_vision_color_blind">Adapté au daltonisme</string>
+    <string name="embedded_forms_only">Utiliser uniquement les formulaires intégrés</string>
+    <string name="embedded_forms_only_description">L\'application n\'utilise que les formulaires fournis avec elle et ne télécharge pas de questionnaires depuis le serveur.</string>
 </resources>

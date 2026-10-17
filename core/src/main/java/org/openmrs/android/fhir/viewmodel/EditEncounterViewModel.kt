@@ -72,8 +72,8 @@ import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
-import org.openmrs.android.fhir.extensions.orBundledIfAliased
 import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
+import org.openmrs.android.fhir.extensions.storedQuestionnaires
 import org.openmrs.android.fhir.extensions.utcDateToLocalDate
 import org.openmrs.android.fhir.util.ExistingObservationIndex
 import org.openmrs.android.fhir.util.ObservationChildInfo
@@ -130,13 +130,9 @@ constructor(
       val observations = getObservationsEncounterId(encounterId)
       try {
         var questionnaire =
-          fhirEngine
-            .search<Questionnaire> {}
-            .firstOrNull { questionnaire ->
-              questionnaire.resource.code.any { it.code == encounterType }
-            }
-            ?.resource
-            ?.orBundledIfAliased(applicationContext, parser)
+          fhirEngine.storedQuestionnaires(applicationContext, parser).firstOrNull { questionnaire ->
+            questionnaire.code.any { it.code == encounterType }
+          }
         if (questionnaire == null) {
           // Look into assets folder
           questionnaire = findBundledQuestionnaire(encounterType)
@@ -198,13 +194,9 @@ constructor(
   ) {
     viewModelScope.launch {
       var questionnaire =
-        fhirEngine
-          .search<Questionnaire> {}
-          .firstOrNull { questionnaire ->
-            questionnaire.resource.code.any { it.code == encounterType }
-          }
-          ?.resource
-          ?.orBundledIfAliased(applicationContext, parser)
+        fhirEngine.storedQuestionnaires(applicationContext, parser).firstOrNull { questionnaire ->
+          questionnaire.code.any { it.code == encounterType }
+        }
       if (questionnaire == null) {
         // Look into assets folder
         questionnaire = findBundledQuestionnaire(encounterType)

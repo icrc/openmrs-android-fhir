@@ -746,4 +746,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="color_vision_description">Blue and orange instead of green and red, with stronger contrast.</string>
     <string name="color_vision_standard">Standard</string>
     <string name="color_vision_color_blind">Color-blind friendly</string>
+    <string name="embedded_forms_only">Use embedded forms only</string>
+    <string name="embedded_forms_only_description">The app uses only the forms shipped with it and does not download questionnaires from the server.</string>
 </resources>

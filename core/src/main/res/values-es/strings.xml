@@ -784,4 +784,6 @@
     <string name="color_vision_description">Azul y naranja en lugar de verde y rojo, con más contraste.</string>
     <string name="color_vision_standard">Estándar</string>
     <string name="color_vision_color_blind">Apto para daltonismo</string>
+    <string name="embedded_forms_only">Usar solo formularios integrados</string>
+    <string name="embedded_forms_only_description">La aplicación usa solo los formularios incluidos y no descarga cuestionarios del servidor.</string>
 </resources>

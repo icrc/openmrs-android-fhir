@@ -718,4 +718,6 @@
     <string name="color_vision_description">الأزرق والبرتقالي بدلاً من الأخضر والأحمر، مع تباين أقوى.</string>
     <string name="color_vision_standard">قياسي</string>
     <string name="color_vision_color_blind">مناسب لعمى الألوان</string>
+    <string name="embedded_forms_only">استخدام النماذج المضمنة فقط</string>
+    <string name="embedded_forms_only_description">يستخدم التطبيق النماذج المرفقة به فقط ولا ينزّل الاستبيانات من الخادم.</string>
 </resources>
