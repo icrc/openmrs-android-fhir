@@ -742,4 +742,8 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="pin_mismatch">The PINs do not match</string>
     <string name="pin_wrong">Wrong PIN</string>
     <string name="birth_date_in_the_future">The date of birth cannot be in the future</string>
+    <string name="color_vision_title">Color vision</string>
+    <string name="color_vision_description">Blue and orange instead of green and red, with stronger contrast.</string>
+    <string name="color_vision_standard">Standard</string>
+    <string name="color_vision_color_blind">Color-blind friendly</string>
 </resources>

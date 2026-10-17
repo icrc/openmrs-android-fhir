@@ -714,4 +714,8 @@
     <string name="pin_mismatch">رقما PIN غير متطابقين</string>
     <string name="pin_wrong">رقم PIN غير صحيح</string>
     <string name="birth_date_in_the_future">لا يمكن أن يكون تاريخ الميلاد في المستقبل</string>
+    <string name="color_vision_title">رؤية الألوان</string>
+    <string name="color_vision_description">الأزرق والبرتقالي بدلاً من الأخضر والأحمر، مع تباين أقوى.</string>
+    <string name="color_vision_standard">قياسي</string>
+    <string name="color_vision_color_blind">مناسب لعمى الألوان</string>
 </resources>

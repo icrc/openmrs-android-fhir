@@ -28,7 +28,9 @@
 */
 package org.openmrs.android.fhir.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,6 +41,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -86,6 +89,7 @@ import org.openmrs.android.fhir.data.database.model.CustomFormSection
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.extensions.AppLanguage
+import org.openmrs.android.fhir.extensions.ColorVisionMode
 import org.openmrs.android.fhir.extensions.ThemeMode
 import org.openmrs.android.fhir.ui.components.FavoriteFormsDialog
 import org.openmrs.android.fhir.ui.components.FormSectionsEditorDialog
@@ -116,6 +120,8 @@ object SettingsTestTags {
   const val ThemeSystem = "SettingsThemeSystem"
   const val ThemeLight = "SettingsThemeLight"
   const val ThemeDark = "SettingsThemeDark"
+  const val ColorVisionStandard = "SettingsColorVisionStandard"
+  const val ColorVisionColorBlind = "SettingsColorVisionColorBlind"
   const val CancelButton = "SettingsCancelButton"
   const val SaveButton = "SettingsSaveButton"
 }
@@ -141,6 +147,8 @@ fun SettingsScreen(
   onFetchQuestionnairesClicked: (() -> Unit)? = null,
   themeMode: ThemeMode = ThemeMode.SYSTEM,
   onThemeModeSelected: ((ThemeMode) -> Unit)? = null,
+  colorVision: ColorVisionMode = ColorVisionMode.STANDARD,
+  onColorVisionSelected: ((ColorVisionMode) -> Unit)? = null,
   offlineLoginEnabled: Boolean? = null,
   onResetOfflineLoginClicked: (() -> Unit)? = null,
   onAutoSyncToggle: (Boolean) -> Unit = {},
@@ -194,6 +202,10 @@ fun SettingsScreen(
       if (onThemeModeSelected != null) {
         SettingsSection(title = stringResource(R.string.settings_section_appearance)) {
           ThemeModeChoice(selected = themeMode, onSelected = onThemeModeSelected)
+          if (onColorVisionSelected != null) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            ColorVisionChoice(selected = colorVision, onSelected = onColorVisionSelected)
+          }
         }
       }
 
@@ -404,6 +416,67 @@ private fun ThemeModeChoice(selected: ThemeMode, onSelected: (ThemeMode) -> Unit
           modifier = Modifier.testTag(tag),
         )
       }
+  }
+}
+
+/**
+ * Standard or color-blind palette. Each chip shows the three status colors (done / warning /
+ * problem) of its palette, so the difference can be judged before saving.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ColorVisionChoice(selected: ColorVisionMode, onSelected: (ColorVisionMode) -> Unit) {
+  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Text(
+      text = stringResource(R.string.color_vision_title),
+      style = MaterialTheme.typography.titleSmall,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
+    Text(
+      text = stringResource(R.string.color_vision_description),
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+      listOf(
+          Triple(
+            ColorVisionMode.STANDARD,
+            R.string.color_vision_standard,
+            listOf(0xFF198038, 0xFFF1C21B, 0xFFDA1E28),
+          ),
+          Triple(
+            ColorVisionMode.COLOR_BLIND,
+            R.string.color_vision_color_blind,
+            listOf(0xFF0072B2, 0xFFE69F00, 0xFFB34700),
+          ),
+        )
+        .forEach { (mode, label, swatches) ->
+          FilterChip(
+            selected = selected == mode,
+            onClick = { onSelected(mode) },
+            label = { Text(text = stringResource(label)) },
+            leadingIcon = {
+              Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                swatches.forEach {
+                  Box(
+                    modifier =
+                      Modifier.size(12.dp)
+                        .background(androidx.compose.ui.graphics.Color(it), CircleShape),
+                  )
+                }
+              }
+            },
+            modifier =
+              Modifier.testTag(
+                if (mode == ColorVisionMode.STANDARD) {
+                  SettingsTestTags.ColorVisionStandard
+                } else {
+                  SettingsTestTags.ColorVisionColorBlind
+                },
+              ),
+          )
+        }
+    }
   }
 }
 

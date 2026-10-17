@@ -39,6 +39,7 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import org.openmrs.android.fhir.extensions.isAppInDarkTheme
+import org.openmrs.android.fhir.extensions.isColorBlindPalette
 
 /**
  * Colors the Material 3 scheme has no role for: the dark action buttons used across the app and the
@@ -140,6 +141,69 @@ private val DarkColorScheme: ColorScheme =
     onError = Color(0xFF161616),
   )
 
+// Color-blind palette (Okabe-Ito based): blue and orange instead of green and red, and the
+// neighbouring states differ in lightness as well as in hue.
+private val ColorBlindLightAppColors =
+  AppColors(
+    actionButton = Color(0xFF00508C),
+    onActionButton = Color.White,
+    success = Color(0xFF0072B2),
+    progress = Color(0xFF0072B2),
+    warning = Color(0xFFE69F00),
+    highlightContainer = Color(0xFFD6E8F7),
+    neutralContainer = Color(0xFFF4F4F4),
+  )
+
+private val ColorBlindDarkAppColors =
+  AppColors(
+    actionButton = Color(0xFF56B4E9),
+    onActionButton = Color(0xFF00263F),
+    success = Color(0xFF56B4E9),
+    progress = Color(0xFF56B4E9),
+    warning = Color(0xFFF0E442),
+    highlightContainer = Color(0xFF0B3552),
+    neutralContainer = Color(0xFF262626),
+  )
+
+private val ColorBlindLightColorScheme: ColorScheme =
+  LightColorScheme.copy(
+    primary = Color(0xFF00508C),
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFD6E8F7),
+    onPrimaryContainer = Color(0xFF00294A),
+    secondary = Color(0xFF0072B2),
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFFD6E8F7),
+    onSecondaryContainer = Color(0xFF00294A),
+    tertiary = Color(0xFF8A4B00),
+    onSurfaceVariant = Color(0xFF3F3F3F),
+    outline = Color(0xFF6F6F6F),
+    error = Color(0xFFB34700),
+    onError = Color.White,
+    errorContainer = Color(0xFFFFE0CC),
+    onErrorContainer = Color(0xFF4A1D00),
+  )
+
+private val ColorBlindDarkColorScheme: ColorScheme =
+  DarkColorScheme.copy(
+    primary = Color(0xFF7CC4F2),
+    onPrimary = Color(0xFF00263F),
+    primaryContainer = Color(0xFF00508C),
+    onPrimaryContainer = Color(0xFFD6E8F7),
+    secondary = Color(0xFF56B4E9),
+    onSecondary = Color(0xFF00263F),
+    secondaryContainer = Color(0xFF0B3552),
+    onSecondaryContainer = Color(0xFFD6E8F7),
+    tertiary = Color(0xFFF0A030),
+    onTertiary = Color(0xFF2E1800),
+    onSurfaceVariant = Color(0xFFDADADA),
+    outline = Color(0xFFA8A8A8),
+    error = Color(0xFFFFA060),
+    onError = Color(0xFF3A1500),
+    errorContainer = Color(0xFF7A3000),
+    onErrorContainer = Color(0xFFFFE0CC),
+  )
+
 private val LocalAppColors = staticCompositionLocalOf { LightAppColors }
 
 /** Access to the app-specific colors: `OpenMrsTheme.colors.actionButton`. */
@@ -154,13 +218,26 @@ object OpenMrsTheme {
  * setting consistently with the XML screens, which already use a DayNight theme.
  */
 @Composable
-fun OpenMrsTheme(darkTheme: Boolean = isAppInDarkTheme(), content: @Composable () -> Unit) {
-  CompositionLocalProvider(
-    LocalAppColors provides if (darkTheme) DarkAppColors else LightAppColors,
-  ) {
-    MaterialTheme(
-      colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
-      content = content,
-    )
+fun OpenMrsTheme(
+  darkTheme: Boolean = isAppInDarkTheme(),
+  colorBlind: Boolean = isColorBlindPalette(),
+  content: @Composable () -> Unit,
+) {
+  val appColors =
+    when {
+      colorBlind && darkTheme -> ColorBlindDarkAppColors
+      colorBlind -> ColorBlindLightAppColors
+      darkTheme -> DarkAppColors
+      else -> LightAppColors
+    }
+  val colorScheme =
+    when {
+      colorBlind && darkTheme -> ColorBlindDarkColorScheme
+      colorBlind -> ColorBlindLightColorScheme
+      darkTheme -> DarkColorScheme
+      else -> LightColorScheme
+    }
+  CompositionLocalProvider(LocalAppColors provides appColors) {
+    MaterialTheme(colorScheme = colorScheme, content = content)
   }
 }

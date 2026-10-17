@@ -51,6 +51,7 @@ import org.openmrs.android.fhir.data.RestApiManager
 import org.openmrs.android.fhir.data.remote.ServerSettings
 import org.openmrs.android.fhir.di.AppComponent
 import org.openmrs.android.fhir.di.DaggerAppComponent
+import org.openmrs.android.fhir.extensions.ColorVisionStore
 import org.openmrs.android.fhir.extensions.FileLoggingTree
 import org.openmrs.android.fhir.extensions.ThemeModeStore
 import timber.log.Timber
@@ -68,6 +69,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
   override fun onCreate() {
     super.onCreate()
     ThemeModeStore.applySaved(this)
+    ColorVisionStore.install(this)
     Timber.e("FHIR Application started. Test Error log. Is Debug %s", BuildConfig.DEBUG)
     Timber.d("FHIR Application started. Test Debug log")
     val loggingMaxFileSize = 5 * 1024 * 1024L // 5MB

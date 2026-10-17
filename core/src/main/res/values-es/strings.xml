@@ -780,4 +780,8 @@
     <string name="pin_mismatch">Los PIN no coinciden</string>
     <string name="pin_wrong">PIN incorrecto</string>
     <string name="birth_date_in_the_future">La fecha de nacimiento no puede estar en el futuro</string>
+    <string name="color_vision_title">Visión del color</string>
+    <string name="color_vision_description">Azul y naranja en lugar de verde y rojo, con más contraste.</string>
+    <string name="color_vision_standard">Estándar</string>
+    <string name="color_vision_color_blind">Apto para daltonismo</string>
 </resources>

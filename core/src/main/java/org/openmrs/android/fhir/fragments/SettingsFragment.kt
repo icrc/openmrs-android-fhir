@@ -59,6 +59,8 @@ import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.data.QuestionnaireUpdater
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.BiometricUtils
+import org.openmrs.android.fhir.extensions.ColorVisionMode
+import org.openmrs.android.fhir.extensions.ColorVisionStore
 import org.openmrs.android.fhir.extensions.ThemeMode
 import org.openmrs.android.fhir.extensions.ThemeModeStore
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
@@ -85,6 +87,7 @@ class SettingsFragment : Fragment() {
   private val identifierSelectionViewModel by
     viewModels<IdentifierSelectionViewModel> { viewModelFactory }
   private val themeSelection = mutableStateOf(ThemeMode.SYSTEM)
+  private val colorVisionSelection = mutableStateOf(ColorVisionMode.STANDARD)
 
   /** true: enabled, false: declined, null: not answered yet. */
   private val offlineLoginEnabled = mutableStateOf<Boolean?>(null)
@@ -103,6 +106,7 @@ class SettingsFragment : Fragment() {
       val appBarHeight = rememberAppBarHeight()
       LaunchedEffect(Unit) {
         themeSelection.value = ThemeModeStore.get(context)
+        colorVisionSelection.value = ColorVisionStore.get(context)
         offlineLoginEnabled.value =
           when {
             BiometricUtils.getOfflineAuthMethod(context) != null -> true
@@ -155,6 +159,11 @@ class SettingsFragment : Fragment() {
           onSaveClicked = {
             settingsViewModel.onSaveClicked()
             ThemeModeStore.set(context, themeSelection.value)
+            if (ColorVisionStore.get(context) != colorVisionSelection.value) {
+              ColorVisionStore.set(context, colorVisionSelection.value)
+              // The palette is read when a screen is built.
+              activity?.recreate()
+            }
           },
           topPadding = appBarHeight,
           isFetchingQuestionnaires = isFetchingQuestionnaires,
@@ -166,6 +175,8 @@ class SettingsFragment : Fragment() {
             },
           themeMode = themeSelection.value,
           onThemeModeSelected = { themeSelection.value = it },
+          colorVision = colorVisionSelection.value,
+          onColorVisionSelected = { colorVisionSelection.value = it },
           offlineLoginEnabled = offlineLoginEnabled.value,
           onResetOfflineLoginClicked = ::confirmResetOfflineLogin,
         )

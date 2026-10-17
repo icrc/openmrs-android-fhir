@@ -204,6 +204,38 @@
         >@style/Questionnaire.questionnaireLinearProgressIndicatorStyle</item>
     </style>
 
+    <!-- The color-blind palette on top of the app theme (see ColorVisionStore). -->
+    <style name="ThemeOverlay.OpenMrs.ColorBlind" parent="">
+        <item name="colorPrimary">@color/cb_primary</item>
+        <item name="colorOnPrimary">@color/cb_on_primary</item>
+        <item name="colorPrimaryContainer">@color/cb_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/cb_on_primary_container</item>
+        <item name="colorSecondary">@color/cb_secondary</item>
+        <item name="colorOnSecondary">@color/cb_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/cb_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/cb_on_secondary_container</item>
+        <item name="colorTertiary">@color/cb_tertiary</item>
+        <item name="colorOnTertiary">@color/cb_on_tertiary</item>
+        <item name="colorError">@color/cb_error</item>
+        <item name="colorOnError">@color/cb_on_error</item>
+        <item name="colorErrorContainer">@color/cb_error_container</item>
+        <item name="colorOnErrorContainer">@color/cb_on_error_container</item>
+        <item name="colorOnSurfaceVariant">@color/cb_on_surface_variant</item>
+        <item name="colorOutline">@color/cb_outline</item>
+        <item name="questionnaire_theme">@style/Questionnaire.ColorBlind</item>
+    </style>
+    <style name="Questionnaire.ColorBlind">
+        <item name="colorPrimary">@color/cb_primary</item>
+        <item name="colorOnPrimary">@color/cb_on_primary</item>
+        <item name="colorPrimaryContainer">@color/cb_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/cb_on_primary_container</item>
+        <item name="colorSecondary">@color/cb_secondary</item>
+        <item name="colorError">@color/cb_error</item>
+        <item name="colorOnError">@color/cb_on_error</item>
+        <item name="colorOnSurfaceVariant">@color/cb_on_surface_variant</item>
+        <item name="colorOutline">@color/cb_outline</item>
+    </style>
+
     <style name="CustomPatientTabLayout" parent="Widget.Material3.TabLayout">
         <!-- Set the TabLayout background to transparent so individual tab backgrounds are visible -->
         <item name="android:background">@android:color/transparent</item>

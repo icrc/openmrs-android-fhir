@@ -799,4 +799,8 @@
     <string name="pin_mismatch">PIN-коды не совпадают</string>
     <string name="pin_wrong">Неверный PIN-код</string>
     <string name="birth_date_in_the_future">Дата рождения не может быть в будущем</string>
+    <string name="color_vision_title">Цветовое зрение</string>
+    <string name="color_vision_description">Синий и оранжевый вместо зелёного и красного, с более сильным контрастом.</string>
+    <string name="color_vision_standard">Стандартная</string>
+    <string name="color_vision_color_blind">Для дальтоников</string>
 </resources>

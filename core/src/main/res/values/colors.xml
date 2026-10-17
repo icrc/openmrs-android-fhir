@@ -117,4 +117,20 @@
     <color name="o3_on_surface_variant">#525252</color>
     <color name="o3_outline">#8D8D8D</color>
     <color name="o3_background">#F4F4F4</color>
+    <color name="cb_primary">#00508C</color>
+    <color name="cb_on_primary">#FFFFFF</color>
+    <color name="cb_primary_container">#D6E8F7</color>
+    <color name="cb_on_primary_container">#00294A</color>
+    <color name="cb_secondary">#0072B2</color>
+    <color name="cb_on_secondary">#FFFFFF</color>
+    <color name="cb_secondary_container">#D6E8F7</color>
+    <color name="cb_on_secondary_container">#00294A</color>
+    <color name="cb_tertiary">#8A4B00</color>
+    <color name="cb_on_tertiary">#FFFFFF</color>
+    <color name="cb_error">#B34700</color>
+    <color name="cb_on_error">#FFFFFF</color>
+    <color name="cb_error_container">#FFE0CC</color>
+    <color name="cb_on_error_container">#4A1D00</color>
+    <color name="cb_on_surface_variant">#3F3F3F</color>
+    <color name="cb_outline">#6F6F6F</color>
 </resources>

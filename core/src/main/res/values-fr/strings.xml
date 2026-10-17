@@ -808,4 +808,8 @@
     <string name="pin_mismatch">Les codes PIN ne correspondent pas</string>
     <string name="pin_wrong">Code PIN incorrect</string>
     <string name="birth_date_in_the_future">La date de naissance ne peut pas être dans le futur</string>
+    <string name="color_vision_title">Vision des couleurs</string>
+    <string name="color_vision_description">Bleu et orange à la place du vert et du rouge, avec un contraste plus fort.</string>
+    <string name="color_vision_standard">Standard</string>
+    <string name="color_vision_color_blind">Adapté au daltonisme</string>
 </resources>
