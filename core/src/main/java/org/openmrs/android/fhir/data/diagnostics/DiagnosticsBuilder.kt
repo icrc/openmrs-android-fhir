@@ -66,6 +66,7 @@ import org.openmrs.android.fhir.data.transfer.DataTransfer
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.ColorVisionStore
 import org.openmrs.android.fhir.extensions.EmbeddedFormsStore
+import org.openmrs.android.fhir.extensions.FileLoggingTree.Companion.APPLICATION_LOG_FILE_NAME
 import org.openmrs.android.fhir.extensions.ThemeModeStore
 import org.openmrs.android.fhir.extensions.bundledQuestionnaireIds
 import org.openmrs.android.fhir.extensions.getApplicationLogs
@@ -79,6 +80,21 @@ enum class DiagnosticsOption(val fileName: String) {
   UNSYNCED_RESOURCES("unsynced-resources.ndjson"),
   DEVICE_INFO("device-info.txt"),
 }
+
+/** How far back the logs, the audit trail and the sync information go. */
+enum class DiagnosticsRange(val hours: Long?) {
+  EVERYTHING(null),
+  LAST_24_HOURS(24),
+  LAST_7_DAYS(24 * 7),
+}
+
+/** Roughly what each part holds, shown next to its checkbox. */
+data class DiagnosticsEstimate(
+  val logsBytes: Long,
+  val auditEntries: Int,
+  val syncSessions: Int,
+  val unsyncedResources: Int,
+)
 
 /** The report: an AES-encrypted archive, and what went into it. */
 data class DiagnosticsReport(val file: File, val included: List<DiagnosticsOption>)
@@ -97,7 +113,23 @@ constructor(
   private val dataTransfer: DataTransfer,
 ) {
 
-  suspend fun build(options: Set<DiagnosticsOption>, lastSync: String?): DiagnosticsReport =
+  /** Cheap counts, taken without reading the data itself. */
+  suspend fun estimate(): DiagnosticsEstimate =
+    withContext(Dispatchers.IO) {
+      DiagnosticsEstimate(
+        // The log file holds each line encrypted and encoded, about a third larger than the text.
+        logsBytes = File(context.filesDir, APPLICATION_LOG_FILE_NAME).length() * 3 / 4,
+        auditEntries = AuditLog.count(),
+        syncSessions = database.dao().getAllSyncSessionsAsList().size,
+        unsyncedResources = dataTransfer.pendingCount(),
+      )
+    }
+
+  suspend fun build(
+    options: Set<DiagnosticsOption>,
+    range: DiagnosticsRange,
+    lastSync: String?,
+  ): DiagnosticsReport =
     withContext(Dispatchers.IO) {
       val previousPriority = Process.getThreadPriority(Process.myTid())
       Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND)
@@ -105,6 +137,10 @@ constructor(
       workDir.mkdirs()
       try {
         val password = AppConfig.get(context).diagnosticsPassword
+        val since =
+          range.hours?.let {
+            java.time.Instant.now().minus(it, java.time.temporal.ChronoUnit.HOURS)
+          }
         val parts = linkedMapOf<DiagnosticsOption, File>()
         val notes = mutableListOf<String>()
         for (option in DiagnosticsOption.entries.filter { it in options }) {
@@ -114,13 +150,13 @@ constructor(
               when (option) {
                 DiagnosticsOption.APP_LOGS ->
                   getApplicationLogs(context, password)?.let { logs ->
-                    logs.copyTo(target, overwrite = true)
+                    val kept = copyLogs(logs, target, since)
                     logs.delete()
-                    true
+                    kept > 0
                   }
                     ?: false
-                DiagnosticsOption.AUDIT_TRAIL -> AuditLog.exportTo(target) > 0
-                DiagnosticsOption.SYNC_INFO -> writeSyncInfo(target, lastSync)
+                DiagnosticsOption.AUDIT_TRAIL -> AuditLog.exportTo(target, since) > 0
+                DiagnosticsOption.SYNC_INFO -> writeSyncInfo(target, lastSync, since)
                 DiagnosticsOption.UNSYNCED_RESOURCES ->
                   dataTransfer.writeUnsynced(target).also { notes += "Unsynced resources: $it" } >=
                     0
@@ -142,6 +178,7 @@ constructor(
             appendLine("Created: ${timestamp()}")
             appendLine("App: ${context.packageName}")
             appendLine("Included: ${parts.keys.joinToString { it.fileName }.ifEmpty { "nothing" }}")
+            appendLine("Time range: ${range.name}")
             notes.forEach { appendLine(it) }
           },
         )
@@ -163,8 +200,48 @@ constructor(
       }
     }
 
-  private suspend fun writeSyncInfo(target: File, lastSync: String?): Boolean {
-    val sessions = database.dao().getAllSyncSessionsAsList()
+  /** Copies the log lines from [since] on (all of them without it); returns how many. */
+  private fun copyLogs(source: File, target: File, since: java.time.Instant?): Int {
+    var kept = 0
+    target.bufferedWriter().use { out ->
+      source.forEachLine { line ->
+        if (since == null || logLineIsSince(line, since)) {
+          out.appendLine(line)
+          kept++
+        }
+      }
+    }
+    return kept
+  }
+
+  /** A line starts with its time; one without (an older line) is older than any range. */
+  private fun logLineIsSince(line: String, since: java.time.Instant): Boolean =
+    try {
+      !java.time.Instant.parse(line.substringBefore(' ')).isBefore(since)
+    } catch (e: Exception) {
+      false
+    }
+
+  private suspend fun writeSyncInfo(
+    target: File,
+    lastSync: String?,
+    since: java.time.Instant?,
+  ): Boolean {
+    val cutoff =
+      since?.let { java.time.LocalDateTime.ofInstant(it, java.time.ZoneId.systemDefault()) }
+    val sessions =
+      database.dao().getAllSyncSessionsAsList().filter { session ->
+        cutoff == null ||
+          try {
+            !java.time.LocalDateTime.parse(
+                session.startTime,
+                java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+              )
+              .isBefore(cutoff)
+          } catch (e: Exception) {
+            true
+          }
+      }
     target.bufferedWriter().use { out ->
       out.appendLine("Sync Session Information")
       out.appendLine("========================")

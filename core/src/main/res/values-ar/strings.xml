@@ -736,4 +736,13 @@
     <string name="diag_preparing">جارٍ تحضير التقرير…</string>
     <string name="diag_send">إرسال</string>
     <string name="diag_failed">تعذّر تحضير تقرير التشخيص.</string>
+    <string name="diag_range_title">الفترة</string>
+    <string name="diag_range_all">الكل</string>
+    <string name="diag_range_24h">آخر 24 ساعة</string>
+    <string name="diag_range_7d">آخر 7 أيام</string>
+    <string name="diag_range_note">تنطبق على السجلات وسجل التدقيق ومعلومات المزامنة.</string>
+    <string name="diag_est_size">حوالي %s</string>
+    <string name="diag_est_entries">الإدخالات: %d</string>
+    <string name="diag_est_sessions">الجلسات: %d</string>
+    <string name="diag_est_resources">الموارد: %d</string>
 </resources>

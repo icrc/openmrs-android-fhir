@@ -93,7 +93,9 @@ import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.diagnostics.DiagnosticsBuilder
+import org.openmrs.android.fhir.data.diagnostics.DiagnosticsEstimate
 import org.openmrs.android.fhir.data.diagnostics.DiagnosticsOption
+import org.openmrs.android.fhir.data.diagnostics.DiagnosticsRange
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.isServerReachable
@@ -148,6 +150,8 @@ class MainActivity : AppCompatActivity() {
 
   private val diagnosticsVisible = androidx.compose.runtime.mutableStateOf(false)
   private val diagnosticsBusy = androidx.compose.runtime.mutableStateOf(false)
+  private val diagnosticsEstimate =
+    androidx.compose.runtime.mutableStateOf<DiagnosticsEstimate?>(null)
 
   private lateinit var permissionHelper: PermissionHelper
 
@@ -293,6 +297,7 @@ class MainActivity : AppCompatActivity() {
             if (diagnosticsVisible.value) {
               DiagnosticsDialog(
                 busy = diagnosticsBusy.value,
+                estimate = diagnosticsEstimate.value,
                 onSend = ::sendDiagnostics,
                 onDismiss = { diagnosticsVisible.value = false },
               )
@@ -1091,21 +1096,38 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun showSendDiagnosticReportDialog() {
+    diagnosticsEstimate.value = null
     diagnosticsVisible.value = true
+    lifecycleScope.launch {
+      diagnosticsEstimate.value =
+        try {
+          diagnosticsBuilder.estimate()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          Timber.w(e, "Diagnostics estimate failed")
+          null
+        }
+    }
   }
 
   /** Builds the report the user chose on a background thread, then hands it to the mail app. */
-  private fun sendDiagnostics(options: Set<DiagnosticsOption>) {
+  private fun sendDiagnostics(options: Set<DiagnosticsOption>, range: DiagnosticsRange) {
     if (diagnosticsBusy.value) return
     diagnosticsBusy.value = true
     lifecycleScope.launch {
       try {
         val report =
-          diagnosticsBuilder.build(options, viewModel.lastSyncTimestampLiveData.value?.toString())
+          diagnosticsBuilder.build(
+            options,
+            range,
+            viewModel.lastSyncTimestampLiveData.value?.toString(),
+          )
         AuditLog.record(
           AuditAction.DIAGNOSTICS_SENT,
           AuditOutcome.SUCCESS,
           "included" to report.included.map { it.name },
+          "range" to range.name,
         )
         diagnosticsVisible.value = false
         val emailIntent =

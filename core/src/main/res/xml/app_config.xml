@@ -37,8 +37,9 @@
          patients (false: the server creates them). -->
     <patients registration-form="new-patient-registration-paginated" fetch-identifiers="true" />
 
-    <!-- Where "Send diagnostics" goes; the optional password protects the archive. -->
-    <support email="support@example.com" diagnostics-password="" />
+    <!-- Where "Send diagnostics" goes. The password (required: change it) protects the
+         archive and the application logs; support needs it to open a report. -->
+    <support email="support@example.com" diagnostics-password="changeIt" />
 
     <!-- The audit trail kept for the support team (sign-ins, patients and encounters created or
          edited, syncs...): the last max-actions steps (50-5000); older ones are overwritten. -->

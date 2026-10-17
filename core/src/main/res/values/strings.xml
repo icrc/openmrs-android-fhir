@@ -764,4 +764,13 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="diag_preparing">Preparing the report…</string>
     <string name="diag_send">Send</string>
     <string name="diag_failed">Could not prepare the diagnostics report.</string>
+    <string name="diag_range_title">Time range</string>
+    <string name="diag_range_all">Everything</string>
+    <string name="diag_range_24h">Last 24 hours</string>
+    <string name="diag_range_7d">Last 7 days</string>
+    <string name="diag_range_note">Applies to the logs, the audit trail and the sync information.</string>
+    <string name="diag_est_size">About %s</string>
+    <string name="diag_est_entries">Entries: %d</string>
+    <string name="diag_est_sessions">Sessions: %d</string>
+    <string name="diag_est_resources">Resources: %d</string>
 </resources>

@@ -38,6 +38,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -54,7 +55,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.data.diagnostics.DiagnosticsEstimate
 import org.openmrs.android.fhir.data.diagnostics.DiagnosticsOption
+import org.openmrs.android.fhir.data.diagnostics.DiagnosticsRange
 
 object DiagnosticsDialogTestTags {
   const val Dialog = "DiagnosticsDialog"
@@ -85,9 +88,12 @@ private fun DiagnosticsOption.text() =
 @Composable
 fun DiagnosticsDialog(
   busy: Boolean,
-  onSend: (Set<DiagnosticsOption>) -> Unit,
+  estimate: DiagnosticsEstimate?,
+  onSend: (Set<DiagnosticsOption>, DiagnosticsRange) -> Unit,
   onDismiss: () -> Unit,
 ) {
+  val context = androidx.compose.ui.platform.LocalContext.current
+  var range by rememberSaveable { mutableStateOf(DiagnosticsRange.EVERYTHING) }
   var selected by rememberSaveable {
     mutableStateOf(DiagnosticsOption.entries.map { it.name }.toSet())
   }
@@ -127,9 +133,41 @@ fun DiagnosticsDialog(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
               )
+              size(option, estimate, context)?.let {
+                Text(
+                  text = it,
+                  style = MaterialTheme.typography.labelSmall,
+                  color = MaterialTheme.colorScheme.primary,
+                )
+              }
             }
           }
         }
+        Text(
+          text = stringResource(R.string.diag_range_title),
+          style = MaterialTheme.typography.titleSmall,
+          modifier = Modifier.padding(top = 12.dp),
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+          listOf(
+              DiagnosticsRange.EVERYTHING to R.string.diag_range_all,
+              DiagnosticsRange.LAST_24_HOURS to R.string.diag_range_24h,
+              DiagnosticsRange.LAST_7_DAYS to R.string.diag_range_7d,
+            )
+            .forEach { (value, label) ->
+              FilterChip(
+                selected = range == value,
+                onClick = { range = value },
+                enabled = !busy,
+                label = { Text(text = stringResource(label)) },
+              )
+            }
+        }
+        Text(
+          text = stringResource(R.string.diag_range_note),
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         if (busy) {
           Text(
             text = stringResource(R.string.diag_preparing),
@@ -142,7 +180,7 @@ fun DiagnosticsDialog(
     },
     confirmButton = {
       TextButton(
-        onClick = { onSend(chosen) },
+        onClick = { onSend(chosen, range) },
         enabled = !busy && chosen.isNotEmpty(),
         modifier = Modifier.testTag(DiagnosticsDialogTestTags.Send),
       ) {
@@ -159,4 +197,27 @@ fun DiagnosticsDialog(
       }
     },
   )
+}
+
+/** What a part holds, in a few words; `null` while the counts are still being taken. */
+private fun size(
+  option: DiagnosticsOption,
+  estimate: DiagnosticsEstimate?,
+  context: android.content.Context,
+): String? {
+  estimate ?: return null
+  return when (option) {
+    DiagnosticsOption.APP_LOGS ->
+      context.getString(
+        R.string.diag_est_size,
+        android.text.format.Formatter.formatShortFileSize(context, estimate.logsBytes),
+      )
+    DiagnosticsOption.AUDIT_TRAIL ->
+      context.getString(R.string.diag_est_entries, estimate.auditEntries)
+    DiagnosticsOption.SYNC_INFO ->
+      context.getString(R.string.diag_est_sessions, estimate.syncSessions)
+    DiagnosticsOption.UNSYNCED_RESOURCES ->
+      context.getString(R.string.diag_est_resources, estimate.unsyncedResources)
+    DiagnosticsOption.DEVICE_INFO -> null
+  }
 }

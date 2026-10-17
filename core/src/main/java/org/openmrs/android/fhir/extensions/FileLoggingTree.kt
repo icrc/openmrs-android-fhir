@@ -49,7 +49,8 @@ class FileLoggingTree(context: Context, private val maxFileSize: Long, password:
     SecretKeySpec(MessageDigest.getInstance("SHA-256").digest(password.toByteArray()), "AES")
 
   override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-    writeLogToFile(encrypt("$priority/$tag: $message"))
+    // The time first: the diagnostics can then send only the last hours or days.
+    writeLogToFile(encrypt("${java.time.Instant.now()} $priority/$tag: $message"))
   }
 
   private fun encrypt(log: String): String {

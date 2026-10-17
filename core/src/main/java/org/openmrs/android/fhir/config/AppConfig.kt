@@ -199,6 +199,10 @@ internal constructor(
       require(!needsSso || !sso?.discoveryUrl.isNullOrEmpty()) {
         "app_config.xml: auth method '$authMethod' needs <sso discovery-url=\"...\"/>"
       }
+      require(diagnosticsPassword.isNotEmpty()) {
+        "app_config.xml: <support diagnostics-password=\"...\"/> is required: it protects the " +
+          "diagnostics archive and the application logs"
+      }
       return AppConfig(
         serverUrl = server.trimEnd('/'),
         authMethod = authMethod,

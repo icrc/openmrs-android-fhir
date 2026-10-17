@@ -821,4 +821,13 @@
     <string name="diag_preparing">Подготовка отчёта…</string>
     <string name="diag_send">Отправить</string>
     <string name="diag_failed">Не удалось подготовить диагностический отчёт.</string>
+    <string name="diag_range_title">Период</string>
+    <string name="diag_range_all">Всё</string>
+    <string name="diag_range_24h">Последние 24 часа</string>
+    <string name="diag_range_7d">Последние 7 дней</string>
+    <string name="diag_range_note">Относится к журналам, журналу действий и сведениям о синхронизации.</string>
+    <string name="diag_est_size">Около %s</string>
+    <string name="diag_est_entries">Записей: %d</string>
+    <string name="diag_est_sessions">Сеансов: %d</string>
+    <string name="diag_est_resources">Ресурсов: %d</string>
 </resources>

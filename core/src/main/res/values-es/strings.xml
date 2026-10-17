@@ -802,4 +802,13 @@
     <string name="diag_preparing">Preparando el informe…</string>
     <string name="diag_send">Enviar</string>
     <string name="diag_failed">No se pudo preparar el informe de diagnóstico.</string>
+    <string name="diag_range_title">Período</string>
+    <string name="diag_range_all">Todo</string>
+    <string name="diag_range_24h">Últimas 24 horas</string>
+    <string name="diag_range_7d">Últimos 7 días</string>
+    <string name="diag_range_note">Se aplica a los registros, la auditoría y la sincronización.</string>
+    <string name="diag_est_size">Unos %s</string>
+    <string name="diag_est_entries">Entradas: %d</string>
+    <string name="diag_est_sessions">Sesiones: %d</string>
+    <string name="diag_est_resources">Recursos: %d</string>
 </resources>

@@ -98,6 +98,7 @@ object AuditLog {
   private const val USER_KEY = "user"
   private const val MAX_VALUE_LENGTH = 200
   private const val MAX_LIST_ITEMS = 20
+  private const val CRASH_FRAMES = 15
 
   private sealed interface Item {
     class Line(val json: String) : Item
@@ -158,6 +159,9 @@ object AuditLog {
             "thread" to thread.name,
             "error" to error.javaClass.name,
             "where" to error.stackTrace.firstOrNull()?.toString(),
+            // The frames, not the message: messages can quote data.
+            "stack" to error.stackTrace.take(CRASH_FRAMES).map { it.toString() },
+            "cause" to generateSequence(error.cause) { it.cause }.lastOrNull()?.javaClass?.name,
           ),
         ),
       )
@@ -202,8 +206,19 @@ object AuditLog {
     latch.await(3, TimeUnit.SECONDS)
   }
 
-  /** Copies the readable entries (the last `max-actions`) to [target]; returns how many. */
-  fun exportTo(target: File): Int {
+  /** How many entries are kept right now. */
+  fun count(): Int {
+    val source = file ?: return 0
+    return synchronized(lock) {
+      if (!source.exists()) 0 else minOf(source.useLines { it.count() }, maxActions)
+    }
+  }
+
+  /**
+   * Copies the readable entries (the last `max-actions`, or those from [since] on) to [target];
+   * returns how many.
+   */
+  fun exportTo(target: File, since: java.time.Instant? = null): Int {
     flush()
     val source = file ?: return 0
     val secret = key ?: return 0
@@ -216,9 +231,9 @@ object AuditLog {
           val parts = line.split(":", limit = 2)
           if (parts.size != 2) return@forEach
           try {
-            out.appendLine(
-              EncryptionHelper.decrypt(parts[1], secret, parts[0].decodeToByteArray()),
-            )
+            val entry = EncryptionHelper.decrypt(parts[1], secret, parts[0].decodeToByteArray())
+            if (since != null && !isSince(entry, since)) return@forEach
+            out.appendLine(entry)
             written++
           } catch (e: Exception) {
             Log.w("AuditLog", "Skipping an unreadable entry", e)
@@ -228,6 +243,14 @@ object AuditLog {
     }
     return written
   }
+
+  /** Entries start with `{"ts":"<instant>"`; an entry whose time cannot be read is kept. */
+  private fun isSince(entry: String, since: java.time.Instant): Boolean =
+    try {
+      !java.time.Instant.parse(entry.substring(7, entry.indexOf('"', 7))).isBefore(since)
+    } catch (e: Exception) {
+      true
+    }
 
   private fun build(
     action: AuditAction,

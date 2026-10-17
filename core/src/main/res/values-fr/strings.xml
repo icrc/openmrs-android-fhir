@@ -830,4 +830,13 @@
     <string name="diag_preparing">Préparation du rapport…</string>
     <string name="diag_send">Envoyer</string>
     <string name="diag_failed">Impossible de préparer le rapport de diagnostic.</string>
+    <string name="diag_range_title">Période</string>
+    <string name="diag_range_all">Tout</string>
+    <string name="diag_range_24h">Dernières 24 heures</string>
+    <string name="diag_range_7d">7 derniers jours</string>
+    <string name="diag_range_note">S\'applique aux journaux, à la piste d\'audit et à la synchronisation.</string>
+    <string name="diag_est_size">Environ %s</string>
+    <string name="diag_est_entries">Entrées : %d</string>
+    <string name="diag_est_sessions">Sessions : %d</string>
+    <string name="diag_est_resources">Ressources : %d</string>
 </resources>

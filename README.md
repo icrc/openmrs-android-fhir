@@ -61,7 +61,7 @@ An app is configured by one file, `res/xml/app_config.xml`, in its module. It is
 | `<patients>` | `registration-form` | Id of a synced questionnaire, or the file name of one in `assets`, used to register patients. |
 | | `fetch-identifiers` | `true`: the device fetches auto-generated identifiers and adds them to new patients; `false`: the server creates them. |
 | `<support>` | `email` | Where **Send diagnostics** and exported unsynced data go. |
-| | `diagnostics-password` | Optional password of the diagnostics archive. |
+| | `diagnostics-password` | **Required.** Password of the diagnostics archive and of the application log; support needs it to open a report. Change the example value. |
 | `<audit>` | `max-actions` | How many of the user's last steps the audit trail keeps for support (50-5000, default 500); older ones are overwritten. |
 | `<form-sections>` | | The Create Encounter screen, see below. |
 
