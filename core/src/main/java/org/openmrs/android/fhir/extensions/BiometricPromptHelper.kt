@@ -33,7 +33,6 @@ import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
@@ -44,6 +43,8 @@ import java.util.concurrent.Executor
 import javax.crypto.Cipher
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 
 object BiometricPromptHelper {
 
@@ -148,7 +149,7 @@ object BiometricPromptHelper {
         onSaved?.invoke()
       } else {
         val msg = activity.getString(R.string.no_supported_offline_auth_method)
-        Toast.makeText(activity, msg, Toast.LENGTH_LONG).show()
+        AppMessage.show(activity, msg, MessageKind.Info, long = true)
         onFailure?.invoke(msg)
       }
     }
@@ -179,22 +180,20 @@ object BiometricPromptHelper {
         }
 
         override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-          Toast.makeText(
-              activity,
-              activity.getString(R.string.auth_error_offline_login),
-              Toast.LENGTH_SHORT,
-            )
-            .show()
+          AppMessage.show(
+            activity,
+            activity.getString(R.string.auth_error_offline_login),
+            MessageKind.Error,
+          )
           onNavigate()
         }
 
         override fun onAuthenticationFailed() {
-          Toast.makeText(
-              activity,
-              activity.getString(R.string.auth_failed_offline_login),
-              Toast.LENGTH_SHORT,
-            )
-            .show()
+          AppMessage.show(
+            activity,
+            activity.getString(R.string.auth_failed_offline_login),
+            MessageKind.Error,
+          )
           onNavigate()
         }
       },

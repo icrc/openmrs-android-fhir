@@ -30,7 +30,6 @@ package org.openmrs.android.fhir
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -61,6 +60,8 @@ import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.extensions.AuthDialogs
 import org.openmrs.android.fhir.extensions.BiometricPromptHelper
 import org.openmrs.android.fhir.extensions.BiometricUtils
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.LoginScreen
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.LoginActivityViewModel
@@ -211,13 +212,12 @@ class LoginActivity : AppCompatActivity() {
     val lastConfigurationError = viewModel.getLastConfigurationError()
     if (lastConfigurationError != null) {
       if (reportError) {
-        Toast.makeText(
-            this,
-            lastConfigurationError.cause?.localizedMessage
-              ?: lastConfigurationError.localizedMessage,
-            Toast.LENGTH_LONG,
-          )
-          .show()
+        AppMessage.show(
+          this,
+          lastConfigurationError.cause?.localizedMessage ?: lastConfigurationError.localizedMessage,
+          MessageKind.Error,
+          long = true,
+        )
       }
       ssoAction = SsoAction.Retry
     } else if (loginIntent != null) {
@@ -258,7 +258,7 @@ class LoginActivity : AppCompatActivity() {
       biometricPrompt = biometricPrompt,
       confirmCredLauncher = confirmCredLauncher,
       navigateToMain = { navigateToMain() },
-      showToast = { msg -> Toast.makeText(this, msg, Toast.LENGTH_LONG).show() },
+      showToast = { msg -> AppMessage.show(this, msg, MessageKind.Error, long = true) },
       onMethodSelected = { method -> offlineAuthMethod = method },
     )
   }
@@ -282,7 +282,7 @@ class LoginActivity : AppCompatActivity() {
   }
 
   private fun showToastMessage(message: String) {
-    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    AppMessage.show(this, message, MessageKind.Error)
   }
 
   @VisibleForTesting

@@ -32,7 +32,6 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
@@ -66,6 +65,8 @@ import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.LocationSelectionScreen
 import org.openmrs.android.fhir.ui.screens.selectionScreenContentPadding
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
@@ -234,12 +235,11 @@ class LocationFragment : Fragment() {
             is CurrentSyncJobStatus.Failed -> {
               showLocationScreen()
               locationViewModel.getLocations()
-              Toast.makeText(
-                  context,
-                  getString(R.string.failed_to_fetch_all_locations),
-                  Toast.LENGTH_SHORT,
-                )
-                .show()
+              AppMessage.show(
+                context,
+                getString(R.string.failed_to_fetch_all_locations),
+                MessageKind.Error,
+              )
             }
             else -> {
               //
@@ -255,16 +255,15 @@ class LocationFragment : Fragment() {
     isFavorite: Boolean,
   ) {
     locationViewModel.onFavoriteToggle(locationItem.resourceId, isFavorite)
-    Toast.makeText(
-        context,
-        if (isFavorite) {
-          getString(R.string.location_removed_from_favorites)
-        } else {
-          getString(R.string.location_added_to_favorites)
-        },
-        Toast.LENGTH_SHORT,
-      )
-      .show()
+    AppMessage.show(
+      context,
+      if (isFavorite) {
+        getString(R.string.location_removed_from_favorites)
+      } else {
+        getString(R.string.location_added_to_favorites)
+      },
+      MessageKind.Success,
+    )
   }
 
   private fun selectLocationItem(locationItem: LocationViewModel.LocationItem) {
@@ -277,7 +276,7 @@ class LocationFragment : Fragment() {
       mainActivityViewModel.completeGuestDataForNewLocation()
     }
 
-    Toast.makeText(context, getString(R.string.location_updated), Toast.LENGTH_SHORT).show()
+    AppMessage.show(context, getString(R.string.location_updated), MessageKind.Success)
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {

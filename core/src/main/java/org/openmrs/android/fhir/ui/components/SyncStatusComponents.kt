@@ -308,7 +308,7 @@ private fun SyncProgressLine(
   inProgress: Boolean,
   color: Color,
 ) {
-  val totalUnknown = inProgress && done >= total
+  val totalUnknown = inProgress && done > 0 && done >= total
   val fraction = if (total > 0) (done.toFloat() / total).coerceIn(0f, 1f) else 1f
   Column {
     Row {

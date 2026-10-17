@@ -33,7 +33,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -55,7 +54,8 @@ import org.openmrs.android.fhir.extensions.addQuestionnaireWhenDrawn
 import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
 import org.openmrs.android.fhir.extensions.onQuestionnaireResult
 import org.openmrs.android.fhir.extensions.setFormLoading
-import org.openmrs.android.fhir.extensions.showSnackBar
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
 
 /** A fragment class to show screener questionnaire screen. */
@@ -115,10 +115,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   private fun addQuestionnaireFragment(questionnaireJson: String) {
     if (questionnaireJson.isEmpty()) {
-      showSnackBar(
-        requireActivity(),
-        getString(R.string.questionnaire_error_message),
-      )
+      AppMessage.show(requireActivity(), R.string.questionnaire_error_message, MessageKind.Error)
       NavHostFragment.findNavController(this).navigateUp()
       return
     }
@@ -176,12 +173,10 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
       viewModel.isLoading.value = false
       val isSaved = it.contains("SAVED")
       if (!isSaved) {
-        Toast.makeText(requireContext(), getString(R.string.inputs_missing), Toast.LENGTH_SHORT)
-          .show()
+        AppMessage.show(requireContext(), getString(R.string.inputs_missing), MessageKind.Error)
         return@observe
       }
-      Toast.makeText(requireContext(), getString(R.string.resources_saved), Toast.LENGTH_SHORT)
-        .show()
+      AppMessage.show(requireContext(), getString(R.string.resources_saved), MessageKind.Success)
 
       findNavController()
         .navigate(GenericFormEntryFragmentDirections.actionGenericFormEntryFragmentToPatientList())

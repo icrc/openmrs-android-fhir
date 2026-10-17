@@ -33,7 +33,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
@@ -63,6 +62,8 @@ import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.ThemeMode
 import org.openmrs.android.fhir.extensions.ThemeModeStore
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.SettingsDefaults
 import org.openmrs.android.fhir.ui.screens.SettingsScreen
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
@@ -213,8 +214,12 @@ class SettingsFragment : Fragment() {
       .setPositiveButton(R.string.reset_offline_login) { _, _ ->
         BiometricUtils.resetOfflineLogin(requireContext())
         offlineLoginEnabled.value = null
-        Toast.makeText(requireContext(), R.string.offline_login_reset_done, Toast.LENGTH_LONG)
-          .show()
+        AppMessage.show(
+          requireContext(),
+          R.string.offline_login_reset_done,
+          MessageKind.Success,
+          long = true,
+        )
       }
       .setNegativeButton(R.string.cancel, null)
       .show()
@@ -228,13 +233,13 @@ class SettingsFragment : Fragment() {
         is QuestionnaireUpdater.Outcome.UpToDate -> getString(R.string.questionnaires_up_to_date)
         is QuestionnaireUpdater.Outcome.Failed -> getString(R.string.questionnaires_fetch_failed)
       }
-    Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+    AppMessage.show(requireContext(), message, MessageKind.Info, long = true)
   }
 
   private fun handleSettingsEvent(event: SettingsEvent) {
     val action = resolveSettingsEvent(event)
     action.messageResId?.let { messageResId ->
-      Toast.makeText(requireContext(), getString(messageResId), Toast.LENGTH_SHORT).show()
+      AppMessage.show(requireContext(), getString(messageResId), MessageKind.Info)
     }
     if (action.navigateUp) {
       navigateUp()

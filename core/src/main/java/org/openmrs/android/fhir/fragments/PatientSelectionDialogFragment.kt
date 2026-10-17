@@ -30,7 +30,6 @@ package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -48,6 +47,8 @@ import javax.inject.Inject
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.extensions.composeView
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.patient.PatientSelectionDialogContent
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import org.openmrs.android.fhir.viewmodel.filterSelectedIdsForPatients
@@ -104,12 +105,12 @@ class PatientSelectionDialogFragment : DialogFragment() {
 
   private fun handleStartEncounter(selectedPatientIds: Set<String>) {
     if (selectedPatientIds.isEmpty()) {
-      Toast.makeText(
-          requireContext(),
-          R.string.please_select_at_least_one_patient,
-          Toast.LENGTH_SHORT,
-        )
-        .show()
+      AppMessage.show(
+        requireContext(),
+        R.string.please_select_at_least_one_patient,
+        MessageKind.Info,
+        container = dialog?.window?.findViewById(android.R.id.content),
+      )
       return
     }
 

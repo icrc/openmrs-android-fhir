@@ -32,7 +32,6 @@ import android.app.KeyguardManager
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -62,6 +61,8 @@ import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.SplashScreen
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
@@ -275,7 +276,7 @@ class SplashActivity : AppCompatActivity() {
         object : BiometricPrompt.AuthenticationCallback() {
           override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
             super.onAuthenticationError(errorCode, errString)
-            showToast(R.string.auth_error, errString.toString())
+            showToast(R.string.auth_error, errString.toString(), MessageKind.Error)
             lifecycleScope.launch { handleConnectivityWhenOfflineLoginUnavailable() }
           }
 
@@ -366,13 +367,18 @@ class SplashActivity : AppCompatActivity() {
       BiometricUtils.deleteBiometricKey(this)
       BiometricUtils.updateBiometricEnrollmentState(this)
       isBiometricReset = true
-      showToast(R.string.password_changed, length = Toast.LENGTH_LONG)
+      showToast(R.string.password_changed, long = true)
     }
   }
 
-  private fun showToast(resId: Int, arg: String? = null, length: Int = Toast.LENGTH_SHORT) {
+  private fun showToast(
+    resId: Int,
+    arg: String? = null,
+    kind: MessageKind = MessageKind.Info,
+    long: Boolean = false,
+  ) {
     val msg = arg?.let { getString(resId, it) } ?: getString(resId)
-    Toast.makeText(this, msg, length).show()
+    AppMessage.show(this, msg, kind, long)
   }
 
   @VisibleForTesting

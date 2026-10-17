@@ -33,7 +33,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.collectAsState
@@ -54,6 +53,8 @@ import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.patient.PatientListScreen
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
@@ -148,12 +149,12 @@ class PatientListFragment : Fragment() {
         findNavController()
           .navigate(PatientListFragmentDirections.actionPatientListToAddPatientFragment())
       } else {
-        Toast.makeText(
-            context,
-            getString(R.string.please_select_a_location_first),
-            Toast.LENGTH_LONG,
-          )
-          .show()
+        AppMessage.show(
+          context,
+          getString(R.string.please_select_a_location_first),
+          MessageKind.Info,
+          long = true,
+        )
       }
     }
   }

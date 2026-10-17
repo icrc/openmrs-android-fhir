@@ -31,7 +31,6 @@ package org.openmrs.android.fhir.fragments
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -50,6 +49,8 @@ import org.openmrs.android.fhir.extensions.addQuestionnaireWhenDrawn
 import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
 import org.openmrs.android.fhir.extensions.onQuestionnaireResult
 import org.openmrs.android.fhir.extensions.setFormLoading
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
@@ -94,12 +95,11 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
     viewModel.prepareEditEncounter(encounterId, encounterType)
     viewModel.encounterDataPair.observe(viewLifecycleOwner) {
       if (it.first.isBlank()) {
-        Toast.makeText(
-            requireContext(),
-            getString(R.string.encounter_questionnaire_not_found_try_again_later),
-            Toast.LENGTH_SHORT,
-          )
-          .show()
+        AppMessage.show(
+          requireContext(),
+          getString(R.string.encounter_questionnaire_not_found_try_again_later),
+          MessageKind.Error,
+        )
         NavHostFragment.findNavController(this).navigateUp()
         return@observe
       }
@@ -108,11 +108,10 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
     viewModel.isResourcesSaved.observe(viewLifecycleOwner) {
       val isSaved = it == "SAVED"
       if (!isSaved) {
-        Toast.makeText(requireContext(), R.string.inputs_missing, Toast.LENGTH_SHORT).show()
+        AppMessage.show(requireContext(), R.string.inputs_missing, MessageKind.Error)
         return@observe
       }
-      Toast.makeText(requireContext(), R.string.message_encounter_updated, Toast.LENGTH_SHORT)
-        .show()
+      AppMessage.show(requireContext(), R.string.message_encounter_updated, MessageKind.Success)
       NavHostFragment.findNavController(this).navigateUp()
     }
 

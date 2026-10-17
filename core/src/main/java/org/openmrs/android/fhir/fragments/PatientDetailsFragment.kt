@@ -39,7 +39,6 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -63,6 +62,8 @@ import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.composeView
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.patient.PatientDetailsScreen
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
@@ -190,12 +191,11 @@ class PatientDetailsFragment : Fragment() {
                 val selectedDateTime = calendar.time
 
                 if (selectedDateTime.after(Date())) {
-                  Toast.makeText(
-                      requireContext(),
-                      getString(R.string.future_visit_datetime_not_allowed),
-                      Toast.LENGTH_SHORT,
-                    )
-                    .show()
+                  AppMessage.show(
+                    requireContext(),
+                    getString(R.string.future_visit_datetime_not_allowed),
+                    MessageKind.Error,
+                  )
                 } else {
                   patientDetailsViewModel.createVisit(selectedDateTime)
                   navigateToCreateEncounter()

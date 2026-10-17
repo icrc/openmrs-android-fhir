@@ -33,7 +33,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
@@ -51,6 +50,8 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.HomeScreen
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.HomeEvent
@@ -143,7 +144,12 @@ class HomeFragment : Fragment() {
       HomeEvent.NavigateToSyncInfo ->
         findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSyncInfoFragment())
       is HomeEvent.ShowMessage ->
-        Toast.makeText(requireContext(), getString(event.messageResId), Toast.LENGTH_LONG).show()
+        AppMessage.show(
+          requireContext(),
+          getString(event.messageResId),
+          MessageKind.Info,
+          long = true,
+        )
     }
   }
 }

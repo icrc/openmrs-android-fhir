@@ -32,7 +32,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -51,6 +50,8 @@ import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
 import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.extensions.saveToFile
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.SyncScreen
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
@@ -138,7 +139,7 @@ class SyncInfoFragment : Fragment() {
   }
 
   private fun toast(messageResId: Int) {
-    Toast.makeText(requireContext(), getString(messageResId), Toast.LENGTH_SHORT).show()
+    AppMessage.show(requireContext(), getString(messageResId), MessageKind.Info)
   }
 
   private fun showDownloadToast(resource: UnsyncedResource) {
@@ -151,7 +152,7 @@ class SyncInfoFragment : Fragment() {
         is UnsyncedResource.ObservationItem ->
           getString(R.string.collecting_observation_data, resource.observation.title)
       }
-    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    AppMessage.show(requireContext(), message, MessageKind.Info)
   }
 
   private fun observeDownloadResources() {

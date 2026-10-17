@@ -33,7 +33,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
@@ -56,6 +55,8 @@ import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.FormSectionItem
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.extensions.composeView
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.CreateEncounterScreen
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.CreateEncounterViewModel
@@ -113,7 +114,7 @@ class CreateEncountersFragment : Fragment() {
       formData?.let { maybePromptToResumeDraft(it) }
     }
     viewModel.error.observe(viewLifecycleOwner) { errorMessage ->
-      errorMessage?.let { Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show() }
+      errorMessage?.let { AppMessage.show(requireContext(), it, MessageKind.Error, long = true) }
     }
     mainActivityViewModel.setDrawerEnabled(false)
   }

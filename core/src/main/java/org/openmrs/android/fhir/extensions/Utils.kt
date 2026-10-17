@@ -28,19 +28,15 @@
 */
 package org.openmrs.android.fhir.extensions
 
-import android.app.Activity
 import android.content.Context
-import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Base64
-import android.view.View
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum
 import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
-import com.google.android.material.snackbar.Snackbar
 import com.squareup.moshi.Moshi
 import java.io.File
 import java.io.FileOutputStream
@@ -74,23 +70,6 @@ inline fun <reified T> T.toJson(): String {
 
 inline fun <reified T> String.fromJson(): T? {
   return Moshi.Builder().build().adapter(T::class.java).fromJson(this)
-}
-
-fun showSnackBar(
-  activity: Activity,
-  message: String,
-  action: String? = null,
-  actionListener: View.OnClickListener? = null,
-  duration: Int = Snackbar.LENGTH_SHORT,
-) {
-  val snackBar =
-    Snackbar.make(activity.findViewById(android.R.id.content), message, duration)
-      .setBackgroundTint(Color.GRAY)
-      .setTextColor(Color.WHITE)
-  if (action != null && actionListener != null) {
-    snackBar.setAction(action, actionListener)
-  }
-  snackBar.show()
 }
 
 fun saveToFile(context: Context, fileName: String, content: String): File? {

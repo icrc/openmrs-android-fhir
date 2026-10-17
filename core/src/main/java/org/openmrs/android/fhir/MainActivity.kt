@@ -73,7 +73,6 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.material.appbar.MaterialToolbar
-import com.google.android.material.snackbar.Snackbar
 import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -111,9 +110,10 @@ import org.openmrs.android.fhir.extensions.UncaughtExceptionHandler
 import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
 import org.openmrs.android.fhir.extensions.getApplicationLogs
 import org.openmrs.android.fhir.extensions.saveToFile
-import org.openmrs.android.fhir.extensions.showSnackBar
 import org.openmrs.android.fhir.fragments.CreateEncountersFragmentArgs
+import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MainBottomBar
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.components.TopLevelDestination
 import org.openmrs.android.fhir.ui.components.topLevelDestinationFor
 import org.openmrs.android.fhir.ui.screens.DrawerContent
@@ -350,9 +350,9 @@ class MainActivity : AppCompatActivity() {
               hideSyncTasksScreen()
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.SyncStarted -> showSyncStarted()
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.SyncCompleted ->
-              showSnackBar(this@MainActivity, getString(R.string.sync_completed))
+              AppMessage.show(this@MainActivity, R.string.sync_completed, MessageKind.Success)
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.SyncFailed ->
-              showSnackBar(this@MainActivity, getString(R.string.sync_failed))
+              AppMessage.show(this@MainActivity, R.string.sync_failed, MessageKind.Error)
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.ShowContinueSyncDialog ->
               showContinueSyncDialog(event.fetchIdentifiers)
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.ShowTokenExpiredDialog ->
@@ -649,7 +649,7 @@ class MainActivity : AppCompatActivity() {
 
   private fun sendToLocationSelection() {
     closeNavigationDrawer()
-    showSnackBar(this, getString(R.string.please_select_a_location_first))
+    AppMessage.show(this, R.string.please_select_a_location_first, MessageKind.Info)
     getNavController()?.let { navController ->
       if (navController.currentDestination?.id != R.id.locationFragment) {
         navController.navigate(
@@ -673,13 +673,14 @@ class MainActivity : AppCompatActivity() {
         viewModel.requestTokenExpiredDialog(connectivityState)
       }
       connectivityState is ServerConnectivityState.InternetOnly -> {
-        showSnackBar(
+        AppMessage.show(
           this@MainActivity,
-          getString(R.string.sync_server_unreachable_message),
+          R.string.sync_server_unreachable_message,
+          MessageKind.Error,
         )
       }
       connectivityState is ServerConnectivityState.Offline -> {
-        showSnackBar(this@MainActivity, getString(R.string.sync_device_offline_message))
+        AppMessage.show(this@MainActivity, R.string.sync_device_offline_message, MessageKind.Error)
       }
     }
   }
@@ -763,7 +764,7 @@ class MainActivity : AppCompatActivity() {
         notificationHelper.showSyncStarted()
       }
     }
-    showSnackBar(this@MainActivity, getString(R.string.sync_started))
+    AppMessage.show(this@MainActivity, R.string.sync_started, MessageKind.Info)
   }
 
   private fun showContinueSyncDialog(fetchIdentifiers: Boolean) {
@@ -855,7 +856,7 @@ class MainActivity : AppCompatActivity() {
       .setNeutralButton(getString(R.string.no_and_don_t_ask_me_again)) { dialog, _ ->
         viewModel.cancelPeriodicSyncWorker(applicationContext)
         viewModel.setStopSync(true)
-        showSnackBar(this@MainActivity, getString(R.string.sync_terminated))
+        AppMessage.show(this@MainActivity, R.string.sync_terminated, MessageKind.Info)
         viewModel.onTokenExpiredDialogDismissed()
         dialog.dismiss()
       }
@@ -986,11 +987,7 @@ class MainActivity : AppCompatActivity() {
     val pendingIntentCancel = createPendingIntent(loginIntent, 1)
     viewModel.setLoading(true)
     updateOverlayVisibility()
-    showSnackBar(
-      this@MainActivity,
-      getString(R.string.logging_out),
-      duration = Snackbar.LENGTH_LONG,
-    )
+    AppMessage.show(this@MainActivity, R.string.logging_out, MessageKind.Info, long = true)
 
     lifecycleScope
       .launch(Dispatchers.Default) { clearAppData() }

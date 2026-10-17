@@ -33,7 +33,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -57,6 +56,8 @@ import org.openmrs.android.fhir.extensions.addQuestionnaireWhenDrawn
 import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
 import org.openmrs.android.fhir.extensions.onQuestionnaireResult
 import org.openmrs.android.fhir.extensions.setFormLoading
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.viewmodel.AddPatientViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
@@ -182,12 +183,10 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
     viewModel.isPatientSaved.observe(viewLifecycleOwner) {
       viewModel.isLoading.value = false
       if (!it) {
-        Toast.makeText(requireContext(), getString(R.string.inputs_are_missing), Toast.LENGTH_SHORT)
-          .show()
+        AppMessage.show(requireContext(), getString(R.string.inputs_are_missing), MessageKind.Error)
         return@observe
       }
-      Toast.makeText(requireContext(), getString(R.string.patient_is_saved), Toast.LENGTH_SHORT)
-        .show()
+      AppMessage.show(requireContext(), getString(R.string.patient_is_saved), MessageKind.Success)
       NavHostFragment.findNavController(this).navigateUp()
     }
   }
@@ -197,12 +196,11 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
       if (it.isNotEmpty()) {
         it?.let { addQuestionnaireFragment(it) }
       } else {
-        Toast.makeText(
-            requireContext(),
-            getString(R.string.questionnaire_error_message),
-            Toast.LENGTH_SHORT,
-          )
-          .show()
+        AppMessage.show(
+          requireContext(),
+          getString(R.string.questionnaire_error_message),
+          MessageKind.Error,
+        )
         NavHostFragment.findNavController(this).navigateUp()
       }
     }

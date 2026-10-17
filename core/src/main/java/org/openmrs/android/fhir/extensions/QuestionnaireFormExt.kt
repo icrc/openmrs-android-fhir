@@ -34,7 +34,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.ProgressBar
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
@@ -43,6 +42,8 @@ import com.google.android.fhir.datacapture.R as SdcR
 import java.util.Collections
 import java.util.WeakHashMap
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 
 /**
  * Creates the data-capture form with the display options every screen shares (review page, optional
@@ -201,7 +202,12 @@ private fun View.hintIfReviewDidNotOpen() {
 }
 
 private fun View.showRequiredHint() {
-  Toast.makeText(context, R.string.questionnaire_required_answers_missing, Toast.LENGTH_LONG).show()
+  AppMessage.show(
+    context,
+    R.string.questionnaire_required_answers_missing,
+    MessageKind.Error,
+    long = true,
+  )
 }
 
 private const val BLOCKED_CHECK_DELAY_MS = 700L

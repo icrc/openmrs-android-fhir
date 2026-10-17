@@ -31,7 +31,6 @@ package org.openmrs.android.fhir.fragments
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -54,6 +53,8 @@ import org.openmrs.android.fhir.extensions.addQuestionnaireWhenDrawn
 import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
 import org.openmrs.android.fhir.extensions.onQuestionnaireResult
 import org.openmrs.android.fhir.extensions.setFormLoading
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.viewmodel.EditPatientViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
@@ -97,10 +98,10 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
     viewModel.livePatientData.observe(viewLifecycleOwner) { addQuestionnaireFragment(it) }
     viewModel.isPatientSaved.observe(viewLifecycleOwner) {
       if (!it) {
-        Toast.makeText(requireContext(), R.string.inputs_missing, Toast.LENGTH_SHORT).show()
+        AppMessage.show(requireContext(), R.string.inputs_missing, MessageKind.Error)
         return@observe
       }
-      Toast.makeText(requireContext(), R.string.message_patient_updated, Toast.LENGTH_SHORT).show()
+      AppMessage.show(requireContext(), R.string.message_patient_updated, MessageKind.Success)
       NavHostFragment.findNavController(this).navigateUp()
     }
     mainActivityViewModel.setDrawerEnabled(false)
@@ -131,8 +132,7 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
 
   private fun addQuestionnaireFragment(pair: Pair<String, String>) {
     if (pair.first.isEmpty()) {
-      Toast.makeText(requireContext(), R.string.questionnaire_error_message, Toast.LENGTH_SHORT)
-        .show()
+      AppMessage.show(requireContext(), R.string.questionnaire_error_message, MessageKind.Error)
       NavHostFragment.findNavController(this).navigateUp()
       return
     }

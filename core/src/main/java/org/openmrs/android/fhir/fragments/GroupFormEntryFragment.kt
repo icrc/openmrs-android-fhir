@@ -33,7 +33,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -64,7 +63,8 @@ import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.AppBarInsets
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
-import org.openmrs.android.fhir.extensions.showSnackBar
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
 import org.openmrs.android.fhir.viewmodel.GroupFormEntryViewModel
@@ -254,10 +254,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
 
   private fun addQuestionnaireFragment(questionnaireJson: String, patientId: String) {
     if (questionnaireJson.isEmpty()) {
-      showSnackBar(
-        requireActivity(),
-        getString(R.string.questionnaire_error_message),
-      )
+      AppMessage.show(requireActivity(), R.string.questionnaire_error_message, MessageKind.Error)
       NavHostFragment.findNavController(this@GroupFormEntryFragment).navigateUp()
       viewModel.isLoading.value = false
       return
@@ -341,7 +338,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     if (!viewModel.hasDraftData()) return
     viewModel.saveDraft(args.questionnaireId, patientIds)
     if (showToast) {
-      Toast.makeText(requireContext(), getString(R.string.draft_saved), Toast.LENGTH_SHORT).show()
+      AppMessage.show(requireContext(), getString(R.string.draft_saved), MessageKind.Success)
     }
   }
 
@@ -616,12 +613,11 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   private fun submitAllEncounters() {
     lifecycleScope.launch {
       if (!viewModel.isScreenerCompleted) {
-        Toast.makeText(
-            requireContext(),
-            getString(R.string.complete_screener_before_submit),
-            Toast.LENGTH_SHORT,
-          )
-          .show()
+        AppMessage.show(
+          requireContext(),
+          getString(R.string.complete_screener_before_submit),
+          MessageKind.Error,
+        )
         return@launch
       }
 
@@ -712,8 +708,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       val isError = it.contains("ERROR")
       if (isError) {
         viewModel.isLoading.value = false
-        Toast.makeText(requireContext(), getString(R.string.inputs_missing), Toast.LENGTH_SHORT)
-          .show()
+        AppMessage.show(requireContext(), getString(R.string.inputs_missing), MessageKind.Error)
         return@observe
       }
       val isSaved = it.contains("SAVED")
@@ -739,20 +734,18 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         pendingSavePatientId = null
         pendingSaveEncounterId = null
         val patientName = viewModel.getPatientName(patientId)
-        Toast.makeText(
-            requireContext(),
-            getString(R.string.encounter_saved_for_patient, patientName),
-            Toast.LENGTH_SHORT,
-          )
-          .show()
+        AppMessage.show(
+          requireContext(),
+          getString(R.string.encounter_saved_for_patient, patientName),
+          MessageKind.Success,
+        )
       }
     }
     editEncounterViewModel.isResourcesSaved.observe(viewLifecycleOwner) {
       val isError = it.contains("ERROR")
       if (isError) {
         viewModel.isLoading.value = false
-        Toast.makeText(requireContext(), getString(R.string.inputs_missing), Toast.LENGTH_SHORT)
-          .show()
+        AppMessage.show(requireContext(), getString(R.string.inputs_missing), MessageKind.Error)
         return@observe
       }
       val isSaved = it.contains("SAVED")
@@ -777,8 +770,11 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
         }
         pendingSavePatientId = null
         pendingSaveEncounterId = null
-        Toast.makeText(requireContext(), getString(R.string.encounter_updated), Toast.LENGTH_SHORT)
-          .show()
+        AppMessage.show(
+          requireContext(),
+          getString(R.string.encounter_updated),
+          MessageKind.Success,
+        )
       }
     }
   }

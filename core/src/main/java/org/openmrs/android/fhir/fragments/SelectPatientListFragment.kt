@@ -32,7 +32,6 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
@@ -63,6 +62,8 @@ import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.PatientListSelectionScreen
 import org.openmrs.android.fhir.ui.screens.selectionScreenContentPadding
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
@@ -241,12 +242,11 @@ class SelectPatientListFragment : Fragment() {
     if (isSelected) {
       selectPatientListViewModel.onPatientListToggle(selectPatientListItem.resourceId, true)
 
-      Toast.makeText(
-          context,
-          getString(R.string.removed_patient_list_from_sync),
-          Toast.LENGTH_SHORT,
-        )
-        .show()
+      AppMessage.show(
+        context,
+        getString(R.string.removed_patient_list_from_sync),
+        MessageKind.Success,
+      )
     } else {
       selectPatientListItem(selectPatientListItem)
     }
@@ -256,8 +256,7 @@ class SelectPatientListFragment : Fragment() {
     selectPatientListItem: SelectPatientListViewModel.SelectPatientListItem,
   ) {
     selectPatientListViewModel.onPatientListToggle(selectPatientListItem.resourceId, false)
-    Toast.makeText(context, getString(R.string.added_patient_list_to_sync), Toast.LENGTH_SHORT)
-      .show()
+    AppMessage.show(context, getString(R.string.added_patient_list_to_sync), MessageKind.Success)
   }
 
   private fun observePollState() {
@@ -275,12 +274,11 @@ class SelectPatientListFragment : Fragment() {
           }
           is CurrentSyncJobStatus.Failed -> {
             selectPatientListViewModel.getSelectPatientListItems()
-            Toast.makeText(
-                context,
-                getString(R.string.failed_to_fetch_all_patient_lists),
-                Toast.LENGTH_SHORT,
-              )
-              .show()
+            AppMessage.show(
+              context,
+              getString(R.string.failed_to_fetch_all_patient_lists),
+              MessageKind.Error,
+            )
           }
           else -> {
             selectPatientListViewModel.getSelectPatientListItems()
