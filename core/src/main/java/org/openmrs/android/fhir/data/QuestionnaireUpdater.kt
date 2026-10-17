@@ -39,14 +39,12 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Questionnaire
 import org.openmrs.android.fhir.data.remote.ApiManager
-import org.openmrs.android.fhir.extensions.bundledQuestionnaireIds
-import org.openmrs.android.fhir.extensions.useEmbeddedFormsOnly
 import timber.log.Timber
 
 /**
- * Brings questionnaires the server has published since the app was built (or last synced) onto the
- * device. Only questionnaires the app does not have yet are added; existing ones are left exactly
- * as they are.
+ * Brings what the server has published onto the device: questionnaires the device does not hold
+ * yet, and newer versions of the ones it holds. Read only towards the server; what is stored is
+ * stored like a download, so nothing is queued for upload.
  */
 class QuestionnaireUpdater
 @Inject
@@ -56,8 +54,11 @@ constructor(
   private val apiManager: ApiManager,
 ) {
   sealed interface Outcome {
-    /** [added] new questionnaires were stored; the server publishes [available] in total. */
-    data class Added(val added: Int, val available: Int) : Outcome
+    /**
+     * [added] new questionnaires and [updated] newer versions were stored; the server publishes
+     * [available] in total.
+     */
+    data class Added(val added: Int, val updated: Int, val available: Int) : Outcome
 
     data class UpToDate(val available: Int) : Outcome
 
@@ -67,17 +68,23 @@ constructor(
   suspend fun fetchMissing(): Outcome =
     withContext(Dispatchers.IO) {
       try {
-        // Only the forms shipped with the app are in use: the server's are not wanted.
-        if (applicationContext.useEmbeddedFormsOnly()) return@withContext Outcome.UpToDate(0)
         val remote = apiManager.fetchQuestionnaires()
-        val known = knownQuestionnaireIds()
-        val missing = remote.filter { it.idElement.idPart !in known }
-        if (missing.isEmpty()) {
+        val stored =
+          fhirEngine
+            .search<Questionnaire> {}
+            .associate { it.resource.idElement.idPart to it.resource }
+        val missing = remote.filter { it.idElement.idPart !in stored }
+        val newer =
+          remote.filter { candidate ->
+            stored[candidate.idElement.idPart]?.let { candidate.isNewerThan(it) } == true
+          }
+        val toStore = missing + newer
+        if (toStore.isEmpty()) {
           Outcome.UpToDate(remote.size)
         } else {
           // Stored like a download, so no local change is queued for upload: the server owns them.
-          fhirEngine.syncDownload(AcceptRemoteConflictResolver) { flowOf(missing) }
-          Outcome.Added(missing.size, remote.size)
+          fhirEngine.syncDownload(AcceptRemoteConflictResolver) { flowOf(toStore) }
+          Outcome.Added(missing.size, newer.size, remote.size)
         }
       } catch (e: CancellationException) {
         throw e
@@ -87,8 +94,14 @@ constructor(
       }
     }
 
-  /** Ids already in the system: synced into the engine, or bundled with the app. */
-  private suspend fun knownQuestionnaireIds(): Set<String> =
-    fhirEngine.search<Questionnaire> {}.map { it.resource.idElement.idPart }.toSet() +
-      applicationContext.bundledQuestionnaireIds()
+  /** Published after the copy held here: by its update time, or else by its version label. */
+  private fun Questionnaire.isNewerThan(held: Questionnaire): Boolean {
+    val mine = meta.lastUpdated
+    val theirs = held.meta.lastUpdated
+    return when {
+      mine != null && theirs != null -> mine.after(theirs)
+      mine != null -> true
+      else -> hasVersion() && version != held.version
+    }
+  }
 }

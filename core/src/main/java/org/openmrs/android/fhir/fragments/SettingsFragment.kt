@@ -171,12 +171,12 @@ class SettingsFragment : Fragment() {
           },
           topPadding = appBarHeight,
           isFetchingQuestionnaires = isFetchingQuestionnaires,
-          onFetchQuestionnairesClicked =
-            if (GuestSession.isActive(context)) {
-              null
-            } else {
-              questionnaireFetchViewModel::fetchQuestionnaires
-            },
+          fetchQuestionnairesAvailable = !GuestSession.isActive(context),
+          onFetchQuestionnairesClicked = {
+            // Asking the server for forms means the server's forms are wanted.
+            EmbeddedFormsStore.set(context, false)
+            questionnaireFetchViewModel.fetchQuestionnaires()
+          },
           themeMode = themeSelection.value,
           onThemeModeSelected = { themeSelection.value = it },
           colorVision = colorVisionSelection.value,
@@ -246,7 +246,11 @@ class SettingsFragment : Fragment() {
     val message =
       when (outcome) {
         is QuestionnaireUpdater.Outcome.Added ->
-          getString(R.string.questionnaires_added, outcome.added)
+          if (outcome.updated == 0) {
+            getString(R.string.questionnaires_added, outcome.added)
+          } else {
+            getString(R.string.questionnaires_changes, outcome.added, outcome.updated)
+          }
         is QuestionnaireUpdater.Outcome.UpToDate -> getString(R.string.questionnaires_up_to_date)
         is QuestionnaireUpdater.Outcome.Failed -> getString(R.string.questionnaires_fetch_failed)
       }

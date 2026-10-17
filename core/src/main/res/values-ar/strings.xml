@@ -627,9 +627,9 @@
     <string name="nav_group_session">المجموعة</string>
     <string name="nav_sync">المزامنة</string>
     <string name="clear_search">مسح البحث</string>
-    <string name="fetch_questionnaires">جلب المزيد من الاستبيانات</string>
+    <string name="fetch_questionnaires">التحقق من النماذج الجديدة والمحدّثة</string>
     <string name="fetching_questionnaires">جارٍ جلب الاستبيانات…</string>
-    <string name="fetch_questionnaires_description">يبحث في الخادم عن الاستبيانات غير الموجودة في التطبيق ويضيفها.</string>
+    <string name="fetch_questionnaires_description">يبحث في الخادم عن النماذج غير الموجودة في التطبيق وعن إصدارات أحدث للنماذج الموجودة.</string>
     <string name="questionnaires_up_to_date">الاستبيانات محدثة.</string>
     <string name="questionnaires_fetch_failed">تعذّر جلب الاستبيانات. تحقق من الاتصال وحاول مرة أخرى.</string>
     <string name="questionnaires_added">الاستبيانات الجديدة المضافة: %d</string>
@@ -720,4 +720,6 @@
     <string name="color_vision_color_blind">مناسب لعمى الألوان</string>
     <string name="embedded_forms_only">استخدام النماذج المضمنة فقط</string>
     <string name="embedded_forms_only_description">يستخدم التطبيق النماذج المرفقة به فقط ولا ينزّل الاستبيانات من الخادم.</string>
+    <string name="fetch_questionnaires_sign_in">سجّل الدخول للتحقق من النماذج الجديدة والمحدّثة على الخادم.</string>
+    <string name="questionnaires_changes">نماذج جديدة: %1$d، محدّثة: %2$d</string>
 </resources>

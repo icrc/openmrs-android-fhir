@@ -712,9 +712,9 @@
     <string name="nav_group_session">Группа</string>
     <string name="nav_sync">Синхр.</string>
     <string name="clear_search">Очистить поиск</string>
-    <string name="fetch_questionnaires">Загрузить другие анкеты</string>
+    <string name="fetch_questionnaires">Проверить новые и обновлённые формы</string>
     <string name="fetching_questionnaires">Загрузка анкет…</string>
-    <string name="fetch_questionnaires_description">Проверяет сервер на наличие анкет, которых ещё нет в приложении, и добавляет их.</string>
+    <string name="fetch_questionnaires_description">Проверяет сервер на наличие форм, которых ещё нет в приложении, и более новых версий имеющихся.</string>
     <string name="questionnaires_up_to_date">Анкеты актуальны.</string>
     <string name="questionnaires_fetch_failed">Не удалось загрузить анкеты. Проверьте соединение и повторите попытку.</string>
     <string name="questionnaires_added">Добавлено новых анкет: %d</string>
@@ -805,4 +805,6 @@
     <string name="color_vision_color_blind">Для дальтоников</string>
     <string name="embedded_forms_only">Только встроенные формы</string>
     <string name="embedded_forms_only_description">Приложение использует только встроенные формы и не загружает опросники с сервера.</string>
+    <string name="fetch_questionnaires_sign_in">Войдите, чтобы проверить на сервере новые и обновлённые формы.</string>
+    <string name="questionnaires_changes">Новых форм: %1$d, обновлено: %2$d</string>
 </resources>

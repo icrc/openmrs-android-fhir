@@ -147,6 +147,7 @@ fun SettingsScreen(
   isFetchingQuestionnaires: Boolean = false,
   onFetchQuestionnairesClicked: (() -> Unit)? = null,
   embeddedFormsOnly: Boolean = true,
+  fetchQuestionnairesAvailable: Boolean = true,
   onEmbeddedFormsOnlyChange: ((Boolean) -> Unit)? = null,
   themeMode: ThemeMode = ThemeMode.SYSTEM,
   onThemeModeSelected: ((ThemeMode) -> Unit)? = null,
@@ -280,20 +281,11 @@ fun SettingsScreen(
         }
       }
 
-      if (favoriteFormOptions != null && onFavoriteFormsSaved != null) {
-        SettingsSection(title = stringResource(R.string.favorite_forms)) {
-          FavoriteFormsSetting(
-            options = favoriteFormOptions,
-            selectedIds = favoriteFormIds,
-            onSaved = onFavoriteFormsSaved,
-          )
-        }
-      }
-
       val showSections =
         favoriteFormOptions != null && onFormSectionsSaved != null && onFormSectionsReset != null
       val showFetch = onFetchQuestionnairesClicked != null && !embeddedFormsOnly
-      if (onEmbeddedFormsOnlyChange != null || showSections || showFetch) {
+      val showFavorites = favoriteFormOptions != null && onFavoriteFormsSaved != null
+      if (onEmbeddedFormsOnlyChange != null || showSections || showFetch || showFavorites) {
         SettingsSection(title = stringResource(R.string.settings_section_forms)) {
           if (onEmbeddedFormsOnlyChange != null) {
             SettingsSwitchRow(
@@ -307,7 +299,14 @@ fun SettingsScreen(
           if (showFetch && onFetchQuestionnairesClicked != null) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             SettingsAction(
-              description = stringResource(R.string.fetch_questionnaires_description),
+              description =
+                stringResource(
+                  if (fetchQuestionnairesAvailable) {
+                    R.string.fetch_questionnaires_description
+                  } else {
+                    R.string.fetch_questionnaires_sign_in
+                  },
+                ),
               buttonText =
                 stringResource(
                   if (isFetchingQuestionnaires) {
@@ -318,9 +317,22 @@ fun SettingsScreen(
                 ),
               icon = Icons.Default.Refresh,
               onClick = onFetchQuestionnairesClicked,
-              enabled = !isFetchingQuestionnaires,
+              enabled = fetchQuestionnairesAvailable && !isFetchingQuestionnaires,
               inProgress = isFetchingQuestionnaires,
               testTag = SettingsTestTags.FetchQuestionnairesButton,
+            )
+          }
+          if (showFavorites && favoriteFormOptions != null && onFavoriteFormsSaved != null) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Text(
+              text = stringResource(R.string.favorite_forms),
+              style = MaterialTheme.typography.titleSmall,
+              color = MaterialTheme.colorScheme.onSurface,
+            )
+            FavoriteFormsSetting(
+              options = favoriteFormOptions,
+              selectedIds = favoriteFormIds,
+              onSaved = onFavoriteFormsSaved,
             )
           }
           if (showSections) {

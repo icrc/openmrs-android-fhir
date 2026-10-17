@@ -72,7 +72,7 @@ fun Context.useEmbeddedFormsOnly(): Boolean = EmbeddedFormsStore.get(this)
  */
 suspend fun FhirEngine.storedQuestionnaires(
   context: Context,
-  parser: IParser
+  parser: IParser,
 ): List<Questionnaire> =
   if (context.useEmbeddedFormsOnly()) {
     emptyList()

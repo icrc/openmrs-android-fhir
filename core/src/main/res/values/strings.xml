@@ -655,9 +655,9 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="nav_group_session">Group</string>
     <string name="nav_sync">Sync</string>
     <string name="clear_search">Clear search</string>
-    <string name="fetch_questionnaires">Fetch more questionnaires</string>
+    <string name="fetch_questionnaires">Check for new and updated forms</string>
     <string name="fetching_questionnaires">Fetching questionnaires…</string>
-    <string name="fetch_questionnaires_description">Check the server for questionnaires that are not in the app yet and add them.</string>
+    <string name="fetch_questionnaires_description">Check the server for forms that are not in the app yet and for newer versions of the ones it has.</string>
     <string name="questionnaires_up_to_date">Questionnaires are up to date.</string>
     <string name="questionnaires_fetch_failed">Could not fetch questionnaires. Check the connection and try again.</string>
     <string name="questionnaires_added">New questionnaires added: %d</string>
@@ -748,4 +748,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="color_vision_color_blind">Color-blind friendly</string>
     <string name="embedded_forms_only">Use embedded forms only</string>
     <string name="embedded_forms_only_description">The app uses only the forms shipped with it and does not download questionnaires from the server.</string>
+    <string name="fetch_questionnaires_sign_in">Sign in to check the server for new and updated forms.</string>
+    <string name="questionnaires_changes">New forms: %1$d, updated: %2$d</string>
 </resources>
