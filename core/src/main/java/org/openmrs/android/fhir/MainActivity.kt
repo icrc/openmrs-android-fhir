@@ -73,6 +73,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.work.WorkManager
 import com.google.android.fhir.FhirEngine
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -714,7 +715,7 @@ class MainActivity : AppCompatActivity() {
 
   /** Guest patients cannot be uploaded without an identifier; let the user pick the types. */
   private fun showIdentifierTypesRequiredDialog() {
-    AlertDialog.Builder(this)
+    MaterialAlertDialogBuilder(this)
       .setTitle(getString(R.string.identifier_types_required_title))
       .setMessage(getString(R.string.identifier_types_required_message))
       .setPositiveButton(getString(R.string.select_identifier_types)) { dialog, _ ->
@@ -728,7 +729,7 @@ class MainActivity : AppCompatActivity() {
   /** The guest has work to upload: ask them to sign in; what they entered is kept. */
   private fun promptSignInToSync() {
     closeNavigationDrawer()
-    AlertDialog.Builder(this)
+    MaterialAlertDialogBuilder(this)
       .setTitle(getString(R.string.sign_in_to_sync_title))
       .setMessage(getString(R.string.sign_in_to_sync_message))
       .setPositiveButton(getString(R.string.sign_in)) { dialog, _ ->
@@ -768,7 +769,7 @@ class MainActivity : AppCompatActivity() {
   private fun showSessionExpiredDialog() {
     if (sessionExpiredDialog?.isShowing == true) return
     sessionExpiredDialog =
-      AlertDialog.Builder(this)
+      MaterialAlertDialogBuilder(this)
         .setTitle(getString(R.string.login_expired))
         .setMessage(getString(R.string.auto_sync_session_expired_message))
         .setPositiveButton(getString(R.string.sign_in)) { dialog, _ ->
@@ -795,7 +796,7 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun showContinueSyncDialog(fetchIdentifiers: Boolean) {
-    AlertDialog.Builder(this)
+    MaterialAlertDialogBuilder(this)
       .setTitle(getString(R.string.connection_restored))
       .setMessage(getString(R.string.do_you_want_to_continue_sync))
       .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
@@ -865,7 +866,7 @@ class MainActivity : AppCompatActivity() {
       viewModel.onTokenExpiredDialogDismissed()
       return
     }
-    AlertDialog.Builder(this)
+    MaterialAlertDialogBuilder(this)
       .setTitle(getString(R.string.login_expired))
       .setMessage(getString(R.string.session_expired))
       .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
@@ -980,7 +981,7 @@ class MainActivity : AppCompatActivity() {
   private fun showLogoutWarningDialog(connectivityState: ServerConnectivityState) {
     when (connectivityState) {
       ServerConnectivityState.ServerConnected ->
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
           .setTitle(getString(R.string.logout))
           .setMessage(getString(R.string.logout_message))
           .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
@@ -991,14 +992,14 @@ class MainActivity : AppCompatActivity() {
           .setCancelable(false)
           .show()
       ServerConnectivityState.InternetOnly ->
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
           .setTitle(getString(R.string.logout))
           .setMessage(getString(R.string.logout_unavailable_internet_only_message))
           .setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }
           .setCancelable(true)
           .show()
       ServerConnectivityState.Offline ->
-        AlertDialog.Builder(this)
+        MaterialAlertDialogBuilder(this)
           .setTitle(getString(R.string.logout))
           .setMessage(getString(R.string.logout_unavailable_offline_message))
           .setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }

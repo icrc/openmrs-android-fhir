@@ -32,7 +32,6 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -48,6 +47,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import com.google.android.fhir.sync.CurrentSyncJobStatus
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -209,7 +209,7 @@ class SelectPatientListFragment : Fragment() {
     if (!hasSelection && hasLists) {
       // At least one list is required: continuing without one would otherwise download every
       // patient on the server.
-      AlertDialog.Builder(requireContext()).apply {
+      MaterialAlertDialogBuilder(requireContext()).apply {
         setTitle(getString(R.string.select_patient_list_dialog_title))
         setMessage(getString(R.string.select_at_least_one_patient_list))
         setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }

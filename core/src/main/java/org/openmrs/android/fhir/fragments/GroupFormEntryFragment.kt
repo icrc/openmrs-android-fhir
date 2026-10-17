@@ -49,6 +49,7 @@ import androidx.navigation.fragment.navArgs
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.datacapture.QuestionnaireFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.tabs.TabLayout
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -386,7 +387,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   private fun showCancelScreenerQuestionnaireAlertDialog() {
     val alertDialog: AlertDialog? =
       activity?.let {
-        val builder = AlertDialog.Builder(it)
+        val builder = MaterialAlertDialogBuilder(it)
         builder.apply {
           setMessage(getString(R.string.cancel_questionnaire_message))
           setPositiveButton(getString(android.R.string.cancel)) { _, _ -> }
@@ -429,7 +430,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   }
 
   private fun showResumeDraftDialog() {
-    AlertDialog.Builder(requireContext())
+    MaterialAlertDialogBuilder(requireContext())
       .setTitle(getString(R.string.resume_group_session))
       .setMessage(getString(R.string.resume_group_session_message))
       .setPositiveButton(getString(R.string.resume_session)) { _, _ -> restoreDraftNowIfReady() }
@@ -645,7 +646,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   ) {
     val message = getString(R.string.required_questions_missing_dialog_message)
 
-    AlertDialog.Builder(requireContext())
+    MaterialAlertDialogBuilder(requireContext())
       .setTitle(getString(R.string.incomplete_form_dialog_title))
       .setMessage(message)
       .setPositiveButton(getString(R.string.continue_without_completing)) { _, _ -> onContinue() }
@@ -748,7 +749,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   private fun showIncompletePatientsDialog(patients: List<PatientListViewModel.PatientItem>) {
     val patientNames = patients.map { it.name }.toTypedArray()
 
-    AlertDialog.Builder(requireContext())
+    MaterialAlertDialogBuilder(requireContext())
       .setTitle(getString(R.string.incomplete_patients_dialog_title))
       .setMessage(getString(R.string.incomplete_patients_dialog_message))
       .setItems(patientNames) { dialog, which ->
@@ -857,7 +858,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       activeSubmissionSessionId = null
       val alertDialog: AlertDialog? =
         activity?.let {
-          val builder = AlertDialog.Builder(it)
+          val builder = MaterialAlertDialogBuilder(it)
           builder.apply {
             setMessage(getString(R.string.all_encounters_saved_do_you_want_to_exit))
             setPositiveButton(getString(android.R.string.yes)) { _, _ ->

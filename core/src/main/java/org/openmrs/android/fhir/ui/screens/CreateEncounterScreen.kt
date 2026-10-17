@@ -340,7 +340,7 @@ private fun PendingSessionLine(pending: GroupSessionDraftSummary) {
     pluralStringResource(
       R.plurals.pending_session_patients,
       pending.patientCount,
-      pending.patientCount
+      pending.patientCount,
     )
   val ago =
     DateUtils.getRelativeTimeSpanString(

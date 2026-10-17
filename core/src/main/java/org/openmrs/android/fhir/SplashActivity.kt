@@ -49,6 +49,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.util.concurrent.Executor
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -316,7 +317,7 @@ class SplashActivity : AppCompatActivity() {
   }
 
   private fun showNoInternetDialog() {
-    AlertDialog.Builder(this)
+    MaterialAlertDialogBuilder(this)
       .setTitle(getString(R.string.no_internet_connection))
       .setMessage(
         getString(R.string.please_connect_to_the_internet_to_continue_with_authentication),
@@ -331,7 +332,7 @@ class SplashActivity : AppCompatActivity() {
   }
 
   private fun showServerUnavailableDialog() {
-    AlertDialog.Builder(this)
+    MaterialAlertDialogBuilder(this)
       .setTitle(getString(R.string.server_unreachable_title))
       .setMessage(getString(R.string.server_unreachable_dialog_message))
       .setPositiveButton(getString(R.string.retry)) { _, _ ->
@@ -344,7 +345,7 @@ class SplashActivity : AppCompatActivity() {
   }
 
   private fun loginWithInternetOrExit() {
-    AlertDialog.Builder(this)
+    MaterialAlertDialogBuilder(this)
       .setTitle(getString(R.string.offline_login_unavailable))
       .setMessage(
         getString(R.string.try_logging_in_with_active_internet_connection),

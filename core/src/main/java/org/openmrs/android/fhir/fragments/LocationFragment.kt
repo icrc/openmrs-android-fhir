@@ -32,7 +32,6 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -54,6 +53,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.SyncJobStatus
 import com.google.android.fhir.sync.SyncOperation
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -188,7 +188,7 @@ class LocationFragment : Fragment() {
       locationViewModel.uiState.value.selectedLocationId.isNullOrBlank() &&
         !locationViewModel.locations.value.isNullOrEmpty()
     ) {
-      AlertDialog.Builder(requireContext()).apply {
+      MaterialAlertDialogBuilder(requireContext()).apply {
         setTitle(getString(R.string.select_location))
         setMessage(getString(R.string.no_location_is_selected_do_you_want_to_select_one))
         setPositiveButton(getString(R.string.yes)) { dialog, _ -> dialog.dismiss() }

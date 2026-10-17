@@ -28,7 +28,6 @@
 */
 package org.openmrs.android.fhir.fragments
 
-import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
@@ -52,6 +51,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.FhirEngine
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -160,7 +160,7 @@ class PatientDetailsFragment : Fragment() {
   }
 
   fun showEndVisitDialog(context: Context, visitId: String, onEndVisitConfirmed: (String) -> Unit) {
-    val builder = AlertDialog.Builder(context)
+    val builder = MaterialAlertDialogBuilder(context)
     builder.setMessage(getString(R.string.end_visit_confirmation_message))
 
     builder.setPositiveButton(getString(R.string.yes)) { dialog, _ ->

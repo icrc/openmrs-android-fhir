@@ -43,6 +43,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.datacapture.QuestionnaireFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -142,7 +143,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
   private fun showCancelScreenerQuestionnaireAlertDialog() {
     val alertDialog: AlertDialog? =
       activity?.let {
-        val builder = AlertDialog.Builder(it)
+        val builder = MaterialAlertDialogBuilder(it)
         builder.apply {
           setMessage(getString(R.string.cancel_questionnaire_message))
           setPositiveButton(getString(android.R.string.yes)) { _, _ ->

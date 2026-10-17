@@ -32,8 +32,8 @@ import android.app.Activity
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.MainThread
-import androidx.appcompat.app.AlertDialog
 import androidx.biometric.BiometricManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.openmrs.android.fhir.R
 
 object AuthDialogs {
@@ -114,7 +114,7 @@ object AuthDialogs {
       return
     }
 
-    AlertDialog.Builder(activity)
+    MaterialAlertDialogBuilder(activity)
       .setTitle(title)
       .setMessage(message)
       .setPositiveButton(positiveText) { _, _ ->

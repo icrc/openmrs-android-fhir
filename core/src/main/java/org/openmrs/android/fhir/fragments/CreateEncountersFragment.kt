@@ -33,7 +33,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -45,6 +44,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 import kotlin.getValue
 import kotlinx.coroutines.launch
@@ -214,7 +214,7 @@ class CreateEncountersFragment : Fragment() {
     showCancel: Boolean = false,
   ) {
     val dialog =
-      AlertDialog.Builder(requireContext())
+      MaterialAlertDialogBuilder(requireContext())
         .setTitle(getString(R.string.resume_group_session))
         .setMessage(
           getString(

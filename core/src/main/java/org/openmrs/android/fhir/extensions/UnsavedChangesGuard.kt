@@ -29,8 +29,8 @@
 package org.openmrs.android.fhir.extensions
 
 import androidx.activity.addCallback
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.ui.components.TapObservingConstraintLayout
 
@@ -64,7 +64,7 @@ class UnsavedChangesGuard(private val fragment: Fragment) {
       onLeave()
       return
     }
-    AlertDialog.Builder(fragment.requireContext())
+    MaterialAlertDialogBuilder(fragment.requireContext())
       .setTitle(R.string.discard_changes_title)
       .setMessage(R.string.discard_changes_message)
       .setPositiveButton(R.string.discard_changes_confirm) { _, _ -> onLeave() }

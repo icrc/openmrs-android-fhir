@@ -33,7 +33,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -244,7 +244,7 @@ class SettingsFragment : Fragment() {
   }
 
   private fun confirmResetOfflineLogin() {
-    AlertDialog.Builder(requireContext())
+    MaterialAlertDialogBuilder(requireContext())
       .setTitle(R.string.reset_offline_login_confirm_title)
       .setMessage(R.string.reset_offline_login_confirm_message)
       .setPositiveButton(R.string.reset_offline_login) { _, _ ->
