@@ -86,6 +86,7 @@ class HomeFragment : Fragment() {
           onCustomPatientListClicked = homeViewModel::onCustomPatientListClicked,
           onGroupEncounterClicked = homeViewModel::onGroupEncounterClicked,
           onSyncInfoClicked = homeViewModel::onSyncInfoClicked,
+          onImportExportClicked = homeViewModel::onImportExportClicked,
         )
       }
     }
@@ -143,6 +144,9 @@ class HomeFragment : Fragment() {
           )
       HomeEvent.NavigateToSyncInfo ->
         findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSyncInfoFragment())
+      HomeEvent.NavigateToImportExport ->
+        findNavController()
+          .navigate(HomeFragmentDirections.actionHomeFragmentToImportExportFragment())
       is HomeEvent.ShowMessage ->
         AppMessage.show(
           requireContext(),

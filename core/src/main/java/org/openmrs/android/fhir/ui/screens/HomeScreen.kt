@@ -74,6 +74,7 @@ object HomeTestTags {
   const val CustomPatientListCard = "HomeCustomPatientListCard"
   const val GroupEncounterCard = "HomeGroupEncounterCard"
   const val SyncInfoCard = "HomeSyncInfoCard"
+  const val ImportExportCard = "HomeImportExportCard"
 }
 
 private enum class HomeCardType {
@@ -82,6 +83,7 @@ private enum class HomeCardType {
   CustomPatientList,
   GroupEncounter,
   SyncInfo,
+  ImportExport,
 }
 
 private data class HomeCardConfig(
@@ -146,6 +148,13 @@ private val HomeRows: List<HomeRow> =
       R.drawable.ic_baseline_sync_24,
       HomeTestTags.SyncInfoCard,
     ),
+    homeCard(
+      HomeCardType.ImportExport,
+      R.string.title_import_export,
+      R.string.subtitle_import_export,
+      R.drawable.ic_import_export,
+      HomeTestTags.ImportExportCard,
+    ),
   )
 
 @Composable
@@ -157,6 +166,7 @@ fun HomeScreen(
   onSyncInfoClicked: () -> Unit,
   locationName: String = "",
   lastSyncText: String = "",
+  onImportExportClicked: () -> Unit = {},
 ) {
   val contentPadding = rememberActionBarContentPadding(extraTop = 8.dp)
   val rows = HomeRows
@@ -183,6 +193,7 @@ fun HomeScreen(
                 HomeCardType.CustomPatientList -> onCustomPatientListClicked
                 HomeCardType.GroupEncounter -> onGroupEncounterClicked
                 HomeCardType.SyncInfo -> onSyncInfoClicked
+                HomeCardType.ImportExport -> onImportExportClicked
               },
           )
       }

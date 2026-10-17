@@ -38,6 +38,10 @@
             app:destination="@id/syncInfoFragment"
         />
     <action
+            android:id="@+id/action_home_fragment_to_importExportFragment"
+            app:destination="@id/importExportFragment"
+        />
+    <action
             android:id="@+id/action_home_fragment_to_createEncounterFragment"
             app:destination="@id/createEncounterFragment"
         />
@@ -201,6 +205,16 @@
         android:id="@+id/syncInfoFragment"
         android:label="@string/sync_info"
         android:name="org.openmrs.android.fhir.fragments.SyncInfoFragment"
+    >
+    <action
+            android:id="@+id/action_syncInfoFragment_to_importExportFragment"
+            app:destination="@id/importExportFragment"
+        />
+  </fragment>
+  <fragment
+        android:id="@+id/importExportFragment"
+        android:label="@string/title_import_export"
+        android:name="org.openmrs.android.fhir.fragments.ImportExportFragment"
     />
 
   <fragment

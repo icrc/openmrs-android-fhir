@@ -51,6 +51,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -77,6 +78,7 @@ object SyncScreenTestTags {
   const val SyncNowButton = "SyncNowButton"
   const val PendingTab = "SyncPendingTab"
   const val HistoryTab = "SyncHistoryTab"
+  const val ImportExportButton = "SyncImportExportButton"
 }
 
 /**
@@ -101,6 +103,7 @@ fun SyncScreen(
   onDeleteSession: (SyncSession) -> Unit,
   onClearHistory: () -> Unit,
   modifier: Modifier = Modifier,
+  onImportExport: () -> Unit = {},
 ) {
   val topInset = rememberAppBarHeight()
   val pendingCount = pendingResources.count { it is UnsyncedResource.PatientItem }
@@ -119,6 +122,7 @@ fun SyncScreen(
       pendingCount = pendingCount,
       lastSyncText = lastSyncText,
       onSyncNow = onSyncNow,
+      onImportExport = onImportExport,
       modifier = Modifier.padding(horizontal = 16.dp),
     )
     Spacer(modifier = Modifier.height(8.dp))
@@ -184,6 +188,7 @@ private fun SyncStatusCard(
   pendingCount: Int,
   lastSyncText: String,
   onSyncNow: () -> Unit,
+  onImportExport: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val (accent, title) =
@@ -290,6 +295,15 @@ private fun SyncStatusCard(
         Spacer(modifier = Modifier.width(8.dp))
         Text(
           text = stringResource(id = R.string.sync_now),
+          style = MaterialTheme.typography.labelLarge,
+        )
+      }
+      TextButton(
+        onClick = onImportExport,
+        modifier = Modifier.fillMaxWidth().testTag(SyncScreenTestTags.ImportExportButton),
+      ) {
+        Text(
+          text = stringResource(id = R.string.sync_cannot_sync_link),
           style = MaterialTheme.typography.labelLarge,
         )
       }

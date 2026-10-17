@@ -113,6 +113,10 @@ class SyncInfoFragment : Fragment() {
           },
           onDeleteSession = syncInfoViewModel::deleteSyncSession,
           onClearHistory = syncInfoViewModel::clearAllSyncSessions,
+          onImportExport = {
+            NavHostFragment.findNavController(this@SyncInfoFragment)
+              .navigate(R.id.action_syncInfoFragment_to_importExportFragment)
+          },
         )
       }
     }

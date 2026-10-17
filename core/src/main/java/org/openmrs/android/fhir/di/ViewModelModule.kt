@@ -37,6 +37,7 @@ import org.openmrs.android.fhir.viewmodel.CreateEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.FavoriteFormsViewModel
 import org.openmrs.android.fhir.viewmodel.HomeViewModel
 import org.openmrs.android.fhir.viewmodel.IdentifierSelectionViewModel
+import org.openmrs.android.fhir.viewmodel.ImportExportViewModel
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 import org.openmrs.android.fhir.viewmodel.LoginActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
@@ -92,6 +93,11 @@ abstract class ViewModelModule {
   @IntoMap
   @ViewModelKey(UnsyncedResourcesViewModel::class)
   abstract fun bindUnsyncedResourcesViewModel(viewmodel: UnsyncedResourcesViewModel): ViewModel
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(ImportExportViewModel::class)
+  abstract fun bindImportExportViewModel(viewmodel: ImportExportViewModel): ViewModel
 
   @Binds
   @IntoMap
