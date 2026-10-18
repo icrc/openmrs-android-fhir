@@ -118,7 +118,7 @@
         name="patient_unsynced_info"
     >Информация о пациенте будет синхронизирована\nпри подключении к интернету</string>
 
-    <string name="header_visits">Заголовок посещения</string>
+    <string name="header_visits">Визиты</string>
 
     <string name="online">Онлайн</string>
     <string
@@ -723,6 +723,21 @@
     <string name="settings_live_keep_patients">Сохранять пациентов с сервера на этом устройстве</string>
     <string name="settings_live_keep_patients_description">Включено: пациент, открытый с сервера, остаётся на этом устройстве и доступен без связи. Выключено: пациент удаляется с устройства, когда вы его закрываете; то, что ещё не отправлено, сохраняется до отправки.</string>
     <string name="settings_section_forms">Формы</string>
+    <string name="settings_section_visits">Визиты</string>
+    <string name="settings_automatic_visits">Создавать визиты автоматически</string>
+    <string name="settings_automatic_visits_description">Включено: для каждой сохранённой встречи визит создаётся автоматически. Выключено: вы сами открываете визит, записываете в него встречи и завершаете его, как в OpenMRS; встречи пациента показываются сгруппированными по визитам.</string>
+    <string name="header_encounters_without_visit">Встречи без визита</string>
+    <string name="start_visit">Новый визит</string>
+    <string name="visit_status_active">Активен</string>
+    <string name="visit_status_closed">Завершён</string>
+    <string name="visit_started_at">Начат %1$s</string>
+    <string name="reopen_visit">Открыть снова</string>
+    <string name="reopen_visit_blocked">Другой визит уже открыт. Сначала завершите его.</string>
+    <string name="no_open_visit_title">Нет открытого визита</string>
+    <string name="no_open_visit_message">Откройте визит, чтобы записать встречу для этого пациента.</string>
+    <string name="open_visit_action">Открыть визит</string>
+    <string name="encounter_outside_visit">Дата встречи вне открытого визита. Измените дату или завершите визит и откройте новый.</string>
+    <string name="no_open_visit_error">У этого пациента нет открытого визита. Сначала откройте его.</string>
     <string name="settings_initial_sync_description">Запустить полную синхронизацию с сервером сейчас.</string>
     <string name="settings_section_appearance">Оформление</string>
     <string name="theme_system">Как в системе</string>

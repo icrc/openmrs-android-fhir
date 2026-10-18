@@ -56,7 +56,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.launch
-import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.config.AppConfig
@@ -107,6 +106,8 @@ class PatientDetailsFragment : Fragment() {
         onViewEncounter = ::onViewEncounterClick,
         onEditEncounter = ::onEditEncounterClick,
         onEndVisit = ::onEditVisitClick,
+        onStartVisit = ::onStartVisitClick,
+        onReopenVisit = ::onReopenVisitClick,
         onCreateEncounter = ::onCreateEncounterClick,
       )
     }
@@ -138,15 +139,39 @@ class PatientDetailsFragment : Fragment() {
 
   private fun onCreateEncounterClick() {
     lifecycleScope.launch {
-      val hasActiveVisit = patientDetailsViewModel.hasActiveVisit()
-      if (Constants.WRAP_ENCOUNTER) {
+      // With the visits managed by the user, an encounter needs an open one.
+      if (patientDetailsViewModel.automaticVisits() || patientDetailsViewModel.hasActiveVisit()) {
         navigateToCreateEncounter()
       } else {
-        if (hasActiveVisit) {
-          navigateToCreateEncounter()
-        } else {
-          showStartVisitDateTimeDialog()
-        }
+        showNoOpenVisitDialog()
+      }
+    }
+  }
+
+  private fun showNoOpenVisitDialog() {
+    MaterialAlertDialogBuilder(requireContext())
+      .setTitle(getString(R.string.no_open_visit_title))
+      .setMessage(getString(R.string.no_open_visit_message))
+      .setPositiveButton(getString(R.string.open_visit_action)) { _, _ ->
+        showStartVisitDateTimeDialog { navigateToCreateEncounter() }
+      }
+      .setNegativeButton(getString(R.string.cancel), null)
+      .show()
+  }
+
+  private fun onStartVisitClick() {
+    showStartVisitDateTimeDialog {}
+  }
+
+  private fun onReopenVisitClick(visitId: String) {
+    lifecycleScope.launch {
+      if (!patientDetailsViewModel.reopenVisit(visitId)) {
+        AppMessage.show(
+          requireContext(),
+          getString(R.string.reopen_visit_blocked),
+          MessageKind.Error,
+          long = true,
+        )
       }
     }
   }
@@ -176,7 +201,8 @@ class PatientDetailsFragment : Fragment() {
     dialog.show()
   }
 
-  private fun showStartVisitDateTimeDialog() {
+  /** Asks when the visit started, opens it, then calls [onStarted]. */
+  private fun showStartVisitDateTimeDialog(onStarted: () -> Unit) {
     val calendar = Calendar.getInstance()
 
     DatePickerDialog(
@@ -199,8 +225,10 @@ class PatientDetailsFragment : Fragment() {
                     MessageKind.Error,
                   )
                 } else {
-                  patientDetailsViewModel.createVisit(selectedDateTime)
-                  navigateToCreateEncounter()
+                  lifecycleScope.launch {
+                    patientDetailsViewModel.startVisit(selectedDateTime)
+                    onStarted()
+                  }
                 }
               },
               calendar[Calendar.HOUR_OF_DAY],
@@ -250,10 +278,7 @@ class PatientDetailsFragment : Fragment() {
   private fun onEditVisitClick(visitId: String) {
     context?.let { ctx ->
       showEndVisitDialog(ctx, visitId) { id ->
-        lifecycleScope.launch {
-          openMRSHelper.endVisit(id)
-          patientDetailsViewModel.getPatientDetailData()
-        }
+        lifecycleScope.launch { patientDetailsViewModel.endVisit(id) }
       }
     }
   }

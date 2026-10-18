@@ -71,6 +71,7 @@ import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.RiskAssessment
+import org.openmrs.android.fhir.Constants.VISIT_TYPE_CODE_SYSTEM
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.FormCatalog
@@ -439,7 +440,9 @@ constructor(
         .map { it.resource }
         .filter {
           it.status != Encounter.EncounterStatus.CANCELLED &&
-            it.status != Encounter.EncounterStatus.ENTEREDINERROR
+            it.status != Encounter.EncounterStatus.ENTEREDINERROR &&
+            // A visit is the container of the encounters, not one of them.
+            it.type.none { type -> type.coding.any { c -> c.system == VISIT_TYPE_CODE_SYSTEM } }
         }
         .forEach { encounter ->
           val patientId = encounter.subject?.reference?.substringAfter("Patient/") ?: return@forEach

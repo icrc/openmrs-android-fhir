@@ -174,7 +174,13 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
       viewModel.isLoading.value = false
       val isSaved = it.contains("SAVED")
       if (!isSaved) {
-        AppMessage.show(requireContext(), getString(R.string.inputs_missing), MessageKind.Error)
+        val message =
+          when {
+            it.startsWith("NO_VISIT") -> R.string.no_open_visit_error
+            it.startsWith("VISIT_DATE") -> R.string.encounter_outside_visit
+            else -> R.string.inputs_missing
+          }
+        AppMessage.show(requireContext(), getString(message), MessageKind.Error, long = true)
         return@observe
       }
       AppMessage.show(requireContext(), getString(R.string.resources_saved), MessageKind.Success)

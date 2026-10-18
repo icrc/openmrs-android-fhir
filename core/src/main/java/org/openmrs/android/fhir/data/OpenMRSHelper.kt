@@ -63,6 +63,7 @@ import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_TYPE_URL
 import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_URL
 import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_VALUE_URL
 import org.openmrs.android.fhir.Constants.PERSON_ATTRIBUTE_LINK_ID_PREFIX
+import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.sync.LiveSync
 import timber.log.Timber
@@ -91,10 +92,24 @@ constructor(
     return Reference("Location/$selectedLocationId") // Reference to the location
   }
 
+  /**
+   * Whether a visit is created for every encounter that is saved (the default) or the user opens
+   * and ends the visits (Settings > Visits).
+   */
+  suspend fun automaticVisits(): Boolean =
+    try {
+      DemoDataStore(context).getAutomaticVisitsFlow().first()
+    } catch (e: Exception) {
+      true
+    }
+
   // Visit related functions
   suspend fun getVisits(
     patientId: String,
-  ): Map<Encounter, List<Encounter>> {
+  ): Map<Encounter, List<Encounter>> = getVisitsAndOthers(patientId).visits
+
+  /** The patient's visits, each with its encounters, and the encounters that are in no visit. */
+  suspend fun getVisitsAndOthers(patientId: String): PatientVisits {
     val visits = linkedMapOf<Encounter, List<Encounter>>()
 
     val allEncounters = LinkedList<Encounter>()
@@ -127,7 +142,15 @@ constructor(
           }
     }
 
-    return visits
+    val visitIds = visitEncounters.map { "Encounter/" + it.idPart }.toSet()
+    val withoutVisit =
+      allEncounters
+        .filter { it !in visitEncounters && it.partOf?.reference !in visitIds }
+        .sortedByDescending { encounter ->
+          encounter.period?.start ?: encounter.period?.end ?: Date(0)
+        }
+
+    return PatientVisits(visits, withoutVisit)
   }
 
   suspend fun getActiveVisit(
@@ -196,15 +219,36 @@ constructor(
 
   suspend fun endVisit(visitId: String): Encounter {
     val encounter: Encounter = fhirEngine.get(visitId)
-    val currentDate = Date()
+    val now = Date()
+    // Never before it started (a visit opened at a time the clock has not reached yet).
+    val end = encounter.period?.start?.takeIf { now.before(it) } ?: now
     if (encounter.hasPeriod()) {
-      encounter.period.end = Date()
+      encounter.period.end = end
     } else {
-      encounter.period = Period().apply { end = currentDate }
+      encounter.period = Period().apply { this.end = end }
     }
+    encounter.status = Encounter.EncounterStatus.FINISHED
     fhirEngine.update(encounter)
     LiveSync.requestUpload(context)
     return encounter
+  }
+
+  /**
+   * Opens an ended visit again. Only one visit is open at a time, so this does nothing (and says
+   * so) while another one is.
+   *
+   * @return whether the visit was reopened.
+   */
+  suspend fun reopenVisit(visitId: String): Boolean {
+    val encounter: Encounter = fhirEngine.get(visitId)
+    val patientId = encounter.subject?.reference?.substringAfter("Patient/").orEmpty()
+    val openVisit = getActiveVisit(patientId, false)
+    if (openVisit != null && openVisit.idPart != visitId) return false
+    encounter.period?.end = null
+    encounter.status = Encounter.EncounterStatus.INPROGRESS
+    fhirEngine.update(encounter)
+    LiveSync.requestUpload(context)
+    return true
   }
 
   /**
@@ -414,3 +458,15 @@ constructor(
     }
   }
 }
+
+/** A patient's visits, each with its encounters, and the encounters that belong to no visit. */
+data class PatientVisits(
+  val visits: Map<Encounter, List<Encounter>>,
+  val withoutVisit: List<Encounter>,
+)
+
+/** A visit that has started and not ended. */
+fun Encounter.isOpenVisit(): Boolean =
+  type.any { type -> type.coding.any { it.system == Constants.VISIT_TYPE_CODE_SYSTEM } } &&
+    period?.start != null &&
+    period?.end == null

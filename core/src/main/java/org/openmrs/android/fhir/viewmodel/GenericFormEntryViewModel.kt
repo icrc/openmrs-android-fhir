@@ -42,6 +42,7 @@ import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import java.time.ZoneId
 import java.util.Date
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -199,6 +200,7 @@ constructor(
     patientId: String,
     encounterId: String,
     sessionDate: Date? = null,
+    isGroupSession: Boolean = false,
   ) {
     viewModelScope.launch {
       val questionnaireId = state.get<String>("questionnaire_id")
@@ -236,13 +238,35 @@ constructor(
       val encounterDate =
         sessionDate ?: extractSessionDateFromQuestionnaireResponse(questionnaireResponse)
 
+      // The visit the encounter belongs to: one made for it (the default), or the one the user
+      // opened (Settings > Visits).
+      var date = encounterDate
       val visit: Encounter
-      visit =
-        if (Constants.WRAP_ENCOUNTER) {
-          createWrapperVisit(patientId, encounterDate)
-        } else {
-          openMRSHelper.getActiveVisit(patientId, true)!!
+      if (openMRSHelper.automaticVisits()) {
+        visit = createWrapperVisit(patientId, encounterDate)
+      } else {
+        val openVisit = openMRSHelper.getActiveVisit(patientId, false)
+        val dateInVisit = openVisit?.let { fitInVisit(encounterDate, it) }
+        when {
+          openVisit != null && dateInVisit != null -> {
+            visit = openVisit
+            date = dateInVisit
+          }
+          // A group session does not ask each patient for a visit: one is made for it.
+          isGroupSession -> visit = createWrapperVisit(patientId, encounterDate)
+          else -> {
+            AuditLog.failure(
+              AuditAction.ENCOUNTER_CREATED,
+              "patient" to patientId,
+              "form" to questionnaireId,
+              "reason" to if (openVisit == null) "no_open_visit" else "date_outside_visit",
+            )
+            isResourcesSaved.value =
+              (if (openVisit == null) "NO_VISIT/" else "VISIT_DATE/") + patientId
+            return@launch
+          }
         }
+      }
 
       saveResources(
         bundle,
@@ -251,7 +275,7 @@ constructor(
         questionnaireResponse,
         encounterId,
         visit.idPart,
-        encounterDate,
+        date,
       )
       AuditLog.record(
         AuditAction.ENCOUNTER_CREATED,
@@ -263,6 +287,29 @@ constructor(
       LiveSync.requestUpload(applicationContext)
       isResourcesSaved.value = "SAVED/$patientId"
     }
+  }
+
+  /**
+   * [date] as the encounter's date inside [visit]: a date before the visit started or after it
+   * ended on the same day moves to that moment (the form only asks for a day, the visit has a
+   * time); on another day, null.
+   */
+  private fun fitInVisit(date: Date, visit: Encounter): Date? {
+    fun sameDay(a: Date, b: Date) =
+      a.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() ==
+        b.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+    var fitted = date
+    val start = visit.period?.start
+    val end = visit.period?.end
+    if (start != null && fitted.before(start)) {
+      if (!sameDay(fitted, start)) return null
+      fitted = start
+    }
+    if (end != null && fitted.after(end)) {
+      if (!sameDay(fitted, end)) return null
+      fitted = end
+    }
+    return fitted
   }
 
   private suspend fun saveResources(

@@ -122,6 +122,7 @@ object SettingsTestTags {
   const val AutoSyncSwitch = "SettingsAutoSyncSwitch"
   const val LiveModeSwitch = "SettingsLiveModeSwitch"
   const val KeepLivePatientsSwitch = "SettingsKeepLivePatientsSwitch"
+  const val AutomaticVisitsSwitch = "SettingsAutomaticVisitsSwitch"
   const val FavoriteFormsButton = "SettingsFavoriteFormsButton"
   const val IdentifierTypesButton = "SettingsIdentifierTypesButton"
   const val FormSectionsButton = "SettingsFormSectionsButton"
@@ -181,6 +182,7 @@ fun SettingsScreen(
   onAutoSyncToggle: (Boolean) -> Unit = {},
   onLiveModeToggle: (Boolean) -> Unit = {},
   onKeepLivePatientsToggle: (Boolean) -> Unit = {},
+  onAutomaticVisitsToggle: (Boolean) -> Unit = {},
   favoriteFormOptions: List<FormItem>? = null,
   favoriteFormIds: List<String> = emptyList(),
   onFavoriteFormsSaved: ((List<String>) -> Unit)? = null,
@@ -291,6 +293,16 @@ fun SettingsScreen(
           onCheckedChange = onKeepLivePatientsToggle,
           testTag = SettingsTestTags.KeepLivePatientsSwitch,
           enabled = uiState.isLiveModeEnabled,
+        )
+      }
+
+      SettingsSection(title = stringResource(R.string.settings_section_visits)) {
+        SettingsSwitchRow(
+          label = stringResource(R.string.settings_automatic_visits),
+          description = stringResource(R.string.settings_automatic_visits_description),
+          checked = uiState.automaticVisits,
+          onCheckedChange = onAutomaticVisitsToggle,
+          testTag = SettingsTestTags.AutomaticVisitsSwitch,
         )
       }
 

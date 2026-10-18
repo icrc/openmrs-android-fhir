@@ -163,6 +163,7 @@ class SettingsFragment : Fragment() {
           onAutoSyncToggle = settingsViewModel::onAutoSyncToggle,
           onLiveModeToggle = settingsViewModel::onLiveModeToggle,
           onKeepLivePatientsToggle = settingsViewModel::onKeepLivePatientsToggle,
+          onAutomaticVisitsToggle = settingsViewModel::onAutomaticVisitsToggle,
           selectedLanguage = AppLanguage.current(context),
           onLanguageSelected = { AppLanguage.apply(context, it) },
           onInitialSyncClicked = {

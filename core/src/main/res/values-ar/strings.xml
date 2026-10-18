@@ -98,7 +98,7 @@
     <string
         name="patient_unsynced_info"
     >ستتم مزامنة معلومات المريض مع \n Pearl في المرة القادمة التي تكون فيها على الإنترنت</string>
-    <string name="header_visits">زيارة الرأس</string>
+    <string name="header_visits">الزيارات</string>
     <string name="online">متصل</string>
     <string name="offline">دون اتصال</string>
     <string name="yes">نعم</string>
@@ -646,6 +646,21 @@
     <string name="settings_live_keep_patients">الاحتفاظ بالمرضى القادمين من الخادم على هذا الجهاز</string>
     <string name="settings_live_keep_patients_description">مفعّل: يبقى المريض الذي تفتحه من الخادم على هذا الجهاز ويمكن استخدامه دون اتصال. معطّل: تتم إزالة المريض من الجهاز عند مغادرته؛ ويُحتفظ بما لم يُرسل بعد حتى يُرسل.</string>
     <string name="settings_section_forms">النماذج</string>
+    <string name="settings_section_visits">الزيارات</string>
+    <string name="settings_automatic_visits">إنشاء الزيارات تلقائياً</string>
+    <string name="settings_automatic_visits_description">مفعّل: يحصل كل لقاء تحفظه على زيارة خاصة به تُنشأ لك. معطّل: تفتح أنت زيارة وتسجّل لقاءاتها وتنهيها بنفسك كما في OpenMRS، وتُعرض لقاءات المريض مجمّعة حسب الزيارة.</string>
+    <string name="header_encounters_without_visit">لقاءات بلا زيارة</string>
+    <string name="start_visit">زيارة جديدة</string>
+    <string name="visit_status_active">نشطة</string>
+    <string name="visit_status_closed">منتهية</string>
+    <string name="visit_started_at">بدأت في %1$s</string>
+    <string name="reopen_visit">إعادة فتح</string>
+    <string name="reopen_visit_blocked">توجد زيارة أخرى مفتوحة. أنهِها أولاً.</string>
+    <string name="no_open_visit_title">لا توجد زيارة مفتوحة</string>
+    <string name="no_open_visit_message">افتح زيارة لتسجيل لقاء لهذا المريض.</string>
+    <string name="open_visit_action">فتح زيارة</string>
+    <string name="encounter_outside_visit">تاريخ اللقاء خارج الزيارة المفتوحة. غيّر التاريخ أو أنهِ الزيارة وافتح زيارة جديدة.</string>
+    <string name="no_open_visit_error">ليس لدى هذا المريض زيارة مفتوحة. افتح واحدة أولاً.</string>
     <string name="settings_initial_sync_description">تشغيل مزامنة كاملة مع الخادم الآن.</string>
     <string name="settings_section_appearance">المظهر</string>
     <string name="theme_system">افتراضي النظام</string>

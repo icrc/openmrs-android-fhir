@@ -91,6 +91,8 @@ fun PatientDetailsScreen(
   onEndVisit: (visitId: String) -> Unit,
   onCreateEncounter: () -> Unit,
   modifier: Modifier = Modifier,
+  onStartVisit: () -> Unit = {},
+  onReopenVisit: (visitId: String) -> Unit = {},
 ) {
   val topInset = rememberAppBarHeight()
   val encounterCount =
@@ -122,21 +124,38 @@ fun PatientDetailsScreen(
               )
             is PatientUnsynced -> PatientUnsyncedCard()
             is PatientDetailHeader ->
-              PatientDetailsHeaderRow(title = item.header, count = encounterCount)
+              PatientDetailsHeaderRow(
+                title = item.header,
+                count = item.count ?: encounterCount,
+                actionText = if (item.startVisit) stringResource(R.string.start_visit) else null,
+                onActionClick = onStartVisit,
+              )
             is PatientDetailVisit ->
               VisitListItemRow(
                 encounterType = item.visit.code,
-                encounterDate = item.visit.getPeriods(),
-                // Only an open visit can be ended.
-                onDateClick =
+                encounterDate =
                   if (item.visit.endDate.isBlank()) {
-                    { onEndVisit(item.visit.id) }
+                    stringResource(R.string.visit_started_at, item.visit.startDate)
                   } else {
-                    null
+                    item.visit.getPeriods()
                   },
+                statusText =
+                  stringResource(
+                    if (item.isActive) {
+                      R.string.visit_status_active
+                    } else {
+                      R.string.visit_status_closed
+                    },
+                  ),
+                isActive = item.isActive,
+                showSyncIcon = !item.isSynced,
+                // Only an open visit can be ended, and only an ended one reopened.
+                onDateClick = if (item.isActive) ({ onEndVisit(item.visit.id) }) else null,
+                onReopenClick = if (item.canReopen) ({ onReopenVisit(item.visit.id) }) else null,
               )
             is PatientDetailEncounter ->
               EncounterListItemRow(
+                modifier = if (item.indented) Modifier.padding(start = 20.dp) else Modifier,
                 encounterType = item.encounter.type,
                 encounterDate = item.encounter.dateTime,
                 showSyncIcon = item.encounter.isSynced?.not() ?: true,

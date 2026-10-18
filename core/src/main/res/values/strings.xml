@@ -138,7 +138,7 @@
     <string
         name="patient_unsynced_info"
     >Patient information will synchronize with\nPearl next time you are online</string>
-    <string name="header_visits">Visit Header</string>
+    <string name="header_visits">Visits</string>
     <string name="online">Online</string>
     <string
         name="network_status_connected_to_server"
@@ -672,6 +672,21 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="settings_live_keep_patients">Keep patients from the server on this device</string>
     <string name="settings_live_keep_patients_description">On: a patient you open from the server stays on this device and can be used offline. Off: the patient is removed from the device once you leave them; anything not yet sent is kept until it is sent.</string>
     <string name="settings_section_forms">Forms</string>
+    <string name="settings_section_visits">Visits</string>
+    <string name="settings_automatic_visits">Create visits automatically</string>
+    <string name="settings_automatic_visits_description">On: every encounter you save gets its own visit, created for you. Off: you open a visit, record its encounters and end it yourself, like in OpenMRS, and a patient\'s encounters are shown grouped by visit.</string>
+    <string name="header_encounters_without_visit">Encounters without a visit</string>
+    <string name="start_visit">New visit</string>
+    <string name="visit_status_active">Active</string>
+    <string name="visit_status_closed">Closed</string>
+    <string name="visit_started_at">Started %1$s</string>
+    <string name="reopen_visit">Reopen</string>
+    <string name="reopen_visit_blocked">Another visit is already open. End it first.</string>
+    <string name="no_open_visit_title">No open visit</string>
+    <string name="no_open_visit_message">Open a visit to record an encounter for this patient.</string>
+    <string name="open_visit_action">Open visit</string>
+    <string name="encounter_outside_visit">The encounter date is outside the open visit. Change the date, or end the visit and open a new one.</string>
+    <string name="no_open_visit_error">This patient has no open visit. Open one first.</string>
     <string name="settings_initial_sync_description">Run a full synchronization with the server now.</string>
     <string name="settings_section_appearance">Appearance</string>
     <string name="theme_system">System default</string>

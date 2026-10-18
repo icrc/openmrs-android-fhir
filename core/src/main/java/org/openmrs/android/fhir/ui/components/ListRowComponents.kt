@@ -148,7 +148,13 @@ fun PatientPropertyRow(
 
 /** Section title with an optional count, e.g. "ENCOUNTERS 4". */
 @Composable
-fun PatientDetailsHeaderRow(title: String, modifier: Modifier = Modifier, count: Int? = null) {
+fun PatientDetailsHeaderRow(
+  title: String,
+  modifier: Modifier = Modifier,
+  count: Int? = null,
+  actionText: String? = null,
+  onActionClick: () -> Unit = {},
+) {
   Row(
     modifier =
       modifier
@@ -170,6 +176,15 @@ fun PatientDetailsHeaderRow(title: String, modifier: Modifier = Modifier, count:
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
+    }
+    if (actionText != null) {
+      Spacer(modifier = Modifier.weight(1f))
+      TextButton(
+        onClick = onActionClick,
+        modifier = Modifier.testTag("PatientDetailsHeaderAction"),
+      ) {
+        Text(text = actionText)
+      }
     }
   }
 }
@@ -357,19 +372,30 @@ fun PatientUnsyncedCard(modifier: Modifier = Modifier) {
   }
 }
 
-/** A visit: its type and period; an open visit offers **End visit** through [onDateClick]. */
+/**
+ * A visit: its type, period and whether it is open. An open visit offers **End visit** through
+ * [onDateClick], an ended one **Reopen** through [onReopenClick].
+ */
 @Composable
 fun VisitListItemRow(
   encounterType: String,
   encounterDate: String,
   modifier: Modifier = Modifier,
   onDateClick: (() -> Unit)? = null,
+  statusText: String? = null,
+  isActive: Boolean = false,
+  showSyncIcon: Boolean = false,
+  onReopenClick: (() -> Unit)? = null,
 ) {
   Surface(
     modifier = modifier.fillMaxWidth().testTag("VisitListItemRow"),
     shape = RoundedCornerShape(16.dp),
     color = MaterialTheme.colorScheme.surface,
-    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    border =
+      BorderStroke(
+        if (isActive) 2.dp else 1.dp,
+        if (isActive) OpenMrsTheme.colors.success else MaterialTheme.colorScheme.outlineVariant,
+      ),
   ) {
     Row(
       modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
@@ -388,12 +414,41 @@ fun VisitListItemRow(
         )
       }
       Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
-        Text(
-          modifier = Modifier.testTag("VisitType"),
-          text = encounterType,
-          style = MaterialTheme.typography.bodyLarge,
-          fontWeight = FontWeight.Medium,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(
+            modifier = Modifier.weight(1f, fill = false).testTag("VisitType"),
+            text = encounterType,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+          )
+          if (statusText != null) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+              modifier =
+                Modifier.clip(RoundedCornerShape(50))
+                  .background(
+                    if (isActive) {
+                      OpenMrsTheme.colors.success.copy(alpha = 0.16f)
+                    } else {
+                      MaterialTheme.colorScheme.surfaceVariant
+                    },
+                  )
+                  .padding(horizontal = 8.dp, vertical = 2.dp)
+                  .testTag("VisitStatus"),
+              text = statusText,
+              style = MaterialTheme.typography.labelSmall,
+              fontWeight = FontWeight.SemiBold,
+              color =
+                if (isActive) {
+                  OpenMrsTheme.colors.success
+                } else {
+                  MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            )
+          }
+        }
         Text(
           modifier = Modifier.testTag("VisitDate"),
           text = encounterDate,
@@ -401,9 +456,23 @@ fun VisitListItemRow(
           color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
       }
+      if (showSyncIcon) {
+        Icon(
+          modifier = Modifier.size(20.dp).testTag("VisitSyncIcon"),
+          painter = painterResource(id = R.drawable.ic_baseline_sync_24),
+          contentDescription = stringResource(id = R.string.description_status),
+          tint = OpenMrsTheme.colors.warning,
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+      }
       if (onDateClick != null) {
         TextButton(onClick = onDateClick, modifier = Modifier.testTag("VisitEndButton")) {
           Text(text = stringResource(id = R.string.end_visit))
+        }
+      }
+      if (onReopenClick != null) {
+        TextButton(onClick = onReopenClick, modifier = Modifier.testTag("VisitReopenButton")) {
+          Text(text = stringResource(id = R.string.reopen_visit))
         }
       }
     }

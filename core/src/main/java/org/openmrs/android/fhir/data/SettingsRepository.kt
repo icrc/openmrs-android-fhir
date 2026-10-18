@@ -61,6 +61,10 @@ interface SettingsRepository {
   suspend fun getKeepLivePatients(): Boolean = true
 
   suspend fun setKeepLivePatients(keep: Boolean) {}
+
+  suspend fun getAutomaticVisits(): Boolean = true
+
+  suspend fun setAutomaticVisits(automatic: Boolean) {}
 }
 
 class DemoSettingsRepository
@@ -124,6 +128,14 @@ constructor(
 
   override suspend fun setKeepLivePatients(keep: Boolean) {
     dataStore.setKeepLivePatients(keep)
+  }
+
+  override suspend fun getAutomaticVisits(): Boolean {
+    return dataStore.getAutomaticVisitsFlow().first()
+  }
+
+  override suspend fun setAutomaticVisits(automatic: Boolean) {
+    dataStore.setAutomaticVisits(automatic)
   }
 
   private companion object {

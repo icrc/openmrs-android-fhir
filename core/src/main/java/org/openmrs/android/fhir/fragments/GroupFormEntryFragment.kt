@@ -739,6 +739,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
             patientId,
             encounterId,
             viewModel.sessionDate,
+            isGroupSession = true,
           )
           viewModel.setPatientIdToEncounterIdMap(patientId, encounterId)
         }

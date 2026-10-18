@@ -138,6 +138,17 @@ class DemoDataStore(private val context: Context) {
   fun getKeepLivePatientsFlow() =
     context.dataStorage.data.map { pref -> pref[booleanPreferencesKey(KEEP_LIVE_PATIENTS)] ?: true }
 
+  suspend fun setAutomaticVisits(automatic: Boolean) {
+    context.dataStorage.edit { pref -> pref[booleanPreferencesKey(AUTOMATIC_VISITS)] = automatic }
+  }
+
+  /**
+   * Whether a visit is created for every encounter that is saved (on, the default) or the user
+   * opens and ends the visits and the encounters they save belong to the open one.
+   */
+  fun getAutomaticVisitsFlow() =
+    context.dataStorage.data.map { pref -> pref[booleanPreferencesKey(AUTOMATIC_VISITS)] ?: true }
+
   fun getPeriodicSyncDelayMinutesFlow() =
     context.dataStorage.data.map { pref ->
       pref[stringPreferencesKey(PERIODIC_SYNC_DELAY)]?.toIntOrNull()?.takeIf { it > 0 }
@@ -226,6 +237,7 @@ class DemoDataStore(private val context: Context) {
     const val PERIODIC_SYNC_DELAY = "periodic-sync-delay"
     const val AUTO_SYNC_ENABLED = "auto-sync-enabled"
     const val LIVE_MODE = "live-mode"
+    const val AUTOMATIC_VISITS = "automatic-visits"
     const val KEEP_LIVE_PATIENTS = "keep-live-patients"
     const val LAST_FULL_SYNC = "last-full-sync"
     const val FAVORITE_FORMS = "favorite-forms"

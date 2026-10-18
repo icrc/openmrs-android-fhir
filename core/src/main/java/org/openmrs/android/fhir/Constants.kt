@@ -35,7 +35,6 @@ object Constants {
   val DATE24_FORMATTER = SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault())
   val VISIT_TYPE_UUID = "7b0f5697-27e3-40c4-8bae-f4049abfb4ed"
   val VISIT_TYPE_CODE_SYSTEM = "http://fhir.openmrs.org/code-system/visit-type"
-  val WRAP_ENCOUNTER = true
   val CONDITION_CATEGORY_SYSTEM_URL = "http://terminology.hl7.org/CodeSystem/condition-category"
 
   // FHIR URLs

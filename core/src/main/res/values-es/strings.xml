@@ -101,7 +101,7 @@
     <string
         name="patient_unsynced_info"
     >La información del paciente se sincronizará con\nPearl la próxima vez que estés en línea</string>
-    <string name="header_visits">Encabezado de Visitas</string>
+    <string name="header_visits">Visitas</string>
     <string name="online">En línea</string>
     <string name="offline">Sin conexión</string>
     <string name="yes">Sí</string>
@@ -710,6 +710,21 @@
     <string name="settings_live_keep_patients">Conservar en este dispositivo los pacientes del servidor</string>
     <string name="settings_live_keep_patients_description">Activado: un paciente abierto desde el servidor se queda en este dispositivo y puede usarse sin conexión. Desactivado: el paciente se elimina del dispositivo al salir de él; lo que aún no se ha enviado se conserva hasta que se envíe.</string>
     <string name="settings_section_forms">Formularios</string>
+    <string name="settings_section_visits">Visitas</string>
+    <string name="settings_automatic_visits">Crear las visitas automáticamente</string>
+    <string name="settings_automatic_visits_description">Activado: cada encuentro que guarda recibe su propia visita, creada para usted. Desactivado: usted abre una visita, registra sus encuentros y la finaliza, como en OpenMRS; los encuentros de un paciente se muestran entonces agrupados por visita.</string>
+    <string name="header_encounters_without_visit">Encuentros sin visita</string>
+    <string name="start_visit">Nueva visita</string>
+    <string name="visit_status_active">Activa</string>
+    <string name="visit_status_closed">Finalizada</string>
+    <string name="visit_started_at">Iniciada el %1$s</string>
+    <string name="reopen_visit">Reabrir</string>
+    <string name="reopen_visit_blocked">Ya hay otra visita abierta. Finalícela primero.</string>
+    <string name="no_open_visit_title">Ninguna visita abierta</string>
+    <string name="no_open_visit_message">Abra una visita para registrar un encuentro de este paciente.</string>
+    <string name="open_visit_action">Abrir visita</string>
+    <string name="encounter_outside_visit">La fecha del encuentro está fuera de la visita abierta. Cambie la fecha, o finalice la visita y abra una nueva.</string>
+    <string name="no_open_visit_error">Este paciente no tiene una visita abierta. Abra una primero.</string>
     <string name="settings_initial_sync_description">Ejecuta ahora una sincronización completa con el servidor.</string>
     <string name="settings_section_appearance">Apariencia</string>
     <string name="theme_system">Predeterminado del sistema</string>

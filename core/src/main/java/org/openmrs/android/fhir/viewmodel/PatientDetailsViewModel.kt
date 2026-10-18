@@ -59,6 +59,8 @@ import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.OpenMRSHelper
+import org.openmrs.android.fhir.data.PatientVisits
+import org.openmrs.android.fhir.data.isOpenVisit
 import org.openmrs.android.fhir.data.sync.LivePatients
 import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
@@ -151,14 +153,15 @@ constructor(
     val patientResource = searchResult.firstOrNull()?.resource ?: return emptyList()
 
     val data = mutableListOf<PatientDetailData>()
-    val visits = openMRSHelper.getVisits(patientId)
+    val patientVisits = openMRSHelper.getVisitsAndOthers(patientId)
     data.addPatientDetailData(patientResource)
+    if (!openMRSHelper.automaticVisits()) {
+      // The visits are the user's: the encounters are shown under the visit they belong to.
+      data.addVisitsWithTheirEncounters(patientVisits, encounterTypeCodeToQuestionnaireMap)
+      return data
+    }
     data.add(PatientDetailHeader(getString(R.string.header_encounters)))
-    for ((visit, encounters) in visits) {
-      if (!Constants.WRAP_ENCOUNTER) {
-        data.addVisitData(visit, encounterTypeCodeToQuestionnaireMap)
-      }
-
+    for ((_, encounters) in patientVisits.visits) {
       encounters.forEach { encounter ->
         val isSynced = isEncounterSynced(encounter)
         data.addEncounterData(encounter, isSynced, encounterTypeCodeToQuestionnaireMap)
@@ -208,26 +211,87 @@ constructor(
     }
   }
 
-  suspend fun hasActiveVisit(): Boolean {
-    return openMRSHelper.getVisits(patientId).isNotEmpty()
+  /** Visits are created for the user (the default) or opened and ended by them. */
+  suspend fun automaticVisits(): Boolean = openMRSHelper.automaticVisits()
+
+  suspend fun hasActiveVisit(): Boolean = openMRSHelper.getActiveVisit(patientId, false) != null
+
+  /** Opens a visit that started at [startDate], and shows it. */
+  suspend fun startVisit(startDate: Date) {
+    openMRSHelper.startVisit(patientId, Constants.VISIT_TYPE_UUID, startDate)
+    getPatientDetailData()
   }
 
-  fun createVisit(startDate: Date) {
-    viewModelScope.launch {
-      openMRSHelper.startVisit(
-        patientId,
-        Constants.VISIT_TYPE_UUID,
-        startDate,
-      )
-    }
+  suspend fun endVisit(visitId: String) {
+    openMRSHelper.endVisit(visitId)
+    getPatientDetailData()
   }
 
-  private fun MutableList<PatientDetailData>.addVisitData(
-    visit: Encounter,
+  /** @return false when another visit is open, which has to be ended first. */
+  suspend fun reopenVisit(visitId: String): Boolean {
+    val reopened = openMRSHelper.reopenVisit(visitId)
+    if (reopened) getPatientDetailData()
+    return reopened
+  }
+
+  /**
+   * The patient's page when the user manages the visits: each visit, newest first, with its
+   * encounters under it, then the encounters that are in no visit.
+   */
+  private suspend fun MutableList<PatientDetailData>.addVisitsWithTheirEncounters(
+    patientVisits: PatientVisits,
     encounterTypeCodeToQuestionnaireMap: Map<String, FormSummary>,
   ) {
-    val visitItem = createVisitItem(visit, encounterTypeCodeToQuestionnaireMap)
-    add(PatientDetailVisit(visitItem))
+    val hasOpenVisit = patientVisits.visits.keys.any { it.isOpenVisit() }
+    add(
+      PatientDetailHeader(
+        header = getString(R.string.header_visits),
+        count = patientVisits.visits.size,
+        startVisit = !hasOpenVisit,
+      ),
+    )
+    for ((visit, encounters) in patientVisits.visits) {
+      val isOpen = visit.isOpenVisit()
+      add(
+        PatientDetailVisit(
+          visit = createVisitItem(visit, encounterTypeCodeToQuestionnaireMap),
+          isActive = isOpen,
+          canReopen = !isOpen && !hasOpenVisit,
+          isSynced = fhirEngine.getLocalChanges(ResourceType.Encounter, visit.logicalId).isEmpty(),
+        ),
+      )
+      encounters.forEach { encounter ->
+        add(
+          PatientDetailEncounter(
+            createEncounterItem(
+              encounter,
+              isEncounterSynced(encounter),
+              encounterTypeCodeToQuestionnaireMap,
+            ),
+            indented = true,
+          ),
+        )
+      }
+    }
+    if (patientVisits.withoutVisit.isNotEmpty()) {
+      add(
+        PatientDetailHeader(
+          header = getString(R.string.header_encounters_without_visit),
+          count = patientVisits.withoutVisit.size,
+        ),
+      )
+      patientVisits.withoutVisit.forEach { encounter ->
+        add(
+          PatientDetailEncounter(
+            createEncounterItem(
+              encounter,
+              isEncounterSynced(encounter),
+              encounterTypeCodeToQuestionnaireMap,
+            ),
+          ),
+        )
+      }
+    }
   }
 
   private fun MutableList<PatientDetailData>.addEncounterData(
@@ -322,6 +386,10 @@ data class PatientDetailHeader(
   val header: String,
   override val firstInGroup: Boolean = false,
   override val lastInGroup: Boolean = false,
+  /** The number next to the title; null: the number of encounters. */
+  val count: Int? = null,
+  /** The header offers to open a new visit (the user manages the visits and none is open). */
+  val startVisit: Boolean = false,
 ) : PatientDetailData
 
 data class PatientDetailProperty(
@@ -357,12 +425,19 @@ data class PatientDetailEncounter(
   val encounter: PatientListViewModel.EncounterItem,
   override val firstInGroup: Boolean = false,
   override val lastInGroup: Boolean = false,
+  /** Shown under its visit. */
+  val indented: Boolean = false,
 ) : PatientDetailData
 
 data class PatientDetailVisit(
   val visit: PatientListViewModel.VisitItem,
   override val firstInGroup: Boolean = false,
   override val lastInGroup: Boolean = false,
+  /** Open: it can be ended. */
+  val isActive: Boolean = false,
+  /** Ended, and no other visit is open: it can be opened again. */
+  val canReopen: Boolean = false,
+  val isSynced: Boolean = true,
 ) : PatientDetailData
 
 data class PatientProperty(val header: String, val value: String, val isSynced: Boolean)

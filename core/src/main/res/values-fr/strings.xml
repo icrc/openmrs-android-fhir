@@ -114,7 +114,7 @@
     <string
         name="patient_unsynced_info"
     >Les informations du patient se synchroniseront avec\nPearl la prochaine fois que vous serez en ligne</string>
-    <string name="header_visits">En-tête de Visite</string>
+    <string name="header_visits">Visites</string>
     <string name="online">En ligne</string>
     <string name="offline">Hors ligne</string>
     <string name="yes">Oui</string>
@@ -736,6 +736,21 @@
     <string name="settings_live_keep_patients">Garder sur cet appareil les patients venus du serveur</string>
     <string name="settings_live_keep_patients_description">Activé : un patient ouvert depuis le serveur reste sur cet appareil et peut être utilisé hors connexion. Désactivé : le patient est retiré de l\'appareil dès que vous le quittez ; ce qui n\'est pas encore envoyé est conservé jusqu\'à son envoi.</string>
     <string name="settings_section_forms">Formulaires</string>
+    <string name="settings_section_visits">Visites</string>
+    <string name="settings_automatic_visits">Créer les visites automatiquement</string>
+    <string name="settings_automatic_visits_description">Activé : chaque consultation enregistrée reçoit sa propre visite, créée pour vous. Désactivé : vous ouvrez une visite, y enregistrez les consultations et la terminez vous-même, comme dans OpenMRS ; les consultations d\'un patient sont alors regroupées par visite.</string>
+    <string name="header_encounters_without_visit">Consultations sans visite</string>
+    <string name="start_visit">Nouvelle visite</string>
+    <string name="visit_status_active">En cours</string>
+    <string name="visit_status_closed">Terminée</string>
+    <string name="visit_started_at">Commencée le %1$s</string>
+    <string name="reopen_visit">Rouvrir</string>
+    <string name="reopen_visit_blocked">Une autre visite est déjà ouverte. Terminez-la d\'abord.</string>
+    <string name="no_open_visit_title">Aucune visite ouverte</string>
+    <string name="no_open_visit_message">Ouvrez une visite pour enregistrer une consultation pour ce patient.</string>
+    <string name="open_visit_action">Ouvrir une visite</string>
+    <string name="encounter_outside_visit">La date de la consultation est en dehors de la visite ouverte. Changez la date, ou terminez la visite et ouvrez-en une nouvelle.</string>
+    <string name="no_open_visit_error">Ce patient n\'a pas de visite ouverte. Ouvrez-en une d\'abord.</string>
     <string name="settings_initial_sync_description">Lance dès maintenant une synchronisation complète avec le serveur.</string>
     <string name="settings_section_appearance">Apparence</string>
     <string name="theme_system">Par défaut du système</string>

@@ -51,6 +51,7 @@ data class SettingsUiState(
   val isAutoSyncEnabled: Boolean = true,
   val isLiveModeEnabled: Boolean = false,
   val keepLivePatients: Boolean = true,
+  val automaticVisits: Boolean = true,
   val isInitialSyncInProgress: Boolean = false,
 )
 
@@ -111,6 +112,10 @@ constructor(
     _uiState.update { it.copy(keepLivePatients = keep) }
   }
 
+  fun onAutomaticVisitsToggle(automatic: Boolean) {
+    _uiState.update { it.copy(automaticVisits = automatic) }
+  }
+
   fun onPeriodicSyncDelaySelected(minutes: Int) {
     _uiState.update { it.copy(periodicSyncDelayMinutes = minutes) }
   }
@@ -125,6 +130,7 @@ constructor(
       settingsRepository.setAutoSyncEnabled(currentState.isAutoSyncEnabled)
       settingsRepository.setLiveModeEnabled(currentState.isLiveModeEnabled)
       settingsRepository.setKeepLivePatients(currentState.keepLivePatients)
+      settingsRepository.setAutomaticVisits(currentState.automaticVisits)
       _events.emit(SettingsEvent.SettingsSaved)
     }
   }
@@ -141,6 +147,7 @@ constructor(
         isAutoSyncEnabled = defaults.isAutoSyncEnabled,
         isLiveModeEnabled = defaults.isLiveModeEnabled,
         keepLivePatients = defaults.keepLivePatients,
+        automaticVisits = defaults.automaticVisits,
       )
     }
     viewModelScope.launch {
@@ -151,6 +158,7 @@ constructor(
       settingsRepository.setAutoSyncEnabled(defaults.isAutoSyncEnabled)
       settingsRepository.setLiveModeEnabled(defaults.isLiveModeEnabled)
       settingsRepository.setKeepLivePatients(defaults.keepLivePatients)
+      settingsRepository.setAutomaticVisits(defaults.automaticVisits)
       _events.emit(SettingsEvent.SettingsReset)
     }
   }
@@ -181,6 +189,7 @@ constructor(
     val autoSyncEnabled = settingsRepository.getAutoSyncEnabled()
     val liveModeEnabled = settingsRepository.getLiveModeEnabled()
     val keepLivePatients = settingsRepository.getKeepLivePatients()
+    val automaticVisits = settingsRepository.getAutomaticVisits()
     _uiState.update {
       it.copy(
         isNetworkStatusVisible = networkStatusVisible,
@@ -190,6 +199,7 @@ constructor(
         isAutoSyncEnabled = autoSyncEnabled,
         isLiveModeEnabled = liveModeEnabled,
         keepLivePatients = keepLivePatients,
+        automaticVisits = automaticVisits,
       )
     }
   }
