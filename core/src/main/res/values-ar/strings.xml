@@ -772,4 +772,9 @@
         <item quantity="many">%d تغييراً لم يُرفع وسيضيع نهائياً.</item>
         <item quantity="other">%d تغيير لم يُرفع وسيضيع نهائياً.</item>
     </plurals>
+    <string name="settings_reset_menu">إعادة الإعدادات إلى الافتراضي</string>
+    <string name="settings_reset_title">إعادة ضبط الإعدادات</string>
+    <string name="settings_reset_message">ستعود جميع الإعدادات في هذه الصفحة إلى قيمها الافتراضية: المظهر واللغة والإشعارات والمزامنة والنماذج والمفضلة. لا تتأثر بيانات المرضى وبياناتك وجلستك.</string>
+    <string name="settings_reset_confirm">إعادة ضبط</string>
+    <string name="settings_reset_done">تمت إعادة الإعدادات إلى الافتراضي</string>
 </resources>

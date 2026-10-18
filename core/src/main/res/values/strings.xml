@@ -792,4 +792,9 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
         <item quantity="one">%d change has not been uploaded and will be lost for good.</item>
         <item quantity="other">%d changes have not been uploaded and will be lost for good.</item>
     </plurals>
+    <string name="settings_reset_menu">Reset settings to default</string>
+    <string name="settings_reset_title">Reset settings</string>
+    <string name="settings_reset_message">Every setting on this page goes back to its default value: appearance, language, notifications, synchronization, forms and favorites. Your patients, data and session are not affected.</string>
+    <string name="settings_reset_confirm">Reset</string>
+    <string name="settings_reset_done">Settings were reset to default</string>
 </resources>

@@ -66,6 +66,13 @@ enum class AppLanguage(val tag: String, val flag: String, val nativeName: String
         ?: context.resources.configuration.locales[0].language
     }
 
+    /** Back to the language of the device, if the user had chosen another. */
+    fun resetToDevice() {
+      if (!AppCompatDelegate.getApplicationLocales().isEmpty) {
+        AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
+      }
+    }
+
     fun apply(context: Context, language: AppLanguage) {
       val locale = Locale.forLanguageTag(language.tag)
       Locale.setDefault(locale)

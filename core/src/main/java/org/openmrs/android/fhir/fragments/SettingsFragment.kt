@@ -30,6 +30,8 @@ package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
@@ -227,14 +229,58 @@ class SettingsFragment : Fragment() {
     observeSettingsEvents()
   }
 
+  override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+    inflater.inflate(R.menu.settings_options_menu, menu)
+  }
+
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
       android.R.id.home -> {
         navigateUp()
         true
       }
+      R.id.menu_settings_reset -> {
+        confirmResetToDefaults()
+        true
+      }
       else -> false
     }
+  }
+
+  private fun confirmResetToDefaults() {
+    MaterialAlertDialogBuilder(requireContext())
+      .setTitle(R.string.settings_reset_title)
+      .setMessage(R.string.settings_reset_message)
+      .setPositiveButton(R.string.settings_reset_confirm) { _, _ -> resetToDefaults() }
+      .setNegativeButton(R.string.cancel, null)
+      .show()
+  }
+
+  /**
+   * The appearance, language, sync, notification and forms settings go back to what the app starts
+   * with, and are saved at once. Data, the session, the location, the identifier types and the
+   * offline login are not settings and stay as they are.
+   */
+  private fun resetToDefaults() {
+    val context = requireContext()
+    val recreate = ColorVisionStore.get(context) != ColorVisionMode.STANDARD
+    settingsViewModel.onResetToDefaults()
+    favoriteFormsViewModel.setFavorites(emptyList())
+    favoriteFormsViewModel.resetSections()
+    EmbeddedFormsStore.set(context, true)
+    embeddedFormsSelection.value = true
+    ColorVisionStore.set(context, ColorVisionMode.STANDARD)
+    colorVisionSelection.value = ColorVisionMode.STANDARD
+    themeSelection.value = ThemeMode.SYSTEM
+    AuditLog.record(
+      AuditAction.SETTINGS_CHANGED,
+      AuditOutcome.SUCCESS,
+      "changed" to listOf("reset")
+    )
+    ThemeModeStore.set(context, ThemeMode.SYSTEM)
+    AppLanguage.resetToDevice()
+    // The palette is read when a screen is built.
+    if (recreate) activity?.recreate()
   }
 
   private fun observeSettingsEvents() {
@@ -336,6 +382,11 @@ internal data class SettingsEventAction(
 
 internal fun resolveSettingsEvent(event: SettingsEvent): SettingsEventAction {
   return when (event) {
+    SettingsEvent.SettingsReset ->
+      SettingsEventAction(
+        messageResId = R.string.settings_reset_done,
+        navigateUp = false,
+      )
     SettingsEvent.SettingsSaved ->
       SettingsEventAction(
         messageResId = R.string.settings_saved,

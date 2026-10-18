@@ -853,4 +853,9 @@
         <item quantity="many">%d изменений не отправлено и будет потеряно безвозвратно.</item>
         <item quantity="other">%d изменения не отправлены и будут потеряны безвозвратно.</item>
     </plurals>
+    <string name="settings_reset_menu">Сбросить настройки</string>
+    <string name="settings_reset_title">Сброс настроек</string>
+    <string name="settings_reset_message">Все настройки на этой странице вернутся к значениям по умолчанию: оформление, язык, уведомления, синхронизация, формы и избранное. Пациенты, данные и сеанс не затрагиваются.</string>
+    <string name="settings_reset_confirm">Сбросить</string>
+    <string name="settings_reset_done">Настройки сброшены</string>
 </resources>

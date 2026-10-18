@@ -832,4 +832,9 @@
         <item quantity="many">%d cambios no se han subido y se perderán para siempre.</item>
         <item quantity="other">%d cambios no se han subido y se perderán para siempre.</item>
     </plurals>
+    <string name="settings_reset_menu">Restablecer ajustes</string>
+    <string name="settings_reset_title">Restablecer ajustes</string>
+    <string name="settings_reset_message">Todos los ajustes de esta página vuelven a su valor predeterminado: apariencia, idioma, notificaciones, sincronización, formularios y favoritos. Sus pacientes, datos y sesión no se ven afectados.</string>
+    <string name="settings_reset_confirm">Restablecer</string>
+    <string name="settings_reset_done">Ajustes restablecidos</string>
 </resources>

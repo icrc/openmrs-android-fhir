@@ -57,6 +57,8 @@ sealed interface SettingsEvent {
 
   data object SettingsDiscarded : SettingsEvent
 
+  data object SettingsReset : SettingsEvent
+
   data object InitialSyncStarted : SettingsEvent
 
   data object InitialSyncCompleted : SettingsEvent
@@ -112,6 +114,28 @@ constructor(
       settingsRepository.setPeriodicSyncDelayMinutes(currentState.periodicSyncDelayMinutes)
       settingsRepository.setAutoSyncEnabled(currentState.isAutoSyncEnabled)
       _events.emit(SettingsEvent.SettingsSaved)
+    }
+  }
+
+  /** Every value of this page that lives here goes back to what the app starts with. */
+  fun onResetToDefaults() {
+    val defaults = SettingsUiState()
+    _uiState.update {
+      it.copy(
+        isNetworkStatusVisible = defaults.isNetworkStatusVisible,
+        isNotificationsEnabled = defaults.isNotificationsEnabled,
+        tokenCheckDelayMinutes = defaults.tokenCheckDelayMinutes,
+        periodicSyncDelayMinutes = defaults.periodicSyncDelayMinutes,
+        isAutoSyncEnabled = defaults.isAutoSyncEnabled,
+      )
+    }
+    viewModelScope.launch {
+      settingsRepository.setNetworkStatusVisible(defaults.isNetworkStatusVisible)
+      settingsRepository.setNotificationsEnabled(defaults.isNotificationsEnabled)
+      settingsRepository.setTokenExpiryDelayMinutes(defaults.tokenCheckDelayMinutes)
+      settingsRepository.setPeriodicSyncDelayMinutes(defaults.periodicSyncDelayMinutes)
+      settingsRepository.setAutoSyncEnabled(defaults.isAutoSyncEnabled)
+      _events.emit(SettingsEvent.SettingsReset)
     }
   }
 

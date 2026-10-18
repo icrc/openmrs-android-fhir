@@ -860,4 +860,9 @@
         <item quantity="many">%d modifications n\'ont pas été envoyées et seront perdues définitivement.</item>
         <item quantity="other">%d modifications n\'ont pas été envoyées et seront perdues définitivement.</item>
     </plurals>
+    <string name="settings_reset_menu">Rétablir les paramètres par défaut</string>
+    <string name="settings_reset_title">Rétablir les paramètres</string>
+    <string name="settings_reset_message">Tous les paramètres de cette page reviennent à leur valeur par défaut : apparence, langue, notifications, synchronisation, formulaires et favoris. Vos patients, vos données et votre session ne sont pas affectés.</string>
+    <string name="settings_reset_confirm">Rétablir</string>
+    <string name="settings_reset_done">Paramètres rétablis par défaut</string>
 </resources>
