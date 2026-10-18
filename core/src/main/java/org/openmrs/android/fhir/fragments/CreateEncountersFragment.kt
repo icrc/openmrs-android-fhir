@@ -36,6 +36,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -54,9 +55,11 @@ import org.openmrs.android.fhir.data.GroupSessionDraftRepository
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.FormSectionItem
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
+import org.openmrs.android.fhir.data.database.model.GroupSessionDraftSummary
 import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
+import org.openmrs.android.fhir.ui.components.PendingSessionsDialog
 import org.openmrs.android.fhir.ui.screens.CreateEncounterScreen
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.CreateEncounterViewModel
@@ -74,6 +77,10 @@ class CreateEncountersFragment : Fragment() {
 
   private val args: CreateEncountersFragmentArgs by navArgs()
 
+  /** The unfinished sessions to choose from, when there is more than one. */
+  private val pendingChoices =
+    mutableStateOf<List<Pair<FormItem, GroupSessionDraftSummary>>>(emptyList())
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setHasOptionsMenu(true)
@@ -88,6 +95,17 @@ class CreateEncountersFragment : Fragment() {
       val sections by viewModel.formData.observeAsState(null)
       val isLoading by viewModel.isLoading.observeAsState(false)
       val pending by viewModel.pendingSessions.observeAsState(emptyMap())
+      val choices = pendingChoices.value
+      if (choices.isNotEmpty()) {
+        PendingSessionsDialog(
+          sessions = choices,
+          onResume = { form, summary ->
+            pendingChoices.value = emptyList()
+            navigateToGroupFormEntry(form.questionnaireId, summary.patientIds.toTypedArray())
+          },
+          onDismiss = { pendingChoices.value = emptyList() },
+        )
+      }
       CreateEncounterScreen(
         sections = sections,
         isLoading = isLoading,
@@ -135,15 +153,24 @@ class CreateEncountersFragment : Fragment() {
 
     viewLifecycleOwner.lifecycleScope.launch {
       groupSessionDraftRepository.deleteEmptyDrafts()
-      // The most recently touched pending session is offered first; the summaries are light.
-      val latest =
-        groupSessionDraftRepository.pendingSessions().values.maxByOrNull { it.lastUpdated }
-      val formItem =
-        latest?.let { draft ->
-          formItems.firstOrNull { it.questionnaireId == draft.questionnaireId }
+      // The most recently touched first; the summaries are light.
+      val sessions =
+        groupSessionDraftRepository
+          .pendingSessions()
+          .values
+          .sortedByDescending { it.lastUpdated }
+          .mapNotNull { draft ->
+            formItems
+              .firstOrNull { it.questionnaireId == draft.questionnaireId }
+              ?.let { it to draft }
+          }
+      if (!isAdded) return@launch
+      when {
+        sessions.size > 1 -> pendingChoices.value = sessions
+        sessions.size == 1 -> {
+          val (formItem, draft) = sessions.first()
+          showResumeDraftDialog(formItem, draft.patientIds.toTypedArray(), true)
         }
-      if (latest != null && formItem != null && isAdded) {
-        showResumeDraftDialog(formItem, latest.patientIds.toTypedArray(), true)
       }
     }
   }

@@ -828,4 +828,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
         <item quantity="one">%d resource is still waiting to be uploaded. It stays on this device until you sign in and sync.</item>
         <item quantity="other">%d resources are still waiting to be uploaded. They stay on this device until you sign in and sync.</item>
     </plurals>
+    <string name="pending_sessions_title">Pending sessions</string>
+    <string name="pending_sessions_message">Several group sessions are waiting. Choose the one you want to resume.</string>
+    <string name="pending_session_detail">%1$s · %2$s</string>
 </resources>

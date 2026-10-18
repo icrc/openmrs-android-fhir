@@ -870,4 +870,7 @@
         <item quantity="many">%d recursos siguen esperando para subirse. Permanecen en este dispositivo hasta que inicie sesión y sincronice.</item>
         <item quantity="other">%d recursos siguen esperando para subirse. Permanecen en este dispositivo hasta que inicie sesión y sincronice.</item>
     </plurals>
+    <string name="pending_sessions_title">Sesiones pendientes</string>
+    <string name="pending_sessions_message">Hay varias sesiones grupales pendientes. Elija la que desea reanudar.</string>
+    <string name="pending_session_detail">%1$s · %2$s</string>
 </resources>

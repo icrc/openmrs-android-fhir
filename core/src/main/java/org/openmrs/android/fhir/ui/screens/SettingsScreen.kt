@@ -817,7 +817,7 @@ private fun ClearDataOnLogoutSetting(
         Icon(
           imageVector = Icons.Default.Warning,
           contentDescription = null,
-          tint = if (turnOn) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+          tint = MaterialTheme.colorScheme.error,
         )
       },
       title = {
@@ -858,14 +858,8 @@ private fun ClearDataOnLogoutSetting(
           },
           colors =
             ButtonDefaults.buttonColors(
-              containerColor =
-                if (turnOn) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-              contentColor =
-                if (turnOn) {
-                  MaterialTheme.colorScheme.onError
-                } else {
-                  MaterialTheme.colorScheme.onPrimary
-                },
+              containerColor = MaterialTheme.colorScheme.error,
+              contentColor = MaterialTheme.colorScheme.onError,
             ),
           modifier = Modifier.testTag(SettingsTestTags.ClearDataConfirm),
         ) {

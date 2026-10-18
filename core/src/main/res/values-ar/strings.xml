@@ -816,4 +816,7 @@
         <item quantity="many">%d مورداً لا يزال بانتظار الرفع. يبقى على هذا الجهاز حتى تسجّل الدخول وتزامن.</item>
         <item quantity="other">%d مورد لا يزال بانتظار الرفع. يبقى على هذا الجهاز حتى تسجّل الدخول وتزامن.</item>
     </plurals>
+    <string name="pending_sessions_title">جلسات معلّقة</string>
+    <string name="pending_sessions_message">هناك عدة جلسات جماعية معلّقة. اختر الجلسة التي تريد استئنافها.</string>
+    <string name="pending_session_detail">%1$s · %2$s</string>
 </resources>

@@ -893,4 +893,7 @@
         <item quantity="many">%d ресурсов всё ещё ждут отправки. Они останутся на устройстве до входа и синхронизации.</item>
         <item quantity="other">%d ресурса всё ещё ждут отправки. Они останутся на устройстве до входа и синхронизации.</item>
     </plurals>
+    <string name="pending_sessions_title">Незавершённые сеансы</string>
+    <string name="pending_sessions_message">Ожидают несколько групповых сеансов. Выберите тот, который нужно продолжить.</string>
+    <string name="pending_session_detail">%1$s · %2$s</string>
 </resources>
