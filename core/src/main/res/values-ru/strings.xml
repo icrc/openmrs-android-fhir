@@ -764,6 +764,8 @@
     <string name="settings_section_shared_device">Общее устройство</string>
     <string name="settings_share_my_data">Разрешить другим пользователям видеть мои зарегистрированные данные</string>
     <string name="settings_share_my_data_description">Вы вошли как %1$s. По умолчанию выключено. Если выключено, другие пользователи, входящие на этом устройстве, не увидят пациентов, которых вы зарегистрировали или загрузили здесь, если только у них нет к ним доступа и они не загрузят их сами. Если включено, они смогут их видеть. Эта настройка личная: у каждого пользователя своя.</string>
+    <string name="settings_remember_location">Запомнить мою локацию</string>
+    <string name="settings_remember_location_description">Включено: после входа вы сразу попадаете в последнюю использованную локацию. Выключено: локацию нужно выбирать при каждом входе. Локация личная: другой пользователь, вошедший на этом устройстве, выберет свою.</string>
     <string name="login_pending_icon_none">Нет данных, ожидающих отправки</string>
     <string name="login_pending_icon_waiting">Данные ожидают отправки: пользователей — %1$d</string>
     <string name="login_pending_title">Ожидает отправки</string>

@@ -751,6 +751,8 @@
     <string name="settings_section_shared_device">Dispositivo compartido</string>
     <string name="settings_share_my_data">Permitir que otros usuarios vean mis datos registrados</string>
     <string name="settings_share_my_data_description">Sesión iniciada como %1$s. Desactivado por defecto. Desactivado: los demás usuarios que inicien sesión en este dispositivo no verán los pacientes que usted registró o descargó aquí, salvo que tengan acceso a ellos y los descarguen por su cuenta. Activado: podrán verlos. Este ajuste es personal: cada usuario tiene el suyo.</string>
+    <string name="settings_remember_location">Recordar mi ubicación</string>
+    <string name="settings_remember_location_description">Activado: al iniciar sesión entra directamente en la última ubicación que usó. Desactivado: se le pide la ubicación en cada inicio de sesión. La ubicación es personal: otro usuario que inicie sesión en este dispositivo debe elegir la suya.</string>
     <string name="login_pending_icon_none">Nada pendiente de subir</string>
     <string name="login_pending_icon_waiting">Datos pendientes de subir: %1$d usuario(s)</string>
     <string name="login_pending_title">Pendiente de subir</string>

@@ -777,6 +777,8 @@
     <string name="settings_section_shared_device">Appareil partagé</string>
     <string name="settings_share_my_data">Laisser les autres utilisateurs voir mes données enregistrées</string>
     <string name="settings_share_my_data_description">Connecté en tant que %1$s. Désactivé par défaut. Désactivé : les autres utilisateurs qui se connectent sur cet appareil ne voient pas les patients que vous avez enregistrés ou téléchargés ici, sauf s\'ils y ont accès et les téléchargent eux-mêmes. Activé : ils peuvent les voir. Ce réglage est personnel : chaque utilisateur a le sien.</string>
+    <string name="settings_remember_location">Mémoriser mon lieu</string>
+    <string name="settings_remember_location_description">Activé : après la connexion, vous arrivez directement au dernier lieu utilisé. Désactivé : le lieu vous est demandé à chaque connexion. Le lieu est personnel : un autre utilisateur qui se connecte sur cet appareil doit choisir le sien.</string>
     <string name="login_pending_icon_none">Rien n\'est en attente d\'envoi</string>
     <string name="login_pending_icon_waiting">Données en attente d\'envoi : %1$d utilisateur(s)</string>
     <string name="login_pending_title">En attente d\'envoi</string>

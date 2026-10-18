@@ -74,6 +74,11 @@ interface SettingsRepository {
   suspend fun getShareMyData(): Boolean = false
 
   suspend fun setShareMyData(share: Boolean) {}
+
+  /** Whether the signed-in user goes back to the location they used last, after login. */
+  suspend fun getRememberLocation(): Boolean = true
+
+  suspend fun setRememberLocation(remember: Boolean) {}
 }
 
 class DemoSettingsRepository
@@ -155,6 +160,13 @@ constructor(
 
   override suspend fun setShareMyData(share: Boolean) {
     UserRegistry.setSharing(appContext, UserRegistry.active(appContext), share)
+  }
+
+  override suspend fun getRememberLocation(): Boolean =
+    UserRegistry.isRememberingLocation(appContext, UserRegistry.active(appContext))
+
+  override suspend fun setRememberLocation(remember: Boolean) {
+    UserRegistry.setRememberLocation(appContext, UserRegistry.active(appContext), remember)
   }
 
   private companion object {

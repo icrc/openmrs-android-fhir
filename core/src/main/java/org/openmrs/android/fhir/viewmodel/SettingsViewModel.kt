@@ -55,6 +55,7 @@ data class SettingsUiState(
   /** The user signed in now; the sharing setting is theirs. None for a guest. */
   val signedInUser: String? = null,
   val shareMyData: Boolean = false,
+  val rememberLocation: Boolean = true,
   val isInitialSyncInProgress: Boolean = false,
 )
 
@@ -123,6 +124,10 @@ constructor(
     _uiState.update { it.copy(shareMyData = share) }
   }
 
+  fun onRememberLocationToggle(remember: Boolean) {
+    _uiState.update { it.copy(rememberLocation = remember) }
+  }
+
   fun onPeriodicSyncDelaySelected(minutes: Int) {
     _uiState.update { it.copy(periodicSyncDelayMinutes = minutes) }
   }
@@ -140,6 +145,7 @@ constructor(
       settingsRepository.setAutomaticVisits(currentState.automaticVisits)
       if (currentState.signedInUser != null) {
         settingsRepository.setShareMyData(currentState.shareMyData)
+        settingsRepository.setRememberLocation(currentState.rememberLocation)
       }
       _events.emit(SettingsEvent.SettingsSaved)
     }
@@ -159,6 +165,7 @@ constructor(
         keepLivePatients = defaults.keepLivePatients,
         automaticVisits = defaults.automaticVisits,
         shareMyData = defaults.shareMyData,
+        rememberLocation = defaults.rememberLocation,
       )
     }
     viewModelScope.launch {
@@ -172,6 +179,7 @@ constructor(
       settingsRepository.setAutomaticVisits(defaults.automaticVisits)
       if (uiState.value.signedInUser != null) {
         settingsRepository.setShareMyData(defaults.shareMyData)
+        settingsRepository.setRememberLocation(defaults.rememberLocation)
       }
       _events.emit(SettingsEvent.SettingsReset)
     }
@@ -206,6 +214,7 @@ constructor(
     val automaticVisits = settingsRepository.getAutomaticVisits()
     val signedInUser = settingsRepository.getSignedInUser()
     val shareMyData = settingsRepository.getShareMyData()
+    val rememberLocation = settingsRepository.getRememberLocation()
     _uiState.update {
       it.copy(
         isNetworkStatusVisible = networkStatusVisible,
@@ -218,6 +227,7 @@ constructor(
         automaticVisits = automaticVisits,
         signedInUser = signedInUser,
         shareMyData = shareMyData,
+        rememberLocation = rememberLocation,
       )
     }
   }

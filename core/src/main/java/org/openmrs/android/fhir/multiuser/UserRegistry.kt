@@ -53,6 +53,7 @@ object UserRegistry {
   private const val KEY_STATE_OWNER = "state_owner"
   private const val KEY_BACKFILLED = "backfilled"
   private const val KEY_SHARING = "sharing"
+  private const val KEY_FORGETTING_LOCATION = "forgetting_location"
 
   /** What belongs to one user and is swapped in and out of the shared preferences on sign-in. */
   private val PERSONAL_SET_KEYS: List<Preferences.Key<Set<String>>> =
@@ -60,6 +61,13 @@ object UserRegistry {
       PreferenceKeys.SELECTED_PATIENT_LISTS,
       PreferenceKeys.LIVE_PATIENT_IDS,
       PreferenceKeys.LIVE_TEMPORARY_IDS,
+    )
+
+  /** The location the user works at is theirs too: another user may not have access to it. */
+  private val PERSONAL_TEXT_KEYS: List<Preferences.Key<String>> =
+    listOf(
+      PreferenceKeys.LOCATION_ID,
+      PreferenceKeys.LOCATION_NAME,
     )
 
   private fun prefs(context: Context) =
@@ -109,6 +117,12 @@ object UserRegistry {
     if (owner != user) {
       swapPersonalState(context, from = owner, to = user)
     }
+    if (!isRememberingLocation(context, user)) {
+      // Asked again after this login, like on the first one.
+      context.applicationContext.dataStore.edit { stored ->
+        PERSONAL_TEXT_KEYS.forEach { stored.remove(it) }
+      }
+    }
     preferences
       .edit()
       .putString(KEY_ACTIVE, user)
@@ -132,6 +146,25 @@ object UserRegistry {
     prefs(context)
       .edit()
       .putStringSet(KEY_SHARING, if (share) sharing + name else sharing - name)
+      .apply()
+  }
+
+  /**
+   * Whether [user] goes straight back to the location they used last time (the default) or is asked
+   * for the location after every login. Their choice, kept per user.
+   */
+  fun isRememberingLocation(context: Context, user: String?): Boolean {
+    val name = normalize(user) ?: return true
+    return name !in prefs(context).getStringSet(KEY_FORGETTING_LOCATION, emptySet()).orEmpty()
+  }
+
+  fun setRememberLocation(context: Context, user: String?, remember: Boolean) {
+    val name = normalize(user) ?: return
+    val forgetting =
+      prefs(context).getStringSet(KEY_FORGETTING_LOCATION, emptySet()).orEmpty().toSet()
+    prefs(context)
+      .edit()
+      .putStringSet(KEY_FORGETTING_LOCATION, if (remember) forgetting - name else forgetting + name)
       .apply()
   }
 
@@ -165,9 +198,19 @@ object UserRegistry {
         val saved = preferences.getStringSet(stateKey(to, key), null)
         if (saved != null) stored[key] = saved.toSet() else stored.remove(key)
       }
+      PERSONAL_TEXT_KEYS.forEach { key ->
+        val current = stored[key]
+        if (current != null) {
+          editor.putString(stateKey(from, key), current)
+        } else {
+          editor.remove(stateKey(from, key))
+        }
+        val saved = preferences.getString(stateKey(to, key), null)
+        if (saved != null) stored[key] = saved else stored.remove(key)
+      }
     }
     editor.apply()
   }
 
-  private fun stateKey(user: String, key: Preferences.Key<Set<String>>) = "state:$user:${key.name}"
+  private fun stateKey(user: String, key: Preferences.Key<*>) = "state:$user:${key.name}"
 }

@@ -18,6 +18,14 @@ With the default (data is deleted at log out) nothing stays for anyone and none 
 * **Their own patient lists and live patients.** The selected patient lists and the patients
   brought by the live search are the user's: signing in as another user puts that user's in place
   (a new user starts with none) and keeps the previous user's for when they come back.
+* **Their own location.** The location chosen after login belongs to the user too. A user who
+  signs in on a device where another user chose a location is asked for theirs (they may have no
+  access to the other one); the location a user used last is kept for them and put back when they
+  return. **Settings > Shared device > "Remember my location"** (per user, on by default): on, a
+  user goes straight back to their last location after login; off, they are asked for the location
+  after every login. How: the location keys are swapped with the patient lists when the signed-in
+  user changes, and removed at login for a user who turned the setting off, so the existing "no
+  location yet" flow runs.
 * **Who still has something to upload**, on the login page: a small cloud icon at the bottom, next
   to the server settings. A grey cloud with a tick means nothing is waiting; an amber cloud with an
   arrow and a red number means that many users have data on the device that has not reached the

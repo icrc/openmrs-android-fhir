@@ -124,6 +124,7 @@ object SettingsTestTags {
   const val KeepLivePatientsSwitch = "SettingsKeepLivePatientsSwitch"
   const val AutomaticVisitsSwitch = "SettingsAutomaticVisitsSwitch"
   const val ShareMyDataSwitch = "SettingsShareMyDataSwitch"
+  const val RememberLocationSwitch = "SettingsRememberLocationSwitch"
   const val FavoriteFormsButton = "SettingsFavoriteFormsButton"
   const val IdentifierTypesButton = "SettingsIdentifierTypesButton"
   const val FormSectionsButton = "SettingsFormSectionsButton"
@@ -185,6 +186,7 @@ fun SettingsScreen(
   onKeepLivePatientsToggle: (Boolean) -> Unit = {},
   onAutomaticVisitsToggle: (Boolean) -> Unit = {},
   onShareMyDataToggle: (Boolean) -> Unit = {},
+  onRememberLocationToggle: (Boolean) -> Unit = {},
   favoriteFormOptions: List<FormItem>? = null,
   favoriteFormIds: List<String> = emptyList(),
   onFavoriteFormsSaved: ((List<String>) -> Unit)? = null,
@@ -317,6 +319,14 @@ fun SettingsScreen(
             checked = uiState.shareMyData,
             onCheckedChange = onShareMyDataToggle,
             testTag = SettingsTestTags.ShareMyDataSwitch,
+          )
+          HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+          SettingsSwitchRow(
+            label = stringResource(R.string.settings_remember_location),
+            description = stringResource(R.string.settings_remember_location_description),
+            checked = uiState.rememberLocation,
+            onCheckedChange = onRememberLocationToggle,
+            testTag = SettingsTestTags.RememberLocationSwitch,
           )
         }
       }
