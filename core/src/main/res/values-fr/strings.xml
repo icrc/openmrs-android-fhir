@@ -774,6 +774,17 @@
     <string name="sign_in_with_sso">Se connecter avec le SSO</string>
     <string name="sign_in_with_provider">Se connecter avec %1$s</string>
     <string name="login_or">ou</string>
+    <string name="settings_section_shared_device">Appareil partagé</string>
+    <string name="settings_share_my_data">Laisser les autres utilisateurs voir mes données enregistrées</string>
+    <string name="settings_share_my_data_description">Connecté en tant que %1$s. Désactivé par défaut. Désactivé : les autres utilisateurs qui se connectent sur cet appareil ne voient pas les patients que vous avez enregistrés ou téléchargés ici, sauf s\'ils y ont accès et les téléchargent eux-mêmes. Activé : ils peuvent les voir. Ce réglage est personnel : chaque utilisateur a le sien.</string>
+    <string name="login_pending_icon_none">Rien n\'est en attente d\'envoi</string>
+    <string name="login_pending_icon_waiting">Données en attente d\'envoi : %1$d utilisateur(s)</string>
+    <string name="login_pending_title">En attente d\'envoi</string>
+    <string name="login_pending_message">Ces utilisateurs ont sur cet appareil des données qui n\'ont pas encore atteint le serveur. Connectez-vous avec l\'utilisateur, puis synchronisez, pour les envoyer.</string>
+    <string name="login_pending_none">Rien n\'est en attente d\'envoi. Tout ce qui est enregistré sur cet appareil a atteint le serveur.</string>
+    <string name="login_pending_counts">Patients : %1$d · Enregistrements : %2$d</string>
+    <string name="login_pending_records_only">Enregistrements : %1$d</string>
+    <string name="login_pending_use_user">Se connecter avec cet utilisateur</string>
     <string name="continue_without_login_hint">Enregistrez des patients et remplissez les formulaires hors ligne. La connexion vous sera demandée à la synchronisation.</string>
     <string name="sign_in_to_sync_title">Se connecter pour synchroniser</string>
     <string name="sign_in_to_sync_message">Pour envoyer les patients et formulaires saisis, connectez-vous d\u2019abord. Tout ce que vous avez saisi reste sur cet appareil.</string>

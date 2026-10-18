@@ -712,6 +712,17 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="sign_in_with_sso">Sign in with SSO</string>
     <string name="sign_in_with_provider">Sign in with %1$s</string>
     <string name="login_or">or</string>
+    <string name="settings_section_shared_device">Shared device</string>
+    <string name="settings_share_my_data">Let other users see my registered data</string>
+    <string name="settings_share_my_data_description">Signed in as %1$s. Off by default. When off, other users who sign in on this device cannot see the patients you registered or downloaded here, unless they have access to them and download them themselves. When on, they can see them. This setting is yours only: each user has their own.</string>
+    <string name="login_pending_icon_none">Nothing is waiting to upload</string>
+    <string name="login_pending_icon_waiting">Data waiting to upload: %1$d user(s)</string>
+    <string name="login_pending_title">Waiting to upload</string>
+    <string name="login_pending_message">These users have data on this device that has not reached the server yet. Log in as the user, then sync, to send it.</string>
+    <string name="login_pending_none">Nothing is waiting to upload. Everything saved on this device has reached the server.</string>
+    <string name="login_pending_counts">Patients: %1$d · Records: %2$d</string>
+    <string name="login_pending_records_only">Records: %1$d</string>
+    <string name="login_pending_use_user">Log in as this user</string>
     <string name="continue_without_login_hint">Register patients and fill the forms offline. You will be asked to sign in when you sync.</string>
     <string name="sign_in_to_sync_title">Sign in to sync</string>
     <string name="sign_in_to_sync_message">To upload the patients and forms you entered, sign in first. Everything you entered stays on this device.</string>

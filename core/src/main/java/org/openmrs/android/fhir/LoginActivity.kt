@@ -39,6 +39,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -134,6 +135,7 @@ class LoginActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     (application as FhirApplication).appComponent.inject(this)
     setContent {
+      val pendingUsers by viewModel.pendingUsers.collectAsState()
       OpenMrsTheme {
         LoginScreen(
           showBasic = showBasic,
@@ -141,6 +143,7 @@ class LoginActivity : AppCompatActivity() {
           uiState = loginUiState,
           isSsoEnabled = ssoAction != SsoAction.Disabled,
           initialUsername = viewModel.lastUsername,
+          pendingUsers = pendingUsers,
           onBasicLogin = { username, password -> viewModel.login(username, password) },
           onSsoLogin = ::onSsoLoginClick,
           ssoProviderName = AppConfig.get(this@LoginActivity).sso?.providerName.orEmpty(),

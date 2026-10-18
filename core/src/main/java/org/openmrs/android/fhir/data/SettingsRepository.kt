@@ -32,6 +32,7 @@ import android.content.Context
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import org.openmrs.android.fhir.DemoDataStore
+import org.openmrs.android.fhir.multiuser.UserRegistry
 
 interface SettingsRepository {
   suspend fun getNetworkStatusVisible(): Boolean
@@ -65,6 +66,14 @@ interface SettingsRepository {
   suspend fun getAutomaticVisits(): Boolean = true
 
   suspend fun setAutomaticVisits(automatic: Boolean) {}
+
+  /** The user signed in now (none for a guest): the setting below is theirs. */
+  suspend fun getSignedInUser(): String? = null
+
+  /** Whether the signed-in user lets the other users of the device see the patients they have. */
+  suspend fun getShareMyData(): Boolean = false
+
+  suspend fun setShareMyData(share: Boolean) {}
 }
 
 class DemoSettingsRepository
@@ -72,6 +81,7 @@ class DemoSettingsRepository
 constructor(
   context: Context,
 ) : SettingsRepository {
+  private val appContext = context.applicationContext
   private val dataStore = DemoDataStore(context)
 
   override suspend fun getNetworkStatusVisible(): Boolean {
@@ -136,6 +146,15 @@ constructor(
 
   override suspend fun setAutomaticVisits(automatic: Boolean) {
     dataStore.setAutomaticVisits(automatic)
+  }
+
+  override suspend fun getSignedInUser(): String? = UserRegistry.active(appContext)
+
+  override suspend fun getShareMyData(): Boolean =
+    UserRegistry.isSharing(appContext, UserRegistry.active(appContext))
+
+  override suspend fun setShareMyData(share: Boolean) {
+    UserRegistry.setSharing(appContext, UserRegistry.active(appContext), share)
   }
 
   private companion object {

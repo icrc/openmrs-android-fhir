@@ -123,6 +123,7 @@ object SettingsTestTags {
   const val LiveModeSwitch = "SettingsLiveModeSwitch"
   const val KeepLivePatientsSwitch = "SettingsKeepLivePatientsSwitch"
   const val AutomaticVisitsSwitch = "SettingsAutomaticVisitsSwitch"
+  const val ShareMyDataSwitch = "SettingsShareMyDataSwitch"
   const val FavoriteFormsButton = "SettingsFavoriteFormsButton"
   const val IdentifierTypesButton = "SettingsIdentifierTypesButton"
   const val FormSectionsButton = "SettingsFormSectionsButton"
@@ -183,6 +184,7 @@ fun SettingsScreen(
   onLiveModeToggle: (Boolean) -> Unit = {},
   onKeepLivePatientsToggle: (Boolean) -> Unit = {},
   onAutomaticVisitsToggle: (Boolean) -> Unit = {},
+  onShareMyDataToggle: (Boolean) -> Unit = {},
   favoriteFormOptions: List<FormItem>? = null,
   favoriteFormIds: List<String> = emptyList(),
   onFavoriteFormsSaved: ((List<String>) -> Unit)? = null,
@@ -304,6 +306,19 @@ fun SettingsScreen(
           onCheckedChange = onAutomaticVisitsToggle,
           testTag = SettingsTestTags.AutomaticVisitsSwitch,
         )
+      }
+
+      // Only a signed-in user has data of their own to share (a guest has none to hide).
+      uiState.signedInUser?.let { user ->
+        SettingsSection(title = stringResource(R.string.settings_section_shared_device)) {
+          SettingsSwitchRow(
+            label = stringResource(R.string.settings_share_my_data),
+            description = stringResource(R.string.settings_share_my_data_description, user),
+            checked = uiState.shareMyData,
+            onCheckedChange = onShareMyDataToggle,
+            testTag = SettingsTestTags.ShareMyDataSwitch,
+          )
+        }
       }
 
       if (onResetOfflineLoginClicked != null) {

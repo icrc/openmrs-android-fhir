@@ -686,6 +686,17 @@
     <string name="sign_in_with_sso">تسجيل الدخول عبر SSO</string>
     <string name="sign_in_with_provider">تسجيل الدخول عبر %1$s</string>
     <string name="login_or">أو</string>
+    <string name="settings_section_shared_device">جهاز مشترك</string>
+    <string name="settings_share_my_data">السماح للمستخدمين الآخرين برؤية بياناتي المسجلة</string>
+    <string name="settings_share_my_data_description">تم تسجيل الدخول باسم %1$s. متوقف افتراضياً. عند الإيقاف، لن يرى المستخدمون الآخرون الذين يسجلون الدخول على هذا الجهاز المرضى الذين سجلتهم أو نزّلتهم هنا، إلا إذا كانت لديهم صلاحية الوصول إليهم وقاموا بتنزيلهم بأنفسهم. عند التشغيل، يمكنهم رؤيتهم. هذا الإعداد خاص بك: لكل مستخدم إعداده الخاص.</string>
+    <string name="login_pending_icon_none">لا شيء في انتظار الرفع</string>
+    <string name="login_pending_icon_waiting">بيانات في انتظار الرفع: %1$d مستخدم</string>
+    <string name="login_pending_title">في انتظار الرفع</string>
+    <string name="login_pending_message">لدى هؤلاء المستخدمين بيانات على هذا الجهاز لم تصل إلى الخادم بعد. سجّل الدخول بهذا المستخدم ثم زامن لإرسالها.</string>
+    <string name="login_pending_none">لا شيء في انتظار الرفع. كل ما حُفظ على هذا الجهاز وصل إلى الخادم.</string>
+    <string name="login_pending_counts">المرضى: %1$d · السجلات: %2$d</string>
+    <string name="login_pending_records_only">السجلات: %1$d</string>
+    <string name="login_pending_use_user">تسجيل الدخول بهذا المستخدم</string>
     <string name="continue_without_login_hint">سجّل المرضى واملأ النماذج دون اتصال. سيُطلب منك تسجيل الدخول عند المزامنة.</string>
     <string name="sign_in_to_sync_title">سجّل الدخول للمزامنة</string>
     <string name="sign_in_to_sync_message">لرفع المرضى والنماذج التي أدخلتها، سجّل الدخول أولاً. كل ما أدخلته يبقى على هذا الجهاز.</string>

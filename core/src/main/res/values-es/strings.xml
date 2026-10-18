@@ -748,6 +748,17 @@
     <string name="sign_in_with_sso">Iniciar sesión con SSO</string>
     <string name="sign_in_with_provider">Iniciar sesión con %1$s</string>
     <string name="login_or">o</string>
+    <string name="settings_section_shared_device">Dispositivo compartido</string>
+    <string name="settings_share_my_data">Permitir que otros usuarios vean mis datos registrados</string>
+    <string name="settings_share_my_data_description">Sesión iniciada como %1$s. Desactivado por defecto. Desactivado: los demás usuarios que inicien sesión en este dispositivo no verán los pacientes que usted registró o descargó aquí, salvo que tengan acceso a ellos y los descarguen por su cuenta. Activado: podrán verlos. Este ajuste es personal: cada usuario tiene el suyo.</string>
+    <string name="login_pending_icon_none">Nada pendiente de subir</string>
+    <string name="login_pending_icon_waiting">Datos pendientes de subir: %1$d usuario(s)</string>
+    <string name="login_pending_title">Pendiente de subir</string>
+    <string name="login_pending_message">Estos usuarios tienen datos en este dispositivo que aún no han llegado al servidor. Inicie sesión con el usuario y sincronice para enviarlos.</string>
+    <string name="login_pending_none">No hay nada pendiente de subir. Todo lo guardado en este dispositivo ya llegó al servidor.</string>
+    <string name="login_pending_counts">Pacientes: %1$d · Registros: %2$d</string>
+    <string name="login_pending_records_only">Registros: %1$d</string>
+    <string name="login_pending_use_user">Iniciar sesión con este usuario</string>
     <string name="continue_without_login_hint">Registre pacientes y complete los formularios sin conexión. Se le pedirá iniciar sesión al sincronizar.</string>
     <string name="sign_in_to_sync_title">Inicie sesión para sincronizar</string>
     <string name="sign_in_to_sync_message">Para subir los pacientes y formularios que ingresó, inicie sesión primero. Todo lo que ingresó permanece en este dispositivo.</string>

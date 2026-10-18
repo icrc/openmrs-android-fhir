@@ -52,6 +52,9 @@ data class SettingsUiState(
   val isLiveModeEnabled: Boolean = false,
   val keepLivePatients: Boolean = true,
   val automaticVisits: Boolean = true,
+  /** The user signed in now; the sharing setting is theirs. None for a guest. */
+  val signedInUser: String? = null,
+  val shareMyData: Boolean = false,
   val isInitialSyncInProgress: Boolean = false,
 )
 
@@ -116,6 +119,10 @@ constructor(
     _uiState.update { it.copy(automaticVisits = automatic) }
   }
 
+  fun onShareMyDataToggle(share: Boolean) {
+    _uiState.update { it.copy(shareMyData = share) }
+  }
+
   fun onPeriodicSyncDelaySelected(minutes: Int) {
     _uiState.update { it.copy(periodicSyncDelayMinutes = minutes) }
   }
@@ -131,6 +138,9 @@ constructor(
       settingsRepository.setLiveModeEnabled(currentState.isLiveModeEnabled)
       settingsRepository.setKeepLivePatients(currentState.keepLivePatients)
       settingsRepository.setAutomaticVisits(currentState.automaticVisits)
+      if (currentState.signedInUser != null) {
+        settingsRepository.setShareMyData(currentState.shareMyData)
+      }
       _events.emit(SettingsEvent.SettingsSaved)
     }
   }
@@ -148,6 +158,7 @@ constructor(
         isLiveModeEnabled = defaults.isLiveModeEnabled,
         keepLivePatients = defaults.keepLivePatients,
         automaticVisits = defaults.automaticVisits,
+        shareMyData = defaults.shareMyData,
       )
     }
     viewModelScope.launch {
@@ -159,6 +170,9 @@ constructor(
       settingsRepository.setLiveModeEnabled(defaults.isLiveModeEnabled)
       settingsRepository.setKeepLivePatients(defaults.keepLivePatients)
       settingsRepository.setAutomaticVisits(defaults.automaticVisits)
+      if (uiState.value.signedInUser != null) {
+        settingsRepository.setShareMyData(defaults.shareMyData)
+      }
       _events.emit(SettingsEvent.SettingsReset)
     }
   }
@@ -190,6 +204,8 @@ constructor(
     val liveModeEnabled = settingsRepository.getLiveModeEnabled()
     val keepLivePatients = settingsRepository.getKeepLivePatients()
     val automaticVisits = settingsRepository.getAutomaticVisits()
+    val signedInUser = settingsRepository.getSignedInUser()
+    val shareMyData = settingsRepository.getShareMyData()
     _uiState.update {
       it.copy(
         isNetworkStatusVisible = networkStatusVisible,
@@ -200,6 +216,8 @@ constructor(
         isLiveModeEnabled = liveModeEnabled,
         keepLivePatients = keepLivePatients,
         automaticVisits = automaticVisits,
+        signedInUser = signedInUser,
+        shareMyData = shareMyData,
       )
     }
   }

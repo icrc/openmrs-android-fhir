@@ -70,8 +70,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,6 +94,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.data.database.model.PendingUser
 import org.openmrs.android.fhir.extensions.isAppInDarkTheme
 import org.openmrs.android.fhir.viewmodel.LoginUiState
 
@@ -105,6 +108,7 @@ private fun LoginFrame(
   screenTag: String,
   modifier: Modifier = Modifier,
   showServerSettings: Boolean = false,
+  footerActions: @Composable () -> Unit = {},
   content: @Composable ColumnScope.() -> Unit,
 ) {
   val context = LocalContext.current
@@ -149,6 +153,7 @@ private fun LoginFrame(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.weight(1f).testTag("LoginVersion"),
       )
+      footerActions()
       IconButton(
         onClick = { showServerDialog = true },
         modifier = Modifier.size(40.dp).testTag("ServerSettingsButton"),
@@ -232,18 +237,40 @@ fun LoginScreen(
   ssoProviderName: String? = null,
   initialUsername: String = "",
   onContinueWithoutLogin: (() -> Unit)? = null,
+  /** The users with data on the device waiting to upload; `null` while not known. */
+  pendingUsers: List<PendingUser>? = null,
 ) {
+  var username by rememberSaveable { mutableStateOf(initialUsername) }
+  // Counts the "log in as" choices, so the password field takes the focus after each one.
+  var usernameChosen by remember { mutableIntStateOf(0) }
   LoginFrame(
     logoTag = "LoginLogo",
     screenTag = "LoginScreen",
     modifier = modifier,
     showServerSettings = showBasic,
+    footerActions = {
+      PendingUploadsButton(
+        pendingUsers = pendingUsers,
+        onUseUser =
+          if (showBasic) {
+            { chosen ->
+              username = chosen
+              usernameChosen++
+            }
+          } else {
+            null
+          },
+      )
+    },
   ) {
     if (showBasic) {
       BasicLoginForm(
         uiState = uiState,
         onLoginClick = onBasicLogin,
+        username = username,
+        onUsernameChange = { username = it },
         initialUsername = initialUsername,
+        usernameChosen = usernameChosen,
       )
     }
     if (showBasic && showSso) {
@@ -267,9 +294,11 @@ fun LoginScreen(
 private fun ColumnScope.BasicLoginForm(
   uiState: LoginUiState,
   onLoginClick: (String, String) -> Unit,
+  username: String,
+  onUsernameChange: (String) -> Unit,
   initialUsername: String = "",
+  usernameChosen: Int = 0,
 ) {
-  var username by remember { mutableStateOf(initialUsername) }
   var password by remember { mutableStateOf("") }
   var isPasswordVisible by remember { mutableStateOf(false) }
   val passwordFocus = remember { FocusRequester() }
@@ -277,6 +306,13 @@ private fun ColumnScope.BasicLoginForm(
 
   // A remembered username leaves only the password to type.
   LaunchedEffect(Unit) { if (initialUsername.isNotEmpty()) passwordFocus.requestFocus() }
+  // A username picked from the list of users with data waiting: only the password is left.
+  LaunchedEffect(usernameChosen) {
+    if (usernameChosen > 0) {
+      password = ""
+      passwordFocus.requestFocus()
+    }
+  }
 
   if (isLoading) {
     LinearProgressIndicator(
@@ -285,7 +321,7 @@ private fun ColumnScope.BasicLoginForm(
   }
   OutlinedTextField(
     value = username,
-    onValueChange = { username = it },
+    onValueChange = onUsernameChange,
     modifier = Modifier.fillMaxWidth().testTag("BasicLoginUsername"),
     label = { Text(text = stringResource(id = R.string.username)) },
     leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = null) },

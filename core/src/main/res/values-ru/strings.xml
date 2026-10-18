@@ -761,6 +761,17 @@
     <string name="sign_in_with_sso">Войти через SSO</string>
     <string name="sign_in_with_provider">Войти через %1$s</string>
     <string name="login_or">или</string>
+    <string name="settings_section_shared_device">Общее устройство</string>
+    <string name="settings_share_my_data">Разрешить другим пользователям видеть мои зарегистрированные данные</string>
+    <string name="settings_share_my_data_description">Вы вошли как %1$s. По умолчанию выключено. Если выключено, другие пользователи, входящие на этом устройстве, не увидят пациентов, которых вы зарегистрировали или загрузили здесь, если только у них нет к ним доступа и они не загрузят их сами. Если включено, они смогут их видеть. Эта настройка личная: у каждого пользователя своя.</string>
+    <string name="login_pending_icon_none">Нет данных, ожидающих отправки</string>
+    <string name="login_pending_icon_waiting">Данные ожидают отправки: пользователей — %1$d</string>
+    <string name="login_pending_title">Ожидает отправки</string>
+    <string name="login_pending_message">У этих пользователей на устройстве есть данные, которые ещё не попали на сервер. Войдите под этим пользователем и выполните синхронизацию, чтобы отправить их.</string>
+    <string name="login_pending_none">Ничего не ожидает отправки. Всё сохранённое на этом устройстве уже передано на сервер.</string>
+    <string name="login_pending_counts">Пациенты: %1$d · Записи: %2$d</string>
+    <string name="login_pending_records_only">Записи: %1$d</string>
+    <string name="login_pending_use_user">Войти под этим пользователем</string>
     <string name="continue_without_login_hint">Регистрируйте пациентов и заполняйте формы без подключения. При синхронизации потребуется войти.</string>
     <string name="sign_in_to_sync_title">Войдите, чтобы синхронизировать</string>
     <string name="sign_in_to_sync_message">Чтобы отправить введённых пациентов и формы, сначала войдите. Всё введённое останется на этом устройстве.</string>
