@@ -831,4 +831,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="pending_sessions_title">Pending sessions</string>
     <string name="pending_sessions_message">Several group sessions are waiting. Choose the one you want to resume.</string>
     <string name="pending_session_detail">%1$s · %2$s</string>
+    <string name="create_encounter_subtitle">Choose a form to start</string>
+    <string name="create_group_encounter_subtitle">Choose a form, then the patients</string>
 </resources>

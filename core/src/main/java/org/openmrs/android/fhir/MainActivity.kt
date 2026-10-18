@@ -43,6 +43,7 @@ import android.os.Looper
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.VisibleForTesting
@@ -102,7 +103,6 @@ import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.data.transfer.DataTransfer
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
-import org.openmrs.android.fhir.extensions.AppBarInsets
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.ClearDataOnLogoutStore
 import org.openmrs.android.fhir.extensions.FormEngineWarmUp
@@ -184,7 +184,8 @@ class MainActivity : AppCompatActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     // Same window mode on every API level: the compose app bar already pads for the status bar.
-    enableEdgeToEdge()
+    // The app bar is dark or brand-colored behind the status bar: light icons on it.
+    enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
     super.onCreate(savedInstanceState)
     FormEngineWarmUp.start(this)
     Thread.setDefaultUncaughtExceptionHandler(
@@ -293,6 +294,8 @@ class MainActivity : AppCompatActivity() {
     }
     lifecycleScope.launch {
       waitForNavController()?.addOnDestinationChangedListener { _, destination, arguments ->
+        // A screen that wants a subtitle sets it once it is created, after this.
+        supportActionBar?.subtitle = null
         bottomBarSelection.value =
           topLevelDestinationFor(
             destinationId = destination.id,
@@ -508,13 +511,6 @@ class MainActivity : AppCompatActivity() {
       return
     }
     this.toolbar = toolbar
-    // The drawer lays its overlay out full height, so the toolbar's own bottom edge is the real
-    // height of the app bar that screens have to pad for.
-    toolbar.addOnLayoutChangeListener { view, _, _, _, _, _, _, _, _ ->
-      val location = IntArray(2)
-      view.getLocationInWindow(location)
-      AppBarInsets.heightPx.value = location[1] + view.height
-    }
     setSupportActionBar(toolbar)
     updateToolbarNavigationIcon()
     toolbar.setNavigationOnClickListener {
@@ -547,6 +543,14 @@ class MainActivity : AppCompatActivity() {
     val drawable =
       DrawerArrowDrawable(this).apply {
         progress = if (viewModel.uiState.value.drawerEnabled) 0f else 1f
+        // The color of the bar's icons (its own theme): white on the brand color.
+        toolbar?.let {
+          color =
+            com.google.android.material.color.MaterialColors.getColor(
+              it,
+              androidx.appcompat.R.attr.colorControlNormal,
+            )
+        }
       }
     // Through the action bar, not the toolbar: enabling "home as up" makes it draw its own default
     // arrow over anything set on the toolbar directly.

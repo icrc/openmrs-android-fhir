@@ -873,4 +873,6 @@
     <string name="pending_sessions_title">Sesiones pendientes</string>
     <string name="pending_sessions_message">Hay varias sesiones grupales pendientes. Elija la que desea reanudar.</string>
     <string name="pending_session_detail">%1$s · %2$s</string>
+    <string name="create_encounter_subtitle">Elija un formulario para comenzar</string>
+    <string name="create_group_encounter_subtitle">Elija un formulario y luego los pacientes</string>
 </resources>

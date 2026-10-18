@@ -819,4 +819,6 @@
     <string name="pending_sessions_title">جلسات معلّقة</string>
     <string name="pending_sessions_message">هناك عدة جلسات جماعية معلّقة. اختر الجلسة التي تريد استئنافها.</string>
     <string name="pending_session_detail">%1$s · %2$s</string>
+    <string name="create_encounter_subtitle">اختر نموذجاً للبدء</string>
+    <string name="create_group_encounter_subtitle">اختر نموذجاً ثم المرضى</string>
 </resources>

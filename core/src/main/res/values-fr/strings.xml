@@ -901,4 +901,6 @@
     <string name="pending_sessions_title">Sessions en cours</string>
     <string name="pending_sessions_message">Plusieurs sessions de groupe sont en attente. Choisissez celle à reprendre.</string>
     <string name="pending_session_detail">%1$s · %2$s</string>
+    <string name="create_encounter_subtitle">Choisissez un formulaire pour commencer</string>
+    <string name="create_group_encounter_subtitle">Choisissez un formulaire, puis les patients</string>
 </resources>

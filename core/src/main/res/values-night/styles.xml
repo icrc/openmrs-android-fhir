@@ -61,4 +61,7 @@
 
       <item name="colorOutline">@color/outline_neutral_variant_60</item>
     </style>
+    <style name="ThemeOverlay.OpenMrs.Toolbar" parent="">
+        <item name="colorControlNormal">?attr/colorOnSurface</item>
+    </style>
 </resources>

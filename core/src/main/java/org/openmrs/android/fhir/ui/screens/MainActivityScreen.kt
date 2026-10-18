@@ -29,6 +29,7 @@
 package org.openmrs.android.fhir.ui.screens
 
 import android.os.Build
+import android.view.ContextThemeWrapper
 import android.view.ViewGroup
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
@@ -97,6 +98,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -108,6 +111,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.material.appbar.MaterialToolbar
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import org.openmrs.android.fhir.extensions.AppBarInsets
+import org.openmrs.android.fhir.extensions.isAppInDarkTheme
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.components.AutoSyncDelayDialog
 import org.openmrs.android.fhir.ui.components.DrawerHeader
@@ -153,46 +158,57 @@ fun MainActivityScaffold(
   onResetAutoSyncTimer: () -> Unit = {},
 ) {
   var showDelayDialog by rememberSaveable { mutableStateOf(false) }
-  // One bar: the surface color runs up behind the status bar, with the connection strip and the
-  // toolbar inside it and a soft shadow underneath.
+  // One bar: the brand color runs up behind the status bar (a dark surface in the night theme)
+  // with the toolbar on it and, under it, the connection strip, and a soft shadow underneath.
   // The drawer lays this view out at full height; only the bar itself may take space and paint.
+  val dark = isAppInDarkTheme()
+  val barColor =
+    if (dark) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.primary
+  val barContent =
+    if (dark) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
   Surface(
-    modifier = modifier.fillMaxWidth().wrapContentHeight(Alignment.Top),
-    color = MaterialTheme.colorScheme.surface,
+    modifier =
+      modifier.fillMaxWidth().wrapContentHeight(Alignment.Top).onGloballyPositioned { bounds ->
+        // Screens under the bar pad by what is really there: the toolbar and the strip.
+        AppBarInsets.heightPx.value = (bounds.positionInWindow().y + bounds.size.height).toInt()
+      },
+    color = barColor,
     shadowElevation = 3.dp,
   ) {
     Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
+      ToolbarHost(onToolbarReady = onToolbarReady, contentColor = barContent)
       if (isNetworkStatusVisible) {
-        val fraction =
-          if (syncProgress.total > 0) {
-            (syncProgress.current.toFloat() / syncProgress.total).coerceIn(0f, 1f)
-          } else {
-            null
-          }
-        val syncing = stringResource(id = R.string.syncing)
-        NetworkStatusBanner(
-          text = networkStatusText,
-          state = connectivityState,
-          syncText =
-            when {
-              !isSyncing -> null
-              fraction == null -> syncing
-              else ->
-                "$syncing · ${stringResource(id = R.string.sync_percent, (fraction * 100).toInt())}"
-            },
-          syncProgress = fraction,
-          nextSyncText =
-            nextSyncMinutes?.let {
-              if (it >= 60) {
-                stringResource(id = R.string.next_sync_in_hours, it / 60, it % 60)
-              } else {
-                stringResource(id = R.string.next_sync_in_minutes, it)
-              }
-            },
-          onDelayClick = if (nextSyncMinutes != null) ({ showDelayDialog = true }) else null,
-        )
+        Box(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)) {
+          val fraction =
+            if (syncProgress.total > 0) {
+              (syncProgress.current.toFloat() / syncProgress.total).coerceIn(0f, 1f)
+            } else {
+              null
+            }
+          val syncing = stringResource(id = R.string.syncing)
+          NetworkStatusBanner(
+            text = networkStatusText,
+            state = connectivityState,
+            syncText =
+              when {
+                !isSyncing -> null
+                fraction == null -> syncing
+                else ->
+                  "$syncing · ${stringResource(id = R.string.sync_percent, (fraction * 100).toInt())}"
+              },
+            syncProgress = fraction,
+            nextSyncText =
+              nextSyncMinutes?.let {
+                if (it >= 60) {
+                  stringResource(id = R.string.next_sync_in_hours, it / 60, it % 60)
+                } else {
+                  stringResource(id = R.string.next_sync_in_minutes, it)
+                }
+              },
+            onDelayClick = if (nextSyncMinutes != null) ({ showDelayDialog = true }) else null,
+          )
+        }
       }
-      ToolbarHost(onToolbarReady = onToolbarReady)
     }
   }
   if (showDelayDialog) {
@@ -348,15 +364,20 @@ private fun IconResource(@DrawableRes iconRes: Int) {
 private val TITLE_APPEARANCE =
   com.google.android.material.R.style.TextAppearance_Material3_TitleLarge
 
+private const val SUBTITLE_APPEARANCE =
+  com.google.android.material.R.style.TextAppearance_Material3_BodyMedium
+
 @Composable
-private fun ToolbarHost(onToolbarReady: (MaterialToolbar) -> Unit) {
+private fun ToolbarHost(onToolbarReady: (MaterialToolbar) -> Unit, contentColor: Color) {
   val context = LocalContext.current
   val toolbarState: MutableState<MaterialToolbar?> = remember { mutableStateOf(null) }
-  val titleColor = MaterialTheme.colorScheme.onSurface.toArgb()
+  val titleColor = contentColor.toArgb()
+  val subtitleColor = contentColor.copy(alpha = 0.85f).toArgb()
   AndroidView(
     modifier = Modifier.fillMaxWidth().testTag("MainToolbar"),
     factory = {
-      MaterialToolbar(context).apply {
+      // Its own theme, so the back arrow and the actions are drawn in the bar's content color.
+      MaterialToolbar(ContextThemeWrapper(context, R.style.ThemeOverlay_OpenMrs_Toolbar)).apply {
         id = R.id.toolbar
         layoutParams =
           ViewGroup.LayoutParams(
@@ -366,10 +387,12 @@ private fun ToolbarHost(onToolbarReady: (MaterialToolbar) -> Unit) {
         // The bar's surface is drawn by the composable around it.
         setBackgroundColor(android.graphics.Color.TRANSPARENT)
         setTitleTextAppearance(context, TITLE_APPEARANCE)
+        setSubtitleTextAppearance(context, SUBTITLE_APPEARANCE)
       }
     },
     update = { toolbar ->
       toolbar.setTitleTextColor(titleColor)
+      toolbar.setSubtitleTextColor(subtitleColor)
       if (toolbarState.value != toolbar) {
         toolbarState.value = toolbar
         onToolbarReady(toolbar)

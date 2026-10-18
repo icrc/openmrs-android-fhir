@@ -123,15 +123,7 @@ fun CreateEncounterScreen(
         .background(MaterialTheme.colorScheme.background)
         .testTag("CreateEncounterScreen"),
   ) {
-    Column(modifier = Modifier.fillMaxSize().padding(top = topInset + 8.dp)) {
-      Text(
-        modifier = Modifier.padding(horizontal = 20.dp).testTag("CreateEncounterHeadline"),
-        text = stringResource(id = R.string.create_encounter_fragment_headline),
-        style = MaterialTheme.typography.headlineSmall,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.onSurface,
-      )
-
+    Column(modifier = Modifier.fillMaxSize().padding(top = topInset)) {
       // A search box only helps once there are enough forms to scroll through.
       if (totalForms > SEARCH_THRESHOLD) {
         AppSearchField(

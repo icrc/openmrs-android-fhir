@@ -130,6 +130,16 @@ class CreateEncountersFragment : Fragment() {
         } else {
           requireContext().getString(R.string.create_encounter)
         }
+      // What to do here, in the bar, instead of a second title in the page.
+      subtitle =
+        requireContext()
+          .getString(
+            if (args.isGroupEncounter) {
+              R.string.create_group_encounter_subtitle
+            } else {
+              R.string.create_encounter_subtitle
+            },
+          )
       setDisplayHomeAsUpEnabled(true)
     }
     (requireActivity().application as FhirApplication).appComponent.inject(this)

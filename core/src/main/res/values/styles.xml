@@ -236,6 +236,11 @@
         <item name="colorOutline">@color/cb_outline</item>
     </style>
 
+    <!-- The icons of the app bar sit on the brand color (the bar is dark in the night theme). -->
+    <style name="ThemeOverlay.OpenMrs.Toolbar" parent="">
+        <item name="colorControlNormal">?attr/colorOnPrimary</item>
+    </style>
+
     <style name="CustomPatientTabLayout" parent="Widget.Material3.TabLayout">
         <!-- Set the TabLayout background to transparent so individual tab backgrounds are visible -->
         <item name="android:background">@android:color/transparent</item>

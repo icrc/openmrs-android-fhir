@@ -896,4 +896,6 @@
     <string name="pending_sessions_title">Незавершённые сеансы</string>
     <string name="pending_sessions_message">Ожидают несколько групповых сеансов. Выберите тот, который нужно продолжить.</string>
     <string name="pending_session_detail">%1$s · %2$s</string>
+    <string name="create_encounter_subtitle">Выберите форму, чтобы начать</string>
+    <string name="create_group_encounter_subtitle">Выберите форму, затем пациентов</string>
 </resources>
