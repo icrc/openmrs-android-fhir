@@ -797,4 +797,14 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="settings_reset_message">Every setting on this page goes back to its default value: appearance, language, notifications, synchronization, forms and favorites. Your patients, data and session are not affected.</string>
     <string name="settings_reset_confirm">Reset</string>
     <string name="settings_reset_done">Settings were reset to default</string>
+    <string name="auto_sync_delay_link">Delay</string>
+    <string name="auto_sync_delay_title">Delay the next sync</string>
+    <string name="auto_sync_delay_5_minutes">5 minutes</string>
+    <string name="auto_sync_delay_30_minutes">30 minutes</string>
+    <string name="auto_sync_delay_1_hour">1 hour</string>
+    <string name="auto_sync_delay_2_hours">2 hours</string>
+    <string name="auto_sync_turn_off">Turn off automatic sync</string>
+    <string name="auto_sync_turn_off_hint">You can turn it back on in Settings.</string>
+    <string name="auto_sync_turned_off">Automatic sync is off. Turn it back on in Settings.</string>
+    <string name="next_sync_in_hours">Next sync in %1$d h %2$d min</string>
 </resources>

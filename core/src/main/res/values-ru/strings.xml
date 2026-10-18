@@ -858,4 +858,14 @@
     <string name="settings_reset_message">Все настройки на этой странице вернутся к значениям по умолчанию: оформление, язык, уведомления, синхронизация, формы и избранное. Пациенты, данные и сеанс не затрагиваются.</string>
     <string name="settings_reset_confirm">Сбросить</string>
     <string name="settings_reset_done">Настройки сброшены</string>
+    <string name="auto_sync_delay_link">Отложить</string>
+    <string name="auto_sync_delay_title">Отложить следующую синхронизацию</string>
+    <string name="auto_sync_delay_5_minutes">5 минут</string>
+    <string name="auto_sync_delay_30_minutes">30 минут</string>
+    <string name="auto_sync_delay_1_hour">1 час</string>
+    <string name="auto_sync_delay_2_hours">2 часа</string>
+    <string name="auto_sync_turn_off">Отключить автоматическую синхронизацию</string>
+    <string name="auto_sync_turn_off_hint">Её можно снова включить в настройках.</string>
+    <string name="auto_sync_turned_off">Автоматическая синхронизация отключена. Включите её снова в настройках.</string>
+    <string name="next_sync_in_hours">Следующая синхронизация через %1$d ч %2$d мин</string>
 </resources>

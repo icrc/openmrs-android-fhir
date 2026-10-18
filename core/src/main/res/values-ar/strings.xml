@@ -777,4 +777,14 @@
     <string name="settings_reset_message">ستعود جميع الإعدادات في هذه الصفحة إلى قيمها الافتراضية: المظهر واللغة والإشعارات والمزامنة والنماذج والمفضلة. لا تتأثر بيانات المرضى وبياناتك وجلستك.</string>
     <string name="settings_reset_confirm">إعادة ضبط</string>
     <string name="settings_reset_done">تمت إعادة الإعدادات إلى الافتراضي</string>
+    <string name="auto_sync_delay_link">تأجيل</string>
+    <string name="auto_sync_delay_title">تأجيل المزامنة التالية</string>
+    <string name="auto_sync_delay_5_minutes">5 دقائق</string>
+    <string name="auto_sync_delay_30_minutes">30 دقيقة</string>
+    <string name="auto_sync_delay_1_hour">ساعة واحدة</string>
+    <string name="auto_sync_delay_2_hours">ساعتان</string>
+    <string name="auto_sync_turn_off">إيقاف المزامنة التلقائية</string>
+    <string name="auto_sync_turn_off_hint">يمكنك تشغيلها مجدداً من الإعدادات.</string>
+    <string name="auto_sync_turned_off">المزامنة التلقائية متوقفة. شغّلها مجدداً من الإعدادات.</string>
+    <string name="next_sync_in_hours">المزامنة التالية خلال %1$d س %2$d د</string>
 </resources>

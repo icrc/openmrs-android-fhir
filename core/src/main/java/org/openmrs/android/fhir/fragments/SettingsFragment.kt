@@ -275,7 +275,7 @@ class SettingsFragment : Fragment() {
     AuditLog.record(
       AuditAction.SETTINGS_CHANGED,
       AuditOutcome.SUCCESS,
-      "changed" to listOf("reset")
+      "changed" to listOf("reset"),
     )
     ThemeModeStore.set(context, ThemeMode.SYSTEM)
     AppLanguage.resetToDevice()

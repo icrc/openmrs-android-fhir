@@ -217,6 +217,24 @@ class MainActivity : AppCompatActivity() {
           isSyncing = uiState.isSyncing,
           syncProgress = uiState.syncProgressState,
           nextSyncMinutes = uiState.autoSyncCountdownMinutes,
+          onDelaySync = { minutes ->
+            viewModel.delayAutoSync(minutes)
+            AuditLog.record(
+              AuditAction.SYNC,
+              AuditOutcome.SUCCESS,
+              "state" to "delayed",
+              "minutes" to minutes,
+            )
+          },
+          onTurnOffAutoSync = {
+            viewModel.disableAutoSync()
+            AuditLog.record(
+              AuditAction.SETTINGS_CHANGED,
+              AuditOutcome.SUCCESS,
+              "changed" to listOf("auto_sync=false"),
+            )
+            AppMessage.show(this, R.string.auto_sync_turned_off, MessageKind.Info, long = true)
+          },
           onToolbarReady = ::configureToolbar,
         )
       }

@@ -865,4 +865,14 @@
     <string name="settings_reset_message">Tous les paramètres de cette page reviennent à leur valeur par défaut : apparence, langue, notifications, synchronisation, formulaires et favoris. Vos patients, vos données et votre session ne sont pas affectés.</string>
     <string name="settings_reset_confirm">Rétablir</string>
     <string name="settings_reset_done">Paramètres rétablis par défaut</string>
+    <string name="auto_sync_delay_link">Reporter</string>
+    <string name="auto_sync_delay_title">Reporter la prochaine synchronisation</string>
+    <string name="auto_sync_delay_5_minutes">5 minutes</string>
+    <string name="auto_sync_delay_30_minutes">30 minutes</string>
+    <string name="auto_sync_delay_1_hour">1 heure</string>
+    <string name="auto_sync_delay_2_hours">2 heures</string>
+    <string name="auto_sync_turn_off">Désactiver la synchronisation automatique</string>
+    <string name="auto_sync_turn_off_hint">Vous pourrez la réactiver dans les paramètres.</string>
+    <string name="auto_sync_turned_off">La synchronisation automatique est désactivée. Réactivez-la dans les paramètres.</string>
+    <string name="next_sync_in_hours">Prochaine synchro dans %1$d h %2$d min</string>
 </resources>

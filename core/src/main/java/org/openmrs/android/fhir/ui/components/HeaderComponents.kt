@@ -31,6 +31,7 @@ package org.openmrs.android.fhir.ui.components
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,7 +58,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
@@ -80,6 +84,7 @@ fun NetworkStatusBanner(
   syncText: String? = null,
   syncProgress: Float? = null,
   nextSyncText: String? = null,
+  onDelayClick: (() -> Unit)? = null,
 ) {
   val isSyncing = syncText != null
   val accent =
@@ -125,6 +130,22 @@ fun NetworkStatusBanner(
           color = MaterialTheme.colorScheme.onSurfaceVariant,
           maxLines = 1,
         )
+        if (onDelayClick != null) {
+          Text(
+            modifier =
+              Modifier.padding(start = 4.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .clickable(role = Role.Button, onClick = onDelayClick)
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .testTag("DelaySync"),
+            text = stringResource(R.string.auto_sync_delay_link),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+            textDecoration = TextDecoration.Underline,
+            maxLines = 1,
+          )
+        }
       }
     }
     if (isSyncing) {

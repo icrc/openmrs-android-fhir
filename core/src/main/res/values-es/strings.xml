@@ -837,4 +837,14 @@
     <string name="settings_reset_message">Todos los ajustes de esta página vuelven a su valor predeterminado: apariencia, idioma, notificaciones, sincronización, formularios y favoritos. Sus pacientes, datos y sesión no se ven afectados.</string>
     <string name="settings_reset_confirm">Restablecer</string>
     <string name="settings_reset_done">Ajustes restablecidos</string>
+    <string name="auto_sync_delay_link">Aplazar</string>
+    <string name="auto_sync_delay_title">Aplazar la próxima sincronización</string>
+    <string name="auto_sync_delay_5_minutes">5 minutos</string>
+    <string name="auto_sync_delay_30_minutes">30 minutos</string>
+    <string name="auto_sync_delay_1_hour">1 hora</string>
+    <string name="auto_sync_delay_2_hours">2 horas</string>
+    <string name="auto_sync_turn_off">Desactivar la sincronización automática</string>
+    <string name="auto_sync_turn_off_hint">Puede volver a activarla en los ajustes.</string>
+    <string name="auto_sync_turned_off">La sincronización automática está desactivada. Actívela de nuevo en los ajustes.</string>
+    <string name="next_sync_in_hours">Próxima sincronización en %1$d h %2$d min</string>
 </resources>

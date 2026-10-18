@@ -87,6 +87,8 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -107,6 +109,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
+import org.openmrs.android.fhir.ui.components.AutoSyncDelayDialog
 import org.openmrs.android.fhir.ui.components.DrawerHeader
 import org.openmrs.android.fhir.ui.components.NetworkStatusBanner
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
@@ -145,7 +148,10 @@ fun MainActivityScaffold(
   isSyncing: Boolean = false,
   syncProgress: SyncProgressState = SyncProgressState(0, 0),
   nextSyncMinutes: Int? = null,
+  onDelaySync: (minutes: Int) -> Unit = {},
+  onTurnOffAutoSync: () -> Unit = {},
 ) {
+  var showDelayDialog by rememberSaveable { mutableStateOf(false) }
   // One bar: the surface color runs up behind the status bar, with the connection strip and the
   // toolbar inside it and a soft shadow underneath.
   // The drawer lays this view out at full height; only the bar itself may take space and paint.
@@ -175,11 +181,31 @@ fun MainActivityScaffold(
             },
           syncProgress = fraction,
           nextSyncText =
-            nextSyncMinutes?.let { stringResource(id = R.string.next_sync_in_minutes, it) },
+            nextSyncMinutes?.let {
+              if (it >= 60) {
+                stringResource(id = R.string.next_sync_in_hours, it / 60, it % 60)
+              } else {
+                stringResource(id = R.string.next_sync_in_minutes, it)
+              }
+            },
+          onDelayClick = if (nextSyncMinutes != null) ({ showDelayDialog = true }) else null,
         )
       }
       ToolbarHost(onToolbarReady = onToolbarReady)
     }
+  }
+  if (showDelayDialog) {
+    AutoSyncDelayDialog(
+      onDelay = {
+        showDelayDialog = false
+        onDelaySync(it)
+      },
+      onTurnOff = {
+        showDelayDialog = false
+        onTurnOffAutoSync()
+      },
+      onDismiss = { showDelayDialog = false },
+    )
   }
 }
 

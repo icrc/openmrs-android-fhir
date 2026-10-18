@@ -53,7 +53,6 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -68,6 +67,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.hl7.fhir.r4.model.Patient
 import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.R
@@ -470,16 +470,26 @@ constructor(
     }
   }
 
+  /** When the running countdown is due; moved later by [delayAutoSync]. */
+  private var autoSyncDueAt: Long? = null
+  private val autoSyncWake = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
   private suspend fun runAutoSyncCountdown(intervalMinutes: Int) {
-    val dueAt = System.currentTimeMillis() + intervalMinutes.coerceAtLeast(1) * MILLIS_PER_MINUTE
+    autoSyncDueAt =
+      System.currentTimeMillis() + intervalMinutes.coerceAtLeast(1) * MILLIS_PER_MINUTE
     while (true) {
+      val dueAt = autoSyncDueAt ?: break
       val remaining = dueAt - System.currentTimeMillis()
       if (remaining <= 0) break
       setAutoSyncCountdown(((remaining + MILLIS_PER_MINUTE - 1) / MILLIS_PER_MINUTE).toInt())
-      // Wake up on the minute, not every second: the banner only shows minutes.
+      // Wake up on the minute, not every second: the banner only shows minutes. A delay asked by
+      // the user wakes it at once, so the banner shows the new time.
       val untilNextMinute = remaining % MILLIS_PER_MINUTE
-      delay(if (untilNextMinute == 0L) MILLIS_PER_MINUTE else untilNextMinute + 50)
+      withTimeoutOrNull(if (untilNextMinute == 0L) MILLIS_PER_MINUTE else untilNextMinute + 50) {
+        autoSyncWake.first()
+      }
     }
+    autoSyncDueAt = null
     setAutoSyncCountdown(null)
     // Once started, the attempt must not be cut short by the state changes it causes itself.
     withContext(NonCancellable) { attemptAutoSync() }
@@ -512,6 +522,18 @@ constructor(
       SessionStatus.Invalid -> _uiState.update { it.copy(isSessionPromptPending = true) }
       SessionStatus.Unknown -> Timber.w("Automatic sync skipped: the session could not be checked")
     }
+  }
+
+  /** Pushes the next automatic sync back by [minutes]; nothing happens if none is counting. */
+  fun delayAutoSync(minutes: Int) {
+    val dueAt = autoSyncDueAt ?: return
+    autoSyncDueAt = dueAt + minutes * MILLIS_PER_MINUTE
+    autoSyncWake.tryEmit(Unit)
+  }
+
+  /** The same switch as "Sync automatically" in the settings. */
+  fun disableAutoSync() {
+    viewModelScope.launch { demoDataStore.setAutoSyncEnabled(false) }
   }
 
   /** The user signed in (again): count from scratch. */
