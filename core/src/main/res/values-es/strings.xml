@@ -706,6 +706,9 @@
     <string name="change_location">Cambiar ubicación</string>
     <string name="settings_section_general">General</string>
     <string name="settings_section_sync">Sincronización</string>
+    <string name="settings_section_live">Modo en vivo</string>
+    <string name="settings_live_keep_patients">Conservar en este dispositivo los pacientes del servidor</string>
+    <string name="settings_live_keep_patients_description">Activado: un paciente abierto desde el servidor se queda en este dispositivo y puede usarse sin conexión. Desactivado: el paciente se elimina del dispositivo al salir de él; lo que aún no se ha enviado se conserva hasta que se envíe.</string>
     <string name="settings_section_forms">Formularios</string>
     <string name="settings_initial_sync_description">Ejecuta ahora una sincronización completa con el servidor.</string>
     <string name="settings_section_appearance">Apariencia</string>

@@ -719,6 +719,9 @@
     <string name="change_location">Сменить местоположение</string>
     <string name="settings_section_general">Общие</string>
     <string name="settings_section_sync">Синхронизация</string>
+    <string name="settings_section_live">Режим онлайн</string>
+    <string name="settings_live_keep_patients">Сохранять пациентов с сервера на этом устройстве</string>
+    <string name="settings_live_keep_patients_description">Включено: пациент, открытый с сервера, остаётся на этом устройстве и доступен без связи. Выключено: пациент удаляется с устройства, когда вы его закрываете; то, что ещё не отправлено, сохраняется до отправки.</string>
     <string name="settings_section_forms">Формы</string>
     <string name="settings_initial_sync_description">Запустить полную синхронизацию с сервером сейчас.</string>
     <string name="settings_section_appearance">Оформление</string>

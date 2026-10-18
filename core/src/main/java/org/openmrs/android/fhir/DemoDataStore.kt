@@ -127,6 +127,17 @@ class DemoDataStore(private val context: Context) {
   fun getLiveModeEnabledFlow() =
     context.dataStorage.data.map { pref -> pref[booleanPreferencesKey(LIVE_MODE)] ?: false }
 
+  suspend fun setKeepLivePatients(keep: Boolean) {
+    context.dataStorage.edit { pref -> pref[booleanPreferencesKey(KEEP_LIVE_PATIENTS)] = keep }
+  }
+
+  /**
+   * Whether a patient brought from the server by the live search stays on the device (on, the
+   * default) or is removed once the user leaves them.
+   */
+  fun getKeepLivePatientsFlow() =
+    context.dataStorage.data.map { pref -> pref[booleanPreferencesKey(KEEP_LIVE_PATIENTS)] ?: true }
+
   fun getPeriodicSyncDelayMinutesFlow() =
     context.dataStorage.data.map { pref ->
       pref[stringPreferencesKey(PERIODIC_SYNC_DELAY)]?.toIntOrNull()?.takeIf { it > 0 }
@@ -215,6 +226,7 @@ class DemoDataStore(private val context: Context) {
     const val PERIODIC_SYNC_DELAY = "periodic-sync-delay"
     const val AUTO_SYNC_ENABLED = "auto-sync-enabled"
     const val LIVE_MODE = "live-mode"
+    const val KEEP_LIVE_PATIENTS = "keep-live-patients"
     const val LAST_FULL_SYNC = "last-full-sync"
     const val FAVORITE_FORMS = "favorite-forms"
     const val CUSTOM_FORM_SECTIONS = "custom-form-sections"

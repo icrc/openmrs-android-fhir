@@ -1,6 +1,6 @@
 # Live mode
 
-Live mode is a setting (Settings > Synchronization > Live mode, off by default) for a user who is
+Live mode is a setting (Settings > Live mode, off by default) for a user who is
 connected to the server and wants what they do to be there at once, like in the OpenMRS web
 application, without giving up what the app is for: working with no connection.
 
@@ -66,10 +66,27 @@ With 3 or more characters typed in the patient search, and a network, the app al
 The server holds a lot more patients than a device should (the test server has about 128,000),
 which is why the app searches instead of downloading, and only brings the patients that are opened.
 
+### Keeping or dropping the patients it brings
+
+Settings > Live mode has a second switch, **Keep patients from the server on this device** (on by
+default, used only while live mode is on).
+
+* **On**: the patient stays on the device after the search, like any patient (their id goes to
+  `PreferenceKeys.LIVE_PATIENT_IDS`, which keeps them in the patient list).
+* **Off**: the patient is *temporary* (`LIVE_TEMPORARY_IDS`). When the patient's page is closed
+  (`PatientDetailsViewModel.onCleared`), after a live upload, after a full sync and at app start,
+  `LivePatients.discardTemporary` purges the patient's record, encounters, observations and
+  conditions (`FhirEngine.purge`).
+* It never removes anything that waits for upload: if the patient, one of their encounters, observations
+  or conditions has a local change, the patient stays and is looked at again after the next upload.
+  Not removed either: the patient whose page is open, one just downloaded whose page has not opened
+  yet, and one that was already on the device before the search (a deselected patient list, say).
+* Switching the setting back on turns the waiting temporary patients into kept ones.
+
 ### Limits
 
-* Patients brought by the live search stay on the device until the data is deleted (logout with
-  data deletion). There is no automatic clean-up yet.
+* With the setting on, patients brought by the live search stay until the data is deleted (logout with
+  data deletion): there is no age-based clean-up.
 * They are in the patient list but not in the group session's patient picker, which only lists the
   selected patient lists.
 * Search by phone number works on the device only.
@@ -79,7 +96,8 @@ which is why the app searches instead of downloading, and only brings the patien
 * `data/sync/LiveSync.kt` - `LiveSync`, `LiveUploadWorker`, `UploadGate`
 * `data/sync/UploadPreparer.kt` - what runs before an upload (session location, identifiers); shared with
   the full sync (`MainActivityViewModel`)
-* `data/sync/LivePatients.kt`, `ApiManager.searchPatients` / `fetchPatientRecord` - the search side
+* `data/sync/LivePatients.kt`, `ApiManager.searchPatients` / `fetchPatientRecord` - the search side and the
+  removal of temporary patients
 * `viewmodel/PatientListViewModel.kt` (`searchServer`, `openServerPatient`), `ui/patient/PatientListScreen.kt`
 * the calls to `LiveSync.requestUpload`: `AddPatientViewModel`, `EditPatientViewModel`,
   `GenericFormEntryViewModel`, `EditEncounterViewModel`, `OpenMRSHelper.startVisit/endVisit`

@@ -46,5 +46,8 @@ class PreferenceKeys {
 
     /** Patients brought to the device from the server by the live search (live mode). */
     val LIVE_PATIENT_IDS = stringSetPreferencesKey("LIVE_PATIENT_IDS")
+
+    /** The same, when the setting is to remove them once the user has left them. */
+    val LIVE_TEMPORARY_IDS = stringSetPreferencesKey("LIVE_TEMPORARY_IDS")
   }
 }

@@ -57,6 +57,10 @@ interface SettingsRepository {
   suspend fun getLiveModeEnabled(): Boolean = false
 
   suspend fun setLiveModeEnabled(enabled: Boolean) {}
+
+  suspend fun getKeepLivePatients(): Boolean = true
+
+  suspend fun setKeepLivePatients(keep: Boolean) {}
 }
 
 class DemoSettingsRepository
@@ -112,6 +116,14 @@ constructor(
 
   override suspend fun setLiveModeEnabled(enabled: Boolean) {
     dataStore.setLiveModeEnabled(enabled)
+  }
+
+  override suspend fun getKeepLivePatients(): Boolean {
+    return dataStore.getKeepLivePatientsFlow().first()
+  }
+
+  override suspend fun setKeepLivePatients(keep: Boolean) {
+    dataStore.setKeepLivePatients(keep)
   }
 
   private companion object {

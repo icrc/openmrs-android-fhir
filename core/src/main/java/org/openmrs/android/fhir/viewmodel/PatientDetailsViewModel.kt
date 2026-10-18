@@ -94,11 +94,20 @@ constructor(
 
   init {
     AuditLog.record(AuditAction.PATIENT_OPENED, AuditOutcome.SUCCESS, "patient" to patientId)
+    LivePatients.markOpen(patientId)
     // An upload went through: what is shown as waiting for the server may not be any more.
     viewModelScope.launch {
       LiveSync.uploaded.collect { if (livePatientData.value != null) getPatientDetailData() }
     }
     viewModelScope.launch { refreshFromServer() }
+  }
+
+  override fun onCleared() {
+    // The patient was brought by the live search and the user does not want those kept: they are
+    // removed now that the page is closed (or after the next upload, if something waits).
+    LivePatients.markClosed(patientId)
+    LivePatients.discardInBackground(applicationContext, fhirEngine)
+    super.onCleared()
   }
 
   /**

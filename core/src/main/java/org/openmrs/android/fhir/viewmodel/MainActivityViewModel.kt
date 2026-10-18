@@ -85,6 +85,7 @@ import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.data.remote.model.SessionLocation
 import org.openmrs.android.fhir.data.sync.FhirSyncWorker
+import org.openmrs.android.fhir.data.sync.LivePatients
 import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.data.sync.UploadPreparer
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
@@ -199,6 +200,12 @@ constructor(
     _isSyncing.observeForever(syncingObserver)
     observeAutoSync()
     observeLiveMode()
+    // Temporary patients (live mode) that could not be removed yet go once what was pending is
+    // sent.
+    LivePatients.discardInBackground(applicationContext, fhirEngine)
+    viewModelScope.launch {
+      LiveSync.uploaded.collect { LivePatients.discardInBackground(applicationContext, fhirEngine) }
+    }
   }
 
   override fun onCleared() {
@@ -632,6 +639,7 @@ constructor(
           backgroundSync = false
           updateLastSyncTimestamp()
           setIsSyncing(false)
+          LivePatients.discardInBackground(applicationContext, fhirEngine)
         }
       }
       workInfo.state == WorkInfo.State.FAILED -> {

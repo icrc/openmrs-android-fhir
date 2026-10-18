@@ -642,6 +642,9 @@
     <string name="change_location">تغيير الموقع</string>
     <string name="settings_section_general">عام</string>
     <string name="settings_section_sync">المزامنة</string>
+    <string name="settings_section_live">الوضع المباشر</string>
+    <string name="settings_live_keep_patients">الاحتفاظ بالمرضى القادمين من الخادم على هذا الجهاز</string>
+    <string name="settings_live_keep_patients_description">مفعّل: يبقى المريض الذي تفتحه من الخادم على هذا الجهاز ويمكن استخدامه دون اتصال. معطّل: تتم إزالة المريض من الجهاز عند مغادرته؛ ويُحتفظ بما لم يُرسل بعد حتى يُرسل.</string>
     <string name="settings_section_forms">النماذج</string>
     <string name="settings_initial_sync_description">تشغيل مزامنة كاملة مع الخادم الآن.</string>
     <string name="settings_section_appearance">المظهر</string>

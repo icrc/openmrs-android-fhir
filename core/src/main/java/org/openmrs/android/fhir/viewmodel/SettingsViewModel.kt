@@ -50,6 +50,7 @@ data class SettingsUiState(
   val periodicSyncDelayMinutes: Int = DemoDataStore.INITIAL_PERIODIC_SYNC_DELAY.toInt(),
   val isAutoSyncEnabled: Boolean = true,
   val isLiveModeEnabled: Boolean = false,
+  val keepLivePatients: Boolean = true,
   val isInitialSyncInProgress: Boolean = false,
 )
 
@@ -106,6 +107,10 @@ constructor(
     _uiState.update { it.copy(isLiveModeEnabled = enabled) }
   }
 
+  fun onKeepLivePatientsToggle(keep: Boolean) {
+    _uiState.update { it.copy(keepLivePatients = keep) }
+  }
+
   fun onPeriodicSyncDelaySelected(minutes: Int) {
     _uiState.update { it.copy(periodicSyncDelayMinutes = minutes) }
   }
@@ -119,6 +124,7 @@ constructor(
       settingsRepository.setPeriodicSyncDelayMinutes(currentState.periodicSyncDelayMinutes)
       settingsRepository.setAutoSyncEnabled(currentState.isAutoSyncEnabled)
       settingsRepository.setLiveModeEnabled(currentState.isLiveModeEnabled)
+      settingsRepository.setKeepLivePatients(currentState.keepLivePatients)
       _events.emit(SettingsEvent.SettingsSaved)
     }
   }
@@ -134,6 +140,7 @@ constructor(
         periodicSyncDelayMinutes = defaults.periodicSyncDelayMinutes,
         isAutoSyncEnabled = defaults.isAutoSyncEnabled,
         isLiveModeEnabled = defaults.isLiveModeEnabled,
+        keepLivePatients = defaults.keepLivePatients,
       )
     }
     viewModelScope.launch {
@@ -143,6 +150,7 @@ constructor(
       settingsRepository.setPeriodicSyncDelayMinutes(defaults.periodicSyncDelayMinutes)
       settingsRepository.setAutoSyncEnabled(defaults.isAutoSyncEnabled)
       settingsRepository.setLiveModeEnabled(defaults.isLiveModeEnabled)
+      settingsRepository.setKeepLivePatients(defaults.keepLivePatients)
       _events.emit(SettingsEvent.SettingsReset)
     }
   }
@@ -172,6 +180,7 @@ constructor(
     val periodicDelayMinutes = settingsRepository.getPeriodicSyncDelayMinutes()
     val autoSyncEnabled = settingsRepository.getAutoSyncEnabled()
     val liveModeEnabled = settingsRepository.getLiveModeEnabled()
+    val keepLivePatients = settingsRepository.getKeepLivePatients()
     _uiState.update {
       it.copy(
         isNetworkStatusVisible = networkStatusVisible,
@@ -180,6 +189,7 @@ constructor(
         periodicSyncDelayMinutes = periodicDelayMinutes,
         isAutoSyncEnabled = autoSyncEnabled,
         isLiveModeEnabled = liveModeEnabled,
+        keepLivePatients = keepLivePatients,
       )
     }
   }

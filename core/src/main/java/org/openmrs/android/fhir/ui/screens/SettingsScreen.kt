@@ -82,6 +82,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -120,6 +121,7 @@ object SettingsTestTags {
   const val PeriodicDelayField = "SettingsPeriodicDelayField"
   const val AutoSyncSwitch = "SettingsAutoSyncSwitch"
   const val LiveModeSwitch = "SettingsLiveModeSwitch"
+  const val KeepLivePatientsSwitch = "SettingsKeepLivePatientsSwitch"
   const val FavoriteFormsButton = "SettingsFavoriteFormsButton"
   const val IdentifierTypesButton = "SettingsIdentifierTypesButton"
   const val FormSectionsButton = "SettingsFormSectionsButton"
@@ -178,6 +180,7 @@ fun SettingsScreen(
   onLogoutAndDeleteConfirmed: (() -> Unit)? = null,
   onAutoSyncToggle: (Boolean) -> Unit = {},
   onLiveModeToggle: (Boolean) -> Unit = {},
+  onKeepLivePatientsToggle: (Boolean) -> Unit = {},
   favoriteFormOptions: List<FormItem>? = null,
   favoriteFormIds: List<String> = emptyList(),
   onFavoriteFormsSaved: ((List<String>) -> Unit)? = null,
@@ -239,14 +242,6 @@ fun SettingsScreen(
         ConnectionTest()
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         SettingsSwitchRow(
-          label = stringResource(R.string.settings_live_mode),
-          description = stringResource(R.string.settings_live_mode_description),
-          checked = uiState.isLiveModeEnabled,
-          onCheckedChange = onLiveModeToggle,
-          testTag = SettingsTestTags.LiveModeSwitch,
-        )
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        SettingsSwitchRow(
           label = stringResource(R.string.settings_auto_sync),
           checked = uiState.isAutoSyncEnabled,
           onCheckedChange = onAutoSyncToggle,
@@ -277,6 +272,25 @@ fun SettingsScreen(
           enabled = !uiState.isInitialSyncInProgress,
           inProgress = uiState.isInitialSyncInProgress,
           testTag = SettingsTestTags.InitialSyncButton,
+        )
+      }
+
+      SettingsSection(title = stringResource(R.string.settings_section_live)) {
+        SettingsSwitchRow(
+          label = stringResource(R.string.settings_live_mode),
+          description = stringResource(R.string.settings_live_mode_description),
+          checked = uiState.isLiveModeEnabled,
+          onCheckedChange = onLiveModeToggle,
+          testTag = SettingsTestTags.LiveModeSwitch,
+        )
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        SettingsSwitchRow(
+          label = stringResource(R.string.settings_live_keep_patients),
+          description = stringResource(R.string.settings_live_keep_patients_description),
+          checked = uiState.keepLivePatients,
+          onCheckedChange = onKeepLivePatientsToggle,
+          testTag = SettingsTestTags.KeepLivePatientsSwitch,
+          enabled = uiState.isLiveModeEnabled,
         )
       }
 
@@ -460,12 +474,16 @@ private fun SettingsSwitchRow(
   testTag: String,
   description: String? = null,
   danger: Boolean = false,
+  enabled: Boolean = true,
 ) {
   Row(
     modifier = Modifier.fillMaxWidth(),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(
+      modifier = Modifier.weight(1f).alpha(if (enabled) 1f else 0.5f),
+      verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
       Text(
         text = label,
         style = MaterialTheme.typography.bodyLarge,
@@ -483,6 +501,7 @@ private fun SettingsSwitchRow(
     Switch(
       checked = checked,
       onCheckedChange = onCheckedChange,
+      enabled = enabled,
       colors =
         if (danger) {
           SwitchDefaults.colors(

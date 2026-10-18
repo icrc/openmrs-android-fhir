@@ -732,6 +732,9 @@
     <string name="change_location">Changer de lieu</string>
     <string name="settings_section_general">Général</string>
     <string name="settings_section_sync">Synchronisation</string>
+    <string name="settings_section_live">Mode en direct</string>
+    <string name="settings_live_keep_patients">Garder sur cet appareil les patients venus du serveur</string>
+    <string name="settings_live_keep_patients_description">Activé : un patient ouvert depuis le serveur reste sur cet appareil et peut être utilisé hors connexion. Désactivé : le patient est retiré de l\'appareil dès que vous le quittez ; ce qui n\'est pas encore envoyé est conservé jusqu\'à son envoi.</string>
     <string name="settings_section_forms">Formulaires</string>
     <string name="settings_initial_sync_description">Lance dès maintenant une synchronisation complète avec le serveur.</string>
     <string name="settings_section_appearance">Apparence</string>

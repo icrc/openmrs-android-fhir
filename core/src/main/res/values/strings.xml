@@ -668,6 +668,9 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="change_location">Change location</string>
     <string name="settings_section_general">General</string>
     <string name="settings_section_sync">Synchronization</string>
+    <string name="settings_section_live">Live mode</string>
+    <string name="settings_live_keep_patients">Keep patients from the server on this device</string>
+    <string name="settings_live_keep_patients_description">On: a patient you open from the server stays on this device and can be used offline. Off: the patient is removed from the device once you leave them; anything not yet sent is kept until it is sent.</string>
     <string name="settings_section_forms">Forms</string>
     <string name="settings_initial_sync_description">Run a full synchronization with the server now.</string>
     <string name="settings_section_appearance">Appearance</string>
