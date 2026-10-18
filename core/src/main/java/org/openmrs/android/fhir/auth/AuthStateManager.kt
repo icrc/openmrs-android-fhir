@@ -169,6 +169,28 @@ class AuthStateManager private constructor(private val context: Context) {
     }
   }
 
+  /**
+   * Whether a session saved on this device can be used as it is, so that opening the app again does
+   * not ask for the credentials: a username and password login that has not run out, or a single
+   * sign-on session whose access token is valid or can be renewed with its refresh token. Changes
+   * nothing; the server's word on it comes from the session validator.
+   */
+  suspend fun hasSavedSession(): Boolean =
+    try {
+      when (getAuthMethod()) {
+        AuthMethod.BASIC ->
+          getBasicAuthState().let {
+            it.authenticated && it.expiryEpoch > System.currentTimeMillis()
+          }
+        AuthMethod.OPENID ->
+          current.isAuthorized &&
+            (!current.needsTokenRefresh || !current.refreshToken.isNullOrEmpty())
+      }
+    } catch (e: Exception) {
+      // E.g. the key that protects the stored credentials is gone.
+      false
+    }
+
   suspend fun updateBasicAuthCredentials(username: String, password: String) {
     val key = KeystoreHelper.getKey()
     val (encryptedUsername, uIV) = EncryptionHelper.encrypt(username, key)

@@ -59,6 +59,8 @@ import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
+import org.openmrs.android.fhir.auth.SessionStatus
+import org.openmrs.android.fhir.auth.SessionValidator
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.ApiManager
@@ -137,6 +139,13 @@ class SplashActivity : AppCompatActivity() {
     }
     val userUuid = getUserUuid()
     val offlineAuthMethod = BiometricUtils.getOfflineAuthMethod(this)
+    // No offline login (biometrics or device lock) in the way: a session that is still good is
+    // used.
+    if (offlineAuthMethod == null && !isBiometricReset && canResumeSession()) {
+      AuditLog.record(AuditAction.LOGIN, AuditOutcome.SUCCESS, "method" to "resumed")
+      navigateToMainActivity()
+      return
+    }
     if (userUuid == null || isBiometricReset || offlineAuthMethod == null) {
       handleConnectivityForAuth()
     } else {
@@ -149,6 +158,21 @@ class SplashActivity : AppCompatActivity() {
           ServerConnectivityState.Offline -> promptBiometricAuthentication(offlineAuthMethod)
         }
       }
+    }
+  }
+
+  /**
+   * The user signed in before and the session is still good, so there is nothing to ask. With the
+   * server in reach it has the last word (a password changed there, a revoked token); without it
+   * the saved session decides, so the app opens offline too.
+   */
+  private suspend fun canResumeSession(): Boolean {
+    if (!authStateManager.hasSavedSession()) return false
+    return when (getConnectivityState()) {
+      ServerConnectivityState.ServerConnected ->
+        SessionValidator(applicationContext, apiManager).check() != SessionStatus.Invalid
+      ServerConnectivityState.InternetOnly,
+      ServerConnectivityState.Offline, -> true
     }
   }
 
