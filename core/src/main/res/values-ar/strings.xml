@@ -789,4 +789,31 @@
     <string name="next_sync_in_hours">المزامنة التالية خلال %1$d س %2$d د</string>
     <string name="auto_sync_reset_timer">إعادة ضبط المؤقت</string>
     <string name="settings_connection_description">الخادم: %1$s. تحقق من أن هذا الجهاز يستطيع الوصول إليه.</string>
+    <string name="logout_section_title">تسجيل الخروج</string>
+    <string name="clear_on_logout_title">حذف البيانات عند تسجيل الخروج</string>
+    <string name="clear_on_logout_description">مفعّل: يحذف تسجيل الخروج كل ما هو مخزّن على هذا الجهاز. معطّل: تبقى البيانات على الجهاز.</string>
+    <string name="clear_on_logout_on_title">حذف البيانات عند تسجيل الخروج؟</string>
+    <string name="clear_on_logout_on_message">من الآن، سيحذف تسجيل الخروج كل ما هو مخزّن على هذا الجهاز: المرضى واللقاءات والمسودات والبيانات المنزّلة. سيتعين عليك تنزيلها من جديد بعد تسجيل الدخول.</string>
+    <string name="clear_on_logout_on_button">تفعيل</string>
+    <string name="clear_on_logout_off_title">الاحتفاظ بالبيانات بعد تسجيل الخروج؟</string>
+    <string name="clear_on_logout_off_message">لن يحذف تسجيل الخروج بعد الآن المرضى واللقاءات والمسودات المخزّنة على هذا الجهاز. وسيتمكن أي شخص يسجّل الدخول لاحقاً من رؤيتها.</string>
+    <string name="clear_on_logout_off_button">تعطيل</string>
+    <string name="logout_message_delete">سيحذف تسجيل الخروج جميع البيانات المخزّنة على هذا الجهاز: المرضى واللقاءات والمسودات والبيانات المنزّلة. سيتعين عليك تنزيلها من جديد بعد تسجيل الدخول. هل تريد تسجيل الخروج؟</string>
+    <string name="logout_message_keep">سيتم تسجيل خروجك. تبقى البيانات على هذا الجهاز. هل تريد تسجيل الخروج؟</string>
+    <plurals name="logout_pending_lost">
+        <item quantity="zero">%d مورد بانتظار الرفع وسيضيع نهائياً.</item>
+        <item quantity="one">مورد واحد بانتظار الرفع وسيضيع نهائياً.</item>
+        <item quantity="two">موردان بانتظار الرفع وسيضيعان نهائياً.</item>
+        <item quantity="few">%d موارد بانتظار الرفع وستضيع نهائياً.</item>
+        <item quantity="many">%d مورداً بانتظار الرفع وسيضيع نهائياً.</item>
+        <item quantity="other">%d مورد بانتظار الرفع وسيضيع نهائياً.</item>
+    </plurals>
+    <plurals name="logout_pending_kept">
+        <item quantity="zero">%d مورد لا يزال بانتظار الرفع. يبقى على هذا الجهاز حتى تسجّل الدخول وتزامن.</item>
+        <item quantity="one">مورد واحد لا يزال بانتظار الرفع. يبقى على هذا الجهاز حتى تسجّل الدخول وتزامن.</item>
+        <item quantity="two">موردان لا يزالان بانتظار الرفع. يبقيان على هذا الجهاز حتى تسجّل الدخول وتزامن.</item>
+        <item quantity="few">%d موارد لا تزال بانتظار الرفع. تبقى على هذا الجهاز حتى تسجّل الدخول وتزامن.</item>
+        <item quantity="many">%d مورداً لا يزال بانتظار الرفع. يبقى على هذا الجهاز حتى تسجّل الدخول وتزامن.</item>
+        <item quantity="other">%d مورد لا يزال بانتظار الرفع. يبقى على هذا الجهاز حتى تسجّل الدخول وتزامن.</item>
+    </plurals>
 </resources>

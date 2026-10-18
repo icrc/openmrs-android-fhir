@@ -100,9 +100,11 @@ import org.openmrs.android.fhir.data.diagnostics.DiagnosticsRange
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.isServerReachable
+import org.openmrs.android.fhir.data.transfer.DataTransfer
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.AppBarInsets
 import org.openmrs.android.fhir.extensions.BiometricUtils
+import org.openmrs.android.fhir.extensions.ClearDataOnLogoutStore
 import org.openmrs.android.fhir.extensions.FormEngineWarmUp
 import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.extensions.PermissionHelper
@@ -148,6 +150,8 @@ class MainActivity : AppCompatActivity() {
   @Inject lateinit var notificationHelper: NotificationHelper
 
   @Inject lateinit var diagnosticsBuilder: DiagnosticsBuilder
+
+  @Inject lateinit var dataTransfer: DataTransfer
 
   private val diagnosticsVisible = androidx.compose.runtime.mutableStateOf(false)
   private val diagnosticsBusy = androidx.compose.runtime.mutableStateOf(false)
@@ -1001,19 +1005,68 @@ class MainActivity : AppCompatActivity() {
     viewModel.unregisterNetworkCallback()
   }
 
+  /**
+   * Says what logging out does with the data, as set in Settings: deleted (and then, in red, how
+   * many resources were never uploaded and are lost with it) or kept.
+   */
+  private suspend fun showLogoutConfirmation() {
+    val clearData = ClearDataOnLogoutStore.get(this)
+    val pending =
+      try {
+        dataTransfer.pendingCount()
+      } catch (e: Exception) {
+        0
+      }
+    val message = android.text.SpannableStringBuilder()
+    message.append(
+      getString(if (clearData) R.string.logout_message_delete else R.string.logout_message_keep),
+    )
+    if (pending > 0) {
+      message.append("\n\n")
+      val start = message.length
+      message.append(
+        resources.getQuantityString(
+          if (clearData) R.plurals.logout_pending_lost else R.plurals.logout_pending_kept,
+          pending,
+          pending,
+        ),
+      )
+      message.setSpan(
+        android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+        start,
+        message.length,
+        android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+      )
+      if (clearData) {
+        message.setSpan(
+          android.text.style.ForegroundColorSpan(
+            com.google.android.material.color.MaterialColors.getColor(
+              this,
+              androidx.appcompat.R.attr.colorError,
+              android.graphics.Color.RED,
+            ),
+          ),
+          start,
+          message.length,
+          android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+        )
+      }
+    }
+    MaterialAlertDialogBuilder(this)
+      .setTitle(getString(R.string.logout))
+      .setMessage(message)
+      .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
+        dialog.dismiss()
+        navigateToLogin()
+      }
+      .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
+      .setCancelable(false)
+      .show()
+  }
+
   private fun showLogoutWarningDialog(connectivityState: ServerConnectivityState) {
     when (connectivityState) {
-      ServerConnectivityState.ServerConnected ->
-        MaterialAlertDialogBuilder(this)
-          .setTitle(getString(R.string.logout))
-          .setMessage(getString(R.string.logout_message))
-          .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
-            dialog.dismiss()
-            navigateToLogin()
-          }
-          .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
-          .setCancelable(false)
-          .show()
+      ServerConnectivityState.ServerConnected -> lifecycleScope.launch { showLogoutConfirmation() }
       ServerConnectivityState.InternetOnly ->
         MaterialAlertDialogBuilder(this)
           .setTitle(getString(R.string.logout))
@@ -1073,10 +1126,12 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun navigateToLogin() {
+    val clearData = ClearDataOnLogoutStore.get(this)
     AuditLog.record(
       AuditAction.LOGOUT,
       AuditOutcome.SUCCESS,
       "method" to authStateManager.getAuthMethod().name.lowercase(),
+      "dataDeleted" to clearData,
     )
     AuditLog.setUser(null)
     val loginIntent = Intent(this, LoginActivity::class.java)
@@ -1088,8 +1143,44 @@ class MainActivity : AppCompatActivity() {
     AppMessage.show(this@MainActivity, R.string.logging_out, MessageKind.Info, long = true)
 
     lifecycleScope
-      .launch(Dispatchers.Default) { clearAppData() }
-      .invokeOnCompletion { handleAuthNavigation(pendingIntentSuccess, pendingIntentCancel) }
+      .launch(Dispatchers.Default) { if (clearData) clearAppData() else endSessionKeepingData() }
+      .invokeOnCompletion {
+        handleAuthNavigation(pendingIntentSuccess, pendingIntentCancel, clearData)
+      }
+  }
+
+  /** Logging out with "delete data" off: the session goes, the patients and drafts stay. */
+  private suspend fun endSessionKeepingData() {
+    val workManager = WorkManager.getInstance(this@MainActivity)
+    workManager.cancelAllWork()
+    workManager.pruneWork()
+    authStateManager.resetBasicAuthCredentials()
+    BiometricUtils.deleteBiometricKey(applicationContext)
+  }
+
+  /**
+   * The session's preferences go; when the data stays, so do the choices that belong to it (the
+   * location, the patient lists, the identifier types), or the kept data would not match them.
+   */
+  private suspend fun clearSessionPreferences(clearData: Boolean) {
+    val kept = if (clearData) null else applicationContext.dataStore.data.first()
+    authStateManager.clearAuthDataStore()
+    applicationContext.dataStore.edit { preferences -> preferences.clear() }
+    if (kept != null) {
+      applicationContext.dataStore.edit { preferences ->
+        kept[PreferenceKeys.LOCATION_ID]?.let { preferences[PreferenceKeys.LOCATION_ID] = it }
+        kept[PreferenceKeys.LOCATION_NAME]?.let { preferences[PreferenceKeys.LOCATION_NAME] = it }
+        kept[PreferenceKeys.SELECTED_PATIENT_LISTS]?.let {
+          preferences[PreferenceKeys.SELECTED_PATIENT_LISTS] = it
+        }
+        kept[PreferenceKeys.FAVORITE_LOCATIONS]?.let {
+          preferences[PreferenceKeys.FAVORITE_LOCATIONS] = it
+        }
+        kept[PreferenceKeys.SELECTED_IDENTIFIER_TYPES]?.let {
+          preferences[PreferenceKeys.SELECTED_IDENTIFIER_TYPES] = it
+        }
+      }
+    }
   }
 
   private fun createPendingIntent(intent: Intent, requestCode: Int): PendingIntent {
@@ -1140,22 +1231,17 @@ class MainActivity : AppCompatActivity() {
   private fun handleAuthNavigation(
     pendingIntentSuccess: PendingIntent,
     pendingIntentCancel: PendingIntent,
+    clearData: Boolean = true,
   ) {
     when (authStateManager.getAuthMethod()) {
       AuthMethod.BASIC -> {
-        lifecycleScope.launch(Dispatchers.IO) {
-          authStateManager.clearAuthDataStore()
-          applicationContext.dataStore.edit { preferences -> preferences.clear() }
-        }
+        lifecycleScope.launch(Dispatchers.IO) { clearSessionPreferences(clearData) }
         startActivity(Intent(this, LoginActivity::class.java))
         finish()
       }
       AuthMethod.OPENID -> {
         authStateManager.endSessionRequest(pendingIntentSuccess, pendingIntentCancel)
-        lifecycleScope.launch(Dispatchers.IO) {
-          authStateManager.clearAuthDataStore()
-          applicationContext.dataStore.edit { preferences -> preferences.clear() }
-        }
+        lifecycleScope.launch(Dispatchers.IO) { clearSessionPreferences(clearData) }
       }
     }
   }

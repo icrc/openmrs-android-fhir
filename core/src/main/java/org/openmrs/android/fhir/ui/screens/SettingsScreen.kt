@@ -130,6 +130,8 @@ object SettingsTestTags {
   const val ThemeLight = "SettingsThemeLight"
   const val ThemeDark = "SettingsThemeDark"
   const val LogoutDeleteButton = "SettingsLogoutDeleteButton"
+  const val ClearDataSwitch = "SettingsClearDataOnLogoutSwitch"
+  const val ClearDataConfirm = "SettingsClearDataOnLogoutConfirm"
   const val LogoutDeleteConfirm = "SettingsLogoutDeleteConfirm"
   const val LogoutDeleteUnsynced = "SettingsLogoutDeleteUnsynced"
   const val EmbeddedFormsSwitch = "SettingsEmbeddedFormsSwitch"
@@ -168,6 +170,8 @@ fun SettingsScreen(
   offlineLoginEnabled: Boolean? = null,
   onResetOfflineLoginClicked: (() -> Unit)? = null,
   unsyncedCount: Int = 0,
+  clearDataOnLogout: Boolean = true,
+  onClearDataOnLogoutChange: ((Boolean) -> Unit)? = null,
   onLogoutAndDeleteRequested: (() -> Unit)? = null,
   onLogoutAndDeleteConfirmed: (() -> Unit)? = null,
   onAutoSyncToggle: (Boolean) -> Unit = {},
@@ -368,6 +372,15 @@ fun SettingsScreen(
             )
           }
         }
+      }
+
+      if (onClearDataOnLogoutChange != null) {
+        ClearDataOnLogoutSetting(
+          checked = clearDataOnLogout,
+          unsyncedCount = unsyncedCount,
+          onRequested = { onLogoutAndDeleteRequested?.invoke() },
+          onConfirmed = onClearDataOnLogoutChange,
+        )
       }
 
       if (onLogoutAndDeleteConfirmed != null) {
@@ -759,6 +772,110 @@ private fun FormSectionsSetting(
 }
 
 /**
+ * Whether the regular Logout also deletes the data of the device. Changing it asks first, and the
+ * question says what the new setting means (and, when turning deletion on, what is waiting to be
+ * uploaded and would be lost with it).
+ */
+@Composable
+private fun ClearDataOnLogoutSetting(
+  checked: Boolean,
+  unsyncedCount: Int,
+  onRequested: () -> Unit,
+  onConfirmed: (Boolean) -> Unit,
+) {
+  var target by remember { mutableStateOf<Boolean?>(null) }
+  SettingsSection(title = stringResource(R.string.logout_section_title)) {
+    SettingsSwitchRow(
+      label = stringResource(R.string.clear_on_logout_title),
+      description = stringResource(R.string.clear_on_logout_description),
+      checked = checked,
+      onCheckedChange = {
+        onRequested()
+        target = it
+      },
+      testTag = SettingsTestTags.ClearDataSwitch,
+    )
+  }
+  target?.let { turnOn ->
+    AlertDialog(
+      onDismissRequest = { target = null },
+      shape = RoundedCornerShape(28.dp),
+      icon = {
+        Icon(
+          imageVector = Icons.Default.Warning,
+          contentDescription = null,
+          tint = if (turnOn) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+        )
+      },
+      title = {
+        Text(
+          text =
+            stringResource(
+              if (turnOn) R.string.clear_on_logout_on_title else R.string.clear_on_logout_off_title,
+            ),
+        )
+      },
+      text = {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+          Text(
+            text =
+              stringResource(
+                if (turnOn) {
+                  R.string.clear_on_logout_on_message
+                } else {
+                  R.string.clear_on_logout_off_message
+                },
+              ),
+          )
+          if (turnOn && unsyncedCount > 0) {
+            Text(
+              text =
+                pluralStringResource(R.plurals.logout_pending_lost, unsyncedCount, unsyncedCount),
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.error,
+            )
+          }
+        }
+      },
+      confirmButton = {
+        Button(
+          onClick = {
+            target = null
+            onConfirmed(turnOn)
+          },
+          colors =
+            ButtonDefaults.buttonColors(
+              containerColor =
+                if (turnOn) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+              contentColor =
+                if (turnOn) {
+                  MaterialTheme.colorScheme.onError
+                } else {
+                  MaterialTheme.colorScheme.onPrimary
+                },
+            ),
+          modifier = Modifier.testTag(SettingsTestTags.ClearDataConfirm),
+        ) {
+          Text(
+            text =
+              stringResource(
+                if (turnOn) {
+                  R.string.clear_on_logout_on_button
+                } else {
+                  R.string.clear_on_logout_off_button
+                },
+              ),
+          )
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = { target = null }) { Text(text = stringResource(R.string.cancel)) }
+      },
+    )
+  }
+}
+
+/**
  * The last thing on the page: leave and wipe the device. It looks different on purpose (the error
  * color, a warning icon) and asks once more, spelling out what is lost, and how many changes were
  * never uploaded.
@@ -902,7 +1019,7 @@ private fun ConnectionTest() {
       Icon(
         imageVector = Icons.Default.Sync,
         contentDescription = null,
-        modifier = Modifier.size(18.dp)
+        modifier = Modifier.size(18.dp),
       )
       Spacer(modifier = Modifier.width(8.dp))
       Text(text = stringResource(R.string.test_connection))

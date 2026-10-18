@@ -849,4 +849,25 @@
     <string name="next_sync_in_hours">Próxima sincronización en %1$d h %2$d min</string>
     <string name="auto_sync_reset_timer">Reiniciar</string>
     <string name="settings_connection_description">Servidor: %1$s. Compruebe que este dispositivo puede alcanzarlo.</string>
+    <string name="logout_section_title">Cierre de sesión</string>
+    <string name="clear_on_logout_title">Eliminar datos al cerrar sesión</string>
+    <string name="clear_on_logout_description">Activado: cerrar sesión elimina todo lo almacenado en este dispositivo. Desactivado: los datos permanecen en el dispositivo.</string>
+    <string name="clear_on_logout_on_title">¿Eliminar datos al cerrar sesión?</string>
+    <string name="clear_on_logout_on_message">A partir de ahora, cerrar sesión eliminará todo lo almacenado en este dispositivo: pacientes, encuentros, borradores y datos descargados. Tendrá que descargarlos de nuevo al iniciar sesión.</string>
+    <string name="clear_on_logout_on_button">Activar</string>
+    <string name="clear_on_logout_off_title">¿Conservar los datos tras cerrar sesión?</string>
+    <string name="clear_on_logout_off_message">Cerrar sesión ya no eliminará los pacientes, encuentros y borradores almacenados en este dispositivo. Quien inicie sesión después podrá verlos.</string>
+    <string name="clear_on_logout_off_button">Desactivar</string>
+    <string name="logout_message_delete">Cerrar sesión eliminará todos los datos almacenados en este dispositivo: pacientes, encuentros, borradores y datos descargados. Tendrá que descargarlos de nuevo al iniciar sesión. ¿Desea cerrar sesión?</string>
+    <string name="logout_message_keep">Se cerrará su sesión. Los datos permanecen en este dispositivo. ¿Desea cerrar sesión?</string>
+    <plurals name="logout_pending_lost">
+        <item quantity="one">%d recurso está pendiente de subir y se perderá para siempre.</item>
+        <item quantity="many">%d recursos están pendientes de subir y se perderán para siempre.</item>
+        <item quantity="other">%d recursos están pendientes de subir y se perderán para siempre.</item>
+    </plurals>
+    <plurals name="logout_pending_kept">
+        <item quantity="one">%d recurso sigue esperando para subirse. Permanece en este dispositivo hasta que inicie sesión y sincronice.</item>
+        <item quantity="many">%d recursos siguen esperando para subirse. Permanecen en este dispositivo hasta que inicie sesión y sincronice.</item>
+        <item quantity="other">%d recursos siguen esperando para subirse. Permanecen en este dispositivo hasta que inicie sesión y sincronice.</item>
+    </plurals>
 </resources>

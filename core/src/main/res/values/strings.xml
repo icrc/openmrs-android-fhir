@@ -809,4 +809,23 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="next_sync_in_hours">Next sync in %1$d h %2$d min</string>
     <string name="auto_sync_reset_timer">Reset timer</string>
     <string name="settings_connection_description">Server: %1$s. Check that this device can reach it.</string>
+    <string name="logout_section_title">Logout</string>
+    <string name="clear_on_logout_title">Delete data when logging out</string>
+    <string name="clear_on_logout_description">On: logging out removes everything stored on this device. Off: the data stays on the device after you log out.</string>
+    <string name="clear_on_logout_on_title">Delete data on logout?</string>
+    <string name="clear_on_logout_on_message">From now on, logging out will delete everything stored on this device: patients, encounters, drafts and downloaded data. You will have to download it again after signing in.</string>
+    <string name="clear_on_logout_on_button">Turn on</string>
+    <string name="clear_on_logout_off_title">Keep data after logout?</string>
+    <string name="clear_on_logout_off_message">Logging out will no longer delete the patients, encounters and drafts stored on this device. Anyone who signs in on it afterwards will be able to see them.</string>
+    <string name="clear_on_logout_off_button">Turn off</string>
+    <string name="logout_message_delete">Logging out will delete all data stored on this device: patients, encounters, drafts and downloaded data. You will have to download it again after signing in. Do you want to log out?</string>
+    <string name="logout_message_keep">You will be signed out. The data stays on this device. Do you want to log out?</string>
+    <plurals name="logout_pending_lost">
+        <item quantity="one">%d resource is pending upload and will be lost for good.</item>
+        <item quantity="other">%d resources are pending upload and will be lost for good.</item>
+    </plurals>
+    <plurals name="logout_pending_kept">
+        <item quantity="one">%d resource is still waiting to be uploaded. It stays on this device until you sign in and sync.</item>
+        <item quantity="other">%d resources are still waiting to be uploaded. They stay on this device until you sign in and sync.</item>
+    </plurals>
 </resources>

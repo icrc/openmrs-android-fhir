@@ -877,4 +877,25 @@
     <string name="next_sync_in_hours">Prochaine synchro dans %1$d h %2$d min</string>
     <string name="auto_sync_reset_timer">Réinitialiser</string>
     <string name="settings_connection_description">Serveur : %1$s. Vérifiez que cet appareil peut l\'atteindre.</string>
+    <string name="logout_section_title">Déconnexion</string>
+    <string name="clear_on_logout_title">Supprimer les données à la déconnexion</string>
+    <string name="clear_on_logout_description">Activé : la déconnexion supprime tout ce qui est stocké sur cet appareil. Désactivé : les données restent sur l\'appareil après la déconnexion.</string>
+    <string name="clear_on_logout_on_title">Supprimer les données à la déconnexion ?</string>
+    <string name="clear_on_logout_on_message">Désormais, la déconnexion supprimera tout ce qui est stocké sur cet appareil : patients, rencontres, brouillons et données téléchargées. Vous devrez les télécharger de nouveau après la connexion.</string>
+    <string name="clear_on_logout_on_button">Activer</string>
+    <string name="clear_on_logout_off_title">Conserver les données après la déconnexion ?</string>
+    <string name="clear_on_logout_off_message">La déconnexion ne supprimera plus les patients, rencontres et brouillons stockés sur cet appareil. Toute personne qui s\'y connectera ensuite pourra les voir.</string>
+    <string name="clear_on_logout_off_button">Désactiver</string>
+    <string name="logout_message_delete">La déconnexion supprimera toutes les données stockées sur cet appareil : patients, rencontres, brouillons et données téléchargées. Vous devrez les télécharger de nouveau après la connexion. Voulez-vous vous déconnecter ?</string>
+    <string name="logout_message_keep">Vous serez déconnecté. Les données restent sur cet appareil. Voulez-vous vous déconnecter ?</string>
+    <plurals name="logout_pending_lost">
+        <item quantity="one">%d ressource attend d\'être envoyée et sera définitivement perdue.</item>
+        <item quantity="many">%d ressources attendent d\'être envoyées et seront définitivement perdues.</item>
+        <item quantity="other">%d ressources attendent d\'être envoyées et seront définitivement perdues.</item>
+    </plurals>
+    <plurals name="logout_pending_kept">
+        <item quantity="one">%d ressource attend encore d\'être envoyée. Elle reste sur cet appareil jusqu\'à votre connexion et votre synchronisation.</item>
+        <item quantity="many">%d ressources attendent encore d\'être envoyées. Elles restent sur cet appareil jusqu\'à votre connexion et votre synchronisation.</item>
+        <item quantity="other">%d ressources attendent encore d\'être envoyées. Elles restent sur cet appareil jusqu\'à votre connexion et votre synchronisation.</item>
+    </plurals>
 </resources>

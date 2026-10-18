@@ -870,4 +870,27 @@
     <string name="next_sync_in_hours">Следующая синхронизация через %1$d ч %2$d мин</string>
     <string name="auto_sync_reset_timer">Сбросить таймер</string>
     <string name="settings_connection_description">Сервер: %1$s. Проверьте, что устройство может до него дотянуться.</string>
+    <string name="logout_section_title">Выход</string>
+    <string name="clear_on_logout_title">Удалять данные при выходе</string>
+    <string name="clear_on_logout_description">Включено: при выходе удаляется всё, что хранится на этом устройстве. Выключено: данные остаются на устройстве.</string>
+    <string name="clear_on_logout_on_title">Удалять данные при выходе?</string>
+    <string name="clear_on_logout_on_message">Теперь при выходе будет удаляться всё, что хранится на этом устройстве: пациенты, визиты, черновики и загруженные данные. После входа их придётся загрузить заново.</string>
+    <string name="clear_on_logout_on_button">Включить</string>
+    <string name="clear_on_logout_off_title">Сохранять данные после выхода?</string>
+    <string name="clear_on_logout_off_message">При выходе пациенты, визиты и черновики на этом устройстве больше не будут удаляться. Любой, кто войдёт позже, сможет их увидеть.</string>
+    <string name="clear_on_logout_off_button">Выключить</string>
+    <string name="logout_message_delete">При выходе будут удалены все данные на этом устройстве: пациенты, визиты, черновики и загруженные данные. После входа их придётся загрузить заново. Выйти?</string>
+    <string name="logout_message_keep">Вы выйдете из аккаунта. Данные останутся на этом устройстве. Выйти?</string>
+    <plurals name="logout_pending_lost">
+        <item quantity="one">%d ресурс ожидает отправки и будет потерян безвозвратно.</item>
+        <item quantity="few">%d ресурса ожидают отправки и будут потеряны безвозвратно.</item>
+        <item quantity="many">%d ресурсов ожидают отправки и будут потеряны безвозвратно.</item>
+        <item quantity="other">%d ресурса ожидают отправки и будут потеряны безвозвратно.</item>
+    </plurals>
+    <plurals name="logout_pending_kept">
+        <item quantity="one">%d ресурс всё ещё ждёт отправки. Он останется на устройстве до входа и синхронизации.</item>
+        <item quantity="few">%d ресурса всё ещё ждут отправки. Они останутся на устройстве до входа и синхронизации.</item>
+        <item quantity="many">%d ресурсов всё ещё ждут отправки. Они останутся на устройстве до входа и синхронизации.</item>
+        <item quantity="other">%d ресурса всё ещё ждут отправки. Они останутся на устройстве до входа и синхронизации.</item>
+    </plurals>
 </resources>

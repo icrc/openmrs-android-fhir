@@ -65,6 +65,7 @@ import org.openmrs.android.fhir.data.QuestionnaireUpdater
 import org.openmrs.android.fhir.data.transfer.DataTransfer
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.BiometricUtils
+import org.openmrs.android.fhir.extensions.ClearDataOnLogoutStore
 import org.openmrs.android.fhir.extensions.ColorVisionMode
 import org.openmrs.android.fhir.extensions.ColorVisionStore
 import org.openmrs.android.fhir.extensions.EmbeddedFormsStore
@@ -98,6 +99,7 @@ class SettingsFragment : Fragment() {
   private val themeSelection = mutableStateOf(ThemeMode.SYSTEM)
   private val colorVisionSelection = mutableStateOf(ColorVisionMode.STANDARD)
   private val unsyncedCount = mutableStateOf(0)
+  private val clearDataOnLogout = mutableStateOf(true)
   private val embeddedFormsSelection = mutableStateOf(true)
 
   /** true: enabled, false: declined, null: not answered yet. */
@@ -119,6 +121,7 @@ class SettingsFragment : Fragment() {
         themeSelection.value = ThemeModeStore.get(context)
         colorVisionSelection.value = ColorVisionStore.get(context)
         embeddedFormsSelection.value = EmbeddedFormsStore.get(context)
+        clearDataOnLogout.value = ClearDataOnLogoutStore.get(context)
         offlineLoginEnabled.value =
           when {
             BiometricUtils.getOfflineAuthMethod(context) != null -> true
@@ -211,6 +214,17 @@ class SettingsFragment : Fragment() {
           offlineLoginEnabled = offlineLoginEnabled.value,
           onResetOfflineLoginClicked = ::confirmResetOfflineLogin,
           unsyncedCount = unsyncedCount.value,
+          clearDataOnLogout = clearDataOnLogout.value,
+          onClearDataOnLogoutChange = { clear ->
+            // Asked and confirmed already: it is saved at once, like the wipe button's.
+            ClearDataOnLogoutStore.set(context, clear)
+            clearDataOnLogout.value = clear
+            AuditLog.record(
+              AuditAction.SETTINGS_CHANGED,
+              AuditOutcome.SUCCESS,
+              "changed" to listOf("clear_data_on_logout=$clear"),
+            )
+          },
           onLogoutAndDeleteRequested = ::countUnsyncedChanges,
           onLogoutAndDeleteConfirmed = { (activity as? MainActivity)?.logoutAndDeleteAllData() },
         )
@@ -269,6 +283,8 @@ class SettingsFragment : Fragment() {
     favoriteFormsViewModel.resetSections()
     EmbeddedFormsStore.set(context, true)
     embeddedFormsSelection.value = true
+    ClearDataOnLogoutStore.set(context, true)
+    clearDataOnLogout.value = true
     ColorVisionStore.set(context, ColorVisionMode.STANDARD)
     colorVisionSelection.value = ColorVisionMode.STANDARD
     themeSelection.value = ThemeMode.SYSTEM
