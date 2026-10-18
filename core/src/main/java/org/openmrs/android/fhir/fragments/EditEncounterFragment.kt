@@ -137,7 +137,14 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
   }
 
   override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-    if (readOnly) inflater.inflate(R.menu.view_encounter_menu, menu)
+    if (!readOnly) return
+    inflater.inflate(R.menu.view_encounter_menu, menu)
+    // A button as the action: the bar does not route taps on a custom action view to the menu.
+    menu
+      .findItem(R.id.menu_encounter_edit)
+      ?.actionView
+      ?.findViewById<View>(R.id.encounter_edit_button)
+      ?.setOnClickListener { startEditing() }
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
