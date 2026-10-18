@@ -66,7 +66,6 @@ import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
-import org.openmrs.android.fhir.extensions.allQuestionnaires
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
 import org.openmrs.android.fhir.extensions.convertQuantityObsToIntegerObs
@@ -76,6 +75,7 @@ import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
 import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
+import org.openmrs.android.fhir.extensions.readBundledQuestionnaireForEncounterType
 import org.openmrs.android.fhir.extensions.storedQuestionnaires
 import org.openmrs.android.fhir.extensions.utcDateToLocalDate
 import org.openmrs.android.fhir.util.ExistingObservationIndex
@@ -116,15 +116,8 @@ constructor(
    * The questionnaire shipped with the app for this encounter type (the engine is checked first by
    * the callers).
    */
-  private suspend fun findBundledQuestionnaire(encounterType: String): Questionnaire? =
-    fhirEngine.allQuestionnaires(applicationContext, parser).firstOrNull { candidate ->
-      candidate.code.any {
-        it.hasSystem() &&
-          it.system == "http://fhir.openmrs.org/code-system/encounter-type" &&
-          it.hasCode() &&
-          it.code == encounterType
-      }
-    }
+  private fun findBundledQuestionnaire(encounterType: String): Questionnaire? =
+    applicationContext.readBundledQuestionnaireForEncounterType(encounterType, parser)
 
   fun prepareEditEncounter(encounterId: String, encounterType: String) {
     // Reading the encounter, filling the form from its observations and writing both as JSON is the
@@ -137,12 +130,13 @@ constructor(
             questionnaire.code.any { it.code == encounterType }
           }
         if (questionnaire == null) {
-          // Look into assets folder
+          // Look into assets folder: read with the translations of the device language only.
           questionnaire = findBundledQuestionnaire(encounterType)
+        } else {
+          questionnaire.pruneOtherLanguageTranslations()
         }
 
         questionnaire?.ensurePageGroupsHaveTrailingSpacer()
-        questionnaire?.pruneOtherLanguageTranslations()
 
         val encounter = fhirEngine.get<Encounter>(encounterId)
         val encounterDate = encounter.period?.start?.let { utcDateToLocalDate(it) }

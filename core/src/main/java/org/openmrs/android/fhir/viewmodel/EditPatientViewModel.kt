@@ -71,7 +71,6 @@ import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssetsAsString
-import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
 import org.openmrs.android.fhir.fragments.EditPatientFragment
 
 /**
@@ -117,10 +116,7 @@ constructor(
 
     return if (stored.isNotEmpty()) {
       questionnaireResource =
-        (parser.parseResource(Questionnaire::class.java, stored) as Questionnaire).also {
-          // The form library parses and renders everything it is given, in every language.
-          it.pruneOtherLanguageTranslations()
-        }
+        parser.parseResource(Questionnaire::class.java, stored) as Questionnaire
       val question = parser.encodeResourceToString(questionnaireResource)
 
       val questionnaireResponse: QuestionnaireResponse =

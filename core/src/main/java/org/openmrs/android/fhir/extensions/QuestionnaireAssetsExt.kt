@@ -31,6 +31,7 @@ package org.openmrs.android.fhir.extensions
 import android.content.Context
 import ca.uhn.fhir.parser.IParser
 import java.io.IOException
+import java.util.Locale
 import org.hl7.fhir.r4.model.Questionnaire
 
 /**
@@ -53,12 +54,45 @@ fun Context.bundledQuestionnaireIds(): Set<String> =
     emptySet()
   }
 
-/** The bundled definition of the questionnaire with this id, or `null` if it is not bundled. */
-fun Context.readBundledQuestionnaire(id: String): String? =
+/**
+ * The bundled definition of the questionnaire with this id, or `null` if it is not bundled. With a
+ * [locale] it only carries the translations of that language (see [expandCompactQuestionnaire]).
+ */
+fun Context.readBundledQuestionnaire(id: String, locale: Locale? = null): String? =
   try {
-    readFileFromAssets("$BUNDLED_QUESTIONNAIRES_DIR/$id.json")
+    readFileFromAssets("$BUNDLED_QUESTIONNAIRES_DIR/$id.json", locale)
   } catch (e: IOException) {
     null
+  }
+
+/**
+ * The bundled questionnaire made for this encounter type, in the language of [locale]. Only the
+ * files that mention the type are parsed: reading every form of the app to find one is seconds of
+ * work on a tablet.
+ */
+fun Context.readBundledQuestionnaireForEncounterType(
+  encounterType: String,
+  parser: IParser,
+  locale: Locale = Locale.getDefault(),
+): Questionnaire? =
+  bundledQuestionnaireIds().sorted().firstNotNullOfOrNull { id ->
+    val raw =
+      try {
+        assets.open("$BUNDLED_QUESTIONNAIRES_DIR/$id.json").bufferedReader().use { it.readText() }
+      } catch (e: IOException) {
+        return@firstNotNullOfOrNull null
+      }
+    if (!raw.contains(encounterType)) return@firstNotNullOfOrNull null
+    parser
+      .parseResource(Questionnaire::class.java, expandCompactQuestionnaire(raw, locale))
+      .takeIf { candidate ->
+        candidate.code.any {
+          it.hasSystem() &&
+            it.system == "http://fhir.openmrs.org/code-system/encounter-type" &&
+            it.hasCode() &&
+            it.code == encounterType
+        }
+      }
   }
 
 /**

@@ -47,7 +47,6 @@ import kotlinx.coroutines.runBlocking
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
-import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.Constants
@@ -55,13 +54,12 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
-import org.openmrs.android.fhir.data.FormCatalog
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.AppLanguage
-import org.openmrs.android.fhir.extensions.allQuestionnaires
+import org.openmrs.android.fhir.extensions.FormSummary
+import org.openmrs.android.fhir.extensions.allFormSummaries
 import org.openmrs.android.fhir.extensions.toLocalString
-import org.openmrs.android.fhir.extensions.translatedTitle
 
 /**
  * The ViewModel helper class for PatientItemRecyclerViewAdapter, that is responsible for preparing
@@ -100,8 +98,7 @@ constructor(
   }
 
   private suspend fun getPatientDetailDataModel(): List<PatientDetailData> {
-    val encounterTypeCodeToQuestionnaireMap =
-      mapEncounterTypeCodesToQuestionnaires(FormCatalog.ENCOUNTER_TYPE_SYSTEM_URL)
+    val encounterTypeCodeToQuestionnaireMap = mapEncounterTypeCodesToQuestionnaires()
 
     val searchResult =
       fhirEngine.search<Patient> {
@@ -185,7 +182,7 @@ constructor(
 
   private fun MutableList<PatientDetailData>.addVisitData(
     visit: Encounter,
-    encounterTypeCodeToQuestionnaireMap: Map<String, Questionnaire>,
+    encounterTypeCodeToQuestionnaireMap: Map<String, FormSummary>,
   ) {
     val visitItem = createVisitItem(visit, encounterTypeCodeToQuestionnaireMap)
     add(PatientDetailVisit(visitItem))
@@ -194,7 +191,7 @@ constructor(
   private fun MutableList<PatientDetailData>.addEncounterData(
     encounter: Encounter,
     isSynced: Boolean,
-    encounterTypeCodeToQuestionnaireMap: Map<String, Questionnaire>,
+    encounterTypeCodeToQuestionnaireMap: Map<String, FormSummary>,
   ) {
     add(
       PatientDetailEncounter(
@@ -205,7 +202,7 @@ constructor(
 
   private fun createVisitItem(
     visit: Encounter,
-    encounterTypeCodeToQuestionnaireMap: Map<String, Questionnaire>,
+    encounterTypeCodeToQuestionnaireMap: Map<String, FormSummary>,
   ): PatientListViewModel.VisitItem {
     val visitType = visit.getLocalizedEncounterType(encounterTypeCodeToQuestionnaireMap)
     val startDate = visit.period?.start?.let { Constants.DATE24_FORMATTER.format(it) } ?: ""
@@ -222,7 +219,7 @@ constructor(
   private fun createEncounterItem(
     encounter: Encounter,
     isSynced: Boolean,
-    encounterTypeCodeToQuestionnaireMap: Map<String, Questionnaire>,
+    encounterTypeCodeToQuestionnaireMap: Map<String, FormSummary>,
   ): PatientListViewModel.EncounterItem {
     val visitType = encounter.getLocalizedEncounterType(encounterTypeCodeToQuestionnaireMap)
     val visitDate = encounter.period?.start?.toLocalString() ?: "Date"
@@ -238,31 +235,26 @@ constructor(
     )
   }
 
-  private suspend fun mapEncounterTypeCodesToQuestionnaires(
-    encounterTypeSystemUrl: String,
-  ): Map<String, Questionnaire> {
-    val questionnaires = loadQuestionnaires()
-    val encounterTypeCodeToQuestionnaireMap = mutableMapOf<String, Questionnaire>()
-    questionnaires.forEach { questionnaire ->
-      if (questionnaire.hasCode()) {
-        questionnaire.code.forEach { coding ->
-          if (coding.hasSystem() && coding.system == encounterTypeSystemUrl) {
-            encounterTypeCodeToQuestionnaireMap.putIfAbsent(coding.code, questionnaire)
-          }
-        }
+  /** The form for each encounter type code (the first one wins). */
+  private suspend fun mapEncounterTypeCodesToQuestionnaires(): Map<String, FormSummary> {
+    val summaries = fhirEngine.allFormSummaries(applicationContext)
+    val encounterTypeCodeToQuestionnaireMap = mutableMapOf<String, FormSummary>()
+    summaries.forEach { summary ->
+      summary.encounterTypeCodes.forEach {
+        encounterTypeCodeToQuestionnaireMap.putIfAbsent(it, summary)
       }
     }
     return encounterTypeCodeToQuestionnaireMap
   }
 
   private fun Encounter.getLocalizedEncounterType(
-    encounterTypeCodeToQuestionnaireMap: Map<String, Questionnaire>,
+    encounterTypeCodeToQuestionnaireMap: Map<String, FormSummary>,
   ): String {
     val encounterType = this.type.firstOrNull()
     val encounterCode = encounterType?.coding?.firstOrNull()?.code
     val questionnaire = encounterCode?.let { encounterTypeCodeToQuestionnaireMap[it] }
 
-    val localizedTitle = questionnaire?.translatedTitle(deviceLanguage) ?: questionnaire?.title
+    val localizedTitle = questionnaire?.titleIn(deviceLanguage)
 
     if (localizedTitle != null) {
       return localizedTitle
@@ -271,9 +263,6 @@ constructor(
     val fallback = encounterType?.coding?.firstOrNull()?.display ?: encounterType?.text ?: "Type"
     return fallback
   }
-
-  private suspend fun loadQuestionnaires(): List<Questionnaire> =
-    fhirEngine.allQuestionnaires(applicationContext, parser)
 
   private fun getString(resId: Int) = applicationContext.resources.getString(resId)
 }

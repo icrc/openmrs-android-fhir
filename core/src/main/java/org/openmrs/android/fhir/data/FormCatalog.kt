@@ -29,19 +29,16 @@
 package org.openmrs.android.fhir.data
 
 import android.content.Context
-import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.FhirEngine
-import com.google.android.fhir.datacapture.extensions.logicalId
 import java.util.Locale
 import javax.inject.Inject
-import org.hl7.fhir.r4.model.Questionnaire
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.config.FormSectionConfig
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.extensions.AppLanguage
-import org.openmrs.android.fhir.extensions.allQuestionnaires
-import org.openmrs.android.fhir.extensions.translatedTitle
+import org.openmrs.android.fhir.extensions.FormSummary
+import org.openmrs.android.fhir.extensions.allFormSummaries
 
 /**
  * The encounter forms available on this device: the questionnaires the server synced plus the ones
@@ -54,8 +51,6 @@ constructor(
   private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
 ) {
-  private val parser = FhirContext.forR4Cached().newJsonParser()
-
   /**
    * @property sections the sections declared in the app configuration
    * @property language the language code names are shown in
@@ -77,21 +72,19 @@ constructor(
   suspend fun load(): Catalog {
     val language = AppLanguage.currentTag(applicationContext).lowercase(Locale.ROOT)
 
-    // The engine's forms, and the ones shipped with the app that the engine does not have.
-    val questionnaires = fhirEngine.allQuestionnaires(applicationContext, parser)
+    // The engine's forms, and the ones shipped with the app that the engine does not have: only
+    // their names and encounter types are needed, so the forms themselves are not read.
+    val summaries = fhirEngine.allFormSummaries(applicationContext)
 
-    fun Questionnaire.toFormItem() =
+    fun FormSummary.toFormItem() =
       FormItem(
-        name = translatedTitle(language)
-            ?: title ?: applicationContext.getString(R.string.no_name_provided),
-        questionnaireId = logicalId,
+        name = titleIn(language) ?: applicationContext.getString(R.string.no_name_provided),
+        questionnaireId = id,
       )
 
     val formsByCode = linkedMapOf<String, FormItem>()
-    questionnaires.forEach { questionnaire ->
-      questionnaire.code
-        .filter { it.hasSystem() && it.system == ENCOUNTER_TYPE_SYSTEM_URL && it.hasCode() }
-        .forEach { formsByCode.putIfAbsent(it.code, questionnaire.toFormItem()) }
+    summaries.forEach { summary ->
+      summary.encounterTypeCodes.forEach { formsByCode.putIfAbsent(it, summary.toFormItem()) }
     }
     return Catalog(AppConfig.get(applicationContext).formSections, language, formsByCode)
   }

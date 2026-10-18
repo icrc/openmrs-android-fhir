@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.extensions
 
+import java.util.Locale
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -60,36 +61,60 @@ fun expandAliasedUrls(json: String): String {
       .put("s", "http://hl7.org/fhir/uv/sdc/StructureDefinition/")
       .put("o", "http://fhir.openmrs.org/ext/")
       .put("q", "http://hl7.org/fhir/questionnaire-item-control")
-  return expandObject(JSONObject(json), prefixes).toString()
+  return expandObject(JSONObject(json), prefixes, null).toString()
 }
 
-fun expandCompactQuestionnaire(json: String): String {
+/**
+ * The plain FHIR JSON of a bundled questionnaire. With a [locale] only the translations in the
+ * language of that locale are written (the same ones [pruneOtherLanguageTranslations] would keep):
+ * the form library shows one language, and the others are most of what a form made of translations
+ * weighs, to write, parse and hold in memory.
+ */
+fun expandCompactQuestionnaire(json: String, locale: Locale? = null): String {
   if (!json.trimStart().startsWith("{\"$COMPACT_MARKER\"")) return json
   val root = JSONObject(json)
   val prefixes = root.getJSONObject(COMPACT_MARKER)
   root.remove(COMPACT_MARKER)
-  return expandObject(root, prefixes).toString()
+  val keep =
+    locale?.let {
+      LanguageFilter(it.language.lowercase(Locale.ROOT), it.toLanguageTag().lowercase(Locale.ROOT))
+    }
+  return expandObject(root, prefixes, keep).toString()
 }
 
-private fun expandValue(value: Any?, prefixes: JSONObject): Any? =
+/** Which translations stay: the language itself or one of its regional variants. */
+private class LanguageFilter(private val language: String, private val tag: String) {
+  fun keeps(lang: String): Boolean {
+    val l = lang.lowercase(Locale.ROOT)
+    return l == tag || l.substringBefore('-') == language
+  }
+}
+
+private fun expandValue(value: Any?, prefixes: JSONObject, keep: LanguageFilter?): Any? =
   when (value) {
-    is JSONObject -> expandObject(value, prefixes)
+    is JSONObject -> expandObject(value, prefixes, keep)
     is JSONArray ->
       JSONArray().also { out ->
-        for (i in 0 until value.length()) out.put(expandValue(value.get(i), prefixes))
+        for (i in 0 until value.length()) out.put(expandValue(value.get(i), prefixes, keep))
       }
     else -> value
   }
 
-private fun expandObject(source: JSONObject, prefixes: JSONObject): JSONObject {
+private fun expandObject(
+  source: JSONObject,
+  prefixes: JSONObject,
+  keep: LanguageFilter?,
+): JSONObject {
   val out = JSONObject()
   val keys = source.keys()
   while (keys.hasNext()) {
     val key = keys.next()
     val value = source.get(key)
     when {
-      key.endsWith(I18N_SUFFIX) && value is JSONObject ->
-        out.put("_" + key.removeSuffix(I18N_SUFFIX), translations(value))
+      key.endsWith(I18N_SUFFIX) && value is JSONObject -> {
+        val kept = translations(value, keep)
+        if (kept != null) out.put("_" + key.removeSuffix(I18N_SUFFIX), kept)
+      }
       (key == "url" || key == "system") && value is String && value.startsWith("@") -> {
         val slash = value.indexOf('/')
         val prefix = if (slash > 1) prefixes.optString(value.substring(1, slash)) else ""
@@ -99,18 +124,54 @@ private fun expandObject(source: JSONObject, prefixes: JSONObject): JSONObject {
           out.put(key, prefix + value.substring(slash + 1))
         }
       }
-      else -> out.put(key, expandValue(value, prefixes))
+      key == "extension" && keep != null && value is JSONArray -> {
+        // Translations written the long way (`_text.extension`) are filtered like the compact ones.
+        val kept = withoutOtherLanguages(expandValue(value, prefixes, keep) as JSONArray, keep)
+        if (kept.length() > 0) out.put(key, kept)
+      }
+      key.startsWith("_") && keep != null && value is JSONObject -> {
+        val expanded = expandObject(value, prefixes, keep)
+        if (expanded.length() > 0) out.put(key, expanded)
+      }
+      else -> out.put(key, expandValue(value, prefixes, keep))
     }
   }
   return out
 }
 
+/**
+ * The extensions without the translations into other languages (a translation without a language
+ * stays), as [pruneOtherLanguageTranslations] leaves them.
+ */
+private fun withoutOtherLanguages(extensions: JSONArray, keep: LanguageFilter): JSONArray {
+  val kept = JSONArray()
+  for (i in 0 until extensions.length()) {
+    val extension = extensions.get(i)
+    if (extension is JSONObject && extension.optString("url") == TRANSLATION_URL) {
+      val inner = extension.optJSONArray("extension")
+      var lang: String? = null
+      if (inner != null) {
+        for (j in 0 until inner.length()) {
+          val part = inner.optJSONObject(j) ?: continue
+          if (part.optString("url") == "lang") {
+            lang = part.optString("valueCode").takeIf { it.isNotEmpty() }
+          }
+        }
+      }
+      if (lang != null && !keep.keeps(lang)) continue
+    }
+    kept.put(extension)
+  }
+  return kept
+}
+
 /** `{"fr": "Père"}` as the `extension` list the FHIR translation extension uses. */
-private fun translations(byLanguage: JSONObject): JSONObject {
+private fun translations(byLanguage: JSONObject, keep: LanguageFilter?): JSONObject? {
   val extensions = JSONArray()
   val languages = byLanguage.keys()
   while (languages.hasNext()) {
     val language = languages.next()
+    if (keep != null && !keep.keeps(language)) continue
     extensions.put(
       JSONObject()
         .put("url", TRANSLATION_URL)
@@ -124,5 +185,5 @@ private fun translations(byLanguage: JSONObject): JSONObject {
         ),
     )
   }
-  return JSONObject().put("extension", extensions)
+  return if (extensions.length() == 0) null else JSONObject().put("extension", extensions)
 }

@@ -31,13 +31,14 @@ package org.openmrs.android.fhir.extensions
 
 import android.content.Context
 import java.io.IOException
+import java.util.Locale
 
 /**
  * The text of an asset file; a questionnaire stored in the compact form comes back as plain FHIR
  * JSON.
  */
-fun Context.readFileFromAssets(fileName: String): String =
-  expandCompactQuestionnaire(assets.open(fileName).bufferedReader().use { it.readText() })
+fun Context.readFileFromAssets(fileName: String, locale: Locale? = null): String =
+  expandCompactQuestionnaire(assets.open(fileName).bufferedReader().use { it.readText() }, locale)
 
 /**
  * Get a list of all JSON file names in the assets folder

@@ -76,7 +76,6 @@ import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
-import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
 import org.openmrs.android.fhir.util.ParentKey
 import org.openmrs.android.fhir.util.buildObservationGroupLookup
 import org.openmrs.android.fhir.util.createParentObservation
@@ -120,7 +119,6 @@ constructor(
           val q =
             fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
           q?.ensurePageGroupsHaveTrailingSpacer()
-          q?.pruneOtherLanguageTranslations()
           if (startOnToday && q != null) prepareEnterEncounter(q)
           q to (q?.let { parser.encodeResourceToString(it) } ?: "")
         }

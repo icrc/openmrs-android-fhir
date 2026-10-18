@@ -58,6 +58,7 @@ import org.openmrs.android.fhir.extensions.ColorVisionStore
 import org.openmrs.android.fhir.extensions.CompactGroupsProviderFactory
 import org.openmrs.android.fhir.extensions.FileLoggingTree
 import org.openmrs.android.fhir.extensions.ThemeModeStore
+import org.openmrs.android.fhir.extensions.bundledFormSummaries
 import timber.log.Timber
 
 class FhirApplication : Application(), DataCaptureConfig.Provider {
@@ -123,6 +124,8 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
         }
       }
     KeystoreHelper.initialize()
+    // The names and encounter types of the bundled forms are read once, before a list needs them.
+    CoroutineScope(Dispatchers.IO).launch { applicationContext.bundledFormSummaries() }
   }
 
   private fun initializeRestApiManager(): RestApiManager {

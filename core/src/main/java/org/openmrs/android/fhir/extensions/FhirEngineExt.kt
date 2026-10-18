@@ -31,25 +31,31 @@ package org.openmrs.android.fhir.extensions
 import android.content.Context
 import ca.uhn.fhir.parser.IParser
 import com.google.android.fhir.FhirEngine
+import java.util.Locale
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.ResourceType
 
+/**
+ * The questionnaire to fill in, with the translations of the device language only: the form library
+ * parses and renders everything it is given, in every language. The bundled copies are read that
+ * way; one from the engine has the others removed.
+ */
 suspend fun FhirEngine.getQuestionnaireOrFromAssets(
   questionnaireId: String,
   applicationContext: Context,
   parser: IParser,
 ): Questionnaire? {
+  val locale = Locale.getDefault()
   return try {
     check(!applicationContext.useEmbeddedFormsOnly())
-    (this.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire).orBundledIfAliased(
-      applicationContext,
-      parser,
-    )
+    (this.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire)
+      .orBundledIfAliased(applicationContext, parser)
+      .also { it.pruneOtherLanguageTranslations(locale) }
   } catch (e: Exception) {
     try {
       val questionnaireString =
-        applicationContext.readBundledQuestionnaire(questionnaireId)
-          ?: applicationContext.readFileFromAssets("$questionnaireId.json")
+        applicationContext.readBundledQuestionnaire(questionnaireId, locale)
+          ?: applicationContext.readFileFromAssets("$questionnaireId.json", locale)
       parser.parseResource(Questionnaire::class.java, questionnaireString)
     } catch (e: Exception) {
       null
@@ -62,18 +68,18 @@ suspend fun FhirEngine.getQuestionnaireOrFromAssetsAsString(
   applicationContext: Context,
   parser: IParser,
 ): String {
+  val locale = Locale.getDefault()
   return try {
     check(!applicationContext.useEmbeddedFormsOnly())
     val questionnaire =
-      (this.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire).orBundledIfAliased(
-        applicationContext,
-        parser,
-      )
+      (this.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire)
+        .orBundledIfAliased(applicationContext, parser)
+        .also { it.pruneOtherLanguageTranslations(locale) }
     parser.encodeResourceToString(questionnaire)
   } catch (e: Exception) {
     try {
-      applicationContext.readBundledQuestionnaire(questionnaireId)
-        ?: applicationContext.readFileFromAssets("$questionnaireId.json")
+      applicationContext.readBundledQuestionnaire(questionnaireId, locale)
+        ?: applicationContext.readFileFromAssets("$questionnaireId.json", locale)
     } catch (e: Exception) {
       ""
     }

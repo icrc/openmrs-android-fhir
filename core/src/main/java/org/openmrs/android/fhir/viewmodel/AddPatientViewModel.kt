@@ -67,7 +67,6 @@ import org.openmrs.android.fhir.data.PatientIdentifierFactory
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
-import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
 import timber.log.Timber
 
 /** ViewModel for patient registration screen {@link AddPatientFragment}. */
@@ -259,8 +258,6 @@ constructor(
           val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
           questionnaire =
             fhirEngine.getQuestionnaireOrFromAssets(questionnaireName, applicationContext, parser)
-          // The form library parses and renders everything it is given, in every language.
-          questionnaire?.pruneOtherLanguageTranslations()
           questionnaire?.let { parser.encodeResourceToString(embeddIdentifierInQuestionnaire(it)) }
             ?: ""
         }
