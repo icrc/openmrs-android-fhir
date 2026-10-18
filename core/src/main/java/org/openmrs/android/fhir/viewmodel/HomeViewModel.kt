@@ -42,8 +42,6 @@ import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.ApiManager
-import org.openmrs.android.fhir.data.remote.ServerConnectivityState
-import org.openmrs.android.fhir.extensions.getServerConnectivityState
 
 sealed interface HomeEvent {
   data object NavigateToAddPatient : HomeEvent
@@ -83,16 +81,9 @@ constructor(
       _events.tryEmit(HomeEvent.ShowMessage(R.string.sign_in_for_patient_lists))
       return
     }
-    viewModelScope.launch {
-      when (applicationContext.getServerConnectivityState(apiManager)) {
-        ServerConnectivityState.ServerConnected ->
-          _events.emit(HomeEvent.NavigateToCustomPatientList)
-        ServerConnectivityState.InternetOnly ->
-          _events.emit(HomeEvent.ShowMessage(R.string.server_unreachable_try_again_message))
-        ServerConnectivityState.Offline ->
-          _events.emit(HomeEvent.ShowMessage(R.string.connect_internet_to_select_patient_list))
-      }
-    }
+    // No reachability check first: the screen shows the lists saved on the device at once, asks the
+    // server itself and says so when it cannot be reached.
+    _events.tryEmit(HomeEvent.NavigateToCustomPatientList)
   }
 
   fun onGroupEncounterClicked() {

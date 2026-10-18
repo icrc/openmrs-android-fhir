@@ -37,6 +37,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.OperationOutcome
 import org.hl7.fhir.r4.model.Patient
@@ -194,6 +195,28 @@ class ApiManager @Inject constructor(context: Context) : Api {
     return resources.filter { it !is OperationOutcome }
   }
 
+  /**
+   * The patient lists (Groups) of [search] (`Group?location=...`, see `SyncUrls.groups`), following
+   * the `next` links. Read only.
+   */
+  suspend fun fetchPatientLists(search: String): List<Group> {
+    val groups = mutableListOf<Group>()
+    val separator = if (search.contains('?')) "&" else "?"
+    var url: String? =
+      ServerSettings.fhirBaseUrl(appContext) + search + separator + "_count=$PATIENT_LIST_PAGE"
+    var pages = 0
+    while (url != null && pages++ < MAX_PATIENT_LIST_PAGES) {
+      val response = fhirApiService.getBundle(url)
+      if (!response.isSuccessful) {
+        throw IOException("Server answered ${response.code()} for the patient lists")
+      }
+      val bundle = response.body() ?: break
+      bundle.entry.mapNotNullTo(groups) { it.resource as? Group }
+      url = bundle.link.firstOrNull { it.relation == "next" }?.url
+    }
+    return groups
+  }
+
   suspend fun checkServerConnection(url: String): Boolean {
     return try {
       val response = apiService.checkServerStatus(url)
@@ -225,6 +248,8 @@ internal fun resolveAuthorizationHeader(
 
 private const val MAX_QUESTIONNAIRE_PAGES = 20
 private const val MAX_RECORD_PAGES = 20
+private const val MAX_PATIENT_LIST_PAGES = 20
+private const val PATIENT_LIST_PAGE = 100
 private const val PATIENT_SEARCH_LIMIT = 20
 private const val PATIENT_SEARCH_ELEMENTS =
   "id,name,identifier,birthDate,gender,address,telecom,active"

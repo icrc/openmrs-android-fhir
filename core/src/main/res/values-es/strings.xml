@@ -274,6 +274,14 @@
     <string name="search_patient_lists">Buscar listas de pacientes</string>
     <string name="select_patient_list_subtitle">Elija las listas cuyos pacientes quiere en este dispositivo. Solo se descargan sus pacientes.</string>
     <string name="patient_lists_header">Listas de pacientes</string>
+    <string name="patient_lists_empty_title">No hay listas de pacientes</string>
+    <string name="patient_lists_empty_for_location">No hay listas de pacientes para %1$s. Pruebe con otra ubicación o vuelva a comprobar.</string>
+    <string name="patient_lists_empty_generic">No hay listas de pacientes que mostrar. Vuelva a comprobar en un momento.</string>
+    <string name="patient_lists_failed_title">No se pudieron cargar las listas de pacientes</string>
+    <string name="patient_lists_failed_message">Compruebe la conexión e inténtelo de nuevo.</string>
+    <string name="patient_lists_failed_cached">No se pudieron actualizar las listas. Se muestran las guardadas en este dispositivo.</string>
+    <string name="patient_lists_try_again">Reintentar</string>
+    <string name="patient_list_patient_count">Pacientes: %1$d</string>
     <string name="patient_lists_no_match">Ninguna lista de pacientes coincide con «%1$s»</string>
     <string name="patient_lists_selected_count">%1$d seleccionada(s)</string>
     <string

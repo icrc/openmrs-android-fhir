@@ -365,6 +365,14 @@
     <string name="search_patient_lists">Search patient lists</string>
     <string name="select_patient_list_subtitle">Pick the lists whose patients you want on this device. Only their patients are downloaded.</string>
     <string name="patient_lists_header">Patient lists</string>
+    <string name="patient_lists_empty_title">No patient lists here</string>
+    <string name="patient_lists_empty_for_location">There are no patient lists for %1$s. Try another location, or check again.</string>
+    <string name="patient_lists_empty_generic">There are no patient lists to show. Check again in a moment.</string>
+    <string name="patient_lists_failed_title">Couldn\'t load the patient lists</string>
+    <string name="patient_lists_failed_message">Check the connection and try again.</string>
+    <string name="patient_lists_failed_cached">Couldn\'t update the lists. Showing the ones saved on this device.</string>
+    <string name="patient_lists_try_again">Try again</string>
+    <string name="patient_list_patient_count">Patients: %1$d</string>
     <string name="patient_lists_no_match">No patient lists match “%1$s”</string>
     <string name="patient_lists_selected_count">%1$d selected</string>
     <string name="no_sync_info_available">No Sync Info Available</string>

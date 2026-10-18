@@ -28,6 +28,12 @@
 */
 package org.openmrs.android.fhir.ui.screens
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -45,9 +51,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -60,6 +70,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -316,6 +327,9 @@ fun PatientListSelectionScreen(
   modifier: Modifier = Modifier,
   locationName: String? = null,
   onChangeLocationClick: (() -> Unit)? = null,
+  isRefreshing: Boolean = false,
+  loadFailed: Boolean = false,
+  onRetry: (() -> Unit)? = null,
 ) {
   Box(
     modifier =
@@ -379,50 +393,78 @@ fun PatientListSelectionScreen(
         }
       }
 
-      SelectionSearchField(
-        value = query,
-        onValueChange = onQueryChange,
-        hintResId = R.string.search_patient_lists,
-        modifier = Modifier.testTag("PatientListSearchField"),
-      )
-
-      if (showEmptyState && !isLoading) {
-        SelectionEmptyState(
-          iconResId = R.drawable.cloud_sync_24px,
-          messageResId = R.string.no_patient_list_available,
-          modifier = Modifier.testTag("PatientListEmptyState"),
-        )
-      } else if (!isLoading && patientLists.isEmpty()) {
-        Text(
-          text = stringResource(id = R.string.patient_lists_no_match, query),
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-          textAlign = TextAlign.Center,
-          modifier = Modifier.fillMaxWidth().padding(24.dp).testTag("PatientListNoMatch"),
+      val nothingToShow = showEmptyState && !isLoading
+      if (!nothingToShow) {
+        SelectionSearchField(
+          value = query,
+          onValueChange = onQueryChange,
+          hintResId = R.string.search_patient_lists,
+          modifier = Modifier.testTag("PatientListSearchField"),
         )
       }
 
-      LazyColumn(
-        modifier = Modifier.fillMaxWidth().weight(1f).testTag("PatientListList"),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
-      ) {
-        if (patientLists.isNotEmpty()) {
-          stickyHeader(key = "lists-header", contentType = "header") {
-            PatientListSectionHeader(
-              total = patientLists.size,
-              selected = selectedPatientListIds.size,
+      // Asking the server while there is something to read: a thin line, the lists stay.
+      if (isRefreshing && !isLoading && !showEmptyState) {
+        LinearProgressIndicator(
+          modifier =
+            Modifier.fillMaxWidth().padding(horizontal = 20.dp).testTag("PatientListRefreshing"),
+          color = OpenMrsTheme.colors.progress,
+        )
+      }
+      if (loadFailed && !showEmptyState && !isLoading) {
+        PatientListsNotice(
+          text = stringResource(id = R.string.patient_lists_failed_cached),
+          onRetry = onRetry,
+        )
+      }
+
+      when {
+        isLoading -> PatientListsSkeleton()
+        nothingToShow ->
+          PatientListsEmptyState(
+            failed = loadFailed,
+            isRefreshing = isRefreshing,
+            locationName = locationName,
+            onRetry = onRetry,
+            onChangeLocationClick = onChangeLocationClick,
+          )
+        else -> {
+          if (patientLists.isEmpty()) {
+            Text(
+              text = stringResource(id = R.string.patient_lists_no_match, query),
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              textAlign = TextAlign.Center,
+              modifier = Modifier.fillMaxWidth().padding(24.dp).testTag("PatientListNoMatch"),
             )
           }
-        }
-        items(patientLists, key = { it.resourceId }, contentType = { "row" }) { patientList ->
-          val checked = selectedPatientListIds.contains(patientList.resourceId)
-          SelectPatientListItemRow(
-            text = patientList.name,
-            checked = checked,
-            onToggle = { onPatientListToggle(patientList, checked) },
-            modifier = Modifier.animateItem(),
-          )
+          LazyColumn(
+            modifier = Modifier.fillMaxWidth().weight(1f).testTag("PatientListList"),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+          ) {
+            if (patientLists.isNotEmpty()) {
+              stickyHeader(key = "lists-header", contentType = "header") {
+                PatientListSectionHeader(
+                  total = patientLists.size,
+                  selected = selectedPatientListIds.size,
+                )
+              }
+            }
+            items(patientLists, key = { it.resourceId }, contentType = { "row" }) { patientList ->
+              val checked = selectedPatientListIds.contains(patientList.resourceId)
+              SelectPatientListItemRow(
+                text = patientList.name,
+                subtitle =
+                  patientList.patientCount?.let {
+                    stringResource(id = R.string.patient_list_patient_count, it)
+                  },
+                checked = checked,
+                onToggle = { onPatientListToggle(patientList, checked) },
+                modifier = Modifier.animateItem(),
+              )
+            }
+          }
         }
       }
 
@@ -445,13 +487,190 @@ fun PatientListSelectionScreen(
         }
       }
     }
+  }
+}
 
-    if (isLoading) {
-      Box(
-        modifier = Modifier.fillMaxSize().testTag("PatientListLoading"),
-        contentAlignment = Alignment.Center,
+/** Placeholders shaped like the rows, pulsing softly, until the first lists are known. */
+@Composable
+private fun PatientListsSkeleton(modifier: Modifier = Modifier) {
+  val pulse by
+    rememberInfiniteTransition(label = "patient-lists-skeleton")
+      .animateFloat(
+        initialValue = 0.35f,
+        targetValue = 0.85f,
+        animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse),
+        label = "alpha",
+      )
+  val block = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.10f * pulse)
+  Column(
+    modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp).testTag("PatientListLoading"),
+    verticalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
+    Box(
+      modifier =
+        Modifier.padding(horizontal = 4.dp, vertical = 12.dp)
+          .size(width = 96.dp, height = 12.dp)
+          .clip(RoundedCornerShape(6.dp))
+          .background(block),
+    )
+    repeat(6) { index ->
+      Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
       ) {
-        CircularProgressIndicator(color = OpenMrsTheme.colors.progress)
+        Row(
+          modifier = Modifier.padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 16.dp),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(block))
+          Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
+            Box(
+              modifier =
+                Modifier.fillMaxWidth(if (index % 2 == 0) 0.62f else 0.45f)
+                  .height(14.dp)
+                  .clip(RoundedCornerShape(7.dp))
+                  .background(block),
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Box(
+              modifier =
+                Modifier.fillMaxWidth(0.25f)
+                  .height(10.dp)
+                  .clip(RoundedCornerShape(5.dp))
+                  .background(block),
+            )
+          }
+          Box(modifier = Modifier.size(20.dp).clip(RoundedCornerShape(5.dp)).background(block))
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Nothing to pick: either the server has no lists for the location (say so, name the location,
+ * offer another location or a new look) or it could not be reached (say that, offer to try again).
+ */
+@Composable
+private fun PatientListsEmptyState(
+  failed: Boolean,
+  isRefreshing: Boolean,
+  locationName: String?,
+  onRetry: (() -> Unit)?,
+  onChangeLocationClick: (() -> Unit)?,
+  modifier: Modifier = Modifier,
+) {
+  Column(
+    modifier =
+      modifier
+        .fillMaxWidth()
+        .padding(horizontal = 32.dp)
+        .padding(top = 48.dp)
+        .testTag("PatientListEmptyState"),
+    horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    Box(
+      modifier =
+        Modifier.size(88.dp).clip(CircleShape).background(OpenMrsTheme.colors.highlightContainer),
+      contentAlignment = Alignment.Center,
+    ) {
+      if (failed) {
+        androidx.compose.material3.Icon(
+          modifier = Modifier.size(44.dp),
+          imageVector = Icons.Outlined.CloudOff,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.primary,
+        )
+      } else {
+        androidx.compose.material3.Icon(
+          modifier = Modifier.size(44.dp),
+          painter = painterResource(id = R.drawable.cloud_sync_24px),
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.primary,
+        )
+      }
+    }
+    Text(
+      modifier = Modifier.padding(top = 20.dp),
+      text =
+        stringResource(
+          id =
+            if (failed) R.string.patient_lists_failed_title else R.string.patient_lists_empty_title,
+        ),
+      style = MaterialTheme.typography.titleMedium,
+      fontWeight = FontWeight.SemiBold,
+      textAlign = TextAlign.Center,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
+    Text(
+      modifier = Modifier.padding(top = 8.dp),
+      text =
+        when {
+          failed -> stringResource(id = R.string.patient_lists_failed_message)
+          !locationName.isNullOrBlank() ->
+            stringResource(id = R.string.patient_lists_empty_for_location, locationName)
+          else -> stringResource(id = R.string.patient_lists_empty_generic)
+        },
+      style = MaterialTheme.typography.bodyMedium,
+      textAlign = TextAlign.Center,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    if (onRetry != null) {
+      Button(
+        modifier = Modifier.padding(top = 24.dp).testTag("PatientListRetry"),
+        shape = RoundedCornerShape(14.dp),
+        enabled = !isRefreshing,
+        onClick = onRetry,
+      ) {
+        if (isRefreshing) {
+          CircularProgressIndicator(
+            modifier = Modifier.size(18.dp),
+            strokeWidth = 2.dp,
+            color = MaterialTheme.colorScheme.onPrimary,
+          )
+          Spacer(modifier = Modifier.width(8.dp))
+        }
+        Text(text = stringResource(id = R.string.patient_lists_try_again))
+      }
+    }
+    if (onChangeLocationClick != null) {
+      TextButton(
+        modifier = Modifier.padding(top = 4.dp).testTag("PatientListEmptyChangeLocation"),
+        onClick = onChangeLocationClick,
+      ) {
+        Text(text = stringResource(id = R.string.change_location))
+      }
+    }
+  }
+}
+
+/** A line above the lists when the server could not be reached and the saved lists are shown. */
+@Composable
+private fun PatientListsNotice(text: String, onRetry: (() -> Unit)?) {
+  Surface(
+    modifier =
+      Modifier.fillMaxWidth()
+        .padding(horizontal = 16.dp, vertical = 6.dp)
+        .testTag("PatientListNotice"),
+    shape = RoundedCornerShape(12.dp),
+    color = OpenMrsTheme.colors.warning.copy(alpha = 0.14f),
+  ) {
+    Row(
+      modifier = Modifier.padding(start = 12.dp, top = 2.dp, bottom = 2.dp, end = 2.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Text(
+        modifier = Modifier.weight(1f),
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurface,
+      )
+      if (onRetry != null) {
+        TextButton(onClick = onRetry) {
+          Text(text = stringResource(id = R.string.patient_lists_try_again))
+        }
       }
     }
   }

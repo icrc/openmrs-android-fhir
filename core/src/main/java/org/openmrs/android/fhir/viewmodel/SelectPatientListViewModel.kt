@@ -35,20 +35,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.search
-import com.google.android.fhir.sync.CurrentSyncJobStatus
-import com.google.android.fhir.sync.Sync
+import com.google.android.fhir.sync.AcceptLocalConflictResolver
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.StringType
@@ -58,7 +58,9 @@ import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
-import org.openmrs.android.fhir.data.sync.GroupFhirSyncWorker
+import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.sync.SyncUrls
+import timber.log.Timber
 
 class SelectPatientListViewModel
 @Inject
@@ -69,44 +71,93 @@ constructor(
   private var masterSelectPatientListItemList: MutableList<SelectPatientListItem> = mutableListOf()
 
   val selectPatientListItems = MutableLiveData<List<SelectPatientListItem>>()
-  private val _pollState = MutableSharedFlow<CurrentSyncJobStatus>()
-  val pollState: Flow<CurrentSyncJobStatus>
-    get() = _pollState
-
   private val _uiState = MutableStateFlow(SelectPatientListUiState())
   val uiState: StateFlow<SelectPatientListUiState>
     get() = _uiState
+
+  private var started = false
+  private var refreshJob: Job? = null
+  private val apiManager by lazy { ApiManager(applicationContext) }
 
   init {
     loadSelectedPatientLists()
   }
 
-  fun getSelectPatientListItems() {
+  /**
+   * Shows what is already on the device at once and asks the server for the lists of the location
+   * in the background (one small request, no reachability check first, no sync job): the screen
+   * never waits for the network to show something. With [fromLogin] and lists that are not scoped
+   * to the location, the first sync brings them and only the device is read.
+   */
+  fun start(fromLogin: Boolean) {
+    if (started) return
+    started = true
     viewModelScope.launch {
-      val filterPatientListsByGroup =
-        AppConfig.get(applicationContext).sync.filterPatientListsByLocation
-      val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
-      // Reading and filtering every Group can take a moment on big servers: keep it off main.
-      val (groups, selectPatientListItemList) =
-        withContext(Dispatchers.Default) {
-          val groups = fhirEngine.search<Group> {}.map { it.resource }
-          val filteredGroups =
-            if (filterPatientListsByGroup) {
-              groups.filter { it.belongsToLocation(locationId) }
-            } else {
-              groups
-            }
-          groups to
-            filteredGroups
-              .mapIndexed { index, group -> group.toSelectPatientListItem(index + 1) }
-              .toMutableList()
-        }
-      if (filterPatientListsByGroup && groups.isNotEmpty()) {
-        dropSelectionsOutside(selectPatientListItemList.map { it.resourceId }.toSet())
+      getSelectPatientListItems()
+      if (!fromLogin || AppConfig.get(applicationContext).sync.filterPatientListsByLocation) {
+        refresh()
       }
-      masterSelectPatientListItemList = selectPatientListItemList
-      selectPatientListItems.value = selectPatientListItemList
     }
+  }
+
+  /** Asks the server again; the lists on screen stay until the new ones are saved. */
+  fun refresh() {
+    refreshJob?.cancel()
+    refreshJob =
+      viewModelScope.launch {
+        _uiState.update { it.copy(isRefreshing = true, loadFailed = false) }
+        try {
+          val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+          val groups =
+            withTimeout(REFRESH_TIMEOUT_MILLIS) {
+              withContext(Dispatchers.IO) {
+                apiManager.fetchPatientLists(SyncUrls.groups(applicationContext, locationId))
+              }
+            }
+          withContext(Dispatchers.IO) {
+            // Stored the way a sync stores them: nothing here is a local change.
+            fhirEngine.syncDownload(AcceptLocalConflictResolver) { flowOf(groups) }
+          }
+          getSelectPatientListItems()
+        } catch (e: TimeoutCancellationException) {
+          _uiState.update { it.copy(loadFailed = true) }
+        } catch (e: CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          Timber.w(e, "Could not fetch the patient lists")
+          _uiState.update { it.copy(loadFailed = true) }
+        } finally {
+          _uiState.update { it.copy(isRefreshing = false, isLoading = false) }
+        }
+      }
+  }
+
+  suspend fun getSelectPatientListItems() {
+    val filterPatientListsByGroup =
+      AppConfig.get(applicationContext).sync.filterPatientListsByLocation
+    val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+    // Reading and filtering every Group can take a moment on big servers: keep it off main.
+    val (groups, selectPatientListItemList) =
+      withContext(Dispatchers.Default) {
+        val groups = fhirEngine.search<Group> {}.map { it.resource }
+        val filteredGroups =
+          if (filterPatientListsByGroup) {
+            groups.filter { it.belongsToLocation(locationId) }
+          } else {
+            groups
+          }
+        groups to
+          filteredGroups
+            .sortedBy { it.name.orEmpty().lowercase() }
+            .mapIndexed { index, group -> group.toSelectPatientListItem(index + 1) }
+            .toMutableList()
+      }
+    if (filterPatientListsByGroup && groups.isNotEmpty()) {
+      dropSelectionsOutside(selectPatientListItemList.map { it.resourceId }.toSet())
+    }
+    masterSelectPatientListItemList = selectPatientListItemList
+    selectPatientListItems.value = selectPatientListItemList
+    _uiState.update { it.copy(isLoading = false) }
   }
 
   /**
@@ -122,24 +173,12 @@ constructor(
     _uiState.update { it.copy(selectedPatientListIds = kept) }
   }
 
-  fun fetchPatientListItems() {
-    viewModelScope.launch {
-      Sync.oneTimeSync<GroupFhirSyncWorker>(applicationContext)
-        .shareIn(this, SharingStarted.Eagerly, 10)
-        .collect { _pollState.emit(it) }
-    }
-  }
-
   fun getSelectPatientListItemsListFiltered(query: String = ""): List<SelectPatientListItem> {
     return masterSelectPatientListItemList.filter { it.name.contains(query, true) }
   }
 
   fun onQueryChanged(query: String) {
     _uiState.update { it.copy(query = query) }
-  }
-
-  fun onLoadingChanged(isLoading: Boolean) {
-    _uiState.update { it.copy(isLoading = isLoading) }
   }
 
   fun onPatientListToggle(resourceId: String, isSelected: Boolean) {
@@ -178,6 +217,7 @@ constructor(
       id = position.toString(),
       resourceId = idElement.idPart,
       name = name,
+      patientCount = if (hasQuantity()) quantity else member.size,
     )
   }
 
@@ -210,6 +250,7 @@ constructor(
   }
 
   companion object {
+    private const val REFRESH_TIMEOUT_MILLIS = 20_000L
     private const val GROUP_LOCATION_EXTENSION_URL = "http://fhir.openmrs.org/ext/group/location"
   }
 
@@ -217,11 +258,18 @@ constructor(
     val id: String,
     val resourceId: String,
     val name: String,
+    /** How many patients the list has, when known. */
+    val patientCount: Int? = null,
   )
 
   data class SelectPatientListUiState(
     val query: String = "",
     val selectedPatientListIds: Set<String> = emptySet(),
-    val isLoading: Boolean = false,
+    /** Nothing is known yet (the device has not been read): the screen shows placeholders. */
+    val isLoading: Boolean = true,
+    /** The server is being asked; what is on screen stays. */
+    val isRefreshing: Boolean = false,
+    /** The last attempt to reach the server did not work. */
+    val loadFailed: Boolean = false,
   )
 }

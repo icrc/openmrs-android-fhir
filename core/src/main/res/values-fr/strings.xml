@@ -285,6 +285,14 @@
     >Rechercher des listes de patients</string>
     <string name="select_patient_list_subtitle">Choisissez les listes dont vous voulez les patients sur cet appareil. Seuls leurs patients sont téléchargés.</string>
     <string name="patient_lists_header">Listes de patients</string>
+    <string name="patient_lists_empty_title">Aucune liste de patients</string>
+    <string name="patient_lists_empty_for_location">Il n\'y a aucune liste de patients pour %1$s. Essayez un autre lieu, ou vérifiez à nouveau.</string>
+    <string name="patient_lists_empty_generic">Aucune liste de patients à afficher. Vérifiez à nouveau dans un instant.</string>
+    <string name="patient_lists_failed_title">Impossible de charger les listes de patients</string>
+    <string name="patient_lists_failed_message">Vérifiez la connexion et réessayez.</string>
+    <string name="patient_lists_failed_cached">Impossible de mettre à jour les listes. Affichage de celles enregistrées sur cet appareil.</string>
+    <string name="patient_lists_try_again">Réessayer</string>
+    <string name="patient_list_patient_count">Patients : %1$d</string>
     <string name="patient_lists_no_match">Aucune liste de patients ne correspond à « %1$s »</string>
     <string name="patient_lists_selected_count">%1$d sélectionnée(s)</string>
     <string

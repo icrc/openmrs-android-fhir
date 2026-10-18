@@ -253,6 +253,14 @@
     <string name="search_patient_lists">البحث عن قوائم المريض</string>
     <string name="select_patient_list_subtitle">اختر القوائم التي تريد مرضاها على هذا الجهاز. يتم تنزيل مرضاها فقط.</string>
     <string name="patient_lists_header">قوائم المرضى</string>
+    <string name="patient_lists_empty_title">لا توجد قوائم مرضى</string>
+    <string name="patient_lists_empty_for_location">لا توجد قوائم مرضى للموقع %1$s. جرّب موقعاً آخر أو أعد التحقق.</string>
+    <string name="patient_lists_empty_generic">لا توجد قوائم مرضى لعرضها. أعد التحقق بعد قليل.</string>
+    <string name="patient_lists_failed_title">تعذّر تحميل قوائم المرضى</string>
+    <string name="patient_lists_failed_message">تحقّق من الاتصال وحاول مرة أخرى.</string>
+    <string name="patient_lists_failed_cached">تعذّر تحديث القوائم. تُعرض القوائم المحفوظة على هذا الجهاز.</string>
+    <string name="patient_lists_try_again">إعادة المحاولة</string>
+    <string name="patient_list_patient_count">المرضى: %1$d</string>
     <string name="patient_lists_no_match">لا توجد قوائم مرضى تطابق «%1$s»</string>
     <string name="patient_lists_selected_count">تم اختيار %1$d</string>
     <string

@@ -39,29 +39,20 @@ import androidx.compose.runtime.remember
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
-import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
-import org.openmrs.android.fhir.data.remote.ApiManager
-import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.extensions.composeView
-import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.PatientListSelectionScreen
@@ -72,15 +63,12 @@ import org.openmrs.android.fhir.viewmodel.SelectPatientListViewModel
 
 class SelectPatientListFragment : Fragment() {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
-
-  @Inject lateinit var apiManager: ApiManager
   private val selectPatientListViewModel by
     viewModels<SelectPatientListViewModel> { viewModelFactory }
   private val mainActivityViewModel by
     activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   private var fromLogin = false
-  private var filterPatientListsByGroup = false
   private val locationName = androidx.compose.runtime.mutableStateOf<String?>(null)
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -112,12 +100,16 @@ class SelectPatientListFragment : Fragment() {
           showTitle = fromLogin,
           showActionButton = fromLogin,
           showEmptyState = patientLists.isEmpty(),
-          isLoading = uiState.isLoading,
+          // Placeholders until the device has been read, and while the first lists are fetched.
+          isLoading = uiState.isLoading || (uiState.isRefreshing && patientLists.isEmpty()),
           onPatientListToggle = ::onSelectPatientListItemClicked,
           onActionClick = ::handleActionClick,
           locationName = locationName.value,
           onChangeLocationClick = if (fromLogin) ::changeLocation else null,
           topPadding = selectionScreenContentPadding().calculateTopPadding(),
+          isRefreshing = uiState.isRefreshing,
+          loadFailed = uiState.loadFailed,
+          onRetry = selectPatientListViewModel::refresh,
         )
       }
     }
@@ -128,56 +120,14 @@ class SelectPatientListFragment : Fragment() {
     val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
     (requireActivity().application as FhirApplication).appComponent.inject(this)
 
-    filterPatientListsByGroup = AppConfig.get(requireContext()).sync.filterPatientListsByLocation
-
     viewLifecycleOwner.lifecycleScope.launch {
       locationName.value =
         requireContext().applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_NAME]
     }
-    lifecycleScope.launch {
-      actionBar?.title = requireContext().getString(R.string.select_patient_lists)
-      configureUi(actionBar)
-
-      if (filterPatientListsByGroup) {
-        selectPatientListViewModel.getSelectPatientListItems()
-        observeSelectedLocation()
-      } else {
-        triggerLegacyInitialSync()
-      }
-    }
-    observePollState()
-
-    selectPatientListViewModel.selectPatientListItems.observe(viewLifecycleOwner) {
-      selectPatientListViewModel.onLoadingChanged(false)
-    }
-  }
-
-  private fun observeSelectedLocation() {
-    if (!filterPatientListsByGroup) {
-      return
-    }
-
-    viewLifecycleOwner.lifecycleScope.launch {
-      viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-        val appContext = requireContext().applicationContext
-        appContext.dataStore.data
-          .map { preferences -> preferences[PreferenceKeys.LOCATION_ID] }
-          .distinctUntilChanged()
-          .collect { locationId ->
-            if (!isAdded) return@collect
-            val connectivityState = requireContext().getServerConnectivityState(apiManager)
-            if (
-              connectivityState == ServerConnectivityState.ServerConnected &&
-                !locationId.isNullOrBlank()
-            ) {
-              selectPatientListViewModel.onLoadingChanged(true)
-              selectPatientListViewModel.fetchPatientListItems()
-            } else {
-              selectPatientListViewModel.getSelectPatientListItems()
-            }
-          }
-      }
-    }
+    actionBar?.title = requireContext().getString(R.string.select_patient_lists)
+    configureUi(actionBar)
+    // The lists on the device show at once; the server is asked in the background.
+    selectPatientListViewModel.start(fromLogin)
   }
 
   /** Back to the location list; the lists are rebuilt for whichever location is chosen. */
@@ -220,21 +170,6 @@ class SelectPatientListFragment : Fragment() {
     }
   }
 
-  private fun triggerLegacyInitialSync() {
-    if (fromLogin) {
-      selectPatientListViewModel.getSelectPatientListItems()
-    } else {
-      viewLifecycleOwner.lifecycleScope.launch {
-        selectPatientListViewModel.onLoadingChanged(true)
-        when (requireContext().getServerConnectivityState(apiManager)) {
-          ServerConnectivityState.ServerConnected ->
-            selectPatientListViewModel.fetchPatientListItems()
-          else -> selectPatientListViewModel.getSelectPatientListItems()
-        }
-      }
-    }
-  }
-
   private fun onSelectPatientListItemClicked(
     selectPatientListItem: SelectPatientListViewModel.SelectPatientListItem,
     isSelected: Boolean,
@@ -257,35 +192,6 @@ class SelectPatientListFragment : Fragment() {
   ) {
     selectPatientListViewModel.onPatientListToggle(selectPatientListItem.resourceId, false)
     AppMessage.show(context, getString(R.string.added_patient_list_to_sync), MessageKind.Success)
-  }
-
-  private fun observePollState() {
-    lifecycleScope.launch {
-      selectPatientListViewModel.pollState.collect {
-        when (it) {
-          is CurrentSyncJobStatus.Succeeded -> {
-            selectPatientListViewModel.getSelectPatientListItems()
-          }
-          is CurrentSyncJobStatus.Running,
-          CurrentSyncJobStatus.Enqueued, -> {
-            if (fromLogin) {
-              selectPatientListViewModel.onLoadingChanged(false)
-            }
-          }
-          is CurrentSyncJobStatus.Failed -> {
-            selectPatientListViewModel.getSelectPatientListItems()
-            AppMessage.show(
-              context,
-              getString(R.string.failed_to_fetch_all_patient_lists),
-              MessageKind.Error,
-            )
-          }
-          else -> {
-            selectPatientListViewModel.getSelectPatientListItems()
-          }
-        }
-      }
-    }
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {

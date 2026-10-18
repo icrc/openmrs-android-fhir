@@ -329,6 +329,14 @@
     <string name="search_patient_lists">Поиск списков пациентов</string>
     <string name="select_patient_list_subtitle">Выберите списки, пациенты которых нужны на этом устройстве. Загружаются только их пациенты.</string>
     <string name="patient_lists_header">Списки пациентов</string>
+    <string name="patient_lists_empty_title">Нет списков пациентов</string>
+    <string name="patient_lists_empty_for_location">Для места «%1$s» нет списков пациентов. Попробуйте другое место или проверьте снова.</string>
+    <string name="patient_lists_empty_generic">Нет списков пациентов для показа. Проверьте снова через минуту.</string>
+    <string name="patient_lists_failed_title">Не удалось загрузить списки пациентов</string>
+    <string name="patient_lists_failed_message">Проверьте соединение и повторите попытку.</string>
+    <string name="patient_lists_failed_cached">Не удалось обновить списки. Показаны списки, сохранённые на этом устройстве.</string>
+    <string name="patient_lists_try_again">Повторить</string>
+    <string name="patient_list_patient_count">Пациентов: %1$d</string>
     <string name="patient_lists_no_match">Нет списков пациентов, соответствующих «%1$s»</string>
     <string name="patient_lists_selected_count">Выбрано: %1$d</string>
 

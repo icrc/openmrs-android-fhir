@@ -804,6 +804,7 @@ fun SelectPatientListItemRow(
   checked: Boolean,
   onToggle: () -> Unit,
   modifier: Modifier = Modifier,
+  subtitle: String? = null,
 ) {
   val primary = MaterialTheme.colorScheme.primary
   Surface(
@@ -840,17 +841,24 @@ fun SelectPatientListItemRow(
           modifier = Modifier.size(22.dp),
         )
       }
-      Text(
-        modifier =
-          Modifier.weight(1f)
-            .padding(horizontal = 12.dp, vertical = 6.dp)
-            .testTag("SelectPatientText"),
-        text = text,
-        maxLines = 2,
-        overflow = TextOverflow.Ellipsis,
-        style = MaterialTheme.typography.bodyLarge,
-        fontWeight = if (checked) FontWeight.SemiBold else FontWeight.Normal,
-      )
+      Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 6.dp)) {
+        Text(
+          modifier = Modifier.testTag("SelectPatientText"),
+          text = text,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis,
+          style = MaterialTheme.typography.bodyLarge,
+          fontWeight = if (checked) FontWeight.SemiBold else FontWeight.Normal,
+        )
+        if (subtitle != null) {
+          Text(
+            modifier = Modifier.testTag("SelectPatientSubtitle"),
+            text = subtitle,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
+      }
       Checkbox(
         modifier = Modifier.testTag("SelectPatientCheckbox"),
         checked = checked,
