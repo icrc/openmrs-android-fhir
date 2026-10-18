@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- The view of a group that has no title: nothing to draw (see CompactGroupViewHolders). The form library looks for the media view of every item it binds. -->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+>
+  <com.google.android.fhir.datacapture.views.MediaView
+        android:id="@+id/item_media"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+    />
+</FrameLayout>

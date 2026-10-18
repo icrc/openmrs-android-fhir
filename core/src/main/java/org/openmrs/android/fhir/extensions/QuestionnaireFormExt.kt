@@ -66,6 +66,7 @@ fun Fragment.newQuestionnaireFragment(
       responseJson?.let { setQuestionnaireResponse(it) }
       showReviewPageBeforeSubmit(true)
       showOptionalText(true)
+      setCustomQuestionnaireItemViewHolderFactoryMatchersProvider(COMPACT_GROUPS_PROVIDER)
       showRequiredText(false)
       showCancelButton?.let { setShowCancelButton(it) }
       showSubmitButton?.let { setShowSubmitButton(it) }

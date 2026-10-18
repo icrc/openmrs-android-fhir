@@ -55,6 +55,7 @@ import org.openmrs.android.fhir.data.remote.ServerSettings
 import org.openmrs.android.fhir.di.AppComponent
 import org.openmrs.android.fhir.di.DaggerAppComponent
 import org.openmrs.android.fhir.extensions.ColorVisionStore
+import org.openmrs.android.fhir.extensions.CompactGroupsProviderFactory
 import org.openmrs.android.fhir.extensions.FileLoggingTree
 import org.openmrs.android.fhir.extensions.ThemeModeStore
 import timber.log.Timber
@@ -116,6 +117,7 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     dataCaptureConfig =
       DataCaptureConfig().apply {
         urlResolver = ReferenceUrlResolver(this@FhirApplication as Context)
+        questionnaireItemViewHolderFactoryMatchersProviderFactory = CompactGroupsProviderFactory
         xFhirQueryResolver = XFhirQueryResolver { it ->
           FhirEngineProvider.getInstance(applicationContext).search(it).map { it.resource }
         }
