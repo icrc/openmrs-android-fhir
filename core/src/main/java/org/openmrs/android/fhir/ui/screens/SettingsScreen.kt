@@ -71,6 +71,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -448,6 +449,7 @@ private fun SettingsSwitchRow(
   onCheckedChange: (Boolean) -> Unit,
   testTag: String,
   description: String? = null,
+  danger: Boolean = false,
 ) {
   Row(
     modifier = Modifier.fillMaxWidth(),
@@ -471,6 +473,16 @@ private fun SettingsSwitchRow(
     Switch(
       checked = checked,
       onCheckedChange = onCheckedChange,
+      colors =
+        if (danger) {
+          SwitchDefaults.colors(
+            checkedTrackColor = MaterialTheme.colorScheme.error,
+            checkedThumbColor = MaterialTheme.colorScheme.onError,
+            checkedBorderColor = MaterialTheme.colorScheme.error,
+          )
+        } else {
+          SwitchDefaults.colors()
+        },
       modifier = Modifier.testTag(testTag),
     )
   }
@@ -784,7 +796,7 @@ private fun ClearDataOnLogoutSetting(
   onConfirmed: (Boolean) -> Unit,
 ) {
   var target by remember { mutableStateOf<Boolean?>(null) }
-  SettingsSection(title = stringResource(R.string.logout_section_title)) {
+  DangerCard(title = stringResource(R.string.logout_section_title)) {
     SettingsSwitchRow(
       label = stringResource(R.string.clear_on_logout_title),
       description = stringResource(R.string.clear_on_logout_description),
@@ -794,6 +806,7 @@ private fun ClearDataOnLogoutSetting(
         target = it
       },
       testTag = SettingsTestTags.ClearDataSwitch,
+      danger = true,
     )
   }
   target?.let { turnOn ->
@@ -875,14 +888,9 @@ private fun ClearDataOnLogoutSetting(
   }
 }
 
-/**
- * The last thing on the page: leave and wipe the device. It looks different on purpose (the error
- * color, a warning icon) and asks once more, spelling out what is lost, and how many changes were
- * never uploaded.
- */
+/** A card for what can lose data: the error color around it and a warning in its title. */
 @Composable
-private fun DangerZone(unsyncedCount: Int, onRequested: () -> Unit, onConfirmed: () -> Unit) {
-  var confirming by remember { mutableStateOf(false) }
+private fun DangerCard(title: String, content: @Composable () -> Unit) {
   Card(
     modifier = Modifier.fillMaxWidth(),
     shape = RoundedCornerShape(16.dp),
@@ -902,38 +910,50 @@ private fun DangerZone(unsyncedCount: Int, onRequested: () -> Unit, onConfirmed:
         )
         Text(
           modifier = Modifier.padding(start = 8.dp),
-          text = stringResource(R.string.logout_delete_title),
+          text = title,
           style = MaterialTheme.typography.titleSmall,
           fontWeight = FontWeight.Bold,
           color = MaterialTheme.colorScheme.error,
         )
       }
-      Text(
-        text = stringResource(R.string.logout_delete_description),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      content()
+    }
+  }
+}
+
+/**
+ * The last thing on the page: leave and wipe the device. It looks different on purpose (the error
+ * color, a warning icon) and asks once more, spelling out what is lost, and how many changes were
+ * never uploaded.
+ */
+@Composable
+private fun DangerZone(unsyncedCount: Int, onRequested: () -> Unit, onConfirmed: () -> Unit) {
+  var confirming by remember { mutableStateOf(false) }
+  DangerCard(title = stringResource(R.string.logout_delete_title)) {
+    Text(
+      text = stringResource(R.string.logout_delete_description),
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Button(
+      onClick = {
+        onRequested()
+        confirming = true
+      },
+      colors =
+        ButtonDefaults.buttonColors(
+          containerColor = MaterialTheme.colorScheme.error,
+          contentColor = MaterialTheme.colorScheme.onError,
+        ),
+      modifier = Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.LogoutDeleteButton),
+    ) {
+      Icon(
+        painter = painterResource(id = R.drawable.ic_logout),
+        contentDescription = null,
+        modifier = Modifier.size(18.dp),
       )
-      Button(
-        onClick = {
-          onRequested()
-          confirming = true
-        },
-        colors =
-          ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.error,
-            contentColor = MaterialTheme.colorScheme.onError,
-          ),
-        modifier =
-          Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.LogoutDeleteButton),
-      ) {
-        Icon(
-          painter = painterResource(id = R.drawable.ic_logout),
-          contentDescription = null,
-          modifier = Modifier.size(18.dp),
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = stringResource(R.string.logout_delete_button))
-      }
+      Spacer(modifier = Modifier.width(8.dp))
+      Text(text = stringResource(R.string.logout_delete_button))
     }
   }
   if (confirming) {
