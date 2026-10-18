@@ -201,47 +201,43 @@ fun HomeScreen(
   }
 }
 
-/** Where the user is working and when the data was last synced, at a glance. */
+/**
+ * Where the user is working and when the data was last synced, at a glance: a plain row on the
+ * screen's background, without a card around it.
+ */
 @Composable
 private fun HomeStatusHeader(locationName: String, lastSyncText: String) {
-  Card(
-    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).testTag("HomeStatusHeader"),
-    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-    shape = RoundedCornerShape(20.dp),
+  Row(
+    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("HomeStatusHeader"),
+    verticalAlignment = Alignment.CenterVertically,
   ) {
-    Row(
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
-      verticalAlignment = Alignment.CenterVertically,
+    Box(
+      modifier =
+        Modifier.size(36.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
+      contentAlignment = Alignment.Center,
     ) {
-      Box(
-        modifier =
-          Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
-        contentAlignment = Alignment.Center,
-      ) {
-        Icon(
-          imageVector = Icons.Default.LocationOn,
-          contentDescription = null,
-          tint = MaterialTheme.colorScheme.onPrimary,
-          modifier = Modifier.size(24.dp),
+      Icon(
+        imageVector = Icons.Default.LocationOn,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onPrimary,
+        modifier = Modifier.size(20.dp),
+      )
+    }
+    Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+      if (locationName.isNotBlank()) {
+        Text(
+          text = locationName,
+          style = MaterialTheme.typography.titleSmall,
+          fontWeight = FontWeight.SemiBold,
+          color = MaterialTheme.colorScheme.onSurface,
         )
       }
-      Column(modifier = Modifier.weight(1f).padding(start = 14.dp)) {
-        if (locationName.isNotBlank()) {
-          Text(
-            text = locationName,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-          )
-        }
-        if (lastSyncText.isNotBlank()) {
-          Text(
-            modifier = Modifier.padding(top = 2.dp),
-            text = stringResource(id = R.string.last_sync) + ": " + lastSyncText,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f),
-          )
-        }
+      if (lastSyncText.isNotBlank()) {
+        Text(
+          text = stringResource(id = R.string.last_sync) + ": " + lastSyncText,
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
       }
     }
   }

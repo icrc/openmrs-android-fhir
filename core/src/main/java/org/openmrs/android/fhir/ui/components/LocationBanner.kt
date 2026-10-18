@@ -36,7 +36,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Warning
@@ -98,32 +97,19 @@ fun LocationBanner(
   val none = state as? LocationBannerState.None
   // A missing location is a warning, except for a guest, who has none to choose yet.
   val warning = none != null && !none.guest
+  // Plain on the screen's background; only a missing location gets a tinted band.
   val container =
-    if (warning) {
-      OpenMrsTheme.colors.warning.copy(alpha = 0.18f)
-    } else {
-      MaterialTheme.colorScheme.secondaryContainer
-    }
-  val content =
-    if (warning) {
-      MaterialTheme.colorScheme.onSurface
-    } else {
-      MaterialTheme.colorScheme.onSecondaryContainer
-    }
+    if (warning) OpenMrsTheme.colors.warning.copy(alpha = 0.18f) else Color.Transparent
+  val content = MaterialTheme.colorScheme.onSurface
   val badge = if (warning) OpenMrsTheme.colors.warning else MaterialTheme.colorScheme.primary
   val onBadge = if (warning) Color(0xFF161616) else MaterialTheme.colorScheme.onPrimary
 
   Surface(
-    modifier =
-      modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp, vertical = 8.dp)
-        .testTag("LocationBanner"),
-    shape = RoundedCornerShape(16.dp),
+    modifier = modifier.fillMaxWidth().testTag("LocationBanner"),
     color = container,
   ) {
     Row(
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Box(
