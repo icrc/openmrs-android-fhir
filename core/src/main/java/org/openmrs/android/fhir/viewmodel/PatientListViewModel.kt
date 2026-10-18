@@ -78,6 +78,7 @@ import org.openmrs.android.fhir.data.FormCatalog
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.sync.LivePatients
 import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.multiuser.DataVisibility
 import timber.log.Timber
 
 /**
@@ -116,6 +117,7 @@ class PatientListViewModel
 constructor(
   private val fhirEngine: FhirEngine,
   private val applicationContext: Context,
+  private val dataVisibility: DataVisibility = DataVisibility.Everything,
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(PatientListUiState())
@@ -256,8 +258,12 @@ constructor(
     }
     val patients: MutableList<PatientItem> = mutableListOf()
     val memberIds = selectedListMemberIds()
+    // On a device shared by several users some patients may have to be left out (below), so more
+    // candidates are looked at, as with a list restriction.
+    val sharedDevice = dataVisibility.isSharedDevice()
+    val restricted = memberIds != null || sharedDevice
     // Patients brought from the server by the live search belong to the list too.
-    val liveIds = if (memberIds == null) emptySet() else live.rememberedIds()
+    val liveIds = if (restricted) live.rememberedIds() else emptySet()
     val matches =
       fhirEngine
         .search<Patient> {
@@ -265,13 +271,13 @@ constructor(
           sort(Patient.GIVEN, Order.ASCENDING)
           // Without a list restriction the page is the result; with one, look at more candidates
           // because the ones outside the selected lists are dropped below.
-          count = if (memberIds == null) PAGE_SIZE else CANDIDATE_LIMIT
+          count = if (restricted) CANDIDATE_LIMIT else PAGE_SIZE
           from = 0
         }
         .map { it.resource }
     // Only patients of the selected lists are shown. A patient registered on this device is kept
     // until it is uploaded, otherwise it would vanish right after being saved.
-    val visible =
+    val inLists =
       if (memberIds == null) {
         matches
       } else {
@@ -281,7 +287,13 @@ constructor(
             fhirEngine.getLocalChanges(ResourceType.Patient, patient.idElement.idPart).isNotEmpty()
         }
       }
-    visibleCount = if (memberIds == null) null else visible.size.toLong()
+    // What another user of the device brought is not shown, unless they share it or this user has
+    // access to it too (it is in one of their lists, or they opened it from the server).
+    val visible =
+      dataVisibility.visibleAmong(inLists, (memberIds ?: emptySet()) + liveIds) {
+        it.idElement.idPart
+      }
+    visibleCount = if (restricted) visible.size.toLong() else null
     visible
       .take(PAGE_SIZE)
       .mapIndexed { index, fhirPatient -> fhirPatient.toPatientItem(index + 1) }

@@ -35,11 +35,15 @@ import android.util.Base64
 import androidx.biometric.BiometricManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.fhir.FhirEngine
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 import org.openmrs.android.fhir.LoginRepository
@@ -49,10 +53,13 @@ import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
+import org.openmrs.android.fhir.data.database.model.PendingUser
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ApiResponse
 import org.openmrs.android.fhir.data.remote.model.SessionResponse
 import org.openmrs.android.fhir.extensions.BiometricUtils
+import org.openmrs.android.fhir.multiuser.UserDataLedger
+import org.openmrs.android.fhir.multiuser.UserRegistry
 import timber.log.Timber
 
 /**
@@ -64,6 +71,8 @@ class LoginActivityViewModel
 constructor(
   private val applicationContext: Context,
   private val apiManager: ApiManager,
+  private val fhirEngine: FhirEngine,
+  private val userDataLedger: UserDataLedger,
 ) : ViewModel() {
 
   private val loginRepository by lazy { LoginRepository.getInstance(applicationContext) }
@@ -76,6 +85,45 @@ constructor(
   val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
   var sessionTokenToEncrypt: String? = null
+
+  private val _pendingUsers = MutableStateFlow<List<PendingUser>?>(null)
+
+  /**
+   * The users who still have data on this device waiting to upload, for the sync icon of the login
+   * page; `null` until it is known. It is read once, in the background: with nothing waiting that
+   * is a single count.
+   */
+  val pendingUsers: StateFlow<List<PendingUser>?> = _pendingUsers.asStateFlow()
+
+  init {
+    viewModelScope.launch(Dispatchers.IO) {
+      _pendingUsers.value =
+        try {
+          userDataLedger.pendingByUser(fhirEngine)
+        } catch (e: CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          Timber.w(e, "Could not read who has data waiting to upload")
+          emptyList()
+        }
+    }
+  }
+
+  /**
+   * [name] is the user who signed in: the device switches to their patient lists, and, if they are
+   * the second user of the device, the patients already on it are attributed to the first.
+   */
+  private suspend fun signInUser(name: String?) {
+    try {
+      if (UserRegistry.activate(applicationContext, name)) {
+        withContext(Dispatchers.IO) { userDataLedger.attributeExistingPatients(fhirEngine) }
+      }
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      Timber.e(e, "Could not switch the device to the user who signed in")
+    }
+  }
 
   private val loginPrefs by lazy {
     applicationContext.getSharedPreferences(LOGIN_PREFS, Context.MODE_PRIVATE)
@@ -112,7 +160,9 @@ constructor(
           if (token.isNotBlank()) {
             sessionTokenToEncrypt = token
           }
-          AuditLog.setUser(userFromIdToken(authStateManager.current.idToken))
+          val user = userFromIdToken(authStateManager.current.idToken)
+          signInUser(user)
+          AuditLog.setUser(user)
           AuditLog.record(AuditAction.LOGIN, AuditOutcome.SUCCESS, "method" to "sso")
         } catch (e: Exception) {
           Timber.e("Biometric key error: ${e.message}")
@@ -171,6 +221,7 @@ constructor(
         createBiometricKey()
 
         sessionTokenToEncrypt = encodedCredentials
+        signInUser(username)
         AuditLog.setUser(username)
         AuditLog.record(AuditAction.LOGIN, AuditOutcome.SUCCESS, "method" to "basic")
         _uiState.value = LoginUiState.Success

@@ -36,19 +36,63 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.data.database.model.Identifier
 import org.openmrs.android.fhir.data.database.model.IdentifierType
+import org.openmrs.android.fhir.data.database.model.PatientOwner
+import org.openmrs.android.fhir.data.database.model.PendingChange
 import org.openmrs.android.fhir.data.database.model.SyncSession
 
 @Database(
   entities =
-    [Identifier::class, IdentifierType::class, SyncSession::class, GroupSessionDraft::class],
-  version = 2,
+    [
+      Identifier::class,
+      IdentifierType::class,
+      SyncSession::class,
+      GroupSessionDraft::class,
+      PatientOwner::class,
+      PendingChange::class,
+    ],
+  version = 3,
   exportSchema = true,
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
   abstract fun dao(): Dao
 
+  abstract fun userDataDao(): UserDataDao
+
   companion object {
+    /** Who owns the patients of the device, and who has records waiting to upload. */
+    val MIGRATION_2_3 =
+      object : Migration(2, 3) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+          database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `patient_owner` (
+              `patientId` TEXT NOT NULL,
+              `owner` TEXT NOT NULL,
+              PRIMARY KEY(`patientId`, `owner`)
+            )
+            """
+              .trimIndent(),
+          )
+          database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `pending_change` (
+              `resourceType` TEXT NOT NULL,
+              `resourceId` TEXT NOT NULL,
+              `owner` TEXT NOT NULL,
+              `patientId` TEXT,
+              `changedAt` INTEGER NOT NULL,
+              PRIMARY KEY(`resourceType`, `resourceId`, `owner`)
+            )
+            """
+              .trimIndent(),
+          )
+          database.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_pending_change_owner` ON `pending_change` (`owner`)",
+          )
+        }
+      }
+
     val MIGRATION_1_2 =
       object : Migration(1, 2) {
         override fun migrate(database: SupportSQLiteDatabase) {

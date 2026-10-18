@@ -113,6 +113,7 @@ import org.openmrs.android.fhir.extensions.PermissionHelperFactory
 import org.openmrs.android.fhir.extensions.UncaughtExceptionHandler
 import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
 import org.openmrs.android.fhir.fragments.CreateEncountersFragmentArgs
+import org.openmrs.android.fhir.multiuser.UserRegistry
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.DiagnosticsDialog
 import org.openmrs.android.fhir.ui.components.MainBottomBar
@@ -1117,6 +1118,7 @@ class MainActivity : AppCompatActivity() {
       "dataDeleted" to true,
     )
     AuditLog.setUser(null)
+    UserRegistry.signOut(this)
     val wasGuest = GuestSession.isActive(this)
     val canEndProviderSession =
       !wasGuest &&
@@ -1154,6 +1156,7 @@ class MainActivity : AppCompatActivity() {
       "dataDeleted" to clearData,
     )
     AuditLog.setUser(null)
+    UserRegistry.signOut(this)
     val loginIntent = Intent(this, LoginActivity::class.java)
 
     val pendingIntentSuccess = createPendingIntent(loginIntent, 0)
@@ -1222,6 +1225,8 @@ class MainActivity : AppCompatActivity() {
     fhirEngine.clearDatabase()
     demoDataStore.clearAll()
     database.clearAllTables()
+    // Nothing of any user is left on the device.
+    UserRegistry.reset(applicationContext)
     authStateManager.resetBasicAuthCredentials()
     BiometricUtils.deleteBiometricKey(applicationContext)
     checkAndDeleteLogFile(applicationContext)

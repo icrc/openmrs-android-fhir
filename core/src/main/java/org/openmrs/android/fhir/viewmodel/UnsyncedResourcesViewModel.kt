@@ -56,12 +56,14 @@ import org.openmrs.android.fhir.data.database.model.UnsyncedPatient
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
 import org.openmrs.android.fhir.data.database.model.UnsyncedResourceModel
 import org.openmrs.android.fhir.di.IoDispatcher
+import org.openmrs.android.fhir.multiuser.DataVisibility
 
 class UnsyncedResourcesViewModel
 @Inject
 constructor(
   private val fhirEngine: FhirEngine,
   @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+  private val dataVisibility: DataVisibility = DataVisibility.Everything,
 ) : ViewModel() {
 
   private val _resources = MutableLiveData<List<UnsyncedResource>>(emptyList())
@@ -417,7 +419,8 @@ constructor(
       }
     }
 
-    return unsyncedPatients
+    // What another user of the device registered is not listed (unless they share it).
+    return dataVisibility.visibleAmong(unsyncedPatients) { it.logicalId }
   }
 
   private suspend fun hasLocalChanges(

@@ -29,6 +29,7 @@
 package org.openmrs.android.fhir.di
 
 import android.content.Context
+import com.google.android.fhir.FhirEngine
 import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Singleton
@@ -53,6 +54,7 @@ import org.openmrs.android.fhir.fragments.PatientSelectionDialogFragment
 import org.openmrs.android.fhir.fragments.SelectPatientListFragment
 import org.openmrs.android.fhir.fragments.SettingsFragment
 import org.openmrs.android.fhir.fragments.SyncInfoFragment
+import org.openmrs.android.fhir.multiuser.UserDataLedger
 
 @Singleton
 @Component(
@@ -78,6 +80,11 @@ interface AppComponent {
   fun permissionChecker(): PermissionChecker
 
   fun database(): AppDatabase
+
+  /** The engine the sync workers use too, so what they download and upload is noted as well. */
+  fun fhirEngine(): FhirEngine
+
+  fun userDataLedger(): UserDataLedger
 
   /*
    * Fragments & Activities

@@ -42,6 +42,9 @@ import org.openmrs.android.fhir.data.remote.Api
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.extensions.PermissionChecker
+import org.openmrs.android.fhir.multiuser.DataVisibility
+import org.openmrs.android.fhir.multiuser.TrackingFhirEngine
+import org.openmrs.android.fhir.multiuser.UserDataLedger
 
 @Module
 object AppModule {
@@ -49,9 +52,15 @@ object AppModule {
   @JvmStatic
   @Singleton
   @Provides
-  fun provideAppFhirEngine(context: Context): FhirEngine {
-    return FhirEngineProvider.getInstance(context)
+  fun provideAppFhirEngine(context: Context, ledger: UserDataLedger): FhirEngine {
+    // The SDK's engine, noting who creates, changes and downloads what (see UserDataLedger).
+    return TrackingFhirEngine(FhirEngineProvider.getInstance(context), ledger)
   }
+
+  @JvmStatic
+  @Singleton
+  @Provides
+  fun provideDataVisibility(ledger: UserDataLedger): DataVisibility = ledger
 
   @JvmStatic
   @Singleton
@@ -62,7 +71,7 @@ object AppModule {
         AppDatabase::class.java,
         "openmrs_android_fhir",
       )
-      .addMigrations(AppDatabase.MIGRATION_1_2)
+      .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
       .build()
   }
 
