@@ -68,6 +68,7 @@ import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.ensurePageGroupsHaveTrailingSpacer
@@ -259,6 +260,7 @@ constructor(
         "encounter" to encounterId,
         "form" to questionnaireId,
       )
+      LiveSync.requestUpload(applicationContext)
       isResourcesSaved.value = "SAVED/$patientId"
     }
   }

@@ -118,6 +118,7 @@ import org.openmrs.android.fhir.ui.components.AutoSyncDelayDialog
 import org.openmrs.android.fhir.ui.components.DrawerHeader
 import org.openmrs.android.fhir.ui.components.NetworkStatusBanner
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.viewmodel.LiveStatus
 
 @Stable
 data class DrawerItem(
@@ -153,6 +154,7 @@ fun MainActivityScaffold(
   isSyncing: Boolean = false,
   syncProgress: SyncProgressState = SyncProgressState(0, 0),
   nextSyncMinutes: Int? = null,
+  liveStatus: LiveStatus = LiveStatus.Off,
   onDelaySync: (minutes: Int) -> Unit = {},
   onTurnOffAutoSync: () -> Unit = {},
   onResetAutoSyncTimer: () -> Unit = {},
@@ -206,6 +208,19 @@ fun MainActivityScaffold(
                 }
               },
             onDelayClick = if (nextSyncMinutes != null) ({ showDelayDialog = true }) else null,
+            liveText =
+              when (liveStatus) {
+                LiveStatus.Off -> null
+                // Live mode needs the server: with no connection there is nothing live to say.
+                LiveStatus.On ->
+                  if (connectivityState == ServerConnectivityState.ServerConnected) {
+                    stringResource(id = R.string.live_status_live)
+                  } else {
+                    null
+                  }
+                LiveStatus.Sending -> stringResource(id = R.string.live_status_sending)
+                LiveStatus.Retrying -> stringResource(id = R.string.live_status_retry)
+              },
           )
         }
       }

@@ -152,6 +152,16 @@
     >No, and don\'t ask me again</string>
     <string name="login_expired">Login Expired</string>
     <string name="settings_auto_sync">Sync automatically</string>
+    <string name="settings_live_mode">Live mode</string>
+    <string name="settings_live_mode_description">Send what you save to the server right away and search the server for patients that are not on this device. With no connection nothing is lost: it is kept and sent later.</string>
+    <string name="live_server_results_title">On the server</string>
+    <string name="live_server_searching">Searching the server…</string>
+    <string name="live_server_no_results">No other patients on the server</string>
+    <string name="live_server_search_failed">Couldn\'t reach the server to search</string>
+    <string name="live_server_open_failed">Couldn\'t open this patient from the server. Try again.</string>
+    <string name="live_status_live">Live</string>
+    <string name="live_status_sending">Sending…</string>
+    <string name="live_status_retry">Not sent yet, will retry</string>
     <string name="settings_language">Language</string>
     <string name="settings_section_identifiers">Patient identifiers</string>
     <string name="settings_identifiers_description">Choose which identifier types new patients get.</string>

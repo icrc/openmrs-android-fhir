@@ -53,6 +53,10 @@ interface SettingsRepository {
   suspend fun getAutoSyncEnabled(): Boolean = true
 
   suspend fun setAutoSyncEnabled(enabled: Boolean) {}
+
+  suspend fun getLiveModeEnabled(): Boolean = false
+
+  suspend fun setLiveModeEnabled(enabled: Boolean) {}
 }
 
 class DemoSettingsRepository
@@ -100,6 +104,14 @@ constructor(
 
   override suspend fun setAutoSyncEnabled(enabled: Boolean) {
     dataStore.setAutoSyncEnabled(enabled)
+  }
+
+  override suspend fun getLiveModeEnabled(): Boolean {
+    return dataStore.getLiveModeEnabledFlow().first()
+  }
+
+  override suspend fun setLiveModeEnabled(enabled: Boolean) {
+    dataStore.setLiveModeEnabled(enabled)
   }
 
   private companion object {

@@ -64,6 +64,7 @@ import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_URL
 import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_VALUE_URL
 import org.openmrs.android.fhir.Constants.PERSON_ATTRIBUTE_LINK_ID_PREFIX
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.sync.LiveSync
 import timber.log.Timber
 
 class OpenMRSHelper
@@ -189,6 +190,7 @@ constructor(
         )
       }
     fhirEngine.create(encounter)
+    LiveSync.requestUpload(context)
     return encounter
   }
 
@@ -201,6 +203,7 @@ constructor(
       encounter.period = Period().apply { end = currentDate }
     }
     fhirEngine.update(encounter)
+    LiveSync.requestUpload(context)
     return encounter
   }
 

@@ -161,6 +161,7 @@ class SettingsFragment : Fragment() {
           onTokenDelaySelected = settingsViewModel::onTokenDelaySelected,
           onPeriodicSyncDelaySelected = settingsViewModel::onPeriodicSyncDelaySelected,
           onAutoSyncToggle = settingsViewModel::onAutoSyncToggle,
+          onLiveModeToggle = settingsViewModel::onLiveModeToggle,
           selectedLanguage = AppLanguage.current(context),
           onLanguageSelected = { AppLanguage.apply(context, it) },
           onInitialSyncClicked = {

@@ -65,6 +65,7 @@ import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
@@ -280,6 +281,7 @@ constructor(
         AuditOutcome.SUCCESS,
         "encounter" to encounterId,
       )
+      LiveSync.requestUpload(applicationContext)
       isResourcesSaved.value = "SAVED"
     } catch (e: Exception) {
       Timber.e(e.localizedMessage)

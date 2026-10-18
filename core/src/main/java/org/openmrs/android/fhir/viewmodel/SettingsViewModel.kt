@@ -49,6 +49,7 @@ data class SettingsUiState(
   val tokenCheckDelayMinutes: Int = DemoDataStore.INITIAL_TOKEN_CHECK_DELAY.toInt(),
   val periodicSyncDelayMinutes: Int = DemoDataStore.INITIAL_PERIODIC_SYNC_DELAY.toInt(),
   val isAutoSyncEnabled: Boolean = true,
+  val isLiveModeEnabled: Boolean = false,
   val isInitialSyncInProgress: Boolean = false,
 )
 
@@ -101,6 +102,10 @@ constructor(
     _uiState.update { it.copy(isAutoSyncEnabled = enabled) }
   }
 
+  fun onLiveModeToggle(enabled: Boolean) {
+    _uiState.update { it.copy(isLiveModeEnabled = enabled) }
+  }
+
   fun onPeriodicSyncDelaySelected(minutes: Int) {
     _uiState.update { it.copy(periodicSyncDelayMinutes = minutes) }
   }
@@ -113,6 +118,7 @@ constructor(
       settingsRepository.setTokenExpiryDelayMinutes(currentState.tokenCheckDelayMinutes)
       settingsRepository.setPeriodicSyncDelayMinutes(currentState.periodicSyncDelayMinutes)
       settingsRepository.setAutoSyncEnabled(currentState.isAutoSyncEnabled)
+      settingsRepository.setLiveModeEnabled(currentState.isLiveModeEnabled)
       _events.emit(SettingsEvent.SettingsSaved)
     }
   }
@@ -127,6 +133,7 @@ constructor(
         tokenCheckDelayMinutes = defaults.tokenCheckDelayMinutes,
         periodicSyncDelayMinutes = defaults.periodicSyncDelayMinutes,
         isAutoSyncEnabled = defaults.isAutoSyncEnabled,
+        isLiveModeEnabled = defaults.isLiveModeEnabled,
       )
     }
     viewModelScope.launch {
@@ -135,6 +142,7 @@ constructor(
       settingsRepository.setTokenExpiryDelayMinutes(defaults.tokenCheckDelayMinutes)
       settingsRepository.setPeriodicSyncDelayMinutes(defaults.periodicSyncDelayMinutes)
       settingsRepository.setAutoSyncEnabled(defaults.isAutoSyncEnabled)
+      settingsRepository.setLiveModeEnabled(defaults.isLiveModeEnabled)
       _events.emit(SettingsEvent.SettingsReset)
     }
   }
@@ -163,6 +171,7 @@ constructor(
     val tokenDelayMinutes = settingsRepository.getTokenExpiryDelayMinutes()
     val periodicDelayMinutes = settingsRepository.getPeriodicSyncDelayMinutes()
     val autoSyncEnabled = settingsRepository.getAutoSyncEnabled()
+    val liveModeEnabled = settingsRepository.getLiveModeEnabled()
     _uiState.update {
       it.copy(
         isNetworkStatusVisible = networkStatusVisible,
@@ -170,6 +179,7 @@ constructor(
         tokenCheckDelayMinutes = tokenDelayMinutes,
         periodicSyncDelayMinutes = periodicDelayMinutes,
         isAutoSyncEnabled = autoSyncEnabled,
+        isLiveModeEnabled = liveModeEnabled,
       )
     }
   }

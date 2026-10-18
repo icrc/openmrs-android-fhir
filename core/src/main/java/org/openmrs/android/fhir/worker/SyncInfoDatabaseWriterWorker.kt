@@ -56,6 +56,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.sync.withLock
+import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.audit.AuditAction
@@ -64,6 +66,8 @@ import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.data.sync.FhirSyncWorker
+import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.data.sync.UploadGate
 import org.openmrs.android.fhir.di.DaggerWorkerComponent
 import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.extensions.PermissionChecker
@@ -117,21 +121,24 @@ class SyncInfoDatabaseWriterWorker(
         ),
       )
 
-      // This flow can still be shared if needed elsewhere
-      val syncFlow =
-        Sync.oneTimeSync<FhirSyncWorker>(applicationContext)
-          .shareIn(workerScope, SharingStarted.Eagerly, 10)
-
-      // Process each update, but wait for a final state to finish
+      // A live upload may be running: two uploads at once would send the same queue twice.
       val finalStatus =
-        syncFlow
-          .onEach { syncJobStatus -> handleCurrentSyncJobStatus(syncJobStatus) }
-          .first { syncJobStatus ->
-            syncJobStatus is CurrentSyncJobStatus.Failed ||
-              syncJobStatus is CurrentSyncJobStatus.Succeeded ||
-              syncJobStatus is CurrentSyncJobStatus.Cancelled ||
-              syncJobStatus is CurrentSyncJobStatus.Blocked
-          }
+        UploadGate.mutex.withLock {
+          // This flow can still be shared if needed elsewhere
+          val syncFlow =
+            Sync.oneTimeSync<FhirSyncWorker>(applicationContext)
+              .shareIn(workerScope, SharingStarted.Eagerly, 10)
+
+          // Process each update, but wait for a final state to finish
+          syncFlow
+            .onEach { syncJobStatus -> handleCurrentSyncJobStatus(syncJobStatus) }
+            .first { syncJobStatus ->
+              syncJobStatus is CurrentSyncJobStatus.Failed ||
+                syncJobStatus is CurrentSyncJobStatus.Succeeded ||
+                syncJobStatus is CurrentSyncJobStatus.Cancelled ||
+                syncJobStatus is CurrentSyncJobStatus.Blocked
+            }
+        }
 
       // Now, check the final status to determine the worker's result
       return if (finalStatus is CurrentSyncJobStatus.Succeeded) {
@@ -263,6 +270,9 @@ class SyncInfoDatabaseWriterWorker(
   }
 
   private suspend fun handleSuccessSync(state: CurrentSyncJobStatus.Succeeded) {
+    DemoDataStore(applicationContext).saveLastFullSync(state.timestamp)
+    // What a live upload could not send went with this sync.
+    LiveSync.setState(LiveSync.State.Idle)
     AuditLog.record(AuditAction.SYNC, AuditOutcome.SUCCESS, "state" to "completed")
     val inProgressSyncSession = database.dao().getInProgressSyncSession()
     if (inProgressSyncSession != null) {
@@ -298,6 +308,7 @@ class SyncInfoDatabaseWriterWorker(
   }
 
   private suspend fun handleFailedSync(syncJobStatus: CurrentSyncJobStatus.Failed) {
+    DemoDataStore(applicationContext).saveLastFullSync(syncJobStatus.timestamp)
     AuditLog.failure(AuditAction.SYNC, "state" to "failed")
     val inProgressSyncSession = database.dao().getInProgressSyncSession()
     if (inProgressSyncSession != null) {

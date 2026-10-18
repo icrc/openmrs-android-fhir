@@ -124,6 +124,16 @@
     >Non, et ne plus me demander</string>
     <string name="login_expired">Connexion Expirée</string>
     <string name="settings_auto_sync">Synchroniser automatiquement</string>
+    <string name="settings_live_mode">Mode en direct</string>
+    <string name="settings_live_mode_description">Envoie ce que vous enregistrez au serveur tout de suite et cherche sur le serveur les patients absents de cet appareil. Sans connexion, rien n\'est perdu : c\'est conservé et envoyé plus tard.</string>
+    <string name="live_server_results_title">Sur le serveur</string>
+    <string name="live_server_searching">Recherche sur le serveur…</string>
+    <string name="live_server_no_results">Aucun autre patient sur le serveur</string>
+    <string name="live_server_search_failed">Impossible de joindre le serveur pour chercher</string>
+    <string name="live_server_open_failed">Impossible d\'ouvrir ce patient depuis le serveur. Réessayez.</string>
+    <string name="live_status_live">En direct</string>
+    <string name="live_status_sending">Envoi…</string>
+    <string name="live_status_retry">Pas encore envoyé, nouvel essai prévu</string>
     <string name="settings_language">Langue</string>
     <string name="settings_section_identifiers">Identifiants des patients</string>
     <string name="settings_identifiers_description">Choisissez les types d’identifiants attribués aux nouveaux patients.</string>

@@ -119,6 +119,7 @@ object SettingsTestTags {
   const val TokenDelayField = "SettingsTokenDelayField"
   const val PeriodicDelayField = "SettingsPeriodicDelayField"
   const val AutoSyncSwitch = "SettingsAutoSyncSwitch"
+  const val LiveModeSwitch = "SettingsLiveModeSwitch"
   const val FavoriteFormsButton = "SettingsFavoriteFormsButton"
   const val IdentifierTypesButton = "SettingsIdentifierTypesButton"
   const val FormSectionsButton = "SettingsFormSectionsButton"
@@ -176,6 +177,7 @@ fun SettingsScreen(
   onLogoutAndDeleteRequested: (() -> Unit)? = null,
   onLogoutAndDeleteConfirmed: (() -> Unit)? = null,
   onAutoSyncToggle: (Boolean) -> Unit = {},
+  onLiveModeToggle: (Boolean) -> Unit = {},
   favoriteFormOptions: List<FormItem>? = null,
   favoriteFormIds: List<String> = emptyList(),
   onFavoriteFormsSaved: ((List<String>) -> Unit)? = null,
@@ -235,6 +237,14 @@ fun SettingsScreen(
         )
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         ConnectionTest()
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        SettingsSwitchRow(
+          label = stringResource(R.string.settings_live_mode),
+          description = stringResource(R.string.settings_live_mode_description),
+          checked = uiState.isLiveModeEnabled,
+          onCheckedChange = onLiveModeToggle,
+          testTag = SettingsTestTags.LiveModeSwitch,
+        )
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         SettingsSwitchRow(
           label = stringResource(R.string.settings_auto_sync),

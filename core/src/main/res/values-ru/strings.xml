@@ -135,6 +135,16 @@
 
     <string name="login_expired">Сессия истекла</string>
     <string name="settings_auto_sync">Синхронизировать автоматически</string>
+    <string name="settings_live_mode">Режим онлайн</string>
+    <string name="settings_live_mode_description">Отправляет сохранённое на сервер сразу и ищет на сервере пациентов, которых нет на этом устройстве. Без связи ничего не теряется: данные сохраняются и отправляются позже.</string>
+    <string name="live_server_results_title">На сервере</string>
+    <string name="live_server_searching">Поиск на сервере…</string>
+    <string name="live_server_no_results">Других пациентов на сервере нет</string>
+    <string name="live_server_search_failed">Не удалось связаться с сервером для поиска</string>
+    <string name="live_server_open_failed">Не удалось открыть пациента с сервера. Повторите попытку.</string>
+    <string name="live_status_live">Онлайн</string>
+    <string name="live_status_sending">Отправка…</string>
+    <string name="live_status_retry">Пока не отправлено, будет повторная попытка</string>
     <string name="settings_language">Язык</string>
     <string name="settings_section_identifiers">Идентификаторы пациентов</string>
     <string name="settings_identifiers_description">Выберите типы идентификаторов для новых пациентов.</string>

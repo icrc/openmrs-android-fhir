@@ -111,6 +111,16 @@
     >No, y no volver a preguntar</string>
     <string name="login_expired">Sesión expirada</string>
     <string name="settings_auto_sync">Sincronizar automáticamente</string>
+    <string name="settings_live_mode">Modo en vivo</string>
+    <string name="settings_live_mode_description">Envía al servidor lo que guarda de inmediato y busca en el servidor pacientes que no están en este dispositivo. Sin conexión no se pierde nada: se conserva y se envía más tarde.</string>
+    <string name="live_server_results_title">En el servidor</string>
+    <string name="live_server_searching">Buscando en el servidor…</string>
+    <string name="live_server_no_results">No hay otros pacientes en el servidor</string>
+    <string name="live_server_search_failed">No se pudo contactar con el servidor para buscar</string>
+    <string name="live_server_open_failed">No se pudo abrir este paciente desde el servidor. Inténtelo de nuevo.</string>
+    <string name="live_status_live">En vivo</string>
+    <string name="live_status_sending">Enviando…</string>
+    <string name="live_status_retry">Aún no enviado, se reintentará</string>
     <string name="settings_language">Idioma</string>
     <string name="settings_section_identifiers">Identificadores de pacientes</string>
     <string name="settings_identifiers_description">Elija los tipos de identificador que reciben los pacientes nuevos.</string>

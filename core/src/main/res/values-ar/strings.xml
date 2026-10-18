@@ -106,6 +106,16 @@
     <string name="no_and_don_t_ask_me_again">لا ، ولا تسألني مرة أخرى</string>
     <string name="login_expired">انتهت صلاحية تسجيل الدخول</string>
     <string name="settings_auto_sync">المزامنة تلقائياً</string>
+    <string name="settings_live_mode">الوضع المباشر</string>
+    <string name="settings_live_mode_description">يرسل ما تحفظه إلى الخادم فوراً ويبحث في الخادم عن المرضى غير الموجودين على هذا الجهاز. عند انقطاع الاتصال لا يضيع شيء: يُحفظ ويُرسل لاحقاً.</string>
+    <string name="live_server_results_title">على الخادم</string>
+    <string name="live_server_searching">جارٍ البحث في الخادم…</string>
+    <string name="live_server_no_results">لا يوجد مرضى آخرون على الخادم</string>
+    <string name="live_server_search_failed">تعذّر الوصول إلى الخادم للبحث</string>
+    <string name="live_server_open_failed">تعذّر فتح هذا المريض من الخادم. حاول مرة أخرى.</string>
+    <string name="live_status_live">مباشر</string>
+    <string name="live_status_sending">جارٍ الإرسال…</string>
+    <string name="live_status_retry">لم يُرسل بعد، ستتم إعادة المحاولة</string>
     <string name="settings_language">اللغة</string>
     <string name="settings_section_identifiers">معرّفات المرضى</string>
     <string name="settings_identifiers_description">اختر أنواع المعرّفات التي يحصل عليها المرضى الجدد.</string>

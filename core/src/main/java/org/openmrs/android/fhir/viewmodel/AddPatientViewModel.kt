@@ -66,6 +66,7 @@ import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PatientIdentifierFactory
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
+import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import timber.log.Timber
 
@@ -168,6 +169,8 @@ constructor(
         AuditOutcome.SUCCESS,
         "patient" to patient.idElement.idPart,
       )
+      // Live mode sends it now; otherwise it waits for the sync.
+      LiveSync.requestUpload(applicationContext)
       // TODO Pending for cohort-module
       // addPatientToSelectedPatientList(patient)
       isPatientSaved.value = true

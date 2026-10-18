@@ -69,6 +69,7 @@ import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.OpenMRSHelper
+import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssetsAsString
 import org.openmrs.android.fhir.fragments.EditPatientFragment
@@ -280,6 +281,7 @@ constructor(
 
         fhirEngine.update(originalPatient)
         AuditLog.record(AuditAction.PATIENT_EDITED, AuditOutcome.SUCCESS, "patient" to patientId)
+        LiveSync.requestUpload(applicationContext)
         isPatientSaved.value = true
         return@launch
       }

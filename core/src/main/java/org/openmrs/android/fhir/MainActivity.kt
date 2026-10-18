@@ -237,6 +237,7 @@ class MainActivity : AppCompatActivity() {
           isSyncing = uiState.isSyncing,
           syncProgress = uiState.syncProgressState,
           nextSyncMinutes = uiState.autoSyncCountdownMinutes,
+          liveStatus = uiState.liveStatus,
           onDelaySync = { minutes ->
             viewModel.delayAutoSync(minutes)
             AuditLog.record(

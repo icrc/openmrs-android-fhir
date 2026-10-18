@@ -36,6 +36,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.android.fhir.sync.DownloadWorkManager
+import java.time.OffsetDateTime
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import org.hl7.fhir.r4.model.ResourceType
@@ -61,6 +62,23 @@ class DemoDataStore(private val context: Context) {
   suspend fun getLasUpdateTimestamp(resourceType: ResourceType): String? {
     return context.dataStorage.data.first()[stringPreferencesKey(resourceType.name)]
   }
+
+  /**
+   * When the last full sync (upload and download) ended. The engine keeps a "last sync" time too,
+   * but it is also set by an upload-only run (live mode), which has downloaded nothing.
+   */
+  suspend fun saveLastFullSync(time: OffsetDateTime) {
+    context.dataStorage.edit { pref ->
+      pref[stringPreferencesKey(LAST_FULL_SYNC)] = time.toString()
+    }
+  }
+
+  suspend fun getLastFullSync(): OffsetDateTime? =
+    try {
+      OffsetDateTime.parse(context.dataStorage.data.first()[stringPreferencesKey(LAST_FULL_SYNC)])
+    } catch (e: Exception) {
+      null
+    }
 
   suspend fun saveTokenExpiryDelay(time: String) {
     context.dataStorage.edit { pref -> pref[stringPreferencesKey(TOKEN_EXPIRY_DELAY)] = time }
@@ -97,6 +115,17 @@ class DemoDataStore(private val context: Context) {
   /** Whether the app syncs by itself every [getPeriodicSyncDelayMinutesFlow] minutes. */
   fun getAutoSyncEnabledFlow() =
     context.dataStorage.data.map { pref -> pref[booleanPreferencesKey(AUTO_SYNC_ENABLED)] ?: true }
+
+  suspend fun setLiveModeEnabled(isEnabled: Boolean) {
+    context.dataStorage.edit { pref -> pref[booleanPreferencesKey(LIVE_MODE)] = isEnabled }
+  }
+
+  /**
+   * Whether what is saved is sent to the server at once and the server can be searched (live mode).
+   * Off by default: the app is offline first and only syncs when asked or on its timer.
+   */
+  fun getLiveModeEnabledFlow() =
+    context.dataStorage.data.map { pref -> pref[booleanPreferencesKey(LIVE_MODE)] ?: false }
 
   fun getPeriodicSyncDelayMinutesFlow() =
     context.dataStorage.data.map { pref ->
@@ -185,6 +214,8 @@ class DemoDataStore(private val context: Context) {
     const val TOKEN_EXPIRY_DELAY = "token-expiry-delay"
     const val PERIODIC_SYNC_DELAY = "periodic-sync-delay"
     const val AUTO_SYNC_ENABLED = "auto-sync-enabled"
+    const val LIVE_MODE = "live-mode"
+    const val LAST_FULL_SYNC = "last-full-sync"
     const val FAVORITE_FORMS = "favorite-forms"
     const val CUSTOM_FORM_SECTIONS = "custom-form-sections"
     private const val FAVORITE_FORMS_SEPARATOR = ","

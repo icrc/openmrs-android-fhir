@@ -31,6 +31,9 @@ package org.openmrs.android.fhir.data.sync
 import android.content.Context
 import androidx.work.WorkerParameters
 import com.google.android.fhir.sync.DownloadWorkManager
+import com.google.android.fhir.sync.download.DownloadRequest
+import org.hl7.fhir.r4.model.Resource
+import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.FhirApplication
 
 class FhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
@@ -63,4 +66,19 @@ class GroupFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
 
   override fun getDownloadWorkManager(): DownloadWorkManager =
     GroupDownloadWorkManagerImpl(applicationContext)
+}
+
+/** Sends what is waiting on the device and downloads nothing: the live upload ([LiveSync]). */
+class UploadFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
+  BaseFhirSyncWorker(appContext, workerParams) {
+
+  override fun getDownloadWorkManager(): DownloadWorkManager = NoDownloadWorkManager
+}
+
+private object NoDownloadWorkManager : DownloadWorkManager {
+  override suspend fun getNextRequest(): DownloadRequest? = null
+
+  override suspend fun getSummaryRequestUrls(): Map<ResourceType, String> = emptyMap()
+
+  override suspend fun processResponse(response: Resource): Collection<Resource> = emptyList()
 }

@@ -323,6 +323,7 @@ constructor(
       line("Language", AppLanguage.currentTag(context))
       line("Embedded forms only", EmbeddedFormsStore.get(context))
       line("Auto sync", store.getAutoSyncEnabledFlow().first())
+      line("Live mode", store.getLiveModeEnabledFlow().first())
       line("Periodic sync delay (min)", store.getPeriodicSyncDelayMinutesFlow().first())
       section("Forms")
       line("Embedded questionnaires", context.bundledQuestionnaireIds().size)

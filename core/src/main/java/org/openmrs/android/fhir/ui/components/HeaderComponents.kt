@@ -74,7 +74,8 @@ import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
  *
  * While a sync runs ([syncText] set) it turns into the sync's progress: a spinner, "Syncing" with
  * the percentage, and a thin progress bar along its bottom edge ([syncProgress] null while the
- * amount of work is not known yet). Otherwise [nextSyncText] says when the automatic sync is due.
+ * amount of work is not known yet). Otherwise [liveText] says what live mode is doing and
+ * [nextSyncText] when the automatic sync is due.
  */
 @Composable
 fun NetworkStatusBanner(
@@ -85,6 +86,7 @@ fun NetworkStatusBanner(
   syncProgress: Float? = null,
   nextSyncText: String? = null,
   onDelayClick: (() -> Unit)? = null,
+  liveText: String? = null,
 ) {
   val isSyncing = syncText != null
   val accent =
@@ -122,6 +124,16 @@ fun NetworkStatusBanner(
         color = MaterialTheme.colorScheme.onSurface,
         maxLines = 1,
       )
+      if (!isSyncing && liveText != null) {
+        Text(
+          modifier = Modifier.padding(start = 6.dp).testTag("LiveStatusText"),
+          text = "· $liveText",
+          style = MaterialTheme.typography.labelMedium,
+          fontWeight = FontWeight.SemiBold,
+          color = MaterialTheme.colorScheme.primary,
+          maxLines = 1,
+        )
+      }
       if (!isSyncing && nextSyncText != null) {
         Text(
           modifier = Modifier.padding(start = 6.dp).testTag("NextSyncText"),
