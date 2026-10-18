@@ -178,9 +178,6 @@ class SettingsFragment : Fragment() {
               AuditOutcome.SUCCESS,
               "changed" to
                 buildList {
-                  if (ThemeModeStore.get(context) != themeSelection.value) {
-                    add("theme=${themeSelection.value.value}")
-                  }
                   if (ColorVisionStore.get(context) != colorVisionSelection.value) {
                     add("color_vision=${colorVisionSelection.value.value}")
                   }
@@ -189,7 +186,6 @@ class SettingsFragment : Fragment() {
                   }
                 },
             )
-            ThemeModeStore.set(context, themeSelection.value)
             EmbeddedFormsStore.set(context, embeddedFormsSelection.value)
             if (ColorVisionStore.get(context) != colorVisionSelection.value) {
               ColorVisionStore.set(context, colorVisionSelection.value)
@@ -206,7 +202,18 @@ class SettingsFragment : Fragment() {
             questionnaireFetchViewModel.fetchQuestionnaires()
           },
           themeMode = themeSelection.value,
-          onThemeModeSelected = { themeSelection.value = it },
+          onThemeModeSelected = { mode ->
+            // Seen at once: the screens are recreated in the new theme, not only after Save.
+            if (ThemeModeStore.get(context) != mode) {
+              AuditLog.record(
+                AuditAction.SETTINGS_CHANGED,
+                AuditOutcome.SUCCESS,
+                "changed" to listOf("theme=${mode.value}"),
+              )
+              themeSelection.value = mode
+              ThemeModeStore.set(context, mode)
+            }
+          },
           colorVision = colorVisionSelection.value,
           onColorVisionSelected = { colorVisionSelection.value = it },
           embeddedFormsOnly = embeddedFormsSelection.value,

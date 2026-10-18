@@ -488,7 +488,7 @@ private fun SettingsSwitchRow(
   }
 }
 
-/** System / Light / Dark as three chips; the choice is applied when the settings are saved. */
+/** System / Light / Dark as three chips; the choice is applied at once. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ThemeModeChoice(selected: ThemeMode, onSelected: (ThemeMode) -> Unit) {

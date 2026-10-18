@@ -55,7 +55,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -65,6 +64,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import org.openmrs.android.fhir.extensions.isAppInDarkTheme
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
 /**
@@ -177,8 +177,8 @@ fun NetworkStatusBanner(
 }
 
 /**
- * Top of the side menu: the brand color behind the status bar, the logo on a white plate and when
- * the data was last synchronized.
+ * Top of the side menu: the same color as the app bar behind the status bar (brand teal, a dark
+ * surface in the night theme), the logo and when the data was last synchronized.
  */
 @Composable
 fun DrawerHeader(
@@ -186,37 +186,39 @@ fun DrawerHeader(
   lastSyncValue: String,
   modifier: Modifier = Modifier,
 ) {
+  val dark = isAppInDarkTheme()
+  val barColor =
+    if (dark) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.primary
+  val barContent =
+    if (dark) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
   Column(
     modifier =
       modifier
         .fillMaxWidth()
-        .background(MaterialTheme.colorScheme.primary)
+        .background(barColor)
         .statusBarsPadding()
         .padding(horizontal = 20.dp, vertical = 20.dp)
         .testTag("DrawerHeader"),
     horizontalAlignment = Alignment.Start,
   ) {
     Image(
-      painter = painterResource(id = R.drawable.openmrs_logo),
+      // The wordmark in white: it sits straight on the bar, without a plate behind it.
+      painter = painterResource(id = R.drawable.openmrs_logo_light),
       contentDescription = null,
-      modifier =
-        Modifier.height(44.dp)
-          .clip(RoundedCornerShape(10.dp))
-          .background(Color.White)
-          .padding(horizontal = 10.dp, vertical = 4.dp),
+      modifier = Modifier.height(40.dp),
     )
     Text(
       modifier = Modifier.padding(top = 20.dp).testTag("DrawerHeaderLabel"),
       text = label,
       style = MaterialTheme.typography.labelMedium,
-      color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+      color = barContent.copy(alpha = 0.8f),
     )
     Text(
       modifier = Modifier.padding(top = 2.dp).testTag("DrawerHeaderValue"),
       text = lastSyncValue,
       style = MaterialTheme.typography.titleSmall,
       fontWeight = FontWeight.SemiBold,
-      color = MaterialTheme.colorScheme.onPrimary,
+      color = barContent,
     )
   }
 }

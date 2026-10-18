@@ -79,7 +79,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -93,6 +92,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.extensions.isAppInDarkTheme
 import org.openmrs.android.fhir.viewmodel.LoginUiState
 
 /**
@@ -187,18 +187,16 @@ private fun LoginHeader(logoTag: String) {
       modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(top = 28.dp),
       horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-      // The artwork has dark lettering, so it always sits on a white plate.
+      // The lettering is white on the dark teal of the light theme, and dark on the bright teal of
+      // the dark theme: the logo sits straight on the header, without a plate.
       Image(
-        painter = painterResource(id = R.drawable.openmrs_logo),
+        painter =
+          painterResource(
+            id = if (isAppInDarkTheme()) R.drawable.openmrs_logo else R.drawable.openmrs_logo_light,
+          ),
         contentDescription = null,
         contentScale = ContentScale.Fit,
-        modifier =
-          Modifier.width(260.dp)
-            .height(84.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .testTag(logoTag),
+        modifier = Modifier.width(240.dp).height(70.dp).testTag(logoTag),
       )
       Text(
         text = stringResource(R.string.login_welcome),

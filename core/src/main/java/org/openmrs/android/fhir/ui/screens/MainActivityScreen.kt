@@ -249,7 +249,8 @@ fun DrawerContent(
   val versionItem = itemsById[R.id.menu_version]
 
   Column(
-    modifier = modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.surface),
+    modifier =
+      modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.background),
   ) {
     DrawerHeader(label = stringResource(R.string.last_sync), lastSyncValue = lastSyncText)
 
