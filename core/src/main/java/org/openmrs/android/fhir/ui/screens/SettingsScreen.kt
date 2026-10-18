@@ -50,8 +50,10 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Tag
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -79,6 +81,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -120,6 +124,9 @@ object SettingsTestTags {
   const val ThemeSystem = "SettingsThemeSystem"
   const val ThemeLight = "SettingsThemeLight"
   const val ThemeDark = "SettingsThemeDark"
+  const val LogoutDeleteButton = "SettingsLogoutDeleteButton"
+  const val LogoutDeleteConfirm = "SettingsLogoutDeleteConfirm"
+  const val LogoutDeleteUnsynced = "SettingsLogoutDeleteUnsynced"
   const val EmbeddedFormsSwitch = "SettingsEmbeddedFormsSwitch"
   const val ColorVisionStandard = "SettingsColorVisionStandard"
   const val ColorVisionColorBlind = "SettingsColorVisionColorBlind"
@@ -155,6 +162,9 @@ fun SettingsScreen(
   onColorVisionSelected: ((ColorVisionMode) -> Unit)? = null,
   offlineLoginEnabled: Boolean? = null,
   onResetOfflineLoginClicked: (() -> Unit)? = null,
+  unsyncedCount: Int = 0,
+  onLogoutAndDeleteRequested: (() -> Unit)? = null,
+  onLogoutAndDeleteConfirmed: (() -> Unit)? = null,
   onAutoSyncToggle: (Boolean) -> Unit = {},
   favoriteFormOptions: List<FormItem>? = null,
   favoriteFormIds: List<String> = emptyList(),
@@ -351,6 +361,14 @@ fun SettingsScreen(
             )
           }
         }
+      }
+
+      if (onLogoutAndDeleteConfirmed != null) {
+        DangerZone(
+          unsyncedCount = unsyncedCount,
+          onRequested = { onLogoutAndDeleteRequested?.invoke() },
+          onConfirmed = onLogoutAndDeleteConfirmed,
+        )
       }
     }
 
@@ -726,6 +744,122 @@ private fun FormSectionsSetting(
       },
       dismissButton = {
         TextButton(onClick = { confirmReset = false }) {
+          Text(text = stringResource(R.string.cancel))
+        }
+      },
+    )
+  }
+}
+
+/**
+ * The last thing on the page: leave and wipe the device. It looks different on purpose (the error
+ * color, a warning icon) and asks once more, spelling out what is lost, and how many changes were
+ * never uploaded.
+ */
+@Composable
+private fun DangerZone(unsyncedCount: Int, onRequested: () -> Unit, onConfirmed: () -> Unit) {
+  var confirming by remember { mutableStateOf(false) }
+  Card(
+    modifier = Modifier.fillMaxWidth(),
+    shape = RoundedCornerShape(16.dp),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+  ) {
+    Column(
+      modifier = Modifier.fillMaxWidth().padding(16.dp),
+      verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+          imageVector = Icons.Default.Warning,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.error,
+          modifier = Modifier.size(20.dp),
+        )
+        Text(
+          modifier = Modifier.padding(start = 8.dp),
+          text = stringResource(R.string.logout_delete_title),
+          style = MaterialTheme.typography.titleSmall,
+          fontWeight = FontWeight.Bold,
+          color = MaterialTheme.colorScheme.error,
+        )
+      }
+      Text(
+        text = stringResource(R.string.logout_delete_description),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      Button(
+        onClick = {
+          onRequested()
+          confirming = true
+        },
+        colors =
+          ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.error,
+            contentColor = MaterialTheme.colorScheme.onError,
+          ),
+        modifier =
+          Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.LogoutDeleteButton),
+      ) {
+        Icon(
+          painter = painterResource(id = R.drawable.ic_logout),
+          contentDescription = null,
+          modifier = Modifier.size(18.dp),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = stringResource(R.string.logout_delete_button))
+      }
+    }
+  }
+  if (confirming) {
+    AlertDialog(
+      onDismissRequest = { confirming = false },
+      shape = RoundedCornerShape(28.dp),
+      icon = {
+        Icon(
+          imageVector = Icons.Default.Warning,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.error,
+        )
+      },
+      title = { Text(text = stringResource(R.string.logout_delete_confirm_title)) },
+      text = {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+          Text(text = stringResource(R.string.logout_delete_confirm_message))
+          if (unsyncedCount > 0) {
+            Text(
+              modifier = Modifier.testTag(SettingsTestTags.LogoutDeleteUnsynced),
+              text =
+                pluralStringResource(
+                  R.plurals.logout_delete_unsynced,
+                  unsyncedCount,
+                  unsyncedCount,
+                ),
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.error,
+            )
+          }
+        }
+      },
+      confirmButton = {
+        Button(
+          onClick = {
+            confirming = false
+            onConfirmed()
+          },
+          colors =
+            ButtonDefaults.buttonColors(
+              containerColor = MaterialTheme.colorScheme.error,
+              contentColor = MaterialTheme.colorScheme.onError,
+            ),
+          modifier = Modifier.testTag(SettingsTestTags.LogoutDeleteConfirm),
+        ) {
+          Text(text = stringResource(R.string.logout_delete_confirm_button))
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = { confirming = false }) {
           Text(text = stringResource(R.string.cancel))
         }
       },

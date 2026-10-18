@@ -245,8 +245,11 @@ internal fun PatientAvatar(
     Text(
       text = initials,
       style =
-        if (size < 48.dp) MaterialTheme.typography.titleSmall
-        else MaterialTheme.typography.titleMedium,
+        if (size < 48.dp) {
+          MaterialTheme.typography.titleSmall
+        } else {
+          MaterialTheme.typography.titleMedium
+        },
       fontWeight = FontWeight.SemiBold,
       color = MaterialTheme.colorScheme.onPrimaryContainer,
     )

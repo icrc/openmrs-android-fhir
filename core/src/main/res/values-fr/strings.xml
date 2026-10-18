@@ -849,4 +849,15 @@
     <string name="search_patients_hint">Rechercher des patients</string>
     <string name="no_patients_to_select">Aucun patient à sélectionner. Enregistrez ou synchronisez d\'abord des patients.</string>
     <string name="start_with_count">Démarrer (%1$d)</string>
+    <string name="logout_delete_title">Se déconnecter et supprimer toutes les données</string>
+    <string name="logout_delete_description">Vous déconnecte et supprime tout ce qui est stocké sur cet appareil : patients, rencontres, brouillons et modifications non envoyées.</string>
+    <string name="logout_delete_button">Se déconnecter et tout supprimer</string>
+    <string name="logout_delete_confirm_title">Supprimer toutes les données et se déconnecter ?</string>
+    <string name="logout_delete_confirm_message">Cette action est irréversible. Tout ce qui est stocké sur cet appareil sera supprimé : patients, rencontres, brouillons, données téléchargées et votre session. Vous devrez vous reconnecter et télécharger de nouveau vos données.</string>
+    <string name="logout_delete_confirm_button">Supprimer et se déconnecter</string>
+    <plurals name="logout_delete_unsynced">
+        <item quantity="one">%d modification n\'a pas été envoyée et sera perdue définitivement.</item>
+        <item quantity="many">%d modifications n\'ont pas été envoyées et seront perdues définitivement.</item>
+        <item quantity="other">%d modifications n\'ont pas été envoyées et seront perdues définitivement.</item>
+    </plurals>
 </resources>

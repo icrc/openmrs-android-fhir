@@ -1008,6 +1008,47 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
+  /**
+   * Settings > "Log out and delete all data": leaves the session (guest or signed in) and removes
+   * everything stored on this device, whatever the connection. Without a connection a single
+   * sign-on session cannot be ended at the provider, so only the local session is dropped.
+   */
+  fun logoutAndDeleteAllData() {
+    AuditLog.record(
+      AuditAction.LOGOUT,
+      AuditOutcome.SUCCESS,
+      "method" to authStateManager.getAuthMethod().name.lowercase(),
+      "dataDeleted" to true,
+    )
+    AuditLog.setUser(null)
+    val wasGuest = GuestSession.isActive(this)
+    val canEndProviderSession =
+      !wasGuest &&
+        authStateManager.getAuthMethod() == AuthMethod.OPENID &&
+        viewModel.uiState.value.connectivityState != ServerConnectivityState.Offline
+    viewModel.setLoading(true)
+    updateOverlayVisibility()
+    AppMessage.show(this, R.string.logging_out, MessageKind.Info, long = true)
+    lifecycleScope.launch {
+      withContext(Dispatchers.Default) { clearAppData() }
+      if (wasGuest) GuestSession.end(this@MainActivity)
+      if (canEndProviderSession) {
+        val loginIntent = Intent(this@MainActivity, LoginActivity::class.java)
+        handleAuthNavigation(
+          createPendingIntent(loginIntent, 0),
+          createPendingIntent(loginIntent, 1),
+        )
+      } else {
+        withContext(Dispatchers.IO) {
+          authStateManager.clearAuthDataStore()
+          applicationContext.dataStore.edit { preferences -> preferences.clear() }
+        }
+        startActivity(Intent(this@MainActivity, LoginActivity::class.java))
+        finish()
+      }
+    }
+  }
+
   private fun navigateToLogin() {
     AuditLog.record(
       AuditAction.LOGOUT,

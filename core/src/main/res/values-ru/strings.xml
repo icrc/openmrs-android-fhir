@@ -841,4 +841,16 @@
     <string name="search_patients_hint">Поиск пациентов</string>
     <string name="no_patients_to_select">Нет пациентов для выбора. Сначала зарегистрируйте или синхронизируйте пациентов.</string>
     <string name="start_with_count">Начать (%1$d)</string>
+    <string name="logout_delete_title">Выйти и удалить все данные</string>
+    <string name="logout_delete_description">Выполняет выход и удаляет всё, что хранится на этом устройстве: пациентов, визиты, черновики и ещё не отправленные изменения.</string>
+    <string name="logout_delete_button">Выйти и удалить все данные</string>
+    <string name="logout_delete_confirm_title">Удалить все данные и выйти?</string>
+    <string name="logout_delete_confirm_message">Это действие нельзя отменить. Всё, что хранится на этом устройстве, будет удалено: пациенты, визиты, черновики, загруженные данные и ваш сеанс. Придётся снова войти и загрузить данные.</string>
+    <string name="logout_delete_confirm_button">Удалить и выйти</string>
+    <plurals name="logout_delete_unsynced">
+        <item quantity="one">%d изменение не отправлено и будет потеряно безвозвратно.</item>
+        <item quantity="few">%d изменения не отправлены и будут потеряны безвозвратно.</item>
+        <item quantity="many">%d изменений не отправлено и будет потеряно безвозвратно.</item>
+        <item quantity="other">%d изменения не отправлены и будут потеряны безвозвратно.</item>
+    </plurals>
 </resources>

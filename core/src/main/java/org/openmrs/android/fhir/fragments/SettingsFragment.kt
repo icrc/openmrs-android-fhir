@@ -60,6 +60,7 @@ import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.data.QuestionnaireUpdater
+import org.openmrs.android.fhir.data.transfer.DataTransfer
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.ColorVisionMode
@@ -82,6 +83,8 @@ import org.openmrs.android.fhir.viewmodel.SettingsViewModel
 
 class SettingsFragment : Fragment() {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
+
+  @Inject lateinit var dataTransfer: DataTransfer
   private val mainActivityViewModel by
     activityViewModels<MainActivityViewModel> { viewModelFactory }
   private val settingsViewModel by viewModels<SettingsViewModel> { viewModelFactory }
@@ -92,6 +95,7 @@ class SettingsFragment : Fragment() {
     viewModels<IdentifierSelectionViewModel> { viewModelFactory }
   private val themeSelection = mutableStateOf(ThemeMode.SYSTEM)
   private val colorVisionSelection = mutableStateOf(ColorVisionMode.STANDARD)
+  private val unsyncedCount = mutableStateOf(0)
   private val embeddedFormsSelection = mutableStateOf(true)
 
   /** true: enabled, false: declined, null: not answered yet. */
@@ -204,6 +208,9 @@ class SettingsFragment : Fragment() {
           onEmbeddedFormsOnlyChange = { embeddedFormsSelection.value = it },
           offlineLoginEnabled = offlineLoginEnabled.value,
           onResetOfflineLoginClicked = ::confirmResetOfflineLogin,
+          unsyncedCount = unsyncedCount.value,
+          onLogoutAndDeleteRequested = ::countUnsyncedChanges,
+          onLogoutAndDeleteConfirmed = { (activity as? MainActivity)?.logoutAndDeleteAllData() },
         )
       }
     }
@@ -240,6 +247,18 @@ class SettingsFragment : Fragment() {
           }
         }
       }
+    }
+  }
+
+  /** What would be lost: the changes this device never uploaded. */
+  private fun countUnsyncedChanges() {
+    viewLifecycleOwner.lifecycleScope.launch {
+      unsyncedCount.value =
+        try {
+          dataTransfer.pendingCount()
+        } catch (e: Exception) {
+          0
+        }
     }
   }
 

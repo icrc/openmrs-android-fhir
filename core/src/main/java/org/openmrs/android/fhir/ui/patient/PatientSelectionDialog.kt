@@ -260,8 +260,11 @@ fun SelectablePatientRow(
         .fillMaxWidth()
         .clip(RoundedCornerShape(16.dp))
         .background(
-          if (isSelected) OpenMrsTheme.colors.highlightContainer
-          else androidx.compose.ui.graphics.Color.Transparent,
+          if (isSelected) {
+            OpenMrsTheme.colors.highlightContainer
+          } else {
+            androidx.compose.ui.graphics.Color.Transparent
+          },
         )
         .clickable(role = Role.Checkbox) { onToggle() }
         .padding(horizontal = 12.dp, vertical = 8.dp)

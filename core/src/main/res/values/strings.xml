@@ -782,4 +782,14 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="search_patients_hint">Search patients</string>
     <string name="no_patients_to_select">No patients to select. Register or sync patients first.</string>
     <string name="start_with_count">Start (%1$d)</string>
+    <string name="logout_delete_title">Log out and delete all data</string>
+    <string name="logout_delete_description">Signs you out and removes everything stored on this device: patients, encounters, drafts and the changes not yet uploaded.</string>
+    <string name="logout_delete_button">Log out and delete all data</string>
+    <string name="logout_delete_confirm_title">Delete all data and log out?</string>
+    <string name="logout_delete_confirm_message">This cannot be undone. Everything stored on this device will be deleted: patients, encounters, drafts, downloaded data and your session. You will have to sign in and download your data again.</string>
+    <string name="logout_delete_confirm_button">Delete and log out</string>
+    <plurals name="logout_delete_unsynced">
+        <item quantity="one">%d change has not been uploaded and will be lost for good.</item>
+        <item quantity="other">%d changes have not been uploaded and will be lost for good.</item>
+    </plurals>
 </resources>
