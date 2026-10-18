@@ -97,7 +97,6 @@
     <string name="behavior_nav_heading">Comportamientos</string>
     <string name="error">Error</string>
     <string name="open_questionnaire">Abrir cuestionario</string>
-    <string name="current_location_label">Ubicación Actual : </string>
     <string name="no_location_selected">Ninguna Ubicación Seleccionada</string>
     <string
         name="patient_unsynced_info"
@@ -871,4 +870,8 @@
     <string name="pending_session_detail">%1$s · %2$s</string>
     <string name="create_encounter_subtitle">Elija un formulario para comenzar</string>
     <string name="create_group_encounter_subtitle">Elija un formulario y luego los pacientes</string>
+    <string name="location_banner_label">Ubicación</string>
+    <string name="location_banner_none">Ninguna ubicación seleccionada</string>
+    <string name="location_banner_none_hint">Este paciente se guardará sin ubicación. Elija una primero en el menú de la pantalla de inicio.</string>
+    <string name="location_banner_guest_hint">Elegirá la ubicación después de iniciar sesión.</string>
 </resources>

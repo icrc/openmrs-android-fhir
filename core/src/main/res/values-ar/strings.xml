@@ -94,7 +94,6 @@
     <string name="behavior_nav_heading">السلوكيات</string>
     <string name="error">خطأ</string>
     <string name="open_questionnaire">استبيان مفتوح</string>
-    <string name="current_location_label">الموقع الحالي:</string>
     <string name="no_location_selected">لا يوجد موقع محدد</string>
     <string
         name="patient_unsynced_info"
@@ -819,4 +818,8 @@
     <string name="pending_session_detail">%1$s · %2$s</string>
     <string name="create_encounter_subtitle">اختر نموذجاً للبدء</string>
     <string name="create_group_encounter_subtitle">اختر نموذجاً ثم المرضى</string>
+    <string name="location_banner_label">الموقع</string>
+    <string name="location_banner_none">لم يتم تحديد موقع</string>
+    <string name="location_banner_none_hint">سيُحفظ هذا المريض دون موقع. اختر موقعًا أولًا من القائمة في الشاشة الرئيسية.</string>
+    <string name="location_banner_guest_hint">ستختار الموقع بعد تسجيل الدخول.</string>
 </resources>

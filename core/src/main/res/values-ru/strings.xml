@@ -112,7 +112,6 @@
 
     <string name="error">Ошибка</string>
     <string name="open_questionnaire">Открыть анкету</string>
-    <string name="current_location_label">Текущая локация: </string>
     <string name="no_location_selected">Локация не выбрана</string>
 
     <string
@@ -888,4 +887,8 @@
     <string name="pending_session_detail">%1$s · %2$s</string>
     <string name="create_encounter_subtitle">Выберите форму, чтобы начать</string>
     <string name="create_group_encounter_subtitle">Выберите форму, затем пациентов</string>
+    <string name="location_banner_label">Локация</string>
+    <string name="location_banner_none">Локация не выбрана</string>
+    <string name="location_banner_none_hint">Пациент будет сохранён без локации. Сначала выберите её в меню на главном экране.</string>
+    <string name="location_banner_guest_hint">Локацию можно будет выбрать после входа.</string>
 </resources>

@@ -34,6 +34,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.mutableStateOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -47,6 +48,7 @@ import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -57,7 +59,9 @@ import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
 import org.openmrs.android.fhir.extensions.onQuestionnaireResult
 import org.openmrs.android.fhir.extensions.setFormLoading
 import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.LocationBannerState
 import org.openmrs.android.fhir.ui.components.MessageKind
+import org.openmrs.android.fhir.ui.components.setLocationBanner
 import org.openmrs.android.fhir.viewmodel.AddPatientViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
@@ -75,6 +79,7 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
     get() = _binding!!
 
   private val unsavedChangesGuard by lazy { UnsavedChangesGuard(this) }
+  private val locationBanner = mutableStateOf<LocationBannerState>(LocationBannerState.Loading)
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -90,28 +95,18 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
     setUpActionBar()
     setHasOptionsMenu(true)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
+    binding.locationBanner.setLocationBanner(locationBanner, showHint = true)
     lifecycleScope.launch {
-      val selectedLocation =
-        context
-          ?.applicationContext
-          ?.dataStore
-          ?.data
-          ?.first()
-          ?.get(
-            PreferenceKeys.LOCATION_NAME,
-          )
-      if (selectedLocation != null) {
-        binding.currentLocationLabel.text = selectedLocation
-      }
-      viewModel.locationId =
-        context
-          ?.applicationContext
-          ?.dataStore
-          ?.data
-          ?.first()
-          ?.get(
-            PreferenceKeys.LOCATION_ID,
-          )
+      // One read of the saved preferences for both values.
+      val saved = context?.applicationContext?.dataStore?.data?.first()
+      val name = saved?.get(PreferenceKeys.LOCATION_NAME)
+      viewModel.locationId = saved?.get(PreferenceKeys.LOCATION_ID)
+      locationBanner.value =
+        if (name.isNullOrBlank()) {
+          LocationBannerState.None(guest = GuestSession.isActive(requireContext()))
+        } else {
+          LocationBannerState.Selected(name)
+        }
     }
     observeLoading()
     if (savedInstanceState == null) {

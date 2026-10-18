@@ -134,7 +134,6 @@
     <string name="behavior_nav_heading">Behaviors</string>
     <string name="error">Error</string>
     <string name="open_questionnaire">Open questionnaire</string>
-    <string name="current_location_label">Current Location : </string>
     <string name="no_location_selected">No Location Selected</string>
     <string
         name="patient_unsynced_info"
@@ -829,4 +828,8 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="pending_session_detail">%1$s · %2$s</string>
     <string name="create_encounter_subtitle">Choose a form to start</string>
     <string name="create_group_encounter_subtitle">Choose a form, then the patients</string>
+    <string name="location_banner_label">Location</string>
+    <string name="location_banner_none">No location selected</string>
+    <string name="location_banner_none_hint">This patient will be saved without a location. Choose one first from the menu on the Home screen.</string>
+    <string name="location_banner_guest_hint">You will choose the location after signing in.</string>
 </resources>

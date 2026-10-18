@@ -110,7 +110,6 @@
     <string name="behavior_nav_heading">Comportements</string>
     <string name="error">Erreur</string>
     <string name="open_questionnaire">Ouvrir le questionnaire</string>
-    <string name="current_location_label">Lieu Actuel : </string>
     <string name="no_location_selected">Aucun lieu sélectionné</string>
     <string
         name="patient_unsynced_info"
@@ -897,4 +896,8 @@
     <string name="pending_session_detail">%1$s · %2$s</string>
     <string name="create_encounter_subtitle">Choisissez un formulaire pour commencer</string>
     <string name="create_group_encounter_subtitle">Choisissez un formulaire, puis les patients</string>
+    <string name="location_banner_label">Lieu</string>
+    <string name="location_banner_none">Aucun lieu sélectionné</string>
+    <string name="location_banner_none_hint">Ce patient sera enregistré sans lieu. Choisissez-en un d\'abord dans le menu de l\'écran d\'accueil.</string>
+    <string name="location_banner_guest_hint">Vous choisirez le lieu après vous être connecté.</string>
 </resources>
