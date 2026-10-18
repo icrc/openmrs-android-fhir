@@ -55,6 +55,7 @@ import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.Questionnaire.QuestionnaireItemComponent
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
+import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.Type
 import org.openmrs.android.fhir.Constants
@@ -63,6 +64,7 @@ import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_URL
 import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_VALUE_URL
 import org.openmrs.android.fhir.Constants.PERSON_ATTRIBUTE_LINK_ID_PREFIX
 import org.openmrs.android.fhir.auth.dataStore
+import timber.log.Timber
 
 class OpenMRSHelper
 @Inject
@@ -202,7 +204,66 @@ constructor(
     return encounter
   }
 
+  /**
+   * The signed-in user and provider, read from the server when they are not saved, and what was
+   * created without them (a `Practitioner/null` participant, which the server refuses) is
+   * corrected. Offline it does what it can: whatever is still missing is repaired later.
+   *
+   * @return whether the provider is known.
+   */
+  suspend fun ensureIdentity(): Boolean {
+    var preferences = context.dataStore.data.first()
+    fun known() =
+      !preferences[PreferenceKeys.USER_UUID].isNullOrBlank() &&
+        !preferences[PreferenceKeys.USER_PROVIDER_UUID].isNullOrBlank()
+    if (!known()) {
+      RestApiManager.getInstance(context).refreshIdentity()
+      preferences = context.dataStore.data.first()
+    }
+    if (!known()) return false
+    repairParticipants()
+    return true
+  }
+
+  /** Encounters waiting for upload whose participant was written before the provider was known. */
+  private suspend fun repairParticipants() {
+    val preferences = context.dataStore.data.first()
+    val providerUuid = preferences[PreferenceKeys.USER_PROVIDER_UUID]?.takeIf { it.isNotBlank() }
+    val userUuid = preferences[PreferenceKeys.USER_UUID]?.takeIf { it.isNotBlank() }
+    val providerName = preferences[PreferenceKeys.USER_PROVIDER_NAME]
+    if (providerUuid == null || userUuid == null) return
+    fun missing(reference: String?) =
+      reference == "Practitioner/null" || reference == "Practitioner/"
+    fhirEngine
+      .search<Encounter> { filter(Encounter.PARTICIPANT, { value = "Practitioner/null" }) }
+      .map { it.resource }
+      .filter { encounter -> encounter.participant.any { missing(it.individual?.reference) } }
+      .filter {
+        fhirEngine.getLocalChanges(ResourceType.Encounter, it.idElement.idPart).isNotEmpty()
+      }
+      .forEach { encounter ->
+        val isVisit =
+          encounter.type.any { type ->
+            type.coding.any { it.system == Constants.VISIT_TYPE_CODE_SYSTEM }
+          }
+        encounter.participant
+          .filter { missing(it.individual?.reference) }
+          .forEach {
+            it.individual =
+              Reference("Practitioner/${if (isVisit) userUuid else providerUuid}").apply {
+                display = providerName
+                type = "Practitioner"
+              }
+          }
+        fhirEngine.update(encounter)
+        Timber.i("Encounter %s received its provider", encounter.idElement.idPart)
+      }
+  }
+
   suspend fun createEncounterParticipant(): EncounterParticipantComponent {
+    if (getAuthenticatedProviderUuid().isNullOrBlank()) {
+      RestApiManager.getInstance(context).refreshIdentity()
+    }
     val participant = EncounterParticipantComponent()
     participant.individual = Reference("Practitioner/${getAuthenticatedProviderUuid()}")
     participant.individual.display = getAuthenticatedProviderName()
@@ -211,6 +272,9 @@ constructor(
   }
 
   suspend fun createVisitParticipant(): EncounterParticipantComponent {
+    if (getAuthenticatedUserId().isNullOrBlank()) {
+      RestApiManager.getInstance(context).refreshIdentity()
+    }
     val participant = EncounterParticipantComponent()
     participant.individual = Reference("Practitioner/${getAuthenticatedUserId()}")
     participant.individual.display = getAuthenticatedProviderName()

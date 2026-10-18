@@ -45,6 +45,7 @@ import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.model.SessionResponse
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
+import timber.log.Timber
 
 class RestApiManager private constructor(private val context: Context) {
   private val client: OkHttpClient = OkHttpClient.Builder().build()
@@ -116,6 +117,67 @@ class RestApiManager private constructor(private val context: Context) {
       }
     }
   }
+
+  /**
+   * Saves who is signed in (the user and the provider) from the server's session, without touching
+   * the session itself. These are only saved when the session location is set, which happens on the
+   * location screen: after logging out with the data kept (the location is kept, so that screen is
+   * skipped) and signing in again they were missing, and every encounter was created for
+   * `Practitioner/null`, which the server refuses.
+   *
+   * @return whether the provider is known afterwards.
+   */
+  suspend fun refreshIdentity(): Boolean =
+    withContext(Dispatchers.IO) {
+      try {
+        val accessToken = LoginRepository.getInstance(context).getAccessToken()
+        val basicAuthEncodedString =
+          LoginRepository.getInstance(context).getBasicAuthEncodedString()
+        val authorization =
+          when {
+            accessToken.isNotEmpty() -> "Bearer $accessToken"
+            basicAuthEncodedString.isNotEmpty() -> "Basic $basicAuthEncodedString"
+            else -> return@withContext false
+          }
+        val request =
+          Request.Builder()
+            .url(FhirApplication.checkServerUrl(context))
+            .addHeader("Authorization", authorization)
+            .get()
+            .build()
+        client.newCall(request).execute().use { response ->
+          if (!response.isSuccessful) return@withContext false
+          val body = response.body?.string() ?: return@withContext false
+          val parsed =
+            Moshi.Builder().build().adapter(SessionResponse::class.java).fromJson(body)
+              ?: return@withContext false
+          context.applicationContext.dataStore.edit { preferences ->
+            // Only what the server says: a missing value must not wipe one that is known.
+            parsed.user
+              ?.uuid
+              ?.takeIf { it.isNotBlank() }
+              ?.let { preferences[PreferenceKeys.USER_UUID] = it }
+            parsed.user
+              ?.display
+              ?.takeIf { it.isNotBlank() }
+              ?.let { preferences[PreferenceKeys.USER_NAME] = it }
+            parsed.user
+              ?.person
+              ?.display
+              ?.takeIf { it.isNotBlank() }
+              ?.let { preferences[PreferenceKeys.USER_PROVIDER_NAME] = it }
+            parsed.currentProvider
+              ?.uuid
+              ?.takeIf { it.isNotBlank() }
+              ?.let { preferences[PreferenceKeys.USER_PROVIDER_UUID] = it }
+          }
+          !parsed.currentProvider?.uuid.isNullOrBlank()
+        }
+      } catch (e: IOException) {
+        Timber.w(e, "Could not read who is signed in")
+        false
+      }
+    }
 
   suspend fun updateSessionLocation(locationId: String) {
     setSessionLocation(locationId)

@@ -92,6 +92,7 @@ import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.config.AppConfig
+import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.diagnostics.DiagnosticsBuilder
@@ -196,6 +197,20 @@ class MainActivity : AppCompatActivity() {
     loginRepository = LoginRepository.getInstance(applicationContext)
     authStateManager = AuthStateManager.getInstance(applicationContext)
     isGuest.value = GuestSession.isActive(this)
+    // Who is signed in (the provider of what is created here) is read from the server when it is
+    // not
+    // saved, and what was created without it is corrected: nothing is uploaded that way.
+    if (!isGuest.value) {
+      lifecycleScope.launch(Dispatchers.IO) {
+        try {
+          OpenMRSHelper(fhirEngine, applicationContext).ensureIdentity()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          Timber.w(e, "Could not check who is signed in")
+        }
+      }
+    }
     tokenExpiryHandler = Handler(Looper.getMainLooper())
     demoDataStore = DemoDataStore(this)
     setContentView(R.layout.activity_main)

@@ -78,6 +78,7 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.GuestDataCompleter
 import org.openmrs.android.fhir.data.IdentifierTypeManager
+import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncSession
@@ -240,6 +241,9 @@ constructor(
     }
 
     try {
+      // Who is signed in is the provider of what is uploaded: it must be known, and what
+      // waits without it gets it.
+      OpenMRSHelper(fhirEngine, context).ensureIdentity()
       if (!completeGuestData(context, fetchIdentifiers)) {
         // The patients registered as a guest need an identifier type first; ask the user.
         _isSyncing.value = false
