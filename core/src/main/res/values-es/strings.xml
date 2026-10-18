@@ -848,4 +848,5 @@
     <string name="auto_sync_turned_off">La sincronización automática está desactivada. Actívela de nuevo en los ajustes.</string>
     <string name="next_sync_in_hours">Próxima sincronización en %1$d h %2$d min</string>
     <string name="auto_sync_reset_timer">Reiniciar</string>
+    <string name="settings_connection_description">Servidor: %1$s. Compruebe que este dispositivo puede alcanzarlo.</string>
 </resources>

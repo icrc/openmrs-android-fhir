@@ -788,4 +788,5 @@
     <string name="auto_sync_turned_off">المزامنة التلقائية متوقفة. شغّلها مجدداً من الإعدادات.</string>
     <string name="next_sync_in_hours">المزامنة التالية خلال %1$d س %2$d د</string>
     <string name="auto_sync_reset_timer">إعادة ضبط المؤقت</string>
+    <string name="settings_connection_description">الخادم: %1$s. تحقق من أن هذا الجهاز يستطيع الوصول إليه.</string>
 </resources>

@@ -808,4 +808,5 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="auto_sync_turned_off">Automatic sync is off. Turn it back on in Settings.</string>
     <string name="next_sync_in_hours">Next sync in %1$d h %2$d min</string>
     <string name="auto_sync_reset_timer">Reset timer</string>
+    <string name="settings_connection_description">Server: %1$s. Check that this device can reach it.</string>
 </resources>

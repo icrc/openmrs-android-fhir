@@ -77,9 +77,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -87,11 +89,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.CustomFormSection
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.IdentifierType
+import org.openmrs.android.fhir.data.remote.ServerSettings
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.ColorVisionMode
 import org.openmrs.android.fhir.extensions.ThemeMode
@@ -109,6 +113,7 @@ object SettingsDefaults {
 
 object SettingsTestTags {
   const val NetworkSwitch = "SettingsNetworkSwitch"
+  const val ConnectionTestButton = "SettingsConnectionTestButton"
   const val NotificationsSwitch = "SettingsNotificationsSwitch"
   const val TokenDelayField = "SettingsTokenDelayField"
   const val PeriodicDelayField = "SettingsPeriodicDelayField"
@@ -193,13 +198,6 @@ fun SettingsScreen(
     ) {
       SettingsSection(title = stringResource(R.string.settings_section_general)) {
         SettingsSwitchRow(
-          label = stringResource(R.string.check_network_connectivity),
-          checked = uiState.isNetworkStatusVisible,
-          onCheckedChange = onNetworkStatusToggle,
-          testTag = SettingsTestTags.NetworkSwitch,
-        )
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        SettingsSwitchRow(
           label = stringResource(R.string.enable_notifications),
           checked = uiState.isNotificationsEnabled,
           onCheckedChange = onNotificationsToggle,
@@ -224,6 +222,15 @@ fun SettingsScreen(
       }
 
       SettingsSection(title = stringResource(R.string.settings_section_sync)) {
+        SettingsSwitchRow(
+          label = stringResource(R.string.check_network_connectivity),
+          checked = uiState.isNetworkStatusVisible,
+          onCheckedChange = onNetworkStatusToggle,
+          testTag = SettingsTestTags.NetworkSwitch,
+        )
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        ConnectionTest()
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         SettingsSwitchRow(
           label = stringResource(R.string.settings_auto_sync),
           checked = uiState.isAutoSyncEnabled,
@@ -864,6 +871,43 @@ private fun DangerZone(unsyncedCount: Int, onRequested: () -> Unit, onConfirmed:
         }
       },
     )
+  }
+}
+
+/**
+ * "Can this device reach the server?": the address in use and a button that asks it, with the same
+ * check and the same answers as the login page's server dialog.
+ */
+@Composable
+private fun ConnectionTest() {
+  val context = LocalContext.current
+  val scope = rememberCoroutineScope()
+  val server = remember { ServerSettings.activeUrl(context) }
+  var state by remember { mutableStateOf<TestState>(TestState.Idle) }
+  Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Text(
+      text = stringResource(R.string.settings_connection_description, server),
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    OutlinedButton(
+      onClick = {
+        state = TestState.Running
+        scope.launch { state = TestState.Done(ServerSettings.testConnection(server)) }
+      },
+      enabled = state != TestState.Running,
+      modifier =
+        Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.ConnectionTestButton),
+    ) {
+      Icon(
+        imageVector = Icons.Default.Sync,
+        contentDescription = null,
+        modifier = Modifier.size(18.dp)
+      )
+      Spacer(modifier = Modifier.width(8.dp))
+      Text(text = stringResource(R.string.test_connection))
+    }
+    TestStatus(state)
   }
 }
 

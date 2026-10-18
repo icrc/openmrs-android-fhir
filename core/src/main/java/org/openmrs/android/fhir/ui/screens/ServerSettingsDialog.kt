@@ -68,7 +68,7 @@ import org.openmrs.android.fhir.data.remote.ServerSettings
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.ui.components.LanguagePicker
 
-private sealed interface TestState {
+internal sealed interface TestState {
   data object Idle : TestState
 
   data object Running : TestState
@@ -202,7 +202,7 @@ fun ServerSettingsDialog(onDismiss: () -> Unit, showServer: Boolean = true) {
 }
 
 @Composable
-private fun TestStatus(state: TestState) {
+internal fun TestStatus(state: TestState) {
   when (state) {
     TestState.Idle -> Unit
     TestState.Running ->
