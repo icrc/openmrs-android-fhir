@@ -281,6 +281,10 @@
     <string name="patient_lists_failed_message">Compruebe la conexión e inténtelo de nuevo.</string>
     <string name="patient_lists_failed_cached">No se pudieron actualizar las listas. Se muestran las guardadas en este dispositivo.</string>
     <string name="patient_lists_try_again">Reintentar</string>
+    <string name="patient_lists_continue_without">Continuar sin lista</string>
+    <string name="patient_lists_continue_without_title">¿Continuar sin una lista de pacientes?</string>
+    <string name="patient_lists_continue_without_message">No se descargará ningún paciente en este dispositivo. Aún puede registrar pacientes y elegir listas más tarde en Listas de pacientes, en la pantalla de inicio.</string>
+    <string name="patient_lists_continue_action">Continuar</string>
     <string name="patient_list_patient_count">Pacientes: %1$d</string>
     <string name="patient_lists_no_match">Ninguna lista de pacientes coincide con «%1$s»</string>
     <string name="patient_lists_selected_count">%1$d seleccionada(s)</string>
@@ -658,14 +662,8 @@
     >Selecciona la hora de la visita</string>
     <string name="start_new_visit_title">¿Iniciar una nueva visita?</string>
     <string
-        name="select_patient_list_dialog_title"
-    >Seleccionar lista de pacientes</string>
-    <string
         name="no_patient_list_selected_message"
     >No hay ninguna lista de pacientes seleccionada. ¿Quieres seleccionar una?</string>
-    <string
-        name="select_at_least_one_patient_list"
-    >Seleccione al menos una lista de pacientes para continuar.</string>
     <string name="diagnostic_report_subject">Informe de diagnóstico</string>
     <string
         name="diagnostic_report_body"

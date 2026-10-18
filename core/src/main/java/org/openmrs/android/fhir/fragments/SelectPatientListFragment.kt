@@ -46,7 +46,8 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
@@ -110,6 +111,7 @@ class SelectPatientListFragment : Fragment() {
           isRefreshing = uiState.isRefreshing,
           loadFailed = uiState.loadFailed,
           onRetry = selectPatientListViewModel::refresh,
+          continueWithoutSelection = true,
         )
       }
     }
@@ -120,9 +122,15 @@ class SelectPatientListFragment : Fragment() {
     val actionBar = (requireActivity() as AppCompatActivity).supportActionBar
     (requireActivity().application as FhirApplication).appComponent.inject(this)
 
+    // The name is saved a moment after the location is picked: follow it.
     viewLifecycleOwner.lifecycleScope.launch {
-      locationName.value =
-        requireContext().applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_NAME]
+      requireContext()
+        .applicationContext
+        .dataStore
+        .data
+        .map { it[PreferenceKeys.LOCATION_NAME] }
+        .distinctUntilChanged()
+        .collect { locationName.value = it }
     }
     actionBar?.title = requireContext().getString(R.string.select_patient_lists)
     configureUi(actionBar)
@@ -157,12 +165,16 @@ class SelectPatientListFragment : Fragment() {
     val hasSelection = selectPatientListViewModel.uiState.value.selectedPatientListIds.isNotEmpty()
     val hasLists = !selectPatientListViewModel.selectPatientListItems.value.isNullOrEmpty()
     if (!hasSelection && hasLists) {
-      // At least one list is required: continuing without one would otherwise download every
-      // patient on the server.
+      // Allowed, but said: with no list no patients are downloaded (never every patient of the
+      // server), and the lists can be chosen later from the home screen.
       MaterialAlertDialogBuilder(requireContext()).apply {
-        setTitle(getString(R.string.select_patient_list_dialog_title))
-        setMessage(getString(R.string.select_at_least_one_patient_list))
-        setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }
+        setTitle(getString(R.string.patient_lists_continue_without_title))
+        setMessage(getString(R.string.patient_lists_continue_without_message))
+        setPositiveButton(getString(R.string.patient_lists_continue_action)) { dialog, _ ->
+          dialog.dismiss()
+          proceedToHomeFragment()
+        }
+        setNegativeButton(getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
         show()
       }
     } else {

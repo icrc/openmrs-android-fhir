@@ -336,6 +336,10 @@
     <string name="patient_lists_failed_message">Проверьте соединение и повторите попытку.</string>
     <string name="patient_lists_failed_cached">Не удалось обновить списки. Показаны списки, сохранённые на этом устройстве.</string>
     <string name="patient_lists_try_again">Повторить</string>
+    <string name="patient_lists_continue_without">Продолжить без списка</string>
+    <string name="patient_lists_continue_without_title">Продолжить без списка пациентов?</string>
+    <string name="patient_lists_continue_without_message">Пациенты не будут загружены на это устройство. Вы по-прежнему можете регистрировать пациентов и выбрать списки позже в разделе «Списки пациентов» на главном экране.</string>
+    <string name="patient_lists_continue_action">Продолжить</string>
     <string name="patient_list_patient_count">Пациентов: %1$d</string>
     <string name="patient_lists_no_match">Нет списков пациентов, соответствующих «%1$s»</string>
     <string name="patient_lists_selected_count">Выбрано: %1$d</string>
@@ -673,14 +677,8 @@
     <string name="select_visit_time_title">Выберите время визита</string>
     <string name="start_new_visit_title">Начать новый визит?</string>
     <string
-        name="select_patient_list_dialog_title"
-    >Выбрать список пациентов</string>
-    <string
         name="no_patient_list_selected_message"
     >Список пациентов не выбран. Хотите выбрать его?</string>
-    <string
-        name="select_at_least_one_patient_list"
-    >Выберите хотя бы один список пациентов, чтобы продолжить.</string>
     <string name="diagnostic_report_subject">Диагностический отчёт</string>
     <string
         name="diagnostic_report_body"

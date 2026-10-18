@@ -43,8 +43,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -94,9 +97,18 @@ constructor(
     started = true
     viewModelScope.launch {
       getSelectPatientListItems()
-      if (!fromLogin || AppConfig.get(applicationContext).sync.filterPatientListsByLocation) {
-        refresh()
-      }
+      val scopedToLocation = AppConfig.get(applicationContext).sync.filterPatientListsByLocation
+      if (fromLogin && !scopedToLocation) return@launch
+      // The location is saved a moment after it is picked, and may be saved again (another one
+      // chosen): the lists follow it. Scoped to the location, nothing is asked before there is one.
+      applicationContext.dataStore.data
+        .map { it[PreferenceKeys.LOCATION_ID] }
+        .distinctUntilChanged()
+        .collectLatest { locationId ->
+          if (scopedToLocation && locationId.isNullOrBlank()) return@collectLatest
+          getSelectPatientListItems()
+          refresh()
+        }
     }
   }
 

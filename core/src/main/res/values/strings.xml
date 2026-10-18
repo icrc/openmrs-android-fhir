@@ -372,6 +372,10 @@
     <string name="patient_lists_failed_message">Check the connection and try again.</string>
     <string name="patient_lists_failed_cached">Couldn\'t update the lists. Showing the ones saved on this device.</string>
     <string name="patient_lists_try_again">Try again</string>
+    <string name="patient_lists_continue_without">Continue without a list</string>
+    <string name="patient_lists_continue_without_title">Continue without a patient list?</string>
+    <string name="patient_lists_continue_without_message">No patients will be downloaded to this device. You can still register patients, and choose lists later from Patient lists on the home screen.</string>
+    <string name="patient_lists_continue_action">Continue</string>
     <string name="patient_list_patient_count">Patients: %1$d</string>
     <string name="patient_lists_no_match">No patient lists match “%1$s”</string>
     <string name="patient_lists_selected_count">%1$d selected</string>
@@ -621,13 +625,9 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     >Future date/time is not allowed.</string>
     <string name="select_visit_time_title">Select time for the visit</string>
     <string name="start_new_visit_title">Start a new visit?</string>
-    <string name="select_patient_list_dialog_title">Select Patient List</string>
     <string
         name="no_patient_list_selected_message"
     >No patient list is selected. Do you want to select one?</string>
-    <string
-        name="select_at_least_one_patient_list"
-    >Please select at least one patient list to continue.</string>
     <string name="diagnostic_report_subject">Diagnostic Report</string>
     <string
         name="diagnostic_report_body"

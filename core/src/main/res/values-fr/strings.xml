@@ -292,6 +292,10 @@
     <string name="patient_lists_failed_message">Vérifiez la connexion et réessayez.</string>
     <string name="patient_lists_failed_cached">Impossible de mettre à jour les listes. Affichage de celles enregistrées sur cet appareil.</string>
     <string name="patient_lists_try_again">Réessayer</string>
+    <string name="patient_lists_continue_without">Continuer sans liste</string>
+    <string name="patient_lists_continue_without_title">Continuer sans liste de patients ?</string>
+    <string name="patient_lists_continue_without_message">Aucun patient ne sera téléchargé sur cet appareil. Vous pouvez toujours enregistrer des patients et choisir des listes plus tard dans Listes de patients, sur l\'écran d\'accueil.</string>
+    <string name="patient_lists_continue_action">Continuer</string>
     <string name="patient_list_patient_count">Patients : %1$d</string>
     <string name="patient_lists_no_match">Aucune liste de patients ne correspond à « %1$s »</string>
     <string name="patient_lists_selected_count">%1$d sélectionnée(s)</string>
@@ -682,14 +686,8 @@
         name="start_new_visit_title"
     >Commencer une nouvelle visite ?</string>
     <string
-        name="select_patient_list_dialog_title"
-    >Sélectionner la liste des patients</string>
-    <string
         name="no_patient_list_selected_message"
     >Aucune liste de patients n\'est sélectionnée. Voulez-vous en sélectionner une ?</string>
-    <string
-        name="select_at_least_one_patient_list"
-    >Veuillez sélectionner au moins une liste de patients pour continuer.</string>
     <string name="diagnostic_report_subject">Rapport de diagnostic</string>
     <string
         name="diagnostic_report_body"

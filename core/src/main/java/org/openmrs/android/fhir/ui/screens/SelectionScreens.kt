@@ -330,6 +330,8 @@ fun PatientListSelectionScreen(
   isRefreshing: Boolean = false,
   loadFailed: Boolean = false,
   onRetry: (() -> Unit)? = null,
+  /** With nothing ticked the action reads "Continue without a list" instead of "Submit". */
+  continueWithoutSelection: Boolean = false,
 ) {
   Box(
     modifier =
@@ -480,7 +482,15 @@ fun PatientListSelectionScreen(
             onClick = onActionClick,
           ) {
             Text(
-              text = stringResource(id = R.string.submit),
+              text =
+                stringResource(
+                  id =
+                    if (continueWithoutSelection && selectedPatientListIds.isEmpty()) {
+                      R.string.patient_lists_continue_without
+                    } else {
+                      R.string.submit
+                    },
+                ),
               style = MaterialTheme.typography.labelLarge,
             )
           }
