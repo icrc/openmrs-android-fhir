@@ -42,8 +42,12 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
@@ -55,11 +59,14 @@ import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.OpenMRSHelper
+import org.openmrs.android.fhir.data.sync.LivePatients
+import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.FormSummary
 import org.openmrs.android.fhir.extensions.allFormSummaries
 import org.openmrs.android.fhir.extensions.toLocalString
+import timber.log.Timber
 
 /**
  * The ViewModel helper class for PatientItemRecyclerViewAdapter, that is responsible for preparing
@@ -83,8 +90,34 @@ constructor(
 
   private val patientId: String = requireNotNull(state["patient_id"])
 
+  private val live by lazy { LivePatients(applicationContext, fhirEngine) }
+
   init {
     AuditLog.record(AuditAction.PATIENT_OPENED, AuditOutcome.SUCCESS, "patient" to patientId)
+    // An upload went through: what is shown as waiting for the server may not be any more.
+    viewModelScope.launch {
+      LiveSync.uploaded.collect { if (livePatientData.value != null) getPatientDetailData() }
+    }
+    viewModelScope.launch { refreshFromServer() }
+  }
+
+  /**
+   * Live mode: the record on the device may be older than the server's (someone else saw the
+   * patient), so it is read again as the patient is opened. What waits for upload here is kept.
+   */
+  private suspend fun refreshFromServer() {
+    try {
+      if (!LiveSync.isEnabled(applicationContext) || LivePatients.isFresh(patientId)) return
+      withTimeout(REFRESH_TIMEOUT_MILLIS) {
+        withContext(Dispatchers.IO) { live.download(patientId, remember = false) }
+      }
+      if (livePatientData.value != null) getPatientDetailData()
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      // Offline, or a patient the server does not know yet: the device's copy is what is shown.
+      Timber.d(e, "The patient was not refreshed from the server")
+    }
   }
 
   val livePatientData = MutableLiveData<List<PatientDetailData>>()
@@ -265,6 +298,10 @@ constructor(
   }
 
   private fun getString(resId: Int) = applicationContext.resources.getString(resId)
+
+  private companion object {
+    const val REFRESH_TIMEOUT_MILLIS = 30_000L
+  }
 }
 
 interface PatientDetailData {

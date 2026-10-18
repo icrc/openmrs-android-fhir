@@ -42,4 +42,7 @@ interface FhirApiService {
   @GET("Group") suspend fun getPatientLists(): Response<Bundle>
 
   @GET suspend fun getQuestionnaires(@Url url: String): Response<Bundle>
+
+  /** Any FHIR search; read only. */
+  @GET suspend fun getBundle(@Url url: String): Response<Bundle>
 }

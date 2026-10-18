@@ -34,13 +34,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +59,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.LocalDate
@@ -83,6 +89,7 @@ fun PatientListScreen(
   onPatientClick: (PatientListViewModel.PatientItem) -> Unit,
   onFabClick: () -> Unit,
   modifier: Modifier = Modifier,
+  onServerPatientClick: (PatientListViewModel.PatientItem) -> Unit = {},
 ) {
   val contentPadding = rememberActionBarContentPadding()
   val surfaceColor = MaterialTheme.colorScheme.background
@@ -123,6 +130,7 @@ fun PatientListScreen(
           contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 96.dp),
           verticalArrangement = Arrangement.spacedBy(10.dp),
           emptyContent = { PatientListEmptyState() },
+          extraRows = serverRows(uiState, onServerPatientClick),
         ) { patient ->
           PatientListItemRow(
             name = patient.name,
@@ -133,6 +141,71 @@ fun PatientListScreen(
             onClick = { onPatientClick(patient) },
           )
         }
+      }
+    }
+  }
+}
+
+/**
+ * "On the server": what the live search found that is not already listed above. Null (no section)
+ * unless live mode is looking something up.
+ */
+private fun serverRows(
+  uiState: PatientListUiState,
+  onClick: (PatientListViewModel.PatientItem) -> Unit,
+): (LazyListScope.() -> Unit)? {
+  val search = uiState.serverSearch
+  if (!search.active) return null
+  val onDevice = uiState.patients.mapTo(HashSet()) { it.resourceId }
+  val found = search.results.filter { it.resourceId !in onDevice }
+  return {
+    item(key = "server-header", contentType = "server-header") {
+      Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+          modifier = Modifier.weight(1f, fill = false),
+          text = stringResource(R.string.live_server_results_title),
+          style = MaterialTheme.typography.labelLarge,
+          fontWeight = FontWeight.SemiBold,
+          color = MaterialTheme.colorScheme.primary,
+        )
+        if (search.loading) {
+          CircularProgressIndicator(
+            modifier = Modifier.padding(start = 10.dp).size(14.dp),
+            strokeWidth = 2.dp,
+          )
+        }
+      }
+    }
+    items(found, key = { "server-" + it.resourceId }) { patient ->
+      PatientListItemRow(
+        name = patient.name,
+        ageGenderLabel = formatAgeGender(patient),
+        isSynced = true,
+        identifier = patient.displayIdentifier(),
+        onClick = { onClick(patient) },
+        onServer = true,
+        isOpening = search.openingId == patient.resourceId,
+      )
+    }
+    if (!search.loading && found.isEmpty()) {
+      item(key = "server-empty", contentType = "server-empty") {
+        Text(
+          modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+          text =
+            stringResource(
+              if (search.failed) {
+                R.string.live_server_search_failed
+              } else {
+                R.string.live_server_no_results
+              },
+            ),
+          style = MaterialTheme.typography.bodyMedium,
+          fontStyle = FontStyle.Italic,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
       }
     }
   }

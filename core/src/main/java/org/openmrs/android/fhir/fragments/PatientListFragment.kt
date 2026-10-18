@@ -35,6 +35,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
@@ -90,11 +91,24 @@ class PatientListFragment : Fragment() {
     composeView.setContent {
       OpenMrsTheme {
         val uiState by patientListViewModel.uiState.collectAsState()
+        val serverMessage = uiState.serverSearch.messageRes
+        LaunchedEffect(serverMessage) {
+          if (serverMessage != null) {
+            AppMessage.show(context, serverMessage, MessageKind.Error, long = true)
+            patientListViewModel.clearServerMessage()
+          }
+        }
         PatientListScreen(
           uiState = uiState,
-          onQueryChange = { patientListViewModel.searchPatientsByName(it.trim()) },
+          onQueryChange = {
+            patientListViewModel.searchPatientsByName(it.trim())
+            patientListViewModel.searchServer(it)
+          },
           onRefresh = { patientListViewModel.refreshPatients() },
           onPatientClick = { patient -> onPatientItemClicked(patient) },
+          onServerPatientClick = { patient ->
+            patientListViewModel.openServerPatient(patient) { id -> openPatient(id) }
+          },
           onFabClick = { onAddPatientClick() },
         )
       }
@@ -136,8 +150,11 @@ class PatientListFragment : Fragment() {
   }
 
   private fun onPatientItemClicked(patientItem: PatientListViewModel.PatientItem) {
-    findNavController()
-      .navigate(PatientListFragmentDirections.navigateToProductDetail(patientItem.resourceId))
+    openPatient(patientItem.resourceId)
+  }
+
+  private fun openPatient(patientId: String) {
+    findNavController().navigate(PatientListFragmentDirections.navigateToProductDetail(patientId))
   }
 
   private fun onAddPatientClick() {

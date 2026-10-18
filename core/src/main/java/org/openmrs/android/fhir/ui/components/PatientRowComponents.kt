@@ -46,6 +46,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.outlined.CloudDownload
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -93,6 +95,10 @@ fun PatientListItemRow(
   identifier: String? = null,
   lastEncounter: LastEncounterLabel = LastEncounterLabel.Loading,
   onClick: (() -> Unit)? = null,
+  /** A patient found on the server, not on this device yet: no last encounter, a cloud icon. */
+  onServer: Boolean = false,
+  /** The patient is being brought from the server. */
+  isOpening: Boolean = false,
 ) {
   Surface(
     modifier =
@@ -105,7 +111,8 @@ fun PatientListItemRow(
     shadowElevation = 1.dp,
   ) {
     Row(
-      modifier = Modifier.fillMaxWidth().heightIn(min = 104.dp).padding(16.dp),
+      modifier =
+        Modifier.fillMaxWidth().heightIn(min = if (onServer) 84.dp else 104.dp).padding(16.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
       PatientAvatar(name = name)
@@ -158,14 +165,31 @@ fun PatientListItemRow(
             Box(modifier = Modifier.size(0.dp).testTag("PatientAgeGender"))
           }
         }
-        LastEncounterLine(lastEncounter, modifier = Modifier.padding(top = 8.dp))
+        if (!onServer) {
+          LastEncounterLine(lastEncounter, modifier = Modifier.padding(top = 8.dp))
+        }
       }
-      Icon(
-        imageVector = Icons.Filled.ChevronRight,
-        contentDescription = null,
-        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 8.dp).size(26.dp),
-      )
+      when {
+        isOpening ->
+          CircularProgressIndicator(
+            modifier = Modifier.padding(start = 8.dp).size(24.dp),
+            strokeWidth = 2.dp,
+          )
+        onServer ->
+          Icon(
+            imageVector = Icons.Outlined.CloudDownload,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(start = 8.dp).size(26.dp),
+          )
+        else ->
+          Icon(
+            imageVector = Icons.Filled.ChevronRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 8.dp).size(26.dp),
+          )
+      }
     }
   }
 }

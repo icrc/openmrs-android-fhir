@@ -29,6 +29,8 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -52,6 +54,8 @@ import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -60,15 +64,19 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.RiskAssessment
+import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.FormCatalog
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.sync.LivePatients
+import org.openmrs.android.fhir.data.sync.LiveSync
 import timber.log.Timber
 
 /**
@@ -80,6 +88,26 @@ data class PatientListUiState(
   val patients: List<PatientListViewModel.PatientItem> = emptyList(),
   val isLoading: Boolean = false,
   val isRefreshing: Boolean = false,
+  /** What the live search found on the server (live mode only). */
+  val serverSearch: ServerSearchState = ServerSearchState(),
+)
+
+/**
+ * The "On the server" part of the patient search. It is [active] while live mode is on and the
+ * search text is long enough to look up.
+ */
+data class ServerSearchState(
+  val active: Boolean = false,
+  val loading: Boolean = false,
+  val failed: Boolean = false,
+  val results: List<PatientListViewModel.PatientItem> = emptyList(),
+  /** The patient being brought to the device. */
+  val openingId: String? = null,
+  /**
+   * A message to show once (a string resource); cleared by
+   * [PatientListViewModel.clearServerMessage].
+   */
+  val messageRes: Int? = null,
 )
 
 class PatientListViewModel
@@ -96,12 +124,23 @@ constructor(
   val patientCount = MutableLiveData<Long>()
 
   private var loadJob: Job? = null
+  private var serverSearchJob: Job? = null
+  private val live by lazy { LivePatients(applicationContext, fhirEngine) }
 
   /** Number of patients that match the current search *and* are visible, set by each search. */
   private var visibleCount: Long? = null
 
   init {
     loadPatients()
+    // An upload went through: what was marked as waiting is not any more.
+    viewModelScope.launch { LiveSync.uploaded.collect { reloadQuietly() } }
+  }
+
+  private fun reloadQuietly() {
+    updatePatientListAndPatientCount(
+      { getSearchResults(nameQuery = uiState.value.query, quiet = true) },
+      { count(uiState.value.query) },
+    )
   }
 
   fun loadPatients() {
@@ -128,6 +167,7 @@ constructor(
 
   fun clearSearch() {
     _uiState.update { it.copy(query = "") }
+    searchServer("")
     loadPatients()
   }
 
@@ -204,14 +244,19 @@ constructor(
   private suspend fun getSearchResults(
     nameQuery: String = "",
     refreshing: Boolean = false,
+    quiet: Boolean = false,
   ): List<PatientItem> {
-    if (refreshing) {
+    if (quiet) {
+      // The list is only redrawn: no spinner.
+    } else if (refreshing) {
       _uiState.update { it.copy(isRefreshing = true) }
     } else {
       _uiState.update { it.copy(isLoading = true) }
     }
     val patients: MutableList<PatientItem> = mutableListOf()
     val memberIds = selectedListMemberIds()
+    // Patients brought from the server by the live search belong to the list too.
+    val liveIds = if (memberIds == null) emptySet() else live.rememberedIds()
     val matches =
       fhirEngine
         .search<Patient> {
@@ -231,6 +276,7 @@ constructor(
       } else {
         matches.filter { patient ->
           patient.idElement.idPart in memberIds ||
+            patient.idElement.idPart in liveIds ||
             fhirEngine.getLocalChanges(ResourceType.Patient, patient.idElement.idPart).isNotEmpty()
         }
       }
@@ -252,12 +298,113 @@ constructor(
         patient.risk = it.prediction?.first()?.qualitativeRisk?.coding?.first()?.code
       }
     }
-    if (refreshing) {
+    if (quiet) {
+      // Nothing was shown.
+    } else if (refreshing) {
       _uiState.update { it.copy(isRefreshing = false) }
     } else {
       _uiState.update { it.copy(isLoading = false) }
     }
     return patients
+  }
+
+  // ---- Live search -----------------------------------------------------------------------
+
+  /**
+   * Looks [query] up on the server too, below the patients of the device (live mode). Called with
+   * every change of the search text; a new text replaces the previous lookup, and nothing is asked
+   * before the typing pauses.
+   */
+  fun searchServer(query: String) {
+    serverSearchJob?.cancel()
+    val text = query.trim()
+    if (text.length < MIN_SERVER_QUERY_LENGTH) {
+      updateServerSearch { ServerSearchState(openingId = it.openingId) }
+      return
+    }
+    serverSearchJob =
+      viewModelScope.launch {
+        if (!liveSearchAvailable()) {
+          updateServerSearch { ServerSearchState(openingId = it.openingId) }
+          return@launch
+        }
+        updateServerSearch { it.copy(active = true, loading = true, failed = false) }
+        delay(SERVER_SEARCH_PAUSE_MILLIS)
+        try {
+          val found =
+            withTimeout(SERVER_SEARCH_TIMEOUT_MILLIS) {
+              withContext(Dispatchers.IO) { live.search(text) }
+            }
+          updateServerSearch {
+            it.copy(
+              loading = false,
+              results =
+                found.mapIndexed { index, patient ->
+                  patient.toPatientItem(index + 1).also { item -> item.isSynced = true }
+                },
+            )
+          }
+        } catch (e: TimeoutCancellationException) {
+          updateServerSearch { it.copy(loading = false, failed = true, results = emptyList()) }
+        } catch (e: CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          Timber.w(e, "The server search failed")
+          updateServerSearch { it.copy(loading = false, failed = true, results = emptyList()) }
+        }
+      }
+  }
+
+  /** Live mode is on and the device has a network to ask with. */
+  private suspend fun liveSearchAvailable(): Boolean =
+    try {
+      LiveSync.isEnabled(applicationContext) && hasNetwork()
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      false
+    }
+
+  private fun hasNetwork(): Boolean {
+    val manager = applicationContext.getSystemService(ConnectivityManager::class.java)
+    val capabilities = manager?.getNetworkCapabilities(manager.activeNetwork)
+    return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+  }
+
+  /**
+   * Brings [patient], found on the server, to the device and calls [onOpened] with their id once
+   * they can be opened like any other patient.
+   */
+  fun openServerPatient(patient: PatientItem, onOpened: (String) -> Unit) {
+    if (_uiState.value.serverSearch.openingId != null) return
+    updateServerSearch { it.copy(openingId = patient.resourceId) }
+    viewModelScope.launch {
+      try {
+        withTimeout(SERVER_OPEN_TIMEOUT_MILLIS) {
+          withContext(Dispatchers.IO) { live.download(patient.resourceId) }
+        }
+        // The list now includes them.
+        reloadQuietly()
+        onOpened(patient.resourceId)
+      } catch (e: TimeoutCancellationException) {
+        updateServerSearch { it.copy(messageRes = R.string.live_server_open_failed) }
+      } catch (e: CancellationException) {
+        throw e
+      } catch (e: Exception) {
+        Timber.w(e, "Could not bring the patient from the server")
+        updateServerSearch { it.copy(messageRes = R.string.live_server_open_failed) }
+      } finally {
+        updateServerSearch { it.copy(openingId = null) }
+      }
+    }
+  }
+
+  fun clearServerMessage() {
+    updateServerSearch { it.copy(messageRes = null) }
+  }
+
+  private fun updateServerSearch(change: (ServerSearchState) -> ServerSearchState) {
+    _uiState.update { it.copy(serverSearch = change(it.serverSearch)) }
   }
 
   /** Form names by encounter type code, read once. */
@@ -350,6 +497,10 @@ constructor(
 
   private companion object {
     const val PAGE_SIZE = 100
+    const val MIN_SERVER_QUERY_LENGTH = 3
+    const val SERVER_SEARCH_PAUSE_MILLIS = 450L
+    const val SERVER_SEARCH_TIMEOUT_MILLIS = 15_000L
+    const val SERVER_OPEN_TIMEOUT_MILLIS = 60_000L
     private const val ENCOUNTER_QUERY_CHUNK = 30
     const val CANDIDATE_LIMIT = 1000
   }

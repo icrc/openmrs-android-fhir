@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -75,12 +76,14 @@ fun <T> SwipeRefreshListContainer(
   contentPadding: PaddingValues = PaddingValues(0.dp),
   verticalArrangement: Arrangement.Vertical = Arrangement.Top,
   itemKey: ((T) -> Any)? = null,
+  /** More rows under the items (the live search's results); the empty state waits for them. */
+  extraRows: (LazyListScope.() -> Unit)? = null,
   itemContent: @Composable (T) -> Unit,
 ) {
   val refreshState = rememberPullRefreshState(refreshing = isRefreshing, onRefresh = onRefresh)
 
   Box(modifier = modifier.fillMaxSize().pullRefresh(refreshState)) {
-    if (items.isEmpty() && !isLoading) {
+    if (items.isEmpty() && !isLoading && extraRows == null) {
       Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { emptyContent() }
     } else {
       LazyColumn(
@@ -93,6 +96,7 @@ fun <T> SwipeRefreshListContainer(
         } else {
           items(items, key = itemKey) { item -> itemContent(item) }
         }
+        extraRows?.invoke(this)
       }
     }
 
@@ -127,6 +131,7 @@ fun PatientListContainerScreen(
       style = MaterialTheme.typography.bodyMedium,
     )
   },
+  extraRows: (LazyListScope.() -> Unit)? = null,
   itemContent: @Composable (PatientListViewModel.PatientItem) -> Unit,
 ) {
   SwipeRefreshListContainer(
@@ -140,6 +145,7 @@ fun PatientListContainerScreen(
     contentPadding = contentPadding,
     verticalArrangement = verticalArrangement,
     itemKey = { it.resourceId },
+    extraRows = extraRows,
     itemContent = itemContent,
   )
 }

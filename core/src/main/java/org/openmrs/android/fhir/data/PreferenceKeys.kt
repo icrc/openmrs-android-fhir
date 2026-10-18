@@ -43,5 +43,8 @@ class PreferenceKeys {
     val USER_NAME = stringPreferencesKey("USER_NAME")
     val USER_PROVIDER_UUID = stringPreferencesKey("USER_PROVIDER_UUID")
     val USER_PROVIDER_NAME = stringPreferencesKey("USER_PROVIDER_NAME")
+
+    /** Patients brought to the device from the server by the live search (live mode). */
+    val LIVE_PATIENT_IDS = stringSetPreferencesKey("LIVE_PATIENT_IDS")
   }
 }

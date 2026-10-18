@@ -30,12 +30,18 @@ package org.openmrs.android.fhir.data.remote
 
 import android.content.Context
 import java.io.IOException
+import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.hl7.fhir.r4.model.Location
+import org.hl7.fhir.r4.model.OperationOutcome
+import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
+import org.hl7.fhir.r4.model.Resource
 import org.openmrs.android.fhir.LoginRepository
 import org.openmrs.android.fhir.data.remote.interceptor.AddCookiesInterceptor
 import org.openmrs.android.fhir.data.remote.interceptor.ReceivedCookiesInterceptor
@@ -138,6 +144,56 @@ class ApiManager @Inject constructor(context: Context) : Api {
     return questionnaires
   }
 
+  /**
+   * The patients of the server whose name or identifier match [text] (a FHIR search, read only), at
+   * most [PATIENT_SEARCH_LIMIT] of each. Only what a result row shows is asked for.
+   */
+  suspend fun searchPatients(text: String): List<Patient> = coroutineScope {
+    val query = URLEncoder.encode(text.trim(), "UTF-8")
+    val base =
+      ServerSettings.fhirBaseUrl(appContext) +
+        "Patient?_count=$PATIENT_SEARCH_LIMIT&_elements=$PATIENT_SEARCH_ELEMENTS&"
+    val byName = async { patientSearch(base + "name=$query") }
+    // The identifier search is exact and cheap; a server that does not take it still answers by
+    // name.
+    val byIdentifier = async {
+      try {
+        patientSearch(base + "identifier=$query")
+      } catch (e: IOException) {
+        emptyList()
+      }
+    }
+    (byName.await() + byIdentifier.await()).distinctBy { it.idElement.idPart }
+  }
+
+  private suspend fun patientSearch(url: String): List<Patient> {
+    val response = fhirApiService.getBundle(url)
+    // Only the status goes in the message: the URL holds what the user typed.
+    if (!response.isSuccessful) throw IOException("Server answered ${response.code()} to a search")
+    return response.body()?.entry.orEmpty().mapNotNull { it.resource as? Patient }
+  }
+
+  /**
+   * Everything the sync downloads about one patient: the patient, their encounters and their
+   * observations, following the search's `next` links. Read only.
+   */
+  suspend fun fetchPatientRecord(patientId: String): List<Resource> {
+    require(patientId.all { it.isLetterOrDigit() || it == '-' }) { "Not a patient id" }
+    val resources = mutableListOf<Resource>()
+    var url: String? =
+      ServerSettings.fhirBaseUrl(appContext) +
+        "Patient?_id=$patientId&_revinclude=Encounter:patient&_revinclude=Observation:patient"
+    var pages = 0
+    while (url != null && pages++ < MAX_RECORD_PAGES) {
+      val response = fhirApiService.getBundle(url)
+      if (!response.isSuccessful) throw IOException("Server answered ${response.code()}")
+      val bundle = response.body() ?: break
+      bundle.entry.mapNotNullTo(resources) { it.resource }
+      url = bundle.link.firstOrNull { it.relation == "next" }?.url
+    }
+    return resources.filter { it !is OperationOutcome }
+  }
+
   suspend fun checkServerConnection(url: String): Boolean {
     return try {
       val response = apiService.checkServerStatus(url)
@@ -168,3 +224,7 @@ internal fun resolveAuthorizationHeader(
   }
 
 private const val MAX_QUESTIONNAIRE_PAGES = 20
+private const val MAX_RECORD_PAGES = 20
+private const val PATIENT_SEARCH_LIMIT = 20
+private const val PATIENT_SEARCH_ELEMENTS =
+  "id,name,identifier,birthDate,gender,address,telecom,active"
