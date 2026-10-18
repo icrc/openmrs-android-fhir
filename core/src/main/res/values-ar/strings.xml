@@ -1,17 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <resources>
     <string name="section_patient_management">إدارة المريض</string>
-    <string name="title_add_patient">أضف المريض</string>
-    <string name="subtitle_add_patient">سجل سجل مريض جديد</string>
-    <string name="title_search_patient">ابحث المريض</string>
-    <string name="subtitle_search_patient">عرض وإدارة المرضى</string>
-    <string name="title_custom_patient_list">قائمة (قائمة) المريض</string>
-    <string
-        name="subtitle_custom_patient_list"
-    >تحميل قائمة المريض المحفوظة</string>
+    <string name="title_add_patient">تسجيل مريض</string>
+    <string name="subtitle_add_patient">إدخال بيانات مريض جديد</string>
+    <string name="title_search_patient">المرضى</string>
+    <string name="subtitle_search_patient">البحث عن المرضى على هذا الجهاز وفتحهم وتعديلهم</string>
+    <string name="title_custom_patient_list">قوائم المرضى</string>
+    <string name="subtitle_custom_patient_list">اختيار القوائم المراد تنزيلها على هذا الجهاز</string>
     <string name="section_encounters">اللقاءات</string>
-    <string name="title_group_encounter">بدء المجموعة/جلسة الأسرة</string>
-    <string name="subtitle_group_encounter">ابدأ الجلسة مع مرضى متعددين</string>
+    <string name="title_group_encounter">جلسة جماعية أو عائلية</string>
+    <string name="subtitle_group_encounter">تعبئة نموذج واحد لعدة مرضى</string>
     <string name="section_system">نظام</string>
     <string name="title_sync_info">مزامنة المعلومات</string>
     <string name="sync_info">مزامنة المعلومات</string>
@@ -20,7 +18,7 @@
     <string name="subtitle_unsynced_resources">عرض عمليات التزامن</string>
 
     <string name="app_name" translatable="false">OpenMRS</string>
-    <string name="title_patient_list">المرضى المسجلين</string>
+    <string name="title_patient_list">المرضى</string>
     <string name="title_patient_detail">تفاصيل SamplePatient</string>
     <string name="patient_details_title">تفاصيل المريض</string>
     <string name="register_patient">سجل المريض</string>
@@ -53,7 +51,7 @@
     <string name="all_forms">كل النماذج</string>
     <string name="create_encounter_no_forms">لا توجد نماذج متاحة للزيارات بعد.</string>
     <string name="create_encounter_no_match">لا توجد نماذج تطابق «%1$s»</string>
-    <string name="create_group_encounter">إنشاء لقاء المجموعة</string>
+    <string name="create_group_encounter">جلسة جماعية جديدة</string>
     <string name="edit_encounter">تحرير اللقاء</string>
     <string name="location">موقع</string>
     <string name="identifier">المعرف</string>
@@ -85,7 +83,7 @@
     <string name="description_status">حالة</string>
     <string name="open">يفتح</string>
     <string name="close">يغلق</string>
-    <string name="sync_menu">المزامنة</string>
+    <string name="sync_menu">زامن الآن</string>
     <string name="last_sync">المزامنة الأخيرة</string>
     <string name="syncing">مزامنة</string>
     <string name="sync">المزامنة</string>
@@ -288,7 +286,7 @@
     <string name="next_patient">المريض التالي</string>
     <string name="save_all_encounters">حفظ جميع اللقاءات</string>
     <string name="saved">أنقذ</string>
-    <string name="group_encounters">لقاءات المجموعة</string>
+    <string name="group_encounters">جلسة جماعية</string>
     <string
         name="save_all_submitted_encounters"
     >احفظ جميع اللقاءات المقدمة</string>
@@ -681,7 +679,7 @@
     <string name="connection_error_unreachable">تعذّر الوصول إلى الخادم</string>
     <string name="use_default_server">الافتراضي</string>
     <string name="title_import_export">استيراد / تصدير</string>
-    <string name="subtitle_import_export">نقل البيانات التي لا يمكن مزامنتها إلى جهاز آخر</string>
+    <string name="subtitle_import_export">نقل البيانات التي لا يستطيع هذا الجهاز مزامنتها في ملف محمي برمز PIN</string>
     <string name="sync_cannot_sync_link">لا يمكن المزامنة؟ استيراد / تصدير</string>
     <string name="import_export_intro">استخدم هذا عندما يتعذر على هذا الجهاز المزامنة. صدّر ما ينتظر الرفع إلى ملف محمي برقم PIN، وأرسله إلى شخص يستطيع المزامنة ليستورده هنا ويرفعه.</string>
     <string name="export_title">تصدير</string>

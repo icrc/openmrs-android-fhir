@@ -1,24 +1,18 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <resources>
     <string name="section_patient_management">GESTION DES PATIENTS</string>
-    <string name="title_add_patient">Ajouter un patient</string>
-    <string name="subtitle_add_patient">Enregistrer un nouveau patient</string>
+    <string name="title_add_patient">Enregistrer un patient</string>
+    <string name="subtitle_add_patient">Saisir les informations d\'un nouveau patient</string>
 
-    <string name="title_search_patient">Rechercher un patient</string>
-    <string name="subtitle_search_patient">Voir et gérer les patients</string>
+    <string name="title_search_patient">Patients</string>
+    <string name="subtitle_search_patient">Rechercher, ouvrir et modifier les patients de cet appareil</string>
 
-    <string name="title_custom_patient_list">Liste(s) de patients</string>
-    <string
-        name="subtitle_custom_patient_list"
-    >Charger une liste de patients enregistrée</string>
+    <string name="title_custom_patient_list">Listes de patients</string>
+    <string name="subtitle_custom_patient_list">Choisir les listes à télécharger sur cet appareil</string>
 
     <string name="section_encounters">RENCONTRES</string>
-    <string
-        name="title_group_encounter"
-    >Démarrer une session de groupe/famille</string>
-    <string
-        name="subtitle_group_encounter"
-    >Démarrer une session avec plusieurs patients</string>
+    <string name="title_group_encounter">Session de groupe ou de famille</string>
+    <string name="subtitle_group_encounter">Remplir un même formulaire pour plusieurs patients</string>
 
     <string name="section_system">SYSTÈME</string>
     <string name="title_sync_info">Infos de synchronisation</string>
@@ -34,7 +28,7 @@
         name="subtitle_unsynced_resources"
     >Voir les processus de synchronisation</string>
 
-    <string name="title_patient_list">Patients Enregistrés</string>
+    <string name="title_patient_list">Patients</string>
     <string name="title_patient_detail">Détail du Patient Exemple</string>
     <string name="patient_details_title">Détails du patient</string>
     <string name="register_patient">Enregistrer un Patient</string>
@@ -105,7 +99,7 @@
     <string name="description_status">Statut</string>
     <string name="open">Ouvert</string>
     <string name="close">Fermé</string>
-    <string name="sync_menu">Synchro</string>
+    <string name="sync_menu">Synchroniser maintenant</string>
     <string name="last_sync">Dernière synchro</string>
     <string name="syncing">Synchronisation en cours</string>
     <string name="sync">Synchroniser</string>
@@ -332,7 +326,7 @@
         name="save_all_encounters"
     >Enregistrer Toutes les Rencontres</string>
     <string name="saved">ENREGISTRÉ</string>
-    <string name="group_encounters">Rencontres de Groupe</string>
+    <string name="group_encounters">Session de groupe</string>
     <string
         name="save_all_submitted_encounters"
     >Enregistrer Toutes les Rencontres Soumises</string>
@@ -353,7 +347,7 @@
     <string name="all_forms">Tous les formulaires</string>
     <string name="create_encounter_no_forms">Aucun formulaire d’encounter n’est disponible pour l’instant.</string>
     <string name="create_encounter_no_match">Aucun formulaire ne correspond à « %1$s »</string>
-    <string name="create_group_encounter">Créer une rencontre de groupe</string>
+    <string name="create_group_encounter">Nouvelle session de groupe</string>
     <string name="patient_is_saved">Le patient est enregistré.</string>
     <string name="inputs_are_missing">Des informations sont manquantes.</string>
     <string name="start">Démarrer</string>
@@ -775,7 +769,7 @@
     <string name="connection_error_unreachable">Impossible de joindre le serveur</string>
     <string name="use_default_server">Par défaut</string>
     <string name="title_import_export">Importer / Exporter</string>
-    <string name="subtitle_import_export">Transférer vers un autre appareil les données qui ne peuvent pas être synchronisées</string>
+    <string name="subtitle_import_export">Transmettre, dans un fichier protégé par PIN, les données que cet appareil ne peut pas synchroniser</string>
     <string name="sync_cannot_sync_link">Synchronisation impossible ? Importer / Exporter</string>
     <string name="import_export_intro">À utiliser quand cet appareil ne peut pas se synchroniser. Exportez ce qui attend d’être envoyé dans un fichier protégé par un code PIN, transmettez-le à quelqu’un qui peut se synchroniser, qui l’importera ici et l’enverra.</string>
     <string name="export_title">Exporter</string>

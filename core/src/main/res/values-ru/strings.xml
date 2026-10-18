@@ -1,25 +1,15 @@
 <resources>
     <string name="section_patient_management">УПРАВЛЕНИЕ ПАЦИЕНТАМИ</string>
-    <string name="title_add_patient">Добавить пациента</string>
-    <string
-        name="subtitle_add_patient"
-    >Зарегистрировать новую карточку пациента</string>
-    <string name="title_search_patient">Поиск пациента</string>
-    <string
-        name="subtitle_search_patient"
-    >Просмотр и управление пациентами</string>
-    <string name="title_custom_patient_list">Список(и) пациентов</string>
-    <string
-        name="subtitle_custom_patient_list"
-    >Загрузить сохраненный список пациентов</string>
+    <string name="title_add_patient">Зарегистрировать пациента</string>
+    <string name="subtitle_add_patient">Ввести данные нового пациента</string>
+    <string name="title_search_patient">Пациенты</string>
+    <string name="subtitle_search_patient">Поиск, просмотр и редактирование пациентов на этом устройстве</string>
+    <string name="title_custom_patient_list">Списки пациентов</string>
+    <string name="subtitle_custom_patient_list">Выбрать списки для загрузки на это устройство</string>
 
     <string name="section_encounters">ВСТРЕЧИ</string>
-    <string
-        name="title_group_encounter"
-    >Начать групповую/семейную сессию</string>
-    <string
-        name="subtitle_group_encounter"
-    >Начать сессию с несколькими пациентами</string>
+    <string name="title_group_encounter">Групповая или семейная сессия</string>
+    <string name="subtitle_group_encounter">Заполнить одну форму для нескольких пациентов</string>
 
     <string name="section_system">СИСТЕМА</string>
     <string name="title_sync_info">Информация о синхронизации</string>
@@ -35,7 +25,7 @@
     >Просмотр процессов синхронизации</string>
 
     <string name="app_name" translatable="false">OpenMRS</string>
-    <string name="title_patient_list">Зарегистрированные пациенты</string>
+    <string name="title_patient_list">Пациенты</string>
     <string name="title_patient_detail">Информация о пациенте</string>
     <string name="patient_details_title">Данные пациента</string>
     <string name="register_patient">Зарегистрировать пациента</string>
@@ -69,7 +59,7 @@
     <string name="all_forms">Все формы</string>
     <string name="create_encounter_no_forms">Для визитов пока нет доступных форм.</string>
     <string name="create_encounter_no_match">Нет форм, соответствующих «%1$s»</string>
-    <string name="create_group_encounter">Создать групповую встречу</string>
+    <string name="create_group_encounter">Новая групповая сессия</string>
     <string name="edit_encounter">Редактировать встречу</string>
 
     <string name="location">Локация</string>
@@ -108,7 +98,7 @@
     <string name="open">Открыть</string>
     <string name="close">Закрыть</string>
 
-    <string name="sync_menu">Синхронизировать</string>
+    <string name="sync_menu">Синхронизировать сейчас</string>
     <string name="last_sync">Последняя синхронизация</string>
     <string name="syncing">Синхронизация</string>
     <string name="sync">Синхронизировать</string>
@@ -379,7 +369,7 @@
     <string name="next_patient">Следующий пациент</string>
     <string name="save_all_encounters">Сохранить все встречи</string>
     <string name="saved">СОХРАНЕНО</string>
-    <string name="group_encounters">Групповые встречи</string>
+    <string name="group_encounters">Групповая сессия</string>
     <string
         name="save_all_submitted_encounters"
     >Сохранить все отправленные встречи</string>
@@ -766,7 +756,7 @@
     <string name="connection_error_unreachable">Не удалось связаться с сервером</string>
     <string name="use_default_server">По умолчанию</string>
     <string name="title_import_export">Импорт / Экспорт</string>
-    <string name="subtitle_import_export">Перенос данных, которые не удаётся синхронизировать, на другое устройство</string>
+    <string name="subtitle_import_export">Передать в файле с PIN-кодом данные, которые это устройство не может синхронизировать</string>
     <string name="sync_cannot_sync_link">Не удаётся синхронизировать? Импорт / Экспорт</string>
     <string name="import_export_intro">Используйте, если это устройство не может синхронизироваться. Экспортируйте всё, что ожидает отправки, в файл, защищённый PIN-кодом, передайте его тому, кто может синхронизироваться, — он импортирует файл здесь и отправит данные.</string>
     <string name="export_title">Экспорт</string>

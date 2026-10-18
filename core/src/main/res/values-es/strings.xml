@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <resources>
     <string name="section_patient_management">GESTIÓN DE PACIENTES</string>
-    <string name="title_add_patient">Agregar paciente</string>
-    <string name="subtitle_add_patient">Registrar un nuevo paciente</string>
-    <string name="title_search_patient">Buscar paciente</string>
-    <string name="subtitle_search_patient">Ver y gestionar pacientes</string>
-    <string name="title_custom_patient_list">Lista(s) de pacientes</string>
-    <string
-        name="subtitle_custom_patient_list"
-    >Cargar una lista de pacientes guardada</string>
+    <string name="title_add_patient">Registrar paciente</string>
+    <string name="subtitle_add_patient">Introducir los datos de un paciente nuevo</string>
+    <string name="title_search_patient">Pacientes</string>
+    <string name="subtitle_search_patient">Buscar, abrir y editar los pacientes de este dispositivo</string>
+    <string name="title_custom_patient_list">Listas de pacientes</string>
+    <string name="subtitle_custom_patient_list">Elegir las listas que se descargan en este dispositivo</string>
     <string name="section_encounters">ENCUENTROS</string>
-    <string name="title_group_encounter">Iniciar sesión grupal/familiar</string>
-    <string
-        name="subtitle_group_encounter"
-    >Iniciar sesión con varios pacientes</string>
+    <string name="title_group_encounter">Sesión grupal o familiar</string>
+    <string name="subtitle_group_encounter">Completar un mismo formulario para varios pacientes</string>
     <string name="section_system">SISTEMA</string>
     <string name="title_sync_info">Información de sincronización</string>
     <string name="sync_info">Información de sincronización</string>
@@ -25,7 +21,7 @@
         name="subtitle_unsynced_resources"
     >Ver procesos de sincronización</string>
 
-    <string name="title_patient_list">Pacientes Registrados</string>
+    <string name="title_patient_list">Pacientes</string>
     <string name="title_patient_detail">Detalle del Paciente de Muestra</string>
     <string name="patient_details_title">Detalles del paciente</string>
     <string name="register_patient">Registrar Paciente</string>
@@ -90,7 +86,7 @@
     <string name="description_status">Estado</string>
     <string name="open">Abierto</string>
     <string name="close">Cerrado</string>
-    <string name="sync_menu">Sincronizar</string>
+    <string name="sync_menu">Sincronizar ahora</string>
     <string name="last_sync">Última sincronización</string>
     <string name="syncing">Sincronizando</string>
     <string name="sync">Sincronizar</string>
@@ -313,7 +309,7 @@
     <string name="next_patient">Siguiente Paciente</string>
     <string name="save_all_encounters">Guardar Todos los Encuentros</string>
     <string name="saved">GUARDADO</string>
-    <string name="group_encounters">Encuentros Grupales</string>
+    <string name="group_encounters">Sesión grupal</string>
     <string
         name="save_all_submitted_encounters"
     >Guardar Todos los Encuentros Enviados</string>
@@ -334,7 +330,7 @@
     <string name="all_forms">Todos los formularios</string>
     <string name="create_encounter_no_forms">Aún no hay formularios disponibles para encuentros.</string>
     <string name="create_encounter_no_match">Ningún formulario coincide con «%1$s»</string>
-    <string name="create_group_encounter">Crear encuentro grupal</string>
+    <string name="create_group_encounter">Nueva sesión grupal</string>
     <string name="patient_is_saved">El paciente ha sido guardado.</string>
     <string name="inputs_are_missing">Faltan datos.</string>
     <string name="start">Iniciar</string>
@@ -747,7 +743,7 @@
     <string name="connection_error_unreachable">No se pudo contactar con el servidor</string>
     <string name="use_default_server">Predeterminado</string>
     <string name="title_import_export">Importar / Exportar</string>
-    <string name="subtitle_import_export">Pasar a otro dispositivo los datos que no se pueden sincronizar</string>
+    <string name="subtitle_import_export">Pasar, en un archivo protegido con PIN, los datos que este dispositivo no puede sincronizar</string>
     <string name="sync_cannot_sync_link">¿No puede sincronizar? Importar / Exportar</string>
     <string name="import_export_intro">Úselo cuando este dispositivo no pueda sincronizar. Exporte lo que está pendiente de subir a un archivo protegido con un PIN, envíelo a alguien que sí pueda sincronizar, y esa persona lo importará aquí y lo subirá.</string>
     <string name="export_title">Exportar</string>
