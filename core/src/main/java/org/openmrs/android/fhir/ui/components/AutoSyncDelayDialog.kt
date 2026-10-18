@@ -53,6 +53,7 @@ import org.openmrs.android.fhir.R
 object AutoSyncDelayTestTags {
   const val Dialog = "AutoSyncDelayDialog"
   const val TurnOff = "AutoSyncTurnOff"
+  const val ResetTimer = "AutoSyncResetTimer"
 
   fun option(minutes: Int) = "AutoSyncDelay_$minutes"
 }
@@ -67,12 +68,14 @@ private val DelayOptions =
 
 /**
  * Postpones the next automatic sync by 5 minutes, 30 minutes, 1 hour or 2 hours, or turns the
- * automatic sync off altogether (the same switch as in Settings).
+ * automatic sync off altogether (the same switch as in Settings). "Reset timer" starts the count
+ * again from the interval chosen in Settings.
  */
 @Composable
 fun AutoSyncDelayDialog(
   onDelay: (minutes: Int) -> Unit,
   onTurnOff: () -> Unit,
+  onResetTimer: () -> Unit,
   onDismiss: () -> Unit,
 ) {
   AlertDialog(
@@ -104,7 +107,15 @@ fun AutoSyncDelayDialog(
     },
     confirmButton = {},
     dismissButton = {
-      TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.cancel)) }
+      Row {
+        TextButton(
+          onClick = onResetTimer,
+          modifier = Modifier.testTag(AutoSyncDelayTestTags.ResetTimer),
+        ) {
+          Text(text = stringResource(R.string.auto_sync_reset_timer))
+        }
+        TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.cancel)) }
+      }
     },
   )
 }

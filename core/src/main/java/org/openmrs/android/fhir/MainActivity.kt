@@ -235,6 +235,11 @@ class MainActivity : AppCompatActivity() {
             )
             AppMessage.show(this, R.string.auto_sync_turned_off, MessageKind.Info, long = true)
           },
+          onResetAutoSyncTimer = {
+            // Back to the full interval of the settings.
+            viewModel.restartAutoSync()
+            AuditLog.record(AuditAction.SYNC, AuditOutcome.SUCCESS, "state" to "timer_reset")
+          },
           onToolbarReady = ::configureToolbar,
         )
       }

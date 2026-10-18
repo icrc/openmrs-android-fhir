@@ -868,4 +868,5 @@
     <string name="auto_sync_turn_off_hint">Её можно снова включить в настройках.</string>
     <string name="auto_sync_turned_off">Автоматическая синхронизация отключена. Включите её снова в настройках.</string>
     <string name="next_sync_in_hours">Следующая синхронизация через %1$d ч %2$d мин</string>
+    <string name="auto_sync_reset_timer">Сбросить таймер</string>
 </resources>

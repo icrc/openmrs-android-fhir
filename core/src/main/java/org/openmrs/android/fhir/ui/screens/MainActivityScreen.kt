@@ -150,6 +150,7 @@ fun MainActivityScaffold(
   nextSyncMinutes: Int? = null,
   onDelaySync: (minutes: Int) -> Unit = {},
   onTurnOffAutoSync: () -> Unit = {},
+  onResetAutoSyncTimer: () -> Unit = {},
 ) {
   var showDelayDialog by rememberSaveable { mutableStateOf(false) }
   // One bar: the surface color runs up behind the status bar, with the connection strip and the
@@ -203,6 +204,10 @@ fun MainActivityScaffold(
       onTurnOff = {
         showDelayDialog = false
         onTurnOffAutoSync()
+      },
+      onResetTimer = {
+        showDelayDialog = false
+        onResetAutoSyncTimer()
       },
       onDismiss = { showDelayDialog = false },
     )

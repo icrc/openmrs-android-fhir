@@ -875,4 +875,5 @@
     <string name="auto_sync_turn_off_hint">Vous pourrez la réactiver dans les paramètres.</string>
     <string name="auto_sync_turned_off">La synchronisation automatique est désactivée. Réactivez-la dans les paramètres.</string>
     <string name="next_sync_in_hours">Prochaine synchro dans %1$d h %2$d min</string>
+    <string name="auto_sync_reset_timer">Réinitialiser</string>
 </resources>

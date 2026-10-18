@@ -847,4 +847,5 @@
     <string name="auto_sync_turn_off_hint">Puede volver a activarla en los ajustes.</string>
     <string name="auto_sync_turned_off">La sincronización automática está desactivada. Actívela de nuevo en los ajustes.</string>
     <string name="next_sync_in_hours">Próxima sincronización en %1$d h %2$d min</string>
+    <string name="auto_sync_reset_timer">Reiniciar</string>
 </resources>
