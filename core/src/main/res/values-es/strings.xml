@@ -514,9 +514,7 @@
     >Completa el cuestionario antes de enviar todas las respuestas.</string>
     <string name="button_pagination_next">Siguiente</string>
     <string name="button_pagination_previous">Anterior</string>
-    <string
-        name="questionnaire_review_mode_title"
-    >Revisar respuestas antes de enviar</string>
+    <string name="questionnaire_review_mode_title">Revisar las respuestas</string>
     <string name="submit_questionnaire">Enviar</string>
     <string name="back_button_text">Atrás</string>
     <string name="edit_button_text">Editar</string>
@@ -874,4 +872,7 @@
     <string name="location_banner_none">Ninguna ubicación seleccionada</string>
     <string name="location_banner_none_hint">Este paciente se guardará sin ubicación. Elija una primero en el menú de la pantalla de inicio.</string>
     <string name="location_banner_guest_hint">Elegirá la ubicación después de iniciar sesión.</string>
+    <string name="view_encounter">Ver encuentro</string>
+    <string name="encounter_edit_action">Editar</string>
+    <string name="encounter_read_only">Solo lectura</string>
 </resources>

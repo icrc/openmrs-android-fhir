@@ -49,6 +49,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Groups
@@ -409,7 +410,10 @@ fun VisitListItemRow(
   }
 }
 
-/** An encounter: type, date and a sync marker; the whole card opens it for editing. */
+/**
+ * An encounter: type, date and a sync marker. The card opens it to look at ([onTitleClick]); the
+ * pencil ([onEditClick]) edits it right away.
+ */
 @Composable
 fun EncounterListItemRow(
   modifier: Modifier = Modifier,
@@ -417,6 +421,7 @@ fun EncounterListItemRow(
   encounterDate: String,
   showSyncIcon: Boolean,
   onTitleClick: (() -> Unit)? = null,
+  onEditClick: (() -> Unit)? = null,
 ) {
   Surface(
     modifier = modifier.fillMaxWidth().testTag("EncounterListItemRow"),
@@ -428,7 +433,7 @@ fun EncounterListItemRow(
       modifier =
         Modifier.fillMaxWidth()
           .let { base -> onTitleClick?.let { base.clickable(onClick = it) } ?: base }
-          .padding(start = 12.dp, top = 10.dp, bottom = 10.dp, end = 8.dp),
+          .padding(start = 12.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Box(
@@ -468,12 +473,21 @@ fun EncounterListItemRow(
         )
         Spacer(modifier = Modifier.width(8.dp))
       }
-      if (onTitleClick != null) {
+      if (onEditClick != null) {
+        IconButton(onClick = onEditClick, modifier = Modifier.testTag("EncounterEditButton")) {
+          Icon(
+            imageVector = Icons.Filled.Edit,
+            contentDescription = stringResource(id = R.string.edit_encounter),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp),
+          )
+        }
+      } else if (onTitleClick != null) {
         Icon(
-          imageVector = Icons.Filled.Edit,
-          contentDescription = stringResource(id = R.string.edit_encounter),
+          imageVector = Icons.Filled.ChevronRight,
+          contentDescription = null,
           tint = MaterialTheme.colorScheme.onSurfaceVariant,
-          modifier = Modifier.size(20.dp),
+          modifier = Modifier.padding(end = 8.dp).size(22.dp),
         )
       }
     }

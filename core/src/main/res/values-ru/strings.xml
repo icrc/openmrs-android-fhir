@@ -538,9 +538,7 @@
     >Заполните скрининг перед отправкой всех ответов.</string>
     <string name="button_pagination_next">Далее</string>
     <string name="button_pagination_previous">Назад</string>
-    <string
-        name="questionnaire_review_mode_title"
-    >Проверьте ответы перед отправкой</string>
+    <string name="questionnaire_review_mode_title">Проверка ответов</string>
     <string name="submit_questionnaire">Отправить</string>
     <string name="back_button_text">Назад</string>
     <string name="edit_button_text">Редактировать</string>
@@ -891,4 +889,7 @@
     <string name="location_banner_none">Локация не выбрана</string>
     <string name="location_banner_none_hint">Пациент будет сохранён без локации. Сначала выберите её в меню на главном экране.</string>
     <string name="location_banner_guest_hint">Локацию можно будет выбрать после входа.</string>
+    <string name="view_encounter">Просмотр встречи</string>
+    <string name="encounter_edit_action">Изменить</string>
+    <string name="encounter_read_only">Только чтение</string>
 </resources>

@@ -468,9 +468,7 @@
     >أكمل الاستبيان قبل إرسال جميع الإجابات.</string>
     <string name="button_pagination_next">التالي</string>
     <string name="button_pagination_previous">السابق</string>
-    <string
-        name="questionnaire_review_mode_title"
-    >مراجعة الإجابات قبل الإرسال</string>
+    <string name="questionnaire_review_mode_title">مراجعة الإجابات</string>
     <string name="submit_questionnaire">إرسال</string>
     <string name="back_button_text">رجوع</string>
     <string name="edit_button_text">تعديل</string>
@@ -822,4 +820,7 @@
     <string name="location_banner_none">لم يتم تحديد موقع</string>
     <string name="location_banner_none_hint">سيُحفظ هذا المريض دون موقع. اختر موقعًا أولًا من القائمة في الشاشة الرئيسية.</string>
     <string name="location_banner_guest_hint">ستختار الموقع بعد تسجيل الدخول.</string>
+    <string name="view_encounter">عرض اللقاء</string>
+    <string name="encounter_edit_action">تعديل</string>
+    <string name="encounter_read_only">للقراءة فقط</string>
 </resources>

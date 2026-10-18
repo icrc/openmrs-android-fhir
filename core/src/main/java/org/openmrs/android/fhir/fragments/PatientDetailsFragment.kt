@@ -42,6 +42,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -103,6 +104,7 @@ class PatientDetailsFragment : Fragment() {
       PatientDetailsScreen(
         patientData = patientData,
         onEditPatient = ::onEditPatientClick,
+        onViewEncounter = ::onViewEncounterClick,
         onEditEncounter = ::onEditEncounterClick,
         onEndVisit = ::onEditVisitClick,
         onCreateEncounter = ::onCreateEncounterClick,
@@ -217,6 +219,19 @@ class PatientDetailsFragment : Fragment() {
         datePicker.maxDate = calendar.timeInMillis
       }
       .show()
+  }
+
+  /** Opens the encounter to look at it; the screen has an Edit action for changing it. */
+  private fun onViewEncounterClick(encounterId: String, encounterType: String) {
+    findNavController()
+      .navigate(
+        R.id.action_patient_details_to_editEncounterFragment,
+        bundleOf(
+          "encounter_id" to encounterId,
+          "encounter_type" to encounterType,
+          EditEncounterFragment.ARG_READ_ONLY to true,
+        ),
+      )
   }
 
   private fun onEditEncounterClick(

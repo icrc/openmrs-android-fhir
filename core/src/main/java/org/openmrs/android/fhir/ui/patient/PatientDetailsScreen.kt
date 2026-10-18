@@ -78,13 +78,15 @@ import org.openmrs.android.fhir.viewmodel.PatientUnsynced
 
 /**
  * The patient file: profile card (with edit), a notice while the patient is not uploaded, then the
- * visits and encounters. Tapping an encounter edits it, an open visit can be ended, and the button
- * starts a new encounter. [patientData] is null while the data is loading.
+ * visits and encounters. Tapping an encounter shows its answers, its pencil edits it, an open visit
+ * can be ended, and the button starts a new encounter. [patientData] is null while the data is
+ * loading.
  */
 @Composable
 fun PatientDetailsScreen(
   patientData: List<PatientDetailData>?,
   onEditPatient: () -> Unit,
+  onViewEncounter: (encounterId: String, encounterType: String) -> Unit,
   onEditEncounter: (encounterId: String, encounterType: String) -> Unit,
   onEndVisit: (visitId: String) -> Unit,
   onCreateEncounter: () -> Unit,
@@ -139,6 +141,12 @@ fun PatientDetailsScreen(
                 encounterDate = item.encounter.dateTime,
                 showSyncIcon = item.encounter.isSynced?.not() ?: true,
                 onTitleClick = {
+                  onViewEncounter(
+                    item.encounter.encounterId.orEmpty(),
+                    item.encounter.encounterType.orEmpty(),
+                  )
+                },
+                onEditClick = {
                   onEditEncounter(
                     item.encounter.encounterId.orEmpty(),
                     item.encounter.encounterType.orEmpty(),

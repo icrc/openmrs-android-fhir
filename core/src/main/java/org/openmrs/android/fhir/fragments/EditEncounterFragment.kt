@@ -29,11 +29,14 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.commitNow
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -71,9 +74,15 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
   private lateinit var encounterType: String
   private lateinit var encounterId: String
 
+  /** The answers are only shown; the Edit action turns this off and the form becomes editable. */
+  private var readOnly = false
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setHasOptionsMenu(true)
+    readOnly =
+      savedInstanceState?.getBoolean(STATE_READ_ONLY)
+        ?: requireArguments().getBoolean(ARG_READ_ONLY, false)
 
     // Retrieve the encounter_id from arguments
     encounterId =
@@ -88,9 +97,7 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
-    (requireActivity() as AppCompatActivity).supportActionBar?.apply {
-      title = requireContext().getString(R.string.edit_encounter)
-    }
+    updateActionBar()
     setFormLoading(true)
     viewModel.prepareEditEncounter(encounterId, encounterType)
     viewModel.encounterDataPair.observe(viewLifecycleOwner) {
@@ -124,22 +131,63 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
     )
   }
 
+  override fun onSaveInstanceState(outState: Bundle) {
+    super.onSaveInstanceState(outState)
+    outState.putBoolean(STATE_READ_ONLY, readOnly)
+  }
+
+  override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+    if (readOnly) inflater.inflate(R.menu.view_encounter_menu, menu)
+  }
+
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
       android.R.id.home -> {
         NavHostFragment.findNavController(this@EditEncounterFragment).navigateUp()
         true
       }
+      R.id.menu_encounter_edit -> {
+        startEditing()
+        true
+      }
       else -> false
     }
   }
 
+  private fun updateActionBar() {
+    (requireActivity() as AppCompatActivity).supportActionBar?.apply {
+      title = getString(if (readOnly) R.string.view_encounter else R.string.edit_encounter)
+      subtitle = if (readOnly) getString(R.string.encounter_read_only) else null
+    }
+  }
+
+  /** From viewing to editing: the same answers, now in a form that can be changed and saved. */
+  private fun startEditing() {
+    val pair = viewModel.encounterDataPair.value ?: return
+    readOnly = false
+    childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG)?.let {
+      childFragmentManager.commitNow { remove(it) }
+    }
+    updateActionBar()
+    requireActivity().invalidateOptionsMenu()
+    addQuestionnaireFragment(pair)
+  }
+
   private fun addQuestionnaireFragment(pair: Pair<String, String>) {
     if (pair.first.isNotBlank()) {
+      val viewing = readOnly
       addQuestionnaireWhenDrawn(
         containerId = R.id.form_entry_container,
         tag = QUESTIONNAIRE_FRAGMENT_TAG,
-        create = { newQuestionnaireFragment(pair.first, responseJson = pair.second) },
+        create = {
+          newQuestionnaireFragment(
+            pair.first,
+            responseJson = pair.second,
+            showCancelButton = if (viewing) false else null,
+            showSubmitButton = if (viewing) false else null,
+            readOnly = viewing,
+          )
+        },
       )
     }
   }
@@ -158,5 +206,9 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   companion object {
     const val QUESTIONNAIRE_FRAGMENT_TAG = "edit-questionnaire-fragment-tag"
+
+    /** Navigation argument: open the encounter to look at it, editing only on request. */
+    const val ARG_READ_ONLY = "read_only"
+    private const val STATE_READ_ONLY = "read_only"
   }
 }

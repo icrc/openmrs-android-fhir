@@ -531,9 +531,7 @@
     >Veuillez compléter le questionnaire avant de soumettre toutes les réponses.</string>
     <string name="button_pagination_next">Suivant</string>
     <string name="button_pagination_previous">Précédent</string>
-    <string
-        name="questionnaire_review_mode_title"
-    >Vérifier les réponses avant de soumettre</string>
+    <string name="questionnaire_review_mode_title">Vérifier les réponses</string>
     <string name="submit_questionnaire">Soumettre</string>
     <string name="back_button_text">Retour</string>
     <string name="edit_button_text">Modifier</string>
@@ -900,4 +898,7 @@
     <string name="location_banner_none">Aucun lieu sélectionné</string>
     <string name="location_banner_none_hint">Ce patient sera enregistré sans lieu. Choisissez-en un d\'abord dans le menu de l\'écran d\'accueil.</string>
     <string name="location_banner_guest_hint">Vous choisirez le lieu après vous être connecté.</string>
+    <string name="view_encounter">Consulter la rencontre</string>
+    <string name="encounter_edit_action">Modifier</string>
+    <string name="encounter_read_only">Lecture seule</string>
 </resources>

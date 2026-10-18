@@ -527,9 +527,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="auth_failed_offline_login"
     >Authentication failed! Unable to setup offline login now</string>
-    <string
-        name="questionnaire_review_mode_title"
-    >Review answers before submitting</string>
+    <string name="questionnaire_review_mode_title">Review answers</string>
     <string name="submit_questionnaire">Submit</string>
     <string name="back_button_text">Back</string>
     <string name="edit_button_text">Edit</string>
@@ -832,4 +830,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="location_banner_none">No location selected</string>
     <string name="location_banner_none_hint">This patient will be saved without a location. Choose one first from the menu on the Home screen.</string>
     <string name="location_banner_guest_hint">You will choose the location after signing in.</string>
+    <string name="view_encounter">View Encounter</string>
+    <string name="encounter_edit_action">Edit</string>
+    <string name="encounter_read_only">Read only</string>
 </resources>
