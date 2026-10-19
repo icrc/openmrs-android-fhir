@@ -40,6 +40,7 @@ import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.Sync
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -61,6 +62,7 @@ import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.sync.FirstFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.LocationFhirSyncWorker
+import timber.log.Timber
 
 class LocationViewModel
 @Inject
@@ -129,9 +131,21 @@ constructor(
     }
   }
 
-  suspend fun updateSessionLocation(resourceId: String) {
-    restApiManager.updateSessionLocation(resourceId)
-  }
+  /**
+   * Tells the server's session about the location. The choice is saved on the device either way:
+   * with the server out of reach this fails, and it is told again before the next upload, so it
+   * must not take the app down.
+   */
+  suspend fun updateSessionLocation(resourceId: String): Boolean =
+    try {
+      restApiManager.updateSessionLocation(resourceId)
+      true
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      Timber.w(e, "Could not set the session location now; it is set again before the next upload")
+      false
+    }
 
   fun onQueryChanged(query: String) {
     _uiState.update { it.copy(query = query) }
