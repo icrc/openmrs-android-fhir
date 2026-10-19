@@ -30,6 +30,7 @@ package org.openmrs.android.fhir.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,6 +45,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -68,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.SyncSession
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
+import org.openmrs.android.fhir.data.sync.SyncMode
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.components.SyncHistoryList
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
@@ -93,7 +96,7 @@ fun SyncScreen(
   isSyncing: Boolean,
   syncProgress: SyncProgressState,
   lastSyncText: String,
-  onSyncNow: () -> Unit,
+  onSyncNow: (SyncMode) -> Unit,
   onTogglePatientExpand: (String) -> Unit,
   onToggleEncounterExpand: (String) -> Unit,
   onDeleteResource: (UnsyncedResource) -> Unit,
@@ -104,6 +107,8 @@ fun SyncScreen(
   onClearHistory: () -> Unit,
   modifier: Modifier = Modifier,
   onImportExport: () -> Unit = {},
+  /** What "Sync now" does until the user picks another (the automatic sync's setting). */
+  defaultSyncMode: SyncMode = SyncMode.BOTH,
 ) {
   val topInset = rememberAppBarHeight()
   val pendingCount = pendingResources.count { it is UnsyncedResource.PatientItem }
@@ -123,6 +128,7 @@ fun SyncScreen(
       lastSyncText = lastSyncText,
       onSyncNow = onSyncNow,
       onImportExport = onImportExport,
+      defaultMode = defaultSyncMode,
       modifier = Modifier.padding(horizontal = 16.dp),
     )
     Spacer(modifier = Modifier.height(8.dp))
@@ -187,10 +193,14 @@ private fun SyncStatusCard(
   progress: SyncProgressState,
   pendingCount: Int,
   lastSyncText: String,
-  onSyncNow: () -> Unit,
+  onSyncNow: (SyncMode) -> Unit,
   onImportExport: () -> Unit,
+  defaultMode: SyncMode,
   modifier: Modifier = Modifier,
 ) {
+  // This run only: the choice is not kept, and the setting is not touched.
+  var chosen by rememberSaveable(defaultMode.value) { mutableStateOf(defaultMode.value) }
+  val mode = SyncMode.fromValue(chosen)
   val (accent, title) =
     when {
       isSyncing -> OpenMrsTheme.colors.warning to stringResource(R.string.sync_in_progress)
@@ -277,8 +287,35 @@ private fun SyncStatusCard(
           }
         }
       }
+      Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        listOf(
+            SyncMode.DOWNLOAD_ONLY to R.string.sync_page_mode_download,
+            SyncMode.UPLOAD_ONLY to R.string.sync_page_mode_upload,
+            SyncMode.BOTH to R.string.sync_page_mode_both,
+          )
+          .forEach { (option, label) ->
+            FilterChip(
+              selected = mode == option,
+              onClick = { chosen = option.value },
+              enabled = !isSyncing,
+              label = { Text(text = stringResource(label)) },
+              modifier = Modifier.weight(1f).testTag("SyncMode_${option.value}"),
+            )
+          }
+      }
+      if (mode == SyncMode.DOWNLOAD_ONLY && pendingCount > 0) {
+        Text(
+          text = stringResource(R.string.sync_download_only_hint),
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.padding(top = 8.dp),
+        )
+      }
       Button(
-        onClick = onSyncNow,
+        onClick = { onSyncNow(mode) },
         enabled = !isSyncing,
         shape = RoundedCornerShape(14.dp),
         modifier =

@@ -472,6 +472,10 @@ private fun valueText(context: Context, setting: SharedSetting, value: String): 
       context.getString(if (value == "true") R.string.share_value_on else R.string.share_value_off)
     setting == SharedSetting.TOKEN_DELAY || setting == SharedSetting.PERIODIC_DELAY ->
       context.getString(R.string.share_minutes, value.toIntOrNull() ?: 0)
+    setting == SharedSetting.AUTO_SYNC_MODE ->
+      context.getString(
+        if (value == "upload") R.string.sync_mode_upload_only else R.string.sync_mode_both,
+      )
     setting == SharedSetting.THEME ->
       context.getString(
         when (ThemeMode.entries.firstOrNull { it.value == value }) {

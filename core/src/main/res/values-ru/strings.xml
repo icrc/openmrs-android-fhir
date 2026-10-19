@@ -766,6 +766,14 @@
     <string name="login_pending_counts">Пациенты: %1$d · Записи: %2$d</string>
     <string name="login_pending_records_only">Записи: %1$d</string>
     <string name="login_pending_use_user">Войти под этим пользователем</string>
+    <string name="settings_auto_sync_mode">Что делает автосинхронизация</string>
+    <string name="settings_auto_sync_mode_description">«Только отправка» отправляет то, что вы записали на этом устройстве. «Отправка и загрузка» ещё и получает последние данные с сервера.</string>
+    <string name="sync_mode_both">Отправка и загрузка</string>
+    <string name="sync_mode_upload_only">Только отправка</string>
+    <string name="sync_page_mode_download">Загрузка</string>
+    <string name="sync_page_mode_upload">Отправка</string>
+    <string name="sync_page_mode_both">Обе</string>
+    <string name="sync_download_only_hint">Ожидающее отправки остаётся на этом устройстве, пока вы его не отправите.</string>
     <string name="share_title">Поделиться настройками</string>
     <string name="share_choose">Скопируйте настройки этого устройства на другое или возьмите настройки другого устройства.</string>
     <string name="share_export">Экспорт</string>

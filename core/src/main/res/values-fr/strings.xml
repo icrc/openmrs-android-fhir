@@ -779,6 +779,14 @@
     <string name="login_pending_counts">Patients : %1$d · Enregistrements : %2$d</string>
     <string name="login_pending_records_only">Enregistrements : %1$d</string>
     <string name="login_pending_use_user">Se connecter avec cet utilisateur</string>
+    <string name="settings_auto_sync_mode">Ce que fait la synchronisation automatique</string>
+    <string name="settings_auto_sync_mode_description">Envoi seul envoie ce que vous avez enregistré sur cet appareil. Envoi et réception rapporte aussi les dernières données du serveur.</string>
+    <string name="sync_mode_both">Envoi et réception</string>
+    <string name="sync_mode_upload_only">Envoi seul</string>
+    <string name="sync_page_mode_download">Réception</string>
+    <string name="sync_page_mode_upload">Envoi</string>
+    <string name="sync_page_mode_both">Les deux</string>
+    <string name="sync_download_only_hint">Ce qui attend d\'être envoyé reste sur cet appareil jusqu\'à ce que vous l\'envoyiez.</string>
     <string name="share_title">Partager les réglages</string>
     <string name="share_choose">Copiez les réglages de cet appareil sur un autre, ou reprenez ceux d\'un autre appareil.</string>
     <string name="share_export">Exporter</string>

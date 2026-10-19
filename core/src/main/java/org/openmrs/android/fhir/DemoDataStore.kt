@@ -44,6 +44,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.database.model.CustomFormSection
+import org.openmrs.android.fhir.data.sync.SyncMode
 
 private val Context.dataStorage: DataStore<Preferences> by
   preferencesDataStore(name = "demo_app_storage")
@@ -115,6 +116,18 @@ class DemoDataStore(private val context: Context) {
   /** Whether the app syncs by itself every [getPeriodicSyncDelayMinutesFlow] minutes. */
   fun getAutoSyncEnabledFlow() =
     context.dataStorage.data.map { pref -> pref[booleanPreferencesKey(AUTO_SYNC_ENABLED)] ?: true }
+
+  suspend fun setAutoSyncMode(mode: SyncMode) {
+    context.dataStorage.edit { pref -> pref[stringPreferencesKey(AUTO_SYNC_MODE)] = mode.value }
+  }
+
+  /** What the automatic sync does: upload only, or upload and download (the default). */
+  fun getAutoSyncModeFlow() =
+    context.dataStorage.data.map { pref ->
+      SyncMode.fromValue(pref[stringPreferencesKey(AUTO_SYNC_MODE)]).let {
+        if (it == SyncMode.DOWNLOAD_ONLY) SyncMode.BOTH else it
+      }
+    }
 
   suspend fun setLiveModeEnabled(isEnabled: Boolean) {
     context.dataStorage.edit { pref -> pref[booleanPreferencesKey(LIVE_MODE)] = isEnabled }
@@ -236,6 +249,7 @@ class DemoDataStore(private val context: Context) {
     const val TOKEN_EXPIRY_DELAY = "token-expiry-delay"
     const val PERIODIC_SYNC_DELAY = "periodic-sync-delay"
     const val AUTO_SYNC_ENABLED = "auto-sync-enabled"
+    const val AUTO_SYNC_MODE = "auto-sync-mode"
     const val LIVE_MODE = "live-mode"
     const val AUTOMATIC_VISITS = "automatic-visits"
     const val KEEP_LIVE_PATIENTS = "keep-live-patients"

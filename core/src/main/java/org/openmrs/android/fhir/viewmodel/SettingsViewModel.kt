@@ -45,6 +45,7 @@ import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.SettingsRepository
 import org.openmrs.android.fhir.data.sync.InitialSyncRunner
+import org.openmrs.android.fhir.data.sync.SyncMode
 
 data class SettingsUiState(
   val isNetworkStatusVisible: Boolean = true,
@@ -52,6 +53,8 @@ data class SettingsUiState(
   val tokenCheckDelayMinutes: Int = DemoDataStore.INITIAL_TOKEN_CHECK_DELAY.toInt(),
   val periodicSyncDelayMinutes: Int = DemoDataStore.INITIAL_PERIODIC_SYNC_DELAY.toInt(),
   val isAutoSyncEnabled: Boolean = true,
+  /** What the automatic sync does: upload only, or upload and download. */
+  val autoSyncMode: SyncMode = SyncMode.BOTH,
   val isLiveModeEnabled: Boolean = false,
   val keepLivePatients: Boolean = true,
   val automaticVisits: Boolean = true,
@@ -113,6 +116,11 @@ constructor(
     persist("auto_sync", enabled) { settingsRepository.setAutoSyncEnabled(enabled) }
   }
 
+  fun onAutoSyncModeSelected(mode: SyncMode) {
+    _uiState.update { it.copy(autoSyncMode = mode) }
+    persist("auto_sync_mode", mode.value) { settingsRepository.setAutoSyncMode(mode) }
+  }
+
   fun onLiveModeToggle(enabled: Boolean) {
     _uiState.update { it.copy(isLiveModeEnabled = enabled) }
     persist("live_mode", enabled) { settingsRepository.setLiveModeEnabled(enabled) }
@@ -172,6 +180,7 @@ constructor(
         tokenCheckDelayMinutes = defaults.tokenCheckDelayMinutes,
         periodicSyncDelayMinutes = defaults.periodicSyncDelayMinutes,
         isAutoSyncEnabled = defaults.isAutoSyncEnabled,
+        autoSyncMode = defaults.autoSyncMode,
         isLiveModeEnabled = defaults.isLiveModeEnabled,
         keepLivePatients = defaults.keepLivePatients,
         automaticVisits = defaults.automaticVisits,
@@ -185,6 +194,7 @@ constructor(
       settingsRepository.setTokenExpiryDelayMinutes(defaults.tokenCheckDelayMinutes)
       settingsRepository.setPeriodicSyncDelayMinutes(defaults.periodicSyncDelayMinutes)
       settingsRepository.setAutoSyncEnabled(defaults.isAutoSyncEnabled)
+      settingsRepository.setAutoSyncMode(defaults.autoSyncMode)
       settingsRepository.setLiveModeEnabled(defaults.isLiveModeEnabled)
       settingsRepository.setKeepLivePatients(defaults.keepLivePatients)
       settingsRepository.setAutomaticVisits(defaults.automaticVisits)
@@ -216,6 +226,7 @@ constructor(
     val tokenDelayMinutes = settingsRepository.getTokenExpiryDelayMinutes()
     val periodicDelayMinutes = settingsRepository.getPeriodicSyncDelayMinutes()
     val autoSyncEnabled = settingsRepository.getAutoSyncEnabled()
+    val autoSyncMode = settingsRepository.getAutoSyncMode()
     val liveModeEnabled = settingsRepository.getLiveModeEnabled()
     val keepLivePatients = settingsRepository.getKeepLivePatients()
     val automaticVisits = settingsRepository.getAutomaticVisits()
@@ -229,6 +240,7 @@ constructor(
         tokenCheckDelayMinutes = tokenDelayMinutes,
         periodicSyncDelayMinutes = periodicDelayMinutes,
         isAutoSyncEnabled = autoSyncEnabled,
+        autoSyncMode = autoSyncMode,
         isLiveModeEnabled = liveModeEnabled,
         keepLivePatients = keepLivePatients,
         automaticVisits = automaticVisits,

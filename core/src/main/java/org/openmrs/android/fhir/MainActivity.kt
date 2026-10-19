@@ -104,6 +104,7 @@ import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.ServerSettings
 import org.openmrs.android.fhir.data.remote.isServerReachable
+import org.openmrs.android.fhir.data.sync.SyncMode
 import org.openmrs.android.fhir.data.transfer.DataTransfer
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.BiometricUtils
@@ -762,19 +763,24 @@ class MainActivity : AppCompatActivity() {
     closeNavigationDrawer()
   }
 
+  /** What the sync the user just asked for does (the Sync page's choice); `null`: the setting. */
+  private var requestedSyncMode: SyncMode? = null
+
   /*
    * Before triggering sync, it checks if the user is assigned to the location.
    * If not redirects user to the select location screen first and starts the sync.
    */
-  fun onSyncPress() {
+  fun onSyncPress(mode: SyncMode? = null) {
+    requestedSyncMode = mode
     if (isGuest.value) {
       promptSignInToSync()
       return
     }
     lifecycleScope.launch {
-      // Records entered for patients "to identify after" are not sent: ask to identify them first.
+      // Records entered for patients "to identify after" are not sent: ask to identify them first
+      // (a download sends nothing, so it does not ask).
       val waiting = FhirApplication.appComponent(applicationContext).unidentifiedPatients().count()
-      if (waiting > 0) {
+      if (waiting > 0 && mode != SyncMode.DOWNLOAD_ONLY) {
         showUnidentifiedPrompt(waiting)
         return@launch
       }
@@ -831,7 +837,7 @@ class MainActivity : AppCompatActivity() {
       !isTokenExpired() && connectivityState.isServerReachable() -> {
         checkNotificationPermission()
         val fetchIdentifiers = AppConfig.get(applicationContext).fetchIdentifiers
-        viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers)
+        viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers, requestedSyncMode)
         closeNavigationDrawer()
       }
       isTokenExpired() && connectivityState.isServerReachable() -> {
@@ -897,7 +903,7 @@ class MainActivity : AppCompatActivity() {
   /** Signed in again after the session had expired: what was waiting to be synced goes now. */
   private fun onSessionRenewed() {
     viewModel.restartAutoSync()
-    onSyncPress()
+    onSyncPress(requestedSyncMode)
   }
 
   private var sessionExpiredDialog: AlertDialog? = null
@@ -938,7 +944,7 @@ class MainActivity : AppCompatActivity() {
       .setMessage(getString(R.string.do_you_want_to_continue_sync))
       .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
         dialog.dismiss()
-        viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers)
+        viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers, requestedSyncMode)
       }
       .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
       .setCancelable(false)

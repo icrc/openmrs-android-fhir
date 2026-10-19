@@ -691,6 +691,14 @@
     <string name="login_pending_counts">المرضى: %1$d · السجلات: %2$d</string>
     <string name="login_pending_records_only">السجلات: %1$d</string>
     <string name="login_pending_use_user">تسجيل الدخول بهذا المستخدم</string>
+    <string name="settings_auto_sync_mode">ما تفعله المزامنة التلقائية</string>
+    <string name="settings_auto_sync_mode_description">الرفع فقط يرسل ما سجّلته على هذا الجهاز. الرفع والتنزيل يجلب أيضاً أحدث البيانات من الخادم.</string>
+    <string name="sync_mode_both">رفع وتنزيل</string>
+    <string name="sync_mode_upload_only">رفع فقط</string>
+    <string name="sync_page_mode_download">تنزيل</string>
+    <string name="sync_page_mode_upload">رفع</string>
+    <string name="sync_page_mode_both">الاثنان</string>
+    <string name="sync_download_only_hint">ما ينتظر الرفع يبقى على هذا الجهاز حتى ترفعه.</string>
     <string name="share_title">مشاركة الإعدادات</string>
     <string name="share_choose">انسخ إعدادات هذا الجهاز إلى جهاز آخر، أو خذ إعدادات جهاز آخر.</string>
     <string name="share_export">تصدير</string>

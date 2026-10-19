@@ -32,6 +32,7 @@ import android.content.Context
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import org.openmrs.android.fhir.DemoDataStore
+import org.openmrs.android.fhir.data.sync.SyncMode
 import org.openmrs.android.fhir.multiuser.UserRegistry
 
 interface SettingsRepository {
@@ -54,6 +55,11 @@ interface SettingsRepository {
   suspend fun getAutoSyncEnabled(): Boolean = true
 
   suspend fun setAutoSyncEnabled(enabled: Boolean) {}
+
+  /** What the automatic sync does: [SyncMode.UPLOAD_ONLY] or [SyncMode.BOTH] (the default). */
+  suspend fun getAutoSyncMode(): SyncMode = SyncMode.BOTH
+
+  suspend fun setAutoSyncMode(mode: SyncMode) {}
 
   suspend fun getLiveModeEnabled(): Boolean = false
 
@@ -127,6 +133,12 @@ constructor(
 
   override suspend fun setAutoSyncEnabled(enabled: Boolean) {
     dataStore.setAutoSyncEnabled(enabled)
+  }
+
+  override suspend fun getAutoSyncMode(): SyncMode = dataStore.getAutoSyncModeFlow().first()
+
+  override suspend fun setAutoSyncMode(mode: SyncMode) {
+    dataStore.setAutoSyncMode(mode)
   }
 
   override suspend fun getLiveModeEnabled(): Boolean {

@@ -753,6 +753,14 @@
     <string name="login_pending_counts">Pacientes: %1$d · Registros: %2$d</string>
     <string name="login_pending_records_only">Registros: %1$d</string>
     <string name="login_pending_use_user">Iniciar sesión con este usuario</string>
+    <string name="settings_auto_sync_mode">Qué hace la sincronización automática</string>
+    <string name="settings_auto_sync_mode_description">Solo subir envía lo que registró en este dispositivo. Subir y descargar también trae los últimos datos del servidor.</string>
+    <string name="sync_mode_both">Subir y descargar</string>
+    <string name="sync_mode_upload_only">Solo subir</string>
+    <string name="sync_page_mode_download">Descargar</string>
+    <string name="sync_page_mode_upload">Subir</string>
+    <string name="sync_page_mode_both">Ambos</string>
+    <string name="sync_download_only_hint">Lo que espera para subirse se queda en este dispositivo hasta que lo suba.</string>
     <string name="share_title">Compartir ajustes</string>
     <string name="share_choose">Copie los ajustes de este dispositivo a otro, o tome los de otro dispositivo.</string>
     <string name="share_export">Exportar</string>

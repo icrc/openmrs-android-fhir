@@ -87,6 +87,7 @@ import org.openmrs.android.fhir.data.remote.model.SessionLocation
 import org.openmrs.android.fhir.data.sync.FhirSyncWorker
 import org.openmrs.android.fhir.data.sync.LivePatients
 import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.data.sync.SyncMode
 import org.openmrs.android.fhir.data.sync.UploadPreparer
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.ui.screens.SyncProgressState
@@ -213,8 +214,16 @@ constructor(
     super.onCleared()
   }
 
-  fun triggerOneTimeSync(context: Context, fetchIdentifiers: Boolean = true) {
-    viewModelScope.launch { startSync(context, fetchIdentifiers, background = false) }
+  /**
+   * A sync asked for by the user. [mode] is what this run does (from the Sync page); without one it
+   * does what the automatic sync's setting says.
+   */
+  fun triggerOneTimeSync(
+    context: Context,
+    fetchIdentifiers: Boolean = true,
+    mode: SyncMode? = null,
+  ) {
+    viewModelScope.launch { startSync(context, fetchIdentifiers, background = false, mode = mode) }
   }
 
   /**
@@ -227,6 +236,7 @@ constructor(
     context: Context,
     fetchIdentifiers: Boolean,
     background: Boolean,
+    mode: SyncMode? = null,
   ): Boolean {
     val shouldSync =
       syncMutex.withLock {
@@ -251,20 +261,26 @@ constructor(
     }
 
     try {
-      // Who is signed in is the provider of what is uploaded: it must be known, and what
-      // waits without it gets it.
-      OpenMRSHelper(fhirEngine, context).ensureIdentity()
-      if (!completeGuestData(context, fetchIdentifiers)) {
-        // The patients registered as a guest need an identifier type first; ask the user.
-        _isSyncing.value = false
-        if (!background) _uiEvents.tryEmit(MainActivityEvent.ShowIdentifierTypesRequired)
-        return false
-      }
-      if (fetchIdentifiers) {
+      val effective = mode ?: demoDataStore.getAutoSyncModeFlow().first()
+      if (effective != SyncMode.DOWNLOAD_ONLY) {
+        // Who is signed in is the provider of what is uploaded: it must be known, and what
+        // waits without it gets it.
+        OpenMRSHelper(fhirEngine, context).ensureIdentity()
+        if (!completeGuestData(context, fetchIdentifiers)) {
+          // The patients registered as a guest need an identifier type first; ask the user.
+          _isSyncing.value = false
+          if (!background) _uiEvents.tryEmit(MainActivityEvent.ShowIdentifierTypesRequired)
+          return false
+        }
+        if (fetchIdentifiers) {
+          fetchIdentifierTypesIfEmpty()
+          uploadPreparer.embedIdentifiersInUnsyncedPatients()
+        }
+      } else if (fetchIdentifiers) {
+        // Nothing is sent, so nothing to prepare: only the identifier types are brought down.
         fetchIdentifierTypesIfEmpty()
-        uploadPreparer.embedIdentifiersInUnsyncedPatients()
       }
-      SyncInfoDatabaseWriterWorker.enqueue(applicationContext)
+      SyncInfoDatabaseWriterWorker.enqueue(applicationContext, effective)
       return true
     } catch (e: CancellationException) {
       _isSyncing.value = false

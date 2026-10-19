@@ -100,6 +100,7 @@ import org.openmrs.android.fhir.data.database.model.CustomFormSection
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.data.remote.ServerSettings
+import org.openmrs.android.fhir.data.sync.SyncMode
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.ColorVisionMode
 import org.openmrs.android.fhir.extensions.ThemeMode
@@ -184,6 +185,7 @@ fun SettingsScreen(
   onLogoutAndDeleteRequested: (() -> Unit)? = null,
   onLogoutAndDeleteConfirmed: (() -> Unit)? = null,
   onAutoSyncToggle: (Boolean) -> Unit = {},
+  onAutoSyncModeSelected: (SyncMode) -> Unit = {},
   onLiveModeToggle: (Boolean) -> Unit = {},
   onKeepLivePatientsToggle: (Boolean) -> Unit = {},
   onAutomaticVisitsToggle: (Boolean) -> Unit = {},
@@ -256,6 +258,11 @@ fun SettingsScreen(
           checked = uiState.isAutoSyncEnabled,
           onCheckedChange = onAutoSyncToggle,
           testTag = SettingsTestTags.AutoSyncSwitch,
+        )
+        AutoSyncModeChoice(
+          selected = uiState.autoSyncMode,
+          enabled = uiState.isAutoSyncEnabled,
+          onSelected = onAutoSyncModeSelected,
         )
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         SettingsDropdown(
@@ -555,6 +562,43 @@ private fun SettingsSwitchRow(
         },
       modifier = Modifier.testTag(testTag),
     )
+  }
+}
+
+/** What the automatic sync does: upload only, or upload and download. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AutoSyncModeChoice(
+  selected: SyncMode,
+  enabled: Boolean,
+  onSelected: (SyncMode) -> Unit,
+) {
+  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Text(
+      text = stringResource(R.string.settings_auto_sync_mode),
+      style = MaterialTheme.typography.titleSmall,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
+    Text(
+      text = stringResource(R.string.settings_auto_sync_mode_description),
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+      listOf(
+          SyncMode.BOTH to R.string.sync_mode_both,
+          SyncMode.UPLOAD_ONLY to R.string.sync_mode_upload_only,
+        )
+        .forEach { (mode, label) ->
+          FilterChip(
+            selected = selected == mode,
+            onClick = { onSelected(mode) },
+            enabled = enabled,
+            label = { Text(text = stringResource(label)) },
+            modifier = Modifier.testTag("SettingsAutoSyncMode_${mode.value}"),
+          )
+        }
+    }
   }
 }
 

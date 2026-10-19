@@ -35,6 +35,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -43,11 +44,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import javax.inject.Inject
+import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
+import org.openmrs.android.fhir.data.sync.SyncMode
 import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.extensions.saveToFile
 import org.openmrs.android.fhir.ui.components.AppMessage
@@ -85,14 +88,20 @@ class SyncInfoFragment : Fragment() {
         val isLoadingPending by unsyncedViewModel.isLoading.observeAsState(false)
         val isSyncing by mainActivityViewModel.isSyncing.observeAsState(false)
         val activityState by mainActivityViewModel.uiState.collectAsStateWithLifecycle()
+        // What "Sync now" does until the user picks another: the automatic sync's setting.
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val defaultMode by
+          remember { DemoDataStore(context.applicationContext).getAutoSyncModeFlow() }
+            .collectAsStateWithLifecycle(initialValue = SyncMode.BOTH)
         SyncScreen(
+          defaultSyncMode = defaultMode,
           syncSessions = sessions,
           pendingResources = pending,
           isLoadingPending = isLoadingPending,
           isSyncing = isSyncing,
           syncProgress = activityState.syncProgressState,
           lastSyncText = activityState.lastSyncText,
-          onSyncNow = { (requireActivity() as? MainActivity)?.onSyncPress() },
+          onSyncNow = { mode -> (requireActivity() as? MainActivity)?.onSyncPress(mode) },
           onTogglePatientExpand = unsyncedViewModel::togglePatientExpansion,
           onToggleEncounterExpand = unsyncedViewModel::toggleEncounterExpansion,
           onDeleteResource = { resource ->

@@ -171,6 +171,7 @@ class SettingsFragment : Fragment() {
           onTokenDelaySelected = settingsViewModel::onTokenDelaySelected,
           onPeriodicSyncDelaySelected = settingsViewModel::onPeriodicSyncDelaySelected,
           onAutoSyncToggle = settingsViewModel::onAutoSyncToggle,
+          onAutoSyncModeSelected = settingsViewModel::onAutoSyncModeSelected,
           onLiveModeToggle = settingsViewModel::onLiveModeToggle,
           onKeepLivePatientsToggle = settingsViewModel::onKeepLivePatientsToggle,
           onAutomaticVisitsToggle = settingsViewModel::onAutomaticVisitsToggle,

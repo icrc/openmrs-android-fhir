@@ -65,8 +65,11 @@ import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncStatus
+import org.openmrs.android.fhir.data.sync.DownloadOnlyFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.FhirSyncWorker
 import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.data.sync.SyncMode
+import org.openmrs.android.fhir.data.sync.UploadFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.UploadGate
 import org.openmrs.android.fhir.di.DaggerWorkerComponent
 import org.openmrs.android.fhir.extensions.NotificationHelper
@@ -83,6 +86,9 @@ class SyncInfoDatabaseWriterWorker(
   @Inject lateinit var notificationHelper: NotificationHelper
 
   @Inject lateinit var permissionChecker: PermissionChecker
+
+  /** What this run does: both (the default), only send, or only download. */
+  private val mode by lazy { SyncMode.fromValue(inputData.getString(KEY_MODE)) }
 
   private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
   private val workerScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -121,24 +127,30 @@ class SyncInfoDatabaseWriterWorker(
         ),
       )
 
-      // A live upload may be running: two uploads at once would send the same queue twice.
-      val finalStatus =
-        UploadGate.mutex.withLock {
-          // This flow can still be shared if needed elsewhere
-          val syncFlow =
-            Sync.oneTimeSync<FhirSyncWorker>(applicationContext)
-              .shareIn(workerScope, SharingStarted.Eagerly, 10)
+      val runSync: suspend () -> CurrentSyncJobStatus = {
+        // This flow can still be shared if needed elsewhere
+        val syncFlow =
+          when (mode) {
+            SyncMode.UPLOAD_ONLY -> Sync.oneTimeSync<UploadFhirSyncWorker>(applicationContext)
+            SyncMode.DOWNLOAD_ONLY ->
+              Sync.oneTimeSync<DownloadOnlyFhirSyncWorker>(applicationContext)
+            SyncMode.BOTH -> Sync.oneTimeSync<FhirSyncWorker>(applicationContext)
+          }.shareIn(workerScope, SharingStarted.Eagerly, 10)
 
-          // Process each update, but wait for a final state to finish
-          syncFlow
-            .onEach { syncJobStatus -> handleCurrentSyncJobStatus(syncJobStatus) }
-            .first { syncJobStatus ->
-              syncJobStatus is CurrentSyncJobStatus.Failed ||
-                syncJobStatus is CurrentSyncJobStatus.Succeeded ||
-                syncJobStatus is CurrentSyncJobStatus.Cancelled ||
-                syncJobStatus is CurrentSyncJobStatus.Blocked
-            }
-        }
+        // Process each update, but wait for a final state to finish
+        syncFlow
+          .onEach { syncJobStatus -> handleCurrentSyncJobStatus(syncJobStatus) }
+          .first { syncJobStatus ->
+            syncJobStatus is CurrentSyncJobStatus.Failed ||
+              syncJobStatus is CurrentSyncJobStatus.Succeeded ||
+              syncJobStatus is CurrentSyncJobStatus.Cancelled ||
+              syncJobStatus is CurrentSyncJobStatus.Blocked
+          }
+      }
+      // A live upload may be running: two uploads at once would send the same queue twice. A
+      // download sends nothing, so it does not wait for one.
+      val finalStatus =
+        if (mode == SyncMode.DOWNLOAD_ONLY) runSync() else UploadGate.mutex.withLock { runSync() }
 
       // Now, check the final status to determine the worker's result
       return if (finalStatus is CurrentSyncJobStatus.Succeeded) {
@@ -205,7 +217,12 @@ class SyncInfoDatabaseWriterWorker(
   }
 
   private suspend fun handleSyncStarted() {
-    AuditLog.record(AuditAction.SYNC, AuditOutcome.SUCCESS, "state" to "started")
+    AuditLog.record(
+      AuditAction.SYNC,
+      AuditOutcome.SUCCESS,
+      "state" to "started",
+      "mode" to mode.value,
+    )
     database.dao().getOrCreateInProgressSyncSession(formatter)
   }
 
@@ -270,7 +287,10 @@ class SyncInfoDatabaseWriterWorker(
   }
 
   private suspend fun handleSuccessSync(state: CurrentSyncJobStatus.Succeeded) {
-    DemoDataStore(applicationContext).saveLastFullSync(state.timestamp)
+    // Only a sync that downloaded is a "last sync".
+    if (mode != SyncMode.UPLOAD_ONLY) {
+      DemoDataStore(applicationContext).saveLastFullSync(state.timestamp)
+    }
     // What a live upload could not send went with this sync.
     LiveSync.setState(LiveSync.State.Idle)
     AuditLog.record(AuditAction.SYNC, AuditOutcome.SUCCESS, "state" to "completed")
@@ -308,7 +328,9 @@ class SyncInfoDatabaseWriterWorker(
   }
 
   private suspend fun handleFailedSync(syncJobStatus: CurrentSyncJobStatus.Failed) {
-    DemoDataStore(applicationContext).saveLastFullSync(syncJobStatus.timestamp)
+    if (mode != SyncMode.UPLOAD_ONLY) {
+      DemoDataStore(applicationContext).saveLastFullSync(syncJobStatus.timestamp)
+    }
     AuditLog.failure(AuditAction.SYNC, "state" to "failed")
     val inProgressSyncSession = database.dao().getInProgressSyncSession()
     if (inProgressSyncSession != null) {
@@ -366,13 +388,15 @@ class SyncInfoDatabaseWriterWorker(
     const val WORK_NAME = "sync_manager_work"
     const val PROGRESS_STATUS = "progress_status"
     const val PROGRESS_MESSAGE = "progress_message"
+    private const val KEY_MODE = "sync_mode"
 
-    fun enqueue(context: Context) {
+    fun enqueue(context: Context, mode: SyncMode = SyncMode.BOTH) {
       val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
       val syncRequest =
         OneTimeWorkRequestBuilder<SyncInfoDatabaseWriterWorker>()
           .setConstraints(constraints)
+          .setInputData(workDataOf(KEY_MODE to mode.value))
           .build()
 
       WorkManager.getInstance(context)

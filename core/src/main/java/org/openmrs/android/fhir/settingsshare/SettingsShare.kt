@@ -36,6 +36,7 @@ import org.json.JSONObject
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.SettingsRepository
 import org.openmrs.android.fhir.data.remote.ServerSettings
+import org.openmrs.android.fhir.data.sync.SyncMode
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.ClearDataOnLogoutStore
 import org.openmrs.android.fhir.extensions.ColorVisionMode
@@ -52,6 +53,7 @@ enum class SharedSetting(val key: String, @StringRes val label: Int) {
   TOKEN_DELAY("token_delay", R.string.token_check_delay_in_minutes),
   PERIODIC_DELAY("periodic_delay", R.string.periodic_sync_delay_in_minutes),
   AUTO_SYNC("auto_sync", R.string.settings_auto_sync),
+  AUTO_SYNC_MODE("auto_sync_mode", R.string.settings_auto_sync_mode),
   LIVE_MODE("live_mode", R.string.settings_live_mode),
   KEEP_LIVE_PATIENTS("keep_live_patients", R.string.settings_live_keep_patients),
   AUTOMATIC_VISITS("automatic_visits", R.string.settings_automatic_visits),
@@ -107,6 +109,7 @@ constructor(
       SharedSetting.TOKEN_DELAY to repository.getTokenExpiryDelayMinutes().toString(),
       SharedSetting.PERIODIC_DELAY to repository.getPeriodicSyncDelayMinutes().toString(),
       SharedSetting.AUTO_SYNC to repository.getAutoSyncEnabled().toString(),
+      SharedSetting.AUTO_SYNC_MODE to repository.getAutoSyncMode().value,
       SharedSetting.LIVE_MODE to repository.getLiveModeEnabled().toString(),
       SharedSetting.KEEP_LIVE_PATIENTS to repository.getKeepLivePatients().toString(),
       SharedSetting.AUTOMATIC_VISITS to repository.getAutomaticVisits().toString(),
@@ -151,6 +154,8 @@ constructor(
         raw.toIntOrNull()?.takeIf { it in SettingsDefaults.TokenDelayOptions }?.toString()
       setting == SharedSetting.PERIODIC_DELAY ->
         raw.toIntOrNull()?.takeIf { it in SettingsDefaults.PeriodicSyncDelayOptions }?.toString()
+      setting == SharedSetting.AUTO_SYNC_MODE ->
+        raw.takeIf { it == SyncMode.BOTH.value || it == SyncMode.UPLOAD_ONLY.value }
       setting == SharedSetting.THEME -> raw.takeIf { v -> ThemeMode.entries.any { it.value == v } }
       setting == SharedSetting.COLOR_VISION ->
         raw.takeIf { v -> ColorVisionMode.entries.any { it.value == v } }
@@ -191,6 +196,7 @@ constructor(
         SharedSetting.TOKEN_DELAY -> repository.setTokenExpiryDelayMinutes(value.toInt())
         SharedSetting.PERIODIC_DELAY -> repository.setPeriodicSyncDelayMinutes(value.toInt())
         SharedSetting.AUTO_SYNC -> repository.setAutoSyncEnabled(value.toBoolean())
+        SharedSetting.AUTO_SYNC_MODE -> repository.setAutoSyncMode(SyncMode.fromValue(value))
         SharedSetting.LIVE_MODE -> repository.setLiveModeEnabled(value.toBoolean())
         SharedSetting.KEEP_LIVE_PATIENTS -> repository.setKeepLivePatients(value.toBoolean())
         SharedSetting.AUTOMATIC_VISITS -> repository.setAutomaticVisits(value.toBoolean())
