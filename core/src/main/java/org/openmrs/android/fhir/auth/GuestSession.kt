@@ -57,6 +57,14 @@ object GuestSession {
     prefs(context).edit().putBoolean(KEY_COMPLETION_PENDING, true).apply()
   }
 
+  /**
+   * Something was saved without a location (as a guest, or signed in before choosing one): it is
+   * completed once there is a location, like what a guest entered.
+   */
+  fun markCompletionPending(context: Context) {
+    prefs(context).edit().putBoolean(KEY_COMPLETION_PENDING, true).apply()
+  }
+
   /** True until the data entered as a guest has been completed after signing in. */
   fun isCompletionPending(context: Context): Boolean =
     prefs(context).getBoolean(KEY_COMPLETION_PENDING, false)

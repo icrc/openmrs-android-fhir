@@ -139,6 +139,9 @@ constructor(
     viewModelScope.launch { LiveSync.uploaded.collect { reloadQuietly() } }
   }
 
+  /** The list again, without a spinner: a patient may have been registered or changed meanwhile. */
+  fun reload() = reloadQuietly()
+
   private fun reloadQuietly() {
     updatePatientListAndPatientCount(
       { getSearchResults(nameQuery = uiState.value.query, quiet = true) },

@@ -66,6 +66,7 @@ import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -323,6 +324,8 @@ constructor(
   ) {
     val encounterReference = Reference("Encounter/$encounterId")
     val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+    // Saved without a location: it is filled in once one is chosen.
+    if (locationId.isNullOrBlank()) GuestSession.markCompletionPending(applicationContext)
     val encounterType =
       questionnaire.code.firstOrNull {
         it.system == "http://fhir.openmrs.org/code-system/encounter-type"

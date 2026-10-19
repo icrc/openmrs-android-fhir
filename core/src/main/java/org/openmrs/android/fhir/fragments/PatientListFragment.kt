@@ -44,16 +44,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import javax.inject.Inject
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.patient.PatientListScreen
@@ -76,6 +71,15 @@ class PatientListFragment : Fragment() {
   ): View {
     composeView = ComposeView(requireContext())
     return composeView
+  }
+
+  private var resumedBefore = false
+
+  override fun onResume() {
+    super.onResume()
+    // Back from registering a patient (or opening one): the list shows what changed.
+    if (resumedBefore) patientListViewModel.reload()
+    resumedBefore = true
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -158,21 +162,9 @@ class PatientListFragment : Fragment() {
   }
 
   private fun onAddPatientClick() {
-    lifecycleScope.launch {
-      if (
-        context?.applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.LOCATION_NAME) !=
-          null
-      ) {
-        findNavController()
-          .navigate(PatientListFragmentDirections.actionPatientListToAddPatientFragment())
-      } else {
-        AppMessage.show(
-          context,
-          getString(R.string.please_select_a_location_first),
-          MessageKind.Info,
-          long = true,
-        )
-      }
-    }
+    // Without a location (a guest, or before one is chosen) a patient can still be registered:
+    // it gets the location, and its identifiers, once there is one.
+    findNavController()
+      .navigate(PatientListFragmentDirections.actionPatientListToAddPatientFragment())
   }
 }

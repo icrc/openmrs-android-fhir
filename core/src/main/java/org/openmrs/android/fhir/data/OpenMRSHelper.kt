@@ -64,6 +64,7 @@ import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_URL
 import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_VALUE_URL
 import org.openmrs.android.fhir.Constants.PERSON_ATTRIBUTE_LINK_ID_PREFIX
 import org.openmrs.android.fhir.DemoDataStore
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.sync.LiveSync
 import timber.log.Timber
@@ -89,6 +90,8 @@ constructor(
 
   suspend fun getCurrentAuthLocation(): Reference {
     val selectedLocationId = context.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+    // Without a location the reference is empty and filled in once one is chosen.
+    if (selectedLocationId.isNullOrBlank()) GuestSession.markCompletionPending(context)
     return Reference("Location/$selectedLocationId") // Reference to the location
   }
 

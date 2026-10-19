@@ -29,8 +29,14 @@
 package org.openmrs.android.fhir.multiuser
 
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.LocalChange
+import com.google.android.fhir.db.LocalChangeResourceReference
 import com.google.android.fhir.sync.ConflictResolver
+import com.google.android.fhir.sync.upload.SyncUploadProgress
+import com.google.android.fhir.sync.upload.UploadRequestResult
+import com.google.android.fhir.sync.upload.UploadStrategy
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.onEach
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
@@ -63,6 +69,18 @@ class TrackingFhirEngine(
     delegate.delete(type, id)
     ledger.deleted(type, id)
   }
+
+  /**
+   * Nothing is sent while records entered without a location (as a guest, or before one was chosen)
+   * wait to be completed with it: the server would refuse them (no identifier, no location). The
+   * completion runs when the location is chosen, right before the sync.
+   */
+  override suspend fun syncUpload(
+    uploadStrategy: UploadStrategy,
+    upload:
+      suspend (List<LocalChange>, List<LocalChangeResourceReference>) -> Flow<UploadRequestResult>,
+  ): Flow<SyncUploadProgress> =
+    if (ledger.holdsUploads()) emptyFlow() else delegate.syncUpload(uploadStrategy, upload)
 
   override suspend fun syncDownload(
     conflictResolver: ConflictResolver,

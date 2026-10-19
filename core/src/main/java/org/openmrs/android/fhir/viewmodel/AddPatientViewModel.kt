@@ -61,6 +61,7 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PatientIdentifierFactory
@@ -142,6 +143,8 @@ constructor(
       patient.birthDateElement = birthDate
 
       val location = locationId?.let { fhirEngine.get(ResourceType.Location, it) } as Location?
+      // Without a location the patient has no identifiers yet: they come with the location.
+      if (location == null) GuestSession.markCompletionPending(applicationContext)
       if (location != null) {
         val identifiers =
           extractLocationIdentifiersFromQuestionnaireResponse(questionnaireResponse, location)

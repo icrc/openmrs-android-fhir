@@ -31,16 +31,11 @@ package org.openmrs.android.fhir.viewmodel
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.GuestSession
-import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.ApiManager
 
 sealed interface HomeEvent {
@@ -99,16 +94,8 @@ constructor(
   }
 
   private fun handleLocationRequiredClick(event: HomeEvent) {
-    viewModelScope.launch {
-      // A guest has no server session and so no location to pick; they work without one.
-      val hasLocationSelected =
-        GuestSession.isActive(applicationContext) ||
-          applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_NAME] != null
-      if (hasLocationSelected) {
-        _events.emit(event)
-      } else {
-        _events.emit(HomeEvent.ShowMessage(R.string.please_select_a_location_first))
-      }
-    }
+    // No location needed to register or look up patients (a guest has none to pick; anyone else
+    // may not have chosen one yet): what is saved gets it later.
+    _events.tryEmit(event)
   }
 }

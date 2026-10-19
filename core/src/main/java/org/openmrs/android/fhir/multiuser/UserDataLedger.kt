@@ -42,6 +42,7 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.RiskAssessment
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.PatientOwner
 import org.openmrs.android.fhir.data.database.model.PendingChange
@@ -101,6 +102,9 @@ constructor(
 ) : DataVisibility {
   private val dao
     get() = database.get().userDataDao()
+
+  /** Records waiting to be completed with a location: they must not be uploaded yet. */
+  fun holdsUploads(): Boolean = GuestSession.isCompletionPending(context)
 
   // ---- Writing notes -----------------------------------------------------------------------
 
