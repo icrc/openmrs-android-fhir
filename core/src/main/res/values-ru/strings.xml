@@ -774,6 +774,14 @@
     <string name="sync_page_mode_upload">Отправка</string>
     <string name="sync_page_mode_both">Обе</string>
     <string name="sync_download_only_hint">Ожидающее отправки остаётся на этом устройстве, пока вы его не отправите.</string>
+    <string name="patient_lists_downloading">Загрузка пациентов из списков…</string>
+    <string name="patient_lists_download_later">Пациенты будут загружены при следующей синхронизации.</string>
+    <plurals name="patient_lists_downloaded">
+        <item quantity="one">%d пациент загружен</item>
+        <item quantity="few">%d пациента загружено</item>
+        <item quantity="many">%d пациентов загружено</item>
+        <item quantity="other">%d пациентов загружено</item>
+    </plurals>
     <string name="share_title">Поделиться настройками</string>
     <string name="share_choose">Скопируйте настройки этого устройства на другое или возьмите настройки другого устройства.</string>
     <string name="share_export">Экспорт</string>

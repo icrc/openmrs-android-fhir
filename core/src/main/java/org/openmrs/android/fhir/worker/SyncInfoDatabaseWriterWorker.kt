@@ -68,6 +68,7 @@ import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.data.sync.DownloadOnlyFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.FhirSyncWorker
 import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.data.sync.PatientListDownloader
 import org.openmrs.android.fhir.data.sync.SyncMode
 import org.openmrs.android.fhir.data.sync.UploadFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.UploadGate
@@ -126,6 +127,18 @@ class SyncInfoDatabaseWriterWorker(
           PROGRESS_MESSAGE to "Initializing sync process",
         ),
       )
+
+      if (mode != SyncMode.UPLOAD_ONLY) {
+        // The patients of patient lists added since: the sync below only asks for what changed.
+        try {
+          val fhirEngine = (applicationContext as FhirApplication).appComponent.fhirEngine()
+          PatientListDownloader(applicationContext, fhirEngine).downloadPending()
+        } catch (e: CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          Timber.w(e, "Could not download the patients of the added lists")
+        }
+      }
 
       val runSync: suspend () -> CurrentSyncJobStatus = {
         // This flow can still be shared if needed elsewhere

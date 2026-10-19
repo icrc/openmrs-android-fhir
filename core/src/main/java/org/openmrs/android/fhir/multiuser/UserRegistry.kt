@@ -59,6 +59,7 @@ object UserRegistry {
   private val PERSONAL_SET_KEYS: List<Preferences.Key<Set<String>>> =
     listOf(
       PreferenceKeys.SELECTED_PATIENT_LISTS,
+      PreferenceKeys.PENDING_LIST_DOWNLOADS,
       PreferenceKeys.LIVE_PATIENT_IDS,
       PreferenceKeys.LIVE_TEMPORARY_IDS,
     )

@@ -699,6 +699,16 @@
     <string name="sync_page_mode_upload">رفع</string>
     <string name="sync_page_mode_both">الاثنان</string>
     <string name="sync_download_only_hint">ما ينتظر الرفع يبقى على هذا الجهاز حتى ترفعه.</string>
+    <string name="patient_lists_downloading">جارٍ تنزيل مرضى القوائم…</string>
+    <string name="patient_lists_download_later">سيتم تنزيل المرضى عند المزامنة التالية.</string>
+    <plurals name="patient_lists_downloaded">
+        <item quantity="zero">لم يتم تنزيل أي مريض</item>
+        <item quantity="one">تم تنزيل مريض واحد</item>
+        <item quantity="two">تم تنزيل مريضين</item>
+        <item quantity="few">تم تنزيل %d مرضى</item>
+        <item quantity="many">تم تنزيل %d مريضاً</item>
+        <item quantity="other">تم تنزيل %d مريض</item>
+    </plurals>
     <string name="share_title">مشاركة الإعدادات</string>
     <string name="share_choose">انسخ إعدادات هذا الجهاز إلى جهاز آخر، أو خذ إعدادات جهاز آخر.</string>
     <string name="share_export">تصدير</string>

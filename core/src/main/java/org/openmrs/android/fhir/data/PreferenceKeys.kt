@@ -49,5 +49,12 @@ class PreferenceKeys {
 
     /** The same, when the setting is to remove them once the user has left them. */
     val LIVE_TEMPORARY_IDS = stringSetPreferencesKey("LIVE_TEMPORARY_IDS")
+
+    /**
+     * Patient lists added whose patients have not been downloaded yet: the sync only asks for what
+     * changed since its last run, so it would not bring the patients that were already on the
+     * server.
+     */
+    val PENDING_LIST_DOWNLOADS = stringSetPreferencesKey("PENDING_LIST_DOWNLOADS")
   }
 }

@@ -787,6 +787,12 @@
     <string name="sync_page_mode_upload">Envoi</string>
     <string name="sync_page_mode_both">Les deux</string>
     <string name="sync_download_only_hint">Ce qui attend d\'être envoyé reste sur cet appareil jusqu\'à ce que vous l\'envoyiez.</string>
+    <string name="patient_lists_downloading">Téléchargement des patients des listes…</string>
+    <string name="patient_lists_download_later">Les patients seront téléchargés à la prochaine synchronisation.</string>
+    <plurals name="patient_lists_downloaded">
+        <item quantity="one">%d patient téléchargé</item>
+        <item quantity="other">%d patients téléchargés</item>
+    </plurals>
     <string name="share_title">Partager les réglages</string>
     <string name="share_choose">Copiez les réglages de cet appareil sur un autre, ou reprenez ceux d\'un autre appareil.</string>
     <string name="share_export">Exporter</string>

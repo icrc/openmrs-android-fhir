@@ -725,6 +725,12 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="sync_page_mode_upload">Upload</string>
     <string name="sync_page_mode_both">Both</string>
     <string name="sync_download_only_hint">What is waiting to upload stays on this device until you upload it.</string>
+    <string name="patient_lists_downloading">Downloading the patients of the patient lists…</string>
+    <string name="patient_lists_download_later">The patients will be downloaded with the next sync.</string>
+    <plurals name="patient_lists_downloaded">
+        <item quantity="one">%d patient downloaded</item>
+        <item quantity="other">%d patients downloaded</item>
+    </plurals>
     <string name="share_title">Share settings</string>
     <string name="share_choose">Copy the settings of this device to another one, or take the settings of another device.</string>
     <string name="share_export">Export</string>

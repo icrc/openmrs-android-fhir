@@ -62,6 +62,7 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.sync.PatientListDownloader
 import org.openmrs.android.fhir.data.sync.SyncUrls
 import timber.log.Timber
 
@@ -79,6 +80,7 @@ constructor(
     get() = _uiState
 
   private var started = false
+  private var fromLogin = false
   private var refreshJob: Job? = null
   private val apiManager by lazy { ApiManager(applicationContext) }
 
@@ -95,6 +97,7 @@ constructor(
   fun start(fromLogin: Boolean) {
     if (started) return
     started = true
+    this.fromLogin = fromLogin
     viewModelScope.launch {
       getSelectPatientListItems()
       val scopedToLocation = AppConfig.get(applicationContext).sync.filterPatientListsByLocation
@@ -208,9 +211,18 @@ constructor(
       "total" to updatedSelection.size,
     )
     _uiState.update { it.copy(selectedPatientListIds = updatedSelection) }
+    val downloader = PatientListDownloader(applicationContext, fhirEngine)
     viewModelScope.launch {
       applicationContext.dataStore.edit { preferences ->
         preferences[PreferenceKeys.SELECTED_PATIENT_LISTS] = updatedSelection
+      }
+      if (isSelected) {
+        downloader.remove(listOf(resourceId))
+      } else if (!fromLogin) {
+        // A list added later: its patients come now, if the server can be reached (at login the
+        // first sync follows and brings them).
+        downloader.add(listOf(resourceId))
+        PatientListDownloader.schedule(applicationContext, fhirEngine)
       }
     }
   }

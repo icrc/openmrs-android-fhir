@@ -53,6 +53,7 @@ import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.sync.PatientListDownloader
 import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
@@ -134,6 +135,38 @@ class SelectPatientListFragment : Fragment() {
     }
     actionBar?.title = requireContext().getString(R.string.select_patient_lists)
     configureUi(actionBar)
+    // The patients of a list just added come at once (not at login: the first sync follows).
+    viewLifecycleOwner.lifecycleScope.launch {
+      PatientListDownloader.states.collect { state ->
+        if (fromLogin) return@collect
+        when (state) {
+          PatientListDownloader.State.Downloading ->
+            AppMessage.show(
+              context,
+              getString(R.string.patient_lists_downloading),
+              MessageKind.Info,
+            )
+          is PatientListDownloader.State.Done ->
+            if (state.patients > 0) {
+              AppMessage.show(
+                context,
+                resources.getQuantityString(
+                  R.plurals.patient_lists_downloaded,
+                  state.patients,
+                  state.patients,
+                ),
+                MessageKind.Success,
+              )
+            }
+          PatientListDownloader.State.Failed ->
+            AppMessage.show(
+              context,
+              getString(R.string.patient_lists_download_later),
+              MessageKind.Info,
+            )
+        }
+      }
+    }
     // The lists on the device show at once; the server is asked in the background.
     selectPatientListViewModel.start(fromLogin)
   }

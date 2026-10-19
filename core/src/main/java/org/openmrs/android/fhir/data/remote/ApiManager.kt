@@ -50,6 +50,8 @@ import org.openmrs.android.fhir.data.remote.model.IdentifierWrapper
 import org.openmrs.android.fhir.data.remote.model.ResponseWrapper
 import org.openmrs.android.fhir.data.remote.model.SessionLocation
 import org.openmrs.android.fhir.data.remote.model.SessionResponse
+import org.openmrs.android.fhir.data.sync.SyncUrls
+import org.openmrs.android.fhir.data.sync.applyPatientListScope
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
@@ -217,6 +219,36 @@ class ApiManager @Inject constructor(context: Context) : Api {
     return groups
   }
 
+  /**
+   * The patients of the patient lists [listIds] with their encounters and observations, page by
+   * page ([onPage] receives each one as it arrives), following the `next` links. Unlike the sync it
+   * does not ask only for what changed since the last one: the lists are new to the device. Read
+   * only.
+   *
+   * @return how many patients came.
+   */
+  suspend fun downloadPatientsOfLists(
+    listIds: Set<String>,
+    onPage: suspend (List<Resource>) -> Unit,
+  ): Int {
+    val search = applyPatientListScope(SyncUrls.patients(appContext), listIds) ?: return 0
+    var patients = 0
+    var url: String? =
+      ServerSettings.fhirBaseUrl(appContext) + search + "&_count=$PATIENT_DOWNLOAD_PAGE"
+    var pages = 0
+    while (url != null) {
+      check(pages++ < MAX_PATIENT_DOWNLOAD_PAGES) { "Too many pages of patients" }
+      val response = fhirApiService.getBundle(url)
+      if (!response.isSuccessful) throw IOException("Server answered ${response.code()}")
+      val bundle = response.body() ?: break
+      val resources = bundle.entry.mapNotNull { it.resource }.filter { it !is OperationOutcome }
+      patients += resources.count { it is Patient }
+      if (resources.isNotEmpty()) onPage(resources)
+      url = bundle.link.firstOrNull { it.relation == "next" }?.url
+    }
+    return patients
+  }
+
   suspend fun checkServerConnection(url: String): Boolean {
     return try {
       val response = apiService.checkServerStatus(url)
@@ -250,6 +282,8 @@ private const val MAX_QUESTIONNAIRE_PAGES = 20
 private const val MAX_RECORD_PAGES = 20
 private const val MAX_PATIENT_LIST_PAGES = 20
 private const val PATIENT_LIST_PAGE = 100
+private const val PATIENT_DOWNLOAD_PAGE = 50
+private const val MAX_PATIENT_DOWNLOAD_PAGES = 500
 private const val PATIENT_SEARCH_LIMIT = 20
 private const val PATIENT_SEARCH_ELEMENTS =
   "id,name,identifier,birthDate,gender,address,telecom,active"

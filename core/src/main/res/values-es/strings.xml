@@ -761,6 +761,12 @@
     <string name="sync_page_mode_upload">Subir</string>
     <string name="sync_page_mode_both">Ambos</string>
     <string name="sync_download_only_hint">Lo que espera para subirse se queda en este dispositivo hasta que lo suba.</string>
+    <string name="patient_lists_downloading">Descargando los pacientes de las listas…</string>
+    <string name="patient_lists_download_later">Los pacientes se descargarán en la próxima sincronización.</string>
+    <plurals name="patient_lists_downloaded">
+        <item quantity="one">%d paciente descargado</item>
+        <item quantity="other">%d pacientes descargados</item>
+    </plurals>
     <string name="share_title">Compartir ajustes</string>
     <string name="share_choose">Copie los ajustes de este dispositivo a otro, o tome los de otro dispositivo.</string>
     <string name="share_export">Exportar</string>
