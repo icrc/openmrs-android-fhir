@@ -1119,7 +1119,7 @@ class MainActivity : AppCompatActivity() {
    * Says what logging out does with the data, as set in Settings: deleted (and then, in red, how
    * many resources were never uploaded and are lost with it) or kept.
    */
-  private suspend fun showLogoutConfirmation() {
+  private suspend fun showLogoutConfirmation(canEndProviderSession: Boolean) {
     val clearData = ClearDataOnLogoutStore.get(this)
     val pending =
       try {
@@ -1162,6 +1162,10 @@ class MainActivity : AppCompatActivity() {
         )
       }
     }
+    if (!canEndProviderSession) {
+      message.append("\n\n")
+      message.append(getString(R.string.logout_offline_note))
+    }
     // Records for patients "to identify after" are not in the upload count: say what happens.
     val toIdentify = FhirApplication.appComponent(applicationContext).unidentifiedPatients().count()
     if (toIdentify > 0) {
@@ -1178,30 +1182,23 @@ class MainActivity : AppCompatActivity() {
       .setMessage(message)
       .setPositiveButton(getString(R.string.yes)) { dialog, _ ->
         dialog.dismiss()
-        navigateToLogin()
+        navigateToLogin(canEndProviderSession)
       }
       .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
       .setCancelable(false)
       .show()
   }
 
+  /**
+   * Logging out never depends on the server: with it out of reach the user is signed out on this
+   * device only (a single sign-on session cannot be ended at the provider), and the confirmation
+   * says so.
+   */
   private fun showLogoutWarningDialog(connectivityState: ServerConnectivityState) {
-    when (connectivityState) {
-      ServerConnectivityState.ServerConnected -> lifecycleScope.launch { showLogoutConfirmation() }
-      ServerConnectivityState.InternetOnly ->
-        MaterialAlertDialogBuilder(this)
-          .setTitle(getString(R.string.logout))
-          .setMessage(getString(R.string.logout_unavailable_internet_only_message))
-          .setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }
-          .setCancelable(true)
-          .show()
-      ServerConnectivityState.Offline ->
-        MaterialAlertDialogBuilder(this)
-          .setTitle(getString(R.string.logout))
-          .setMessage(getString(R.string.logout_unavailable_offline_message))
-          .setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }
-          .setCancelable(true)
-          .show()
+    lifecycleScope.launch {
+      showLogoutConfirmation(
+        canEndProviderSession = connectivityState == ServerConnectivityState.ServerConnected,
+      )
     }
   }
 
@@ -1282,7 +1279,7 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
-  private fun navigateToLogin() {
+  private fun navigateToLogin(canEndProviderSession: Boolean) {
     val clearData = ClearDataOnLogoutStore.get(this)
     AuditLog.record(
       AuditAction.LOGOUT,
@@ -1303,7 +1300,12 @@ class MainActivity : AppCompatActivity() {
     lifecycleScope
       .launch(Dispatchers.Default) { if (clearData) clearAppData() else endSessionKeepingData() }
       .invokeOnCompletion {
-        handleAuthNavigation(pendingIntentSuccess, pendingIntentCancel, clearData)
+        handleAuthNavigation(
+          pendingIntentSuccess,
+          pendingIntentCancel,
+          clearData,
+          canEndProviderSession,
+        )
       }
   }
 
@@ -1393,8 +1395,11 @@ class MainActivity : AppCompatActivity() {
     pendingIntentSuccess: PendingIntent,
     pendingIntentCancel: PendingIntent,
     clearData: Boolean = true,
+    canEndProviderSession: Boolean = true,
   ) {
-    when (authStateManager.getAuthMethod()) {
+    // Without the provider (or with basic authentication) the session is dropped here only.
+    val method = if (canEndProviderSession) authStateManager.getAuthMethod() else AuthMethod.BASIC
+    when (method) {
       AuthMethod.BASIC -> {
         lifecycleScope.launch(Dispatchers.IO) { clearSessionPreferences(clearData) }
         startActivity(Intent(this, LoginActivity::class.java))

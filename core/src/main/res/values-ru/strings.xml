@@ -184,12 +184,6 @@
         name="logout_message"
     >Вы уверены, что хотите выйти?\n\nЕсли вы продолжите, все данные приложения будут удалены безвозвратно.\nЭто включает ресурсы, сессии пользователей и базу данных.</string>
 
-    <string
-        name="logout_unavailable_internet_only_message"
-    >Невозможно выйти, сервер недоступен. Подключитесь и попробуйте снова.</string>
-    <string
-        name="logout_unavailable_offline_message"
-    >Невозможно выйти в оффлайн режиме. Подключитесь к интернету и попробуйте снова.</string>
 
     <string name="sync_in_progress">Синхронизация: выполняется</string>
     <string name="sync_started">Синхронизация: началась</string>
@@ -772,6 +766,7 @@
     <string name="login_pending_counts">Пациенты: %1$d · Записи: %2$d</string>
     <string name="login_pending_records_only">Записи: %1$d</string>
     <string name="login_pending_use_user">Войти под этим пользователем</string>
+    <string name="logout_offline_note">Сервер недоступен: вы выйдете из системы только на этом устройстве.</string>
     <string name="settings_back">Назад</string>
     <string name="identify_later_action">Опознать позже</string>
     <string name="identify_later_chip">Опознать позже</string>

@@ -201,12 +201,6 @@
     <string
         name="logout_message"
     >Are you sure you want to log out? \n\nIf you proceed, All of this applications data will be deleted permanently. \nThis includes all resources, user sessions, database etc.</string>
-    <string
-        name="logout_unavailable_internet_only_message"
-    >Unable to log out while the server is unreachable. Please reconnect when the server is available and try again.</string>
-    <string
-        name="logout_unavailable_offline_message"
-    >Unable to log out while offline. Please reconnect to the internet and try again.</string>
     <string name="sync_in_progress">Sync: in progress</string>
     <string name="sync_started">Sync: started</string>
     <string name="sync_succeeded_at">Sync: succeeded at %1$s</string>
@@ -723,6 +717,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="login_pending_counts">Patients: %1$d · Records: %2$d</string>
     <string name="login_pending_records_only">Records: %1$d</string>
     <string name="login_pending_use_user">Log in as this user</string>
+    <string name="logout_offline_note">The server cannot be reached: you will be signed out on this device only.</string>
     <string name="settings_back">Back</string>
     <string name="identify_later_action">Identify later</string>
     <string name="identify_later_chip">Identify later</string>

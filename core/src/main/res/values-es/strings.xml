@@ -160,12 +160,6 @@
     <string
         name="logout_message"
     >¿Estás seguro de que quieres cerrar sesión? \n\nSi continúas, todos los datos de esta aplicación se eliminarán permanentemente. \nEsto incluye todos los recursos, sesiones de usuario, base de datos, etc.</string>
-    <string
-        name="logout_unavailable_internet_only_message"
-    >No es posible cerrar sesión cuando el servidor no está disponible. Vuelve a conectarte cuando el servidor esté disponible e inténtalo de nuevo.</string>
-    <string
-        name="logout_unavailable_offline_message"
-    >No es posible cerrar sesión sin conexión. Vuelve a conectarte a Internet e inténtalo de nuevo.</string>
     <string name="sync_in_progress">Sincronización: en progreso</string>
     <string name="sync_started">Sincronización: iniciada</string>
     <string
@@ -759,6 +753,7 @@
     <string name="login_pending_counts">Pacientes: %1$d · Registros: %2$d</string>
     <string name="login_pending_records_only">Registros: %1$d</string>
     <string name="login_pending_use_user">Iniciar sesión con este usuario</string>
+    <string name="logout_offline_note">No se puede acceder al servidor: se cerrará la sesión solo en este dispositivo.</string>
     <string name="settings_back">Volver</string>
     <string name="identify_later_action">Identificar después</string>
     <string name="identify_later_chip">Por identificar</string>

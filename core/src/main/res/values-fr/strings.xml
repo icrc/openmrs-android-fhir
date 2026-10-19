@@ -173,12 +173,6 @@
     <string
         name="logout_message"
     >Êtes-vous sûr de vouloir vous déconnecter ? \n\nSi vous continuez, toutes les données de cette application seront supprimées définitivement. \nCela inclut toutes les ressources, les sessions utilisateur, la base de données, etc.</string>
-    <string
-        name="logout_unavailable_internet_only_message"
-    >Impossible de vous déconnecter lorsque le serveur est injoignable. Veuillez vous reconnecter quand le serveur est disponible puis réessayez.</string>
-    <string
-        name="logout_unavailable_offline_message"
-    >Impossible de vous déconnecter hors ligne. Veuillez vous reconnecter à Internet et réessayer.</string>
     <string name="sync_in_progress">Synchro : en cours</string>
     <string name="sync_started">Synchro : démarrée</string>
     <string name="sync_succeeded_at">Synchro : réussie à %1$s</string>
@@ -785,6 +779,7 @@
     <string name="login_pending_counts">Patients : %1$d · Enregistrements : %2$d</string>
     <string name="login_pending_records_only">Enregistrements : %1$d</string>
     <string name="login_pending_use_user">Se connecter avec cet utilisateur</string>
+    <string name="logout_offline_note">Le serveur est injoignable : vous serez déconnecté sur cet appareil uniquement.</string>
     <string name="settings_back">Retour</string>
     <string name="identify_later_action">Identifier plus tard</string>
     <string name="identify_later_chip">À identifier</string>
