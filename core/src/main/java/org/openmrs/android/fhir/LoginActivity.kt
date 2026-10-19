@@ -269,8 +269,9 @@ class LoginActivity : AppCompatActivity() {
   }
 
   private fun navigateToMain() {
-    if (signInFromGuest) {
-      // Back to the guest session that asked for the sign-in; its data is kept.
+    if (signInFromGuest && !isTaskRoot) {
+      // Back to the guest session that asked for the sign-in; its data is kept. (After the app
+      // restarted on this page, e.g. after a change of server, there is no session to go back to.)
       GuestSession.end(this)
       setResult(RESULT_OK)
       finish()

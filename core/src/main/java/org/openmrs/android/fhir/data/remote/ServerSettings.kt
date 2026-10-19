@@ -28,8 +28,10 @@
 */
 package org.openmrs.android.fhir.data.remote
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.URI
@@ -101,11 +103,20 @@ object ServerSettings {
     return if (uri.rawPath.isNullOrEmpty()) "$text/openmrs" else text
   }
 
-  /** Restarts the app so every component picks up the server in use. */
-  fun restartApp(context: Context) {
+  /**
+   * Restarts the app so every component picks up the server in use. It starts again at [target]
+   * (the splash screen, which decides where to go; the login page when the server was changed from
+   * there, so the user stays on it), with the [extras] the screen had.
+   */
+  fun restartApp(
+    context: Context,
+    target: Class<out Activity> = SplashActivity::class.java,
+    extras: Bundle? = null,
+  ) {
     val intent =
-      Intent(context, SplashActivity::class.java)
+      Intent(context, target)
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+    extras?.let { intent.putExtras(it) }
     context.startActivity(intent)
     Runtime.getRuntime().exit(0)
   }

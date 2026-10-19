@@ -561,7 +561,7 @@ private fun SettingsSwitchRow(
 /** System / Light / Dark as three chips; the choice is applied at once. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ThemeModeChoice(selected: ThemeMode, onSelected: (ThemeMode) -> Unit) {
+internal fun ThemeModeChoice(selected: ThemeMode, onSelected: (ThemeMode) -> Unit) {
   Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
     listOf(
         Triple(ThemeMode.SYSTEM, R.string.theme_system, SettingsTestTags.ThemeSystem),

@@ -28,6 +28,9 @@
 */
 package org.openmrs.android.fhir.ui.screens
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -63,9 +66,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.LoginActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.remote.ServerSettings
 import org.openmrs.android.fhir.extensions.AppLanguage
+import org.openmrs.android.fhir.extensions.ThemeModeStore
 import org.openmrs.android.fhir.ui.components.LanguagePicker
 
 internal sealed interface TestState {
@@ -106,7 +111,14 @@ fun ServerSettingsDialog(
       return
     }
     ServerSettings.setOverride(context, url)
-    ServerSettings.restartApp(context)
+    // Saved from the login page: back to the login page, not through the splash screen (which
+    // would go on to a guest session or the server dialogs).
+    val login = context.findActivity() as? LoginActivity
+    if (login != null) {
+      ServerSettings.restartApp(context, LoginActivity::class.java, login.intent.extras)
+    } else {
+      ServerSettings.restartApp(context)
+    }
   }
 
   AlertDialog(
@@ -133,6 +145,26 @@ fun ServerSettingsDialog(
           LanguagePicker(
             selected = AppLanguage.current(context),
             onSelected = { AppLanguage.apply(context, it) },
+          )
+        }
+        if (showLanguage) {
+          HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+          Text(
+            text = stringResource(R.string.settings_section_appearance),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+          )
+          var theme by remember { mutableStateOf(ThemeModeStore.get(context)) }
+          ThemeModeChoice(
+            selected = theme,
+            onSelected = {
+              if (it != theme) {
+                theme = it
+                // Applied at once: the screen is recreated in the new theme.
+                ThemeModeStore.set(context, it)
+              }
+            },
           )
         }
         if (!showServer) return@Column
@@ -270,4 +302,11 @@ private fun failureMessage(failure: ServerSettings.TestResult.Failure): Int =
     ServerSettings.Reason.CleartextNotAllowed -> R.string.connection_error_cleartext
     ServerSettings.Reason.UnexpectedAnswer -> R.string.connection_error_unexpected
     ServerSettings.Reason.Unreachable -> R.string.connection_error_unreachable
+  }
+
+private tailrec fun Context.findActivity(): Activity? =
+  when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
   }

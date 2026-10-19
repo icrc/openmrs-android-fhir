@@ -117,7 +117,8 @@ private fun LoginFrame(
       .getOrNull()
       .orEmpty()
   }
-  var showServerDialog by remember { mutableStateOf(false) }
+  // Kept across the recreation a theme change causes, so the dialog stays open.
+  var showServerDialog by rememberSaveable { mutableStateOf(false) }
 
   Box(
     modifier =
