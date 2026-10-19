@@ -149,12 +149,12 @@ fun TutorialOverlay() {
         Panel(
           Modifier.offset(0.dp, holeBottom)
             .width(width)
-            .height((height - holeBottom).coerceAtLeast(0.dp))
+            .height((height - holeBottom).coerceAtLeast(0.dp)),
         )
         Panel(
           Modifier.offset(0.dp, holeTop)
             .width(holeLeft.coerceAtLeast(0.dp))
-            .height((holeBottom - holeTop).coerceAtLeast(0.dp))
+            .height((holeBottom - holeTop).coerceAtLeast(0.dp)),
         )
         Panel(
           Modifier.offset(holeRight, holeTop)
