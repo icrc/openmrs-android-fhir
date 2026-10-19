@@ -99,8 +99,10 @@ import org.openmrs.android.fhir.data.diagnostics.DiagnosticsBuilder
 import org.openmrs.android.fhir.data.diagnostics.DiagnosticsEstimate
 import org.openmrs.android.fhir.data.diagnostics.DiagnosticsOption
 import org.openmrs.android.fhir.data.diagnostics.DiagnosticsRange
+import org.openmrs.android.fhir.data.diagnostics.DiagnosticsReport
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import org.openmrs.android.fhir.data.remote.ServerSettings
 import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.data.transfer.DataTransfer
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
@@ -159,6 +161,33 @@ class MainActivity : AppCompatActivity() {
   private val diagnosticsBusy = androidx.compose.runtime.mutableStateOf(false)
   private val diagnosticsEstimate =
     androidx.compose.runtime.mutableStateOf<DiagnosticsEstimate?>(null)
+
+  /** The report waiting for the user to choose where to save it. */
+  private var diagnosticsToSave: DiagnosticsReport? = null
+
+  private val saveDiagnosticsLauncher =
+    registerForActivityResult(
+      androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/zip"),
+    ) { uri ->
+      val report = diagnosticsToSave
+      diagnosticsToSave = null
+      if (uri == null || report == null) return@registerForActivityResult
+      lifecycleScope.launch {
+        try {
+          withContext(Dispatchers.IO) {
+            val output =
+              contentResolver.openOutputStream(uri) ?: throw java.io.IOException("No output")
+            output.use { out -> report.file.inputStream().use { it.copyTo(out) } }
+          }
+          AppMessage.show(this@MainActivity, R.string.diag_saved, MessageKind.Success)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          Timber.e(e, "Saving the diagnostics failed")
+          AppMessage.show(this@MainActivity, R.string.diag_save_failed, MessageKind.Error)
+        }
+      }
+    }
 
   private lateinit var permissionHelper: PermissionHelper
 
@@ -289,7 +318,18 @@ class MainActivity : AppCompatActivity() {
                   isGuest.value,
                 )
               }
+            val signedInName by
+              androidx.compose.runtime
+                .remember { activityContext.dataStore.data.map { it[PreferenceKeys.USER_NAME] } }
+                .collectAsStateWithLifecycle(initialValue = null)
+            val accountText =
+              if (isGuest.value) {
+                getString(R.string.drawer_guest_account)
+              } else {
+                signedInName?.takeIf { it.isNotBlank() } ?: AuditLog.user
+              }
             DrawerContent(
+              accountText = accountText,
               lastSyncText = uiState.lastSyncText,
               drawerItems = drawerItems,
               onDrawerItemSelected = ::onNavigationItemSelected,
@@ -346,7 +386,8 @@ class MainActivity : AppCompatActivity() {
               DiagnosticsDialog(
                 busy = diagnosticsBusy.value,
                 estimate = diagnosticsEstimate.value,
-                onSend = ::sendDiagnostics,
+                onSend = { options, range -> sendDiagnostics(options, range, download = false) },
+                onDownload = { options, range -> sendDiagnostics(options, range, download = true) },
                 onDismiss = { diagnosticsVisible.value = false },
               )
             }
@@ -1147,6 +1188,41 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
+  /**
+   * Settings > Change server. The app restarts on the new server. A signed-in user is signed out
+   * first, so their password is not sent to a server they never gave it to, and what was chosen on
+   * the previous server (location, patient lists) is dropped. Data on the device stays.
+   */
+  fun changeServer(url: String?) {
+    AuditLog.record(
+      AuditAction.SETTINGS_CHANGED,
+      AuditOutcome.SUCCESS,
+      "changed" to listOf("server"),
+    )
+    val wasGuest = GuestSession.isActive(this)
+    viewModel.setLoading(true)
+    updateOverlayVisibility()
+    lifecycleScope.launch {
+      withContext(Dispatchers.IO) {
+        ServerSettings.setOverride(this@MainActivity, url)
+        if (!wasGuest) {
+          val workManager = WorkManager.getInstance(this@MainActivity)
+          workManager.cancelAllWork()
+          workManager.pruneWork()
+          authStateManager.resetBasicAuthCredentials()
+          BiometricUtils.deleteBiometricKey(applicationContext)
+          clearSessionPreferences(clearData = true)
+        }
+        UserRegistry.forgetPersonalState(this@MainActivity)
+      }
+      if (!wasGuest) {
+        AuditLog.setUser(null)
+        UserRegistry.signOut(this@MainActivity)
+      }
+      ServerSettings.restartApp(this@MainActivity)
+    }
+  }
+
   private fun navigateToLogin() {
     val clearData = ClearDataOnLogoutStore.get(this)
     AuditLog.record(
@@ -1287,8 +1363,15 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
-  /** Builds the report the user chose on a background thread, then hands it to the mail app. */
-  private fun sendDiagnostics(options: Set<DiagnosticsOption>, range: DiagnosticsRange) {
+  /**
+   * Builds the report the user chose on a background thread, then hands it to the mail app, or
+   * (with [download]) asks where to save it as a file.
+   */
+  private fun sendDiagnostics(
+    options: Set<DiagnosticsOption>,
+    range: DiagnosticsRange,
+    download: Boolean,
+  ) {
     if (diagnosticsBusy.value) return
     diagnosticsBusy.value = true
     lifecycleScope.launch {
@@ -1304,8 +1387,18 @@ class MainActivity : AppCompatActivity() {
           AuditOutcome.SUCCESS,
           "included" to report.included.map { it.name },
           "range" to range.name,
+          "delivery" to if (download) "download" else "email",
         )
         diagnosticsVisible.value = false
+        if (download) {
+          diagnosticsToSave = report
+          val stamp =
+            java.text
+              .SimpleDateFormat("yyyyMMdd-HHmm", java.util.Locale.US)
+              .format(java.util.Date())
+          saveDiagnosticsLauncher.launch("openmrs-diagnostics-$stamp.zip")
+          return@launch
+        }
         val emailIntent =
           Intent(Intent.ACTION_SEND).apply {
             type = "application/zip"

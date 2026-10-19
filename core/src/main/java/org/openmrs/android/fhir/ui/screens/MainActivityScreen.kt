@@ -259,6 +259,7 @@ fun DrawerContent(
   drawerItems: List<DrawerItem>,
   onDrawerItemSelected: (Int) -> Unit,
   modifier: Modifier = Modifier,
+  accountText: String? = null,
 ) {
   val itemsById = remember(drawerItems) { drawerItems.associateBy { it.id } }
   val versionItem = itemsById[R.id.menu_version]
@@ -267,7 +268,11 @@ fun DrawerContent(
     modifier =
       modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.background),
   ) {
-    DrawerHeader(label = stringResource(R.string.last_sync), lastSyncValue = lastSyncText)
+    DrawerHeader(
+      label = stringResource(R.string.last_sync),
+      lastSyncValue = lastSyncText,
+      accountText = accountText,
+    )
 
     Column(
       modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(vertical = 8.dp),

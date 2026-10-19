@@ -46,7 +46,10 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -61,6 +64,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
@@ -197,6 +201,8 @@ fun DrawerHeader(
   label: String,
   lastSyncValue: String,
   modifier: Modifier = Modifier,
+  /** Who is signed in (or that nobody is); nothing is shown when `null`. */
+  accountText: String? = null,
 ) {
   val dark = isAppInDarkTheme()
   val barColor =
@@ -219,8 +225,32 @@ fun DrawerHeader(
       contentDescription = null,
       modifier = Modifier.height(40.dp),
     )
+    if (accountText != null) {
+      Row(
+        modifier = Modifier.padding(top = 16.dp).testTag("DrawerHeaderAccount"),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Icon(
+          imageVector = Icons.Filled.AccountCircle,
+          contentDescription = null,
+          tint = barContent,
+          modifier = Modifier.size(22.dp),
+        )
+        Text(
+          modifier = Modifier.padding(start = 8.dp),
+          text = accountText,
+          style = MaterialTheme.typography.titleSmall,
+          fontWeight = FontWeight.SemiBold,
+          color = barContent,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+        )
+      }
+    }
     Text(
-      modifier = Modifier.padding(top = 20.dp).testTag("DrawerHeaderLabel"),
+      modifier =
+        Modifier.padding(top = if (accountText != null) 12.dp else 20.dp)
+          .testTag("DrawerHeaderLabel"),
       text = label,
       style = MaterialTheme.typography.labelMedium,
       color = barContent.copy(alpha = 0.8f),

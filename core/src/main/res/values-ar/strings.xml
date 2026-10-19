@@ -699,6 +699,14 @@
     <string name="login_pending_counts">المرضى: %1$d · السجلات: %2$d</string>
     <string name="login_pending_records_only">السجلات: %1$d</string>
     <string name="login_pending_use_user">تسجيل الدخول بهذا المستخدم</string>
+    <string name="settings_change_server">تغيير الخادم</string>
+    <string name="server_change_title">تغيير الخادم؟</string>
+    <string name="server_change_message">سيستخدم التطبيق %1$s ويُعاد تشغيله. سيتم تسجيل خروجك وستسجّل الدخول على الخادم الجديد. تبقى البيانات على هذا الجهاز، لكنها من الخادم السابق: كل ما ينتظر الرفع سيُرسل إلى الخادم الجديد.</string>
+    <string name="server_change_confirm">تغيير وتسجيل الخروج</string>
+    <string name="diag_download">تنزيل</string>
+    <string name="diag_saved">تم حفظ تقرير التشخيص.</string>
+    <string name="diag_save_failed">تعذّر حفظ تقرير التشخيص.</string>
+    <string name="drawer_guest_account">ضيف (غير مسجّل الدخول)</string>
     <string name="splash_go_to_login">صفحة تسجيل الدخول</string>
     <string name="splash_login_page_hint">في صفحة تسجيل الدخول يمكنك تغيير الخادم.</string>
     <string name="splash_login_page_hint_guest">في صفحة تسجيل الدخول يمكنك تغيير الخادم أو المتابعة بدون تسجيل الدخول.</string>

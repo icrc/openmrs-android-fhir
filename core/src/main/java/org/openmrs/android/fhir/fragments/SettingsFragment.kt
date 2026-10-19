@@ -166,6 +166,7 @@ class SettingsFragment : Fragment() {
           onAutomaticVisitsToggle = settingsViewModel::onAutomaticVisitsToggle,
           onShareMyDataToggle = settingsViewModel::onShareMyDataToggle,
           onRememberLocationToggle = settingsViewModel::onRememberLocationToggle,
+          onServerChanged = { url -> (activity as? MainActivity)?.changeServer(url) },
           selectedLanguage = AppLanguage.current(context),
           onLanguageSelected = { AppLanguage.apply(context, it) },
           onInitialSyncClicked = {

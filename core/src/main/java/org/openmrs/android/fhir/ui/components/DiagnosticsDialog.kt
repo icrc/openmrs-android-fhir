@@ -62,6 +62,7 @@ import org.openmrs.android.fhir.data.diagnostics.DiagnosticsRange
 object DiagnosticsDialogTestTags {
   const val Dialog = "DiagnosticsDialog"
   const val Send = "DiagnosticsSend"
+  const val Download = "DiagnosticsDownload"
   const val Cancel = "DiagnosticsCancel"
 
   fun option(option: DiagnosticsOption) = "DiagnosticsOption_${option.name}"
@@ -91,6 +92,8 @@ fun DiagnosticsDialog(
   estimate: DiagnosticsEstimate?,
   onSend: (Set<DiagnosticsOption>, DiagnosticsRange) -> Unit,
   onDismiss: () -> Unit,
+  /** Saves the report as a file instead of sending it; no button when `null`. */
+  onDownload: ((Set<DiagnosticsOption>, DiagnosticsRange) -> Unit)? = null,
 ) {
   val context = androidx.compose.ui.platform.LocalContext.current
   var range by rememberSaveable { mutableStateOf(DiagnosticsRange.EVERYTHING) }
@@ -179,12 +182,23 @@ fun DiagnosticsDialog(
       }
     },
     confirmButton = {
-      TextButton(
-        onClick = { onSend(chosen, range) },
-        enabled = !busy && chosen.isNotEmpty(),
-        modifier = Modifier.testTag(DiagnosticsDialogTestTags.Send),
-      ) {
-        Text(text = stringResource(R.string.diag_send))
+      Row {
+        if (onDownload != null) {
+          TextButton(
+            onClick = { onDownload(chosen, range) },
+            enabled = !busy && chosen.isNotEmpty(),
+            modifier = Modifier.testTag(DiagnosticsDialogTestTags.Download),
+          ) {
+            Text(text = stringResource(R.string.diag_download))
+          }
+        }
+        TextButton(
+          onClick = { onSend(chosen, range) },
+          enabled = !busy && chosen.isNotEmpty(),
+          modifier = Modifier.testTag(DiagnosticsDialogTestTags.Send),
+        ) {
+          Text(text = stringResource(R.string.diag_send))
+        }
       }
     },
     dismissButton = {

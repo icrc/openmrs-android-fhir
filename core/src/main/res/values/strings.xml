@@ -725,6 +725,14 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="login_pending_counts">Patients: %1$d · Records: %2$d</string>
     <string name="login_pending_records_only">Records: %1$d</string>
     <string name="login_pending_use_user">Log in as this user</string>
+    <string name="settings_change_server">Change server</string>
+    <string name="server_change_title">Change the server?</string>
+    <string name="server_change_message">The app will use %1$s and restart. You will be signed out and asked to log in on the new server. Data on this device stays, but it came from the previous server: anything still waiting to upload will be sent to the new one.</string>
+    <string name="server_change_confirm">Change and sign out</string>
+    <string name="diag_download">Download</string>
+    <string name="diag_saved">Diagnostics report saved.</string>
+    <string name="diag_save_failed">Could not save the diagnostics report.</string>
+    <string name="drawer_guest_account">Guest (not signed in)</string>
     <string name="splash_go_to_login">Login page</string>
     <string name="splash_login_page_hint">On the login page you can change the server.</string>
     <string name="splash_login_page_hint_guest">On the login page you can change the server or continue without signing in.</string>

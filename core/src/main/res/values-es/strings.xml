@@ -761,6 +761,14 @@
     <string name="login_pending_counts">Pacientes: %1$d · Registros: %2$d</string>
     <string name="login_pending_records_only">Registros: %1$d</string>
     <string name="login_pending_use_user">Iniciar sesión con este usuario</string>
+    <string name="settings_change_server">Cambiar de servidor</string>
+    <string name="server_change_title">¿Cambiar de servidor?</string>
+    <string name="server_change_message">La aplicación usará %1$s y se reiniciará. Se cerrará su sesión y deberá iniciarla en el nuevo servidor. Los datos de este dispositivo se conservan, pero vienen del servidor anterior: lo que aún espera para subirse se enviará al nuevo.</string>
+    <string name="server_change_confirm">Cambiar y cerrar sesión</string>
+    <string name="diag_download">Descargar</string>
+    <string name="diag_saved">Informe de diagnóstico guardado.</string>
+    <string name="diag_save_failed">No se pudo guardar el informe de diagnóstico.</string>
+    <string name="drawer_guest_account">Invitado (sin sesión)</string>
     <string name="splash_go_to_login">Página de inicio de sesión</string>
     <string name="splash_login_page_hint">En la página de inicio de sesión puede cambiar el servidor.</string>
     <string name="splash_login_page_hint_guest">En la página de inicio de sesión puede cambiar el servidor o continuar sin iniciar sesión.</string>

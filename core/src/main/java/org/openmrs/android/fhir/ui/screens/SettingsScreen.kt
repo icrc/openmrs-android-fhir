@@ -45,6 +45,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
@@ -124,6 +125,7 @@ object SettingsTestTags {
   const val KeepLivePatientsSwitch = "SettingsKeepLivePatientsSwitch"
   const val AutomaticVisitsSwitch = "SettingsAutomaticVisitsSwitch"
   const val ShareMyDataSwitch = "SettingsShareMyDataSwitch"
+  const val ChangeServerButton = "SettingsChangeServerButton"
   const val RememberLocationSwitch = "SettingsRememberLocationSwitch"
   const val FavoriteFormsButton = "SettingsFavoriteFormsButton"
   const val IdentifierTypesButton = "SettingsIdentifierTypesButton"
@@ -187,6 +189,8 @@ fun SettingsScreen(
   onAutomaticVisitsToggle: (Boolean) -> Unit = {},
   onShareMyDataToggle: (Boolean) -> Unit = {},
   onRememberLocationToggle: (Boolean) -> Unit = {},
+  /** Called with the new server (`null`: the build's default) once the user confirmed. */
+  onServerChanged: ((String?) -> Unit)? = null,
   favoriteFormOptions: List<FormItem>? = null,
   favoriteFormIds: List<String> = emptyList(),
   onFavoriteFormsSaved: ((List<String>) -> Unit)? = null,
@@ -245,7 +249,7 @@ fun SettingsScreen(
           testTag = SettingsTestTags.NetworkSwitch,
         )
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        ConnectionTest()
+        ConnectionTest(onServerChanged)
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         SettingsSwitchRow(
           label = stringResource(R.string.settings_auto_sync),
@@ -1076,11 +1080,14 @@ private fun DangerZone(unsyncedCount: Int, onRequested: () -> Unit, onConfirmed:
  * check and the same answers as the login page's server dialog.
  */
 @Composable
-private fun ConnectionTest() {
+private fun ConnectionTest(onServerChanged: ((String?) -> Unit)?) {
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
   val server = remember { ServerSettings.activeUrl(context) }
   var state by remember { mutableStateOf<TestState>(TestState.Idle) }
+  var choosingServer by remember { mutableStateOf(false) }
+  var confirmServer by remember { mutableStateOf<String?>(null) }
+  var confirming by remember { mutableStateOf(false) }
   Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
     Text(
       text = stringResource(R.string.settings_connection_description, server),
@@ -1105,6 +1112,57 @@ private fun ConnectionTest() {
       Text(text = stringResource(R.string.test_connection))
     }
     TestStatus(state)
+    if (onServerChanged != null) {
+      OutlinedButton(
+        onClick = { choosingServer = true },
+        modifier =
+          Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.ChangeServerButton),
+      ) {
+        Icon(
+          imageVector = Icons.Default.Dns,
+          contentDescription = null,
+          modifier = Modifier.size(18.dp),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = stringResource(R.string.settings_change_server))
+      }
+    }
+  }
+  if (choosingServer && onServerChanged != null) {
+    ServerSettingsDialog(
+      onDismiss = { choosingServer = false },
+      showLanguage = false,
+      onSave = { url ->
+        choosingServer = false
+        confirming = true
+        confirmServer = url
+      },
+    )
+  }
+  if (confirming && onServerChanged != null) {
+    // `null` is the build's default server.
+    val target = confirmServer ?: ServerSettings.defaultUrl(context)
+    AlertDialog(
+      onDismissRequest = { confirming = false },
+      title = { Text(text = stringResource(R.string.server_change_title)) },
+      text = { Text(text = stringResource(R.string.server_change_message, target)) },
+      confirmButton = {
+        TextButton(
+          onClick = {
+            confirming = false
+            onServerChanged(confirmServer)
+          },
+          modifier = Modifier.testTag("SettingsChangeServerConfirm"),
+        ) {
+          Text(text = stringResource(R.string.server_change_confirm))
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = { confirming = false }) {
+          Text(text = stringResource(R.string.cancel))
+        }
+      },
+    )
   }
 }
 

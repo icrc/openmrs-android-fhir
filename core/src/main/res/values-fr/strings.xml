@@ -787,6 +787,14 @@
     <string name="login_pending_counts">Patients : %1$d · Enregistrements : %2$d</string>
     <string name="login_pending_records_only">Enregistrements : %1$d</string>
     <string name="login_pending_use_user">Se connecter avec cet utilisateur</string>
+    <string name="settings_change_server">Changer de serveur</string>
+    <string name="server_change_title">Changer de serveur ?</string>
+    <string name="server_change_message">L\'application utilisera %1$s et redémarrera. Vous serez déconnecté et devrez vous connecter sur le nouveau serveur. Les données de cet appareil restent, mais elles viennent de l\'ancien serveur : ce qui attend encore d\'être envoyé sera envoyé au nouveau.</string>
+    <string name="server_change_confirm">Changer et se déconnecter</string>
+    <string name="diag_download">Télécharger</string>
+    <string name="diag_saved">Rapport de diagnostic enregistré.</string>
+    <string name="diag_save_failed">Impossible d\'enregistrer le rapport de diagnostic.</string>
+    <string name="drawer_guest_account">Invité (non connecté)</string>
     <string name="splash_go_to_login">Page de connexion</string>
     <string name="splash_login_page_hint">Sur la page de connexion, vous pouvez changer de serveur.</string>
     <string name="splash_login_page_hint_guest">Sur la page de connexion, vous pouvez changer de serveur ou continuer sans vous connecter.</string>

@@ -173,6 +173,17 @@ object UserRegistry {
     prefs(context).edit().remove(KEY_ACTIVE).apply()
   }
 
+  /**
+   * The app now talks to another server: what was kept per user (their location, their patient
+   * lists) was chosen on the previous one and is dropped. Who has used the device stays.
+   */
+  fun forgetPersonalState(context: Context) {
+    val preferences = prefs(context)
+    val editor = preferences.edit()
+    preferences.all.keys.filter { it.startsWith("state:") }.forEach { editor.remove(it) }
+    editor.remove(KEY_STATE_OWNER).apply()
+  }
+
   /** The device was wiped: nobody has used it yet. */
   fun reset(context: Context) {
     prefs(context).edit().clear().apply()

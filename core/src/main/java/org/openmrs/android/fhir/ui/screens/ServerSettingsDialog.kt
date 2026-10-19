@@ -81,7 +81,17 @@ internal sealed interface TestState {
  * answers before saving. Saving restarts the app so every component uses the new server.
  */
 @Composable
-fun ServerSettingsDialog(onDismiss: () -> Unit, showServer: Boolean = true) {
+fun ServerSettingsDialog(
+  onDismiss: () -> Unit,
+  showServer: Boolean = true,
+  /** Without the language choice, for the page that only changes the server. */
+  showLanguage: Boolean = true,
+  /**
+   * Called with the chosen server (`null` for the build's default) instead of saving it and
+   * restarting, when the caller has more to do first.
+   */
+  onSave: ((String?) -> Unit)? = null,
+) {
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
   val defaultUrl = remember { ServerSettings.defaultUrl(context) }
@@ -91,6 +101,10 @@ fun ServerSettingsDialog(onDismiss: () -> Unit, showServer: Boolean = true) {
   val normalized = ServerSettings.normalize(input)
 
   fun save(url: String?) {
+    if (onSave != null) {
+      onSave(url)
+      return
+    }
     ServerSettings.setOverride(context, url)
     ServerSettings.restartApp(context)
   }
@@ -98,30 +112,39 @@ fun ServerSettingsDialog(onDismiss: () -> Unit, showServer: Boolean = true) {
   AlertDialog(
     onDismissRequest = onDismiss,
     shape = RoundedCornerShape(24.dp),
-    title = { Text(text = stringResource(R.string.settings)) },
+    title = {
+      Text(
+        text =
+          stringResource(if (showLanguage) R.string.settings else R.string.server_settings_title),
+      )
+    },
     text = {
       Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.verticalScroll(rememberScrollState()),
       ) {
-        Text(
-          text = stringResource(R.string.settings_language),
-          style = MaterialTheme.typography.labelLarge,
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.primary,
-        )
-        LanguagePicker(
-          selected = AppLanguage.current(context),
-          onSelected = { AppLanguage.apply(context, it) },
-        )
+        if (showLanguage) {
+          Text(
+            text = stringResource(R.string.settings_language),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+          )
+          LanguagePicker(
+            selected = AppLanguage.current(context),
+            onSelected = { AppLanguage.apply(context, it) },
+          )
+        }
         if (!showServer) return@Column
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        Text(
-          text = stringResource(R.string.server_settings_title),
-          style = MaterialTheme.typography.labelLarge,
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.primary,
-        )
+        if (showLanguage) {
+          HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+          Text(
+            text = stringResource(R.string.server_settings_title),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+          )
+        }
         Text(
           text = stringResource(R.string.server_settings_description),
           style = MaterialTheme.typography.bodyMedium,
