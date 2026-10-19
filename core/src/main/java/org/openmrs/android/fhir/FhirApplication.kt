@@ -59,6 +59,7 @@ import org.openmrs.android.fhir.extensions.CompactGroupsProviderFactory
 import org.openmrs.android.fhir.extensions.FileLoggingTree
 import org.openmrs.android.fhir.extensions.ThemeModeStore
 import org.openmrs.android.fhir.extensions.bundledFormSummaries
+import org.openmrs.android.fhir.ui.tutorial.FirstRunTutorial
 import timber.log.Timber
 
 class FhirApplication : Application(), DataCaptureConfig.Provider {
@@ -75,6 +76,8 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     super.onCreate()
     ThemeModeStore.applySaved(this)
     ColorVisionStore.install(this)
+    // Decides, once, whether this is a fresh installation (the first-run tour is for those).
+    FirstRunTutorial.init(this)
     AuditLog.init(this)
     AuditLog.record(
       AuditAction.APP_STARTED,

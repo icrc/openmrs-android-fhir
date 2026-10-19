@@ -76,6 +76,8 @@ import org.openmrs.android.fhir.ui.components.LastEncounterLabel
 import org.openmrs.android.fhir.ui.components.PatientListContainerScreen
 import org.openmrs.android.fhir.ui.components.PatientListItemRow
 import org.openmrs.android.fhir.ui.screens.UnidentifiedNoteDialog
+import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
+import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 import org.openmrs.android.fhir.viewmodel.PatientListUiState
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 
@@ -122,7 +124,9 @@ fun PatientListScreen(
             )
           }
           ExtendedFloatingActionButton(
-            modifier = Modifier.testTag(PatientListScreenTestTags.Fab),
+            modifier =
+              Modifier.testTag(PatientListScreenTestTags.Fab)
+                .tutorialTarget(TutorialTargets.PATIENT_REGISTER),
             onClick = onFabClick,
             icon = { Icon(imageVector = Icons.Default.Add, contentDescription = null) },
             text = { Text(text = stringResource(id = R.string.register_patient)) },
@@ -263,7 +267,10 @@ private fun PatientSearchField(
     value = query,
     onValueChange = onQueryChange,
     placeholder = stringResource(id = R.string.query_hint_patient_search),
-    modifier = modifier.testTag(PatientListScreenTestTags.SearchField),
+    modifier =
+      modifier
+        .testTag(PatientListScreenTestTags.SearchField)
+        .tutorialTarget(TutorialTargets.PATIENT_SEARCH),
   )
 }
 

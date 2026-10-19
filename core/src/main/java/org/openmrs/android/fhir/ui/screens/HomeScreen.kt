@@ -66,6 +66,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.extensions.rememberActionBarContentPadding
+import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
+import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 
 object HomeTestTags {
   const val Screen = "HomeScreen"
@@ -264,6 +266,13 @@ private fun HomeDashboardCard(
       Modifier.fillMaxWidth()
         .padding(vertical = 6.dp)
         .testTag(config.testTag)
+        .then(
+          if (config.type == HomeCardType.PatientList) {
+            Modifier.tutorialTarget(TutorialTargets.HOME_PATIENTS)
+          } else {
+            Modifier
+          },
+        )
         .clickable(onClick = onClick),
     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),

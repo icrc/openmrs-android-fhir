@@ -54,6 +54,7 @@ import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.HomeScreen
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.ui.tutorial.FirstRunTutorial
 import org.openmrs.android.fhir.viewmodel.HomeEvent
 import org.openmrs.android.fhir.viewmodel.HomeViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
@@ -103,6 +104,8 @@ class HomeFragment : Fragment() {
     setHasOptionsMenu(true)
     mainActivityViewModel.setDrawerEnabled(true)
     observeHomeEvents()
+    // The first-run tour, once the screen has been laid out so that it can point at it.
+    view.post { FirstRunTutorial.startIfPending(requireContext()) }
   }
 
   @Deprecated("Deprecated in Java")

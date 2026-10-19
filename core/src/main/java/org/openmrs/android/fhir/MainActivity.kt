@@ -129,6 +129,7 @@ import org.openmrs.android.fhir.ui.screens.IdentifyPatientDialog
 import org.openmrs.android.fhir.ui.screens.MainActivityOverlays
 import org.openmrs.android.fhir.ui.screens.MainActivityScaffold
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.ui.tutorial.TutorialOverlay
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
 import timber.log.Timber
@@ -382,6 +383,14 @@ class MainActivity : AppCompatActivity() {
       }
     }
     updateOverlayVisibility()
+    // The tour: drawn above the whole window, and nothing at all while none runs.
+    addContentView(
+      ComposeView(this).apply { setContent { OpenMrsTheme { TutorialOverlay() } } },
+      android.view.ViewGroup.LayoutParams(
+        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+      ),
+    )
     // The send-diagnostics choices: a dialog window, so this view takes no room.
     addContentView(
       ComposeView(this).apply {

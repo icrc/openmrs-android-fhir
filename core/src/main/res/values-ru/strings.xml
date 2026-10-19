@@ -775,6 +775,17 @@
     <string name="sync_page_mode_both">Обе</string>
     <string name="sync_download_only_hint">Ожидающее отправки остаётся на этом устройстве, пока вы его не отправите.</string>
     <string name="patient_lists_downloading">Загрузка пациентов из списков…</string>
+    <string name="tutorial_step_counter">Шаг %1$d из %2$d</string>
+    <string name="tutorial_close">Закрыть обзор</string>
+    <string name="tutorial_skip">Пропустить обзор</string>
+    <string name="tutorial_next">Понятно</string>
+    <string name="tutorial_tap_to_continue">Нажмите на выделенный элемент, чтобы продолжить</string>
+    <string name="tutorial_home_patients_title">Найдите своих пациентов</string>
+    <string name="tutorial_home_patients_body">Откройте «Пациенты», чтобы искать и открывать пациентов на этом устройстве.</string>
+    <string name="tutorial_patients_search_title">Поиск</string>
+    <string name="tutorial_patients_search_body">Введите имя или идентификатор, чтобы найти пациента. Пациентов, которых нет на устройстве, можно искать на сервере в режиме реального времени.</string>
+    <string name="tutorial_patients_register_title">Зарегистрировать пациента</string>
+    <string name="tutorial_patients_register_body">Нажмите «Зарегистрировать пациента», чтобы добавить нового пациента. На этом обзор заканчивается.</string>
     <string name="patient_lists_download_later">Пациенты будут загружены при следующей синхронизации.</string>
     <plurals name="patient_lists_downloaded">
         <item quantity="one">%d пациент загружен</item>

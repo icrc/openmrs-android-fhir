@@ -762,6 +762,17 @@
     <string name="sync_page_mode_both">Ambos</string>
     <string name="sync_download_only_hint">Lo que espera para subirse se queda en este dispositivo hasta que lo suba.</string>
     <string name="patient_lists_downloading">Descargando los pacientes de las listas…</string>
+    <string name="tutorial_step_counter">Paso %1$d de %2$d</string>
+    <string name="tutorial_close">Cerrar la visita guiada</string>
+    <string name="tutorial_skip">Omitir la visita</string>
+    <string name="tutorial_next">Entendido</string>
+    <string name="tutorial_tap_to_continue">Toque el elemento resaltado para continuar</string>
+    <string name="tutorial_home_patients_title">Encuentre a sus pacientes</string>
+    <string name="tutorial_home_patients_body">Abra Pacientes para buscar y abrir los pacientes de este dispositivo.</string>
+    <string name="tutorial_patients_search_title">Búsqueda</string>
+    <string name="tutorial_patients_search_body">Escriba un nombre o un identificador para encontrar a un paciente. Los pacientes que no están en este dispositivo se pueden buscar en el servidor en modo directo.</string>
+    <string name="tutorial_patients_register_title">Registrar un paciente</string>
+    <string name="tutorial_patients_register_body">Toque Registrar paciente para añadir un paciente nuevo. Aquí termina la visita.</string>
     <string name="patient_lists_download_later">Los pacientes se descargarán en la próxima sincronización.</string>
     <plurals name="patient_lists_downloaded">
         <item quantity="one">%d paciente descargado</item>
