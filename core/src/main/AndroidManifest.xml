@@ -31,5 +31,14 @@
                 android:resource="@xml/file_paths"
             />
         </provider>
+        <!-- Scans the QR code of the settings of another device (Share settings > Import). -->
+        <activity
+            android:name=".settingsshare.SettingsScanActivity"
+            android:exported="false"
+            android:screenOrientation="fullSensor"
+            android:stateNotNeeded="true"
+            android:theme="@style/zxing_CaptureTheme"
+            android:windowSoftInputMode="stateAlwaysHidden"
+        />
     </application>
 </manifest>

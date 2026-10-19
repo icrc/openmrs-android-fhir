@@ -125,6 +125,7 @@ object Versions {
   const val loggingInterceptor = "4.12.0"
   const val biometric = "1.1.0"
   const val zip4j = "2.11.6"
+  const val zxingEmbedded = "4.3.0"
 }
 
 dependencies {
@@ -167,6 +168,8 @@ dependencies {
   implementation("net.openid:appauth:${Versions.appauth}")
   implementation("com.auth0.android:jwtdecode:${Versions.jwtdecode}")
   implementation("net.lingala.zip4j:zip4j:${Versions.zip4j}")
+  // QR codes: drawing the settings to share, and the scanner that reads them.
+  implementation("com.journeyapps:zxing-android-embedded:${Versions.zxingEmbedded}")
   implementation("com.google.android.fhir:engine:${Versions.fhirEngine}")
   implementation("com.google.android.fhir:data-capture:${Versions.fhirDataCapture}")
   implementation("androidx.biometric:biometric:${Versions.biometric}")

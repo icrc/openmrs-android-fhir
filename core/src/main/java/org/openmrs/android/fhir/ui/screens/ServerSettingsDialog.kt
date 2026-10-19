@@ -110,15 +110,7 @@ fun ServerSettingsDialog(
       onSave(url)
       return
     }
-    ServerSettings.setOverride(context, url)
-    // Saved from the login page: back to the login page, not through the splash screen (which
-    // would go on to a guest session or the server dialogs).
-    val login = context.findActivity() as? LoginActivity
-    if (login != null) {
-      ServerSettings.restartApp(context, LoginActivity::class.java, login.intent.extras)
-    } else {
-      ServerSettings.restartApp(context)
-    }
+    saveServerAndRestart(context, url)
   }
 
   AlertDialog(
@@ -304,7 +296,21 @@ private fun failureMessage(failure: ServerSettings.TestResult.Failure): Int =
     ServerSettings.Reason.Unreachable -> R.string.connection_error_unreachable
   }
 
-private tailrec fun Context.findActivity(): Activity? =
+/**
+ * Saves the server and restarts the app. From the login page it restarts on the login page, not
+ * through the splash screen (which would go on to a guest session or the server dialogs).
+ */
+internal fun saveServerAndRestart(context: Context, url: String?) {
+  ServerSettings.setOverride(context, url)
+  val login = context.findActivity() as? LoginActivity
+  if (login != null) {
+    ServerSettings.restartApp(context, LoginActivity::class.java, login.intent.extras)
+  } else {
+    ServerSettings.restartApp(context)
+  }
+}
+
+internal tailrec fun Context.findActivity(): Activity? =
   when (this) {
     is Activity -> this
     is ContextWrapper -> baseContext.findActivity()

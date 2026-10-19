@@ -9,4 +9,10 @@
         android:title="@string/settings_reset_menu"
         app:showAsAction="always"
     />
+    <item
+        android:id="@+id/menu_settings_share"
+        android:icon="@drawable/ic_settings_share"
+        android:title="@string/share_title"
+        app:showAsAction="always"
+    />
 </menu>

@@ -53,6 +53,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -119,6 +120,7 @@ private fun LoginFrame(
   }
   // Kept across the recreation a theme change causes, so the dialog stays open.
   var showServerDialog by rememberSaveable { mutableStateOf(false) }
+  var showShareDialog by rememberSaveable { mutableStateOf(false) }
 
   Box(
     modifier =
@@ -156,6 +158,16 @@ private fun LoginFrame(
       )
       footerActions()
       IconButton(
+        onClick = { showShareDialog = true },
+        modifier = Modifier.size(40.dp).testTag("ShareSettingsButton"),
+      ) {
+        Icon(
+          imageVector = Icons.Filled.QrCode2,
+          contentDescription = stringResource(R.string.share_title),
+          tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+      IconButton(
         onClick = { showServerDialog = true },
         modifier = Modifier.size(40.dp).testTag("ServerSettingsButton"),
       ) {
@@ -168,6 +180,9 @@ private fun LoginFrame(
     }
   }
 
+  if (showShareDialog) {
+    ShareSettingsDialog(onDismiss = { showShareDialog = false })
+  }
   if (showServerDialog) {
     ServerSettingsDialog(
       onDismiss = { showServerDialog = false },

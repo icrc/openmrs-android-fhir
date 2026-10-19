@@ -76,6 +76,7 @@ import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.SettingsDefaults
 import org.openmrs.android.fhir.ui.screens.SettingsScreen
+import org.openmrs.android.fhir.ui.screens.ShareSettingsDialog
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.FavoriteFormsViewModel
 import org.openmrs.android.fhir.viewmodel.IdentifierSelectionViewModel
@@ -99,6 +100,7 @@ class SettingsFragment : Fragment() {
   private val themeSelection = mutableStateOf(ThemeMode.SYSTEM)
   private val colorVisionSelection = mutableStateOf(ColorVisionMode.STANDARD)
   private val unsyncedCount = mutableStateOf(0)
+  private val showShare = mutableStateOf(false)
   private val clearDataOnLogout = mutableStateOf(true)
   private val embeddedFormsSelection = mutableStateOf(true)
 
@@ -138,6 +140,14 @@ class SettingsFragment : Fragment() {
       val customSections by favoriteFormsViewModel.customSections.collectAsStateWithLifecycle()
       val defaultSections by favoriteFormsViewModel.defaultSections.collectAsStateWithLifecycle()
       OpenMrsTheme {
+        if (showShare.value) {
+          ShareSettingsDialog(
+            onDismiss = { showShare.value = false },
+            onApplyServer = { url -> (activity as? MainActivity)?.changeServer(url) },
+            // Every value on this page is read again.
+            onApplied = { activity?.recreate() },
+          )
+        }
         SettingsScreen(
           uiState = uiState,
           favoriteFormOptions = favoriteForms,
@@ -267,6 +277,10 @@ class SettingsFragment : Fragment() {
       }
       R.id.menu_settings_reset -> {
         confirmResetToDefaults()
+        true
+      }
+      R.id.menu_settings_share -> {
+        showShare.value = true
         true
       }
       else -> false

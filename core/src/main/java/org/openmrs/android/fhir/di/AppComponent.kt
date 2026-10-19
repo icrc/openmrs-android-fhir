@@ -55,6 +55,7 @@ import org.openmrs.android.fhir.fragments.SelectPatientListFragment
 import org.openmrs.android.fhir.fragments.SettingsFragment
 import org.openmrs.android.fhir.fragments.SyncInfoFragment
 import org.openmrs.android.fhir.multiuser.UserDataLedger
+import org.openmrs.android.fhir.settingsshare.SettingsShare
 import org.openmrs.android.fhir.unidentified.UnidentifiedPatients
 import org.openmrs.android.fhir.unidentified.UnidentifiedStore
 
@@ -89,6 +90,8 @@ interface AppComponent {
   fun userDataLedger(): UserDataLedger
 
   fun unidentifiedPatients(): UnidentifiedPatients
+
+  fun settingsShare(): SettingsShare
 
   fun unidentifiedStore(): UnidentifiedStore
 
