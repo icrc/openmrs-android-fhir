@@ -124,6 +124,7 @@ import org.openmrs.android.fhir.ui.components.TopLevelDestination
 import org.openmrs.android.fhir.ui.components.topLevelDestinationFor
 import org.openmrs.android.fhir.ui.screens.DrawerContent
 import org.openmrs.android.fhir.ui.screens.DrawerItem
+import org.openmrs.android.fhir.ui.screens.IdentifyPatientDialog
 import org.openmrs.android.fhir.ui.screens.MainActivityOverlays
 import org.openmrs.android.fhir.ui.screens.MainActivityScaffold
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
@@ -159,6 +160,9 @@ class MainActivity : AppCompatActivity() {
 
   private val diagnosticsVisible = androidx.compose.runtime.mutableStateOf(false)
   private val diagnosticsBusy = androidx.compose.runtime.mutableStateOf(false)
+
+  /** The list of patients to identify after, with the search that identifies them. */
+  private val identifyVisible = androidx.compose.runtime.mutableStateOf(false)
   private val diagnosticsEstimate =
     androidx.compose.runtime.mutableStateOf<DiagnosticsEstimate?>(null)
 
@@ -382,6 +386,19 @@ class MainActivity : AppCompatActivity() {
       ComposeView(this).apply {
         setContent {
           OpenMrsTheme {
+            if (identifyVisible.value) {
+              IdentifyPatientDialog(
+                entryId = null,
+                onDismiss = { identifyVisible.value = false },
+                onIdentified = { _, moved ->
+                  AppMessage.show(
+                    this@MainActivity,
+                    getString(R.string.identify_done, moved),
+                    MessageKind.Success,
+                  )
+                },
+              )
+            }
             if (diagnosticsVisible.value) {
               DiagnosticsDialog(
                 busy = diagnosticsBusy.value,
@@ -755,13 +772,44 @@ class MainActivity : AppCompatActivity() {
       return
     }
     lifecycleScope.launch {
-      // Nothing is uploaded before a location is chosen: it is stamped on what the user entered.
-      if (applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID].isNullOrBlank()) {
-        sendToLocationSelection()
+      // Records entered for patients "to identify after" are not sent: ask to identify them first.
+      val waiting = FhirApplication.appComponent(applicationContext).unidentifiedPatients().count()
+      if (waiting > 0) {
+        showUnidentifiedPrompt(waiting)
         return@launch
       }
-      syncWithLocation()
+      syncChecked()
     }
+  }
+
+  private suspend fun syncChecked() {
+    // Nothing is uploaded before a location is chosen: it is stamped on what the user entered.
+    if (applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID].isNullOrBlank()) {
+      sendToLocationSelection()
+      return
+    }
+    syncWithLocation()
+  }
+
+  /**
+   * Some patients were recorded to be identified after. They are never part of a sync (automatic or
+   * not); this is the user's chance to find them on the server before syncing the rest.
+   */
+  private fun showUnidentifiedPrompt(waiting: Int) {
+    closeNavigationDrawer()
+    MaterialAlertDialogBuilder(this)
+      .setTitle(getString(R.string.identify_sync_title))
+      .setMessage(getString(R.string.identify_sync_message, waiting))
+      .setPositiveButton(getString(R.string.identify_sync_now)) { dialog, _ ->
+        dialog.dismiss()
+        identifyVisible.value = true
+      }
+      .setNegativeButton(getString(R.string.identify_sync_anyway)) { dialog, _ ->
+        dialog.dismiss()
+        lifecycleScope.launch { syncChecked() }
+      }
+      .setNeutralButton(getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
+      .show()
   }
 
   private fun sendToLocationSelection() {
@@ -1114,6 +1162,17 @@ class MainActivity : AppCompatActivity() {
         )
       }
     }
+    // Records for patients "to identify after" are not in the upload count: say what happens.
+    val toIdentify = FhirApplication.appComponent(applicationContext).unidentifiedPatients().count()
+    if (toIdentify > 0) {
+      message.append("\n\n")
+      message.append(
+        getString(
+          if (clearData) R.string.identify_logout_lost else R.string.identify_logout_kept,
+          toIdentify,
+        ),
+      )
+    }
     MaterialAlertDialogBuilder(this)
       .setTitle(getString(R.string.logout))
       .setMessage(message)
@@ -1301,6 +1360,7 @@ class MainActivity : AppCompatActivity() {
     fhirEngine.clearDatabase()
     demoDataStore.clearAll()
     database.clearAllTables()
+    FhirApplication.appComponent(applicationContext).unidentifiedPatients().forget()
     // Nothing of any user is left on the device.
     UserRegistry.reset(applicationContext)
     authStateManager.resetBasicAuthCredentials()

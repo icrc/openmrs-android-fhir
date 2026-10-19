@@ -77,6 +77,7 @@ import org.openmrs.android.fhir.extensions.FormSummary
 import org.openmrs.android.fhir.extensions.allFormSummaries
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.toLocalString
+import org.openmrs.android.fhir.unidentified.UnidentifiedPatients
 import timber.log.Timber
 
 /**
@@ -89,6 +90,7 @@ constructor(
   private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
   private val openMRSHelper: OpenMRSHelper,
+  private val unidentified: UnidentifiedPatients,
   @Assisted val state: SavedStateHandle,
 ) : ViewModel() {
 
@@ -180,6 +182,7 @@ constructor(
     return data.sortedBy {
       when (it) {
         is PatientDetailOverview -> false
+        is PatientDetailUnidentified -> false
         is PatientDetailHeader -> false
         is PatientDetailEncounter -> it.encounter.isSynced
         else -> true
@@ -211,13 +214,17 @@ constructor(
       runBlocking {
         patientItem.isSynced =
           fhirEngine.getLocalChanges(ResourceType.Patient, patientItem.resourceId).isEmpty()
+        val toIdentify = unidentified.note(patientItem.resourceId)
         add(
           PatientDetailOverview(
             patientItem,
             firstInGroup = true,
-            extraDetails = extraDetailsOf(patient, patientItem.phone),
+            extraDetails =
+              if (toIdentify == null) extraDetailsOf(patient, patientItem.phone) else emptyList(),
+            unidentified = toIdentify != null,
           ),
         )
+        if (toIdentify != null) add(PatientDetailUnidentified(toIdentify))
         if (patientItem.isSynced != null && !patientItem.isSynced!!) {
           add(PatientUnsynced(false, false))
         }
@@ -363,6 +370,14 @@ constructor(
       .replace(Regex("([a-z])([A-Z])"), "$1 $2")
       .replace('_', ' ')
       .replaceFirstChar { it.titlecase(Locale.getDefault()) }
+
+  /** The note of a patient to identify after, rewritten. */
+  fun updateNote(note: String) {
+    viewModelScope.launch {
+      unidentified.updateNote(patientId, note)
+      getPatientDetailData()
+    }
+  }
 
   /** Visits are created for the user (the default) or opened and ended by them. */
   suspend fun automaticVisits(): Boolean = openMRSHelper.automaticVisits()
@@ -557,6 +572,15 @@ data class PatientDetailOverview(
   override val lastInGroup: Boolean = false,
   /** Everything else the record holds, shown on request ("Show all details"). */
   val extraDetails: List<PatientExtraDetail> = emptyList(),
+  /** A placeholder for records to identify after: no registration data to show or edit. */
+  val unidentified: Boolean = false,
+) : PatientDetailData
+
+/** The note of a patient to identify after, and the way to identify them. */
+data class PatientDetailUnidentified(
+  val note: String,
+  override val firstInGroup: Boolean = false,
+  override val lastInGroup: Boolean = false,
 ) : PatientDetailData
 
 /** One more fact about the patient: what it is, its value and what tapping it should do. */

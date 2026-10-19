@@ -41,6 +41,10 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -65,8 +69,11 @@ import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.patient.PatientDetailsScreen
+import org.openmrs.android.fhir.ui.screens.IdentifyPatientDialog
+import org.openmrs.android.fhir.ui.screens.UnidentifiedNoteDialog
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
+import org.openmrs.android.fhir.viewmodel.PatientDetailUnidentified
 import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
 
 class PatientDetailsFragment : Fragment() {
@@ -100,6 +107,32 @@ class PatientDetailsFragment : Fragment() {
   ): View = composeView {
     OpenMrsTheme {
       val patientData by patientDetailsViewModel.livePatientData.observeAsState(null)
+      var identifying by rememberSaveable { mutableStateOf(false) }
+      var editingNote by rememberSaveable { mutableStateOf(false) }
+      val toIdentify =
+        patientData.orEmpty().filterIsInstance<PatientDetailUnidentified>().firstOrNull()
+      if (identifying) {
+        IdentifyPatientDialog(
+          entryId = args.patientId,
+          onDismiss = { identifying = false },
+          onIdentified = { realId, moved ->
+            identifying = false
+            onIdentified(realId, moved)
+          },
+        )
+      }
+      if (editingNote && toIdentify != null) {
+        UnidentifiedNoteDialog(
+          title = stringResource(R.string.identify_note_edit_title),
+          initial = toIdentify.note,
+          confirmLabel = stringResource(R.string.save),
+          onConfirm = {
+            editingNote = false
+            patientDetailsViewModel.updateNote(it)
+          },
+          onDismiss = { editingNote = false },
+        )
+      }
       PatientDetailsScreen(
         patientData = patientData,
         onEditPatient = ::onEditPatientClick,
@@ -109,6 +142,8 @@ class PatientDetailsFragment : Fragment() {
         onStartVisit = ::onStartVisitClick,
         onReopenVisit = ::onReopenVisitClick,
         onCreateEncounter = ::onCreateEncounterClick,
+        onIdentifyPatient = { identifying = true },
+        onEditNote = { editingNote = true },
       )
     }
   }
@@ -135,6 +170,11 @@ class PatientDetailsFragment : Fragment() {
     super.onPrepareOptionsMenu(menu)
     val editItem = menu.findItem(R.id.menu_patient_edit)
     editItem?.isEnabled = patientDetailsViewModel.livePatientData.value?.isNotEmpty() == true
+    // A placeholder (patient to identify after) has no registration to edit.
+    editItem?.isVisible =
+      patientDetailsViewModel.livePatientData.value.orEmpty().none {
+        it is PatientDetailUnidentified
+      }
   }
 
   private fun onCreateEncounterClick() {
@@ -299,6 +339,21 @@ class PatientDetailsFragment : Fragment() {
         true
       }
       else -> super.onOptionsItemSelected(item)
+    }
+  }
+
+  /** The records now belong to the real patient: open their page. */
+  private fun onIdentified(patientId: String, moved: Int) {
+    AppMessage.show(
+      requireContext(),
+      getString(R.string.identify_done, moved),
+      MessageKind.Success,
+    )
+    val navController = findNavController()
+    navController.popBackStack()
+    // From the patient list: straight to the patient. From anywhere else, back is enough.
+    runCatching {
+      navController.navigate(PatientListFragmentDirections.navigateToProductDetail(patientId))
     }
   }
 

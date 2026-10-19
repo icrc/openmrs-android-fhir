@@ -45,6 +45,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -52,6 +53,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -70,6 +75,7 @@ import org.openmrs.android.fhir.ui.components.AppSearchField
 import org.openmrs.android.fhir.ui.components.LastEncounterLabel
 import org.openmrs.android.fhir.ui.components.PatientListContainerScreen
 import org.openmrs.android.fhir.ui.components.PatientListItemRow
+import org.openmrs.android.fhir.ui.screens.UnidentifiedNoteDialog
 import org.openmrs.android.fhir.viewmodel.PatientListUiState
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 
@@ -90,7 +96,10 @@ fun PatientListScreen(
   onFabClick: () -> Unit,
   modifier: Modifier = Modifier,
   onServerPatientClick: (PatientListViewModel.PatientItem) -> Unit = {},
+  /** Records for a patient who is not on the device: asked with a note, identified later. */
+  onIdentifyLater: ((note: String) -> Unit)? = null,
 ) {
+  var askNote by rememberSaveable { mutableStateOf(false) }
   val contentPadding = rememberActionBarContentPadding()
   val surfaceColor = MaterialTheme.colorScheme.background
   Box(modifier = modifier.fillMaxSize().background(surfaceColor)) {
@@ -98,14 +107,29 @@ fun PatientListScreen(
       modifier = Modifier.fillMaxSize(),
       containerColor = surfaceColor,
       floatingActionButton = {
-        ExtendedFloatingActionButton(
-          modifier = Modifier.testTag(PatientListScreenTestTags.Fab),
-          onClick = onFabClick,
-          icon = { Icon(imageVector = Icons.Default.Add, contentDescription = null) },
-          text = { Text(text = stringResource(id = R.string.register_patient)) },
-          containerColor = MaterialTheme.colorScheme.primary,
-          contentColor = MaterialTheme.colorScheme.onPrimary,
-        )
+        Column(
+          horizontalAlignment = Alignment.End,
+          verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+          if (onIdentifyLater != null) {
+            ExtendedFloatingActionButton(
+              modifier = Modifier.testTag("IdentifyLaterFab"),
+              onClick = { askNote = true },
+              icon = { Icon(imageVector = Icons.Default.PersonSearch, contentDescription = null) },
+              text = { Text(text = stringResource(id = R.string.identify_later_action)) },
+              containerColor = MaterialTheme.colorScheme.secondaryContainer,
+              contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+          }
+          ExtendedFloatingActionButton(
+            modifier = Modifier.testTag(PatientListScreenTestTags.Fab),
+            onClick = onFabClick,
+            icon = { Icon(imageVector = Icons.Default.Add, contentDescription = null) },
+            text = { Text(text = stringResource(id = R.string.register_patient)) },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+          )
+        }
       },
     ) { paddingValues ->
       Column(
@@ -134,15 +158,33 @@ fun PatientListScreen(
         ) { patient ->
           PatientListItemRow(
             name = patient.name,
-            ageGenderLabel = formatAgeGender(patient),
-            isSynced = patient.isSynced,
-            identifier = patient.displayIdentifier(),
+            ageGenderLabel =
+              if (patient.unidentified) {
+                stringResource(R.string.identify_later_chip)
+              } else {
+                formatAgeGender(patient)
+              },
+            // A patient to identify later is never uploaded: no sync marker.
+            isSynced = patient.isSynced == true || patient.unidentified,
+            identifier = if (patient.unidentified) null else patient.displayIdentifier(),
             lastEncounter = patient.lastEncounter.toLabel(),
             onClick = { onPatientClick(patient) },
           )
         }
       }
     }
+  }
+  if (askNote && onIdentifyLater != null) {
+    UnidentifiedNoteDialog(
+      title = stringResource(R.string.identify_note_title),
+      initial = uiState.query,
+      confirmLabel = stringResource(R.string.identify_note_create),
+      onConfirm = {
+        askNote = false
+        onIdentifyLater(it)
+      },
+      onDismiss = { askNote = false },
+    )
   }
 }
 

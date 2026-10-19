@@ -44,9 +44,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import javax.inject.Inject
+import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.ui.components.AppMessage
@@ -114,6 +116,7 @@ class PatientListFragment : Fragment() {
             patientListViewModel.openServerPatient(patient) { id -> openPatient(id) }
           },
           onFabClick = { onAddPatientClick() },
+          onIdentifyLater = { note -> onIdentifyLater(note) },
         )
       }
     }
@@ -159,6 +162,17 @@ class PatientListFragment : Fragment() {
 
   private fun openPatient(patientId: String) {
     findNavController().navigate(PatientListFragmentDirections.navigateToProductDetail(patientId))
+  }
+
+  /** Records for a patient who is not on the device: a placeholder, opened to record them. */
+  private fun onIdentifyLater(note: String) {
+    lifecycleScope.launch {
+      val id =
+        FhirApplication.appComponent(requireContext().applicationContext)
+          .unidentifiedPatients()
+          .create(note)
+      openPatient(id)
+    }
   }
 
   private fun onAddPatientClick() {
