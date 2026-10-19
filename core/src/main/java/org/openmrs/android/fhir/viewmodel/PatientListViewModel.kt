@@ -79,6 +79,7 @@ import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.sync.LivePatients
 import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.multiuser.DataVisibility
+import org.openmrs.android.fhir.unidentified.UnidentifiedStore
 import timber.log.Timber
 
 /**
@@ -118,6 +119,7 @@ constructor(
   private val fhirEngine: FhirEngine,
   private val applicationContext: Context,
   private val dataVisibility: DataVisibility = DataVisibility.Everything,
+  private val unidentified: UnidentifiedStore? = null,
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(PatientListUiState())
@@ -280,12 +282,14 @@ constructor(
         .map { it.resource }
     // Only patients of the selected lists are shown. A patient registered on this device is kept
     // until it is uploaded, otherwise it would vanish right after being saved.
+    val toIdentify = unidentified?.ids().orEmpty()
     val inLists =
       if (memberIds == null) {
         matches
       } else {
         matches.filter { patient ->
-          patient.idElement.idPart in memberIds ||
+          patient.idElement.idPart in toIdentify ||
+            patient.idElement.idPart in memberIds ||
             patient.idElement.idPart in liveIds ||
             fhirEngine.getLocalChanges(ResourceType.Patient, patient.idElement.idPart).isNotEmpty()
         }
@@ -299,7 +303,11 @@ constructor(
     visibleCount = if (restricted) visible.size.toLong() else null
     visible
       .take(PAGE_SIZE)
-      .mapIndexed { index, fhirPatient -> fhirPatient.toPatientItem(index + 1) }
+      .mapIndexed { index, fhirPatient ->
+        fhirPatient.toPatientItem(index + 1).let { item ->
+          if (item.resourceId in toIdentify) item.copy(unidentified = true) else item
+        }
+      }
       .let {
         patients.addAll(it)
         patients.map { patientItem ->
@@ -550,6 +558,8 @@ constructor(
     var riskItem: RiskAssessmentItem? = null,
     /** The patient's most recent encounter; null until it has been looked up. */
     val lastEncounter: LastEncounter? = null,
+    /** Recorded for "identify patient after": a placeholder, the real patient is not known yet. */
+    val unidentified: Boolean = false,
   ) {
     override fun toString(): String = name
   }

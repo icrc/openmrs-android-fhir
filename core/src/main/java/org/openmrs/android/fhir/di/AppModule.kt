@@ -45,6 +45,7 @@ import org.openmrs.android.fhir.extensions.PermissionChecker
 import org.openmrs.android.fhir.multiuser.DataVisibility
 import org.openmrs.android.fhir.multiuser.TrackingFhirEngine
 import org.openmrs.android.fhir.multiuser.UserDataLedger
+import org.openmrs.android.fhir.unidentified.UnidentifiedStore
 
 @Module
 object AppModule {
@@ -52,9 +53,13 @@ object AppModule {
   @JvmStatic
   @Singleton
   @Provides
-  fun provideAppFhirEngine(context: Context, ledger: UserDataLedger): FhirEngine {
+  fun provideAppFhirEngine(
+    context: Context,
+    ledger: UserDataLedger,
+    unidentified: UnidentifiedStore,
+  ): FhirEngine {
     // The SDK's engine, noting who creates, changes and downloads what (see UserDataLedger).
-    return TrackingFhirEngine(FhirEngineProvider.getInstance(context), ledger)
+    return TrackingFhirEngine(FhirEngineProvider.getInstance(context), ledger, unidentified)
   }
 
   @JvmStatic
@@ -71,7 +76,11 @@ object AppModule {
         AppDatabase::class.java,
         "openmrs_android_fhir",
       )
-      .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+      .addMigrations(
+        AppDatabase.MIGRATION_1_2,
+        AppDatabase.MIGRATION_2_3,
+        AppDatabase.MIGRATION_3_4,
+      )
       .build()
   }
 

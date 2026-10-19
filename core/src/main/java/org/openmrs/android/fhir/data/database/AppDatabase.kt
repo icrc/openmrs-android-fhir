@@ -39,6 +39,7 @@ import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.data.database.model.PatientOwner
 import org.openmrs.android.fhir.data.database.model.PendingChange
 import org.openmrs.android.fhir.data.database.model.SyncSession
+import org.openmrs.android.fhir.data.database.model.UnidentifiedPatient
 
 @Database(
   entities =
@@ -49,8 +50,9 @@ import org.openmrs.android.fhir.data.database.model.SyncSession
       GroupSessionDraft::class,
       PatientOwner::class,
       PendingChange::class,
+      UnidentifiedPatient::class,
     ],
-  version = 3,
+  version = 4,
   exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -59,7 +61,27 @@ abstract class AppDatabase : RoomDatabase() {
 
   abstract fun userDataDao(): UserDataDao
 
+  abstract fun unidentifiedDao(): UnidentifiedDao
+
   companion object {
+    /** Patients to identify after: records entered for someone not on the device yet. */
+    val MIGRATION_3_4 =
+      object : Migration(3, 4) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+          database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `unidentified_patient` (
+              `patientId` TEXT NOT NULL,
+              `note` TEXT NOT NULL,
+              `createdAt` INTEGER NOT NULL,
+              PRIMARY KEY(`patientId`)
+            )
+            """
+              .trimIndent(),
+          )
+        }
+      }
+
     /** Who owns the patients of the device, and who has records waiting to upload. */
     val MIGRATION_2_3 =
       object : Migration(2, 3) {

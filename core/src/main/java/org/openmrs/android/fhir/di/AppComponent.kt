@@ -55,6 +55,8 @@ import org.openmrs.android.fhir.fragments.SelectPatientListFragment
 import org.openmrs.android.fhir.fragments.SettingsFragment
 import org.openmrs.android.fhir.fragments.SyncInfoFragment
 import org.openmrs.android.fhir.multiuser.UserDataLedger
+import org.openmrs.android.fhir.unidentified.UnidentifiedPatients
+import org.openmrs.android.fhir.unidentified.UnidentifiedStore
 
 @Singleton
 @Component(
@@ -85,6 +87,10 @@ interface AppComponent {
   fun fhirEngine(): FhirEngine
 
   fun userDataLedger(): UserDataLedger
+
+  fun unidentifiedPatients(): UnidentifiedPatients
+
+  fun unidentifiedStore(): UnidentifiedStore
 
   /*
    * Fragments & Activities
