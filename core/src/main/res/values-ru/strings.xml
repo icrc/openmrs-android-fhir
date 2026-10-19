@@ -220,8 +220,6 @@
     >Проверить подключение к сети</string>
     <string name="enable_notifications">Включить уведомления</string>
 
-    <string name="settings_discarded">Настройки отменены</string>
-    <string name="settings_saved">Настройки сохранены</string>
 
     <string
         name="token_check_delay_in_minutes"
@@ -774,6 +772,7 @@
     <string name="login_pending_counts">Пациенты: %1$d · Записи: %2$d</string>
     <string name="login_pending_records_only">Записи: %1$d</string>
     <string name="login_pending_use_user">Войти под этим пользователем</string>
+    <string name="settings_back">Назад</string>
     <string name="identify_later_action">Опознать позже</string>
     <string name="identify_later_chip">Опознать позже</string>
     <string name="identify_later_family">(опознать)</string>

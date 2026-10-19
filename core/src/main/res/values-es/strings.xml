@@ -190,8 +190,6 @@
         name="check_network_connectivity"
     >Verificar Conectividad de Red</string>
     <string name="enable_notifications">Activar Notificaciones</string>
-    <string name="settings_discarded">Ajustes Descartados</string>
-    <string name="settings_saved">Ajustes Guardados</string>
     <string
         name="token_check_delay_in_minutes"
     >Retraso de Verificación de Token (en minutos)</string>
@@ -761,6 +759,7 @@
     <string name="login_pending_counts">Pacientes: %1$d · Registros: %2$d</string>
     <string name="login_pending_records_only">Registros: %1$d</string>
     <string name="login_pending_use_user">Iniciar sesión con este usuario</string>
+    <string name="settings_back">Volver</string>
     <string name="identify_later_action">Identificar después</string>
     <string name="identify_later_chip">Por identificar</string>
     <string name="identify_later_family">(por identificar)</string>

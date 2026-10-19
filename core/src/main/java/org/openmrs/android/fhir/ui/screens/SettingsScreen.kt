@@ -45,6 +45,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
@@ -146,8 +147,7 @@ object SettingsTestTags {
   const val EmbeddedFormsSwitch = "SettingsEmbeddedFormsSwitch"
   const val ColorVisionStandard = "SettingsColorVisionStandard"
   const val ColorVisionColorBlind = "SettingsColorVisionColorBlind"
-  const val CancelButton = "SettingsCancelButton"
-  const val SaveButton = "SettingsSaveButton"
+  const val BackButton = "SettingsBackButton"
 }
 
 /**
@@ -164,8 +164,8 @@ fun SettingsScreen(
   onTokenDelaySelected: (Int) -> Unit,
   onPeriodicSyncDelaySelected: (Int) -> Unit,
   onInitialSyncClicked: () -> Unit,
-  onCancelClicked: () -> Unit,
-  onSaveClicked: () -> Unit,
+  /** Every setting is kept the moment it changes: there is only a way back. */
+  onBackClicked: () -> Unit,
   topPadding: Dp = 0.dp,
   isFetchingQuestionnaires: Boolean = false,
   onFetchQuestionnairesClicked: (() -> Unit)? = null,
@@ -465,16 +465,16 @@ fun SettingsScreen(
         verticalAlignment = Alignment.CenterVertically,
       ) {
         OutlinedButton(
-          onClick = onCancelClicked,
-          modifier = Modifier.weight(1f).height(48.dp).testTag(SettingsTestTags.CancelButton),
+          onClick = onBackClicked,
+          modifier = Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.BackButton),
         ) {
-          Text(text = stringResource(R.string.cancel))
-        }
-        Button(
-          onClick = onSaveClicked,
-          modifier = Modifier.weight(1f).height(48.dp).testTag(SettingsTestTags.SaveButton),
-        ) {
-          Text(text = stringResource(R.string.save))
+          Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+          )
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(text = stringResource(R.string.settings_back))
         }
       }
     }

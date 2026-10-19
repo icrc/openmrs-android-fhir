@@ -65,8 +65,7 @@ class SettingsScreenTest {
           onTokenDelaySelected = { uiState = uiState.copy(tokenCheckDelayMinutes = it) },
           onPeriodicSyncDelaySelected = { uiState = uiState.copy(periodicSyncDelayMinutes = it) },
           onInitialSyncClicked = {},
-          onCancelClicked = {},
-          onSaveClicked = {},
+          onBackClicked = {},
         )
       }
     }
@@ -91,8 +90,7 @@ class SettingsScreenTest {
           onTokenDelaySelected = { uiState = uiState.copy(tokenCheckDelayMinutes = it) },
           onPeriodicSyncDelaySelected = { uiState = uiState.copy(periodicSyncDelayMinutes = it) },
           onInitialSyncClicked = {},
-          onCancelClicked = {},
-          onSaveClicked = {},
+          onBackClicked = {},
         )
       }
     }
@@ -122,8 +120,7 @@ class SettingsScreenTest {
           onTokenDelaySelected = {},
           onPeriodicSyncDelaySelected = {},
           onInitialSyncClicked = {},
-          onCancelClicked = {},
-          onSaveClicked = {},
+          onBackClicked = {},
         )
       }
     }

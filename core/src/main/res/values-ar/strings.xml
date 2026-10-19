@@ -177,8 +177,6 @@
     >تأخير قبل مربع حوار انتهاء الصلاحية (في دقائق)</string>
     <string name="check_network_connectivity">تحقق من اتصال الشبكة</string>
     <string name="enable_notifications">تمكين الإخطارات</string>
-    <string name="settings_discarded">الإعدادات التي تم التخلص منها</string>
-    <string name="settings_saved">الإعدادات المحفوظة</string>
     <string
         name="token_check_delay_in_minutes"
     >تأخير فحص الرمز المميز (في دقائق)</string>
@@ -699,6 +697,7 @@
     <string name="login_pending_counts">المرضى: %1$d · السجلات: %2$d</string>
     <string name="login_pending_records_only">السجلات: %1$d</string>
     <string name="login_pending_use_user">تسجيل الدخول بهذا المستخدم</string>
+    <string name="settings_back">رجوع</string>
     <string name="identify_later_action">التعرّف لاحقاً</string>
     <string name="identify_later_chip">للتعرّف لاحقاً</string>
     <string name="identify_later_family">(للتعرّف)</string>

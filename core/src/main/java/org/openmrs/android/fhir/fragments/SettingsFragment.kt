@@ -176,29 +176,7 @@ class SettingsFragment : Fragment() {
               settingsViewModel.onInitialSyncClicked()
             }
           },
-          onCancelClicked = settingsViewModel::onCancelClicked,
-          onSaveClicked = {
-            settingsViewModel.onSaveClicked()
-            AuditLog.record(
-              AuditAction.SETTINGS_CHANGED,
-              AuditOutcome.SUCCESS,
-              "changed" to
-                buildList {
-                  if (ColorVisionStore.get(context) != colorVisionSelection.value) {
-                    add("color_vision=${colorVisionSelection.value.value}")
-                  }
-                  if (EmbeddedFormsStore.get(context) != embeddedFormsSelection.value) {
-                    add("embedded_forms_only=${embeddedFormsSelection.value}")
-                  }
-                },
-            )
-            EmbeddedFormsStore.set(context, embeddedFormsSelection.value)
-            if (ColorVisionStore.get(context) != colorVisionSelection.value) {
-              ColorVisionStore.set(context, colorVisionSelection.value)
-              // The palette is read when a screen is built.
-              activity?.recreate()
-            }
-          },
+          onBackClicked = ::navigateUp,
           topPadding = appBarHeight,
           isFetchingQuestionnaires = isFetchingQuestionnaires,
           fetchQuestionnairesAvailable = !GuestSession.isActive(context),
@@ -221,9 +199,30 @@ class SettingsFragment : Fragment() {
             }
           },
           colorVision = colorVisionSelection.value,
-          onColorVisionSelected = { colorVisionSelection.value = it },
+          onColorVisionSelected = { mode ->
+            // Kept and applied at once, like every setting.
+            if (ColorVisionStore.get(context) != mode) {
+              colorVisionSelection.value = mode
+              ColorVisionStore.set(context, mode)
+              AuditLog.record(
+                AuditAction.SETTINGS_CHANGED,
+                AuditOutcome.SUCCESS,
+                "changed" to listOf("color_vision=${mode.value}"),
+              )
+              // The palette is read when a screen is built.
+              activity?.recreate()
+            }
+          },
           embeddedFormsOnly = embeddedFormsSelection.value,
-          onEmbeddedFormsOnlyChange = { embeddedFormsSelection.value = it },
+          onEmbeddedFormsOnlyChange = { only ->
+            embeddedFormsSelection.value = only
+            EmbeddedFormsStore.set(context, only)
+            AuditLog.record(
+              AuditAction.SETTINGS_CHANGED,
+              AuditOutcome.SUCCESS,
+              "changed" to listOf("embedded_forms_only=$only"),
+            )
+          },
           offlineLoginEnabled = offlineLoginEnabled.value,
           onResetOfflineLoginClicked = ::confirmResetOfflineLogin,
           unsyncedCount = unsyncedCount.value,
@@ -415,16 +414,6 @@ internal fun resolveSettingsEvent(event: SettingsEvent): SettingsEventAction {
       SettingsEventAction(
         messageResId = R.string.settings_reset_done,
         navigateUp = false,
-      )
-    SettingsEvent.SettingsSaved ->
-      SettingsEventAction(
-        messageResId = R.string.settings_saved,
-        navigateUp = true,
-      )
-    SettingsEvent.SettingsDiscarded ->
-      SettingsEventAction(
-        messageResId = R.string.settings_discarded,
-        navigateUp = true,
       )
     SettingsEvent.InitialSyncStarted ->
       SettingsEventAction(

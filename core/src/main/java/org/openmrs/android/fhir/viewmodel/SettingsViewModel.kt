@@ -40,6 +40,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.DemoDataStore
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.SettingsRepository
 import org.openmrs.android.fhir.data.sync.InitialSyncRunner
 
@@ -60,10 +63,6 @@ data class SettingsUiState(
 )
 
 sealed interface SettingsEvent {
-  data object SettingsSaved : SettingsEvent
-
-  data object SettingsDiscarded : SettingsEvent
-
   data object SettingsReset : SettingsEvent
 
   data object InitialSyncStarted : SettingsEvent
@@ -94,60 +93,72 @@ constructor(
 
   fun onNetworkStatusToggle(enabled: Boolean) {
     _uiState.update { it.copy(isNetworkStatusVisible = enabled) }
+    persist("network_status_visible", enabled) {
+      settingsRepository.setNetworkStatusVisible(enabled)
+    }
   }
 
   fun onNotificationsToggle(enabled: Boolean) {
     _uiState.update { it.copy(isNotificationsEnabled = enabled) }
+    persist("notifications", enabled) { settingsRepository.setNotificationsEnabled(enabled) }
   }
 
   fun onTokenDelaySelected(minutes: Int) {
     _uiState.update { it.copy(tokenCheckDelayMinutes = minutes) }
+    persist("token_check_delay", minutes) { settingsRepository.setTokenExpiryDelayMinutes(minutes) }
   }
 
   fun onAutoSyncToggle(enabled: Boolean) {
     _uiState.update { it.copy(isAutoSyncEnabled = enabled) }
+    persist("auto_sync", enabled) { settingsRepository.setAutoSyncEnabled(enabled) }
   }
 
   fun onLiveModeToggle(enabled: Boolean) {
     _uiState.update { it.copy(isLiveModeEnabled = enabled) }
+    persist("live_mode", enabled) { settingsRepository.setLiveModeEnabled(enabled) }
   }
 
   fun onKeepLivePatientsToggle(keep: Boolean) {
     _uiState.update { it.copy(keepLivePatients = keep) }
+    persist("keep_live_patients", keep) { settingsRepository.setKeepLivePatients(keep) }
   }
 
   fun onAutomaticVisitsToggle(automatic: Boolean) {
     _uiState.update { it.copy(automaticVisits = automatic) }
+    persist("automatic_visits", automatic) { settingsRepository.setAutomaticVisits(automatic) }
   }
 
   fun onShareMyDataToggle(share: Boolean) {
     _uiState.update { it.copy(shareMyData = share) }
+    // Both belong to the signed-in user: nobody signed in, nothing to keep.
+    if (uiState.value.signedInUser != null) {
+      persist("share_my_data", share) { settingsRepository.setShareMyData(share) }
+    }
   }
 
   fun onRememberLocationToggle(remember: Boolean) {
     _uiState.update { it.copy(rememberLocation = remember) }
+    if (uiState.value.signedInUser != null) {
+      persist("remember_location", remember) { settingsRepository.setRememberLocation(remember) }
+    }
   }
 
   fun onPeriodicSyncDelaySelected(minutes: Int) {
     _uiState.update { it.copy(periodicSyncDelayMinutes = minutes) }
+    persist("periodic_sync_delay", minutes) {
+      settingsRepository.setPeriodicSyncDelayMinutes(minutes)
+    }
   }
 
-  fun onSaveClicked() {
+  /** A setting changed: it is kept at once (there is no Save), and noted for the support team. */
+  private fun persist(name: String, value: Any, save: suspend () -> Unit) {
     viewModelScope.launch {
-      val currentState = uiState.value
-      settingsRepository.setNetworkStatusVisible(currentState.isNetworkStatusVisible)
-      settingsRepository.setNotificationsEnabled(currentState.isNotificationsEnabled)
-      settingsRepository.setTokenExpiryDelayMinutes(currentState.tokenCheckDelayMinutes)
-      settingsRepository.setPeriodicSyncDelayMinutes(currentState.periodicSyncDelayMinutes)
-      settingsRepository.setAutoSyncEnabled(currentState.isAutoSyncEnabled)
-      settingsRepository.setLiveModeEnabled(currentState.isLiveModeEnabled)
-      settingsRepository.setKeepLivePatients(currentState.keepLivePatients)
-      settingsRepository.setAutomaticVisits(currentState.automaticVisits)
-      if (currentState.signedInUser != null) {
-        settingsRepository.setShareMyData(currentState.shareMyData)
-        settingsRepository.setRememberLocation(currentState.rememberLocation)
-      }
-      _events.emit(SettingsEvent.SettingsSaved)
+      save()
+      AuditLog.record(
+        AuditAction.SETTINGS_CHANGED,
+        AuditOutcome.SUCCESS,
+        "changed" to listOf("$name=$value"),
+      )
     }
   }
 
@@ -183,10 +194,6 @@ constructor(
       }
       _events.emit(SettingsEvent.SettingsReset)
     }
-  }
-
-  fun onCancelClicked() {
-    _events.tryEmit(SettingsEvent.SettingsDiscarded)
   }
 
   fun onInitialSyncClicked() {
