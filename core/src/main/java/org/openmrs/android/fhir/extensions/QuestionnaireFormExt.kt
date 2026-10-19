@@ -49,7 +49,8 @@ import org.openmrs.android.fhir.ui.components.MessageKind
  * Creates the data-capture form with the display options every screen shares (review page, optional
  * markers). Screens only state what differs: [responseJson] to pre-fill, [showCancelButton] and the
  * submit button ([showSubmitButton] / [submitButtonText]) and [readOnly] (answers shown, nothing
- * can be changed); options left `null` keep the library default.
+ * can be changed) and [allowSubmitAnyway] (turn it off where a record must not be saved with
+ * required answers missing); options left `null` keep the library default.
  */
 fun Fragment.newQuestionnaireFragment(
   questionnaireJson: String,
@@ -58,6 +59,7 @@ fun Fragment.newQuestionnaireFragment(
   showSubmitButton: Boolean? = null,
   submitButtonText: String? = null,
   readOnly: Boolean? = null,
+  allowSubmitAnyway: Boolean = true,
 ): QuestionnaireFragment {
   explainBlockedNavigationIn(this)
   return QuestionnaireFragment.builder()
@@ -72,6 +74,8 @@ fun Fragment.newQuestionnaireFragment(
       showSubmitButton?.let { setShowSubmitButton(it) }
       submitButtonText?.let { setSubmitButtonText(it) }
       readOnly?.let { setIsReadOnly(it) }
+      // With required answers missing the form offers "Fix questions" only.
+      if (!allowSubmitAnyway) setShowSubmitAnywayButton(false)
     }
     .build()
 }

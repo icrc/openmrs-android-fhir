@@ -155,6 +155,8 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
           questionnaire,
           showCancelButton = true,
           showSubmitButton = true,
+          // A patient cannot be registered with required answers missing.
+          allowSubmitAnyway = false,
         )
       },
     )
