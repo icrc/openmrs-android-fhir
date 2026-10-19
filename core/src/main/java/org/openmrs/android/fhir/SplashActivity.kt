@@ -344,13 +344,14 @@ class SplashActivity : AppCompatActivity() {
     MaterialAlertDialogBuilder(this)
       .setTitle(getString(R.string.no_internet_connection))
       .setMessage(
-        getString(R.string.please_connect_to_the_internet_to_continue_with_authentication),
+        getString(R.string.please_connect_to_the_internet_to_continue_with_authentication) +
+          loginPageHint(),
       )
       .setPositiveButton(getString(R.string.retry)) { _, _ ->
         lifecycleScope.launch { handleAuthenticationFlow() }
       }
       .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
-      .withGuestOption()
+      .withLoginPageOption()
       .setCancelable(false)
       .show()
   }
@@ -358,12 +359,12 @@ class SplashActivity : AppCompatActivity() {
   private fun showServerUnavailableDialog() {
     MaterialAlertDialogBuilder(this)
       .setTitle(getString(R.string.server_unreachable_title))
-      .setMessage(getString(R.string.server_unreachable_dialog_message))
+      .setMessage(getString(R.string.server_unreachable_dialog_message) + loginPageHint())
       .setPositiveButton(getString(R.string.retry)) { _, _ ->
         lifecycleScope.launch { handleConnectivityForAuth() }
       }
       .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
-      .withGuestOption()
+      .withLoginPageOption()
       .setCancelable(false)
       .show()
   }
@@ -382,6 +383,24 @@ class SplashActivity : AppCompatActivity() {
       .setCancelable(false)
       .show()
   }
+
+  /**
+   * With the server out of reach the dialogs do not decide for the user: they offer the login page,
+   * where the server can be changed (the gear) and, when guest mode is enabled, the user can
+   * continue without signing in.
+   */
+  private fun AlertDialog.Builder.withLoginPageOption(): AlertDialog.Builder =
+    setNeutralButton(getString(R.string.splash_go_to_login)) { _, _ -> redirectToAuthFlow() }
+
+  private fun loginPageHint(): String =
+    "\n\n" +
+      getString(
+        if (GuestSession.isAllowed(this)) {
+          R.string.splash_login_page_hint_guest
+        } else {
+          R.string.splash_login_page_hint
+        },
+      )
 
   /**
    * Without a server there is nothing to sign in to, but the user can still work: when guest mode

@@ -761,6 +761,9 @@
     <string name="login_pending_counts">Pacientes: %1$d · Registros: %2$d</string>
     <string name="login_pending_records_only">Registros: %1$d</string>
     <string name="login_pending_use_user">Iniciar sesión con este usuario</string>
+    <string name="splash_go_to_login">Página de inicio de sesión</string>
+    <string name="splash_login_page_hint">En la página de inicio de sesión puede cambiar el servidor.</string>
+    <string name="splash_login_page_hint_guest">En la página de inicio de sesión puede cambiar el servidor o continuar sin iniciar sesión.</string>
     <string name="continue_without_login_hint">Registre pacientes y complete los formularios sin conexión. Se le pedirá iniciar sesión al sincronizar.</string>
     <string name="sign_in_to_sync_title">Inicie sesión para sincronizar</string>
     <string name="sign_in_to_sync_message">Para subir los pacientes y formularios que ingresó, inicie sesión primero. Todo lo que ingresó permanece en este dispositivo.</string>

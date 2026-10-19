@@ -787,6 +787,9 @@
     <string name="login_pending_counts">Patients : %1$d · Enregistrements : %2$d</string>
     <string name="login_pending_records_only">Enregistrements : %1$d</string>
     <string name="login_pending_use_user">Se connecter avec cet utilisateur</string>
+    <string name="splash_go_to_login">Page de connexion</string>
+    <string name="splash_login_page_hint">Sur la page de connexion, vous pouvez changer de serveur.</string>
+    <string name="splash_login_page_hint_guest">Sur la page de connexion, vous pouvez changer de serveur ou continuer sans vous connecter.</string>
     <string name="continue_without_login_hint">Enregistrez des patients et remplissez les formulaires hors ligne. La connexion vous sera demandée à la synchronisation.</string>
     <string name="sign_in_to_sync_title">Se connecter pour synchroniser</string>
     <string name="sign_in_to_sync_message">Pour envoyer les patients et formulaires saisis, connectez-vous d\u2019abord. Tout ce que vous avez saisi reste sur cet appareil.</string>

@@ -699,6 +699,9 @@
     <string name="login_pending_counts">المرضى: %1$d · السجلات: %2$d</string>
     <string name="login_pending_records_only">السجلات: %1$d</string>
     <string name="login_pending_use_user">تسجيل الدخول بهذا المستخدم</string>
+    <string name="splash_go_to_login">صفحة تسجيل الدخول</string>
+    <string name="splash_login_page_hint">في صفحة تسجيل الدخول يمكنك تغيير الخادم.</string>
+    <string name="splash_login_page_hint_guest">في صفحة تسجيل الدخول يمكنك تغيير الخادم أو المتابعة بدون تسجيل الدخول.</string>
     <string name="continue_without_login_hint">سجّل المرضى واملأ النماذج دون اتصال. سيُطلب منك تسجيل الدخول عند المزامنة.</string>
     <string name="sign_in_to_sync_title">سجّل الدخول للمزامنة</string>
     <string name="sign_in_to_sync_message">لرفع المرضى والنماذج التي أدخلتها، سجّل الدخول أولاً. كل ما أدخلته يبقى على هذا الجهاز.</string>

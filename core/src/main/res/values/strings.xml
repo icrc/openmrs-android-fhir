@@ -725,6 +725,9 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="login_pending_counts">Patients: %1$d · Records: %2$d</string>
     <string name="login_pending_records_only">Records: %1$d</string>
     <string name="login_pending_use_user">Log in as this user</string>
+    <string name="splash_go_to_login">Login page</string>
+    <string name="splash_login_page_hint">On the login page you can change the server.</string>
+    <string name="splash_login_page_hint_guest">On the login page you can change the server or continue without signing in.</string>
     <string name="continue_without_login_hint">Register patients and fill the forms offline. You will be asked to sign in when you sync.</string>
     <string name="sign_in_to_sync_title">Sign in to sync</string>
     <string name="sign_in_to_sync_message">To upload the patients and forms you entered, sign in first. Everything you entered stays on this device.</string>

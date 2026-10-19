@@ -774,6 +774,9 @@
     <string name="login_pending_counts">Пациенты: %1$d · Записи: %2$d</string>
     <string name="login_pending_records_only">Записи: %1$d</string>
     <string name="login_pending_use_user">Войти под этим пользователем</string>
+    <string name="splash_go_to_login">Страница входа</string>
+    <string name="splash_login_page_hint">На странице входа можно изменить сервер.</string>
+    <string name="splash_login_page_hint_guest">На странице входа можно изменить сервер или продолжить без входа.</string>
     <string name="continue_without_login_hint">Регистрируйте пациентов и заполняйте формы без подключения. При синхронизации потребуется войти.</string>
     <string name="sign_in_to_sync_title">Войдите, чтобы синхронизировать</string>
     <string name="sign_in_to_sync_message">Чтобы отправить введённых пациентов и формы, сначала войдите. Всё введённое останется на этом устройстве.</string>
