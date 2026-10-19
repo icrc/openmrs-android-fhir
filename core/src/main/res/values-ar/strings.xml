@@ -700,6 +700,17 @@
     <string name="sync_page_mode_both">الاثنان</string>
     <string name="sync_download_only_hint">ما ينتظر الرفع يبقى على هذا الجهاز حتى ترفعه.</string>
     <string name="patient_lists_downloading">جارٍ تنزيل مرضى القوائم…</string>
+    <string name="tutorial_show">عرض الجولة</string>
+    <string name="tutorial_login_credentials_title">تسجيل الدخول</string>
+    <string name="tutorial_login_credentials_body">اكتب اسم المستخدم وكلمة المرور ثم اضغط تسجيل الدخول. بعد أول تسجيل دخول يعمل التطبيق أيضاً دون اتصال.</string>
+    <string name="tutorial_login_sso_title">تسجيل الدخول الموحّد</string>
+    <string name="tutorial_login_sso_body">سجّل الدخول بحساب مؤسستك بدلاً من كلمة المرور.</string>
+    <string name="tutorial_login_guest_title">المتابعة دون تسجيل الدخول</string>
+    <string name="tutorial_login_guest_body">اعمل كضيف دون اتصال: ما تسجله يبقى على هذا الجهاز ويُستكمل عند تسجيل دخولك لاحقاً.</string>
+    <string name="tutorial_login_server_title">الخادم</string>
+    <string name="tutorial_login_server_body">يغيّر الترس الخادم الذي يتصل به التطبيق والمظهر وإعدادات أخرى قبل أن يسجّل أي شخص الدخول.</string>
+    <string name="tutorial_login_share_title">مشاركة الإعدادات</string>
+    <string name="tutorial_login_share_body">اعرض رمز QR لإعدادات هذا الجهاز ليمسحه جهاز آخر، أو امسح رمز جهاز آخر.</string>
     <string name="tutorial_step_counter">الخطوة %1$d من %2$d</string>
     <string name="tutorial_close">إغلاق الجولة</string>
     <string name="tutorial_skip">تخطي الجولة</string>

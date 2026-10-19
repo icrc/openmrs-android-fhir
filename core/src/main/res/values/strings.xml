@@ -726,6 +726,17 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="sync_page_mode_both">Both</string>
     <string name="sync_download_only_hint">What is waiting to upload stays on this device until you upload it.</string>
     <string name="patient_lists_downloading">Downloading the patients of the patient lists…</string>
+    <string name="tutorial_show">Show the tour</string>
+    <string name="tutorial_login_credentials_title">Sign in</string>
+    <string name="tutorial_login_credentials_body">Type your username and your password, then press Log in. After the first login the app can also be used offline.</string>
+    <string name="tutorial_login_sso_title">Single sign-on</string>
+    <string name="tutorial_login_sso_body">Sign in with your organization\'s account instead of a password.</string>
+    <string name="tutorial_login_guest_title">Continue without signing in</string>
+    <string name="tutorial_login_guest_body">Work as a guest, offline: what you record stays on this device and is completed when you sign in later.</string>
+    <string name="tutorial_login_server_title">Server</string>
+    <string name="tutorial_login_server_body">The gear changes the server this app connects to, the theme and other settings, before anyone signs in.</string>
+    <string name="tutorial_login_share_title">Share settings</string>
+    <string name="tutorial_login_share_body">Show a QR code of this device\'s settings for another device to scan, or scan one from another device.</string>
     <string name="tutorial_step_counter">Step %1$d of %2$d</string>
     <string name="tutorial_close">Close the tour</string>
     <string name="tutorial_skip">Skip tour</string>

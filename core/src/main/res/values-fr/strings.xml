@@ -788,6 +788,17 @@
     <string name="sync_page_mode_both">Les deux</string>
     <string name="sync_download_only_hint">Ce qui attend d\'être envoyé reste sur cet appareil jusqu\'à ce que vous l\'envoyiez.</string>
     <string name="patient_lists_downloading">Téléchargement des patients des listes…</string>
+    <string name="tutorial_show">Afficher la visite</string>
+    <string name="tutorial_login_credentials_title">Connexion</string>
+    <string name="tutorial_login_credentials_body">Saisissez votre nom d\'utilisateur et votre mot de passe, puis appuyez sur Se connecter. Après la première connexion, l\'application fonctionne aussi hors ligne.</string>
+    <string name="tutorial_login_sso_title">Authentification unique</string>
+    <string name="tutorial_login_sso_body">Connectez-vous avec le compte de votre organisation au lieu d\'un mot de passe.</string>
+    <string name="tutorial_login_guest_title">Continuer sans se connecter</string>
+    <string name="tutorial_login_guest_body">Travaillez en invité, hors ligne : ce que vous enregistrez reste sur cet appareil et est complété à votre prochaine connexion.</string>
+    <string name="tutorial_login_server_title">Serveur</string>
+    <string name="tutorial_login_server_body">L\'engrenage change le serveur auquel l\'application se connecte, le thème et d\'autres réglages, avant toute connexion.</string>
+    <string name="tutorial_login_share_title">Partager les réglages</string>
+    <string name="tutorial_login_share_body">Affichez un code QR des réglages de cet appareil à scanner depuis un autre appareil, ou scannez celui d\'un autre appareil.</string>
     <string name="tutorial_step_counter">Étape %1$d sur %2$d</string>
     <string name="tutorial_close">Fermer la visite</string>
     <string name="tutorial_skip">Passer la visite</string>

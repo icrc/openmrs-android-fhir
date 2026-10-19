@@ -31,7 +31,11 @@ package org.openmrs.android.fhir.ui.tutorial
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -49,7 +53,12 @@ import androidx.compose.ui.layout.onGloballyPositioned
  */
 fun Modifier.tutorialTarget(key: String): Modifier = composed {
   DisposableEffect(key) { onDispose { TutorialController.unregister(key) } }
-  this.onGloballyPositioned { TutorialController.register(key, it.boundsInWindow()) }
+  // A step on an element that is scrolled out of sight scrolls it into view.
+  val requester = remember { BringIntoViewRequester() }
+  val isCurrent = TutorialController.active?.step?.targetKey == key
+  LaunchedEffect(isCurrent) { if (isCurrent) requester.bringIntoView() }
+  this.bringIntoViewRequester(requester)
+    .onGloballyPositioned { TutorialController.register(key, it.boundsInWindow()) }
     .pointerInput(key) {
       awaitEachGesture {
         // The Initial pass comes before the element's own handlers and nothing is consumed here.
@@ -65,4 +74,9 @@ object TutorialTargets {
   const val HOME_PATIENTS = "home.patients"
   const val PATIENT_SEARCH = "patients.search"
   const val PATIENT_REGISTER = "patients.register"
+  const val LOGIN_USERNAME = "login.username"
+  const val LOGIN_SSO = "login.sso"
+  const val LOGIN_GUEST = "login.guest"
+  const val LOGIN_SHARE = "login.share"
+  const val LOGIN_SERVER = "login.server"
 }

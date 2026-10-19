@@ -51,6 +51,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCode2
@@ -97,6 +98,12 @@ import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.PendingUser
 import org.openmrs.android.fhir.extensions.isAppInDarkTheme
+import org.openmrs.android.fhir.ui.tutorial.TutorialAction
+import org.openmrs.android.fhir.ui.tutorial.TutorialController
+import org.openmrs.android.fhir.ui.tutorial.TutorialOverlay
+import org.openmrs.android.fhir.ui.tutorial.TutorialStep
+import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
+import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 import org.openmrs.android.fhir.viewmodel.LoginUiState
 
 /**
@@ -110,6 +117,8 @@ private fun LoginFrame(
   modifier: Modifier = Modifier,
   showServerSettings: Boolean = false,
   footerActions: @Composable () -> Unit = {},
+  /** Starts the tour of the page; no button when `null`. */
+  onShowTour: (() -> Unit)? = null,
   content: @Composable ColumnScope.() -> Unit,
 ) {
   val context = LocalContext.current
@@ -157,9 +166,24 @@ private fun LoginFrame(
         modifier = Modifier.weight(1f).testTag("LoginVersion"),
       )
       footerActions()
+      if (onShowTour != null) {
+        IconButton(
+          onClick = onShowTour,
+          modifier = Modifier.size(40.dp).testTag("TutorialButton"),
+        ) {
+          Icon(
+            imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
+            contentDescription = stringResource(R.string.tutorial_show),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
+      }
       IconButton(
         onClick = { showShareDialog = true },
-        modifier = Modifier.size(40.dp).testTag("ShareSettingsButton"),
+        modifier =
+          Modifier.size(40.dp)
+            .testTag("ShareSettingsButton")
+            .tutorialTarget(TutorialTargets.LOGIN_SHARE),
       ) {
         Icon(
           imageVector = Icons.Filled.QrCode2,
@@ -169,7 +193,10 @@ private fun LoginFrame(
       }
       IconButton(
         onClick = { showServerDialog = true },
-        modifier = Modifier.size(40.dp).testTag("ServerSettingsButton"),
+        modifier =
+          Modifier.size(40.dp)
+            .testTag("ServerSettingsButton")
+            .tutorialTarget(TutorialTargets.LOGIN_SERVER),
       ) {
         Icon(
           imageVector = Icons.Filled.Settings,
@@ -259,50 +286,102 @@ fun LoginScreen(
   var username by rememberSaveable { mutableStateOf(initialUsername) }
   // Counts the "log in as" choices, so the password field takes the focus after each one.
   var usernameChosen by remember { mutableIntStateOf(0) }
-  LoginFrame(
-    logoTag = "LoginLogo",
-    screenTag = "LoginScreen",
-    modifier = modifier,
-    showServerSettings = showBasic,
-    footerActions = {
-      PendingUploadsButton(
-        pendingUsers = pendingUsers,
-        onUseUser =
-          if (showBasic) {
-            { chosen ->
-              username = chosen
-              usernameChosen++
-            }
-          } else {
-            null
-          },
+  // The tour of this page, for what the page shows.
+  val tour =
+    remember(showBasic, showSso, onContinueWithoutLogin != null) {
+      listOfNotNull(
+        if (showBasic) {
+          TutorialStep(
+            TutorialTargets.LOGIN_USERNAME,
+            R.string.tutorial_login_credentials_title,
+            R.string.tutorial_login_credentials_body,
+            TutorialAction.Acknowledge,
+          )
+        } else {
+          null
+        },
+        if (showSso) {
+          TutorialStep(
+            TutorialTargets.LOGIN_SSO,
+            R.string.tutorial_login_sso_title,
+            R.string.tutorial_login_sso_body,
+            TutorialAction.Acknowledge,
+          )
+        } else {
+          null
+        },
+        if (onContinueWithoutLogin != null) {
+          TutorialStep(
+            TutorialTargets.LOGIN_GUEST,
+            R.string.tutorial_login_guest_title,
+            R.string.tutorial_login_guest_body,
+            TutorialAction.Acknowledge,
+          )
+        } else {
+          null
+        },
+        TutorialStep(
+          TutorialTargets.LOGIN_SERVER,
+          R.string.tutorial_login_server_title,
+          R.string.tutorial_login_server_body,
+          TutorialAction.Acknowledge,
+        ),
+        TutorialStep(
+          TutorialTargets.LOGIN_SHARE,
+          R.string.tutorial_login_share_title,
+          R.string.tutorial_login_share_body,
+          TutorialAction.Acknowledge,
+        ),
       )
-    },
-  ) {
-    if (showBasic) {
-      BasicLoginForm(
-        uiState = uiState,
-        onLoginClick = onBasicLogin,
-        username = username,
-        onUsernameChange = { username = it },
-        initialUsername = initialUsername,
-        usernameChosen = usernameChosen,
-      )
     }
-    if (showBasic && showSso) {
-      OrDivider()
+  Box(modifier = modifier) {
+    LoginFrame(
+      logoTag = "LoginLogo",
+      screenTag = "LoginScreen",
+      showServerSettings = showBasic,
+      onShowTour = { TutorialController.start(tour) },
+      footerActions = {
+        PendingUploadsButton(
+          pendingUsers = pendingUsers,
+          onUseUser =
+            if (showBasic) {
+              { chosen ->
+                username = chosen
+                usernameChosen++
+              }
+            } else {
+              null
+            },
+        )
+      },
+    ) {
+      if (showBasic) {
+        BasicLoginForm(
+          uiState = uiState,
+          onLoginClick = onBasicLogin,
+          username = username,
+          onUsernameChange = { username = it },
+          initialUsername = initialUsername,
+          usernameChosen = usernameChosen,
+        )
+      }
+      if (showBasic && showSso) {
+        OrDivider()
+      }
+      if (showSso) {
+        SsoLoginButton(
+          providerName = ssoProviderName,
+          isPrimary = !showBasic,
+          enabled = isSsoEnabled,
+          onClick = onSsoLogin,
+        )
+      }
+      if (onContinueWithoutLogin != null) {
+        ContinueWithoutLogin(onClick = onContinueWithoutLogin)
+      }
     }
-    if (showSso) {
-      SsoLoginButton(
-        providerName = ssoProviderName,
-        isPrimary = !showBasic,
-        enabled = isSsoEnabled,
-        onClick = onSsoLogin,
-      )
-    }
-    if (onContinueWithoutLogin != null) {
-      ContinueWithoutLogin(onClick = onContinueWithoutLogin)
-    }
+    // Above the whole page; draws nothing while no tour runs.
+    TutorialOverlay()
   }
 }
 
@@ -338,7 +417,10 @@ private fun ColumnScope.BasicLoginForm(
   OutlinedTextField(
     value = username,
     onValueChange = onUsernameChange,
-    modifier = Modifier.fillMaxWidth().testTag("BasicLoginUsername"),
+    modifier =
+      Modifier.fillMaxWidth()
+        .testTag("BasicLoginUsername")
+        .tutorialTarget(TutorialTargets.LOGIN_USERNAME),
     label = { Text(text = stringResource(id = R.string.username)) },
     leadingIcon = { Icon(imageVector = Icons.Filled.Person, contentDescription = null) },
     singleLine = true,
@@ -398,7 +480,11 @@ private fun SsoLoginButton(
       isPrimary -> stringResource(R.string.button_login)
       else -> stringResource(R.string.sign_in_with_sso)
     }
-  val modifier = Modifier.fillMaxWidth().height(52.dp).testTag("LoginButton")
+  val modifier =
+    Modifier.fillMaxWidth()
+      .height(52.dp)
+      .testTag("LoginButton")
+      .tutorialTarget(TutorialTargets.LOGIN_SSO)
   if (isPrimary) {
     Button(
       onClick = onClick,
@@ -453,7 +539,11 @@ private fun ColumnScope.ContinueWithoutLogin(onClick: () -> Unit) {
   OutlinedButton(
     onClick = onClick,
     shape = RoundedCornerShape(16.dp),
-    modifier = Modifier.fillMaxWidth().height(48.dp).testTag("SkipLoginButton"),
+    modifier =
+      Modifier.fillMaxWidth()
+        .height(48.dp)
+        .testTag("SkipLoginButton")
+        .tutorialTarget(TutorialTargets.LOGIN_GUEST),
   ) {
     Text(text = stringResource(id = R.string.continue_without_login))
   }

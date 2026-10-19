@@ -775,6 +775,17 @@
     <string name="sync_page_mode_both">Обе</string>
     <string name="sync_download_only_hint">Ожидающее отправки остаётся на этом устройстве, пока вы его не отправите.</string>
     <string name="patient_lists_downloading">Загрузка пациентов из списков…</string>
+    <string name="tutorial_show">Показать обзор</string>
+    <string name="tutorial_login_credentials_title">Вход</string>
+    <string name="tutorial_login_credentials_body">Введите имя пользователя и пароль и нажмите «Войти». После первого входа приложение работает и без сети.</string>
+    <string name="tutorial_login_sso_title">Единый вход</string>
+    <string name="tutorial_login_sso_body">Войдите с учётной записью вашей организации вместо пароля.</string>
+    <string name="tutorial_login_guest_title">Продолжить без входа</string>
+    <string name="tutorial_login_guest_body">Работайте как гость, без сети: записанное остаётся на этом устройстве и дополняется после следующего входа.</string>
+    <string name="tutorial_login_server_title">Сервер</string>
+    <string name="tutorial_login_server_body">Шестерёнка меняет сервер, к которому подключается приложение, тему и другие настройки до входа.</string>
+    <string name="tutorial_login_share_title">Поделиться настройками</string>
+    <string name="tutorial_login_share_body">Покажите QR-код настроек этого устройства для сканирования на другом или отсканируйте код с другого устройства.</string>
     <string name="tutorial_step_counter">Шаг %1$d из %2$d</string>
     <string name="tutorial_close">Закрыть обзор</string>
     <string name="tutorial_skip">Пропустить обзор</string>

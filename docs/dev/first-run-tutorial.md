@@ -79,6 +79,22 @@ To try it on a device that already has the app, write
 2. Patients screen: the search field (Acknowledge).
 3. Patients screen: tap **Register patient** (Tap), which opens the form and ends the tour.
 
+## The login page tour
+
+The login page has its own tour, started by hand: the "?" button (`TutorialButton`, content
+description "Show the tour") in the footer, before the QR and gear icons. It is not automatic and
+does not use the first-run flag, so it can be run as often as wanted, before anyone has signed in.
+
+`LoginScreen` builds the steps for what the page shows (`showBasic`, `showSso`, and
+`onContinueWithoutLogin != null`): username and password (the username field is the target),
+single sign-on, "Continue without signing in", the settings gear and the QR icon. All are
+`Acknowledge` steps: pressing the elements of the login page during the tour is not the point, and
+a tap on "Continue without signing in" would leave the page. The page hosts its own
+`TutorialOverlay()` above its content (it is a separate activity from `MainActivity`).
+
+`tutorialTarget` also asks to be brought into view when its step comes up
+(`BringIntoViewRequester`), so a target below the fold of the scrolling page is shown.
+
 ## Using it elsewhere
 
 ```kotlin

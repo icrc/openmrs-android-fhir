@@ -762,6 +762,17 @@
     <string name="sync_page_mode_both">Ambos</string>
     <string name="sync_download_only_hint">Lo que espera para subirse se queda en este dispositivo hasta que lo suba.</string>
     <string name="patient_lists_downloading">Descargando los pacientes de las listas…</string>
+    <string name="tutorial_show">Mostrar la visita guiada</string>
+    <string name="tutorial_login_credentials_title">Iniciar sesión</string>
+    <string name="tutorial_login_credentials_body">Escriba su usuario y su contraseña y pulse Iniciar sesión. Tras el primer inicio la aplicación también funciona sin conexión.</string>
+    <string name="tutorial_login_sso_title">Inicio de sesión único</string>
+    <string name="tutorial_login_sso_body">Inicie sesión con la cuenta de su organización en lugar de una contraseña.</string>
+    <string name="tutorial_login_guest_title">Continuar sin iniciar sesión</string>
+    <string name="tutorial_login_guest_body">Trabaje como invitado, sin conexión: lo que registre queda en este dispositivo y se completa cuando inicie sesión más tarde.</string>
+    <string name="tutorial_login_server_title">Servidor</string>
+    <string name="tutorial_login_server_body">El engranaje cambia el servidor al que se conecta la aplicación, el tema y otros ajustes, antes de que nadie inicie sesión.</string>
+    <string name="tutorial_login_share_title">Compartir ajustes</string>
+    <string name="tutorial_login_share_body">Muestre un código QR con los ajustes de este dispositivo para que otro lo escanee, o escanee el de otro dispositivo.</string>
     <string name="tutorial_step_counter">Paso %1$d de %2$d</string>
     <string name="tutorial_close">Cerrar la visita guiada</string>
     <string name="tutorial_skip">Omitir la visita</string>
