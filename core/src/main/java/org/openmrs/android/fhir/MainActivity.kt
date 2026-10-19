@@ -40,6 +40,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.activity.OnBackPressedCallback
@@ -129,7 +131,10 @@ import org.openmrs.android.fhir.ui.screens.IdentifyPatientDialog
 import org.openmrs.android.fhir.ui.screens.MainActivityOverlays
 import org.openmrs.android.fhir.ui.screens.MainActivityScaffold
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.ui.tutorial.ScreenTours
+import org.openmrs.android.fhir.ui.tutorial.TutorialController
 import org.openmrs.android.fhir.ui.tutorial.TutorialOverlay
+import org.openmrs.android.fhir.ui.tutorial.registerViewTarget
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
 import timber.log.Timber
@@ -359,6 +364,9 @@ class MainActivity : AppCompatActivity() {
       waitForNavController()?.addOnDestinationChangedListener { _, destination, arguments ->
         // A screen that wants a subtitle sets it once it is created, after this.
         supportActionBar?.subtitle = null
+        // The help button shows on the screens that have a tour.
+        ScreenTours.viewTargetKeys.forEach(TutorialController::unregister)
+        invalidateOptionsMenu()
         bottomBarSelection.value =
           topLevelDestinationFor(
             destinationId = destination.id,
@@ -589,6 +597,38 @@ class MainActivity : AppCompatActivity() {
 
   private fun closeNavigationDrawer() {
     drawerLayout?.closeDrawer(GravityCompat.START)
+  }
+
+  /** The help button of the app bar, on the screens that have a tour. */
+  override fun onCreateOptionsMenu(menu: Menu): Boolean {
+    menuInflater.inflate(R.menu.help_menu, menu)
+    return true
+  }
+
+  override fun onPrepareOptionsMenu(menu: Menu): Boolean {
+    menu.findItem(R.id.menu_help)?.isVisible = currentScreenTour() != null
+    return super.onPrepareOptionsMenu(menu)
+  }
+
+  override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    if (item.itemId == R.id.menu_help) {
+      startScreenTour()
+      return true
+    }
+    return super.onOptionsItemSelected(item)
+  }
+
+  private fun currentScreenTour(): ScreenTours.Tour? =
+    getNavController()?.currentDestination?.id?.let(ScreenTours::forDestination)
+
+  /** The tour of the screen on show: the help button of the app bar. */
+  private fun startScreenTour() {
+    val tour = currentScreenTour() ?: return
+    // Forms that are still Android views announce their place now.
+    tour.viewTargets.forEach { (key, viewId) ->
+      findViewById<View>(viewId)?.let { registerViewTarget(it, key) }
+    }
+    TutorialController.start(tour.steps)
   }
 
   private fun configureToolbar(toolbar: MaterialToolbar) {

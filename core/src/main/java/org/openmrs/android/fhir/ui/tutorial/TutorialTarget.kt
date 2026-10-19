@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.ui.tutorial
 
+import android.view.View
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
@@ -38,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
@@ -69,11 +71,60 @@ fun Modifier.tutorialTarget(key: String): Modifier = composed {
     }
 }
 
-/** The elements the first-run tour points at. */
+/**
+ * Makes an Android view (not a composable) something a tour can point at, for a screen that is
+ * still XML (a form, a toolbar button): its place is read now and does not follow the view.
+ */
+fun registerViewTarget(view: View, key: String) {
+  val location = IntArray(2)
+  view.getLocationInWindow(location)
+  TutorialController.register(
+    key,
+    Rect(
+      location[0].toFloat(),
+      location[1].toFloat(),
+      (location[0] + view.width).toFloat(),
+      (location[1] + view.height).toFloat(),
+    ),
+  )
+}
+
+/** The elements the tours point at. */
 object TutorialTargets {
   const val HOME_PATIENTS = "home.patients"
   const val PATIENT_SEARCH = "patients.search"
   const val PATIENT_REGISTER = "patients.register"
+  const val HOME_STATUS = "home.status"
+  const val HOME_REGISTER = "home.register"
+  const val HOME_LISTS = "home.lists"
+  const val HOME_GROUP = "home.group"
+  const val HOME_SYNC = "home.sync"
+  const val HOME_IMPORT_EXPORT = "home.importexport"
+  const val PATIENT_LIST = "patients.list"
+  const val PATIENT_IDENTIFY_LATER = "patients.identifylater"
+  const val DETAILS_OVERVIEW = "details.overview"
+  const val DETAILS_ENCOUNTERS = "details.encounters"
+  const val DETAILS_NEW_ENCOUNTER = "details.newencounter"
+  const val SYNC_STATUS = "sync.status"
+  const val SYNC_MODE = "sync.mode"
+  const val SYNC_NOW = "sync.now"
+  const val SYNC_TABS = "sync.tabs"
+  const val IE_EXPORT = "importexport.export"
+  const val IE_IMPORT = "importexport.import"
+  const val SETTINGS_LANGUAGE = "settings.language"
+  const val SETTINGS_APPEARANCE = "settings.appearance"
+  const val SETTINGS_SYNC = "settings.sync"
+  const val SETTINGS_LIVE = "settings.live"
+  const val SETTINGS_SHARED = "settings.shared"
+  const val SETTINGS_SECURITY = "settings.security"
+  const val LISTS_SEARCH = "lists.search"
+  const val LISTS_LIST = "lists.list"
+  const val LOCATION_SEARCH = "location.search"
+  const val LOCATION_LIST = "location.list"
+  const val FORMS_SEARCH = "forms.search"
+  const val FORMS_LIST = "forms.list"
+  const val FORM_CONTAINER = "form.container"
+  const val FORM_TABS = "form.tabs"
   const val LOGIN_USERNAME = "login.username"
   const val LOGIN_SSO = "login.sso"
   const val LOGIN_GUEST = "login.guest"

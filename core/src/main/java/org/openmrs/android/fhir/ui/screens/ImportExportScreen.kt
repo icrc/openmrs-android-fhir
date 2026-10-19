@@ -76,6 +76,8 @@ import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
+import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 import org.openmrs.android.fhir.viewmodel.ImportExportUiState
 
 object ImportExportTestTags {
@@ -127,13 +129,17 @@ fun ImportExportScreen(
       color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 
-    ExportCard(
-      state = state,
-      onExportClick = { askExportPin = true },
-      onShare = onShare,
-      onSave = onSave,
-    )
-    ImportCard(state = state, onChooseFile = onChooseFile, onUpload = onUpload)
+    Box(modifier = Modifier.tutorialTarget(TutorialTargets.IE_EXPORT)) {
+      ExportCard(
+        state = state,
+        onExportClick = { askExportPin = true },
+        onShare = onShare,
+        onSave = onSave,
+      )
+    }
+    Box(modifier = Modifier.tutorialTarget(TutorialTargets.IE_IMPORT)) {
+      ImportCard(state = state, onChooseFile = onChooseFile, onUpload = onUpload)
+    }
   }
 
   if (askExportPin) {

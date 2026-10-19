@@ -55,4 +55,9 @@ data class TutorialStep(
   @StringRes val title: Int,
   @StringRes val body: Int,
   val action: TutorialAction = TutorialAction.Tap,
+  /**
+   * The element may not be on the screen (a list that is empty, a button only some users have): the
+   * step is then skipped instead of ending the tour.
+   */
+  val optional: Boolean = false,
 )

@@ -79,6 +79,8 @@ import org.openmrs.android.fhir.ui.components.PatientDetailsOverviewHeader
 import org.openmrs.android.fhir.ui.components.PatientPropertyRow
 import org.openmrs.android.fhir.ui.components.PatientUnsyncedCard
 import org.openmrs.android.fhir.ui.components.VisitListItemRow
+import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
+import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 import org.openmrs.android.fhir.viewmodel.PatientDetailCondition
 import org.openmrs.android.fhir.viewmodel.PatientDetailData
 import org.openmrs.android.fhir.viewmodel.PatientDetailEncounter
@@ -115,6 +117,7 @@ fun PatientDetailsScreen(
   val topInset = rememberAppBarHeight()
   val encounterCount =
     remember(patientData) { patientData.orEmpty().count { it is PatientDetailEncounter } }
+  val firstHeader = remember(patientData) { patientData?.firstOrNull { it is PatientDetailHeader } }
 
   Box(
     modifier = modifier.fillMaxSize().testTag("PatientDetailsScreen"),
@@ -134,6 +137,7 @@ fun PatientDetailsScreen(
           when (item) {
             is PatientDetailOverview ->
               PatientDetailsOverviewHeader(
+                modifier = Modifier.tutorialTarget(TutorialTargets.DETAILS_OVERVIEW),
                 name = item.patient.name,
                 identifiers = item.patient.identifiers,
                 ageGender = formatAgeGender(item.patient),
@@ -151,6 +155,13 @@ fun PatientDetailsScreen(
             is PatientUnsynced -> PatientUnsyncedCard()
             is PatientDetailHeader ->
               PatientDetailsHeaderRow(
+                // Only the first header is the target of the tour.
+                modifier =
+                  if (item === firstHeader) {
+                    Modifier.tutorialTarget(TutorialTargets.DETAILS_ENCOUNTERS)
+                  } else {
+                    Modifier
+                  },
                 title = item.header,
                 count = item.count ?: encounterCount,
                 actionText = if (item.startVisit) stringResource(R.string.start_visit) else null,
@@ -224,7 +235,10 @@ fun PatientDetailsScreen(
       ExtendedFloatingActionButton(
         onClick = onCreateEncounter,
         modifier =
-          Modifier.align(Alignment.BottomEnd).padding(16.dp).testTag("CreateEncounterButton"),
+          Modifier.align(Alignment.BottomEnd)
+            .padding(16.dp)
+            .testTag("CreateEncounterButton")
+            .tutorialTarget(TutorialTargets.DETAILS_NEW_ENCOUNTER),
         containerColor = MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.onPrimary,
         icon = { Icon(imageVector = Icons.Filled.Add, contentDescription = null) },

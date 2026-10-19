@@ -87,6 +87,8 @@ import org.openmrs.android.fhir.ui.components.AppSearchField
 import org.openmrs.android.fhir.ui.components.LocationListItemRow
 import org.openmrs.android.fhir.ui.components.SelectPatientListItemRow
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
+import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 import org.openmrs.android.fhir.viewmodel.SelectPatientListViewModel
 
@@ -166,7 +168,8 @@ fun LocationSelectionScreen(
         value = query,
         onValueChange = onQueryChange,
         hintResId = R.string.search_a_location,
-        modifier = Modifier.testTag("LocationSearchField"),
+        modifier =
+          Modifier.testTag("LocationSearchField").tutorialTarget(TutorialTargets.LOCATION_SEARCH),
       )
 
       if (showEmptyState && !isLoading) {
@@ -187,7 +190,11 @@ fun LocationSelectionScreen(
 
       LazyColumn(
         state = listState,
-        modifier = Modifier.fillMaxWidth().weight(1f).testTag("LocationList"),
+        modifier =
+          Modifier.fillMaxWidth()
+            .weight(1f)
+            .testTag("LocationList")
+            .tutorialTarget(TutorialTargets.LOCATION_LIST),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
       ) {
@@ -401,7 +408,8 @@ fun PatientListSelectionScreen(
           value = query,
           onValueChange = onQueryChange,
           hintResId = R.string.search_patient_lists,
-          modifier = Modifier.testTag("PatientListSearchField"),
+          modifier =
+            Modifier.testTag("PatientListSearchField").tutorialTarget(TutorialTargets.LISTS_SEARCH),
         )
       }
 
@@ -441,7 +449,11 @@ fun PatientListSelectionScreen(
             )
           }
           LazyColumn(
-            modifier = Modifier.fillMaxWidth().weight(1f).testTag("PatientListList"),
+            modifier =
+              Modifier.fillMaxWidth()
+                .weight(1f)
+                .testTag("PatientListList")
+                .tutorialTarget(TutorialTargets.LISTS_LIST),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
           ) {

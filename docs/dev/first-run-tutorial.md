@@ -95,6 +95,58 @@ a tap on "Continue without signing in" would leave the page. The page hosts its 
 `tutorialTarget` also asks to be brought into view when its step comes up
 (`BringIntoViewRequester`), so a target below the fold of the scrolling page is shown.
 
+## Tours of every screen (the help button)
+
+`ScreenTours` maps the navigation destination of each screen to its `Tour` (steps, and for XML
+screens the ids of the views to point at). `MainActivity` adds the "?" action to the app bar
+(`menu/help_menu.xml`, shown by `onPrepareOptionsMenu` only when `ScreenTours.forDestination` has a
+tour for the destination on show, refreshed on every navigation), and `startScreenTour()` registers
+the view targets, then starts the tour.
+
+All the steps of these tours are `Acknowledge` ones: a tour only explains and nothing on the screen
+can be used (or left) while it runs. A step is `optional` when its element may not be on the screen
+(an empty list, an action only some users have): it is skipped after a moment instead of ending the
+tour. Views that are not composables (the forms) are listed in `Tour.viewTargets` (key to view id):
+their place is read when the tour starts.
+
+| Screen | Destination |
+|---|---|
+| Home | `home_fragment` |
+| Patients | `patient_list` |
+| Patient profile | `patient_details` |
+| Sync | `syncInfoFragment` |
+| Import / Export | `importExportFragment` |
+| Settings | `settings_fragment` |
+| Patient lists | `selectPatientListFragment` |
+| Location | `locationFragment` |
+| Forms of an encounter | `createEncounterFragment` |
+| New / edit patient | `addPatientFragment`, `editPatientFragment` |
+| Encounter form (new / edit) | `genericFormEntryFragment`, `editEncounterFragment` |
+| Group session form | `groupFormEntryFragment` |
+
+Screens without a tour (the identifier choice, the patient selection dialog of a group session,
+the unsynced resources) have no "?" button.
+
+## Keeping the tutorial up to date
+
+A change that adds, moves, renames or removes a feature, screen, setting or control updates the
+tutorial **in the same change**:
+
+1. Tag the element: `Modifier.tutorialTarget(TutorialTargets.SOMETHING)` (add the key to
+   `TutorialTargets`); an XML screen lists the view id in the tour's `viewTargets`. A key is used by
+   one element only (for a list, tag the first item).
+2. Add the step to the tour of the screen in `ScreenTours.kt`. A new screen needs a new `Tour` and a
+   `forDestination` entry; use `optional = true` for elements that are not always there.
+3. Add `help_<screen>_<element>_title` and `_body` in `values`, `values-fr`, `values-es`,
+   `values-ru` and `values-ar`.
+4. Say it in the CHANGELOG entry.
+5. A removed or renamed feature: update or delete its step, and the strings.
+6. Try it on a device: the "?" button, every step, and that an `optional` step that is missing does
+   not stop the tour.
+
+This is also written in the repository's `CLAUDE.md`, which is what future changes (by anyone, or
+by Claude Code) are expected to follow.
+
 ## Using it elsewhere
 
 ```kotlin

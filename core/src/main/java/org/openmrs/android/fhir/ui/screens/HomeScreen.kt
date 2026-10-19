@@ -88,6 +88,16 @@ private enum class HomeCardType {
   ImportExport,
 }
 
+private fun HomeCardType.tutorialKey(): String =
+  when (this) {
+    HomeCardType.NewPatient -> TutorialTargets.HOME_REGISTER
+    HomeCardType.PatientList -> TutorialTargets.HOME_PATIENTS
+    HomeCardType.CustomPatientList -> TutorialTargets.HOME_LISTS
+    HomeCardType.GroupEncounter -> TutorialTargets.HOME_GROUP
+    HomeCardType.SyncInfo -> TutorialTargets.HOME_SYNC
+    HomeCardType.ImportExport -> TutorialTargets.HOME_IMPORT_EXPORT
+  }
+
 private data class HomeCardConfig(
   val type: HomeCardType,
   val titleRes: Int,
@@ -210,7 +220,11 @@ fun HomeScreen(
 @Composable
 private fun HomeStatusHeader(locationName: String, lastSyncText: String) {
   Row(
-    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("HomeStatusHeader"),
+    modifier =
+      Modifier.fillMaxWidth()
+        .padding(vertical = 4.dp)
+        .testTag("HomeStatusHeader")
+        .tutorialTarget(TutorialTargets.HOME_STATUS),
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Box(
@@ -266,13 +280,7 @@ private fun HomeDashboardCard(
       Modifier.fillMaxWidth()
         .padding(vertical = 6.dp)
         .testTag(config.testTag)
-        .then(
-          if (config.type == HomeCardType.PatientList) {
-            Modifier.tutorialTarget(TutorialTargets.HOME_PATIENTS)
-          } else {
-            Modifier
-          },
-        )
+        .tutorialTarget(config.type.tutorialKey())
         .clickable(onClick = onClick),
     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),

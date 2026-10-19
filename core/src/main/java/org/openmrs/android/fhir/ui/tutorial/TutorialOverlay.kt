@@ -92,7 +92,9 @@ private val HolePadding = 8.dp
 private val HoleCorner = 20.dp
 private val CalloutGap = 12.dp
 private val CalloutMargin = 16.dp
+private val TallCalloutBottom = 96.dp
 private const val WAIT_FOR_TARGET_MILLIS = 4_000L
+private const val SKIP_OPTIONAL_MILLIS = 1_200L
 
 /**
  * The tour, drawn above the whole window (the app bar and the bottom bar included): the screen is
@@ -119,9 +121,12 @@ fun TutorialOverlay() {
     if (bounds == null) {
       // The element is in a screen that is still opening: nothing can be touched meanwhile.
       Panel(Modifier.fillMaxSize())
-      LaunchedEffect(step) {
-        delay(WAIT_FOR_TARGET_MILLIS)
-        if (TutorialController.targets[step.targetKey] == null) TutorialController.end()
+      LaunchedEffect(active) {
+        // An optional element is simply not here; any other is in a screen that is still opening.
+        delay(if (step.optional) SKIP_OPTIONAL_MILLIS else WAIT_FOR_TARGET_MILLIS)
+        if (TutorialController.targets[step.targetKey] == null) {
+          if (step.optional) TutorialController.skipMissing() else TutorialController.end()
+        }
       }
       return@Box
     }
@@ -165,10 +170,15 @@ fun TutorialOverlay() {
         Panel(Modifier.fillMaxSize())
       }
       val below = (holeTop + holeBottom) / 2 < height / 2
+      // An element that takes most of the screen (a form) leaves no room beside it: the card sits
+      // over its lower part, clear of the buttons at the very bottom.
+      val tall = holeBottom - holeTop > height * 0.6f
       Callout(
         active = active,
         modifier =
-          if (below) {
+          if (tall) {
+            Modifier.align(Alignment.BottomCenter).padding(bottom = TallCalloutBottom)
+          } else if (below) {
             Modifier.align(Alignment.TopCenter).padding(top = holeBottom + CalloutGap)
           } else {
             Modifier.align(Alignment.BottomCenter)

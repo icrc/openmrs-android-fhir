@@ -115,7 +115,9 @@ fun PatientListScreen(
         ) {
           if (onIdentifyLater != null) {
             ExtendedFloatingActionButton(
-              modifier = Modifier.testTag("IdentifyLaterFab"),
+              modifier =
+                Modifier.testTag("IdentifyLaterFab")
+                  .tutorialTarget(TutorialTargets.PATIENT_IDENTIFY_LATER),
               onClick = { askNote = true },
               icon = { Icon(imageVector = Icons.Default.PersonSearch, contentDescription = null) },
               text = { Text(text = stringResource(id = R.string.identify_later_action)) },
@@ -153,7 +155,10 @@ fun PatientListScreen(
           isLoading = uiState.isLoading,
           isRefreshing = uiState.isRefreshing,
           onRefresh = onRefresh,
-          modifier = Modifier.weight(1f).background(surfaceColor),
+          modifier =
+            Modifier.weight(1f)
+              .background(surfaceColor)
+              .tutorialTarget(TutorialTargets.PATIENT_LIST),
           // Room under the last card for the floating button.
           contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 96.dp),
           verticalArrangement = Arrangement.spacedBy(10.dp),

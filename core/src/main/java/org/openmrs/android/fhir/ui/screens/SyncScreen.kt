@@ -74,6 +74,8 @@ import org.openmrs.android.fhir.data.sync.SyncMode
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.components.SyncHistoryList
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
+import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 
 object SyncScreenTestTags {
   const val Screen = "SyncScreen"
@@ -133,6 +135,7 @@ fun SyncScreen(
     )
     Spacer(modifier = Modifier.height(8.dp))
     TabRow(
+      modifier = Modifier.tutorialTarget(TutorialTargets.SYNC_TABS),
       selectedTabIndex = selectedTab,
       containerColor = MaterialTheme.colorScheme.background,
       contentColor = MaterialTheme.colorScheme.primary,
@@ -211,7 +214,11 @@ private fun SyncStatusCard(
   val fraction = progress.fraction
 
   Surface(
-    modifier = modifier.fillMaxWidth().testTag(SyncScreenTestTags.StatusCard),
+    modifier =
+      modifier
+        .fillMaxWidth()
+        .testTag(SyncScreenTestTags.StatusCard)
+        .tutorialTarget(TutorialTargets.SYNC_STATUS),
     shape = RoundedCornerShape(20.dp),
     color = MaterialTheme.colorScheme.surface,
     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -288,7 +295,8 @@ private fun SyncStatusCard(
         }
       }
       Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+        modifier =
+          Modifier.fillMaxWidth().padding(top = 14.dp).tutorialTarget(TutorialTargets.SYNC_MODE),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
       ) {
         listOf(
@@ -322,7 +330,8 @@ private fun SyncStatusCard(
           Modifier.fillMaxWidth()
             .padding(top = 14.dp)
             .height(48.dp)
-            .testTag(SyncScreenTestTags.SyncNowButton),
+            .testTag(SyncScreenTestTags.SyncNowButton)
+            .tutorialTarget(TutorialTargets.SYNC_NOW),
       ) {
         Icon(
           painter = painterResource(id = R.drawable.ic_baseline_sync_24),

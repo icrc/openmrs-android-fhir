@@ -82,6 +82,9 @@ object TutorialController {
     if (active?.step?.action == TutorialAction.Acknowledge) next()
   }
 
+  /** The element of an optional step is not there: on to the next step. */
+  fun skipMissing() = next()
+
   /** Ends the whole tour, whichever step it is at ("Skip tour", the close button, Back). */
   fun end() {
     active = null

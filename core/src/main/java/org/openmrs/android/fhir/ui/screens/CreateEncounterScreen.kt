@@ -83,6 +83,8 @@ import org.openmrs.android.fhir.data.database.model.GroupSessionDraftSummary
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.components.AppSearchField
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
+import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 
 /**
  * The forms an encounter can be created from, grouped in the sections the app is configured with.
@@ -130,7 +132,8 @@ fun CreateEncounterScreen(
           value = query,
           onValueChange = { query = it },
           placeholder = stringResource(id = R.string.search_forms),
-          modifier = Modifier.testTag("FormSearchField"),
+          modifier =
+            Modifier.testTag("FormSearchField").tutorialTarget(TutorialTargets.FORMS_SEARCH),
         )
       } else {
         Spacer(modifier = Modifier.size(8.dp))
@@ -156,7 +159,10 @@ fun CreateEncounterScreen(
           )
         else ->
           LazyColumn(
-            modifier = Modifier.fillMaxSize().testTag("FormSectionList"),
+            modifier =
+              Modifier.fillMaxSize()
+                .testTag("FormSectionList")
+                .tutorialTarget(TutorialTargets.FORMS_LIST),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
           ) {

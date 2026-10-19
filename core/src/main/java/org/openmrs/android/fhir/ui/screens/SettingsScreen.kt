@@ -109,6 +109,8 @@ import org.openmrs.android.fhir.ui.components.FormSectionsEditorDialog
 import org.openmrs.android.fhir.ui.components.IdentifierTypesDialog
 import org.openmrs.android.fhir.ui.components.LanguagePicker
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
+import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 import org.openmrs.android.fhir.viewmodel.SettingsUiState
 
 object SettingsDefaults {
@@ -228,13 +230,19 @@ fun SettingsScreen(
       }
 
       if (selectedLanguage != null && onLanguageSelected != null) {
-        SettingsSection(title = stringResource(R.string.settings_language)) {
+        SettingsSection(
+          title = stringResource(R.string.settings_language),
+          tutorialKey = TutorialTargets.SETTINGS_LANGUAGE,
+        ) {
           LanguagePicker(selected = selectedLanguage, onSelected = onLanguageSelected)
         }
       }
 
       if (onThemeModeSelected != null) {
-        SettingsSection(title = stringResource(R.string.settings_section_appearance)) {
+        SettingsSection(
+          title = stringResource(R.string.settings_section_appearance),
+          tutorialKey = TutorialTargets.SETTINGS_APPEARANCE,
+        ) {
           ThemeModeChoice(selected = themeMode, onSelected = onThemeModeSelected)
           if (onColorVisionSelected != null) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -243,7 +251,10 @@ fun SettingsScreen(
         }
       }
 
-      SettingsSection(title = stringResource(R.string.settings_section_sync)) {
+      SettingsSection(
+        title = stringResource(R.string.settings_section_sync),
+        tutorialKey = TutorialTargets.SETTINGS_SYNC,
+      ) {
         SettingsSwitchRow(
           label = stringResource(R.string.check_network_connectivity),
           checked = uiState.isNetworkStatusVisible,
@@ -292,7 +303,10 @@ fun SettingsScreen(
         )
       }
 
-      SettingsSection(title = stringResource(R.string.settings_section_live)) {
+      SettingsSection(
+        title = stringResource(R.string.settings_section_live),
+        tutorialKey = TutorialTargets.SETTINGS_LIVE,
+      ) {
         SettingsSwitchRow(
           label = stringResource(R.string.settings_live_mode),
           description = stringResource(R.string.settings_live_mode_description),
@@ -323,7 +337,10 @@ fun SettingsScreen(
 
       // Only a signed-in user has data of their own to share (a guest has none to hide).
       uiState.signedInUser?.let { user ->
-        SettingsSection(title = stringResource(R.string.settings_section_shared_device)) {
+        SettingsSection(
+          title = stringResource(R.string.settings_section_shared_device),
+          tutorialKey = TutorialTargets.SETTINGS_SHARED,
+        ) {
           SettingsSwitchRow(
             label = stringResource(R.string.settings_share_my_data),
             description = stringResource(R.string.settings_share_my_data_description, user),
@@ -343,7 +360,10 @@ fun SettingsScreen(
       }
 
       if (onResetOfflineLoginClicked != null) {
-        SettingsSection(title = stringResource(R.string.settings_section_security)) {
+        SettingsSection(
+          title = stringResource(R.string.settings_section_security),
+          tutorialKey = TutorialTargets.SETTINGS_SECURITY,
+        ) {
           SettingsAction(
             description =
               stringResource(
@@ -489,8 +509,14 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SettingsSection(title: String, content: @Composable () -> Unit) {
-  Column {
+private fun SettingsSection(
+  title: String,
+  tutorialKey: String? = null,
+  content: @Composable () -> Unit,
+) {
+  Column(
+    modifier = if (tutorialKey != null) Modifier.tutorialTarget(tutorialKey) else Modifier,
+  ) {
     Text(
       text = title,
       style = MaterialTheme.typography.labelLarge,
