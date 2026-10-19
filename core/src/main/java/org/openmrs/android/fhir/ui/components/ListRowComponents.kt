@@ -52,6 +52,8 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Card
@@ -67,6 +69,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -78,7 +83,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -190,7 +197,61 @@ fun PatientDetailsHeaderRow(
 }
 
 /** One line of the patient's profile: a small icon, a caption and the value. */
-data class PatientDetailLine(val icon: ImageVector, val label: String, val value: String)
+data class PatientDetailLine(
+  val icon: ImageVector,
+  val label: String,
+  val value: String,
+  /**
+   * Tapping the value does this (call the number, write to the address); not tappable if `null`.
+   */
+  val onClick: (() -> Unit)? = null,
+)
+
+/**
+ * A line of the profile; a number or an address that can be acted on looks and acts like a link.
+ */
+@Composable
+private fun PatientDetailLineRow(line: PatientDetailLine) {
+  Row(
+    modifier =
+      Modifier.fillMaxWidth()
+        .then(
+          if (line.onClick != null) {
+            Modifier.clickable(role = Role.Button, onClick = line.onClick)
+          } else {
+            Modifier
+          },
+        )
+        .testTag("PatientDetailLine"),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Icon(
+      imageVector = line.icon,
+      contentDescription = null,
+      tint = MaterialTheme.colorScheme.primary,
+      modifier = Modifier.size(20.dp),
+    )
+    Spacer(modifier = Modifier.width(14.dp))
+    Column {
+      Text(
+        text = line.label,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      Text(
+        text = line.value,
+        style = MaterialTheme.typography.bodyLarge,
+        color =
+          if (line.onClick != null) {
+            MaterialTheme.colorScheme.primary
+          } else {
+            MaterialTheme.colorScheme.onSurface
+          },
+        textDecoration = if (line.onClick != null) TextDecoration.Underline else null,
+      )
+    }
+  }
+}
 
 /**
  * The patient's profile card: initials avatar, name, age and gender, the identifiers as chips and
@@ -204,8 +265,11 @@ fun PatientDetailsOverviewHeader(
   modifier: Modifier = Modifier,
   ageGender: String = "",
   details: List<PatientDetailLine> = emptyList(),
+  /** More facts, shown under "Show all details". */
+  extraDetails: List<PatientDetailLine> = emptyList(),
   onEditClick: (() -> Unit)? = null,
 ) {
+  var showAll by rememberSaveable { mutableStateOf(false) }
   val visibleIdentifiers =
     identifiers
       .filterNot { identifier ->
@@ -292,28 +356,40 @@ fun PatientDetailsOverviewHeader(
           color = MaterialTheme.colorScheme.outlineVariant,
         )
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-          details.forEach { line ->
-            Row(
-              modifier = Modifier.testTag("PatientDetailLine"),
-              verticalAlignment = Alignment.CenterVertically,
-            ) {
-              Icon(
-                imageVector = line.icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp),
-              )
-              Spacer(modifier = Modifier.width(14.dp))
-              Column {
-                Text(
-                  text = line.label,
-                  style = MaterialTheme.typography.labelSmall,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(text = line.value, style = MaterialTheme.typography.bodyLarge)
-              }
-            }
+          details.forEach { line -> PatientDetailLineRow(line) }
+        }
+      }
+
+      if (extraDetails.isNotEmpty()) {
+        if (showAll) {
+          if (details.isEmpty()) {
+            HorizontalDivider(
+              modifier = Modifier.padding(vertical = 16.dp),
+              color = MaterialTheme.colorScheme.outlineVariant,
+            )
+          } else {
+            Spacer(modifier = Modifier.height(12.dp))
           }
+          Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            extraDetails.forEach { line -> PatientDetailLineRow(line) }
+          }
+        }
+        TextButton(
+          onClick = { showAll = !showAll },
+          modifier = Modifier.padding(top = 8.dp).testTag("PatientShowAllDetails"),
+        ) {
+          Icon(
+            imageVector = if (showAll) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+          )
+          Spacer(modifier = Modifier.width(6.dp))
+          Text(
+            text =
+              stringResource(
+                if (showAll) R.string.patient_details_hide else R.string.patient_details_show_all,
+              ),
+          )
         }
       }
 

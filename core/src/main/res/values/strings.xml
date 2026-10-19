@@ -725,6 +725,11 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="login_pending_counts">Patients: %1$d · Records: %2$d</string>
     <string name="login_pending_records_only">Records: %1$d</string>
     <string name="login_pending_use_user">Log in as this user</string>
+    <string name="patient_detail_email">Email</string>
+    <string name="patient_detail_contact">Contact</string>
+    <string name="patient_details_show_all">Show all details</string>
+    <string name="patient_details_hide">Hide details</string>
+    <string name="no_app_for_action">No app was found to do this.</string>
     <string name="settings_change_server">Change server</string>
     <string name="server_change_title">Change the server?</string>
     <string name="server_change_message">The app will use %1$s and restart. You will be signed out and asked to log in on the new server. Data on this device stays, but it came from the previous server: anything still waiting to upload will be sent to the new one.</string>
@@ -888,7 +893,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="create_group_encounter_subtitle">Choose a form, then the patients</string>
     <string name="location_banner_label">Location</string>
     <string name="location_banner_none">No location selected</string>
-    <string name="location_banner_none_hint">This patient will be saved without a location. Choose one first from the menu on the Home screen.</string>
+    <string name="location_banner_none_hint">This patient will be saved without a location. It gets the location you choose later.</string>
     <string name="location_banner_guest_hint">You will choose the location after signing in.</string>
     <string name="view_encounter">View Encounter</string>
     <string name="encounter_edit_action">Edit</string>

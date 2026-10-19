@@ -34,6 +34,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
+import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
@@ -48,16 +49,23 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import org.hl7.fhir.r4.model.BooleanType
+import org.hl7.fhir.r4.model.CodeableConcept
+import org.hl7.fhir.r4.model.Coding
+import org.hl7.fhir.r4.model.ContactPoint
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
+import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
+import org.hl7.fhir.r4.model.Type
 import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PatientVisits
 import org.openmrs.android.fhir.data.isOpenVisit
@@ -67,6 +75,7 @@ import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.FormSummary
 import org.openmrs.android.fhir.extensions.allFormSummaries
+import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.toLocalString
 import timber.log.Timber
 
@@ -202,7 +211,13 @@ constructor(
       runBlocking {
         patientItem.isSynced =
           fhirEngine.getLocalChanges(ResourceType.Patient, patientItem.resourceId).isEmpty()
-        add(PatientDetailOverview(patientItem, firstInGroup = true))
+        add(
+          PatientDetailOverview(
+            patientItem,
+            firstInGroup = true,
+            extraDetails = extraDetailsOf(patient, patientItem.phone),
+          ),
+        )
         if (patientItem.isSynced != null && !patientItem.isSynced!!) {
           add(PatientUnsynced(false, false))
         }
@@ -210,6 +225,144 @@ constructor(
       // Add other patient details if necessary
     }
   }
+
+  /**
+   * What the record holds beyond the profile card: every contact (phone numbers, e-mail), the full
+   * address and the person attributes of the registration form (civil status, languages, the
+   * secondary contact...), labelled with the form's own wording.
+   */
+  private suspend fun extraDetailsOf(
+    patient: Patient,
+    shownPhone: String,
+  ): List<PatientExtraDetail> {
+    val details = mutableListOf<PatientExtraDetail>()
+    patient.telecom
+      .filter { it.hasValue() && it.value != shownPhone }
+      .forEach { point ->
+        val value = point.value
+        val kind =
+          when {
+            point.system == ContactPoint.ContactPointSystem.EMAIL || value.contains('@') ->
+              PatientExtraDetail.Kind.EMAIL
+            point.system == ContactPoint.ContactPointSystem.PHONE ||
+              point.system == ContactPoint.ContactPointSystem.SMS ||
+              value.looksLikePhoneNumber() -> PatientExtraDetail.Kind.PHONE
+            else -> PatientExtraDetail.Kind.TEXT
+          }
+        val label =
+          getString(
+            when (kind) {
+              PatientExtraDetail.Kind.PHONE -> R.string.patient_phone_number
+              PatientExtraDetail.Kind.EMAIL -> R.string.patient_detail_email
+              PatientExtraDetail.Kind.TEXT -> R.string.patient_detail_contact
+            },
+          )
+        details += PatientExtraDetail(label, value, kind)
+      }
+    patient.address.forEach { address ->
+      val parts =
+        listOf(
+          address.line.joinToString(", ") { it.value.orEmpty() },
+          address.city,
+          address.district,
+          address.state,
+          address.postalCode,
+          address.country,
+        )
+      val text = parts.filter { !it.isNullOrBlank() }.joinToString(", ")
+      // The profile card already shows the city and the country.
+      if (
+        text.isNotBlank() &&
+          (address.hasLine() ||
+            address.hasDistrict() ||
+            address.hasState() ||
+            address.hasPostalCode())
+      ) {
+        details +=
+          PatientExtraDetail(
+            getString(R.string.patient_property_address),
+            text,
+            PatientExtraDetail.Kind.TEXT,
+          )
+      }
+    }
+    val attributes = patient.extension.filter { it.url == Constants.OPENMRS_PERSON_ATTRIBUTE_URL }
+    if (attributes.isNotEmpty()) {
+      val labels = registrationFormLabels()
+      attributes.forEach { attribute ->
+        val type =
+          attribute.extension
+            .firstOrNull { it.url == Constants.OPENMRS_PERSON_ATTRIBUTE_TYPE_URL }
+            ?.value
+            ?.primitiveValue()
+            .orEmpty()
+        val value =
+          attribute.extension
+            .firstOrNull { it.url == Constants.OPENMRS_PERSON_ATTRIBUTE_VALUE_URL }
+            ?.value
+            ?.displayText()
+        if (type.isBlank() || value.isNullOrBlank()) return@forEach
+        val label =
+          labels[Constants.PERSON_ATTRIBUTE_LINK_ID_PREFIX + type] ?: type.prettyAttributeName()
+        val kind =
+          when {
+            value.contains('@') -> PatientExtraDetail.Kind.EMAIL
+            type.contains("phone", ignoreCase = true) -> PatientExtraDetail.Kind.PHONE
+            else -> PatientExtraDetail.Kind.TEXT
+          }
+        details += PatientExtraDetail(label, value, kind)
+      }
+    }
+    return details
+  }
+
+  /** The registration form's wording of each person attribute, by its link id. */
+  private suspend fun registrationFormLabels(): Map<String, String> =
+    try {
+      withContext(Dispatchers.Default) {
+        val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+        val form =
+          fhirEngine.getQuestionnaireOrFromAssets(
+            AppConfig.get(applicationContext).registrationForm,
+            applicationContext,
+            parser,
+          )
+        val labels = mutableMapOf<String, String>()
+        fun walk(items: List<Questionnaire.QuestionnaireItemComponent>) {
+          items.forEach {
+            if (it.linkId.startsWith(Constants.PERSON_ATTRIBUTE_LINK_ID_PREFIX) && it.hasText()) {
+              labels[it.linkId] = it.text
+            }
+            walk(it.item)
+          }
+        }
+        form?.let { walk(it.item) }
+        labels
+      }
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      Timber.w(e, "Could not read the registration form's labels")
+      emptyMap()
+    }
+
+  private fun Type.displayText(): String? =
+    when (this) {
+      is CodeableConcept -> coding.firstOrNull()?.display ?: text ?: coding.firstOrNull()?.code
+      is Coding -> display ?: code
+      is BooleanType -> getString(if (value == true) R.string.yes else R.string.no)
+      else -> primitiveValue()
+    }
+
+  private fun String.looksLikePhoneNumber(): Boolean =
+    count { it.isDigit() } >= 5 && all { it.isDigit() || it in "+-() ." }
+
+  /** `registrationapp.patient.hsuSecondaryPhoneNumber` -> "Hsu Secondary Phone Number". */
+  private fun String.prettyAttributeName(): String =
+    substringAfterLast('.')
+      .replace(Regex("([a-z])([A-Z])"), "$1 $2")
+      .replace('_', ' ')
+      .replaceFirstChar { it.titlecase(Locale.getDefault()) }
 
   /** Visits are created for the user (the default) or opened and ended by them. */
   suspend fun automaticVisits(): Boolean = openMRSHelper.automaticVisits()
@@ -402,7 +555,18 @@ data class PatientDetailOverview(
   val patient: PatientListViewModel.PatientItem,
   override val firstInGroup: Boolean = false,
   override val lastInGroup: Boolean = false,
+  /** Everything else the record holds, shown on request ("Show all details"). */
+  val extraDetails: List<PatientExtraDetail> = emptyList(),
 ) : PatientDetailData
+
+/** One more fact about the patient: what it is, its value and what tapping it should do. */
+data class PatientExtraDetail(val label: String, val value: String, val kind: Kind) {
+  enum class Kind {
+    PHONE,
+    EMAIL,
+    TEXT,
+  }
+}
 
 data class PatientUnsynced(
   override val firstInGroup: Boolean = false,

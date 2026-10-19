@@ -38,6 +38,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cake
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
@@ -50,6 +52,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -57,6 +60,8 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.extensions.composeEmail
+import org.openmrs.android.fhir.extensions.dialNumber
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.components.EncounterListItemRow
 import org.openmrs.android.fhir.ui.components.PatientDetailLine
@@ -73,6 +78,7 @@ import org.openmrs.android.fhir.viewmodel.PatientDetailObservation
 import org.openmrs.android.fhir.viewmodel.PatientDetailOverview
 import org.openmrs.android.fhir.viewmodel.PatientDetailProperty
 import org.openmrs.android.fhir.viewmodel.PatientDetailVisit
+import org.openmrs.android.fhir.viewmodel.PatientExtraDetail
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import org.openmrs.android.fhir.viewmodel.PatientUnsynced
 
@@ -120,6 +126,7 @@ fun PatientDetailsScreen(
                 identifiers = item.patient.identifiers,
                 ageGender = formatAgeGender(item.patient),
                 details = patientDetailLines(item.patient),
+                extraDetails = extraDetailLines(item.extraDetails),
                 onEditClick = onEditPatient,
               )
             is PatientUnsynced -> PatientUnsyncedCard()
@@ -225,6 +232,7 @@ private fun patientDetailLines(patient: PatientListViewModel.PatientItem): List<
   val dobLabel = stringResource(R.string.patient_property_dob)
   val phoneLabel = stringResource(R.string.patient_phone_number)
   val addressLabel = stringResource(R.string.patient_property_address)
+  val context = LocalContext.current
   return remember(patient, genderLabel, dobLabel, phoneLabel, addressLabel) {
     buildList {
       patient.gender
@@ -241,12 +249,43 @@ private fun patientDetailLines(patient: PatientListViewModel.PatientItem): List<
       }
       patient.phone
         .takeIf { it.isNotBlank() }
-        ?.let { add(PatientDetailLine(Icons.Filled.Phone, phoneLabel, it)) }
+        ?.let { number ->
+          add(
+            PatientDetailLine(
+              Icons.Filled.Phone,
+              phoneLabel,
+              number,
+              { context.dialNumber(number) },
+            ),
+          )
+        }
       listOf(patient.city, patient.country)
         .filter { it.isNotBlank() }
         .joinToString(", ")
         .takeIf { it.isNotBlank() }
         ?.let { add(PatientDetailLine(Icons.Filled.LocationOn, addressLabel, it)) }
+    }
+  }
+}
+
+/** The rest of the record; numbers call and addresses write when tapped. */
+@Composable
+private fun extraDetailLines(details: List<PatientExtraDetail>): List<PatientDetailLine> {
+  val context = LocalContext.current
+  return remember(details) {
+    details.map { detail ->
+      when (detail.kind) {
+        PatientExtraDetail.Kind.PHONE ->
+          PatientDetailLine(Icons.Filled.Phone, detail.label, detail.value) {
+            context.dialNumber(detail.value)
+          }
+        PatientExtraDetail.Kind.EMAIL ->
+          PatientDetailLine(Icons.Filled.Email, detail.label, detail.value) {
+            context.composeEmail(detail.value)
+          }
+        PatientExtraDetail.Kind.TEXT ->
+          PatientDetailLine(Icons.Filled.Info, detail.label, detail.value)
+      }
     }
   }
 }

@@ -699,6 +699,11 @@
     <string name="login_pending_counts">المرضى: %1$d · السجلات: %2$d</string>
     <string name="login_pending_records_only">السجلات: %1$d</string>
     <string name="login_pending_use_user">تسجيل الدخول بهذا المستخدم</string>
+    <string name="patient_detail_email">البريد الإلكتروني</string>
+    <string name="patient_detail_contact">جهة اتصال</string>
+    <string name="patient_details_show_all">عرض كل التفاصيل</string>
+    <string name="patient_details_hide">إخفاء التفاصيل</string>
+    <string name="no_app_for_action">لم يتم العثور على تطبيق لهذا الإجراء.</string>
     <string name="settings_change_server">تغيير الخادم</string>
     <string name="server_change_title">تغيير الخادم؟</string>
     <string name="server_change_message">سيستخدم التطبيق %1$s ويُعاد تشغيله. سيتم تسجيل خروجك وستسجّل الدخول على الخادم الجديد. تبقى البيانات على هذا الجهاز، لكنها من الخادم السابق: كل ما ينتظر الرفع سيُرسل إلى الخادم الجديد.</string>
@@ -878,7 +883,7 @@
     <string name="create_group_encounter_subtitle">اختر نموذجاً ثم المرضى</string>
     <string name="location_banner_label">الموقع</string>
     <string name="location_banner_none">لم يتم تحديد موقع</string>
-    <string name="location_banner_none_hint">سيُحفظ هذا المريض دون موقع. اختر موقعًا أولًا من القائمة في الشاشة الرئيسية.</string>
+    <string name="location_banner_none_hint">سيتم حفظ هذا المريض بدون موقع. وسيحصل على الموقع الذي تختاره لاحقاً.</string>
     <string name="location_banner_guest_hint">ستختار الموقع بعد تسجيل الدخول.</string>
     <string name="view_encounter">عرض اللقاء</string>
     <string name="encounter_edit_action">تعديل</string>

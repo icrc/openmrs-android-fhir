@@ -774,6 +774,11 @@
     <string name="login_pending_counts">Пациенты: %1$d · Записи: %2$d</string>
     <string name="login_pending_records_only">Записи: %1$d</string>
     <string name="login_pending_use_user">Войти под этим пользователем</string>
+    <string name="patient_detail_email">Эл. почта</string>
+    <string name="patient_detail_contact">Контакт</string>
+    <string name="patient_details_show_all">Показать все данные</string>
+    <string name="patient_details_hide">Скрыть данные</string>
+    <string name="no_app_for_action">Не найдено приложение для этого действия.</string>
     <string name="settings_change_server">Сменить сервер</string>
     <string name="server_change_title">Сменить сервер?</string>
     <string name="server_change_message">Приложение будет использовать %1$s и перезапустится. Вы выйдете из системы и войдёте на новом сервере. Данные на устройстве сохранятся, но они получены с прежнего сервера: всё, что ещё ожидает отправки, будет отправлено на новый.</string>
@@ -945,7 +950,7 @@
     <string name="create_group_encounter_subtitle">Выберите форму, затем пациентов</string>
     <string name="location_banner_label">Локация</string>
     <string name="location_banner_none">Локация не выбрана</string>
-    <string name="location_banner_none_hint">Пациент будет сохранён без локации. Сначала выберите её в меню на главном экране.</string>
+    <string name="location_banner_none_hint">Пациент будет сохранён без локации. Он получит ту, которую вы выберете позже.</string>
     <string name="location_banner_guest_hint">Локацию можно будет выбрать после входа.</string>
     <string name="view_encounter">Просмотр встречи</string>
     <string name="encounter_edit_action">Изменить</string>
