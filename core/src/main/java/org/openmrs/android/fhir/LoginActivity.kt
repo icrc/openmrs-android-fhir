@@ -136,12 +136,15 @@ class LoginActivity : AppCompatActivity() {
     (application as FhirApplication).appComponent.inject(this)
     setContent {
       val pendingUsers by viewModel.pendingUsers.collectAsState()
+      val reachable by viewModel.serverReachable.collectAsState()
       OpenMrsTheme {
         LoginScreen(
           showBasic = showBasic,
           showSso = showSso,
           uiState = loginUiState,
           isSsoEnabled = ssoAction != SsoAction.Disabled,
+          // Signing in needs the server; the guest way in stays.
+          serverReachable = reachable != false,
           initialUsername = viewModel.lastUsername,
           pendingUsers = pendingUsers,
           onBasicLogin = { username, password -> viewModel.login(username, password) },

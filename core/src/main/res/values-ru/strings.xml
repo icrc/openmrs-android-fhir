@@ -867,6 +867,8 @@
     <string name="identify_register_warning_confirm">Зарегистрировать нового</string>
     <string name="identify_register_warning_cancel">Продолжить поиск</string>
     <string name="identify_register_hint">Зарегистрируйте пациента. Записанное для него будет привязано к новому пациенту после сохранения.</string>
+    <string name="login_offline_note">Нет соединения с сервером: вход сейчас недоступен.</string>
+    <string name="login_offline_note_guest">Нет соединения с сервером: вход сейчас недоступен. Можно продолжить без входа.</string>
     <string name="tutorial_step_counter">Шаг %1$d из %2$d</string>
     <string name="tutorial_close">Закрыть обзор</string>
     <string name="tutorial_skip">Пропустить обзор</string>

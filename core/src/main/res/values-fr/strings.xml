@@ -880,6 +880,8 @@
     <string name="identify_register_warning_confirm">Enregistrer un nouveau patient</string>
     <string name="identify_register_warning_cancel">Continuer à chercher</string>
     <string name="identify_register_hint">Enregistrez le patient. Ce qui a été saisi pour lui sera lié au nouveau patient une fois enregistré.</string>
+    <string name="login_offline_note">Pas de connexion au serveur : la connexion n\'est pas disponible pour le moment.</string>
+    <string name="login_offline_note_guest">Pas de connexion au serveur : la connexion n\'est pas disponible pour le moment. Vous pouvez continuer sans vous connecter.</string>
     <string name="tutorial_step_counter">Étape %1$d sur %2$d</string>
     <string name="tutorial_close">Fermer la visite</string>
     <string name="tutorial_skip">Passer la visite</string>

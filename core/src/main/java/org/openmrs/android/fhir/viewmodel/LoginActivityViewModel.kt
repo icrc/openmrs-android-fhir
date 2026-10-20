@@ -30,6 +30,8 @@ package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.Network
 import android.os.Build
 import android.util.Base64
 import androidx.biometric.BiometricManager
@@ -56,8 +58,10 @@ import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.data.database.model.PendingUser
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ApiResponse
+import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.data.remote.model.SessionResponse
 import org.openmrs.android.fhir.extensions.BiometricUtils
+import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.multiuser.UserDataLedger
 import org.openmrs.android.fhir.multiuser.UserRegistry
 import timber.log.Timber
@@ -95,7 +99,39 @@ constructor(
    */
   val pendingUsers: StateFlow<List<PendingUser>?> = _pendingUsers.asStateFlow()
 
+  private val _serverReachable = MutableStateFlow<Boolean?>(null)
+
+  /**
+   * Whether the server answers, for the login page: signing in needs it. `null` while it is being
+   * checked (the page does not hold the user back meanwhile).
+   */
+  val serverReachable: StateFlow<Boolean?> = _serverReachable.asStateFlow()
+
+  private val connectivityManager =
+    applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+  private val networkCallback =
+    object : ConnectivityManager.NetworkCallback() {
+      override fun onAvailable(network: Network) = refreshConnectivity()
+
+      override fun onLost(network: Network) = refreshConnectivity()
+    }
+
+  private fun refreshConnectivity() {
+    viewModelScope.launch {
+      _serverReachable.value =
+        applicationContext.getServerConnectivityState(apiManager).isServerReachable()
+    }
+  }
+
+  override fun onCleared() {
+    runCatching { connectivityManager.unregisterNetworkCallback(networkCallback) }
+    super.onCleared()
+  }
+
   init {
+    // The connection can come and go while the login page is open.
+    runCatching { connectivityManager.registerDefaultNetworkCallback(networkCallback) }
+    refreshConnectivity()
     viewModelScope.launch(Dispatchers.IO) {
       _pendingUsers.value =
         try {

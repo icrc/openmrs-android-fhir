@@ -818,6 +818,8 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="identify_register_warning_confirm">Register new patient</string>
     <string name="identify_register_warning_cancel">Keep searching</string>
     <string name="identify_register_hint">Register the patient. What was recorded for them is linked to the new patient once it is saved.</string>
+    <string name="login_offline_note">No connection to the server: signing in is not available now.</string>
+    <string name="login_offline_note_guest">No connection to the server: signing in is not available now. You can continue without signing in.</string>
     <string name="tutorial_step_counter">Step %1$d of %2$d</string>
     <string name="tutorial_close">Close the tour</string>
     <string name="tutorial_skip">Skip tour</string>

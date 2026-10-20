@@ -854,6 +854,8 @@
     <string name="identify_register_warning_confirm">Registrar paciente nuevo</string>
     <string name="identify_register_warning_cancel">Seguir buscando</string>
     <string name="identify_register_hint">Registre al paciente. Lo registrado para él se vinculará al nuevo paciente al guardarlo.</string>
+    <string name="login_offline_note">Sin conexión con el servidor: no se puede iniciar sesión ahora.</string>
+    <string name="login_offline_note_guest">Sin conexión con el servidor: no se puede iniciar sesión ahora. Puede continuar sin iniciar sesión.</string>
     <string name="tutorial_step_counter">Paso %1$d de %2$d</string>
     <string name="tutorial_close">Cerrar la visita guiada</string>
     <string name="tutorial_skip">Omitir la visita</string>

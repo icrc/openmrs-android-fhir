@@ -274,6 +274,8 @@ fun LoginScreen(
   showSso: Boolean,
   uiState: LoginUiState,
   isSsoEnabled: Boolean,
+  /** The server answers: without it there is no signing in, only the guest way. */
+  serverReachable: Boolean = true,
   onBasicLogin: (String, String) -> Unit,
   onSsoLogin: () -> Unit,
   modifier: Modifier = Modifier,
@@ -359,6 +361,7 @@ fun LoginScreen(
         BasicLoginForm(
           uiState = uiState,
           onLoginClick = onBasicLogin,
+          signInAvailable = serverReachable,
           username = username,
           onUsernameChange = { username = it },
           initialUsername = initialUsername,
@@ -372,8 +375,24 @@ fun LoginScreen(
         SsoLoginButton(
           providerName = ssoProviderName,
           isPrimary = !showBasic,
-          enabled = isSsoEnabled,
+          enabled = isSsoEnabled && serverReachable,
           onClick = onSsoLogin,
+        )
+      }
+      if (!serverReachable) {
+        Text(
+          text =
+            stringResource(
+              if (onContinueWithoutLogin != null) {
+                R.string.login_offline_note_guest
+              } else {
+                R.string.login_offline_note
+              },
+            ),
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.error,
+          textAlign = TextAlign.Center,
+          modifier = Modifier.fillMaxWidth().padding(top = 12.dp).testTag("LoginOfflineNote"),
         )
       }
       if (onContinueWithoutLogin != null) {
@@ -389,6 +408,7 @@ fun LoginScreen(
 private fun ColumnScope.BasicLoginForm(
   uiState: LoginUiState,
   onLoginClick: (String, String) -> Unit,
+  signInAvailable: Boolean,
   username: String,
   onUsernameChange: (String) -> Unit,
   initialUsername: String = "",
@@ -441,7 +461,8 @@ private fun ColumnScope.BasicLoginForm(
       if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
     keyboardOptions =
       KeyboardOptions(imeAction = ImeAction.Done, keyboardType = KeyboardType.Password),
-    keyboardActions = KeyboardActions(onDone = { onLoginClick(username, password) }),
+    keyboardActions =
+      KeyboardActions(onDone = { if (signInAvailable) onLoginClick(username, password) }),
     trailingIcon = {
       val icon = if (isPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility
       val contentDescription =
@@ -458,7 +479,7 @@ private fun ColumnScope.BasicLoginForm(
   Spacer(modifier = Modifier.height(24.dp))
   Button(
     onClick = { onLoginClick(username, password) },
-    enabled = !isLoading,
+    enabled = !isLoading && signInAvailable,
     shape = RoundedCornerShape(16.dp),
     modifier = Modifier.fillMaxWidth().height(52.dp).testTag("BasicLoginButton"),
   ) {
