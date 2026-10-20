@@ -98,9 +98,7 @@
     <string name="error">Error</string>
     <string name="open_questionnaire">Abrir cuestionario</string>
     <string name="no_location_selected">Ninguna Ubicación Seleccionada</string>
-    <string
-        name="patient_unsynced_info"
-    >La información del paciente se sincronizará con\nPearl la próxima vez que estés en línea</string>
+    <string name="patient_unsynced_info">Aún sin sincronizar. La información de este paciente se enviará al servidor la próxima vez que tenga conexión.</string>
     <string name="header_visits">Visitas</string>
     <string name="online">En línea</string>
     <string name="offline">Sin conexión</string>

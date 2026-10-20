@@ -77,7 +77,6 @@ import org.openmrs.android.fhir.ui.components.PatientDetailLine
 import org.openmrs.android.fhir.ui.components.PatientDetailsHeaderRow
 import org.openmrs.android.fhir.ui.components.PatientDetailsOverviewHeader
 import org.openmrs.android.fhir.ui.components.PatientPropertyRow
-import org.openmrs.android.fhir.ui.components.PatientUnsyncedCard
 import org.openmrs.android.fhir.ui.components.VisitListItemRow
 import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
 import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
@@ -120,6 +119,9 @@ fun PatientDetailsScreen(
   val encounterCount =
     remember(patientData) { patientData.orEmpty().count { it is PatientDetailEncounter } }
   val firstHeader = remember(patientData) { patientData?.firstOrNull { it is PatientDetailHeader } }
+  // The "not sent yet" note is part of the patient's card, not a row of its own.
+  val unsynced = remember(patientData) { patientData.orEmpty().any { it is PatientUnsynced } }
+  val rows = remember(patientData) { patientData.orEmpty().filterNot { it is PatientUnsynced } }
 
   Box(
     modifier = modifier.fillMaxSize().testTag("PatientDetailsScreen"),
@@ -135,7 +137,7 @@ fun PatientDetailsScreen(
         contentPadding =
           PaddingValues(start = 16.dp, end = 16.dp, top = topInset + 12.dp, bottom = 104.dp),
       ) {
-        items(patientData, key = { it.listKey() }, contentType = { it::class }) { item ->
+        items(rows, key = { it.listKey() }, contentType = { it::class }) { item ->
           when (item) {
             is PatientDetailOverview ->
               PatientDetailsOverviewHeader(
@@ -147,6 +149,7 @@ fun PatientDetailsScreen(
                 extraDetails = extraDetailLines(item.extraDetails),
                 // A placeholder has no registration to edit.
                 onEditClick = if (item.unidentified) null else onEditPatient,
+                unsynced = unsynced,
               )
             is PatientDetailUnidentified ->
               UnidentifiedCard(
@@ -155,7 +158,6 @@ fun PatientDetailsScreen(
                 onEditNote = onEditNote,
                 identifyAvailable = identifyAvailable,
               )
-            is PatientUnsynced -> PatientUnsyncedCard()
             is PatientDetailHeader ->
               PatientDetailsHeaderRow(
                 // Only the first header is the target of the tour.

@@ -268,6 +268,8 @@ fun PatientDetailsOverviewHeader(
   /** More facts, shown under "Show all details". */
   extraDetails: List<PatientDetailLine> = emptyList(),
   onEditClick: (() -> Unit)? = null,
+  /** Something about the patient has not been sent to the server yet. */
+  unsynced: Boolean = false,
 ) {
   var showAll by rememberSaveable { mutableStateOf(false) }
   val visibleIdentifiers =
@@ -324,6 +326,10 @@ fun PatientDetailsOverviewHeader(
             )
           }
         }
+      }
+
+      if (unsynced) {
+        PatientUnsyncedCard(modifier = Modifier.padding(top = 16.dp))
       }
 
       if (visibleIdentifiers.isNotEmpty()) {
@@ -419,32 +425,41 @@ private fun initialsOf(name: String): String =
     .joinToString("") { it.first().uppercase() }
     .ifEmpty { "?" }
 
-/** Tells the user the patient has changes that were not uploaded yet. */
+/**
+ * Tells the user the patient has changes that were not uploaded yet. A soft strip for the inside of
+ * the patient's card, under the name.
+ */
 @Composable
 fun PatientUnsyncedCard(modifier: Modifier = Modifier) {
   val warning = OpenMrsTheme.colors.warning
-  Surface(
-    modifier = modifier.fillMaxWidth().testTag("PatientUnsyncedCard"),
-    shape = RoundedCornerShape(16.dp),
-    color = warning.copy(alpha = 0.12f),
-    border = BorderStroke(1.dp, warning.copy(alpha = 0.4f)),
+  Row(
+    modifier =
+      modifier
+        .fillMaxWidth()
+        .clip(RoundedCornerShape(14.dp))
+        .background(warning.copy(alpha = 0.14f))
+        .padding(horizontal = 12.dp, vertical = 10.dp)
+        .testTag("PatientUnsyncedCard"),
+    verticalAlignment = Alignment.CenterVertically,
   ) {
-    Row(
-      modifier = Modifier.fillMaxWidth().padding(14.dp),
-      verticalAlignment = Alignment.CenterVertically,
+    Box(
+      modifier = Modifier.size(32.dp).clip(CircleShape).background(warning),
+      contentAlignment = Alignment.Center,
     ) {
       Icon(
         painter = painterResource(id = R.drawable.ic_baseline_sync_24),
         contentDescription = stringResource(id = R.string.task_image),
-        tint = warning,
-      )
-      Spacer(modifier = Modifier.width(12.dp))
-      Text(
-        text = stringResource(id = R.string.patient_unsynced_info),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurface,
+        // Dark on the yellow badge, in both themes.
+        tint = androidx.compose.ui.graphics.Color(0xFF3A2C00),
+        modifier = Modifier.size(18.dp),
       )
     }
+    Spacer(modifier = Modifier.width(12.dp))
+    Text(
+      text = stringResource(id = R.string.patient_unsynced_info),
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
   }
 }
 

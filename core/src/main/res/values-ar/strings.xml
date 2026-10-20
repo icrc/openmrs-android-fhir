@@ -95,9 +95,7 @@
     <string name="error">خطأ</string>
     <string name="open_questionnaire">استبيان مفتوح</string>
     <string name="no_location_selected">لا يوجد موقع محدد</string>
-    <string
-        name="patient_unsynced_info"
-    >ستتم مزامنة معلومات المريض مع \n Pearl في المرة القادمة التي تكون فيها على الإنترنت</string>
+    <string name="patient_unsynced_info">لم تتم المزامنة بعد. ستُرسل معلومات هذا المريض إلى الخادم عند اتصالك بالإنترنت في المرة القادمة.</string>
     <string name="header_visits">الزيارات</string>
     <string name="online">متصل</string>
     <string name="offline">دون اتصال</string>

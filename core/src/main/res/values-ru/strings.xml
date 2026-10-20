@@ -114,9 +114,7 @@
     <string name="open_questionnaire">Открыть анкету</string>
     <string name="no_location_selected">Локация не выбрана</string>
 
-    <string
-        name="patient_unsynced_info"
-    >Информация о пациенте будет синхронизирована\nпри подключении к интернету</string>
+    <string name="patient_unsynced_info">Ещё не синхронизировано. Данные этого пациента будут отправлены на сервер, когда появится соединение.</string>
 
     <string name="header_visits">Визиты</string>
 
