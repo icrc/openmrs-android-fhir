@@ -117,6 +117,7 @@ import org.openmrs.android.fhir.extensions.PermissionHelper
 import org.openmrs.android.fhir.extensions.PermissionHelperFactory
 import org.openmrs.android.fhir.extensions.UncaughtExceptionHandler
 import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
+import org.openmrs.android.fhir.fragments.AddPatientFragment
 import org.openmrs.android.fhir.fragments.CreateEncountersFragmentArgs
 import org.openmrs.android.fhir.multiuser.UserRegistry
 import org.openmrs.android.fhir.ui.components.AppMessage
@@ -410,6 +411,14 @@ class MainActivity : AppCompatActivity() {
               IdentifyPatientDialog(
                 entryId = null,
                 onDismiss = { identifyVisible.value = false },
+                onRegisterNew = { entryId ->
+                  identifyVisible.value = false
+                  getNavController()
+                    ?.navigate(
+                      R.id.addPatientFragment,
+                      androidx.core.os.bundleOf(AddPatientFragment.ARG_IDENTIFY_ENTRY to entryId),
+                    )
+                },
                 onIdentified = { _, moved ->
                   AppMessage.show(
                     this@MainActivity,
@@ -862,6 +871,11 @@ class MainActivity : AppCompatActivity() {
    */
   /** The search for the server patients that the ones recorded "to identify after" are. */
   fun showIdentifyDialog() {
+    // The search is on the server and the new patient is registered to be sent to it.
+    if (isGuest.value || !viewModel.uiState.value.connectivityState.isServerReachable()) {
+      AppMessage.show(this, R.string.identify_requires_connection, MessageKind.Info)
+      return
+    }
     identifyVisible.value = true
   }
 

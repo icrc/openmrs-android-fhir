@@ -51,6 +51,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
@@ -62,8 +63,10 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.OpenMRSHelper
+import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.ui.components.AppMessage
@@ -111,10 +114,25 @@ class PatientDetailsFragment : Fragment() {
       var editingNote by rememberSaveable { mutableStateOf(false) }
       val toIdentify =
         patientData.orEmpty().filterIsInstance<PatientDetailUnidentified>().firstOrNull()
+      // Identifying searches the server: a signed-in user with a connection.
+      val activityState by mainActivityViewModel.uiState.collectAsStateWithLifecycle()
+      val identifyAvailable =
+        !GuestSession.isActive(requireContext()) &&
+          activityState.connectivityState.isServerReachable()
       if (identifying) {
         IdentifyPatientDialog(
           entryId = args.patientId,
           onDismiss = { identifying = false },
+          onRegisterNew = { entryId ->
+            identifying = false
+            // Not this page any more: the records are about to belong to a new patient.
+            val navController = findNavController()
+            navController.popBackStack()
+            navController.navigate(
+              R.id.addPatientFragment,
+              bundleOf(AddPatientFragment.ARG_IDENTIFY_ENTRY to entryId),
+            )
+          },
           onIdentified = { realId, moved ->
             identifying = false
             onIdentified(realId, moved)
@@ -143,6 +161,7 @@ class PatientDetailsFragment : Fragment() {
         onReopenVisit = ::onReopenVisitClick,
         onCreateEncounter = ::onCreateEncounterClick,
         onIdentifyPatient = { identifying = true },
+        identifyAvailable = identifyAvailable,
         onEditNote = { editingNote = true },
       )
     }

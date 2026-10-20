@@ -784,7 +784,14 @@
     <string name="sync_identify_title">مرضى بانتظار التعرّف: %1$d</string>
     <string name="sync_identify_subtitle">تعرّف عليهم قبل المزامنة: لا تُرسل سجلاتهم حتى تفعل ذلك.</string>
     <string name="help_sync_identify_title">مرضى بانتظار التعرّف</string>
-    <string name="help_sync_identify_body">عندما يُسجَّل مرضى للتعرّف عليهم لاحقاً يظهر هنا عددهم. لا ترسل أي مزامنة ما يحتويه سجلهم حتى تتعرّف عليهم، فافعل ذلك قبل المزامنة.</string>
+    <string name="help_sync_identify_body">عندما يُسجَّل مرضى للتعرّف عليهم لاحقاً يظهر هنا عددهم. لا ترسل أي مزامنة ما يحتويه سجلهم حتى تتعرّف عليهم، فافعل ذلك قبل المزامنة. يلزم مستخدم مسجّل الدخول ومتصل بالخادم؛ وإذا لم يكن المريض على الخادم يمكنك تسجيل مريض جديد بحذر.</string>
+    <string name="identify_requires_connection">سجّل الدخول واتصل بالخادم للتعرّف عليهم.</string>
+    <string name="identify_register_action">غير موجود على الخادم؟ سجّل مريضاً جديداً</string>
+    <string name="identify_register_warning_title">تابع بحذر</string>
+    <string name="identify_register_warning_message">سجّل مريضاً جديداً فقط إذا كنت متأكداً من أنه غير موجود في النظام. إنشاء مريض جديد وهو موجود أصلاً يسبب نسخة مكررة يصعب التراجع عنها. ابحث مجدداً أولاً بإملاءات أخرى أو بالمعرّف أو برقم الهاتف.</string>
+    <string name="identify_register_warning_confirm">تسجيل مريض جديد</string>
+    <string name="identify_register_warning_cancel">متابعة البحث</string>
+    <string name="identify_register_hint">سجّل المريض. سيُربط ما سُجّل له بالمريض الجديد بعد الحفظ.</string>
     <string name="tutorial_step_counter">الخطوة %1$d من %2$d</string>
     <string name="tutorial_close">إغلاق الجولة</string>
     <string name="tutorial_skip">تخطي الجولة</string>

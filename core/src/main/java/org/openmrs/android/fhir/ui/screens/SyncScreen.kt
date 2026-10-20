@@ -120,6 +120,8 @@ fun SyncScreen(
   /** Patients recorded to be identified after: never part of a sync until identified. */
   unidentifiedCount: Int = 0,
   onIdentify: () -> Unit = {},
+  /** Identifying needs a signed-in user with a connection to the server. */
+  identifyAvailable: Boolean = true,
 ) {
   val topInset = rememberAppBarHeight()
   val pendingCount = pendingResources.count { it is UnsyncedResource.PatientItem }
@@ -148,6 +150,7 @@ fun SyncScreen(
       UnidentifiedPatientsCard(
         count = unidentifiedCount,
         onIdentify = onIdentify,
+        identifyAvailable = identifyAvailable,
         modifier = Modifier.padding(horizontal = 16.dp),
       )
     }
@@ -212,6 +215,7 @@ fun SyncScreen(
 private fun UnidentifiedPatientsCard(
   count: Int,
   onIdentify: () -> Unit,
+  identifyAvailable: Boolean,
   modifier: Modifier = Modifier,
 ) {
   val accent = OpenMrsTheme.colors.warning
@@ -250,13 +254,26 @@ private fun UnidentifiedPatientsCard(
           color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
-          text = stringResource(R.string.sync_identify_subtitle),
+          text =
+            stringResource(
+              if (identifyAvailable) {
+                R.string.sync_identify_subtitle
+              } else {
+                R.string.identify_requires_connection
+              },
+            ),
           style = MaterialTheme.typography.bodySmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          color =
+            if (identifyAvailable) {
+              MaterialTheme.colorScheme.onSurfaceVariant
+            } else {
+              MaterialTheme.colorScheme.error
+            },
         )
       }
       TextButton(
         onClick = onIdentify,
+        enabled = identifyAvailable,
         modifier = Modifier.testTag(SyncScreenTestTags.IdentifyButton),
       ) {
         Text(text = stringResource(R.string.identify_sync_now))

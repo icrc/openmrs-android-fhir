@@ -41,6 +41,7 @@ import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValid
 import com.google.android.fhir.get
 import java.util.UUID
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -57,6 +58,7 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.Constants.PATIENT_IDENTIFIER_DEFINITION_URL
 import org.openmrs.android.fhir.Constants.PATIENT_LOCATION_IDENTIFIER_URL
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
@@ -84,6 +86,16 @@ constructor(
   var locationId: String? = null
   private val identifierFactory by lazy { PatientIdentifierFactory(applicationContext, database) }
   val isPatientSaved = MutableLiveData<Boolean>()
+
+  /**
+   * The patient to identify after that this registration is for (empty: a normal registration):
+   * once the patient is saved, what was recorded for it is linked to the new patient.
+   */
+  var identifyEntryId: String = ""
+
+  /** The patient just saved, and how many records of [identifyEntryId] were linked to them. */
+  var savedPatientId: String? = null
+  var linkedRecords: Int = 0
 
   /** Why the last save was refused, when it is more specific than missing inputs. */
   val saveFailure = MutableLiveData<Int?>()
@@ -172,6 +184,28 @@ constructor(
         AuditOutcome.SUCCESS,
         "patient" to patient.idElement.idPart,
       )
+      savedPatientId = patient.idElement.idPart
+      if (identifyEntryId.isNotBlank()) {
+        // Not found on the server: everything recorded for the patient to identify goes to this
+        // one.
+        linkedRecords =
+          try {
+            FhirApplication.appComponent(applicationContext)
+              .unidentifiedPatients()
+              .linkToNewPatient(identifyEntryId, patient.idElement.idPart)
+          } catch (e: CancellationException) {
+            throw e
+          } catch (e: Exception) {
+            Timber.e(e, "Could not link the records to the new patient")
+            0
+          }
+        AuditLog.record(
+          AuditAction.PATIENT_CREATED,
+          AuditOutcome.SUCCESS,
+          "linked_records" to linkedRecords,
+          "from" to "identify_later",
+        )
+      }
       // Live mode sends it now; otherwise it waits for the sync.
       LiveSync.requestUpload(applicationContext)
       // TODO Pending for cohort-module

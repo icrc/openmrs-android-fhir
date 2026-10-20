@@ -48,6 +48,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -106,6 +107,11 @@ fun IdentifyPatientDialog(
   entryId: String?,
   onDismiss: () -> Unit,
   onIdentified: (patientId: String, moved: Int) -> Unit = { _, _ -> },
+  /**
+   * The patient cannot be found on the server: register a new one for what was recorded (the id of
+   * the entry). `null`: not offered.
+   */
+  onRegisterNew: ((entryId: String) -> Unit)? = null,
 ) {
   val context = LocalContext.current
   val unidentified = remember { FhirApplication.appComponent(context).unidentifiedPatients() }
@@ -159,6 +165,7 @@ fun IdentifyPatientDialog(
                 reload++
                 onIdentified(patientId, moved)
               },
+              onRegisterNew = onRegisterNew,
             )
           list.isEmpty() ->
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -246,8 +253,10 @@ private fun SearchStep(
   entry: UnidentifiedPatients.Entry,
   unidentified: UnidentifiedPatients,
   onIdentified: (patientId: String, moved: Int) -> Unit,
+  onRegisterNew: ((entryId: String) -> Unit)?,
 ) {
   val scope = rememberCoroutineScope()
+  var warnRegister by rememberSaveable { mutableStateOf(false) }
   var query by rememberSaveable(entry.patientId) { mutableStateOf(entry.note) }
   var state by remember { mutableStateOf<SearchState>(SearchState.Idle) }
   var confirming by remember { mutableStateOf<PatientListViewModel.PatientItem?>(null) }
@@ -305,6 +314,14 @@ private fun SearchStep(
       singleLine = true,
       shape = RoundedCornerShape(16.dp),
     )
+    if (onRegisterNew != null) {
+      TextButton(
+        onClick = { warnRegister = true },
+        modifier = Modifier.padding(top = 4.dp).testTag("IdentifyRegisterNew"),
+      ) {
+        Text(text = stringResource(R.string.identify_register_action))
+      }
+    }
     Spacer(modifier = Modifier.height(8.dp))
     when (val current = state) {
       SearchState.Idle ->
@@ -357,6 +374,41 @@ private fun SearchStep(
           }
         }
     }
+  }
+
+  if (warnRegister && onRegisterNew != null) {
+    AlertDialog(
+      onDismissRequest = { warnRegister = false },
+      modifier = Modifier.testTag("IdentifyRegisterWarning"),
+      icon = {
+        Icon(
+          imageVector = Icons.Filled.Warning,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.error,
+        )
+      },
+      title = { Text(text = stringResource(R.string.identify_register_warning_title)) },
+      text = { Text(text = stringResource(R.string.identify_register_warning_message)) },
+      confirmButton = {
+        TextButton(
+          modifier = Modifier.testTag("IdentifyRegisterConfirm"),
+          onClick = {
+            warnRegister = false
+            onRegisterNew(entry.patientId)
+          },
+        ) {
+          Text(
+            text = stringResource(R.string.identify_register_warning_confirm),
+            color = MaterialTheme.colorScheme.error,
+          )
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = { warnRegister = false }) {
+          Text(text = stringResource(R.string.identify_register_warning_cancel))
+        }
+      },
+    )
   }
 
   confirming?.let { patient ->

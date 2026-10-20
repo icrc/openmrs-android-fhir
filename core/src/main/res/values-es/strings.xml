@@ -846,7 +846,14 @@
     <string name="sync_identify_title">Pacientes por identificar: %1$d</string>
     <string name="sync_identify_subtitle">Identifíquelos antes de sincronizar: sus registros no se envían hasta que lo haga.</string>
     <string name="help_sync_identify_title">Pacientes por identificar</string>
-    <string name="help_sync_identify_body">Cuando hay pacientes registrados para identificar después, aquí se indica cuántos. Ninguna sincronización envía lo que contienen hasta que los identifique; hágalo antes de sincronizar.</string>
+    <string name="help_sync_identify_body">Cuando hay pacientes registrados para identificar después, aquí se indica cuántos. Ninguna sincronización envía lo que contienen hasta que los identifique; hágalo antes de sincronizar. Necesita un usuario con sesión iniciada y conectado al servidor; si el paciente no está en el servidor puede registrar uno nuevo, con cuidado.</string>
+    <string name="identify_requires_connection">Inicie sesión y conéctese al servidor para identificarlos.</string>
+    <string name="identify_register_action">¿No está en el servidor? Registrar un paciente nuevo</string>
+    <string name="identify_register_warning_title">Proceda con precaución</string>
+    <string name="identify_register_warning_message">Registre un paciente nuevo solo si está seguro de que no está en el sistema. Crear un paciente nuevo cuando ya existe crea un duplicado, difícil de deshacer. Busque de nuevo antes, con otras grafías, el identificador o el teléfono.</string>
+    <string name="identify_register_warning_confirm">Registrar paciente nuevo</string>
+    <string name="identify_register_warning_cancel">Seguir buscando</string>
+    <string name="identify_register_hint">Registre al paciente. Lo registrado para él se vinculará al nuevo paciente al guardarlo.</string>
     <string name="tutorial_step_counter">Paso %1$d de %2$d</string>
     <string name="tutorial_close">Cerrar la visita guiada</string>
     <string name="tutorial_skip">Omitir la visita</string>

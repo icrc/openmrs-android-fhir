@@ -113,6 +113,8 @@ fun PatientDetailsScreen(
   onReopenVisit: (visitId: String) -> Unit = {},
   onIdentifyPatient: () -> Unit = {},
   onEditNote: () -> Unit = {},
+  /** Identifying needs a signed-in user with a connection to the server. */
+  identifyAvailable: Boolean = true,
 ) {
   val topInset = rememberAppBarHeight()
   val encounterCount =
@@ -151,6 +153,7 @@ fun PatientDetailsScreen(
                 note = item.note,
                 onIdentify = onIdentifyPatient,
                 onEditNote = onEditNote,
+                identifyAvailable = identifyAvailable,
               )
             is PatientUnsynced -> PatientUnsyncedCard()
             is PatientDetailHeader ->
@@ -253,7 +256,12 @@ fun PatientDetailsScreen(
  * device and not sent until the real patient is found.
  */
 @Composable
-private fun UnidentifiedCard(note: String, onIdentify: () -> Unit, onEditNote: () -> Unit) {
+private fun UnidentifiedCard(
+  note: String,
+  onIdentify: () -> Unit,
+  onEditNote: () -> Unit,
+  identifyAvailable: Boolean,
+) {
   Surface(
     modifier = Modifier.fillMaxWidth().testTag("UnidentifiedCard"),
     shape = RoundedCornerShape(20.dp),
@@ -284,8 +292,19 @@ private fun UnidentifiedCard(note: String, onIdentify: () -> Unit, onEditNote: (
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSecondaryContainer,
       )
+      if (!identifyAvailable) {
+        Text(
+          text = stringResource(R.string.identify_requires_connection),
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.error,
+        )
+      }
       Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Button(onClick = onIdentify, modifier = Modifier.testTag("IdentifyPatientButton")) {
+        Button(
+          onClick = onIdentify,
+          enabled = identifyAvailable,
+          modifier = Modifier.testTag("IdentifyPatientButton"),
+        ) {
           Text(text = stringResource(R.string.identify_banner_identify))
         }
         TextButton(onClick = onEditNote, modifier = Modifier.testTag("EditNoteButton")) {

@@ -859,7 +859,14 @@
     <string name="sync_identify_title">Пациентов для идентификации: %1$d</string>
     <string name="sync_identify_subtitle">Идентифицируйте их до синхронизации: их записи не отправляются, пока вы этого не сделаете.</string>
     <string name="help_sync_identify_title">Пациенты для идентификации</string>
-    <string name="help_sync_identify_body">Если пациенты записаны для идентификации позже, здесь показано их число. Синхронизация не отправляет их данные, пока вы их не идентифицируете, поэтому сделайте это до синхронизации.</string>
+    <string name="help_sync_identify_body">Если пациенты записаны для идентификации позже, здесь показано их число. Синхронизация не отправляет их данные, пока вы их не идентифицируете, поэтому сделайте это до синхронизации. Нужен вошедший пользователь со связью с сервером; если пациента нет на сервере, можно осторожно зарегистрировать нового.</string>
+    <string name="identify_requires_connection">Войдите в систему и подключитесь к серверу, чтобы их идентифицировать.</string>
+    <string name="identify_register_action">Нет на сервере? Зарегистрировать нового пациента</string>
+    <string name="identify_register_warning_title">Действуйте осторожно</string>
+    <string name="identify_register_warning_message">Регистрируйте нового пациента, только если уверены, что его нет в системе. Создание нового пациента, когда он уже есть, порождает дубликат, который трудно исправить. Сначала повторите поиск: с другим написанием, по идентификатору или номеру телефона.</string>
+    <string name="identify_register_warning_confirm">Зарегистрировать нового</string>
+    <string name="identify_register_warning_cancel">Продолжить поиск</string>
+    <string name="identify_register_hint">Зарегистрируйте пациента. Записанное для него будет привязано к новому пациенту после сохранения.</string>
     <string name="tutorial_step_counter">Шаг %1$d из %2$d</string>
     <string name="tutorial_close">Закрыть обзор</string>
     <string name="tutorial_skip">Пропустить обзор</string>

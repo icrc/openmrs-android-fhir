@@ -128,26 +128,42 @@ constructor(
       store.get(entryId) ?: return@withLock 0
       // First the real patient: if this fails nothing has been touched.
       LivePatients(context, fhirEngine).download(serverPatientId, remember = true)
-      val records = recordsOf(entryId)
-      val target = Reference("Patient/$serverPatientId")
-      records.forEach { it.setSubjectTo(target) }
-      val ordered = records.sortedBy { it.order() }
-      fhirEngine.withTransaction {
-        // They were never uploaded and have no pending change: purged, then created again as new
-        // records for the real patient (the same ids, which the server keeps).
-        listOf(ResourceType.Observation, ResourceType.Condition, ResourceType.Encounter).forEach {
-          type ->
-          val ids = ordered.filter { it.resourceType == type }.map { it.idElement.idPart }.toSet()
-          if (ids.isNotEmpty()) purge(type, ids)
-        }
-        if (ordered.isNotEmpty()) create(*ordered.toTypedArray())
-      }
-      fhirEngine.purge(ResourceType.Patient, setOf(entryId), true)
-      store.remove(entryId)
-      LiveSync.requestUpload(context)
-      LiveSync.notifyUploaded()
-      ordered.size
+      moveRecords(entryId, serverPatientId)
     }
+
+  /**
+   * The patient could not be found on the server: what was recorded for [entryId] goes to
+   * [newPatientId], a patient registered for it (already saved on the device), and is sent with it.
+   *
+   * @return how many records were moved.
+   */
+  suspend fun linkToNewPatient(entryId: String, newPatientId: String): Int =
+    lock.withLock {
+      store.get(entryId) ?: return@withLock 0
+      moveRecords(entryId, newPatientId)
+    }
+
+  private suspend fun moveRecords(entryId: String, patientId: String): Int {
+    val records = recordsOf(entryId)
+    val target = Reference("Patient/$patientId")
+    records.forEach { it.setSubjectTo(target) }
+    val ordered = records.sortedBy { it.order() }
+    fhirEngine.withTransaction {
+      // They were never uploaded and have no pending change: purged, then created again as new
+      // records for the real patient (the same ids, which the server keeps).
+      listOf(ResourceType.Observation, ResourceType.Condition, ResourceType.Encounter).forEach {
+        type ->
+        val ids = ordered.filter { it.resourceType == type }.map { it.idElement.idPart }.toSet()
+        if (ids.isNotEmpty()) purge(type, ids)
+      }
+      if (ordered.isNotEmpty()) create(*ordered.toTypedArray())
+    }
+    fhirEngine.purge(ResourceType.Patient, setOf(entryId), true)
+    store.remove(entryId)
+    LiveSync.requestUpload(context)
+    LiveSync.notifyUploaded()
+    return ordered.size
+  }
 
   /** The database was emptied: forget what was cached. */
   fun forget() = store.invalidate()

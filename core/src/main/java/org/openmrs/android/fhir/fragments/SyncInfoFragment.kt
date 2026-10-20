@@ -49,6 +49,7 @@ import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
 import org.openmrs.android.fhir.data.remote.isServerReachable
@@ -107,6 +108,8 @@ class SyncInfoFragment : Fragment() {
         SyncScreen(
           unidentifiedCount = unidentifiedCount,
           onIdentify = { (requireActivity() as? MainActivity)?.showIdentifyDialog() },
+          identifyAvailable =
+            !GuestSession.isActive(context) && activityState.connectivityState.isServerReachable(),
           defaultSyncMode = defaultMode,
           syncAvailable = activityState.connectivityState.isServerReachable(),
           syncSessions = sessions,

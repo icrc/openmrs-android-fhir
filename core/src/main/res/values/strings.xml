@@ -810,7 +810,14 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="sync_identify_title">Patients to identify: %1$d</string>
     <string name="sync_identify_subtitle">Identify them before syncing: their records are not sent until you do.</string>
     <string name="help_sync_identify_title">Patients to identify</string>
-    <string name="help_sync_identify_body">When patients were recorded to be identified later, this shows how many. What they hold is never sent by a sync until you identify them, so do it before syncing.</string>
+    <string name="help_sync_identify_body">When patients were recorded to be identified later, this shows how many. What they hold is never sent by a sync until you identify them, so do it before syncing. It needs a signed-in user connected to the server; if the patient is not on the server you can register a new one, carefully.</string>
+    <string name="identify_requires_connection">Sign in and connect to the server to identify them.</string>
+    <string name="identify_register_action">Not on the server? Register a new patient</string>
+    <string name="identify_register_warning_title">Proceed with caution</string>
+    <string name="identify_register_warning_message">Register a new patient only if you are sure this patient is not in the system. Creating a new patient when they already exist creates a duplicate, which is hard to undo. Search again first, with other spellings, the identifier or the phone number.</string>
+    <string name="identify_register_warning_confirm">Register new patient</string>
+    <string name="identify_register_warning_cancel">Keep searching</string>
+    <string name="identify_register_hint">Register the patient. What was recorded for them is linked to the new patient once it is saved.</string>
     <string name="tutorial_step_counter">Step %1$d of %2$d</string>
     <string name="tutorial_close">Close the tour</string>
     <string name="tutorial_skip">Skip tour</string>

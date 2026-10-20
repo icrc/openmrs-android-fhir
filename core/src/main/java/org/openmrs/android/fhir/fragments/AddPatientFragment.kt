@@ -35,11 +35,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import javax.inject.Inject
@@ -79,6 +81,11 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
     get() = _binding!!
 
   private val unsavedChangesGuard by lazy { UnsavedChangesGuard(this) }
+
+  /** The patient to identify after that this registration is for; empty for a normal one. */
+  private val identifyEntryId: String
+    get() = arguments?.getString(ARG_IDENTIFY_ENTRY).orEmpty()
+
   private val locationBanner = mutableStateOf<LocationBannerState>(LocationBannerState.Loading)
 
   override fun onCreateView(
@@ -107,6 +114,15 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
         } else {
           LocationBannerState.Selected(name)
         }
+    }
+    viewModel.identifyEntryId = identifyEntryId
+    if (identifyEntryId.isNotEmpty() && savedInstanceState == null) {
+      AppMessage.show(
+        requireContext(),
+        getString(R.string.identify_register_hint),
+        MessageKind.Info,
+        long = true,
+      )
     }
     observeLoading()
     if (savedInstanceState == null) {
@@ -186,7 +202,23 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
         return@observe
       }
       AppMessage.show(requireContext(), getString(R.string.patient_is_saved), MessageKind.Success)
-      NavHostFragment.findNavController(this).navigateUp()
+      val savedId = viewModel.savedPatientId
+      if (identifyEntryId.isNotEmpty() && savedId != null) {
+        AppMessage.show(
+          requireContext(),
+          getString(R.string.identify_done, viewModel.linkedRecords),
+          MessageKind.Success,
+        )
+        // The new patient, with what was recorded: back from there is where the user came from.
+        NavHostFragment.findNavController(this)
+          .navigate(
+            R.id.patient_details,
+            bundleOf("patient_id" to savedId),
+            NavOptions.Builder().setPopUpTo(R.id.addPatientFragment, true).build(),
+          )
+      } else {
+        NavHostFragment.findNavController(this).navigateUp()
+      }
     }
   }
 
@@ -218,6 +250,9 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
   }
 
   companion object {
+    /** The patient to identify after the registration is for (its id). */
+    const val ARG_IDENTIFY_ENTRY = "identify_entry_id"
+
     const val QUESTIONNAIRE_FRAGMENT_TAG = "questionnaire-fragment-tag"
   }
 }

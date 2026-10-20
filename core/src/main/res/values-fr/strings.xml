@@ -872,7 +872,14 @@
     <string name="sync_identify_title">Patients à identifier : %1$d</string>
     <string name="sync_identify_subtitle">Identifiez-les avant de synchroniser : leurs données ne sont pas envoyées tant que vous ne l\'avez pas fait.</string>
     <string name="help_sync_identify_title">Patients à identifier</string>
-    <string name="help_sync_identify_body">Quand des patients ont été enregistrés pour être identifiés plus tard, ceci indique combien. Aucune synchronisation n\'envoie leurs données avant que vous les identifiiez : faites-le avant de synchroniser.</string>
+    <string name="help_sync_identify_body">Quand des patients ont été enregistrés pour être identifiés plus tard, ceci indique combien. Aucune synchronisation n\'envoie leurs données avant que vous les identifiiez : faites-le avant de synchroniser. Il faut un utilisateur connecté au serveur ; si le patient n\'est pas sur le serveur, vous pouvez en enregistrer un nouveau, avec prudence.</string>
+    <string name="identify_requires_connection">Connectez-vous et reliez-vous au serveur pour les identifier.</string>
+    <string name="identify_register_action">Pas sur le serveur ? Enregistrer un nouveau patient</string>
+    <string name="identify_register_warning_title">Procédez avec prudence</string>
+    <string name="identify_register_warning_message">N\'enregistrez un nouveau patient que si vous êtes sûr que ce patient n\'est pas dans le système. Créer un nouveau patient alors qu\'il existe déjà crée un doublon, difficile à défaire. Cherchez d\'abord à nouveau, avec d\'autres orthographes, l\'identifiant ou le numéro de téléphone.</string>
+    <string name="identify_register_warning_confirm">Enregistrer un nouveau patient</string>
+    <string name="identify_register_warning_cancel">Continuer à chercher</string>
+    <string name="identify_register_hint">Enregistrez le patient. Ce qui a été saisi pour lui sera lié au nouveau patient une fois enregistré.</string>
     <string name="tutorial_step_counter">Étape %1$d sur %2$d</string>
     <string name="tutorial_close">Fermer la visite</string>
     <string name="tutorial_skip">Passer la visite</string>
