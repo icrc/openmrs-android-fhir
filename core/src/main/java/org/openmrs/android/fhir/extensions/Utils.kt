@@ -51,10 +51,12 @@ import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import org.hl7.fhir.r4.model.CodeType
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.Element
+import org.hl7.fhir.r4.model.Extension
 import org.hl7.fhir.r4.model.IntegerType
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Questionnaire
@@ -305,6 +307,21 @@ suspend fun Questionnaire.hasInvalidAnswersIgnoringPageSpacers(
     .values
     .flatten()
     .any { it is Invalid }
+}
+
+private const val SDC_ENTRY_MODE_URL =
+  "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-entryMode"
+
+/**
+ * Makes the form library hold "Next" and "Review" back until the required questions are answered.
+ * It only does so for a form that declares an entry mode (`prior-edit`, as the encounter forms do);
+ * without one it lets the review open with required answers missing. A form that declares one keeps
+ * it.
+ */
+fun Questionnaire.requireAnswersBeforeReview() {
+  if (extension.none { it.url.endsWith("sdc-questionnaire-entryMode") }) {
+    addExtension(Extension(SDC_ENTRY_MODE_URL, CodeType("prior-edit")))
+  }
 }
 
 private fun QuestionnaireItemComponent.isPageGroupItem(): Boolean {

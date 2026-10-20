@@ -800,7 +800,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="help_forms_list_title">Choose a form</string>
     <string name="help_forms_list_body">Tap a form to fill it in. Sessions that were started and not finished are shown so you can continue them.</string>
     <string name="help_form_registration_title">Registration form</string>
-    <string name="help_form_registration_body">Answer the questions. Required ones must be filled in: the patient cannot be saved with missing data. Review your answers before submitting.</string>
+    <string name="help_form_registration_body">Answer the questions. The required ones must be filled in before you can review: the patient cannot be saved with data missing. Review your answers before submitting.</string>
     <string name="help_form_encounter_title">Encounter form</string>
     <string name="help_form_encounter_body">Fill in the questions, then review and submit. What you save stays on this device and is uploaded at the next sync.</string>
     <string name="help_group_tabs_title">Patients of the session</string>

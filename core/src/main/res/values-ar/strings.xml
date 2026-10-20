@@ -774,7 +774,7 @@
     <string name="help_forms_list_title">اختيار نموذج</string>
     <string name="help_forms_list_body">اضغط على نموذج لملئه. تُعرض الجلسات التي بدأت ولم تنتهِ لمتابعتها.</string>
     <string name="help_form_registration_title">نموذج التسجيل</string>
-    <string name="help_form_registration_body">أجب عن الأسئلة. يجب ملء المطلوبة منها: لا يمكن حفظ المريض مع نقص البيانات. راجع إجاباتك قبل الإرسال.</string>
+    <string name="help_form_registration_body">أجب عن الأسئلة. يجب ملء المطلوبة منها قبل المراجعة: لا يمكن حفظ المريض مع نقص البيانات. راجع إجاباتك قبل الإرسال.</string>
     <string name="help_form_encounter_title">نموذج اللقاء</string>
     <string name="help_form_encounter_body">املأ الأسئلة ثم راجع وأرسل. ما تحفظه يبقى على هذا الجهاز ويُرفع في المزامنة التالية.</string>
     <string name="help_group_tabs_title">مرضى الجلسة</string>
