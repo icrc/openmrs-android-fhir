@@ -867,6 +867,7 @@
     <string name="help_form_encounter_body">Remplissez les questions, puis relisez et validez. Ce que vous enregistrez reste sur cet appareil et est envoyé à la prochaine synchronisation.</string>
     <string name="help_group_tabs_title">Patients de la séance</string>
     <string name="help_group_tabs_body">Passez d\'un patient de la séance à l\'autre ; chacun a ses propres réponses.</string>
+    <string name="network_status_server_reachable">Serveur joignable</string>
     <string name="tutorial_step_counter">Étape %1$d sur %2$d</string>
     <string name="tutorial_close">Fermer la visite</string>
     <string name="tutorial_skip">Passer la visite</string>

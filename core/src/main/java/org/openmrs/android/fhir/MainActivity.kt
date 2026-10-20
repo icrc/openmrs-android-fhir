@@ -944,6 +944,8 @@ class MainActivity : AppCompatActivity() {
    */
   private fun onSignedInFromGuest() {
     isGuest.value = false
+    // The banner no longer says "server reachable" but "connected to server".
+    viewModel.refreshLocalizedTexts()
     viewModel.restartAutoSync()
     viewModel.setHasHandledPostLoginNavigation(false)
     viewModel.triggerIdentifierTypeSync()

@@ -854,6 +854,7 @@
     <string name="help_form_encounter_body">Заполните вопросы, затем проверьте и отправьте. Сохранённое остаётся на устройстве и отправляется при следующей синхронизации.</string>
     <string name="help_group_tabs_title">Пациенты сессии</string>
     <string name="help_group_tabs_body">Переключайтесь между пациентами сессии; у каждого свои ответы.</string>
+    <string name="network_status_server_reachable">Сервер доступен</string>
     <string name="tutorial_step_counter">Шаг %1$d из %2$d</string>
     <string name="tutorial_close">Закрыть обзор</string>
     <string name="tutorial_skip">Пропустить обзор</string>

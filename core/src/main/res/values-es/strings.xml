@@ -841,6 +841,7 @@
     <string name="help_form_encounter_body">Rellene las preguntas, revise y envíe. Lo que guarde queda en este dispositivo y se sube en la próxima sincronización.</string>
     <string name="help_group_tabs_title">Pacientes de la sesión</string>
     <string name="help_group_tabs_body">Cambie entre los pacientes de la sesión; cada uno tiene sus propias respuestas.</string>
+    <string name="network_status_server_reachable">Servidor accesible</string>
     <string name="tutorial_step_counter">Paso %1$d de %2$d</string>
     <string name="tutorial_close">Cerrar la visita guiada</string>
     <string name="tutorial_skip">Omitir la visita</string>

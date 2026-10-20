@@ -781,8 +781,15 @@ constructor(
 
   private fun networkStatusText(connectivityState: ServerConnectivityState): String {
     return when (connectivityState) {
+      // "Connected" says the user is signed in to it; a guest only knows the server answers.
       ServerConnectivityState.ServerConnected ->
-        applicationContext.getString(R.string.network_status_connected_to_server)
+        applicationContext.getString(
+          if (GuestSession.isActive(applicationContext)) {
+            R.string.network_status_server_reachable
+          } else {
+            R.string.network_status_connected_to_server
+          },
+        )
       ServerConnectivityState.InternetOnly ->
         applicationContext.getString(R.string.network_status_server_unreachable)
       ServerConnectivityState.Offline -> applicationContext.getString(R.string.offline)
