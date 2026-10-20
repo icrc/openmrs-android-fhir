@@ -174,6 +174,8 @@ fun SettingsScreen(
   onFetchQuestionnairesClicked: (() -> Unit)? = null,
   embeddedFormsOnly: Boolean = true,
   fetchQuestionnairesAvailable: Boolean = true,
+  /** The server can be reached: the actions that talk to it are available. */
+  serverReachable: Boolean = true,
   onEmbeddedFormsOnlyChange: ((Boolean) -> Unit)? = null,
   themeMode: ThemeMode = ThemeMode.SYSTEM,
   onThemeModeSelected: ((ThemeMode) -> Unit)? = null,
@@ -293,11 +295,13 @@ fun SettingsScreen(
         )
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         SettingsAction(
-          description = stringResource(R.string.settings_initial_sync_description),
+          description =
+            stringResource(R.string.settings_initial_sync_description) +
+              offlineNote(serverReachable),
           buttonText = stringResource(R.string.initial_sync),
           icon = Icons.Default.Sync,
           onClick = onInitialSyncClicked,
-          enabled = !uiState.isInitialSyncInProgress,
+          enabled = !uiState.isInitialSyncInProgress && serverReachable,
           inProgress = uiState.isInitialSyncInProgress,
           testTag = SettingsTestTags.InitialSyncButton,
         )
@@ -420,7 +424,11 @@ fun SettingsScreen(
                   } else {
                     R.string.fetch_questionnaires_sign_in
                   },
-                ),
+                ) +
+                  offlineNote(
+                    serverReachable && fetchQuestionnairesAvailable ||
+                      !fetchQuestionnairesAvailable,
+                  ),
               buttonText =
                 stringResource(
                   if (isFetchingQuestionnaires) {
@@ -431,7 +439,8 @@ fun SettingsScreen(
                 ),
               icon = Icons.Default.Refresh,
               onClick = onFetchQuestionnairesClicked,
-              enabled = fetchQuestionnairesAvailable && !isFetchingQuestionnaires,
+              enabled =
+                fetchQuestionnairesAvailable && serverReachable && !isFetchingQuestionnaires,
               inProgress = isFetchingQuestionnaires,
               testTag = SettingsTestTags.FetchQuestionnairesButton,
             )
@@ -1237,6 +1246,11 @@ private fun ConnectionTest(onServerChanged: ((String?) -> Unit)?) {
 }
 
 /** A short explanation, a button and (while it runs) a progress bar. */
+/** A line saying why an action is off when the server cannot be reached. */
+@Composable
+private fun offlineNote(serverReachable: Boolean): String =
+  if (serverReachable) "" else "\n" + stringResource(R.string.sync_unavailable_offline)
+
 @Composable
 private fun SettingsAction(
   description: String,

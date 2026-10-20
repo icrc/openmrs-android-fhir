@@ -817,7 +817,7 @@
     <string name="help_sync_mode_title">Загрузка, отправка или обе</string>
     <string name="help_sync_mode_body">Выберите, что сделает «Синхронизировать» на этот раз. Автосинхронизация следует настройке в «Настройках», которую это не меняет.</string>
     <string name="help_sync_now_title">Синхронизировать сейчас</string>
-    <string name="help_sync_now_body">Запускает выбранную синхронизацию. Пока она идёт, приложением можно пользоваться.</string>
+    <string name="help_sync_now_body">Запускает выбранную синхронизацию. Нужна связь с сервером; пока она идёт, приложением можно пользоваться.</string>
     <string name="help_sync_tabs_title">Ожидает и история</string>
     <string name="help_sync_tabs_body">«Ожидает» — что ещё не отправлено; «История» — прошлые синхронизации и их результат.</string>
     <string name="help_ie_export_title">Экспорт</string>
@@ -855,6 +855,11 @@
     <string name="help_group_tabs_title">Пациенты сессии</string>
     <string name="help_group_tabs_body">Переключайтесь между пациентами сессии; у каждого свои ответы.</string>
     <string name="network_status_server_reachable">Сервер доступен</string>
+    <string name="sync_unavailable_offline">Нет соединения с сервером: синхронизация сейчас недоступна.</string>
+    <string name="sync_identify_title">Пациентов для идентификации: %1$d</string>
+    <string name="sync_identify_subtitle">Идентифицируйте их до синхронизации: их записи не отправляются, пока вы этого не сделаете.</string>
+    <string name="help_sync_identify_title">Пациенты для идентификации</string>
+    <string name="help_sync_identify_body">Если пациенты записаны для идентификации позже, здесь показано их число. Синхронизация не отправляет их данные, пока вы их не идентифицируете, поэтому сделайте это до синхронизации.</string>
     <string name="tutorial_step_counter">Шаг %1$d из %2$d</string>
     <string name="tutorial_close">Закрыть обзор</string>
     <string name="tutorial_skip">Пропустить обзор</string>

@@ -804,7 +804,7 @@
     <string name="help_sync_mode_title">Descargar, subir o ambos</string>
     <string name="help_sync_mode_body">Elija qué hace Sincronizar ahora esta vez. La sincronización automática sigue el ajuste de Configuración, que esto no cambia.</string>
     <string name="help_sync_now_title">Sincronizar ahora</string>
-    <string name="help_sync_now_body">Inicia la sincronización elegida. Puede seguir usando la aplicación mientras se ejecuta.</string>
+    <string name="help_sync_now_body">Inicia la sincronización elegida. Necesita conexión con el servidor y puede seguir usando la aplicación mientras se ejecuta.</string>
     <string name="help_sync_tabs_title">Pendientes e historial</string>
     <string name="help_sync_tabs_body">Pendientes lista lo que aún no se ha enviado; Historial muestra las sincronizaciones pasadas y cómo terminaron.</string>
     <string name="help_ie_export_title">Exportar</string>
@@ -842,6 +842,11 @@
     <string name="help_group_tabs_title">Pacientes de la sesión</string>
     <string name="help_group_tabs_body">Cambie entre los pacientes de la sesión; cada uno tiene sus propias respuestas.</string>
     <string name="network_status_server_reachable">Servidor accesible</string>
+    <string name="sync_unavailable_offline">Sin conexión con el servidor: la sincronización no está disponible ahora.</string>
+    <string name="sync_identify_title">Pacientes por identificar: %1$d</string>
+    <string name="sync_identify_subtitle">Identifíquelos antes de sincronizar: sus registros no se envían hasta que lo haga.</string>
+    <string name="help_sync_identify_title">Pacientes por identificar</string>
+    <string name="help_sync_identify_body">Cuando hay pacientes registrados para identificar después, aquí se indica cuántos. Ninguna sincronización envía lo que contienen hasta que los identifique; hágalo antes de sincronizar.</string>
     <string name="tutorial_step_counter">Paso %1$d de %2$d</string>
     <string name="tutorial_close">Cerrar la visita guiada</string>
     <string name="tutorial_skip">Omitir la visita</string>

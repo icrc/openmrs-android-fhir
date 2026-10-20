@@ -152,6 +152,12 @@ object ScreenTours {
           R.string.help_sync_status_body,
         ),
         step(
+          TutorialTargets.SYNC_IDENTIFY,
+          R.string.help_sync_identify_title,
+          R.string.help_sync_identify_body,
+          optional = true,
+        ),
+        step(
           TutorialTargets.SYNC_MODE,
           R.string.help_sync_mode_title,
           R.string.help_sync_mode_body,

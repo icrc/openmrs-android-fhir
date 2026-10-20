@@ -768,7 +768,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="help_sync_mode_title">Download, upload or both</string>
     <string name="help_sync_mode_body">Choose what Sync now does this time. The automatic sync follows the setting in Settings, which this does not change.</string>
     <string name="help_sync_now_title">Sync now</string>
-    <string name="help_sync_now_body">Starts the sync you chose. You can keep using the app while it runs.</string>
+    <string name="help_sync_now_body">Starts the sync you chose. It needs a connection to the server, and you can keep using the app while it runs.</string>
     <string name="help_sync_tabs_title">Pending and history</string>
     <string name="help_sync_tabs_body">Pending lists what has not been sent yet; History lists the past syncs and how they ended.</string>
     <string name="help_ie_export_title">Export</string>
@@ -806,6 +806,11 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="help_group_tabs_title">Patients of the session</string>
     <string name="help_group_tabs_body">Switch between the patients of the session; each has their own answers.</string>
     <string name="network_status_server_reachable">Server reachable</string>
+    <string name="sync_unavailable_offline">No connection to the server: syncing is not available now.</string>
+    <string name="sync_identify_title">Patients to identify: %1$d</string>
+    <string name="sync_identify_subtitle">Identify them before syncing: their records are not sent until you do.</string>
+    <string name="help_sync_identify_title">Patients to identify</string>
+    <string name="help_sync_identify_body">When patients were recorded to be identified later, this shows how many. What they hold is never sent by a sync until you identify them, so do it before syncing.</string>
     <string name="tutorial_step_counter">Step %1$d of %2$d</string>
     <string name="tutorial_close">Close the tour</string>
     <string name="tutorial_skip">Skip tour</string>

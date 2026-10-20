@@ -35,6 +35,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
@@ -50,6 +51,8 @@ import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
+import org.openmrs.android.fhir.data.remote.isServerReachable
+import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.data.sync.SyncMode
 import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.extensions.saveToFile
@@ -93,8 +96,19 @@ class SyncInfoFragment : Fragment() {
         val defaultMode by
           remember { DemoDataStore(context.applicationContext).getAutoSyncModeFlow() }
             .collectAsStateWithLifecycle(initialValue = SyncMode.BOTH)
+        // Patients recorded to be identified after; it changes when one is identified.
+        val unidentifiedCount by
+          produceState(0) {
+            val patients =
+              FhirApplication.appComponent(context.applicationContext).unidentifiedPatients()
+            value = patients.count()
+            LiveSync.uploaded.collect { value = patients.count() }
+          }
         SyncScreen(
+          unidentifiedCount = unidentifiedCount,
+          onIdentify = { (requireActivity() as? MainActivity)?.showIdentifyDialog() },
           defaultSyncMode = defaultMode,
+          syncAvailable = activityState.connectivityState.isServerReachable(),
           syncSessions = sessions,
           pendingResources = pending,
           isLoadingPending = isLoadingPending,

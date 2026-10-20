@@ -43,6 +43,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
@@ -80,6 +82,8 @@ import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 object SyncScreenTestTags {
   const val Screen = "SyncScreen"
   const val StatusCard = "SyncStatusCard"
+  const val UnidentifiedCard = "SyncUnidentifiedCard"
+  const val IdentifyButton = "SyncIdentifyButton"
   const val SyncNowButton = "SyncNowButton"
   const val PendingTab = "SyncPendingTab"
   const val HistoryTab = "SyncHistoryTab"
@@ -111,6 +115,11 @@ fun SyncScreen(
   onImportExport: () -> Unit = {},
   /** What "Sync now" does until the user picks another (the automatic sync's setting). */
   defaultSyncMode: SyncMode = SyncMode.BOTH,
+  /** The server cannot be reached: nothing can be synced now. */
+  syncAvailable: Boolean = true,
+  /** Patients recorded to be identified after: never part of a sync until identified. */
+  unidentifiedCount: Int = 0,
+  onIdentify: () -> Unit = {},
 ) {
   val topInset = rememberAppBarHeight()
   val pendingCount = pendingResources.count { it is UnsyncedResource.PatientItem }
@@ -131,8 +140,17 @@ fun SyncScreen(
       onSyncNow = onSyncNow,
       onImportExport = onImportExport,
       defaultMode = defaultSyncMode,
+      syncAvailable = syncAvailable,
       modifier = Modifier.padding(horizontal = 16.dp),
     )
+    if (unidentifiedCount > 0) {
+      Spacer(modifier = Modifier.height(10.dp))
+      UnidentifiedPatientsCard(
+        count = unidentifiedCount,
+        onIdentify = onIdentify,
+        modifier = Modifier.padding(horizontal = 16.dp),
+      )
+    }
     Spacer(modifier = Modifier.height(8.dp))
     TabRow(
       modifier = Modifier.tutorialTarget(TutorialTargets.SYNC_TABS),
@@ -187,6 +205,67 @@ fun SyncScreen(
 }
 
 /**
+ * Patients recorded to be identified after: what they hold is not sent by any sync, so the user is
+ * told how many there are and can identify them before syncing. Looks like the status card above.
+ */
+@Composable
+private fun UnidentifiedPatientsCard(
+  count: Int,
+  onIdentify: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val accent = OpenMrsTheme.colors.warning
+  Surface(
+    modifier =
+      modifier
+        .fillMaxWidth()
+        .testTag(SyncScreenTestTags.UnidentifiedCard)
+        .tutorialTarget(TutorialTargets.SYNC_IDENTIFY),
+    shape = RoundedCornerShape(20.dp),
+    color = MaterialTheme.colorScheme.surface,
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    shadowElevation = 1.dp,
+  ) {
+    Row(
+      modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Box(
+        modifier = Modifier.size(44.dp).clip(CircleShape).background(accent.copy(alpha = 0.18f)),
+        contentAlignment = Alignment.Center,
+      ) {
+        Icon(
+          imageVector = Icons.Default.PersonSearch,
+          contentDescription = null,
+          tint = accent,
+          modifier = Modifier.size(24.dp),
+        )
+      }
+      Spacer(modifier = Modifier.width(14.dp))
+      Column(modifier = Modifier.weight(1f)) {
+        Text(
+          text = stringResource(R.string.sync_identify_title, count),
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.SemiBold,
+          color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+          text = stringResource(R.string.sync_identify_subtitle),
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+      TextButton(
+        onClick = onIdentify,
+        modifier = Modifier.testTag(SyncScreenTestTags.IdentifyButton),
+      ) {
+        Text(text = stringResource(R.string.identify_sync_now))
+      }
+    }
+  }
+}
+
+/**
  * What state the data is in and what to do about it: syncing (with progress), changes waiting to be
  * uploaded, or everything up to date, plus when the last sync was and the button to start one.
  */
@@ -199,6 +278,7 @@ private fun SyncStatusCard(
   onSyncNow: (SyncMode) -> Unit,
   onImportExport: () -> Unit,
   defaultMode: SyncMode,
+  syncAvailable: Boolean,
   modifier: Modifier = Modifier,
 ) {
   // This run only: the choice is not kept, and the setting is not touched.
@@ -308,11 +388,19 @@ private fun SyncStatusCard(
             FilterChip(
               selected = mode == option,
               onClick = { chosen = option.value },
-              enabled = !isSyncing,
+              enabled = !isSyncing && syncAvailable,
               label = { Text(text = stringResource(label)) },
               modifier = Modifier.weight(1f).testTag("SyncMode_${option.value}"),
             )
           }
+      }
+      if (!syncAvailable) {
+        Text(
+          text = stringResource(R.string.sync_unavailable_offline),
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.error,
+          modifier = Modifier.padding(top = 8.dp).testTag("SyncOfflineNote"),
+        )
       }
       if (mode == SyncMode.DOWNLOAD_ONLY && pendingCount > 0) {
         Text(
@@ -324,7 +412,7 @@ private fun SyncStatusCard(
       }
       Button(
         onClick = { onSyncNow(mode) },
-        enabled = !isSyncing,
+        enabled = !isSyncing && syncAvailable,
         shape = RoundedCornerShape(14.dp),
         modifier =
           Modifier.fillMaxWidth()

@@ -321,12 +321,14 @@ class MainActivity : AppCompatActivity() {
                 uiState.locationMenuTitle,
                 uiState.versionMenuTitle,
                 isGuest.value,
+                uiState.connectivityState,
               ) {
                 buildDrawerItems(
                   activityContext,
                   uiState.locationMenuTitle,
                   uiState.versionMenuTitle,
                   isGuest.value,
+                  uiState.connectivityState.isServerReachable(),
                 )
               }
             val signedInName by
@@ -690,6 +692,7 @@ class MainActivity : AppCompatActivity() {
     locationMenuTitle: String,
     versionMenuTitle: String,
     guest: Boolean = false,
+    serverReachable: Boolean = true,
   ): List<DrawerItem> {
     return listOf(
         DrawerItem(
@@ -697,6 +700,8 @@ class MainActivity : AppCompatActivity() {
           iconRes = R.drawable.cloud_sync_24px,
           title = context.getString(R.string.sync_menu),
           testTag = "DrawerItemSync",
+          // Nothing to sync with while the server cannot be reached.
+          enabled = serverReachable,
         ),
         DrawerItem(
           id = R.id.menu_current_location,
@@ -825,6 +830,11 @@ class MainActivity : AppCompatActivity() {
       promptSignInToSync()
       return
     }
+    if (!viewModel.uiState.value.connectivityState.isServerReachable()) {
+      // The buttons are off meanwhile; this is for the other ways in.
+      AppMessage.show(this, R.string.sync_unavailable_offline, MessageKind.Info)
+      return
+    }
     lifecycleScope.launch {
       // Records entered for patients "to identify after" are not sent: ask to identify them first
       // (a download sends nothing, so it does not ask).
@@ -850,6 +860,11 @@ class MainActivity : AppCompatActivity() {
    * Some patients were recorded to be identified after. They are never part of a sync (automatic or
    * not); this is the user's chance to find them on the server before syncing the rest.
    */
+  /** The search for the server patients that the ones recorded "to identify after" are. */
+  fun showIdentifyDialog() {
+    identifyVisible.value = true
+  }
+
   private fun showUnidentifiedPrompt(waiting: Int) {
     closeNavigationDrawer()
     MaterialAlertDialogBuilder(this)

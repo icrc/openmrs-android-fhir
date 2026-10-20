@@ -106,6 +106,7 @@ object TutorialTargets {
   const val DETAILS_ENCOUNTERS = "details.encounters"
   const val DETAILS_NEW_ENCOUNTER = "details.newencounter"
   const val SYNC_STATUS = "sync.status"
+  const val SYNC_IDENTIFY = "sync.identify"
   const val SYNC_MODE = "sync.mode"
   const val SYNC_NOW = "sync.now"
   const val SYNC_TABS = "sync.tabs"

@@ -62,6 +62,7 @@ import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.data.QuestionnaireUpdater
+import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.data.transfer.DataTransfer
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.BiometricUtils
@@ -132,6 +133,7 @@ class SettingsFragment : Fragment() {
           }
       }
       val uiState = settingsViewModel.uiState.collectAsStateWithLifecycle().value
+      val activityState by mainActivityViewModel.uiState.collectAsStateWithLifecycle()
       val isFetchingQuestionnaires by
         questionnaireFetchViewModel.isFetching.collectAsStateWithLifecycle()
       val identifierState by identifierSelectionViewModel.uiState.collectAsStateWithLifecycle()
@@ -191,6 +193,7 @@ class SettingsFragment : Fragment() {
           topPadding = appBarHeight,
           isFetchingQuestionnaires = isFetchingQuestionnaires,
           fetchQuestionnairesAvailable = !GuestSession.isActive(context),
+          serverReachable = activityState.connectivityState.isServerReachable(),
           onFetchQuestionnairesClicked = {
             // Asking the server for forms means the server's forms are wanted.
             EmbeddedFormsStore.set(context, false)

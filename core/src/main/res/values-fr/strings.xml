@@ -830,7 +830,7 @@
     <string name="help_sync_mode_title">Réception, envoi ou les deux</string>
     <string name="help_sync_mode_body">Choisissez ce que fait Synchroniser maintenant cette fois. La synchronisation automatique suit le réglage des Paramètres, qui ne change pas.</string>
     <string name="help_sync_now_title">Synchroniser maintenant</string>
-    <string name="help_sync_now_body">Lance la synchronisation choisie. Vous pouvez continuer à utiliser l\'application pendant ce temps.</string>
+    <string name="help_sync_now_body">Lance la synchronisation choisie. Elle nécessite une connexion au serveur, et vous pouvez continuer à utiliser l\'application pendant ce temps.</string>
     <string name="help_sync_tabs_title">En attente et historique</string>
     <string name="help_sync_tabs_body">En attente liste ce qui n\'est pas encore envoyé ; l\'historique liste les synchronisations passées et leur résultat.</string>
     <string name="help_ie_export_title">Exporter</string>
@@ -868,6 +868,11 @@
     <string name="help_group_tabs_title">Patients de la séance</string>
     <string name="help_group_tabs_body">Passez d\'un patient de la séance à l\'autre ; chacun a ses propres réponses.</string>
     <string name="network_status_server_reachable">Serveur joignable</string>
+    <string name="sync_unavailable_offline">Pas de connexion au serveur : la synchronisation n\'est pas disponible pour le moment.</string>
+    <string name="sync_identify_title">Patients à identifier : %1$d</string>
+    <string name="sync_identify_subtitle">Identifiez-les avant de synchroniser : leurs données ne sont pas envoyées tant que vous ne l\'avez pas fait.</string>
+    <string name="help_sync_identify_title">Patients à identifier</string>
+    <string name="help_sync_identify_body">Quand des patients ont été enregistrés pour être identifiés plus tard, ceci indique combien. Aucune synchronisation n\'envoie leurs données avant que vous les identifiiez : faites-le avant de synchroniser.</string>
     <string name="tutorial_step_counter">Étape %1$d sur %2$d</string>
     <string name="tutorial_close">Fermer la visite</string>
     <string name="tutorial_skip">Passer la visite</string>
