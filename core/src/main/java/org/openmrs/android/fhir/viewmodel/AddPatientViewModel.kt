@@ -35,6 +35,7 @@ import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
@@ -71,6 +72,7 @@ import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
+import org.openmrs.android.fhir.extensions.pagedBySections
 import org.openmrs.android.fhir.extensions.requireAnswersBeforeReview
 import timber.log.Timber
 
@@ -264,7 +266,9 @@ constructor(
     questionnaireResponse: QuestionnaireResponse,
     location: Location,
   ): MutableList<Identifier> {
-    val identifierItems = questionnaireResponse.item.filter { it.linkId.contains("identifier-") }
+    // Anywhere in the form: they are on its first page, inside the page's group.
+    val identifierItems =
+      questionnaireResponse.allItems.filter { it.linkId.contains("identifier-") }
 
     val identifierList: MutableList<Identifier> = mutableListOf()
     identifierItems.forEach { identifierItem ->
@@ -302,7 +306,10 @@ constructor(
           questionnaire?.let {
             // "Review" waits for the required answers, as in the encounter forms.
             it.requireAnswersBeforeReview()
-            parser.encodeResourceToString(embeddIdentifierInQuestionnaire(it))
+            val withIdentifiers = embeddIdentifierInQuestionnaire(it)
+            // One page per section; the identifiers go on the first.
+            withIdentifiers.pagedBySections()
+            parser.encodeResourceToString(withIdentifiers)
           }
             ?: ""
         }

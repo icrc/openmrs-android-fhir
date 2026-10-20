@@ -53,6 +53,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.hl7.fhir.r4.model.CodeType
 import org.hl7.fhir.r4.model.CodeableConcept
+import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.Element
@@ -321,6 +322,47 @@ private const val SDC_ENTRY_MODE_URL =
 fun Questionnaire.requireAnswersBeforeReview() {
   if (extension.none { it.url.endsWith("sdc-questionnaire-entryMode") }) {
     addExtension(Extension(SDC_ENTRY_MODE_URL, CodeType("prior-edit")))
+  }
+}
+
+/**
+ * Shows a form that is one long scroll page by page (Next / Previous), one page per section, with
+ * what is asked and what is extracted from the answers unchanged. The pages are the top-level
+ * groups; when the form is one group that holds the sections (the OpenMRS registration form), the
+ * sections are the pages. A form that is already paged, or has no group, is left alone. Questions
+ * outside any group (identifiers the app adds) go at the top of the first page.
+ *
+ * Only one page is drawn at a time, which is also what makes a long form open and scroll faster.
+ */
+fun Questionnaire.pagedBySections() {
+  if (item.any { it.isPageGroupItem() }) return
+  fun QuestionnaireItemComponent.isGroup() = type == Questionnaire.QuestionnaireItemType.GROUP
+  val groups = item.filter { it.isGroup() }
+  if (groups.isEmpty()) return
+  val loose = item.filter { !it.isGroup() }
+  if (loose.isNotEmpty()) {
+    groups.first().item.addAll(0, loose)
+    item.removeAll(loose)
+  }
+  if (item.size == 1) {
+    val sections = item.first().item.filter { it.isGroup() }
+    if (sections.size >= 2) {
+      val looseInside = item.first().item.filter { !it.isGroup() }
+      item.clear()
+      item.addAll(sections)
+      if (looseInside.isNotEmpty()) sections.first().item.addAll(0, looseInside)
+    }
+  }
+  item.forEach { page ->
+    page.addExtension(
+      Extension(
+        QUESTIONNAIRE_ITEM_CONTROL_URL,
+        CodeableConcept()
+          .addCoding(
+            Coding(QUESTIONNAIRE_ITEM_CONTROL_SYSTEM, QUESTIONNAIRE_ITEM_CONTROL_PAGE, "Page"),
+          ),
+      ),
+    )
   }
 }
 

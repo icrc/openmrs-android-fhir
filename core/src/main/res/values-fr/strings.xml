@@ -862,7 +862,7 @@
     <string name="help_forms_list_title">Choisir un formulaire</string>
     <string name="help_forms_list_body">Touchez un formulaire pour le remplir. Les séances commencées et non terminées sont affichées pour les reprendre.</string>
     <string name="help_form_registration_title">Formulaire d\'enregistrement</string>
-    <string name="help_form_registration_body">Répondez aux questions. Les obligatoires doivent être remplies avant de relire : le patient ne peut pas être enregistré avec des données manquantes. Relisez vos réponses avant de valider.</string>
+    <string name="help_form_registration_body">Répondez aux questions page par page (Suivant et Précédent). Les obligatoires doivent être remplies avant de continuer, et le patient ne peut pas être enregistré avec des données manquantes. Relisez vos réponses avant de valider.</string>
     <string name="help_form_encounter_title">Formulaire de rencontre</string>
     <string name="help_form_encounter_body">Remplissez les questions, puis relisez et validez. Ce que vous enregistrez reste sur cet appareil et est envoyé à la prochaine synchronisation.</string>
     <string name="help_group_tabs_title">Patients de la séance</string>

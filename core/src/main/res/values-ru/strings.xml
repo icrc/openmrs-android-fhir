@@ -849,7 +849,7 @@
     <string name="help_forms_list_title">Выбор формы</string>
     <string name="help_forms_list_body">Нажмите на форму, чтобы заполнить её. Начатые и незавершённые сессии показаны, чтобы их продолжить.</string>
     <string name="help_form_registration_title">Форма регистрации</string>
-    <string name="help_form_registration_body">Ответьте на вопросы. Обязательные нужно заполнить до проверки: пациента нельзя сохранить без них. Проверьте ответы перед отправкой.</string>
+    <string name="help_form_registration_body">Отвечайте на вопросы по страницам (Далее и Назад). Обязательные нужно заполнить, чтобы продолжить, а пациента нельзя сохранить без них. Проверьте ответы перед отправкой.</string>
     <string name="help_form_encounter_title">Форма приёма</string>
     <string name="help_form_encounter_body">Заполните вопросы, затем проверьте и отправьте. Сохранённое остаётся на устройстве и отправляется при следующей синхронизации.</string>
     <string name="help_group_tabs_title">Пациенты сессии</string>

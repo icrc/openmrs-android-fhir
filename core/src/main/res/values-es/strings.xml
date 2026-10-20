@@ -836,7 +836,7 @@
     <string name="help_forms_list_title">Elegir un formulario</string>
     <string name="help_forms_list_body">Toque un formulario para rellenarlo. Se muestran las sesiones iniciadas y sin terminar para continuarlas.</string>
     <string name="help_form_registration_title">Formulario de registro</string>
-    <string name="help_form_registration_body">Responda las preguntas. Las obligatorias deben completarse antes de revisar: no se puede guardar al paciente con datos faltantes. Revise sus respuestas antes de enviar.</string>
+    <string name="help_form_registration_body">Responda las preguntas página por página (Siguiente y Anterior). Las obligatorias deben completarse antes de continuar y no se puede guardar al paciente con datos faltantes. Revise sus respuestas antes de enviar.</string>
     <string name="help_form_encounter_title">Formulario del encuentro</string>
     <string name="help_form_encounter_body">Rellene las preguntas, revise y envíe. Lo que guarde queda en este dispositivo y se sube en la próxima sincronización.</string>
     <string name="help_group_tabs_title">Pacientes de la sesión</string>
