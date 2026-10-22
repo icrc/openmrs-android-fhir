@@ -68,6 +68,8 @@ import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PatientVisits
+import org.openmrs.android.fhir.data.VisitEditState
+import org.openmrs.android.fhir.data.VisitPeriodError
 import org.openmrs.android.fhir.data.isOpenVisit
 import org.openmrs.android.fhir.data.sync.LivePatients
 import org.openmrs.android.fhir.data.sync.LiveSync
@@ -393,6 +395,20 @@ constructor(
   suspend fun endVisit(visitId: String) {
     openMRSHelper.endVisit(visitId)
     getPatientDetailData()
+  }
+
+  suspend fun visitEditState(visitId: String): VisitEditState? =
+    try {
+      openMRSHelper.visitEditState(visitId)
+    } catch (e: Exception) {
+      null
+    }
+
+  /** @return what stopped the change, or `null` when it was saved. */
+  suspend fun saveVisitPeriod(visitId: String, start: Date, end: Date?): VisitPeriodError? {
+    val problem = openMRSHelper.updateVisitPeriod(visitId, start, end)
+    if (problem == null) getPatientDetailData()
+    return problem
   }
 
   /** @return false when another visit is open, which has to be ended first. */

@@ -111,6 +111,8 @@ fun PatientDetailsScreen(
   onStartVisit: () -> Unit = {},
   onReopenVisit: (visitId: String) -> Unit = {},
   onIdentifyPatient: () -> Unit = {},
+  /** A visit was tapped: change when it started and ended. */
+  onEditVisit: (visitId: String) -> Unit = {},
   onEditNote: () -> Unit = {},
   /** Identifying needs a signed-in user with a connection to the server. */
   identifyAvailable: Boolean = true,
@@ -194,6 +196,7 @@ fun PatientDetailsScreen(
                 // Only an open visit can be ended, and only an ended one reopened.
                 onDateClick = if (item.isActive) ({ onEndVisit(item.visit.id) }) else null,
                 onReopenClick = if (item.canReopen) ({ onReopenVisit(item.visit.id) }) else null,
+                onClick = { onEditVisit(item.visit.id) },
               )
             is PatientDetailEncounter ->
               EncounterListItemRow(

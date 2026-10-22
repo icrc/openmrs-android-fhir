@@ -807,7 +807,7 @@
     <string name="help_details_overview_title">Пациент</string>
     <string name="help_details_overview_body">Имя, идентификаторы, возраст и контакты. Карандаш редактирует регистрацию, а на номер телефона можно нажать, чтобы позвонить.</string>
     <string name="help_details_encounters_title">Визиты и приёмы</string>
-    <string name="help_details_encounters_body">Всё, что записано о пациенте, по визитам. Нажмите на название, чтобы просмотреть, и на карандаш, чтобы изменить.</string>
+    <string name="help_details_encounters_body">Всё, что записано о пациенте, по визитам. Нажмите на название, чтобы просмотреть, и на карандаш, чтобы изменить. Когда визитами управляют вручную, нажмите на визит, чтобы изменить его начало и конец: он должен охватывать свои приёмы.</string>
     <string name="help_details_new_title">Новый приём</string>
     <string name="help_details_new_body">Запишите визит или заполните форму для этого пациента.</string>
     <string name="help_sync_status_title">Состояние синхронизации</string>
@@ -870,6 +870,16 @@
     <string name="sync_cancel">Отменить синхронизацию</string>
     <string name="sync_cancelled">Синхронизация отменена. Уже отправленное остаётся отправленным; остальное сделает следующая синхронизация.</string>
     <string name="sync_cancelled_session_error">Отменено пользователем</string>
+    <string name="visit_edit_title">Изменить визит</string>
+    <string name="visit_edit_start">Начало визита</string>
+    <string name="visit_edit_end">Окончание визита</string>
+    <string name="visit_edit_still_open">Визит ещё открыт</string>
+    <string name="visit_edit_encounters_range">Его приёмы идут с %1$s по %2$s: визит должен их охватывать.</string>
+    <string name="visit_edit_error_start_future">Визит не может начаться в будущем.</string>
+    <string name="visit_edit_error_end_future">Визит не может закончиться в будущем.</string>
+    <string name="visit_edit_error_end_before_start">Окончание должно быть позже начала.</string>
+    <string name="visit_edit_error_encounter_before">Приём этого визита начинается в %1$s: визит не может начаться позже.</string>
+    <string name="visit_edit_error_encounter_after">Приём этого визита заканчивается в %1$s: визит не может закончиться раньше.</string>
     <string name="tutorial_step_counter">Шаг %1$d из %2$d</string>
     <string name="tutorial_close">Закрыть обзор</string>
     <string name="tutorial_skip">Пропустить обзор</string>

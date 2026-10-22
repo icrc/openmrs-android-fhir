@@ -758,7 +758,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="help_details_overview_title">The patient</string>
     <string name="help_details_overview_body">Name, identifiers, age and contact details. The pencil edits the registration, and a phone number can be tapped to call.</string>
     <string name="help_details_encounters_title">Visits and encounters</string>
-    <string name="help_details_encounters_body">Everything recorded for the patient, by visit. Tap a title to view it and the pencil to edit it.</string>
+    <string name="help_details_encounters_body">Everything recorded for the patient, by visit. Tap a title to view it and the pencil to edit it. When visits are managed, tap a visit to change when it started and ended: it has to contain its encounters.</string>
     <string name="help_details_new_title">New encounter</string>
     <string name="help_details_new_body">Record a visit or fill in a form for this patient.</string>
     <string name="help_sync_status_title">Sync status</string>
@@ -821,6 +821,16 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="sync_cancel">Cancel sync</string>
     <string name="sync_cancelled">Sync cancelled. What was already sent stays sent; the next sync does the rest.</string>
     <string name="sync_cancelled_session_error">Cancelled by the user</string>
+    <string name="visit_edit_title">Edit visit</string>
+    <string name="visit_edit_start">Visit start</string>
+    <string name="visit_edit_end">Visit end</string>
+    <string name="visit_edit_still_open">Visit still open</string>
+    <string name="visit_edit_encounters_range">Its encounters are between %1$s and %2$s: the visit has to contain them.</string>
+    <string name="visit_edit_error_start_future">The visit cannot start in the future.</string>
+    <string name="visit_edit_error_end_future">The visit cannot end in the future.</string>
+    <string name="visit_edit_error_end_before_start">The end has to be after the start.</string>
+    <string name="visit_edit_error_encounter_before">An encounter of this visit starts at %1$s: the visit cannot start after it.</string>
+    <string name="visit_edit_error_encounter_after">An encounter of this visit ends at %1$s: the visit cannot end before it.</string>
     <string name="tutorial_step_counter">Step %1$d of %2$d</string>
     <string name="tutorial_close">Close the tour</string>
     <string name="tutorial_skip">Skip tour</string>

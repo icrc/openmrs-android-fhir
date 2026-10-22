@@ -794,7 +794,7 @@
     <string name="help_details_overview_title">El paciente</string>
     <string name="help_details_overview_body">Nombre, identificadores, edad y datos de contacto. El lápiz edita el registro y se puede tocar un teléfono para llamar.</string>
     <string name="help_details_encounters_title">Visitas y encuentros</string>
-    <string name="help_details_encounters_body">Todo lo registrado del paciente, por visita. Toque un título para verlo y el lápiz para editarlo.</string>
+    <string name="help_details_encounters_body">Todo lo registrado del paciente, por visita. Toque un título para verlo y el lápiz para editarlo. Cuando las visitas se gestionan, toque una visita para cambiar cuándo empezó y terminó: debe contener sus encuentros.</string>
     <string name="help_details_new_title">Nuevo encuentro</string>
     <string name="help_details_new_body">Registre una visita o rellene un formulario para este paciente.</string>
     <string name="help_sync_status_title">Estado de la sincronización</string>
@@ -857,6 +857,16 @@
     <string name="sync_cancel">Cancelar la sincronización</string>
     <string name="sync_cancelled">Sincronización cancelada. Lo ya enviado queda enviado; la próxima sincronización hará el resto.</string>
     <string name="sync_cancelled_session_error">Cancelada por el usuario</string>
+    <string name="visit_edit_title">Editar visita</string>
+    <string name="visit_edit_start">Inicio de la visita</string>
+    <string name="visit_edit_end">Fin de la visita</string>
+    <string name="visit_edit_still_open">Visita aún abierta</string>
+    <string name="visit_edit_encounters_range">Sus encuentros van de %1$s a %2$s: la visita debe contenerlos.</string>
+    <string name="visit_edit_error_start_future">La visita no puede empezar en el futuro.</string>
+    <string name="visit_edit_error_end_future">La visita no puede terminar en el futuro.</string>
+    <string name="visit_edit_error_end_before_start">El fin debe ser posterior al inicio.</string>
+    <string name="visit_edit_error_encounter_before">Un encuentro de esta visita empieza a las %1$s: la visita no puede empezar después.</string>
+    <string name="visit_edit_error_encounter_after">Un encuentro de esta visita termina a las %1$s: la visita no puede terminar antes.</string>
     <string name="tutorial_step_counter">Paso %1$d de %2$d</string>
     <string name="tutorial_close">Cerrar la visita guiada</string>
     <string name="tutorial_skip">Omitir la visita</string>

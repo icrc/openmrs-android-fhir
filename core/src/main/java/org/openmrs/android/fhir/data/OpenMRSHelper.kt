@@ -220,6 +220,60 @@ constructor(
     return encounter
   }
 
+  /** The visit's start and end, and the span of its encounters. */
+  suspend fun visitEditState(visitId: String): VisitEditState? {
+    val visit: Encounter = fhirEngine.get(visitId)
+    val start = visit.period?.start ?: return null
+    val encounters = encountersOf(visit)
+    return VisitEditState(
+      start = start,
+      end = visit.period?.end,
+      earliest = encounters.mapNotNull { it.period?.start ?: it.period?.end }.minOrNull(),
+      latest = encounters.mapNotNull { it.period?.end ?: it.period?.start }.maxOrNull(),
+    )
+  }
+
+  private suspend fun encountersOf(visit: Encounter): List<Encounter> =
+    fhirEngine
+      .search<Encounter> {
+        filter(Encounter.SUBJECT, { value = visit.subject.reference.orEmpty() })
+      }
+      .map { it.resource }
+      .filter { it.partOf?.reference == "Encounter/" + visit.idPart }
+
+  /**
+   * Changes when a visit started and ended (`null`: still open). The visit has to contain its
+   * encounters, cannot reach into the future and cannot be open while another visit is.
+   *
+   * @return what stopped it, or `null` when it was saved.
+   */
+  suspend fun updateVisitPeriod(visitId: String, start: Date, end: Date?): VisitPeriodError? {
+    val visit: Encounter = fhirEngine.get(visitId)
+    val encounters = encountersOf(visit)
+    VisitPeriodRules.check(
+        start = start,
+        end = end,
+        earliest = encounters.mapNotNull { it.period?.start ?: it.period?.end }.minOrNull(),
+        latest = encounters.mapNotNull { it.period?.end ?: it.period?.start }.maxOrNull(),
+      )
+      ?.let {
+        return it
+      }
+    if (end == null) {
+      val patientId = visit.subject?.reference?.substringAfter("Patient/").orEmpty()
+      val open = getActiveVisit(patientId, false)
+      if (open != null && open.idPart != visitId) return VisitPeriodError.OTHER_VISIT_OPEN
+    }
+    if (!visit.hasPeriod()) visit.period = Period()
+    visit.period.start = start
+    visit.period.end = end
+    visit.status =
+      if (end == null) Encounter.EncounterStatus.INPROGRESS else Encounter.EncounterStatus.FINISHED
+    fhirEngine.update(visit)
+    LiveSync.requestUpload(context)
+    return null
+  }
+
   suspend fun endVisit(visitId: String): Encounter {
     val encounter: Encounter = fhirEngine.get(visitId)
     val now = Date()

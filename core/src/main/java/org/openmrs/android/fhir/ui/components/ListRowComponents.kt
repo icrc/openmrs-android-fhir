@@ -477,6 +477,8 @@ fun VisitListItemRow(
   isActive: Boolean = false,
   showSyncIcon: Boolean = false,
   onReopenClick: (() -> Unit)? = null,
+  /** The card itself: opens the visit to change when it started and ended. */
+  onClick: (() -> Unit)? = null,
 ) {
   Surface(
     modifier = modifier.fillMaxWidth().testTag("VisitListItemRow"),
@@ -489,7 +491,9 @@ fun VisitListItemRow(
       ),
   ) {
     Row(
-      modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
+      modifier =
+        Modifier.let { base -> onClick?.let { base.clickable(onClick = it) } ?: base }
+          .padding(start = 12.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Box(
@@ -553,6 +557,15 @@ fun VisitListItemRow(
           painter = painterResource(id = R.drawable.ic_baseline_sync_24),
           contentDescription = stringResource(id = R.string.description_status),
           tint = OpenMrsTheme.colors.warning,
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+      }
+      if (onClick != null) {
+        Icon(
+          imageVector = Icons.Filled.Edit,
+          contentDescription = stringResource(id = R.string.visit_edit_title),
+          tint = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.size(18.dp).testTag("VisitEditIcon"),
         )
         Spacer(modifier = Modifier.width(4.dp))
       }

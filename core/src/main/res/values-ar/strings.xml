@@ -732,7 +732,7 @@
     <string name="help_details_overview_title">المريض</string>
     <string name="help_details_overview_body">الاسم والمعرّفات والعمر وبيانات الاتصال. القلم يعدّل التسجيل ويمكن الضغط على رقم الهاتف للاتصال.</string>
     <string name="help_details_encounters_title">الزيارات واللقاءات</string>
-    <string name="help_details_encounters_body">كل ما سُجّل للمريض حسب الزيارة. اضغط على العنوان لعرضه وعلى القلم لتعديله.</string>
+    <string name="help_details_encounters_body">كل ما سُجّل للمريض حسب الزيارة. اضغط على العنوان لعرضه وعلى القلم لتعديله. عند إدارة الزيارات يدوياً اضغط على زيارة لتغيير بدايتها ونهايتها: يجب أن تشمل لقاءاتها.</string>
     <string name="help_details_new_title">لقاء جديد</string>
     <string name="help_details_new_body">سجّل زيارة أو املأ نموذجاً لهذا المريض.</string>
     <string name="help_sync_status_title">حالة المزامنة</string>
@@ -795,6 +795,16 @@
     <string name="sync_cancel">إلغاء المزامنة</string>
     <string name="sync_cancelled">أُلغيت المزامنة. ما أُرسل يبقى مُرسلاً، والمزامنة التالية تكمل الباقي.</string>
     <string name="sync_cancelled_session_error">ألغاها المستخدم</string>
+    <string name="visit_edit_title">تعديل الزيارة</string>
+    <string name="visit_edit_start">بداية الزيارة</string>
+    <string name="visit_edit_end">نهاية الزيارة</string>
+    <string name="visit_edit_still_open">الزيارة ما زالت مفتوحة</string>
+    <string name="visit_edit_encounters_range">لقاءاتها بين %1$s و%2$s: يجب أن تشملها الزيارة.</string>
+    <string name="visit_edit_error_start_future">لا يمكن أن تبدأ الزيارة في المستقبل.</string>
+    <string name="visit_edit_error_end_future">لا يمكن أن تنتهي الزيارة في المستقبل.</string>
+    <string name="visit_edit_error_end_before_start">يجب أن تكون النهاية بعد البداية.</string>
+    <string name="visit_edit_error_encounter_before">هناك لقاء في هذه الزيارة يبدأ في %1$s: لا يمكن أن تبدأ الزيارة بعده.</string>
+    <string name="visit_edit_error_encounter_after">هناك لقاء في هذه الزيارة ينتهي في %1$s: لا يمكن أن تنتهي الزيارة قبله.</string>
     <string name="tutorial_step_counter">الخطوة %1$d من %2$d</string>
     <string name="tutorial_close">إغلاق الجولة</string>
     <string name="tutorial_skip">تخطي الجولة</string>

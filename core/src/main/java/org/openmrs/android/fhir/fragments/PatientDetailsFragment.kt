@@ -42,6 +42,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
@@ -66,12 +67,14 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.OpenMRSHelper
+import org.openmrs.android.fhir.data.VisitEditState
 import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.patient.PatientDetailsScreen
+import org.openmrs.android.fhir.ui.screens.EditVisitDialog
 import org.openmrs.android.fhir.ui.screens.IdentifyPatientDialog
 import org.openmrs.android.fhir.ui.screens.UnidentifiedNoteDialog
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
@@ -112,6 +115,7 @@ class PatientDetailsFragment : Fragment() {
       val patientData by patientDetailsViewModel.livePatientData.observeAsState(null)
       var identifying by rememberSaveable { mutableStateOf(false) }
       var editingNote by rememberSaveable { mutableStateOf(false) }
+      var editingVisit by rememberSaveable { mutableStateOf<String?>(null) }
       val toIdentify =
         patientData.orEmpty().filterIsInstance<PatientDetailUnidentified>().firstOrNull()
       // Identifying searches the server: a signed-in user with a connection.
@@ -139,6 +143,20 @@ class PatientDetailsFragment : Fragment() {
           },
         )
       }
+      editingVisit?.let { visitId ->
+        val visitState by
+          produceState<VisitEditState?>(null, visitId) {
+            value = patientDetailsViewModel.visitEditState(visitId)
+            if (value == null) editingVisit = null
+          }
+        visitState?.let { loaded ->
+          EditVisitDialog(
+            state = loaded,
+            onSave = { start, end -> patientDetailsViewModel.saveVisitPeriod(visitId, start, end) },
+            onDismiss = { editingVisit = null },
+          )
+        }
+      }
       if (editingNote && toIdentify != null) {
         UnidentifiedNoteDialog(
           title = stringResource(R.string.identify_note_edit_title),
@@ -161,6 +179,7 @@ class PatientDetailsFragment : Fragment() {
         onReopenVisit = ::onReopenVisitClick,
         onCreateEncounter = ::onCreateEncounterClick,
         onIdentifyPatient = { identifying = true },
+        onEditVisit = { editingVisit = it },
         identifyAvailable = identifyAvailable,
         onEditNote = { editingNote = true },
       )
