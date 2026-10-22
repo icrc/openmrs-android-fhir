@@ -77,6 +77,13 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
   /** The answers are only shown; the Edit action turns this off and the form becomes editable. */
   private var readOnly = false
 
+  /** The encounter's form is not on the device: what was saved is shown, and cannot be edited. */
+  private val genericForm
+    get() = viewModel.isGenericForm
+
+  private val viewing
+    get() = readOnly || genericForm
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setHasOptionsMenu(true)
@@ -110,6 +117,10 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
         NavHostFragment.findNavController(this).navigateUp()
         return@observe
       }
+      if (genericForm) {
+        updateActionBar()
+        requireActivity().invalidateOptionsMenu()
+      }
       addQuestionnaireFragment(it)
     }
     viewModel.isResourcesSaved.observe(viewLifecycleOwner) {
@@ -137,7 +148,7 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
   }
 
   override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-    if (!readOnly) return
+    if (!readOnly || genericForm) return
     inflater.inflate(R.menu.view_encounter_menu, menu)
     // A button as the action: the bar does not route taps on a custom action view to the menu.
     menu
@@ -163,8 +174,8 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   private fun updateActionBar() {
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
-      title = getString(if (readOnly) R.string.view_encounter else R.string.edit_encounter)
-      subtitle = if (readOnly) getString(R.string.encounter_read_only) else null
+      title = getString(if (viewing) R.string.view_encounter else R.string.edit_encounter)
+      subtitle = if (viewing) getString(R.string.encounter_read_only) else null
     }
   }
 
@@ -182,7 +193,7 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   private fun addQuestionnaireFragment(pair: Pair<String, String>) {
     if (pair.first.isNotBlank()) {
-      val viewing = readOnly
+      val viewing = viewing
       addQuestionnaireWhenDrawn(
         containerId = R.id.form_entry_container,
         tag = QUESTIONNAIRE_FRAGMENT_TAG,

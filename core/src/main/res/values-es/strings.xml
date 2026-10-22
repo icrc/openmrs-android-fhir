@@ -1119,4 +1119,13 @@
     <string name="view_encounter">Ver encuentro</string>
     <string name="encounter_edit_action">Editar</string>
     <string name="encounter_read_only">Solo lectura</string>
+    <string name="encounter_generic_note">El formulario de este encuentro no está en este dispositivo, por lo que los valores se muestran tal como se guardaron. No se puede editar.</string>
+    <string name="encounter_generic_title">Encuentro</string>
+    <string name="encounter_generic_observations">Valores registrados</string>
+    <string name="encounter_generic_type">Tipo de encuentro</string>
+    <string name="encounter_generic_date">Fecha</string>
+    <string name="encounter_generic_location">Lugar</string>
+    <string name="encounter_generic_provider">Profesional</string>
+    <string name="encounter_generic_status">Estado</string>
+    <string name="encounter_generic_unnamed">Valor sin nombre</string>
 </resources>

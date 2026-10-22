@@ -1145,4 +1145,13 @@
     <string name="view_encounter">Consulter la rencontre</string>
     <string name="encounter_edit_action">Modifier</string>
     <string name="encounter_read_only">Lecture seule</string>
+    <string name="encounter_generic_note">Le formulaire de cette rencontre n\'est pas sur cet appareil : les valeurs sont affichées telles qu\'elles ont été enregistrées. La modification n\'est pas disponible.</string>
+    <string name="encounter_generic_title">Rencontre</string>
+    <string name="encounter_generic_observations">Valeurs enregistrées</string>
+    <string name="encounter_generic_type">Type de rencontre</string>
+    <string name="encounter_generic_date">Date</string>
+    <string name="encounter_generic_location">Lieu</string>
+    <string name="encounter_generic_provider">Intervenant</string>
+    <string name="encounter_generic_status">Statut</string>
+    <string name="encounter_generic_unnamed">Valeur sans nom</string>
 </resources>

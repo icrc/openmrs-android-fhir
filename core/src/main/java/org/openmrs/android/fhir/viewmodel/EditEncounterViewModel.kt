@@ -65,6 +65,7 @@ import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.data.EncounterFallbackForm
 import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
@@ -109,6 +110,15 @@ constructor(
   val encounterDataPair: LiveData<Pair<String, String>> = _encounterDataPair
 
   val isResourcesSaved = MutableLiveData<String>()
+
+  /**
+   * The form shown was built from the encounter's own data because its questionnaire is not on the
+   * device: it can be looked at, not edited. Set before the form is published.
+   */
+  @Volatile
+  var isGenericForm = false
+    private set
+
   val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
   private var pendingResourceOperations: MutableList<suspend () -> Unit>? = null
@@ -140,6 +150,14 @@ constructor(
         questionnaire?.ensurePageGroupsHaveTrailingSpacer()
 
         val encounter = fhirEngine.get<Encounter>(encounterId)
+        if (questionnaire == null) {
+          // No form for this type: show the encounter and its observations as they were saved.
+          isGenericForm = true
+          _encounterDataPair.postValue(
+            EncounterFallbackForm.build(applicationContext, encounter, observations),
+          )
+          return@launch
+        }
         val encounterDate = encounter.period?.start?.let { utcDateToLocalDate(it) }
         if (encounterDate != null) {
           val encounterDateItem = findItemByLinkId(questionnaire?.item, "encounter-encounterDate")
@@ -170,11 +188,7 @@ constructor(
           }
 
         val launchContexts = mapOf("observations" to observationBundle)
-        val questionnaireResponse =
-          ResourceMapper.populate(
-            questionnaire!!,
-            launchContexts,
-          ) // if questionnaire is null it'll throw exception while encoding to string.
+        val questionnaireResponse = ResourceMapper.populate(questionnaire, launchContexts)
         convertDateTimeAnswersToDate(questionnaireResponse)
         val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
         _encounterDataPair.postValue(questionnaireJson to questionnaireResponseJson)

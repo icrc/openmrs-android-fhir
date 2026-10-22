@@ -1138,4 +1138,13 @@
     <string name="view_encounter">Просмотр встречи</string>
     <string name="encounter_edit_action">Изменить</string>
     <string name="encounter_read_only">Только чтение</string>
+    <string name="encounter_generic_note">Формы для этой встречи нет на устройстве, поэтому значения показаны так, как были сохранены. Редактирование недоступно.</string>
+    <string name="encounter_generic_title">Встреча</string>
+    <string name="encounter_generic_observations">Записанные значения</string>
+    <string name="encounter_generic_type">Тип встречи</string>
+    <string name="encounter_generic_date">Дата</string>
+    <string name="encounter_generic_location">Место</string>
+    <string name="encounter_generic_provider">Специалист</string>
+    <string name="encounter_generic_status">Статус</string>
+    <string name="encounter_generic_unnamed">Значение без названия</string>
 </resources>

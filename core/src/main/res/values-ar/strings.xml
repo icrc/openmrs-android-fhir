@@ -1073,4 +1073,13 @@
     <string name="view_encounter">عرض اللقاء</string>
     <string name="encounter_edit_action">تعديل</string>
     <string name="encounter_read_only">للقراءة فقط</string>
+    <string name="encounter_generic_note">نموذج هذا اللقاء غير موجود على هذا الجهاز، لذلك تُعرض القيم كما حُفظت. التعديل غير متاح.</string>
+    <string name="encounter_generic_title">اللقاء</string>
+    <string name="encounter_generic_observations">القيم المسجلة</string>
+    <string name="encounter_generic_type">نوع اللقاء</string>
+    <string name="encounter_generic_date">التاريخ</string>
+    <string name="encounter_generic_location">المكان</string>
+    <string name="encounter_generic_provider">مقدم الرعاية</string>
+    <string name="encounter_generic_status">الحالة</string>
+    <string name="encounter_generic_unnamed">قيمة بلا اسم</string>
 </resources>
