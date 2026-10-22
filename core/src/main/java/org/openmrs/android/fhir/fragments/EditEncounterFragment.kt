@@ -49,6 +49,7 @@ import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.addQuestionnaireWhenDrawn
+import org.openmrs.android.fhir.extensions.keepBelowAppBar
 import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
 import org.openmrs.android.fhir.extensions.onQuestionnaireResult
 import org.openmrs.android.fhir.extensions.setFormLoading
@@ -104,6 +105,7 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
+    view.keepBelowAppBar(viewLifecycleOwner)
     updateActionBar()
     setFormLoading(true)
     viewModel.prepareEditEncounter(encounterId, encounterType)

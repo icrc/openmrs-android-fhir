@@ -52,6 +52,7 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.databinding.GenericFormentryFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.addQuestionnaireWhenDrawn
+import org.openmrs.android.fhir.extensions.keepBelowAppBar
 import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
 import org.openmrs.android.fhir.extensions.onQuestionnaireResult
 import org.openmrs.android.fhir.extensions.setFormLoading
@@ -82,6 +83,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
+    view.keepBelowAppBar(viewLifecycleOwner)
     setUpActionBar()
     setHasOptionsMenu(true)
     (requireActivity().application as FhirApplication).appComponent.inject(this)

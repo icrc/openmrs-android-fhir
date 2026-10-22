@@ -36,6 +36,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -107,7 +108,7 @@ class SelectPatientListFragment : Fragment() {
           onPatientListToggle = ::onSelectPatientListItemClicked,
           onActionClick = ::handleActionClick,
           locationName = locationName.value,
-          onChangeLocationClick = if (fromLogin) ::changeLocation else null,
+          onChangeLocationClick = ::changeLocation,
           topPadding = selectionScreenContentPadding().calculateTopPadding(),
           isRefreshing = uiState.isRefreshing,
           loadFailed = uiState.loadFailed,
@@ -171,9 +172,16 @@ class SelectPatientListFragment : Fragment() {
     selectPatientListViewModel.start(fromLogin)
   }
 
-  /** Back to the location list; the lists are rebuilt for whichever location is chosen. */
+  /**
+   * To the location list. At login that is the screen just before this one; from the Home menu it
+   * is opened from here. The lists are rebuilt for whichever location is chosen.
+   */
   private fun changeLocation() {
-    findNavController().navigateUp()
+    if (fromLogin) {
+      findNavController().navigateUp()
+    } else {
+      findNavController().navigate(R.id.locationFragment, bundleOf("from_login" to false))
+    }
   }
 
   private fun proceedToHomeFragment() {

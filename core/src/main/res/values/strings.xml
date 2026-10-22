@@ -1088,4 +1088,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="encounter_generic_provider">Provider</string>
     <string name="encounter_generic_status">Status</string>
     <string name="encounter_generic_unnamed">Unnamed value</string>
+    <string name="choose_location">Choose location</string>
+    <string name="patient_lists_empty_no_location">No location is selected yet. Choose a location to see its patient lists.</string>
 </resources>

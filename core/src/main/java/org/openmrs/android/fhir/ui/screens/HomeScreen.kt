@@ -187,8 +187,11 @@ fun HomeScreen(
     modifier = Modifier.fillMaxSize().testTag(HomeTestTags.Screen),
     contentPadding = contentPadding,
   ) {
-    if (locationName.isNotBlank() || lastSyncText.isNotBlank()) {
-      item(key = "status-header") {
+    // Always the first item, even while there is nothing to say: a header that arrives later (the
+    // location and the last sync are read after the screen opens) would otherwise be added above
+    // the item the list is keeping in place, and push the list up under the app bar.
+    item(key = "status-header") {
+      if (locationName.isNotBlank() || lastSyncText.isNotBlank()) {
         HomeStatusHeader(locationName = locationName, lastSyncText = lastSyncText)
       }
     }
@@ -289,12 +292,12 @@ private fun HomeDashboardCard(
   ) {
     Row(
       modifier =
-        Modifier.fillMaxWidth().heightIn(min = 96.dp).padding(horizontal = 20.dp, vertical = 18.dp),
+        Modifier.fillMaxWidth().heightIn(min = 88.dp).padding(horizontal = 16.dp, vertical = 14.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Box(
         modifier =
-          Modifier.size(60.dp)
+          Modifier.size(52.dp)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.primaryContainer),
         contentAlignment = Alignment.Center,
@@ -303,32 +306,30 @@ private fun HomeDashboardCard(
           painter = painterResource(id = config.iconRes),
           colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
           contentDescription = stringResource(id = R.string.task_image),
-          modifier = Modifier.size(30.dp),
+          modifier = Modifier.size(26.dp),
         )
       }
       Column(
-        modifier = Modifier.weight(1f).padding(horizontal = 18.dp),
+        modifier = Modifier.weight(1f).padding(horizontal = 14.dp),
       ) {
         Text(
           text = stringResource(id = config.titleRes),
           color = MaterialTheme.colorScheme.onSurface,
-          style = MaterialTheme.typography.titleLarge,
+          style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.SemiBold,
-          maxLines = 2,
         )
         Text(
           modifier = Modifier.padding(top = 2.dp),
           text = stringResource(id = config.subtitleRes),
           color = MaterialTheme.colorScheme.onSurfaceVariant,
-          style = MaterialTheme.typography.bodyLarge,
-          maxLines = 2,
+          style = MaterialTheme.typography.bodyMedium,
         )
       }
       Icon(
         imageVector = Icons.Default.ChevronRight,
         contentDescription = null,
         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.size(28.dp),
+        modifier = Modifier.size(24.dp),
       )
     }
   }

@@ -1154,4 +1154,6 @@
     <string name="encounter_generic_provider">Intervenant</string>
     <string name="encounter_generic_status">Statut</string>
     <string name="encounter_generic_unnamed">Valeur sans nom</string>
+    <string name="choose_location">Choisir un lieu</string>
+    <string name="patient_lists_empty_no_location">Aucun lieu n\'est sélectionné. Choisissez un lieu pour voir ses listes de patients.</string>
 </resources>

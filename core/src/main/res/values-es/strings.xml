@@ -1128,4 +1128,6 @@
     <string name="encounter_generic_provider">Profesional</string>
     <string name="encounter_generic_status">Estado</string>
     <string name="encounter_generic_unnamed">Valor sin nombre</string>
+    <string name="choose_location">Elegir lugar</string>
+    <string name="patient_lists_empty_no_location">Todavía no hay un lugar seleccionado. Elija un lugar para ver sus listas de pacientes.</string>
 </resources>

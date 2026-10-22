@@ -28,21 +28,20 @@
 */
 package org.openmrs.android.fhir.ui.patient
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PersonSearch
@@ -59,18 +58,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import java.time.LocalDate
 import java.time.Period
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.extensions.rememberActionBarContentPadding
+import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.components.AppSearchField
 import org.openmrs.android.fhir.ui.components.LastEncounterLabel
 import org.openmrs.android.fhir.ui.components.PatientListContainerScreen
@@ -102,12 +101,14 @@ fun PatientListScreen(
   onIdentifyLater: ((note: String) -> Unit)? = null,
 ) {
   var askNote by rememberSaveable { mutableStateOf(false) }
-  val contentPadding = rememberActionBarContentPadding()
+  val topInset = rememberAppBarHeight()
   val surfaceColor = MaterialTheme.colorScheme.background
   Box(modifier = modifier.fillMaxSize().background(surfaceColor)) {
     Scaffold(
       modifier = Modifier.fillMaxSize(),
       containerColor = surfaceColor,
+      // The app bar is measured above (topInset); the system bars are not added a second time.
+      contentWindowInsets = WindowInsets(0, 0, 0, 0),
       floatingActionButton = {
         Column(
           horizontalAlignment = Alignment.End,
@@ -143,7 +144,8 @@ fun PatientListScreen(
           Modifier.fillMaxSize()
             .background(surfaceColor)
             .padding(paddingValues)
-            .padding(contentPadding)
+            // The search box and the cards bring their own side margins.
+            .padding(top = topInset + 4.dp)
             .testTag(PatientListScreenTestTags.Screen),
       ) {
         PatientSearchField(
@@ -284,27 +286,39 @@ private fun PatientListEmptyState(
   modifier: Modifier = Modifier,
 ) {
   Box(
-    modifier = modifier.fillMaxSize().testTag(PatientListScreenTestTags.EmptyState),
+    // Room under the middle for the floating buttons, so the message stays clear of them.
+    modifier =
+      modifier
+        .fillMaxSize()
+        .padding(start = 32.dp, end = 32.dp, bottom = 120.dp)
+        .testTag(PatientListScreenTestTags.EmptyState),
     contentAlignment = Alignment.Center,
   ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-      Spacer(modifier = Modifier.height(40.dp))
-      Image(
-        modifier = Modifier.size(80.dp),
-        painter = painterResource(id = R.drawable.ic_home_new_patient),
-        contentDescription = null,
-        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
-      )
-      Spacer(modifier = Modifier.height(8.dp))
+      Box(
+        modifier =
+          Modifier.size(88.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primaryContainer),
+        contentAlignment = Alignment.Center,
+      ) {
+        Icon(
+          modifier = Modifier.size(44.dp),
+          painter = painterResource(id = R.drawable.ic_home_new_patient),
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+      }
       Text(
-        modifier = Modifier.testTag(PatientListScreenTestTags.EmptyStateMessage),
+        modifier =
+          Modifier.padding(top = 20.dp).testTag(PatientListScreenTestTags.EmptyStateMessage),
         text =
           stringResource(
             id = R.string.no_patients_available_register_a_new_one_using_the_button_below,
           ),
-        color = MaterialTheme.colorScheme.onSurface,
-        fontSize = 16.sp,
-        fontStyle = FontStyle.Italic,
+        style = MaterialTheme.typography.bodyLarge,
+        textAlign = TextAlign.Center,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
     }
   }

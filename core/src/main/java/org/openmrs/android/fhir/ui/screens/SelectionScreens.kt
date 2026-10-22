@@ -366,6 +366,7 @@ fun PatientListSelectionScreen(
         }
       }
 
+      val noLocation = locationName.isNullOrBlank()
       if (onChangeLocationClick != null) {
         Surface(
           modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -385,18 +386,33 @@ fun PatientListSelectionScreen(
             Text(
               modifier =
                 Modifier.weight(1f).padding(horizontal = 10.dp).testTag("PatientListLocationName"),
-              text = locationName.orEmpty(),
+              text =
+                if (noLocation) {
+                  stringResource(id = R.string.location_banner_none)
+                } else {
+                  locationName.orEmpty()
+                },
               style = MaterialTheme.typography.bodyMedium,
               fontWeight = FontWeight.Medium,
-              color = MaterialTheme.colorScheme.onSurface,
-              maxLines = 1,
+              color =
+                if (noLocation) {
+                  OpenMrsTheme.colors.warning
+                } else {
+                  MaterialTheme.colorScheme.onSurface
+                },
+              maxLines = 3,
               overflow = TextOverflow.Ellipsis,
             )
             TextButton(
               modifier = Modifier.testTag("PatientListChangeLocation"),
               onClick = onChangeLocationClick,
             ) {
-              Text(text = stringResource(id = R.string.change_location))
+              Text(
+                text =
+                  stringResource(
+                    id = if (noLocation) R.string.choose_location else R.string.change_location,
+                  ),
+              )
             }
           }
         }
@@ -436,7 +452,6 @@ fun PatientListSelectionScreen(
             isRefreshing = isRefreshing,
             locationName = locationName,
             onRetry = onRetry,
-            onChangeLocationClick = onChangeLocationClick,
           )
         else -> {
           if (patientLists.isEmpty()) {
@@ -581,7 +596,6 @@ private fun PatientListsEmptyState(
   isRefreshing: Boolean,
   locationName: String?,
   onRetry: (() -> Unit)?,
-  onChangeLocationClick: (() -> Unit)?,
   modifier: Modifier = Modifier,
 ) {
   Column(
@@ -633,13 +647,14 @@ private fun PatientListsEmptyState(
           failed -> stringResource(id = R.string.patient_lists_failed_message)
           !locationName.isNullOrBlank() ->
             stringResource(id = R.string.patient_lists_empty_for_location, locationName)
-          else -> stringResource(id = R.string.patient_lists_empty_generic)
+          else -> stringResource(id = R.string.patient_lists_empty_no_location)
         },
       style = MaterialTheme.typography.bodyMedium,
       textAlign = TextAlign.Center,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    if (onRetry != null) {
+    // Without a location there is nothing to look again for: the location is chosen above.
+    if (onRetry != null && !locationName.isNullOrBlank()) {
       Button(
         modifier = Modifier.padding(top = 24.dp).testTag("PatientListRetry"),
         shape = RoundedCornerShape(14.dp),
@@ -655,14 +670,6 @@ private fun PatientListsEmptyState(
           Spacer(modifier = Modifier.width(8.dp))
         }
         Text(text = stringResource(id = R.string.patient_lists_try_again))
-      }
-    }
-    if (onChangeLocationClick != null) {
-      TextButton(
-        modifier = Modifier.padding(top = 4.dp).testTag("PatientListEmptyChangeLocation"),
-        onClick = onChangeLocationClick,
-      ) {
-        Text(text = stringResource(id = R.string.change_location))
       }
     }
   }

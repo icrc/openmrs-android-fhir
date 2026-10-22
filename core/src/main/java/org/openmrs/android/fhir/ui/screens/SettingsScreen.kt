@@ -32,6 +32,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -601,7 +603,7 @@ private fun SettingsSwitchRow(
 }
 
 /** What the automatic sync does: upload only, or upload and download. */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun AutoSyncModeChoice(
   selected: SyncMode,
@@ -619,7 +621,11 @@ private fun AutoSyncModeChoice(
       style = MaterialTheme.typography.bodyMedium,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+    FlowRow(
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
+      modifier = Modifier.fillMaxWidth(),
+    ) {
       listOf(
           SyncMode.BOTH to R.string.sync_mode_both,
           SyncMode.UPLOAD_ONLY to R.string.sync_mode_upload_only,
@@ -638,10 +644,14 @@ private fun AutoSyncModeChoice(
 }
 
 /** System / Light / Dark as three chips; the choice is applied at once. */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 internal fun ThemeModeChoice(selected: ThemeMode, onSelected: (ThemeMode) -> Unit) {
-  Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+  FlowRow(
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+    verticalArrangement = Arrangement.spacedBy(8.dp),
+    modifier = Modifier.fillMaxWidth(),
+  ) {
     listOf(
         Triple(ThemeMode.SYSTEM, R.string.theme_system, SettingsTestTags.ThemeSystem),
         Triple(ThemeMode.LIGHT, R.string.theme_light, SettingsTestTags.ThemeLight),
@@ -662,7 +672,7 @@ internal fun ThemeModeChoice(selected: ThemeMode, onSelected: (ThemeMode) -> Uni
  * Standard or color-blind palette. Each chip shows the three status colors (done / warning /
  * problem) of its palette, so the difference can be judged before saving.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun ColorVisionChoice(selected: ColorVisionMode, onSelected: (ColorVisionMode) -> Unit) {
   Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -676,7 +686,11 @@ private fun ColorVisionChoice(selected: ColorVisionMode, onSelected: (ColorVisio
       style = MaterialTheme.typography.bodyMedium,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+    FlowRow(
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
+      modifier = Modifier.fillMaxWidth(),
+    ) {
       listOf(
           Triple(
             ColorVisionMode.STANDARD,

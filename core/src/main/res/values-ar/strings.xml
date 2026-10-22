@@ -1082,4 +1082,6 @@
     <string name="encounter_generic_provider">مقدم الرعاية</string>
     <string name="encounter_generic_status">الحالة</string>
     <string name="encounter_generic_unnamed">قيمة بلا اسم</string>
+    <string name="choose_location">اختيار المكان</string>
+    <string name="patient_lists_empty_no_location">لم يتم اختيار مكان بعد. اختر مكانًا لعرض قوائم المرضى الخاصة به.</string>
 </resources>

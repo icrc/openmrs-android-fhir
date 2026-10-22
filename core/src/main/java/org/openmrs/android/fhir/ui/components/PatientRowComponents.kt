@@ -31,8 +31,11 @@ package org.openmrs.android.fhir.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -86,6 +89,7 @@ sealed interface LastEncounterLabel {
  * gender, the patient's last encounter (what and when) and, for patients that have not been
  * uploaded yet, a sync marker.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PatientListItemRow(
   name: String,
@@ -112,18 +116,18 @@ fun PatientListItemRow(
   ) {
     Row(
       modifier =
-        Modifier.fillMaxWidth().heightIn(min = if (onServer) 84.dp else 104.dp).padding(16.dp),
+        Modifier.fillMaxWidth().heightIn(min = if (onServer) 80.dp else 96.dp).padding(14.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      PatientAvatar(name = name)
-      Spacer(modifier = Modifier.width(16.dp))
+      PatientAvatar(name = name, size = 48.dp)
+      Spacer(modifier = Modifier.width(12.dp))
       Column(modifier = Modifier.weight(1f)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
           Text(
             modifier = Modifier.weight(1f, fill = false).testTag("PatientName"),
             text = name,
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
           )
           if (isSynced != true) {
@@ -135,20 +139,19 @@ fun PatientListItemRow(
             )
           }
         }
-        Row(
+        FlowRow(
           modifier = Modifier.padding(top = 4.dp),
-          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(10.dp),
+          verticalArrangement = Arrangement.spacedBy(4.dp),
+          itemVerticalAlignment = Alignment.CenterVertically,
         ) {
           if (!identifier.isNullOrBlank()) {
             Text(
-              modifier = Modifier.weight(1f, fill = false).testTag("PatientIdentifier"),
+              modifier = Modifier.testTag("PatientIdentifier"),
               text = identifier,
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
-              maxLines = 1,
-              overflow = TextOverflow.Ellipsis,
             )
-            Spacer(modifier = Modifier.width(10.dp))
           }
           if (ageGenderLabel.isNotBlank()) {
             Text(
@@ -230,7 +233,7 @@ private fun LastEncounterLine(label: LastEncounterLabel, modifier: Modifier = Mo
       modifier = Modifier.size(18.dp),
     )
     Text(
-      modifier = Modifier.padding(start = 8.dp),
+      modifier = Modifier.weight(1f, fill = false).padding(start = 8.dp),
       text = text,
       style = MaterialTheme.typography.bodyMedium,
       fontWeight = if (hasValue) FontWeight.Medium else FontWeight.Normal,
@@ -241,7 +244,7 @@ private fun LastEncounterLine(label: LastEncounterLabel, modifier: Modifier = Mo
         } else {
           MaterialTheme.colorScheme.onSurfaceVariant
         },
-      maxLines = 1,
+      maxLines = 2,
       overflow = TextOverflow.Ellipsis,
     )
   }

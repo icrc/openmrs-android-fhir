@@ -1147,4 +1147,6 @@
     <string name="encounter_generic_provider">Специалист</string>
     <string name="encounter_generic_status">Статус</string>
     <string name="encounter_generic_unnamed">Значение без названия</string>
+    <string name="choose_location">Выбрать место</string>
+    <string name="patient_lists_empty_no_location">Место ещё не выбрано. Выберите место, чтобы увидеть его списки пациентов.</string>
 </resources>

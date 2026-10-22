@@ -32,8 +32,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -71,6 +73,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.SyncSession
@@ -399,25 +402,48 @@ private fun SyncStatusCard(
           }
         }
       }
-      Row(
+      // Three chips side by side while each has room for its word; one under the other when the
+      // card is too narrow (a small screen, a long translation), instead of breaking the words.
+      BoxWithConstraints(
         modifier =
           Modifier.fillMaxWidth().padding(top = 14.dp).tutorialTarget(TutorialTargets.SYNC_MODE),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
       ) {
-        listOf(
+        val sideBySide = maxWidth >= 300.dp
+        val options =
+          listOf(
             SyncMode.DOWNLOAD_ONLY to R.string.sync_page_mode_download,
             SyncMode.UPLOAD_ONLY to R.string.sync_page_mode_upload,
             SyncMode.BOTH to R.string.sync_page_mode_both,
           )
-          .forEach { (option, label) ->
-            FilterChip(
-              selected = mode == option,
-              onClick = { chosen = option.value },
-              enabled = !isSyncing && syncAvailable,
-              label = { Text(text = stringResource(label)) },
-              modifier = Modifier.weight(1f).testTag("SyncMode_${option.value}"),
-            )
+
+        @Composable
+        fun RowScope.chip(option: SyncMode, label: Int, wide: Boolean) {
+          FilterChip(
+            selected = mode == option,
+            onClick = { chosen = option.value },
+            enabled = !isSyncing && syncAvailable,
+            label = {
+              Text(
+                text = stringResource(label),
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+              )
+            },
+            modifier =
+              (if (wide) Modifier.weight(1f) else Modifier.fillMaxWidth()).testTag(
+                "SyncMode_${option.value}",
+              ),
+          )
+        }
+        if (sideBySide) {
+          Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            options.forEach { (option, label) -> chip(option, label, wide = true) }
           }
+        } else {
+          Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            options.forEach { (option, label) -> Row { chip(option, label, wide = false) } }
+          }
+        }
       }
       if (!syncAvailable) {
         Text(

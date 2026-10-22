@@ -33,6 +33,8 @@ import android.content.Context
 import android.content.ContextWrapper
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -85,6 +87,7 @@ internal sealed interface TestState {
  * Lets the user point the app at another OpenMRS server by IP address or domain, and check that it
  * answers before saving. Saving restarts the app so every component uses the new server.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ServerSettingsDialog(
   onDismiss: () -> Unit,
@@ -200,7 +203,11 @@ fun ServerSettingsDialog(
           shape = RoundedCornerShape(12.dp),
           modifier = Modifier.fillMaxWidth().testTag("ServerUrlField"),
         )
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        FlowRow(
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
+          verticalArrangement = Arrangement.spacedBy(8.dp),
+          itemVerticalAlignment = Alignment.CenterVertically,
+        ) {
           OutlinedButton(
             onClick = {
               val target = normalized ?: return@OutlinedButton
@@ -212,7 +219,6 @@ fun ServerSettingsDialog(
           ) {
             Text(text = stringResource(R.string.test_connection))
           }
-          Spacer(modifier = Modifier.width(12.dp))
           TestStatus(testState)
         }
       }
