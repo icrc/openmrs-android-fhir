@@ -30,6 +30,7 @@ package org.openmrs.android.fhir.data.sync
 
 import android.content.Context
 import androidx.work.WorkerParameters
+import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.sync.AcceptLocalConflictResolver
 import com.google.android.fhir.sync.FhirSyncWorker
 import com.google.android.fhir.sync.upload.HttpCreateMethod
@@ -51,6 +52,11 @@ abstract class BaseFhirSyncWorker(
 
   override fun getConflictResolver() = AcceptLocalConflictResolver
 
-  // The app's engine, which notes who downloads what for the signed-in user.
-  override fun getFhirEngine() = (applicationContext as FhirApplication).appComponent.fhirEngine()
+  // The app's engine, which notes who downloads what for the signed-in user, and sends the
+  // updates of visits the way the server takes them (a PUT, not a PATCH).
+  override fun getFhirEngine(): FhirEngine =
+    VisitUploadingEngine(
+      (applicationContext as FhirApplication).appComponent.fhirEngine(),
+      applicationContext,
+    )
 }

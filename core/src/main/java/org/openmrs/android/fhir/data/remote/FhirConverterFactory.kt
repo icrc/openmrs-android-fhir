@@ -32,6 +32,9 @@ import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import ca.uhn.fhir.parser.IParser
 import java.lang.reflect.Type
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import org.hl7.fhir.r4.model.Resource
 import retrofit2.Converter
@@ -45,9 +48,28 @@ class FhirConverterFactory private constructor(private val fhirContext: FhirCont
     retrofit: Retrofit,
   ): Converter<ResponseBody, *> = FhirResponseBodyConverter(fhirContext.newJsonParser())
 
+  override fun requestBodyConverter(
+    type: Type,
+    parameterAnnotations: Array<Annotation>,
+    methodAnnotations: Array<Annotation>,
+    retrofit: Retrofit,
+  ): Converter<*, RequestBody>? =
+    if (type is Class<*> && Resource::class.java.isAssignableFrom(type)) {
+      FhirRequestBodyConverter(fhirContext.newJsonParser())
+    } else {
+      null
+    }
+
   companion object {
     fun create() = FhirConverterFactory(FhirContext.forCached(FhirVersionEnum.R4))
   }
+}
+
+/** Writes a FHIR resource as the body of a request. */
+private class FhirRequestBodyConverter(private val parser: IParser) :
+  Converter<Resource, RequestBody> {
+  override fun convert(value: Resource): RequestBody =
+    parser.encodeResourceToString(value).toRequestBody("application/fhir+json".toMediaType())
 }
 
 /** Retrofit converter that allows us to parse FHIR resources in the response. */

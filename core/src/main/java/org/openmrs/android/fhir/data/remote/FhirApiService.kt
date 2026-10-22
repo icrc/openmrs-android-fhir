@@ -28,10 +28,14 @@
 */
 package org.openmrs.android.fhir.data.remote
 
+import okhttp3.ResponseBody
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Location
+import org.hl7.fhir.r4.model.Resource
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.PUT
 import retrofit2.http.Url
 
 interface FhirApiService {
@@ -45,4 +49,7 @@ interface FhirApiService {
 
   /** Any FHIR search; read only. */
   @GET suspend fun getBundle(@Url url: String): Response<Bundle>
+
+  /** Replaces a resource with [resource] (the whole of it). */
+  @PUT suspend fun putResource(@Url url: String, @Body resource: Resource): Response<ResponseBody>
 }

@@ -249,6 +249,20 @@ class ApiManager @Inject constructor(context: Context) : Api {
     return patients
   }
 
+  /**
+   * Replaces [resource] on the server with the whole of it (a PUT to its own address).
+   *
+   * @throws IOException when the server does not accept it.
+   */
+  suspend fun putResource(resource: Resource) {
+    val url =
+      ServerSettings.fhirBaseUrl(appContext) + "${resource.fhirType()}/${resource.idElement.idPart}"
+    val response = fhirApiService.putResource(url, resource)
+    if (!response.isSuccessful) {
+      throw IOException("Server answered ${response.code()} to the update")
+    }
+  }
+
   suspend fun checkServerConnection(url: String): Boolean {
     return try {
       val response = apiService.checkServerStatus(url)
