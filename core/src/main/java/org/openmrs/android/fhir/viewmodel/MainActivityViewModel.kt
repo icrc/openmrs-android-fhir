@@ -690,9 +690,15 @@ constructor(
       }
       workInfo.state == WorkInfo.State.FAILED -> {
         if (lastState != currentState) {
+          // A sync stopped on purpose ends the work as failed too, but nothing went wrong.
+          val cancelled =
+            workInfo.outputData.getString(SyncInfoDatabaseWriterWorker.PROGRESS_STATUS) ==
+              "CANCELLED"
           if (activeSyncWorkId == workId) {
             _uiEvents.tryEmit(MainActivityEvent.HideSyncTasks)
-            _uiEvents.tryEmit(MainActivityEvent.SyncFailed)
+            _uiEvents.tryEmit(
+              if (cancelled) MainActivityEvent.SyncCancelled else MainActivityEvent.SyncFailed,
+            )
             activeSyncWorkId = null
           }
           backgroundSync = false
@@ -891,6 +897,8 @@ sealed class MainActivityEvent {
   data object SyncCompleted : MainActivityEvent()
 
   data object SyncFailed : MainActivityEvent()
+
+  data object SyncCancelled : MainActivityEvent()
 
   data class ShowContinueSyncDialog(
     val fetchIdentifiers: Boolean,

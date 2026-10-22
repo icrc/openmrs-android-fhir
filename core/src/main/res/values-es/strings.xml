@@ -856,7 +856,7 @@
     <string name="login_offline_note_guest">Sin conexión con el servidor: no se puede iniciar sesión ahora. Puede continuar sin iniciar sesión.</string>
     <string name="sync_cancel">Cancelar la sincronización</string>
     <string name="sync_cancelled">Sincronización cancelada. Lo ya enviado queda enviado; la próxima sincronización hará el resto.</string>
-    <string name="sync_cancelled_session_error">Cancelada por el usuario</string>
+    <string name="sync_status_cancelled">Cancelada</string>
     <string name="visit_edit_title">Editar visita</string>
     <string name="visit_edit_start">Inicio de la visita</string>
     <string name="visit_edit_end">Fin de la visita</string>

@@ -519,6 +519,8 @@ class MainActivity : AppCompatActivity() {
               AppMessage.show(this@MainActivity, R.string.sync_completed, MessageKind.Success)
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.SyncFailed ->
               AppMessage.show(this@MainActivity, R.string.sync_failed, MessageKind.Error)
+            is org.openmrs.android.fhir.viewmodel.MainActivityEvent.SyncCancelled ->
+              AppMessage.show(this@MainActivity, R.string.sync_cancelled, MessageKind.Info)
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.ShowContinueSyncDialog ->
               showContinueSyncDialog(event.fetchIdentifiers)
             is org.openmrs.android.fhir.viewmodel.MainActivityEvent.ShowTokenExpiredDialog ->

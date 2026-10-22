@@ -1013,6 +1013,7 @@ fun SyncSessionRow(
       SyncStatus.ONGOING -> OpenMrsTheme.colors.warning
       SyncStatus.COMPLETED -> OpenMrsTheme.colors.success
       SyncStatus.COMPLETED_WITH_ERRORS -> MaterialTheme.colorScheme.error
+      SyncStatus.CANCELLED -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
   Card(

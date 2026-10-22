@@ -820,7 +820,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="login_offline_note_guest">No connection to the server: signing in is not available now. You can continue without signing in.</string>
     <string name="sync_cancel">Cancel sync</string>
     <string name="sync_cancelled">Sync cancelled. What was already sent stays sent; the next sync does the rest.</string>
-    <string name="sync_cancelled_session_error">Cancelled by the user</string>
+    <string name="sync_status_cancelled">Cancelled</string>
     <string name="visit_edit_title">Edit visit</string>
     <string name="visit_edit_start">Visit start</string>
     <string name="visit_edit_end">Visit end</string>

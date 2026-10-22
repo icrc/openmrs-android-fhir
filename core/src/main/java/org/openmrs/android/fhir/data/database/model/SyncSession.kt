@@ -48,4 +48,7 @@ enum class SyncStatus {
   ONGOING,
   COMPLETED,
   COMPLETED_WITH_ERRORS,
+
+  /** Stopped by the user: not an error, nothing went wrong. */
+  CANCELLED,
 }

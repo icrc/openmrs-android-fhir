@@ -882,7 +882,7 @@
     <string name="login_offline_note_guest">Pas de connexion au serveur : la connexion n\'est pas disponible pour le moment. Vous pouvez continuer sans vous connecter.</string>
     <string name="sync_cancel">Annuler la synchronisation</string>
     <string name="sync_cancelled">Synchronisation annulée. Ce qui a déjà été envoyé reste envoyé ; la prochaine synchronisation fera le reste.</string>
-    <string name="sync_cancelled_session_error">Annulée par l\'utilisateur</string>
+    <string name="sync_status_cancelled">Annulée</string>
     <string name="visit_edit_title">Modifier la visite</string>
     <string name="visit_edit_start">Début de la visite</string>
     <string name="visit_edit_end">Fin de la visite</string>

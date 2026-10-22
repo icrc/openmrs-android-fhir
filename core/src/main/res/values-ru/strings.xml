@@ -869,7 +869,7 @@
     <string name="login_offline_note_guest">Нет соединения с сервером: вход сейчас недоступен. Можно продолжить без входа.</string>
     <string name="sync_cancel">Отменить синхронизацию</string>
     <string name="sync_cancelled">Синхронизация отменена. Уже отправленное остаётся отправленным; остальное сделает следующая синхронизация.</string>
-    <string name="sync_cancelled_session_error">Отменено пользователем</string>
+    <string name="sync_status_cancelled">Отменена</string>
     <string name="visit_edit_title">Изменить визит</string>
     <string name="visit_edit_start">Начало визита</string>
     <string name="visit_edit_end">Окончание визита</string>

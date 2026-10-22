@@ -120,15 +120,11 @@ class SyncInfoDatabaseWriterWorker(
     }
   }
 
-  /** The sync was stopped before it ended: its session ends here, saying so. */
+  /** The sync was stopped before it ended: its session ends here as cancelled (not an error). */
   private suspend fun closeCancelledSessions() {
     val dao = database.dao()
     dao.getOngoingSyncSessions().forEach { session ->
-      dao.updateSyncSessionErrors(
-        session.id,
-        listOf(applicationContext.getString(R.string.sync_cancelled_session_error)),
-      )
-      dao.updateSyncSessionStatus(session.id, SyncStatus.COMPLETED_WITH_ERRORS)
+      dao.updateSyncSessionStatus(session.id, SyncStatus.CANCELLED)
       dao.updateSyncSessionCompletionTime(session.id, LocalDateTime.now().format(formatter))
     }
     NotificationHelper.cancelSyncNotification(applicationContext)
@@ -191,6 +187,9 @@ class SyncInfoDatabaseWriterWorker(
           ),
         )
         Result.success()
+      } else if (finalStatus is CurrentSyncJobStatus.Cancelled) {
+        // Stopped on purpose: the work ends, but it is not a failure to report.
+        Result.failure(workDataOf(PROGRESS_STATUS to "CANCELLED"))
       } else {
         // The flow ended with a failure state
         setProgress(
@@ -248,6 +247,7 @@ class SyncInfoDatabaseWriterWorker(
           }
         }
       }
+      is CurrentSyncJobStatus.Cancelled -> closeCancelledSessions()
       else -> {
         handleUnknownSyncState()
       }

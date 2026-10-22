@@ -794,7 +794,7 @@
     <string name="login_offline_note_guest">لا يوجد اتصال بالخادم: تسجيل الدخول غير متاح الآن. يمكنك المتابعة دون تسجيل الدخول.</string>
     <string name="sync_cancel">إلغاء المزامنة</string>
     <string name="sync_cancelled">أُلغيت المزامنة. ما أُرسل يبقى مُرسلاً، والمزامنة التالية تكمل الباقي.</string>
-    <string name="sync_cancelled_session_error">ألغاها المستخدم</string>
+    <string name="sync_status_cancelled">أُلغيت</string>
     <string name="visit_edit_title">تعديل الزيارة</string>
     <string name="visit_edit_start">بداية الزيارة</string>
     <string name="visit_edit_end">نهاية الزيارة</string>

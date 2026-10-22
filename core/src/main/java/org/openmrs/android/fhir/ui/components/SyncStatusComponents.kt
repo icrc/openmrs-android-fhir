@@ -208,6 +208,12 @@ fun SyncSessionCard(
           R.string.sync_status_completed_errors,
           R.drawable.ic_error,
         )
+      SyncStatus.CANCELLED ->
+        Triple(
+          MaterialTheme.colorScheme.onSurfaceVariant,
+          R.string.sync_status_cancelled,
+          R.drawable.ic_cancel,
+        )
     }
 
   Surface(
