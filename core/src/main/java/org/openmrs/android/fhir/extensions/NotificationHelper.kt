@@ -54,6 +54,11 @@ constructor(
   companion object {
     private const val CHANNEL_ID = "sync_tasks_channel"
     private const val SYNC_NOTIFICATION_ID = 100
+
+    /** Takes the sync's notification away (the sync was cancelled). */
+    fun cancelSyncNotification(context: Context) {
+      NotificationManagerCompat.from(context).cancel(SYNC_NOTIFICATION_ID)
+    }
   }
 
   init {

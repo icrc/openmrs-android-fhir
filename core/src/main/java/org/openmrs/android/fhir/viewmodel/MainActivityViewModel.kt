@@ -51,6 +51,8 @@ import dagger.assisted.AssistedInject
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -69,6 +71,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.SessionStatus
 import org.openmrs.android.fhir.auth.SessionValidator
@@ -84,11 +89,14 @@ import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.data.remote.model.SessionLocation
+import org.openmrs.android.fhir.data.sync.DownloadOnlyFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.FhirSyncWorker
 import org.openmrs.android.fhir.data.sync.LivePatients
 import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.data.sync.SyncMode
+import org.openmrs.android.fhir.data.sync.UploadFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.UploadPreparer
+import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.ui.screens.SyncProgressState
 import org.openmrs.android.fhir.worker.SyncInfoDatabaseWriterWorker
@@ -294,6 +302,28 @@ constructor(
 
   private suspend fun hasLocation(context: Context): Boolean =
     !context.dataStore.data.first()[PreferenceKeys.LOCATION_ID].isNullOrBlank()
+
+  /**
+   * Stops the sync that is running (the Sync page's "Cancel sync"): the worker of the app and the
+   * SDK's own one. What was already sent stays sent and what was already downloaded stays on the
+   * device; the rest is done by the next sync.
+   */
+  fun cancelSync() {
+    if (_isSyncing.value != true) return
+    AuditLog.record(AuditAction.SYNC, AuditOutcome.SUCCESS, "state" to "cancel_requested")
+    // The screens stop showing a sync at once; the workers follow.
+    activeSyncWorkId = null
+    backgroundSync = false
+    _uiEvents.tryEmit(MainActivityEvent.HideSyncTasks)
+    setIsSyncing(false)
+    NotificationHelper.cancelSyncNotification(applicationContext)
+    CoroutineScope(Dispatchers.Default).launch {
+      workManager.cancelUniqueWork(SyncInfoDatabaseWriterWorker.WORK_NAME)
+      Sync.cancelOneTimeSync<FhirSyncWorker>(applicationContext)
+      Sync.cancelOneTimeSync<UploadFhirSyncWorker>(applicationContext)
+      Sync.cancelOneTimeSync<DownloadOnlyFhirSyncWorker>(applicationContext)
+    }
+  }
 
   fun triggerIdentifierTypeSync() {
     viewModelScope.launch {

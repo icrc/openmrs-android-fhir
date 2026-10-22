@@ -50,6 +50,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.SharingStarted
@@ -57,6 +58,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
@@ -116,6 +118,21 @@ class SyncInfoDatabaseWriterWorker(
       dao.updateSyncSessionStatus(session.id, SyncStatus.COMPLETED_WITH_ERRORS)
       dao.updateSyncSessionCompletionTime(session.id, LocalDateTime.now().format(formatter))
     }
+  }
+
+  /** The sync was stopped before it ended: its session ends here, saying so. */
+  private suspend fun closeCancelledSessions() {
+    val dao = database.dao()
+    dao.getOngoingSyncSessions().forEach { session ->
+      dao.updateSyncSessionErrors(
+        session.id,
+        listOf(applicationContext.getString(R.string.sync_cancelled_session_error)),
+      )
+      dao.updateSyncSessionStatus(session.id, SyncStatus.COMPLETED_WITH_ERRORS)
+      dao.updateSyncSessionCompletionTime(session.id, LocalDateTime.now().format(formatter))
+    }
+    NotificationHelper.cancelSyncNotification(applicationContext)
+    AuditLog.record(AuditAction.SYNC, AuditOutcome.SUCCESS, "state" to "cancelled")
   }
 
   override suspend fun doWork(): Result {
@@ -185,7 +202,15 @@ class SyncInfoDatabaseWriterWorker(
         Result.failure()
       }
     } catch (e: CancellationException) {
-      // The work was stopped (for example replaced by a newer request). Let WorkManager see it.
+      // The work was stopped (cancelled by the user, or replaced by a newer request): its session
+      // is closed, so it does not stay "in progress". Let WorkManager see the cancellation.
+      withContext(NonCancellable) {
+        try {
+          closeCancelledSessions()
+        } catch (closing: Exception) {
+          Timber.w(closing, "Could not close the cancelled sync's session")
+        }
+      }
       throw e
     } catch (e: Exception) {
       Timber.e(e, "Sync info worker failed")

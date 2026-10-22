@@ -766,7 +766,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="help_sync_mode_title">Download, upload or both</string>
     <string name="help_sync_mode_body">Choose what Sync now does this time. The automatic sync follows the setting in Settings, which this does not change.</string>
     <string name="help_sync_now_title">Sync now</string>
-    <string name="help_sync_now_body">Starts the sync you chose. It needs a connection to the server, and you can keep using the app while it runs.</string>
+    <string name="help_sync_now_body">Starts the sync you chose. It needs a connection to the server, and you can keep using the app while it runs. While it runs, Cancel sync stops it.</string>
     <string name="help_sync_tabs_title">Pending and history</string>
     <string name="help_sync_tabs_body">Pending lists what has not been sent yet; History lists the past syncs and how they ended.</string>
     <string name="help_ie_export_title">Export</string>
@@ -818,6 +818,9 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="identify_register_hint">Register the patient. What was recorded for them is linked to the new patient once it is saved.</string>
     <string name="login_offline_note">No connection to the server: signing in is not available now.</string>
     <string name="login_offline_note_guest">No connection to the server: signing in is not available now. You can continue without signing in.</string>
+    <string name="sync_cancel">Cancel sync</string>
+    <string name="sync_cancelled">Sync cancelled. What was already sent stays sent; the next sync does the rest.</string>
+    <string name="sync_cancelled_session_error">Cancelled by the user</string>
     <string name="tutorial_step_counter">Step %1$d of %2$d</string>
     <string name="tutorial_close">Close the tour</string>
     <string name="tutorial_skip">Skip tour</string>

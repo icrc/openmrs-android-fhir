@@ -119,6 +119,10 @@ class SyncInfoFragment : Fragment() {
           syncProgress = activityState.syncProgressState,
           lastSyncText = activityState.lastSyncText,
           onSyncNow = { mode -> (requireActivity() as? MainActivity)?.onSyncPress(mode) },
+          onCancelSync = {
+            mainActivityViewModel.cancelSync()
+            AppMessage.show(requireContext(), R.string.sync_cancelled, MessageKind.Info)
+          },
           onTogglePatientExpand = unsyncedViewModel::togglePatientExpansion,
           onToggleEncounterExpand = unsyncedViewModel::toggleEncounterExpansion,
           onDeleteResource = { resource ->

@@ -44,13 +44,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -83,6 +86,7 @@ object SyncScreenTestTags {
   const val Screen = "SyncScreen"
   const val StatusCard = "SyncStatusCard"
   const val UnidentifiedCard = "SyncUnidentifiedCard"
+  const val CancelSyncButton = "SyncCancelButton"
   const val IdentifyButton = "SyncIdentifyButton"
   const val SyncNowButton = "SyncNowButton"
   const val PendingTab = "SyncPendingTab"
@@ -120,6 +124,8 @@ fun SyncScreen(
   /** Patients recorded to be identified after: never part of a sync until identified. */
   unidentifiedCount: Int = 0,
   onIdentify: () -> Unit = {},
+  /** Stops the sync that is running. */
+  onCancelSync: () -> Unit = {},
   /** Identifying needs a signed-in user with a connection to the server. */
   identifyAvailable: Boolean = true,
 ) {
@@ -140,6 +146,7 @@ fun SyncScreen(
       pendingCount = pendingCount,
       lastSyncText = lastSyncText,
       onSyncNow = onSyncNow,
+      onCancelSync = onCancelSync,
       onImportExport = onImportExport,
       defaultMode = defaultSyncMode,
       syncAvailable = syncAvailable,
@@ -293,6 +300,7 @@ private fun SyncStatusCard(
   pendingCount: Int,
   lastSyncText: String,
   onSyncNow: (SyncMode) -> Unit,
+  onCancelSync: () -> Unit,
   onImportExport: () -> Unit,
   defaultMode: SyncMode,
   syncAvailable: Boolean,
@@ -448,6 +456,31 @@ private fun SyncStatusCard(
           text = stringResource(id = R.string.sync_now),
           style = MaterialTheme.typography.labelLarge,
         )
+      }
+      if (isSyncing) {
+        OutlinedButton(
+          onClick = onCancelSync,
+          shape = RoundedCornerShape(14.dp),
+          colors =
+            ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+          border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+          modifier =
+            Modifier.fillMaxWidth()
+              .padding(top = 8.dp)
+              .height(48.dp)
+              .testTag(SyncScreenTestTags.CancelSyncButton),
+        ) {
+          Icon(
+            imageVector = Icons.Default.Close,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+          )
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(
+            text = stringResource(id = R.string.sync_cancel),
+            style = MaterialTheme.typography.labelLarge,
+          )
+        }
       }
       TextButton(
         onClick = onImportExport,

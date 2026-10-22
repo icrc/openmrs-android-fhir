@@ -389,6 +389,10 @@ class MainActivity : AppCompatActivity() {
           showSyncCloseButton = uiState.showSyncCloseButton,
           onMinimizeSyncTasks = viewModel::minimizeSyncTasks,
           onExpandSyncTasks = viewModel::expandSyncTasks,
+          onCancelSync = {
+            viewModel.cancelSync()
+            AppMessage.show(this@MainActivity, R.string.sync_cancelled, MessageKind.Info)
+          },
           isLoading = uiState.loading,
         )
       }

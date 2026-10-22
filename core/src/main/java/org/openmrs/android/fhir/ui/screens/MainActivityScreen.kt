@@ -82,6 +82,7 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
@@ -355,6 +356,8 @@ fun MainActivityOverlays(
   onMinimizeSyncTasks: () -> Unit,
   onExpandSyncTasks: () -> Unit,
   modifier: Modifier = Modifier,
+  /** Stops the sync that is running; `null`: not offered. */
+  onCancelSync: (() -> Unit)? = null,
 ) {
   Box(modifier = modifier.fillMaxSize()) {
     SyncPopup(
@@ -366,6 +369,7 @@ fun MainActivityOverlays(
       headerText = syncHeaderText,
       onMinimize = onMinimizeSyncTasks,
       onExpand = onExpandSyncTasks,
+      onCancel = onCancelSync,
     )
     if (isLoading) {
       LoadingOverlay()
@@ -436,6 +440,7 @@ private fun BoxScope.SyncPopup(
   headerText: String,
   onMinimize: () -> Unit,
   onExpand: () -> Unit,
+  onCancel: (() -> Unit)? = null,
 ) {
   // The activity blurs the content itself where it can; elsewhere the scrim has to do more.
   val scrimAlpha = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) 0.2f else 0.5f
@@ -466,6 +471,7 @@ private fun BoxScope.SyncPopup(
           headerText = headerText,
           canMinimize = canMinimize,
           onMinimize = onMinimize,
+          onCancel = onCancel,
           modifier =
             Modifier.padding(24.dp).clickable(interactionSource = noRipple, indication = null) {},
         )
@@ -494,6 +500,7 @@ private fun SyncPopupCard(
   canMinimize: Boolean,
   onMinimize: () -> Unit,
   modifier: Modifier = Modifier,
+  onCancel: (() -> Unit)? = null,
 ) {
   val fraction = progress.fraction
   Surface(
@@ -589,6 +596,18 @@ private fun SyncPopupCard(
           )
           Spacer(modifier = Modifier.width(8.dp))
           Text(text = stringResource(id = R.string.sync_minimize))
+        }
+        if (onCancel != null) {
+          TextButton(
+            onClick = onCancel,
+            modifier =
+              Modifier.fillMaxWidth().padding(top = 4.dp).testTag("SyncCancelOverlayButton"),
+          ) {
+            Text(
+              text = stringResource(id = R.string.sync_cancel),
+              color = MaterialTheme.colorScheme.error,
+            )
+          }
         }
       }
     }

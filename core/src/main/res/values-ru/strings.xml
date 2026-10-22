@@ -815,7 +815,7 @@
     <string name="help_sync_mode_title">Загрузка, отправка или обе</string>
     <string name="help_sync_mode_body">Выберите, что сделает «Синхронизировать» на этот раз. Автосинхронизация следует настройке в «Настройках», которую это не меняет.</string>
     <string name="help_sync_now_title">Синхронизировать сейчас</string>
-    <string name="help_sync_now_body">Запускает выбранную синхронизацию. Нужна связь с сервером; пока она идёт, приложением можно пользоваться.</string>
+    <string name="help_sync_now_body">Запускает выбранную синхронизацию. Нужна связь с сервером; пока она идёт, приложением можно пользоваться. Пока она идёт, «Отменить синхронизацию» её останавливает.</string>
     <string name="help_sync_tabs_title">Ожидает и история</string>
     <string name="help_sync_tabs_body">«Ожидает» — что ещё не отправлено; «История» — прошлые синхронизации и их результат.</string>
     <string name="help_ie_export_title">Экспорт</string>
@@ -867,6 +867,9 @@
     <string name="identify_register_hint">Зарегистрируйте пациента. Записанное для него будет привязано к новому пациенту после сохранения.</string>
     <string name="login_offline_note">Нет соединения с сервером: вход сейчас недоступен.</string>
     <string name="login_offline_note_guest">Нет соединения с сервером: вход сейчас недоступен. Можно продолжить без входа.</string>
+    <string name="sync_cancel">Отменить синхронизацию</string>
+    <string name="sync_cancelled">Синхронизация отменена. Уже отправленное остаётся отправленным; остальное сделает следующая синхронизация.</string>
+    <string name="sync_cancelled_session_error">Отменено пользователем</string>
     <string name="tutorial_step_counter">Шаг %1$d из %2$d</string>
     <string name="tutorial_close">Закрыть обзор</string>
     <string name="tutorial_skip">Пропустить обзор</string>
