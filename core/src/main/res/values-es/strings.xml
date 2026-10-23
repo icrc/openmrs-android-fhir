@@ -1157,4 +1157,5 @@
     <string name="app_lock_hide_recents">Ocultar la aplicación en recientes</string>
     <string name="app_lock_hide_recents_description">La lista de aplicaciones recientes y las capturas de pantalla muestran una pantalla en blanco, así que los datos de pacientes no se ven. Se aplica a las pantallas nuevas.</string>
     <string name="invalid_username_password_sso_hint">Error al iniciar sesión. Compruebe sus credenciales. Si su organización usa inicio de sesión único, toque «Iniciar sesión con SSO».</string>
+    <string name="session_expired_strip">Sesión caducada. Los cambios se guardan en este dispositivo.</string>
 </resources>

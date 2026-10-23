@@ -193,6 +193,49 @@ fun NetworkStatusBanner(
 }
 
 /**
+ * Under the connection strip once the session is no longer valid: says so and offers to sign in
+ * again. Unlike the dialog, it stays until the user has signed in.
+ */
+@Composable
+fun SessionExpiredStrip(onSignInClick: () -> Unit, modifier: Modifier = Modifier) {
+  val accent = MaterialTheme.colorScheme.error
+  Row(
+    modifier =
+      modifier
+        .fillMaxWidth()
+        .background(MaterialTheme.colorScheme.surface)
+        .background(accent.copy(alpha = 0.14f))
+        .heightIn(min = 28.dp)
+        .padding(horizontal = 16.dp, vertical = 4.dp)
+        .testTag("SessionExpiredStrip"),
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.Center,
+  ) {
+    Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accent))
+    Spacer(modifier = Modifier.width(8.dp))
+    Text(
+      text = stringResource(R.string.session_expired_strip),
+      style = MaterialTheme.typography.labelMedium,
+      fontWeight = FontWeight.SemiBold,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
+    Text(
+      modifier =
+        Modifier.padding(start = 4.dp)
+          .clip(RoundedCornerShape(8.dp))
+          .clickable(role = Role.Button, onClick = onSignInClick)
+          .padding(horizontal = 8.dp, vertical = 4.dp)
+          .testTag("SessionExpiredSignIn"),
+      text = stringResource(R.string.sign_in),
+      style = MaterialTheme.typography.labelMedium,
+      fontWeight = FontWeight.SemiBold,
+      color = MaterialTheme.colorScheme.primary,
+      textDecoration = TextDecoration.Underline,
+    )
+  }
+}
+
+/**
  * Top of the side menu: the same color as the app bar behind the status bar (brand teal, a dark
  * surface in the night theme), the logo and when the data was last synchronized.
  */

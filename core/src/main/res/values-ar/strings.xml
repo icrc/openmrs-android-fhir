@@ -1111,4 +1111,5 @@
     <string name="app_lock_hide_recents">إخفاء التطبيق في التطبيقات الأخيرة</string>
     <string name="app_lock_hide_recents_description">تعرض قائمة التطبيقات الأخيرة ولقطات الشاشة شاشة فارغة فلا تظهر بيانات المرضى. يسري على الشاشات الجديدة.</string>
     <string name="invalid_username_password_sso_hint">فشل تسجيل الدخول. تحقق من بياناتك. إذا كانت مؤسستك تستخدم تسجيل الدخول الموحّد، فاضغط «تسجيل الدخول عبر SSO».</string>
+    <string name="session_expired_strip">انتهت الجلسة. تبقى التغييرات على هذا الجهاز.</string>
 </resources>

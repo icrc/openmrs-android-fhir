@@ -308,6 +308,8 @@ class MainActivity : AppCompatActivity() {
             viewModel.restartAutoSync()
             AuditLog.record(AuditAction.SYNC, AuditOutcome.SUCCESS, "state" to "timer_reset")
           },
+          sessionExpired = uiState.sessionExpired,
+          onSignInClick = ::launchSignIn,
           onToolbarReady = ::configureToolbar,
         )
       }
@@ -1016,6 +1018,7 @@ class MainActivity : AppCompatActivity() {
 
   /** Signed in again after the session had expired: what was waiting to be synced goes now. */
   private fun onSessionRenewed() {
+    viewModel.onSessionRenewed()
     viewModel.restartAutoSync()
     onSyncPress(requestedSyncMode)
   }

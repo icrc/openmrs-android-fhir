@@ -1176,4 +1176,5 @@
     <string name="app_lock_hide_recents">Скрывать приложение в списке недавних</string>
     <string name="app_lock_hide_recents_description">В списке недавних приложений и на снимках экрана будет пустой экран, данные пациентов не видны. Действует для новых экранов.</string>
     <string name="invalid_username_password_sso_hint">Не удалось войти. Проверьте данные. Если ваша организация использует единый вход, нажмите «Войти через SSO».</string>
+    <string name="session_expired_strip">Сеанс истёк. Изменения хранятся на этом устройстве.</string>
 </resources>

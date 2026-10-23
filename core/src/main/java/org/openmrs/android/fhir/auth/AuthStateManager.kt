@@ -159,11 +159,9 @@ class AuthStateManager private constructor(private val context: Context) {
         return false
       }
       AuthMethod.OPENID -> {
-        // TODO: fix that point for real offline mode
-        // by removing needsTokenRefresh we have an exception later on
-        // net.openid.appauth.AuthState.mRefreshToken being null
-        // in this method:
-        // net.openid.appauth.AuthState.createTokenRefreshRequest(java.util.Map<java.lang.String,java.lang.String>)
+        // Only a token that is still valid counts here: asking AppAuth for one that has run out
+        // would try to refresh it. Opening the app offline is decided by hasSavedSession(), and
+        // the token is renewed by LoginRepository.renewAccessTokenIfNeeded().
         current.isAuthorized && !current.needsTokenRefresh
       }
     }

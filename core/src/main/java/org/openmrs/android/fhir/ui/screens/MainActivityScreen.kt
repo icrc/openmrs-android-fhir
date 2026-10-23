@@ -118,6 +118,7 @@ import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.components.AutoSyncDelayDialog
 import org.openmrs.android.fhir.ui.components.DrawerHeader
 import org.openmrs.android.fhir.ui.components.NetworkStatusBanner
+import org.openmrs.android.fhir.ui.components.SessionExpiredStrip
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.LiveStatus
 
@@ -159,6 +160,8 @@ fun MainActivityScaffold(
   onDelaySync: (minutes: Int) -> Unit = {},
   onTurnOffAutoSync: () -> Unit = {},
   onResetAutoSyncTimer: () -> Unit = {},
+  sessionExpired: Boolean = false,
+  onSignInClick: () -> Unit = {},
 ) {
   var showDelayDialog by rememberSaveable { mutableStateOf(false) }
   // One bar: the brand color runs up behind the status bar (a dark surface in the night theme)
@@ -224,6 +227,9 @@ fun MainActivityScaffold(
               },
           )
         }
+      }
+      if (sessionExpired) {
+        SessionExpiredStrip(onSignInClick = onSignInClick)
       }
     }
   }

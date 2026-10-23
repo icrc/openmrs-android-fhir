@@ -533,13 +533,16 @@ constructor(
     publishConnectivity(connectivity)
     if (!connectivity.isServerReachable()) return
     when (sessionValidator.check()) {
-      SessionStatus.Valid ->
+      SessionStatus.Valid -> {
+        _uiState.update { it.copy(sessionExpired = false) }
         startSync(
           applicationContext,
           AppConfig.get(applicationContext).fetchIdentifiers,
           background = true,
         )
-      SessionStatus.Invalid -> _uiState.update { it.copy(isSessionPromptPending = true) }
+      }
+      SessionStatus.Invalid ->
+        _uiState.update { it.copy(isSessionPromptPending = true, sessionExpired = true) }
       SessionStatus.Unknown -> Timber.w("Automatic sync skipped: the session could not be checked")
     }
   }
@@ -559,6 +562,11 @@ constructor(
   /** The user signed in (again): count from scratch. */
   fun restartAutoSync() {
     autoSyncGeneration.update { it + 1 }
+  }
+
+  /** Signed in again: the "session expired" strip goes away. */
+  fun onSessionRenewed() {
+    _uiState.update { it.copy(sessionExpired = false, isSessionPromptPending = false) }
   }
 
   fun onSessionPromptHandled() {
@@ -858,6 +866,8 @@ data class MainUiState(
   val liveStatus: LiveStatus = LiveStatus.Off,
   /** The automatic sync found the session invalid: the user has to sign in again. */
   val isSessionPromptPending: Boolean = false,
+  /** The session is no longer valid: stays until the user signs in, unlike the prompt. */
+  val sessionExpired: Boolean = false,
   val syncProgressState: SyncProgressState = SyncProgressState(0, 0),
   val syncHeaderText: String = "",
   val showSyncCloseButton: Boolean = true,

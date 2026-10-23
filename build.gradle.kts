@@ -35,6 +35,13 @@ allprojects {
   configureSpotless()
 }
 
+// Each module that carries an app_config.xml is checked when it is built.
+subprojects {
+  if (name in setOf("app", "dev3-app", "core")) {
+    apply(from = rootProject.file("gradle/validate-app-config.gradle.kts"))
+  }
+}
+
 fun Project.configureSpotless() {
   val ktlintVersion = "0.50.0"
   val ktlintOptions = mapOf("indent_size" to "2", "continuation_indent_size" to "2")
