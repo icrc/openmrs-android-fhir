@@ -832,7 +832,7 @@
     <string name="help_settings_shared_title">Общее устройство</string>
     <string name="help_settings_shared_body">Решите, смогут ли другие пользователи этого устройства видеть пациентов, которых вы зарегистрировали или загрузили.</string>
     <string name="help_settings_security_title">Безопасность</string>
-    <string name="help_settings_security_body">Вход без сети и что происходит с данными при выходе.</string>
+    <string name="help_settings_security_body">Вход без сети, как долго приложение ждёт перед повторным запросом, скрытие приложения в списке недавних и что происходит с данными при выходе.</string>
     <string name="help_lists_search_title">Поиск списков</string>
     <string name="help_lists_search_body">Введите часть названия списка, чтобы найти его.</string>
     <string name="help_lists_list_title">Выбор списков</string>
@@ -1165,4 +1165,15 @@
     <string name="confirm_identity_title">Подтвердите, что это вы</string>
     <string name="delete_patient_data_auth_subtitle">Для удаления данных пациентов нужен ваш отпечаток, лицо или блокировка экрана.</string>
     <string name="logout_delete_auth_subtitle">Для выхода и удаления всех данных нужен ваш отпечаток, лицо или блокировка экрана.</string>
+    <string name="offline_login_unavailable_status">Автономный вход включён, но на устройстве больше нет отпечатка, лица или блокировки экрана. Настройте их или сбросьте автономный вход и войдите снова.</string>
+    <string name="app_lock_delay">Спрашивать снова через</string>
+    <string name="app_lock_delay_description">Как долго приложение может быть скрыто, прежде чем снова запросит отпечаток, лицо или блокировку экрана.</string>
+    <string name="app_lock_delay_immediately">Каждый раз</string>
+    <string name="app_lock_delay_seconds">%1$d сек.</string>
+    <string name="app_lock_delay_minutes">%1$d мин</string>
+    <string name="app_lock_screen_off">Блокировать при выключении экрана</string>
+    <string name="app_lock_screen_off_description">Спрашивать снова сразу после включения экрана, независимо от времени выше.</string>
+    <string name="app_lock_hide_recents">Скрывать приложение в списке недавних</string>
+    <string name="app_lock_hide_recents_description">В списке недавних приложений и на снимках экрана будет пустой экран, данные пациентов не видны. Действует для новых экранов.</string>
+    <string name="invalid_username_password_sso_hint">Не удалось войти. Проверьте данные. Если ваша организация использует единый вход, нажмите «Войти через SSO».</string>
 </resources>

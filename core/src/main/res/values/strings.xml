@@ -783,7 +783,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="help_settings_shared_title">Shared device</string>
     <string name="help_settings_shared_body">Choose whether other users of this device can see the patients you registered or downloaded.</string>
     <string name="help_settings_security_title">Security</string>
-    <string name="help_settings_security_body">Offline login, and what happens to the data when you log out.</string>
+    <string name="help_settings_security_body">Offline login, how long the app waits before asking for it again, hiding the app in recent apps, and what happens to the data when you log out.</string>
     <string name="help_lists_search_title">Search the lists</string>
     <string name="help_lists_search_body">Type part of a list\'s name to find it.</string>
     <string name="help_lists_list_title">Choose the lists</string>
@@ -1106,4 +1106,15 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="confirm_identity_title">Confirm it is you</string>
     <string name="delete_patient_data_auth_subtitle">Deleting the patient data needs your fingerprint, face or screen lock.</string>
     <string name="logout_delete_auth_subtitle">Logging out and deleting all data needs your fingerprint, face or screen lock.</string>
+    <string name="offline_login_unavailable_status">Offline login is on, but this device has no fingerprint, face or screen lock any more. Set one up, or reset the offline login and sign in again.</string>
+    <string name="app_lock_delay">Ask again after</string>
+    <string name="app_lock_delay_description">How long the app can be out of sight before it asks for your fingerprint, face or screen lock.</string>
+    <string name="app_lock_delay_immediately">Every time</string>
+    <string name="app_lock_delay_seconds">%1$d seconds</string>
+    <string name="app_lock_delay_minutes">%1$d min</string>
+    <string name="app_lock_screen_off">Lock when the screen turns off</string>
+    <string name="app_lock_screen_off_description">Ask again as soon as the screen is turned back on, whatever the time above.</string>
+    <string name="app_lock_hide_recents">Hide the app in recent apps</string>
+    <string name="app_lock_hide_recents_description">The recent apps list and screenshots show a blank screen, so patient data is not visible. Takes effect for new screens.</string>
+    <string name="invalid_username_password_sso_hint">Login failed. Check your credentials. If your organisation uses single sign-on, tap "Sign in with SSO" instead.</string>
 </resources>

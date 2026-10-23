@@ -141,6 +141,8 @@ object SettingsTestTags {
   const val InitialSyncButton = "SettingsInitialSyncButton"
   const val FetchQuestionnairesButton = "SettingsFetchQuestionnairesButton"
   const val ResetOfflineLoginButton = "SettingsResetOfflineLoginButton"
+  const val LockOnScreenOffSwitch = "SettingsLockOnScreenOffSwitch"
+  const val HideInRecentsSwitch = "SettingsHideInRecentsSwitch"
   const val ThemeSystem = "SettingsThemeSystem"
   const val ThemeLight = "SettingsThemeLight"
   const val ThemeDark = "SettingsThemeDark"
@@ -185,6 +187,12 @@ fun SettingsScreen(
   onColorVisionSelected: ((ColorVisionMode) -> Unit)? = null,
   offlineLoginEnabled: Boolean? = null,
   onResetOfflineLoginClicked: (() -> Unit)? = null,
+  /** The offline login is on but the device has no fingerprint, face or screen lock any more. */
+  offlineLoginUnavailable: Boolean = false,
+  appLock: AppLockUi? = null,
+  onLockDelaySelected: (Int) -> Unit = {},
+  onLockOnScreenOffChange: (Boolean) -> Unit = {},
+  onHideInRecentsChange: (Boolean) -> Unit = {},
   unsyncedCount: Int = 0,
   clearDataOnLogout: Boolean = true,
   onClearDataOnLogoutChange: ((Boolean) -> Unit)? = null,
@@ -373,10 +381,12 @@ fun SettingsScreen(
           SettingsAction(
             description =
               stringResource(
-                when (offlineLoginEnabled) {
-                  true -> R.string.offline_login_enabled_status
-                  false -> R.string.offline_login_disabled_status
-                  null -> R.string.offline_login_not_set_status
+                when {
+                  offlineLoginEnabled == true && offlineLoginUnavailable ->
+                    R.string.offline_login_unavailable_status
+                  offlineLoginEnabled == true -> R.string.offline_login_enabled_status
+                  offlineLoginEnabled == false -> R.string.offline_login_disabled_status
+                  else -> R.string.offline_login_not_set_status
                 },
               ),
             buttonText = stringResource(R.string.reset_offline_login),
@@ -386,6 +396,15 @@ fun SettingsScreen(
             inProgress = false,
             testTag = SettingsTestTags.ResetOfflineLoginButton,
           )
+          if (offlineLoginEnabled == true && appLock != null) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            AppLockOptions(
+              state = appLock,
+              onDelaySelected = onLockDelaySelected,
+              onLockOnScreenOffChange = onLockOnScreenOffChange,
+              onHideInRecentsChange = onHideInRecentsChange,
+            )
+          }
         }
       }
 
@@ -598,6 +617,76 @@ private fun SettingsSwitchRow(
           SwitchDefaults.colors()
         },
       modifier = Modifier.testTag(testTag),
+    )
+  }
+}
+
+/** What the app lock is set to; shown once the offline login is on. */
+data class AppLockUi(
+  val delaySeconds: Int,
+  val lockOnScreenOff: Boolean,
+  val hideInRecents: Boolean,
+  val delayOptions: List<Int>,
+)
+
+/** How long the app may be out of sight before it asks again, and what else locks or hides it. */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+private fun AppLockOptions(
+  state: AppLockUi,
+  onDelaySelected: (Int) -> Unit,
+  onLockOnScreenOffChange: (Boolean) -> Unit,
+  onHideInRecentsChange: (Boolean) -> Unit,
+) {
+  Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      Text(
+        text = stringResource(R.string.app_lock_delay),
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurface,
+      )
+      Text(
+        text = stringResource(R.string.app_lock_delay_description),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+      FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth(),
+      ) {
+        state.delayOptions.forEach { seconds ->
+          FilterChip(
+            selected = state.delaySeconds == seconds,
+            onClick = { onDelaySelected(seconds) },
+            label = {
+              Text(
+                text =
+                  when (seconds) {
+                    0 -> stringResource(R.string.app_lock_delay_immediately)
+                    in 1..59 -> stringResource(R.string.app_lock_delay_seconds, seconds)
+                    else -> stringResource(R.string.app_lock_delay_minutes, seconds / 60)
+                  },
+              )
+            },
+            modifier = Modifier.testTag("SettingsLockDelay_$seconds"),
+          )
+        }
+      }
+    }
+    SettingsSwitchRow(
+      label = stringResource(R.string.app_lock_screen_off),
+      description = stringResource(R.string.app_lock_screen_off_description),
+      checked = state.lockOnScreenOff,
+      onCheckedChange = onLockOnScreenOffChange,
+      testTag = SettingsTestTags.LockOnScreenOffSwitch,
+    )
+    SettingsSwitchRow(
+      label = stringResource(R.string.app_lock_hide_recents),
+      description = stringResource(R.string.app_lock_hide_recents_description),
+      checked = state.hideInRecents,
+      onCheckedChange = onHideInRecentsChange,
+      testTag = SettingsTestTags.HideInRecentsSwitch,
     )
   }
 }

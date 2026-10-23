@@ -30,9 +30,13 @@ package org.openmrs.android.fhir.auth
 
 import android.app.Activity
 import android.app.Application
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.os.SystemClock
+import android.view.WindowManager
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.extensions.BiometricUtils
 
@@ -43,13 +47,14 @@ import org.openmrs.android.fhir.extensions.BiometricUtils
  * killed; this covers the one that was only in the background.
  *
  * Short absences do not lock: a photo, the file picker, a phone call, the permission dialogs all
- * take the app out of the foreground for a moment. Only an absence of [GRACE_MILLIS] or more does.
+ * take the app out of the foreground for a moment. Only an absence of the chosen delay (30 seconds
+ * unless changed in the settings, see [AppLockSettings]) or more does, or the screen turning off
+ * when the user asked for that.
  */
 object AppLock {
-  /** How long the app may be out of the foreground before it asks again. */
-  const val GRACE_MILLIS = 30_000L
-
   @Volatile private var leftAt: Long? = null
+
+  @Volatile private var screenWentOff = false
 
   @Volatile private var lockPending = false
 
@@ -58,18 +63,31 @@ object AppLock {
 
   /** Follows the activities to know when the app was left and when it is back. */
   fun install(application: Application) {
+    application.registerReceiver(
+      object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+          if (AppLockSettings.lockOnScreenOff(context)) screenWentOff = true
+        }
+      },
+      IntentFilter(Intent.ACTION_SCREEN_OFF),
+    )
     application.registerActivityLifecycleCallbacks(
       object : Application.ActivityLifecycleCallbacks {
         override fun onActivityStarted(activity: Activity) {
           if (started == 0) {
             // The app is back in front. Only the screen with the data asks (not the login page, or
-            // the browser of a single sign-on in between), and only after a long enough absence.
+            // the browser of a single sign-on in between), and only after a long enough absence
+            // (or the screen having been turned off, when the user chose that).
             val left = leftAt
+            val screenOff = screenWentOff
             leftAt = null
+            screenWentOff = false
             if (
               left != null &&
                 activity is MainActivity &&
-                SystemClock.elapsedRealtime() - left >= GRACE_MILLIS &&
+                (screenOff ||
+                  SystemClock.elapsedRealtime() - left >=
+                    AppLockSettings.graceSeconds(activity) * 1000L) &&
                 isEnabled(activity)
             ) {
               lockPending = true
@@ -87,7 +105,9 @@ object AppLock {
           }
         }
 
-        override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
+        override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+          applyRecentsPrivacy(activity)
+        }
 
         override fun onActivityResumed(activity: Activity) = Unit
 
@@ -98,6 +118,19 @@ object AppLock {
         override fun onActivityDestroyed(activity: Activity) = Unit
       },
     )
+  }
+
+  /**
+   * Hides the screen in the Recents list (and from screenshots) when the user asked for that and
+   * the app is locked by an offline login. Also called when the choice changes.
+   */
+  fun applyRecentsPrivacy(activity: Activity) {
+    val hide = isEnabled(activity) && AppLockSettings.hideInRecents(activity)
+    if (hide) {
+      activity.window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+    } else {
+      activity.window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+    }
   }
 
   /**

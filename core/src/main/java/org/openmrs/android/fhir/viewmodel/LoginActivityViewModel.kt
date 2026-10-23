@@ -247,7 +247,16 @@ constructor(
             "username" to username,
             "reason" to "invalid_credentials",
           )
-          _uiState.value = LoginUiState.Failure(R.string.invalid_username_password)
+          // A server that only accepts the single sign-on answers a correct password as wrong:
+          // say where else to try instead of leaving the user guessing at the password.
+          _uiState.value =
+            LoginUiState.Failure(
+              if (AuthMethod.OPENID in offeredMethods) {
+                R.string.invalid_username_password_sso_hint
+              } else {
+                R.string.invalid_username_password
+              },
+            )
           return
         }
 

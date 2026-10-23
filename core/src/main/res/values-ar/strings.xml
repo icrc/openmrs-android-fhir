@@ -757,7 +757,7 @@
     <string name="help_settings_shared_title">جهاز مشترك</string>
     <string name="help_settings_shared_body">اختر ما إذا كان بإمكان مستخدمين آخرين لهذا الجهاز رؤية المرضى الذين سجّلتهم أو نزّلتهم.</string>
     <string name="help_settings_security_title">الأمان</string>
-    <string name="help_settings_security_body">تسجيل الدخول دون اتصال وما يحدث للبيانات عند تسجيل الخروج.</string>
+    <string name="help_settings_security_body">تسجيل الدخول دون اتصال، ومدة انتظار التطبيق قبل طلبه من جديد، وإخفاء التطبيق في التطبيقات الأخيرة، وما يحدث للبيانات عند تسجيل الخروج.</string>
     <string name="help_lists_search_title">البحث في القوائم</string>
     <string name="help_lists_search_body">اكتب جزءاً من اسم القائمة للعثور عليها.</string>
     <string name="help_lists_list_title">اختيار القوائم</string>
@@ -1100,4 +1100,15 @@
     <string name="confirm_identity_title">أكّد أنك أنت</string>
     <string name="delete_patient_data_auth_subtitle">حذف بيانات المرضى يتطلب بصمتك أو وجهك أو قفل الشاشة.</string>
     <string name="logout_delete_auth_subtitle">تسجيل الخروج وحذف كل البيانات يتطلب بصمتك أو وجهك أو قفل الشاشة.</string>
+    <string name="offline_login_unavailable_status">تسجيل الدخول دون اتصال مفعّل، لكن لم يعد في هذا الجهاز بصمة أو وجه أو قفل شاشة. أعدّ واحدًا منها، أو أعد ضبط تسجيل الدخول دون اتصال وسجّل الدخول من جديد.</string>
+    <string name="app_lock_delay">اطلب مجددًا بعد</string>
+    <string name="app_lock_delay_description">المدة التي يمكن أن يبقى فيها التطبيق بعيدًا عن الشاشة قبل أن يطلب بصمتك أو وجهك أو قفل الشاشة.</string>
+    <string name="app_lock_delay_immediately">في كل مرة</string>
+    <string name="app_lock_delay_seconds">%1$d ثانية</string>
+    <string name="app_lock_delay_minutes">%1$d د</string>
+    <string name="app_lock_screen_off">القفل عند إطفاء الشاشة</string>
+    <string name="app_lock_screen_off_description">اطلب مجددًا فور تشغيل الشاشة، مهما كانت المدة أعلاه.</string>
+    <string name="app_lock_hide_recents">إخفاء التطبيق في التطبيقات الأخيرة</string>
+    <string name="app_lock_hide_recents_description">تعرض قائمة التطبيقات الأخيرة ولقطات الشاشة شاشة فارغة فلا تظهر بيانات المرضى. يسري على الشاشات الجديدة.</string>
+    <string name="invalid_username_password_sso_hint">فشل تسجيل الدخول. تحقق من بياناتك. إذا كانت مؤسستك تستخدم تسجيل الدخول الموحّد، فاضغط «تسجيل الدخول عبر SSO».</string>
 </resources>

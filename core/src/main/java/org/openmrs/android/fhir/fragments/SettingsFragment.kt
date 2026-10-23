@@ -60,6 +60,8 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.auth.AppLock
+import org.openmrs.android.fhir.auth.AppLockSettings
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.data.QuestionnaireUpdater
 import org.openmrs.android.fhir.data.remote.isServerReachable
@@ -76,6 +78,7 @@ import org.openmrs.android.fhir.extensions.ThemeModeStore
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
+import org.openmrs.android.fhir.ui.screens.AppLockUi
 import org.openmrs.android.fhir.ui.screens.SettingsDefaults
 import org.openmrs.android.fhir.ui.screens.SettingsScreen
 import org.openmrs.android.fhir.ui.screens.ShareSettingsDialog
@@ -108,6 +111,30 @@ class SettingsFragment : Fragment() {
 
   /** true: enabled, false: declined, null: not answered yet. */
   private val offlineLoginEnabled = mutableStateOf<Boolean?>(null)
+  private val offlineLoginUnavailable = mutableStateOf(false)
+  private val appLockUi = mutableStateOf<AppLockUi?>(null)
+
+  private fun loadAppLock(context: android.content.Context) {
+    appLockUi.value =
+      AppLockUi(
+        delaySeconds = AppLockSettings.graceSeconds(context),
+        lockOnScreenOff = AppLockSettings.lockOnScreenOff(context),
+        hideInRecents = AppLockSettings.hideInRecents(context),
+        delayOptions = AppLockSettings.GRACE_OPTIONS_SECONDS,
+      )
+  }
+
+  private fun changeAppLock(change: String, update: () -> Unit) {
+    update()
+    loadAppLock(requireContext())
+    // The Recents preview is decided when the window is set up.
+    activity?.let { AppLock.applyRecentsPrivacy(it) }
+    AuditLog.record(
+      AuditAction.SETTINGS_CHANGED,
+      AuditOutcome.SUCCESS,
+      "changed" to listOf(change),
+    )
+  }
 
   override fun onCreateView(
     inflater: LayoutInflater,
@@ -132,6 +159,9 @@ class SettingsFragment : Fragment() {
             BiometricUtils.hasOfflineLoginDecision(context) -> false
             else -> null
           }
+        offlineLoginUnavailable.value =
+          offlineLoginEnabled.value == true && !OfflineAuthPrompt.isAvailable(requireActivity())
+        loadAppLock(context)
       }
       val uiState = settingsViewModel.uiState.collectAsStateWithLifecycle().value
       val activityState by mainActivityViewModel.uiState.collectAsStateWithLifecycle()
@@ -240,6 +270,23 @@ class SettingsFragment : Fragment() {
           },
           offlineLoginEnabled = offlineLoginEnabled.value,
           onResetOfflineLoginClicked = ::confirmResetOfflineLogin,
+          offlineLoginUnavailable = offlineLoginUnavailable.value,
+          appLock = appLockUi.value,
+          onLockDelaySelected = { seconds ->
+            changeAppLock("app_lock_delay=$seconds") {
+              AppLockSettings.setGraceSeconds(context, seconds)
+            }
+          },
+          onLockOnScreenOffChange = { lock ->
+            changeAppLock("app_lock_screen_off=$lock") {
+              AppLockSettings.setLockOnScreenOff(context, lock)
+            }
+          },
+          onHideInRecentsChange = { hide ->
+            changeAppLock("app_lock_hide_recents=$hide") {
+              AppLockSettings.setHideInRecents(context, hide)
+            }
+          },
           unsyncedCount = unsyncedCount.value,
           clearDataOnLogout = clearDataOnLogout.value,
           onClearDataOnLogoutChange = { clear ->
@@ -370,7 +417,10 @@ class SettingsFragment : Fragment() {
       .setMessage(R.string.reset_offline_login_confirm_message)
       .setPositiveButton(R.string.reset_offline_login) { _, _ ->
         BiometricUtils.resetOfflineLogin(requireContext())
+        AppLockSettings.reset(requireContext())
+        activity?.let { AppLock.applyRecentsPrivacy(it) }
         offlineLoginEnabled.value = null
+        offlineLoginUnavailable.value = false
         AppMessage.show(
           requireContext(),
           R.string.offline_login_reset_done,

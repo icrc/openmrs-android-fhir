@@ -819,7 +819,7 @@
     <string name="help_settings_shared_title">Dispositivo compartido</string>
     <string name="help_settings_shared_body">Elija si otros usuarios de este dispositivo pueden ver los pacientes que registró o descargó.</string>
     <string name="help_settings_security_title">Seguridad</string>
-    <string name="help_settings_security_body">El inicio de sesión sin conexión y qué pasa con los datos al cerrar sesión.</string>
+    <string name="help_settings_security_body">El inicio de sesión sin conexión, cuánto espera la aplicación antes de pedirlo de nuevo, ocultar la aplicación en recientes y qué pasa con los datos al cerrar sesión.</string>
     <string name="help_lists_search_title">Buscar listas</string>
     <string name="help_lists_search_body">Escriba parte del nombre de una lista para encontrarla.</string>
     <string name="help_lists_list_title">Elegir las listas</string>
@@ -1146,4 +1146,15 @@
     <string name="confirm_identity_title">Confirme que es usted</string>
     <string name="delete_patient_data_auth_subtitle">Eliminar los datos de pacientes requiere su huella, rostro o bloqueo de pantalla.</string>
     <string name="logout_delete_auth_subtitle">Cerrar sesión y eliminar todos los datos requiere su huella, rostro o bloqueo de pantalla.</string>
+    <string name="offline_login_unavailable_status">El inicio de sesión sin conexión está activado, pero este dispositivo ya no tiene huella, rostro ni bloqueo de pantalla. Configure uno, o restablezca el inicio de sesión sin conexión y vuelva a iniciar sesión.</string>
+    <string name="app_lock_delay">Volver a pedir tras</string>
+    <string name="app_lock_delay_description">Cuánto tiempo puede estar la aplicación fuera de vista antes de pedir su huella, rostro o bloqueo de pantalla.</string>
+    <string name="app_lock_delay_immediately">Siempre</string>
+    <string name="app_lock_delay_seconds">%1$d segundos</string>
+    <string name="app_lock_delay_minutes">%1$d min</string>
+    <string name="app_lock_screen_off">Bloquear al apagar la pantalla</string>
+    <string name="app_lock_screen_off_description">Pedirlo de nuevo en cuanto se encienda la pantalla, sea cual sea el tiempo anterior.</string>
+    <string name="app_lock_hide_recents">Ocultar la aplicación en recientes</string>
+    <string name="app_lock_hide_recents_description">La lista de aplicaciones recientes y las capturas de pantalla muestran una pantalla en blanco, así que los datos de pacientes no se ven. Se aplica a las pantallas nuevas.</string>
+    <string name="invalid_username_password_sso_hint">Error al iniciar sesión. Compruebe sus credenciales. Si su organización usa inicio de sesión único, toque «Iniciar sesión con SSO».</string>
 </resources>

@@ -845,7 +845,7 @@
     <string name="help_settings_shared_title">Appareil partagé</string>
     <string name="help_settings_shared_body">Choisissez si les autres utilisateurs de cet appareil peuvent voir les patients que vous avez enregistrés ou téléchargés.</string>
     <string name="help_settings_security_title">Sécurité</string>
-    <string name="help_settings_security_body">La connexion hors ligne, et ce qu\'il advient des données à la déconnexion.</string>
+    <string name="help_settings_security_body">La connexion hors ligne, le délai avant de la redemander, le masquage de l'application dans les applications récentes, et ce qu'il advient des données à la déconnexion.</string>
     <string name="help_lists_search_title">Chercher les listes</string>
     <string name="help_lists_search_body">Saisissez une partie du nom d\'une liste pour la trouver.</string>
     <string name="help_lists_list_title">Choisir les listes</string>
@@ -1172,4 +1172,15 @@
     <string name="confirm_identity_title">Confirmez que c\'est vous</string>
     <string name="delete_patient_data_auth_subtitle">La suppression des données des patients demande votre empreinte, votre visage ou le verrouillage d\'écran.</string>
     <string name="logout_delete_auth_subtitle">Se déconnecter et supprimer toutes les données demande votre empreinte, votre visage ou le verrouillage d\'écran.</string>
+    <string name="offline_login_unavailable_status">La connexion hors ligne est activée, mais cet appareil n\'a plus d\'empreinte, de visage ni de verrouillage d\'écran. Configurez-en un, ou réinitialisez la connexion hors ligne et reconnectez-vous.</string>
+    <string name="app_lock_delay">Redemander après</string>
+    <string name="app_lock_delay_description">Durée pendant laquelle l\'application peut rester hors de vue avant de demander votre empreinte, votre visage ou le verrouillage d\'écran.</string>
+    <string name="app_lock_delay_immediately">À chaque fois</string>
+    <string name="app_lock_delay_seconds">%1$d secondes</string>
+    <string name="app_lock_delay_minutes">%1$d min</string>
+    <string name="app_lock_screen_off">Verrouiller à l\'extinction de l\'écran</string>
+    <string name="app_lock_screen_off_description">Redemander dès que l\'écran se rallume, quel que soit le délai ci-dessus.</string>
+    <string name="app_lock_hide_recents">Masquer l\'application dans les applications récentes</string>
+    <string name="app_lock_hide_recents_description">La liste des applications récentes et les captures d\'écran affichent un écran vide : les données des patients ne sont pas visibles. Pris en compte pour les nouveaux écrans.</string>
+    <string name="invalid_username_password_sso_hint">Échec de la connexion. Vérifiez vos identifiants. Si votre organisation utilise l\'authentification unique, touchez « Se connecter avec SSO ».</string>
 </resources>
