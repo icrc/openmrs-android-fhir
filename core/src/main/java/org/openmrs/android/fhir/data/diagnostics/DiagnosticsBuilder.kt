@@ -292,7 +292,14 @@ constructor(
       out.appendLine("Device and app information (${timestamp()})")
       section("App")
       line("Package", context.packageName)
-      line("Version", "${info.versionName} (${info.longVersionCode})")
+      // longVersionCode needs Android 9; before, the version code is a plain int.
+      val versionCode =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+          info.longVersionCode
+        } else {
+          @Suppress("DEPRECATION") info.versionCode.toLong()
+        }
+      line("Version", "${info.versionName} ($versionCode)")
       line("Debug build", BuildConfig.DEBUG)
       section("Device")
       line("Model", "${Build.MANUFACTURER} ${Build.MODEL}")

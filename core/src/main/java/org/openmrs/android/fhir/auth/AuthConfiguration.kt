@@ -38,6 +38,7 @@ import kotlinx.coroutines.runBlocking
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.connectivity.ConnectionBuilder
 import net.openid.appauth.connectivity.DefaultConnectionBuilder
+import org.openmrs.android.fhir.BuildConfig
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.model.AuthConfigData
 import org.openmrs.android.fhir.config.AppConfig
@@ -119,10 +120,16 @@ class AuthConfiguration private constructor(private val context: Context) {
     get() =
       if (authConfigData.httpsRequired) {
         DefaultConnectionBuilder.INSTANCE
-      } else {
+      } else if (BuildConfig.DEBUG) {
+        // Development: any certificate is accepted, and "localhost" in the provider's answers is
+        // the
+        // host machine of the emulator.
         ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2 =
           authConfigData.replaceLocalhostBy1022 ?: true
         ConnectionBuilderForTesting
+      } else {
+        // A release build never trusts every certificate.
+        PlainHttpConnectionBuilder
       }
 
   init {

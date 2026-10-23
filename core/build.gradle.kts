@@ -38,6 +38,13 @@ android {
   }
   kotlin { jvmToolchain(17) }
   packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
+  lint {
+    // Errors stop the build; warnings are reported. "Typos" reads the base64 certificates of
+    // font_certs.xml as misspelled words.
+    abortOnError = true
+    warningsAsErrors = false
+    disable += "Typos"
+  }
 
   publishing {
     multipleVariants {

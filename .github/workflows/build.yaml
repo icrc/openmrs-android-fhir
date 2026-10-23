@@ -75,6 +75,22 @@
             USERNAME: $GITHUB_ACTOR
             TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+        - name: Android lint
+          run: ./gradlew :core:lintDebug --full-stacktrace
+          env:
+            USERNAME: $GITHUB_ACTOR
+            TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+        - name: Upload test and lint reports
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: reports
+            path: |
+              core/build/reports/
+              core/build/test-results/
+            if-no-files-found: ignore
+
         - name: Build (full) with Gradle
           run: ./gradlew build --full-stacktrace
           env:
