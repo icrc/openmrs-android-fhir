@@ -86,6 +86,42 @@ abstract class AppDatabase : RoomDatabase() {
     val MIGRATION_2_3 =
       object : Migration(2, 3) {
         override fun migrate(database: SupportSQLiteDatabase) {
+          // The responses of a group session draft became required (the entity is a map, never
+          // null), but the table was made without it: a table's column cannot be changed, so the
+          // table is rebuilt, with the drafts it holds.
+          database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `groupsessiondraft_new` (
+              `questionnaireId` TEXT NOT NULL,
+              `sessionId` TEXT NOT NULL,
+              `patientIds` TEXT NOT NULL,
+              `patientResponses` TEXT NOT NULL,
+              `screenerResponse` TEXT,
+              `encounterQuestionnaireJson` TEXT,
+              `screenerQuestionnaireJson` TEXT,
+              `sessionDate` INTEGER,
+              `screenerCompleted` INTEGER NOT NULL,
+              `lastUpdated` INTEGER NOT NULL,
+              PRIMARY KEY(`questionnaireId`)
+            )
+            """
+              .trimIndent(),
+          )
+          database.execSQL(
+            """
+            INSERT INTO `groupsessiondraft_new`
+              (questionnaireId, sessionId, patientIds, patientResponses, screenerResponse,
+               encounterQuestionnaireJson, screenerQuestionnaireJson, sessionDate,
+               screenerCompleted, lastUpdated)
+            SELECT questionnaireId, sessionId, patientIds, COALESCE(patientResponses, '{}'),
+               screenerResponse, encounterQuestionnaireJson, screenerQuestionnaireJson, sessionDate,
+               screenerCompleted, lastUpdated
+            FROM `groupsessiondraft`
+            """
+              .trimIndent(),
+          )
+          database.execSQL("DROP TABLE `groupsessiondraft`")
+          database.execSQL("ALTER TABLE `groupsessiondraft_new` RENAME TO `groupsessiondraft`")
           database.execSQL(
             """
             CREATE TABLE IF NOT EXISTS `patient_owner` (

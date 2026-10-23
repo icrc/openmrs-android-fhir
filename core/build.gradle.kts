@@ -16,7 +16,7 @@ android {
     minSdk = 26
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     buildFeatures.buildConfig = true
-    manifestPlaceholders["appAuthRedirectScheme"] = "org.openmrs.android.fhir"
+    manifestPlaceholders["appAuthRedirectScheme"] = "org.openmrs.android.fhir.app"
   }
   buildFeatures {
     compose = true
@@ -38,6 +38,8 @@ android {
   }
   kotlin { jvmToolchain(17) }
   packaging { resources.excludes.addAll(listOf("META-INF/ASL-2.0.txt", "META-INF/LGPL-3.0.txt")) }
+  // The exported Room schemas, for the migration tests.
+  sourceSets { getByName("androidTest").assets.srcDir("$projectDir/schemas") }
   lint {
     // Errors stop the build; warnings are reported. "Typos" reads the base64 certificates of
     // font_certs.xml as misspelled words.
@@ -187,6 +189,7 @@ dependencies {
   androidTestImplementation(composeBom)
 
   androidTestImplementation("junit:junit:${Versions.junit}")
+  androidTestImplementation("androidx.room:room-testing:${Versions.room}")
   androidTestImplementation("androidx.test:core:${Versions.androidXTest}")
   androidTestImplementation("androidx.test:rules:${Versions.androidXTest}")
   androidTestImplementation("androidx.test:runner:${Versions.androidXTestRunner}")
