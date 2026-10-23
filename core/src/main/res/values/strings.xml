@@ -512,7 +512,7 @@
     <string name="exit">Exit</string>
     <string name="enable_offline_login_title">Enable offline login?</string>
     <string name="enable_offline_login_body">
-Enable offline login to unlock the app with your device biometrics (face or fingerprint) even without internet.
+Enable offline login to unlock the app with your device biometrics (face or fingerprint) or screen lock, when you open it and when you come back to it after a while, even without internet.
 
 \nNotes:
 \n• Biometrics must already be set up on this device.
@@ -1097,4 +1097,13 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="delete_patient_data_confirm">Delete</string>
     <string name="delete_patient_data_done">Patient data deleted. Choose the patient lists to download again.</string>
     <string name="delete_patient_data_failed">Could not delete the patient data.</string>
+    <string name="unlock_title">OpenMRS is locked</string>
+    <string name="unlock_message">Confirm it is you to carry on where you left off.</string>
+    <string name="unlock_unavailable">A fingerprint, face or screen lock is not set up on this device any more. Sign in with your account to continue.</string>
+    <string name="unlock_button">Unlock</string>
+    <string name="unlock_sign_in_again">Sign in with my account instead</string>
+    <string name="unlock_prompt_title">Unlock OpenMRS</string>
+    <string name="confirm_identity_title">Confirm it is you</string>
+    <string name="delete_patient_data_auth_subtitle">Deleting the patient data needs your fingerprint, face or screen lock.</string>
+    <string name="logout_delete_auth_subtitle">Logging out and deleting all data needs your fingerprint, face or screen lock.</string>
 </resources>

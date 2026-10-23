@@ -70,6 +70,7 @@ import org.openmrs.android.fhir.extensions.ClearDataOnLogoutStore
 import org.openmrs.android.fhir.extensions.ColorVisionMode
 import org.openmrs.android.fhir.extensions.ColorVisionStore
 import org.openmrs.android.fhir.extensions.EmbeddedFormsStore
+import org.openmrs.android.fhir.extensions.OfflineAuthPrompt
 import org.openmrs.android.fhir.extensions.ThemeMode
 import org.openmrs.android.fhir.extensions.ThemeModeStore
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
@@ -252,7 +253,16 @@ class SettingsFragment : Fragment() {
             )
           },
           onLogoutAndDeleteRequested = ::countUnsyncedChanges,
-          onLogoutAndDeleteConfirmed = { (activity as? MainActivity)?.logoutAndDeleteAllData() },
+          onLogoutAndDeleteConfirmed = {
+            // Confirmed in the dialog; the fingerprint or the screen lock confirms it is the user.
+            OfflineAuthPrompt.confirm(
+              requireActivity(),
+              getString(R.string.confirm_identity_title),
+              getString(R.string.logout_delete_auth_subtitle),
+            ) {
+              (activity as? MainActivity)?.logoutAndDeleteAllData()
+            }
+          },
         )
       }
     }

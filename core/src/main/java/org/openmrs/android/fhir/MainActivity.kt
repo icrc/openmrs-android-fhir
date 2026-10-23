@@ -90,6 +90,7 @@ import kotlinx.coroutines.withContext
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.auth.AppLock
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.GuestSession
@@ -116,6 +117,7 @@ import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.ClearDataOnLogoutStore
 import org.openmrs.android.fhir.extensions.FormEngineWarmUp
 import org.openmrs.android.fhir.extensions.NotificationHelper
+import org.openmrs.android.fhir.extensions.OfflineAuthPrompt
 import org.openmrs.android.fhir.extensions.PermissionHelper
 import org.openmrs.android.fhir.extensions.PermissionHelperFactory
 import org.openmrs.android.fhir.extensions.UncaughtExceptionHandler
@@ -546,17 +548,25 @@ class MainActivity : AppCompatActivity() {
 
   override fun onResume() {
     super.onResume()
+    // Away for a while with an offline login set: the lock screen before anything is shown.
+    if (AppLock.shouldLock()) {
+      AppLock.markLocking()
+      startActivity(Intent(this, UnlockActivity::class.java))
+      return
+    }
     lifecycleScope.launch {
       if (!isGuest.value && !viewModel.hasHandledPostLoginNavigation()) {
         val selectedLocationId =
           applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
         if (selectedLocationId == null) {
-          showSyncTasksScreen(
-            headerTextResId = R.string.get_started,
-            showCloseButton = false,
-          )
           waitForNavController()?.let { navController ->
             if (navController.currentDestination?.id != R.id.locationFragment) {
+              // Only when about to go there: the location screen hides this popup when it has its
+              // data, and a screen already open would never hide a popup shown again on resume.
+              showSyncTasksScreen(
+                headerTextResId = R.string.get_started,
+                showCloseButton = false,
+              )
               val bundle = Bundle().apply { putBoolean("from_login", true) }
               navController.navigate(R.id.locationFragment, bundle)
               viewModel.setHasHandledPostLoginNavigation(true)
@@ -1349,7 +1359,14 @@ class MainActivity : AppCompatActivity() {
           .setMessage(message)
           .setPositiveButton(getString(R.string.delete_patient_data_confirm)) { dialog, _ ->
             dialog.dismiss()
-            deletePatientData()
+            // Confirmed in the dialog; the fingerprint or the screen lock confirms it is the user.
+            OfflineAuthPrompt.confirm(
+              this@MainActivity,
+              getString(R.string.confirm_identity_title),
+              getString(R.string.delete_patient_data_auth_subtitle),
+            ) {
+              deletePatientData()
+            }
           }
           .setNegativeButton(getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
           .setCancelable(false)

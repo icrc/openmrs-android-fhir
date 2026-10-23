@@ -444,7 +444,7 @@
         name="enable_offline_login_title"
     >¿Activar el inicio de sesión sin conexión?</string>
     <string name="enable_offline_login_body">
-        Activa el inicio de sesión sin conexión para abrir la app con la biometría de tu dispositivo (rostro o huella) incluso sin internet.
+        Activa el inicio de sesión sin conexión para abrir la app con la biometría de tu dispositivo (rostro o huella) o el bloqueo de pantalla, al abrirla y al volver a ella tras un rato, incluso sin internet.
 
         Notas:
         • La biometría debe estar configurada previamente en este dispositivo.
@@ -1137,4 +1137,13 @@
     <string name="delete_patient_data_confirm">Eliminar</string>
     <string name="delete_patient_data_done">Datos de pacientes eliminados. Elija las listas de pacientes que desea descargar de nuevo.</string>
     <string name="delete_patient_data_failed">No se pudieron eliminar los datos de pacientes.</string>
+    <string name="unlock_title">OpenMRS está bloqueado</string>
+    <string name="unlock_message">Confirme que es usted para continuar donde lo dejó.</string>
+    <string name="unlock_unavailable">Ya no hay huella, rostro ni bloqueo de pantalla configurados en este dispositivo. Inicie sesión con su cuenta para continuar.</string>
+    <string name="unlock_button">Desbloquear</string>
+    <string name="unlock_sign_in_again">Iniciar sesión con mi cuenta</string>
+    <string name="unlock_prompt_title">Desbloquear OpenMRS</string>
+    <string name="confirm_identity_title">Confirme que es usted</string>
+    <string name="delete_patient_data_auth_subtitle">Eliminar los datos de pacientes requiere su huella, rostro o bloqueo de pantalla.</string>
+    <string name="logout_delete_auth_subtitle">Cerrar sesión y eliminar todos los datos requiere su huella, rostro o bloqueo de pantalla.</string>
 </resources>

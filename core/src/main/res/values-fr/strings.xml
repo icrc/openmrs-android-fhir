@@ -457,7 +457,7 @@
         name="enable_offline_login_title"
     >Activer la connexion hors ligne ?</string>
     <string name="enable_offline_login_body">
-        Activez la connexion hors ligne pour déverrouiller l’application avec la biométrie de votre appareil (visage ou empreinte digitale), même sans connexion Internet.
+        Activez la connexion hors ligne pour déverrouiller l’application avec la biométrie de votre appareil (visage ou empreinte digitale) ou le verrouillage d’écran, à l’ouverture et au retour dans l’application après un moment, même sans connexion Internet.
 
         Remarques:
         • La biométrie doit être déjà configurée sur cet appareil.
@@ -1163,4 +1163,13 @@
     <string name="delete_patient_data_confirm">Supprimer</string>
     <string name="delete_patient_data_done">Données des patients supprimées. Choisissez les listes de patients à télécharger de nouveau.</string>
     <string name="delete_patient_data_failed">Impossible de supprimer les données des patients.</string>
+    <string name="unlock_title">OpenMRS est verrouillé</string>
+    <string name="unlock_message">Confirmez que c\'est vous pour reprendre là où vous en étiez.</string>
+    <string name="unlock_unavailable">Aucune empreinte, aucun visage ni verrouillage d\'écran n\'est configuré sur cet appareil. Connectez-vous avec votre compte pour continuer.</string>
+    <string name="unlock_button">Déverrouiller</string>
+    <string name="unlock_sign_in_again">Me connecter avec mon compte</string>
+    <string name="unlock_prompt_title">Déverrouiller OpenMRS</string>
+    <string name="confirm_identity_title">Confirmez que c\'est vous</string>
+    <string name="delete_patient_data_auth_subtitle">La suppression des données des patients demande votre empreinte, votre visage ou le verrouillage d\'écran.</string>
+    <string name="logout_delete_auth_subtitle">Se déconnecter et supprimer toutes les données demande votre empreinte, votre visage ou le verrouillage d\'écran.</string>
 </resources>

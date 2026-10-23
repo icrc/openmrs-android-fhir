@@ -494,7 +494,7 @@
 
     <string name="enable_offline_login_title">Включить оффлайн вход?</string>
     <string name="enable_offline_login_body">
-        Включите оффлайн вход, чтобы разблокировать приложение с помощью биометрии устройства даже без интернета.
+        Включите оффлайн вход, чтобы разблокировать приложение с помощью биометрии устройства или блокировки экрана при открытии и при возвращении в приложение через некоторое время, даже без интернета.
 
         Примечания:
         • Биометрия должна быть уже настроена.
@@ -1156,4 +1156,13 @@
     <string name="delete_patient_data_confirm">Удалить</string>
     <string name="delete_patient_data_done">Данные пациентов удалены. Выберите списки пациентов для повторной загрузки.</string>
     <string name="delete_patient_data_failed">Не удалось удалить данные пациентов.</string>
+    <string name="unlock_title">OpenMRS заблокирован</string>
+    <string name="unlock_message">Подтвердите, что это вы, чтобы продолжить с того же места.</string>
+    <string name="unlock_unavailable">На устройстве больше не настроены отпечаток, лицо или блокировка экрана. Войдите в свою учётную запись, чтобы продолжить.</string>
+    <string name="unlock_button">Разблокировать</string>
+    <string name="unlock_sign_in_again">Войти через учётную запись</string>
+    <string name="unlock_prompt_title">Разблокировать OpenMRS</string>
+    <string name="confirm_identity_title">Подтвердите, что это вы</string>
+    <string name="delete_patient_data_auth_subtitle">Для удаления данных пациентов нужен ваш отпечаток, лицо или блокировка экрана.</string>
+    <string name="logout_delete_auth_subtitle">Для выхода и удаления всех данных нужен ваш отпечаток, лицо или блокировка экрана.</string>
 </resources>

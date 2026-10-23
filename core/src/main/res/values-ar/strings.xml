@@ -405,7 +405,7 @@
     >تمكين تسجيل الدخول دون اتصال؟</string>
     <string
         name="enable_offline_login_body"
-    >قم بتمكين تسجيل الدخول إلى وضع عدم الاتصال في الخطوط الداخلية لإلغاء تأمين التطبيق باستخدام القياسات الحيوية للجهاز (الوجه أو البصمة) حتى بدون الإنترنت.
+    >فعّل تسجيل الدخول دون اتصال لفتح قفل التطبيق باستخدام القياسات الحيوية للجهاز (الوجه أو البصمة) أو قفل الشاشة، عند فتحه وعند العودة إليه بعد فترة، حتى بدون إنترنت.
 
 ملاحظات \n:
 \n • يجب إعداد القياسات الحيوية بالفعل على هذا الجهاز.
@@ -1091,4 +1091,13 @@
     <string name="delete_patient_data_confirm">حذف</string>
     <string name="delete_patient_data_done">تم حذف بيانات المرضى. اختر قوائم المرضى لتنزيلها من جديد.</string>
     <string name="delete_patient_data_failed">تعذّر حذف بيانات المرضى.</string>
+    <string name="unlock_title">OpenMRS مقفل</string>
+    <string name="unlock_message">أكّد أنك أنت للمتابعة من حيث توقفت.</string>
+    <string name="unlock_unavailable">لم يعد هناك بصمة أو وجه أو قفل شاشة مُعدّ على هذا الجهاز. سجّل الدخول بحسابك للمتابعة.</string>
+    <string name="unlock_button">فتح القفل</string>
+    <string name="unlock_sign_in_again">تسجيل الدخول بحسابي بدلًا من ذلك</string>
+    <string name="unlock_prompt_title">فتح قفل OpenMRS</string>
+    <string name="confirm_identity_title">أكّد أنك أنت</string>
+    <string name="delete_patient_data_auth_subtitle">حذف بيانات المرضى يتطلب بصمتك أو وجهك أو قفل الشاشة.</string>
+    <string name="logout_delete_auth_subtitle">تسجيل الخروج وحذف كل البيانات يتطلب بصمتك أو وجهك أو قفل الشاشة.</string>
 </resources>

@@ -149,7 +149,10 @@ class SplashActivity : AppCompatActivity() {
     if (userUuid == null || isBiometricReset || offlineAuthMethod == null) {
       handleConnectivityForAuth()
     } else {
-      if (authStateManager.isAuthenticated()) {
+      // A saved session (a single sign-on token that ran out can be renewed with its refresh
+      // token) is unlocked with the offline login, whether or not the server can be reached:
+      // that is what it is for. Only without one is the account asked for.
+      if (authStateManager.hasSavedSession()) {
         promptBiometricAuthentication(offlineAuthMethod)
       } else {
         when (getConnectivityState()) {
@@ -275,7 +278,8 @@ class SplashActivity : AppCompatActivity() {
             biometricPrompt.authenticate(promptBuilder.build())
             return
           }
-          return
+          // No key to unlock the session with (it was removed): the account is asked for below,
+          // instead of waiting here for a prompt that never comes.
         } else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
           val km = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
           if (km.isDeviceSecure) {

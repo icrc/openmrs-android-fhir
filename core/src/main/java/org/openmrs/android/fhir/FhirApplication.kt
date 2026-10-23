@@ -47,6 +47,7 @@ import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.auth.AppLock
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -78,6 +79,8 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     ColorVisionStore.install(this)
     // Decides, once, whether this is a fresh installation (the first-run tour is for those).
     FirstRunTutorial.init(this)
+    // The offline login also asks when the user comes back after being away for a while.
+    AppLock.install(this)
     AuditLog.init(this)
     AuditLog.record(
       AuditAction.APP_STARTED,

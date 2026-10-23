@@ -31,6 +31,12 @@
                 android:resource="@xml/file_paths"
             />
         </provider>
+        <!-- The lock screen of the offline login, shown when the app is back after a while. -->
+        <activity
+            android:name=".UnlockActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+        />
         <!-- Scans the QR code of the settings of another device (Share settings > Import). -->
         <activity
             android:name=".settingsshare.SettingsScanActivity"
