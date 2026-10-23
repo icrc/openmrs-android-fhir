@@ -72,6 +72,8 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.extensions.isAppInDarkTheme
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
+import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 
 /**
  * A slim strip under the status bar that says whether the server can be reached: a colored dot and
@@ -215,7 +217,8 @@ fun SessionExpiredStrip(onSignInClick: () -> Unit, modifier: Modifier = Modifier
         .background(accent.copy(alpha = 0.14f))
         .heightIn(min = 28.dp)
         .padding(horizontal = 16.dp, vertical = 4.dp)
-        .testTag("SessionExpiredStrip"),
+        .testTag("SessionExpiredStrip")
+        .tutorialTarget(TutorialTargets.HOME_SESSION),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.Center,
   ) {

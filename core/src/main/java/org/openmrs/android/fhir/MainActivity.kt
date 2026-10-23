@@ -556,6 +556,7 @@ class MainActivity : AppCompatActivity() {
       startActivity(Intent(this, UnlockActivity::class.java))
       return
     }
+    if (!isGuest.value) viewModel.checkSession()
     lifecycleScope.launch {
       if (!isGuest.value && !viewModel.hasHandledPostLoginNavigation()) {
         val preferences = applicationContext.dataStore.data.first()

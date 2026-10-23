@@ -56,6 +56,7 @@ import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.data.sync.SyncMode
 import org.openmrs.android.fhir.extensions.composeView
+import org.openmrs.android.fhir.extensions.limitToReadableWidth
 import org.openmrs.android.fhir.extensions.saveToFile
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
@@ -154,6 +155,7 @@ class SyncInfoFragment : Fragment() {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
+    view.limitToReadableWidth()
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title = requireContext().getString(R.string.nav_sync)
       setDisplayHomeAsUpEnabled(true)

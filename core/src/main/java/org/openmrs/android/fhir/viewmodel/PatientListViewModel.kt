@@ -86,8 +86,19 @@ import timber.log.Timber
  * The ViewModel helper class for PatientItemRecyclerViewAdapter, that is responsible for preparing
  * data for UI.
  */
+/** The order of the patient list. */
+enum class PatientSort {
+  NAME_ASC,
+  NAME_DESC,
+  AGE_YOUNGEST,
+  AGE_OLDEST,
+}
+
 data class PatientListUiState(
   val query: String = "",
+  val sort: PatientSort = PatientSort.NAME_ASC,
+  /** More patients match than are listed: "Show more" brings the next ones. */
+  val hasMore: Boolean = false,
   val patients: List<PatientListViewModel.PatientItem> = emptyList(),
   val isLoading: Boolean = false,
   val isRefreshing: Boolean = false,
@@ -155,6 +166,24 @@ constructor(
   @androidx.annotation.VisibleForTesting
   internal var backgroundDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.Default
 
+  /** How many patients are listed; "Show more" raises it by a page. */
+  private var limit = PAGE_SIZE
+
+  /** Set by each search: more matched than [limit]. */
+  private var lastHasMore = false
+
+  fun showMore() {
+    limit += PAGE_SIZE
+    reloadQuietly()
+  }
+
+  fun setSort(sort: PatientSort) {
+    if (_uiState.value.sort == sort) return
+    _uiState.update { it.copy(sort = sort) }
+    limit = PAGE_SIZE
+    loadPatients()
+  }
+
   fun loadPatients() {
     updatePatientListAndPatientCount(
       { getSearchResults(nameQuery = uiState.value.query) },
@@ -170,6 +199,7 @@ constructor(
   }
 
   fun searchPatientsByName(nameQuery: String) {
+    limit = PAGE_SIZE
     _uiState.update { it.copy(query = nameQuery) }
     updatePatientListAndPatientCount(
       { getSearchResults(nameQuery = nameQuery) },
@@ -178,6 +208,7 @@ constructor(
   }
 
   fun clearSearch() {
+    limit = PAGE_SIZE
     _uiState.update { it.copy(query = "") }
     searchServer("")
     loadPatients()
@@ -200,7 +231,14 @@ constructor(
         try {
           val patients = search()
           // A superseded refresh never reaches its own "finished" update, so clear both flags here.
-          _uiState.update { it.copy(patients = patients, isLoading = false, isRefreshing = false) }
+          _uiState.update {
+            it.copy(
+              patients = patients,
+              hasMore = lastHasMore,
+              isLoading = false,
+              isRefreshing = false,
+            )
+          }
           patientCount.value = count()
           // The list is on screen; the last encounters follow, one query for the whole page.
           val withEncounters = withContext(backgroundDispatcher) { withLastEncounters(patients) }
@@ -277,10 +315,16 @@ constructor(
       fhirEngine
         .search<Patient> {
           applyPatientTextQuery(nameQuery)
-          sort(Patient.GIVEN, Order.ASCENDING)
-          // Without a list restriction the page is the result; with one, look at more candidates
-          // because the ones outside the selected lists are dropped below.
-          count = if (restricted) CANDIDATE_LIMIT else PAGE_SIZE
+          when (_uiState.value.sort) {
+            PatientSort.NAME_ASC -> sort(Patient.GIVEN, Order.ASCENDING)
+            PatientSort.NAME_DESC -> sort(Patient.GIVEN, Order.DESCENDING)
+            PatientSort.AGE_YOUNGEST -> sort(Patient.BIRTHDATE, Order.DESCENDING)
+            PatientSort.AGE_OLDEST -> sort(Patient.BIRTHDATE, Order.ASCENDING)
+          }
+          // Without a list restriction the page is the result (one more, to know whether there are
+          // more); with one, look at more candidates because the ones outside the selected lists
+          // are dropped below.
+          count = if (restricted) maxOf(CANDIDATE_LIMIT, limit + 1) else limit + 1
           from = 0
         }
         .map { it.resource }
@@ -305,8 +349,9 @@ constructor(
         it.idElement.idPart
       }
     visibleCount = if (restricted) visible.size.toLong() else null
+    lastHasMore = visible.size > limit
     visible
-      .take(PAGE_SIZE)
+      .take(limit)
       .mapIndexed { index, fhirPatient ->
         fhirPatient.toPatientItem(index + 1).let { item ->
           if (item.resourceId in toIdentify) item.copy(unidentified = true) else item

@@ -55,9 +55,26 @@ object ScreenTours {
     Tour(
       listOf(
         step(
+          TutorialTargets.HOME_MENU,
+          R.string.help_home_menu_title,
+          R.string.help_home_menu_body,
+        ),
+        step(
+          TutorialTargets.HOME_SESSION,
+          R.string.help_home_session_title,
+          R.string.help_home_session_body,
+          optional = true,
+        ),
+        step(
           TutorialTargets.HOME_STATUS,
           R.string.help_home_status_title,
           R.string.help_home_status_body,
+          optional = true,
+        ),
+        step(
+          TutorialTargets.HOME_SUMMARY,
+          R.string.help_home_summary_title,
+          R.string.help_home_summary_body,
           optional = true,
         ),
         step(
@@ -100,6 +117,11 @@ object ScreenTours {
           TutorialTargets.PATIENT_SEARCH,
           R.string.tutorial_patients_search_title,
           R.string.tutorial_patients_search_body,
+        ),
+        step(
+          TutorialTargets.PATIENT_SORT,
+          R.string.help_patients_sort_title,
+          R.string.help_patients_sort_body,
         ),
         step(
           TutorialTargets.PATIENT_LIST,
@@ -190,6 +212,11 @@ object ScreenTours {
   private val settings =
     Tour(
       listOf(
+        step(
+          TutorialTargets.SETTINGS_SEARCH,
+          R.string.help_settings_search_title,
+          R.string.help_settings_search_body,
+        ),
         step(
           TutorialTargets.SETTINGS_LANGUAGE,
           R.string.help_settings_language_title,

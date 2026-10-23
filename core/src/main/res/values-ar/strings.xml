@@ -327,7 +327,7 @@
     >لم يتم العثور على استبيان اللقاء ، حاول مرة أخرى لاحقًا</string>
     <string
         name="please_complete_the_required_fields_first"
-    >يرجى إكمال الحقول المطلوبة أولاً!</string>
+    >يرجى الإجابة عن الأسئلة المطلوبة أولاً.</string>
     <string name="incomplete_form_dialog_title">نموذج غير مكتمل</string>
     <string
         name="required_questions_missing_dialog_message"
@@ -514,7 +514,7 @@
     <string name="group_header_add_item_button">إضافة عنصر</string>
     <string
         name="required_constraint_validation_error_msg"
-    >إجابة مفقودة لحقل مطلوب.</string>
+    >هذا السؤال مطلوب.</string>
     <string name="optional_helper_text">اختياري</string>
     <string name="required">مطلوب</string>
     <string
@@ -1116,4 +1116,24 @@
     <string name="settings_auto_sync_unmetered_description">تنتظر المزامنة التلقائية اتصالًا غير محدود الباقة. المزامنة التي تبدأها بنفسك تتم دائمًا.</string>
     <string name="settings_auto_sync_battery">ليس عند انخفاض البطارية</string>
     <string name="settings_auto_sync_battery_description" formatted="false">تنتظر المزامنة التلقائية ما دامت البطارية دون 15% والجهاز لا يشحن.</string>
+    <string name="patient_sort_name_asc">الاسم أ–ي</string>
+    <string name="patient_sort_name_desc">الاسم ي–أ</string>
+    <string name="patient_sort_age_youngest">الأصغر سنًا أولًا</string>
+    <string name="patient_sort_age_oldest">الأكبر سنًا أولًا</string>
+    <string name="patients_show_more">عرض المزيد من المرضى</string>
+    <string name="help_patients_sort_title">الترتيب وعرض المزيد</string>
+    <string name="help_patients_sort_body">اختر ترتيب القائمة. تعرض 100 مريض في كل مرة: اضغط «عرض المزيد» في النهاية لرؤية الباقي.</string>
+    <string name="home_summary_patients">عدد المرضى على هذا الجهاز: %1$d</string>
+    <string name="home_summary_waiting">تغييرات لم تُرفع بعد: %1$d</string>
+    <string name="home_summary_uploaded">تم رفع كل شيء</string>
+    <string name="help_home_summary_title">نظرة سريعة</string>
+    <string name="help_home_summary_body">عدد المرضى على هذا الجهاز وعدد التغييرات التي تنتظر الرفع. اضغط لفتح صفحة المزامنة.</string>
+    <string name="help_home_menu_title">القائمة</string>
+    <string name="help_home_menu_body">افتحها بالزر في الأعلى: الإعدادات وإرسال التشخيص وحذف بيانات المرضى وتسجيل الخروج. الأخيران يطلبان التأكيد.</string>
+    <string name="help_home_session_title">انتهت الجلسة</string>
+    <string name="help_home_session_body">عندما لا يقبل الخادم تسجيل دخولك يظهر هذا الشريط أسفل حالة الاتصال. اضغط تسجيل الدخول: ما فعلته في الأثناء يبقى على الجهاز ويُرسل بعدها.</string>
+    <string name="settings_search_hint">البحث في الإعدادات</string>
+    <string name="settings_search_none">لا توجد إعدادات مطابقة</string>
+    <string name="help_settings_search_title">البحث في الإعدادات</string>
+    <string name="help_settings_search_body">اكتب كلمة (المزامنة، اللغة، القفل…) لإظهار الأقسام التي تذكرها فقط.</string>
 </resources>

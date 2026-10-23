@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.extensions
 
+import android.view.View
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -46,3 +47,21 @@ fun Fragment.composeView(content: @Composable () -> Unit): ComposeView =
     setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
     setContent { OpenMrsTheme(content = content) }
   }
+
+/** The widest a screen's content is drawn: beyond this (tablets, landscape) it is centered. */
+private const val READABLE_WIDTH_DP = 720
+
+/**
+ * On a wide screen the content of a screen stays in a centered column instead of stretching from
+ * edge to edge, which is hard to read. On a phone in portrait nothing changes.
+ */
+fun View.limitToReadableWidth() {
+  val maxWidth = (READABLE_WIDTH_DP * resources.displayMetrics.density).toInt()
+  if (resources.displayMetrics.widthPixels <= maxWidth) return
+  layoutParams =
+    android.widget.FrameLayout.LayoutParams(
+      maxWidth,
+      android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+      android.view.Gravity.CENTER_HORIZONTAL,
+    )
+}

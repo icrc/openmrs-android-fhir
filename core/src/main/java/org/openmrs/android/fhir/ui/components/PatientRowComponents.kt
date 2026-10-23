@@ -63,6 +63,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -107,7 +108,7 @@ fun PatientListItemRow(
   Surface(
     modifier =
       modifier.fillMaxWidth().testTag("PatientListItemRow").let { base ->
-        onClick?.let { base.clickable(onClick = it) } ?: base
+        onClick?.let { base.clickable(role = Role.Button, onClick = it) } ?: base
       },
     shape = RoundedCornerShape(20.dp),
     color = MaterialTheme.colorScheme.surface,

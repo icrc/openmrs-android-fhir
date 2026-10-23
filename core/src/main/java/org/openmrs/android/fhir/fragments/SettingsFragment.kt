@@ -76,6 +76,7 @@ import org.openmrs.android.fhir.extensions.EmbeddedFormsStore
 import org.openmrs.android.fhir.extensions.OfflineAuthPrompt
 import org.openmrs.android.fhir.extensions.ThemeMode
 import org.openmrs.android.fhir.extensions.ThemeModeStore
+import org.openmrs.android.fhir.extensions.limitToReadableWidth
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
@@ -343,6 +344,7 @@ class SettingsFragment : Fragment() {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
+    view.limitToReadableWidth()
     setHasOptionsMenu(true)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     setUpActionBar()

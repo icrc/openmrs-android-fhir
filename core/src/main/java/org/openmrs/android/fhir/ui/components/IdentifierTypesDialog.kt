@@ -59,6 +59,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -152,7 +153,7 @@ fun IdentifierTypesDialog(
                   modifier =
                     Modifier.fillMaxWidth()
                       .alpha(if (type.required) 0.8f else 1f)
-                      .clickable(enabled = !type.required) {
+                      .clickable(enabled = !type.required, role = Role.Checkbox) {
                         selection = if (checked) selection - type.uuid else selection + type.uuid
                       }
                       .padding(vertical = 2.dp)

@@ -62,12 +62,15 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.extensions.rememberActionBarContentPadding
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
 import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
+import org.openmrs.android.fhir.viewmodel.HomeSummary
 
 object HomeTestTags {
   const val Screen = "HomeScreen"
@@ -179,6 +182,7 @@ fun HomeScreen(
   locationName: String = "",
   lastSyncText: String = "",
   onImportExportClicked: () -> Unit = {},
+  summary: HomeSummary? = null,
 ) {
   val contentPadding = rememberActionBarContentPadding(extraTop = 8.dp)
   val rows = HomeRows
@@ -194,6 +198,10 @@ fun HomeScreen(
       if (locationName.isNotBlank() || lastSyncText.isNotBlank()) {
         HomeStatusHeader(locationName = locationName, lastSyncText = lastSyncText)
       }
+    }
+    // Also always there (empty until the counts are in), for the same reason.
+    item(key = "home-summary") {
+      if (summary != null) HomeSummaryRow(summary = summary, onClick = onSyncInfoClicked)
     }
     items(rows, key = { row -> row.hashCode() }) { row ->
       when (row) {
@@ -214,6 +222,37 @@ fun HomeScreen(
       }
     }
   }
+}
+
+/** How many patients are here and whether everything is uploaded; opens the Sync page. */
+@Composable
+private fun HomeSummaryRow(summary: HomeSummary, onClick: () -> Unit) {
+  val parts =
+    listOfNotNull(
+      summary.patients?.let { stringResource(R.string.home_summary_patients, it.toInt()) },
+      if (summary.waiting > 0) {
+        stringResource(R.string.home_summary_waiting, summary.waiting)
+      } else {
+        stringResource(R.string.home_summary_uploaded)
+      },
+    )
+  Text(
+    text = parts.joinToString(" · "),
+    style = MaterialTheme.typography.bodyMedium,
+    color =
+      if (summary.waiting > 0) {
+        OpenMrsTheme.colors.warning
+      } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+      },
+    modifier =
+      Modifier.fillMaxWidth()
+        .clip(RoundedCornerShape(12.dp))
+        .clickable(role = Role.Button, onClick = onClick)
+        .padding(horizontal = 4.dp, vertical = 8.dp)
+        .testTag("HomeSummary")
+        .tutorialTarget(TutorialTargets.HOME_SUMMARY),
+  )
 }
 
 /**
@@ -284,7 +323,7 @@ private fun HomeDashboardCard(
         .padding(vertical = 6.dp)
         .testTag(config.testTag)
         .tutorialTarget(config.type.tutorialKey())
-        .clickable(onClick = onClick),
+        .clickable(role = Role.Button, onClick = onClick),
     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),

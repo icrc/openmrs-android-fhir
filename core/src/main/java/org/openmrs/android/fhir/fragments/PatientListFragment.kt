@@ -51,6 +51,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.extensions.limitToReadableWidth
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.patient.PatientListScreen
@@ -86,6 +87,7 @@ class PatientListFragment : Fragment() {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
+    view.limitToReadableWidth()
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title = resources.getString(R.string.title_patient_list)
       setDisplayHomeAsUpEnabled(true)
@@ -115,6 +117,8 @@ class PatientListFragment : Fragment() {
           onServerPatientClick = { patient ->
             patientListViewModel.openServerPatient(patient) { id -> openPatient(id) }
           },
+          onSortChange = patientListViewModel::setSort,
+          onShowMore = patientListViewModel::showMore,
           onFabClick = { onAddPatientClick() },
           onIdentifyLater = { note -> onIdentifyLater(note) },
         )

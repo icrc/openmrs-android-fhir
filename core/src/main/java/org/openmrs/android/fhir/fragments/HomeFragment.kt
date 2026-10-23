@@ -50,6 +50,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.extensions.limitToReadableWidth
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.HomeScreen
@@ -79,7 +80,12 @@ class HomeFragment : Fragment() {
     composeView.setContent {
       OpenMrsTheme {
         val activityState by mainActivityViewModel.uiState.collectAsStateWithLifecycle()
+        val summary by homeViewModel.summary.collectAsStateWithLifecycle()
+        androidx.compose.runtime.LaunchedEffect(activityState.lastSyncText) {
+          homeViewModel.refreshSummary()
+        }
         HomeScreen(
+          summary = summary,
           locationName = activityState.locationMenuTitle,
           lastSyncText = activityState.lastSyncText,
           onNewPatientClicked = homeViewModel::onNewPatientClicked,
@@ -96,6 +102,7 @@ class HomeFragment : Fragment() {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
+    view.limitToReadableWidth()
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title = resources.getString(R.string.app_name)

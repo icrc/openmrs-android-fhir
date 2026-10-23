@@ -131,7 +131,7 @@ fun PatientPropertyRow(
       Column(
         modifier =
           Modifier.weight(1f).let { base ->
-            onPrimaryClick?.let { base.clickable(onClick = it) } ?: base
+            onPrimaryClick?.let { base.clickable(role = Role.Button, onClick = it) } ?: base
           },
         verticalArrangement = Arrangement.Center,
       ) {
@@ -492,7 +492,9 @@ fun VisitListItemRow(
   ) {
     Row(
       modifier =
-        Modifier.let { base -> onClick?.let { base.clickable(onClick = it) } ?: base }
+        Modifier.let { base ->
+            onClick?.let { base.clickable(role = Role.Button, onClick = it) } ?: base
+          }
           .padding(start = 12.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -605,7 +607,9 @@ fun EncounterListItemRow(
     Row(
       modifier =
         Modifier.fillMaxWidth()
-          .let { base -> onTitleClick?.let { base.clickable(onClick = it) } ?: base }
+          .let { base ->
+            onTitleClick?.let { base.clickable(role = Role.Button, onClick = it) } ?: base
+          }
           .padding(start = 12.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -983,7 +987,7 @@ fun PatientSelectableRow(
       modifier =
         Modifier.fillMaxWidth()
           .padding(horizontal = 0.dp, vertical = 12.dp)
-          .clickable { onToggle() }
+          .clickable(role = Role.Checkbox) { onToggle() }
           .testTag("PatientSelectableRow"),
       verticalAlignment = Alignment.CenterVertically,
     ) {

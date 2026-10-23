@@ -438,7 +438,7 @@
     >Encounter questionnaire not found, try again later</string>
     <string
         name="please_complete_the_required_fields_first"
-    >Please complete the required fields first!</string>
+    >Please answer the required questions first.</string>
     <string name="incomplete_form_dialog_title">Incomplete form</string>
     <string
         name="required_questions_missing_dialog_message"
@@ -572,7 +572,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="group_header_add_item_button">Add item</string>
     <string
         name="required_constraint_validation_error_msg"
-    >Missing answer for required field.</string>
+    >This question is required.</string>
     <string name="optional_helper_text">Optional</string>
     <string name="required">Required</string>
     <string name="button_pagination_next">Next</string>
@@ -1122,4 +1122,24 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="settings_auto_sync_unmetered_description">The automatic sync waits for a connection that is not metered. A sync you start yourself always goes ahead.</string>
     <string name="settings_auto_sync_battery">Not when the battery is low</string>
     <string name="settings_auto_sync_battery_description" formatted="false">The automatic sync waits while the battery is under 15% and the device is not charging.</string>
+    <string name="patient_sort_name_asc">Name A–Z</string>
+    <string name="patient_sort_name_desc">Name Z–A</string>
+    <string name="patient_sort_age_youngest">Youngest first</string>
+    <string name="patient_sort_age_oldest">Oldest first</string>
+    <string name="patients_show_more">Show more patients</string>
+    <string name="help_patients_sort_title">Sort and show more</string>
+    <string name="help_patients_sort_body">Choose the order of the list. It shows 100 patients at a time: use Show more at the end to see the rest.</string>
+    <string name="home_summary_patients">%1$d patients on this device</string>
+    <string name="home_summary_waiting">%1$d changes not uploaded yet</string>
+    <string name="home_summary_uploaded">Everything is uploaded</string>
+    <string name="help_home_summary_title">At a glance</string>
+    <string name="help_home_summary_body">How many patients are on this device and how many changes still wait to be uploaded. Tap it to open the Sync page.</string>
+    <string name="help_home_menu_title">The menu</string>
+    <string name="help_home_menu_body">Open it with the button at the top: Settings, Send diagnostics, Delete patient data and Log out. The last two ask you to confirm.</string>
+    <string name="help_home_session_title">Session expired</string>
+    <string name="help_home_session_body">When the server no longer accepts your login, this strip appears under the connection status. Tap Sign in: what you did meanwhile stays on the device and is sent after.</string>
+    <string name="settings_search_hint">Search settings</string>
+    <string name="settings_search_none">No setting matches</string>
+    <string name="help_settings_search_title">Search the settings</string>
+    <string name="help_settings_search_body">Type a word (sync, language, lock…) to show only the sections that mention it.</string>
 </resources>

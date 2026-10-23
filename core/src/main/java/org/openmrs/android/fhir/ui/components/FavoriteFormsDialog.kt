@@ -55,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
@@ -131,7 +132,7 @@ fun FavoriteFormsDialog(
               modifier =
                 Modifier.fillMaxWidth()
                   .alpha(if (enabled) 1f else 0.45f)
-                  .clickable(enabled = enabled) {
+                  .clickable(enabled = enabled, role = Role.Checkbox) {
                     selection =
                       if (checked) {
                         selection - form.questionnaireId

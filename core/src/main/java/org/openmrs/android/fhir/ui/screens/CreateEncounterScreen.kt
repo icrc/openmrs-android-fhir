@@ -72,6 +72,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -235,7 +236,7 @@ private fun FormSectionHeader(
     modifier =
       Modifier.fillMaxWidth()
         .background(MaterialTheme.colorScheme.background)
-        .let { base -> onClick?.let { base.clickable(onClick = it) } ?: base }
+        .let { base -> onClick?.let { base.clickable(role = Role.Button, onClick = it) } ?: base }
         .padding(horizontal = 4.dp, vertical = 10.dp)
         .testTag("FormSectionHeader"),
     verticalAlignment = Alignment.CenterVertically,

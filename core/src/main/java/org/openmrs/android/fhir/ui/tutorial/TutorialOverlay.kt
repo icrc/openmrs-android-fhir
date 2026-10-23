@@ -57,6 +57,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,12 +79,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.openmrs.android.fhir.R
@@ -148,26 +151,29 @@ fun TutorialOverlay() {
       val holeBottom = with(density) { hole.bottom.toDp() }
       val holeLeft = with(density) { hole.left.toDp() }
       val holeRight = with(density) { hole.right.toDp() }
-      // The touch blockers.
-      if (step.action == TutorialAction.Tap) {
-        Panel(Modifier.offset(0.dp, 0.dp).width(width).height(holeTop.coerceAtLeast(0.dp)))
-        Panel(
-          Modifier.offset(0.dp, holeBottom)
-            .width(width)
-            .height((height - holeBottom).coerceAtLeast(0.dp)),
-        )
-        Panel(
-          Modifier.offset(0.dp, holeTop)
-            .width(holeLeft.coerceAtLeast(0.dp))
-            .height((holeBottom - holeTop).coerceAtLeast(0.dp)),
-        )
-        Panel(
-          Modifier.offset(holeRight, holeTop)
-            .width((width - holeRight).coerceAtLeast(0.dp))
-            .height((holeBottom - holeTop).coerceAtLeast(0.dp)),
-        )
-      } else {
-        Panel(Modifier.fillMaxSize())
+      // The touch blockers. The hole is in screen coordinates, so they are laid out left to right
+      // whatever the language: offsets are mirrored in a right-to-left one.
+      CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        if (step.action == TutorialAction.Tap) {
+          Panel(Modifier.offset(0.dp, 0.dp).width(width).height(holeTop.coerceAtLeast(0.dp)))
+          Panel(
+            Modifier.offset(0.dp, holeBottom)
+              .width(width)
+              .height((height - holeBottom).coerceAtLeast(0.dp)),
+          )
+          Panel(
+            Modifier.offset(0.dp, holeTop)
+              .width(holeLeft.coerceAtLeast(0.dp))
+              .height((holeBottom - holeTop).coerceAtLeast(0.dp)),
+          )
+          Panel(
+            Modifier.offset(holeRight, holeTop)
+              .width((width - holeRight).coerceAtLeast(0.dp))
+              .height((holeBottom - holeTop).coerceAtLeast(0.dp)),
+          )
+        } else {
+          Panel(Modifier.fillMaxSize())
+        }
       }
       val below = (holeTop + holeBottom) / 2 < height / 2
       // An element that takes most of the screen (a form) leaves no room beside it: the card sits

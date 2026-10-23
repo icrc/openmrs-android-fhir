@@ -32,6 +32,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -47,8 +49,10 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -79,6 +83,7 @@ import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
 import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 import org.openmrs.android.fhir.viewmodel.PatientListUiState
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
+import org.openmrs.android.fhir.viewmodel.PatientSort
 
 object PatientListScreenTestTags {
   const val Screen = "PatientListScreen"
@@ -97,6 +102,8 @@ fun PatientListScreen(
   onFabClick: () -> Unit,
   modifier: Modifier = Modifier,
   onServerPatientClick: (PatientListViewModel.PatientItem) -> Unit = {},
+  onSortChange: (PatientSort) -> Unit = {},
+  onShowMore: () -> Unit = {},
   /** Records for a patient who is not on the device: asked with a note, identified later. */
   onIdentifyLater: ((note: String) -> Unit)? = null,
 ) {
@@ -152,6 +159,7 @@ fun PatientListScreen(
           query = uiState.query,
           onQueryChange = onQueryChange,
         )
+        PatientSortRow(selected = uiState.sort, onSelected = onSortChange)
         PatientListContainerScreen(
           patients = uiState.patients,
           isLoading = uiState.isLoading,
@@ -165,7 +173,20 @@ fun PatientListScreen(
           contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 96.dp),
           verticalArrangement = Arrangement.spacedBy(10.dp),
           emptyContent = { PatientListEmptyState() },
-          extraRows = serverRows(uiState, onServerPatientClick),
+          extraRows =
+            run {
+              val server = serverRows(uiState, onServerPatientClick)
+              val footer = showMoreRow(uiState.hasMore, onShowMore)
+              if (server == null && footer == null) {
+                null
+              } else {
+                val rows: LazyListScope.() -> Unit = {
+                  footer?.invoke(this)
+                  server?.invoke(this)
+                }
+                rows
+              }
+            },
         ) { patient ->
           PatientListItemRow(
             name = patient.name,
@@ -261,6 +282,49 @@ private fun serverRows(
         )
       }
     }
+  }
+}
+
+/** "Show more patients" at the end of a page that does not hold them all. */
+private fun showMoreRow(hasMore: Boolean, onClick: () -> Unit): (LazyListScope.() -> Unit)? {
+  if (!hasMore) return null
+  return {
+    item(key = "show-more", contentType = "show-more") {
+      OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).testTag("PatientListShowMore"),
+      ) {
+        Text(text = stringResource(R.string.patients_show_more))
+      }
+    }
+  }
+}
+
+/** The order of the list, as chips under the search box. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PatientSortRow(selected: PatientSort, onSelected: (PatientSort) -> Unit) {
+  FlowRow(
+    modifier =
+      Modifier.fillMaxWidth()
+        .padding(horizontal = 16.dp, vertical = 4.dp)
+        .tutorialTarget(TutorialTargets.PATIENT_SORT),
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
+    listOf(
+        PatientSort.NAME_ASC to R.string.patient_sort_name_asc,
+        PatientSort.NAME_DESC to R.string.patient_sort_name_desc,
+        PatientSort.AGE_YOUNGEST to R.string.patient_sort_age_youngest,
+        PatientSort.AGE_OLDEST to R.string.patient_sort_age_oldest,
+      )
+      .forEach { (sort, label) ->
+        FilterChip(
+          selected = selected == sort,
+          onClick = { onSelected(sort) },
+          label = { Text(text = stringResource(label)) },
+          modifier = Modifier.testTag("PatientSort_${sort.name}"),
+        )
+      }
   }
 }
 

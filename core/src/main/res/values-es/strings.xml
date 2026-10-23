@@ -357,7 +357,7 @@
     >Cuestionario del encuentro no encontrado, inténtelo más tarde</string>
     <string
         name="please_complete_the_required_fields_first"
-    >¡Por favor, completa los campos obligatorios primero!</string>
+    >Por favor, responda primero las preguntas obligatorias.</string>
     <string name="incomplete_form_dialog_title">Formulario incompleto</string>
     <string
         name="required_questions_missing_dialog_message"
@@ -537,7 +537,7 @@
     >Se encontraron errores</string>
     <string
         name="questionnaire_validation_error_supporting_text"
-    >Corrige las siguientes preguntas:</string>
+    >Corrija las siguientes preguntas:</string>
     <string
         name="questionnaire_validation_error_item_text_with_bullet"
     >• %s</string>
@@ -562,7 +562,7 @@
     <string name="group_header_add_item_button">Agregar elemento</string>
     <string
         name="required_constraint_validation_error_msg"
-    >Falta respuesta para un campo obligatorio.</string>
+    >Esta pregunta es obligatoria.</string>
     <string name="optional_helper_text">Opcional</string>
     <string name="required">Obligatorio</string>
     <string
@@ -1162,4 +1162,24 @@
     <string name="settings_auto_sync_unmetered_description">La sincronización automática espera una conexión sin límite de datos. Una sincronización que usted inicia siempre se realiza.</string>
     <string name="settings_auto_sync_battery">No con batería baja</string>
     <string name="settings_auto_sync_battery_description" formatted="false">La sincronización automática espera mientras la batería esté por debajo del 15 % y el dispositivo no se esté cargando.</string>
+    <string name="patient_sort_name_asc">Nombre A–Z</string>
+    <string name="patient_sort_name_desc">Nombre Z–A</string>
+    <string name="patient_sort_age_youngest">Más jóvenes primero</string>
+    <string name="patient_sort_age_oldest">Más mayores primero</string>
+    <string name="patients_show_more">Mostrar más pacientes</string>
+    <string name="help_patients_sort_title">Ordenar y mostrar más</string>
+    <string name="help_patients_sort_body">Elija el orden de la lista. Muestra 100 pacientes a la vez: use Mostrar más al final para ver el resto.</string>
+    <string name="home_summary_patients">%1$d pacientes en este dispositivo</string>
+    <string name="home_summary_waiting">%1$d cambios aún sin subir</string>
+    <string name="home_summary_uploaded">Todo está subido</string>
+    <string name="help_home_summary_title">De un vistazo</string>
+    <string name="help_home_summary_body">Cuántos pacientes hay en este dispositivo y cuántos cambios esperan aún para subirse. Toque para abrir la página Sincronización.</string>
+    <string name="help_home_menu_title">El menú</string>
+    <string name="help_home_menu_body">Ábralo con el botón de arriba: Ajustes, Enviar diagnósticos, Eliminar datos de pacientes y Cerrar sesión. Los dos últimos piden confirmación.</string>
+    <string name="help_home_session_title">Sesión caducada</string>
+    <string name="help_home_session_body">Cuando el servidor ya no acepta su inicio de sesión, esta franja aparece bajo el estado de conexión. Toque Iniciar sesión: lo que hizo mientras tanto queda en el dispositivo y se envía después.</string>
+    <string name="settings_search_hint">Buscar en ajustes</string>
+    <string name="settings_search_none">Ningún ajuste coincide</string>
+    <string name="help_settings_search_title">Buscar en los ajustes</string>
+    <string name="help_settings_search_body">Escriba una palabra (sincronización, idioma, bloqueo…) para ver solo las secciones que la mencionan.</string>
 </resources>

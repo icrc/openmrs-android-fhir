@@ -410,7 +410,7 @@
     >Анкета встречи не найдена, попробуйте позже</string>
     <string
         name="please_complete_the_required_fields_first"
-    >Заполните обязательные поля!</string>
+    >Сначала ответьте на обязательные вопросы.</string>
     <string name="incomplete_form_dialog_title">Незаполненная форма</string>
     <string
         name="required_questions_missing_dialog_message"
@@ -586,7 +586,7 @@
     <string name="group_header_add_item_button">Добавить элемент</string>
     <string
         name="required_constraint_validation_error_msg"
-    >Отсутствует ответ на обязательный вопрос.</string>
+    >Это обязательный вопрос.</string>
     <string name="optional_helper_text">Необязательно</string>
     <string name="required">Обязательно</string>
     <string
@@ -1181,4 +1181,24 @@
     <string name="settings_auto_sync_unmetered_description">Автосинхронизация ждёт подключения без учёта трафика. Синхронизация, запущенная вами, выполняется всегда.</string>
     <string name="settings_auto_sync_battery">Не при низком заряде</string>
     <string name="settings_auto_sync_battery_description" formatted="false">Автосинхронизация ждёт, пока заряд ниже 15 %, а устройство не заряжается.</string>
+    <string name="patient_sort_name_asc">Имя А–Я</string>
+    <string name="patient_sort_name_desc">Имя Я–А</string>
+    <string name="patient_sort_age_youngest">Сначала младшие</string>
+    <string name="patient_sort_age_oldest">Сначала старшие</string>
+    <string name="patients_show_more">Показать больше пациентов</string>
+    <string name="help_patients_sort_title">Сортировка и показать больше</string>
+    <string name="help_patients_sort_body">Выберите порядок списка. Показывается по 100 пациентов: нажмите «Показать больше» в конце, чтобы увидеть остальных.</string>
+    <string name="home_summary_patients">Пациентов на устройстве: %1$d</string>
+    <string name="home_summary_waiting">Не отправлено изменений: %1$d</string>
+    <string name="home_summary_uploaded">Всё отправлено</string>
+    <string name="help_home_summary_title">Коротко</string>
+    <string name="help_home_summary_body">Сколько пациентов на устройстве и сколько изменений ещё ждёт отправки. Нажмите, чтобы открыть страницу синхронизации.</string>
+    <string name="help_home_menu_title">Меню</string>
+    <string name="help_home_menu_body">Откройте его кнопкой сверху: настройки, отправка диагностики, удаление данных пациентов и выход. Для двух последних нужно подтверждение.</string>
+    <string name="help_home_session_title">Сеанс истёк</string>
+    <string name="help_home_session_body">Когда сервер больше не принимает ваш вход, эта полоса появляется под состоянием подключения. Нажмите «Войти»: сделанное за это время останется на устройстве и будет отправлено позже.</string>
+    <string name="settings_search_hint">Поиск по настройкам</string>
+    <string name="settings_search_none">Ничего не найдено</string>
+    <string name="help_settings_search_title">Поиск по настройкам</string>
+    <string name="help_settings_search_body">Введите слово (синхронизация, язык, блокировка…), чтобы показать только разделы, где оно встречается.</string>
 </resources>

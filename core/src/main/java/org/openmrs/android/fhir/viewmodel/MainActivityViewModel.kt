@@ -569,6 +569,36 @@ constructor(
     autoSyncGeneration.update { it + 1 }
   }
 
+  private var lastSessionCheck = 0L
+
+  /**
+   * Asks the server whether the session is still good (at most once a minute) and shows or hides
+   * the "session expired" strip. Called when the app comes back to the front, so the user finds out
+   * at once and not at the next automatic sync.
+   */
+  fun checkSession() {
+    if (GuestSession.isActive(applicationContext)) return
+    val now = android.os.SystemClock.elapsedRealtime()
+    if (lastSessionCheck != 0L && now - lastSessionCheck < SESSION_CHECK_INTERVAL_MILLIS) return
+    lastSessionCheck = now
+    viewModelScope.launch {
+      try {
+        if (!applicationContext.getServerConnectivityState(apiManager).isServerReachable()) {
+          return@launch
+        }
+        when (sessionValidator.check()) {
+          SessionStatus.Valid -> _uiState.update { it.copy(sessionExpired = false) }
+          SessionStatus.Invalid -> _uiState.update { it.copy(sessionExpired = true) }
+          SessionStatus.Unknown -> Unit
+        }
+      } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
+      } catch (e: Exception) {
+        Timber.w(e, "Could not check the session")
+      }
+    }
+  }
+
   /** Signed in again: the "session expired" strip goes away. */
   fun onSessionRenewed() {
     _uiState.update { it.copy(sessionExpired = false, isSessionPromptPending = false) }
@@ -846,6 +876,7 @@ constructor(
   }
 
   companion object {
+    private const val SESSION_CHECK_INTERVAL_MILLIS = 60_000L
     private const val formatString24 = "yyyy-MM-dd HH:mm:ss"
     private const val formatString12 = "yyyy-MM-dd hh:mm:ss a"
     private const val MILLIS_PER_MINUTE = 60_000L

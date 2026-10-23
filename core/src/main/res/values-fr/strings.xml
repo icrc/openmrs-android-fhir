@@ -374,7 +374,7 @@
     >Questionnaire de la rencontre introuvable, réessayez plus tard</string>
     <string
         name="please_complete_the_required_fields_first"
-    >Veuillez d\'abord remplir les champs obligatoires !</string>
+    >Veuillez d\'abord répondre aux questions obligatoires.</string>
     <string name="incomplete_form_dialog_title">Formulaire incomplet</string>
     <string
         name="required_questions_missing_dialog_message"
@@ -583,7 +583,7 @@
     <string name="group_header_add_item_button">Ajouter un élément</string>
     <string
         name="required_constraint_validation_error_msg"
-    >Réponse manquante pour un champ obligatoire.</string>
+    >Cette question est obligatoire.</string>
     <string name="optional_helper_text">Optionnel</string>
     <string name="required">Obligatoire</string>
     <string
@@ -1188,4 +1188,24 @@
     <string name="settings_auto_sync_unmetered_description">La synchronisation automatique attend une connexion non facturée à l\'usage. Une synchronisation lancée par vous a toujours lieu.</string>
     <string name="settings_auto_sync_battery">Pas quand la batterie est faible</string>
     <string name="settings_auto_sync_battery_description" formatted="false">La synchronisation automatique attend tant que la batterie est sous 15 % et que l\'appareil ne charge pas.</string>
+    <string name="patient_sort_name_asc">Nom A–Z</string>
+    <string name="patient_sort_name_desc">Nom Z–A</string>
+    <string name="patient_sort_age_youngest">Plus jeunes d\'abord</string>
+    <string name="patient_sort_age_oldest">Plus âgés d\'abord</string>
+    <string name="patients_show_more">Afficher plus de patients</string>
+    <string name="help_patients_sort_title">Trier et afficher plus</string>
+    <string name="help_patients_sort_body">Choisissez l\'ordre de la liste. Elle affiche 100 patients à la fois : touchez Afficher plus à la fin pour voir les autres.</string>
+    <string name="home_summary_patients">%1$d patients sur cet appareil</string>
+    <string name="home_summary_waiting">%1$d modifications pas encore envoyées</string>
+    <string name="home_summary_uploaded">Tout est envoyé</string>
+    <string name="help_home_summary_title">En un coup d\'œil</string>
+    <string name="help_home_summary_body">Combien de patients sont sur cet appareil et combien de modifications attendent encore d\'être envoyées. Touchez pour ouvrir la page Synchronisation.</string>
+    <string name="help_home_menu_title">Le menu</string>
+    <string name="help_home_menu_body">Ouvrez-le avec le bouton en haut : Réglages, Envoyer les diagnostics, Supprimer les données des patients et Se déconnecter. Les deux derniers demandent une confirmation.</string>
+    <string name="help_home_session_title">Session expirée</string>
+    <string name="help_home_session_body">Quand le serveur n\'accepte plus votre connexion, cette bande apparaît sous l\'état de connexion. Touchez Se connecter : ce que vous avez fait entre-temps reste sur l\'appareil et sera envoyé ensuite.</string>
+    <string name="settings_search_hint">Rechercher dans les réglages</string>
+    <string name="settings_search_none">Aucun réglage ne correspond</string>
+    <string name="help_settings_search_title">Rechercher dans les réglages</string>
+    <string name="help_settings_search_body">Tapez un mot (synchronisation, langue, verrouillage…) pour n\'afficher que les sections qui le mentionnent.</string>
 </resources>

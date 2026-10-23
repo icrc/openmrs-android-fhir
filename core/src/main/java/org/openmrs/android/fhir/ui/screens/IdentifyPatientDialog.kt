@@ -72,6 +72,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -194,7 +195,10 @@ private fun EntryList(
   ) {
     items(entries, key = { it.patientId }) { entry ->
       Surface(
-        modifier = Modifier.fillMaxWidth().testTag("IdentifyEntry").clickable { onClick(entry) },
+        modifier =
+          Modifier.fillMaxWidth().testTag("IdentifyEntry").clickable(role = Role.Button) {
+            onClick(entry)
+          },
         shape = RoundedCornerShape(20.dp),
         color = MaterialTheme.colorScheme.surface,
         border =

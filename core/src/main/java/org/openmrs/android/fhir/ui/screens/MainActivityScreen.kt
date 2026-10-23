@@ -120,6 +120,8 @@ import org.openmrs.android.fhir.ui.components.DrawerHeader
 import org.openmrs.android.fhir.ui.components.NetworkStatusBanner
 import org.openmrs.android.fhir.ui.components.SessionExpiredStrip
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
+import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 import org.openmrs.android.fhir.viewmodel.LiveStatus
 
 @Stable
@@ -416,7 +418,8 @@ private fun ToolbarHost(onToolbarReady: (MaterialToolbar) -> Unit, contentColor:
   val titleColor = contentColor.toArgb()
   val subtitleColor = contentColor.copy(alpha = 0.85f).toArgb()
   AndroidView(
-    modifier = Modifier.fillMaxWidth().testTag("MainToolbar"),
+    modifier =
+      Modifier.fillMaxWidth().testTag("MainToolbar").tutorialTarget(TutorialTargets.HOME_MENU),
     factory = {
       // Its own theme, so the back arrow and the actions are drawn in the bar's content color.
       MaterialToolbar(ContextThemeWrapper(context, R.style.ThemeOverlay_OpenMrs_Toolbar)).apply {
