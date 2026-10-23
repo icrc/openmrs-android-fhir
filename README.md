@@ -54,7 +54,6 @@ An app is configured by one file, `res/xml/app_config.xml`, in its module. It is
 | `<sync>` | `location-tag` | Tag of the locations offered at login (default `Login Location`). |
 | | `cohort-type` | Optional cohort type (UUID): only patient lists of that cohort are downloaded. |
 | | `filter-patient-lists-by-location` | `true` (default): only the lists of the location the user picked. |
-| | `patients-since` | Optional ISO date: patients last updated before it are not downloaded. |
 | `<patients>` | `registration-form` | Id of a synced questionnaire, or the file name of one in `assets`, used to register patients. |
 | | `fetch-identifiers` | `true`: the device fetches auto-generated identifiers and adds them to new patients; `false`: the server creates them. |
 | `<support>` | `email` | Where **Send diagnostics** and exported unsynced data go. |

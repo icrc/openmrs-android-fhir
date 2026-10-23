@@ -46,12 +46,9 @@ object SyncUrls {
     if (context.useEmbeddedFormsOnly()) null else "Questionnaire?_sort=_lastUpdated"
 
   /** The patients of the selected patient lists; the lists are filled in when it is requested. */
-  fun patients(context: Context): String {
-    val since = AppConfig.get(context).sync.patientsSince.trim()
-    return "Patient?_has:Group:member:id=&_revinclude=Encounter:patient" +
-      "&_revinclude=Observation:patient&_sort=_lastUpdated" +
-      if (since.isEmpty()) "" else "&_lastUpdated=gt$since"
-  }
+  fun patients(context: Context): String =
+    "Patient?_has:Group:member:id=&_revinclude=Encounter:patient" +
+      "&_revinclude=Observation:patient&_sort=_lastUpdated"
 
   /** The patient lists, of [locationId] when the app is set to scope them to the location. */
   fun groups(context: Context, locationId: String?): String {

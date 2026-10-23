@@ -16,13 +16,11 @@
     <!-- What is downloaded. Locations (with this tag), patient lists (Groups), questionnaires, and
          the patients of the lists the user selects with their encounters and observations.
          cohort-type (UUID, optional): only download the lists of that cohort.
-         filter-patient-lists-by-location: only the lists of the location the user picked.
-         patients-since (ISO date, optional): skip patients last updated before it. -->
+         filter-patient-lists-by-location: only the lists of the location the user picked. -->
     <sync
         location-tag="Login Location"
         cohort-type=""
         filter-patient-lists-by-location="true"
-        patients-since=""
     />
 
     <!-- registration-form: id of a synced questionnaire or file name in assets.

@@ -40,8 +40,6 @@ data class SyncConfig(
   val cohortType: String,
   /** Only download the patient lists of the location the user picked. */
   val filterPatientListsByLocation: Boolean,
-  /** Optional ISO date: do not download patients that were last updated before it. */
-  val patientsSince: String,
 )
 
 /** A group of encounter forms on the Create Encounter screen. */
@@ -106,7 +104,7 @@ internal constructor(
       var serverUrl: String? = null
       var authMethod = "basic"
       var guestMode = false
-      var sync = SyncConfig("Login Location", "", true, "")
+      var sync = SyncConfig("Login Location", "", true)
       var registrationForm = "new-patient-registration-paginated"
       var fetchIdentifiers = true
       var supportEmail = ""
@@ -137,7 +135,6 @@ internal constructor(
                   cohortType = attr("cohort-type").orEmpty(),
                   filterPatientListsByLocation =
                     attr("filter-patient-lists-by-location")?.let { it == "true" } ?: true,
-                  patientsSince = attr("patients-since").orEmpty(),
                 )
             "patients" -> {
               registrationForm = attr("registration-form") ?: registrationForm
