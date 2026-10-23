@@ -89,6 +89,7 @@ import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.data.remote.model.SessionLocation
+import org.openmrs.android.fhir.data.sync.AutoSyncGate
 import org.openmrs.android.fhir.data.sync.DownloadOnlyFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.FhirSyncWorker
 import org.openmrs.android.fhir.data.sync.LivePatients
@@ -532,6 +533,10 @@ constructor(
     val connectivity = applicationContext.getServerConnectivityState(apiManager)
     publishConnectivity(connectivity)
     if (!connectivity.isServerReachable()) return
+    AutoSyncGate.blockedReason(applicationContext)?.let {
+      Timber.i("Automatic sync waits: %s", it)
+      return
+    }
     when (sessionValidator.check()) {
       SessionStatus.Valid -> {
         _uiState.update { it.copy(sessionExpired = false) }

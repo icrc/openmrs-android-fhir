@@ -751,7 +751,7 @@
     <string name="help_settings_appearance_title">المظهر</string>
     <string name="help_settings_appearance_body">مظهر فاتح أو داكن أو مظهر النظام، ولوحة ألوان لعمى الألوان.</string>
     <string name="help_settings_sync_title">المزامنة</string>
-    <string name="help_settings_sync_body">الخادم والمزامنة التلقائية وما تفعله (رفع فقط أو رفع وتنزيل). تُحفظ الإعدادات فور تغييرها.</string>
+    <string name="help_settings_sync_body">الخادم والمزامنة التلقائية وما تفعله (رفع فقط أو رفع وتنزيل) ومتى تنتظر (Wi-Fi فقط، بطارية منخفضة). تُحفظ الإعدادات فور تغييرها.</string>
     <string name="help_settings_live_title">الوضع المباشر</string>
     <string name="help_settings_live_body">أرسل ما تحفظه إلى الخادم فوراً وابحث فيه عن مرضى غير موجودين على هذا الجهاز.</string>
     <string name="help_settings_shared_title">جهاز مشترك</string>
@@ -1112,4 +1112,8 @@
     <string name="app_lock_hide_recents_description">تعرض قائمة التطبيقات الأخيرة ولقطات الشاشة شاشة فارغة فلا تظهر بيانات المرضى. يسري على الشاشات الجديدة.</string>
     <string name="invalid_username_password_sso_hint">فشل تسجيل الدخول. تحقق من بياناتك. إذا كانت مؤسستك تستخدم تسجيل الدخول الموحّد، فاضغط «تسجيل الدخول عبر SSO».</string>
     <string name="session_expired_strip">انتهت الجلسة. تبقى التغييرات على هذا الجهاز.</string>
+    <string name="settings_auto_sync_unmetered">عبر Wi-Fi فقط</string>
+    <string name="settings_auto_sync_unmetered_description">تنتظر المزامنة التلقائية اتصالًا غير محدود الباقة. المزامنة التي تبدأها بنفسك تتم دائمًا.</string>
+    <string name="settings_auto_sync_battery">ليس عند انخفاض البطارية</string>
+    <string name="settings_auto_sync_battery_description">تنتظر المزامنة التلقائية ما دامت البطارية دون 15% والجهاز لا يشحن.</string>
 </resources>

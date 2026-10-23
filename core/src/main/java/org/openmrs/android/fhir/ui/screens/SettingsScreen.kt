@@ -141,6 +141,8 @@ object SettingsTestTags {
   const val InitialSyncButton = "SettingsInitialSyncButton"
   const val FetchQuestionnairesButton = "SettingsFetchQuestionnairesButton"
   const val ResetOfflineLoginButton = "SettingsResetOfflineLoginButton"
+  const val AutoSyncUnmeteredSwitch = "SettingsAutoSyncUnmeteredSwitch"
+  const val AutoSyncBatterySwitch = "SettingsAutoSyncBatterySwitch"
   const val LockOnScreenOffSwitch = "SettingsLockOnScreenOffSwitch"
   const val HideInRecentsSwitch = "SettingsHideInRecentsSwitch"
   const val ThemeSystem = "SettingsThemeSystem"
@@ -196,6 +198,10 @@ fun SettingsScreen(
   unsyncedCount: Int = 0,
   clearDataOnLogout: Boolean = true,
   onClearDataOnLogoutChange: ((Boolean) -> Unit)? = null,
+  autoSyncUnmeteredOnly: Boolean = false,
+  autoSyncSkipLowBattery: Boolean = true,
+  onAutoSyncUnmeteredOnlyChange: (Boolean) -> Unit = {},
+  onAutoSyncSkipLowBatteryChange: (Boolean) -> Unit = {},
   onLogoutAndDeleteRequested: (() -> Unit)? = null,
   onLogoutAndDeleteConfirmed: (() -> Unit)? = null,
   onAutoSyncToggle: (Boolean) -> Unit = {},
@@ -286,6 +292,22 @@ fun SettingsScreen(
           selected = uiState.autoSyncMode,
           enabled = uiState.isAutoSyncEnabled,
           onSelected = onAutoSyncModeSelected,
+        )
+        SettingsSwitchRow(
+          label = stringResource(R.string.settings_auto_sync_unmetered),
+          description = stringResource(R.string.settings_auto_sync_unmetered_description),
+          checked = autoSyncUnmeteredOnly,
+          onCheckedChange = onAutoSyncUnmeteredOnlyChange,
+          testTag = SettingsTestTags.AutoSyncUnmeteredSwitch,
+          enabled = uiState.isAutoSyncEnabled,
+        )
+        SettingsSwitchRow(
+          label = stringResource(R.string.settings_auto_sync_battery),
+          description = stringResource(R.string.settings_auto_sync_battery_description),
+          checked = autoSyncSkipLowBattery,
+          onCheckedChange = onAutoSyncSkipLowBatteryChange,
+          testTag = SettingsTestTags.AutoSyncBatterySwitch,
+          enabled = uiState.isAutoSyncEnabled,
         )
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         SettingsDropdown(

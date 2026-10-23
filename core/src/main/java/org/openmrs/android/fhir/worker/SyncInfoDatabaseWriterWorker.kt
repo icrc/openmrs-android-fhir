@@ -110,6 +110,7 @@ class SyncInfoDatabaseWriterWorker(
    */
   private suspend fun closeInterruptedSessions() {
     val dao = database.dao()
+    migrateLegacyCancelledSessions()
     dao.getOngoingSyncSessions().forEach { session ->
       dao.updateSyncSessionErrors(
         session.id,
@@ -117,6 +118,24 @@ class SyncInfoDatabaseWriterWorker(
       )
       dao.updateSyncSessionStatus(session.id, SyncStatus.COMPLETED_WITH_ERRORS)
       dao.updateSyncSessionCompletionTime(session.id, LocalDateTime.now().format(formatter))
+    }
+  }
+
+  /**
+   * Builds made while cancelling was being developed closed a cancelled sync as "completed with
+   * errors" and the text "Cancelled by the user". It is a cancelled sync, not an error.
+   */
+  private suspend fun migrateLegacyCancelledSessions() {
+    val dao = database.dao()
+    dao.getAllSyncSessionsAsList().forEach { session ->
+      if (
+        session.status == SyncStatus.COMPLETED_WITH_ERRORS &&
+          session.errors.size == 1 &&
+          session.errors.single() in LEGACY_CANCELLED_TEXTS
+      ) {
+        dao.updateSyncSessionStatus(session.id, SyncStatus.CANCELLED)
+        dao.updateSyncSessionErrors(session.id, emptyList())
+      }
     }
   }
 
@@ -342,17 +361,16 @@ class SyncInfoDatabaseWriterWorker(
           .updateSyncSessionUploadValues(
             sessionId = inProgressSyncSession.id,
             completed = inProgressSyncSession.uploadedPatients,
-            total =
-              inProgressSyncSession
-                .uploadedPatients, // TODO: Make this total once total sync number is accurate
+            // The total the SDK announces counts only part of what a sync handles (the patients,
+            // not their encounters and observations), so a finished sync records what was done.
+            total = inProgressSyncSession.uploadedPatients,
           )
         database
           .dao()
           .updateSyncSessionDownloadValues(
             sessionId = inProgressSyncSession.id,
             completed = inProgressSyncSession.downloadedPatients,
-            total =
-              inProgressSyncSession.downloadedPatients, // TODO: Same as above, make this total
+            total = inProgressSyncSession.downloadedPatients,
           )
         database.dao().updateSyncSessionStatus(inProgressSyncSession.id, SyncStatus.COMPLETED)
         database
@@ -424,6 +442,14 @@ class SyncInfoDatabaseWriterWorker(
 
   companion object {
     const val WORK_NAME = "sync_manager_work"
+    private val LEGACY_CANCELLED_TEXTS =
+      setOf(
+        "Cancelled by the user",
+        "Annulée par l'utilisateur",
+        "Cancelada por el usuario",
+        "Отменено пользователем",
+        "ألغاها المستخدم",
+      )
     const val PROGRESS_STATUS = "progress_status"
     const val PROGRESS_MESSAGE = "progress_message"
     private const val KEY_MODE = "sync_mode"

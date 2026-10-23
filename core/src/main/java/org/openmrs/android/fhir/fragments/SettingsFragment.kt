@@ -65,6 +65,7 @@ import org.openmrs.android.fhir.auth.AppLockSettings
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.data.QuestionnaireUpdater
 import org.openmrs.android.fhir.data.remote.isServerReachable
+import org.openmrs.android.fhir.data.sync.AutoSyncGate
 import org.openmrs.android.fhir.data.transfer.DataTransfer
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.BiometricUtils
@@ -112,6 +113,8 @@ class SettingsFragment : Fragment() {
   /** true: enabled, false: declined, null: not answered yet. */
   private val offlineLoginEnabled = mutableStateOf<Boolean?>(null)
   private val offlineLoginUnavailable = mutableStateOf(false)
+  private val autoSyncUnmeteredOnly = mutableStateOf(false)
+  private val autoSyncSkipLowBattery = mutableStateOf(true)
   private val appLockUi = mutableStateOf<AppLockUi?>(null)
 
   private fun loadAppLock(context: android.content.Context) {
@@ -162,6 +165,8 @@ class SettingsFragment : Fragment() {
         offlineLoginUnavailable.value =
           offlineLoginEnabled.value == true && !OfflineAuthPrompt.isAvailable(requireActivity())
         loadAppLock(context)
+        autoSyncUnmeteredOnly.value = AutoSyncGate.unmeteredOnly(context)
+        autoSyncSkipLowBattery.value = AutoSyncGate.skipOnLowBattery(context)
       }
       val uiState = settingsViewModel.uiState.collectAsStateWithLifecycle().value
       val activityState by mainActivityViewModel.uiState.collectAsStateWithLifecycle()
@@ -286,6 +291,26 @@ class SettingsFragment : Fragment() {
             changeAppLock("app_lock_hide_recents=$hide") {
               AppLockSettings.setHideInRecents(context, hide)
             }
+          },
+          autoSyncUnmeteredOnly = autoSyncUnmeteredOnly.value,
+          autoSyncSkipLowBattery = autoSyncSkipLowBattery.value,
+          onAutoSyncUnmeteredOnlyChange = { only ->
+            AutoSyncGate.setUnmeteredOnly(context, only)
+            autoSyncUnmeteredOnly.value = only
+            AuditLog.record(
+              AuditAction.SETTINGS_CHANGED,
+              AuditOutcome.SUCCESS,
+              "changed" to listOf("auto_sync_unmetered_only=$only"),
+            )
+          },
+          onAutoSyncSkipLowBatteryChange = { skip ->
+            AutoSyncGate.setSkipOnLowBattery(context, skip)
+            autoSyncSkipLowBattery.value = skip
+            AuditLog.record(
+              AuditAction.SETTINGS_CHANGED,
+              AuditOutcome.SUCCESS,
+              "changed" to listOf("auto_sync_skip_low_battery=$skip"),
+            )
           },
           unsyncedCount = unsyncedCount.value,
           clearDataOnLogout = clearDataOnLogout.value,

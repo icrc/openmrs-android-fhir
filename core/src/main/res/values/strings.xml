@@ -777,7 +777,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="help_settings_appearance_title">Appearance</string>
     <string name="help_settings_appearance_body">Light, dark or the system theme, and a palette for color blindness.</string>
     <string name="help_settings_sync_title">Synchronization</string>
-    <string name="help_settings_sync_body">The server, the automatic sync and what it does (upload only, or upload and download). Settings are saved as you change them.</string>
+    <string name="help_settings_sync_body">The server, the automatic sync, what it does (upload only, or upload and download) and when it waits (Wi-Fi only, low battery). Settings are saved as you change them.</string>
     <string name="help_settings_live_title">Live mode</string>
     <string name="help_settings_live_body">Send what you save to the server right away and search the server for patients that are not on this device.</string>
     <string name="help_settings_shared_title">Shared device</string>
@@ -1118,4 +1118,8 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="app_lock_hide_recents_description">The recent apps list and screenshots show a blank screen, so patient data is not visible. Takes effect for new screens.</string>
     <string name="invalid_username_password_sso_hint">Login failed. Check your credentials. If your organisation uses single sign-on, tap "Sign in with SSO" instead.</string>
     <string name="session_expired_strip">Session expired. Changes are kept on this device.</string>
+    <string name="settings_auto_sync_unmetered">Only on Wi-Fi</string>
+    <string name="settings_auto_sync_unmetered_description">The automatic sync waits for a connection that is not metered. A sync you start yourself always goes ahead.</string>
+    <string name="settings_auto_sync_battery">Not when the battery is low</string>
+    <string name="settings_auto_sync_battery_description">The automatic sync waits while the battery is under 15% and the device is not charging.</string>
 </resources>

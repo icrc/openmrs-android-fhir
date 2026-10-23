@@ -826,7 +826,7 @@
     <string name="help_settings_appearance_title">Оформление</string>
     <string name="help_settings_appearance_body">Светлая, тёмная или системная тема и палитра для дальтоников.</string>
     <string name="help_settings_sync_title">Синхронизация</string>
-    <string name="help_settings_sync_body">Сервер, автосинхронизация и что она делает (только отправка или отправка и загрузка). Настройки сохраняются сразу при изменении.</string>
+    <string name="help_settings_sync_body">Сервер, автосинхронизация, что она делает (только отправка или отправка и загрузка) и когда ждёт (только Wi-Fi, низкий заряд). Настройки сохраняются сразу при изменении.</string>
     <string name="help_settings_live_title">Режим реального времени</string>
     <string name="help_settings_live_body">Отправляйте сохранённое на сервер сразу и ищите на сервере пациентов, которых нет на этом устройстве.</string>
     <string name="help_settings_shared_title">Общее устройство</string>
@@ -1177,4 +1177,8 @@
     <string name="app_lock_hide_recents_description">В списке недавних приложений и на снимках экрана будет пустой экран, данные пациентов не видны. Действует для новых экранов.</string>
     <string name="invalid_username_password_sso_hint">Не удалось войти. Проверьте данные. Если ваша организация использует единый вход, нажмите «Войти через SSO».</string>
     <string name="session_expired_strip">Сеанс истёк. Изменения хранятся на этом устройстве.</string>
+    <string name="settings_auto_sync_unmetered">Только по Wi-Fi</string>
+    <string name="settings_auto_sync_unmetered_description">Автосинхронизация ждёт подключения без учёта трафика. Синхронизация, запущенная вами, выполняется всегда.</string>
+    <string name="settings_auto_sync_battery">Не при низком заряде</string>
+    <string name="settings_auto_sync_battery_description">Автосинхронизация ждёт, пока заряд ниже 15 %, а устройство не заряжается.</string>
 </resources>

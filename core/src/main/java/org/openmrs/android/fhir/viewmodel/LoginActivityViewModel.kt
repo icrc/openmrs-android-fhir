@@ -35,6 +35,7 @@ import android.net.Network
 import android.os.Build
 import android.util.Base64
 import androidx.biometric.BiometricManager
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
@@ -55,6 +56,8 @@ import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.model.PendingUser
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ApiResponse
@@ -151,6 +154,8 @@ constructor(
    */
   private suspend fun signInUser(name: String?) {
     try {
+      // A new sign-in: the location screen is offered again.
+      applicationContext.dataStore.edit { it.remove(PreferenceKeys.LOCATION_PROMPT_DONE) }
       if (UserRegistry.activate(applicationContext, name)) {
         withContext(Dispatchers.IO) { userDataLedger.attributeExistingPatients(fhirEngine) }
       }

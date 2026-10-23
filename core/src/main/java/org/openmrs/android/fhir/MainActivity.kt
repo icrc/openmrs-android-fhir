@@ -558,9 +558,11 @@ class MainActivity : AppCompatActivity() {
     }
     lifecycleScope.launch {
       if (!isGuest.value && !viewModel.hasHandledPostLoginNavigation()) {
-        val selectedLocationId =
-          applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
-        if (selectedLocationId == null) {
+        val preferences = applicationContext.dataStore.data.first()
+        val selectedLocationId = preferences[PreferenceKeys.LOCATION_ID]
+        if (
+          selectedLocationId == null && preferences[PreferenceKeys.LOCATION_PROMPT_DONE] != true
+        ) {
           waitForNavController()?.let { navController ->
             if (navController.currentDestination?.id != R.id.locationFragment) {
               // Only when about to go there: the location screen hides this popup when it has its
@@ -572,6 +574,7 @@ class MainActivity : AppCompatActivity() {
               val bundle = Bundle().apply { putBoolean("from_login", true) }
               navController.navigate(R.id.locationFragment, bundle)
               viewModel.setHasHandledPostLoginNavigation(true)
+              applicationContext.dataStore.edit { it[PreferenceKeys.LOCATION_PROMPT_DONE] = true }
             }
           }
         }

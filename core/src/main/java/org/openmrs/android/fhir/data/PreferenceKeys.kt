@@ -28,12 +28,20 @@
 */
 package org.openmrs.android.fhir.data
 
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 
 class PreferenceKeys {
   companion object {
     val LOCATION_ID = stringPreferencesKey("LOCATION_ID")
+
+    /**
+     * The user has been taken to the location screen since signing in. Kept across restarts, so a
+     * user who went on without a location is not asked again each time the app is opened (the
+     * actions that need one ask for it). A new sign-in clears it.
+     */
+    val LOCATION_PROMPT_DONE = booleanPreferencesKey("LOCATION_PROMPT_DONE")
     val SELECTED_PATIENT_LISTS = stringSetPreferencesKey("SELECTED_PATIENT_LISTS")
     val LOCATION_NAME = stringPreferencesKey("LOCATION_NAME")
     val FAVORITE_LOCATIONS = stringSetPreferencesKey("FAVORITE_LOCATIONS")

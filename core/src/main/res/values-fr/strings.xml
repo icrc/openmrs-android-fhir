@@ -839,7 +839,7 @@
     <string name="help_settings_appearance_title">Apparence</string>
     <string name="help_settings_appearance_body">Thème clair, sombre ou du système, et une palette pour le daltonisme.</string>
     <string name="help_settings_sync_title">Synchronisation</string>
-    <string name="help_settings_sync_body">Le serveur, la synchronisation automatique et ce qu\'elle fait (envoi seul, ou envoi et réception). Les réglages sont enregistrés dès que vous les changez.</string>
+    <string name="help_settings_sync_body">Le serveur, la synchronisation automatique, ce qu\'elle fait (envoi seul, ou envoi et réception) et quand elle attend (Wi-Fi seulement, batterie faible). Les réglages sont enregistrés dès que vous les changez.</string>
     <string name="help_settings_live_title">Mode direct</string>
     <string name="help_settings_live_body">Envoyez ce que vous enregistrez au serveur aussitôt et cherchez sur le serveur les patients absents de cet appareil.</string>
     <string name="help_settings_shared_title">Appareil partagé</string>
@@ -1184,4 +1184,8 @@
     <string name="app_lock_hide_recents_description">La liste des applications récentes et les captures d\'écran affichent un écran vide : les données des patients ne sont pas visibles. Pris en compte pour les nouveaux écrans.</string>
     <string name="invalid_username_password_sso_hint">Échec de la connexion. Vérifiez vos identifiants. Si votre organisation utilise l\'authentification unique, touchez « Se connecter avec SSO ».</string>
     <string name="session_expired_strip">Session expirée. Les modifications restent sur cet appareil.</string>
+    <string name="settings_auto_sync_unmetered">Uniquement en Wi-Fi</string>
+    <string name="settings_auto_sync_unmetered_description">La synchronisation automatique attend une connexion non facturée à l\'usage. Une synchronisation lancée par vous a toujours lieu.</string>
+    <string name="settings_auto_sync_battery">Pas quand la batterie est faible</string>
+    <string name="settings_auto_sync_battery_description">La synchronisation automatique attend tant que la batterie est sous 15 % et que l\'appareil ne charge pas.</string>
 </resources>
