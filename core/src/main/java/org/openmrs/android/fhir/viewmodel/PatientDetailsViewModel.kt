@@ -646,13 +646,6 @@ data class PatientDetailVisit(
 
 data class PatientProperty(val header: String, val value: String, val isSynced: Boolean)
 
-data class RiskAssessmentItem(
-  var riskStatusColor: Int,
-  var riskStatus: String,
-  var lastContacted: String,
-  var patientCardColor: Int,
-)
-
 /**
  * The logical (unqualified) part of the ID. For example, if the ID is
  * "http://example.com/fhir/Patient/123/_history/456", then this value would be "123".

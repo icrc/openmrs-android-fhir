@@ -15,23 +15,11 @@
  limitations under the License.
 -->
 <resources>
-    <color name="low_risk">#388e3c</color>
-    <color name="low_risk_background">#e8f5e9</color>
-    <color name="moderate_risk">#FFBF00</color>
-    <color name="moderate_risk_background">#fff8e1</color>
-    <color name="high_risk">#c62828</color>
-    <color name="high_risk_background">#ffebee</color>
-    <color name="unknown_risk_background">#77DADCE0</color>
-    <color name="unknown_risk">#FFDADCE0</color>
-    <color name="syncing_background">#E6F1F0</color>
-    <color name="disable_state">#9AFFFFFF</color>
 
     <color name="primary_blue_40">#005D5D</color>
-    <color name="blue">#007D79</color>
     <color name="onPrimary_blue_100">#FFFFFF</color>
     <color name="primaryContainer_blue_90">#E6F1F0</color>
     <color name="onPrimaryContainer_blue_10">#004144</color>
-    <color name="orange">#FFA500</color>
 
     <color name="secondary_blue_40">#007D79</color>
     <color name="onSecondary_blue_100">#FFFFFF</color>
@@ -90,21 +78,11 @@
 
     <color name="outline_neutral_variant_60">#8D8D8D</color>
 
-    <color name="black">#000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="light_grey">#FAFAFA</color>
-    <color name="dashboard_cardview_textcolor">#4D4D4D</color>
 
-    <color
-        name="selected_item_background"
-    >#D9FBFB</color> <!-- Light blue background -->
-    <color
-        name="selected_item_border"
-    >#007D79</color> <!-- Accent blue border -->
-    <color
-        name="default_item_background"
-    >#FFFFFF</color> <!-- White background -->
-    <color name="default_item_border">#E0E0E0</color> <!-- Light gray border -->
+<!-- Light blue background -->
+<!-- Accent blue border -->
+<!-- White background -->
+<!-- Light gray border -->
     <!-- OpenMRS 3 palette used by the data-capture form theme (night variants in values-night) -->
     <color name="o3_primary">#005D5D</color>
     <color name="o3_on_primary">#FFFFFF</color>

@@ -31,7 +31,8 @@ A server that only accepts the single sign-on answers a correct password as wron
 | `auth_authorization_scope` | `openid`. |
 | `auth_redirect_uri_host` + `auth_redirect_uri_path` | Together `org.openmrs.android.fhir.app:/oauth2redirect`, the redirect the provider sends the user back to. The manifest registers the scheme. |
 | `auth_discovery_uri` | The provider's `.well-known/openid-configuration`. From the Android emulator the host machine is `10.0.2.2`. |
-| `auth_https_required` | `false` lets a provider on plain http be used. Development only; a release build refuses to trust anything but the system certificates. |
+| `auth_https_required` | `false` lets a provider on plain http be used (the network security config must allow the host: only `10.0.2.2` and `127.0.0.1` are). Development only. Whatever its value, **no build accepts a certificate the system does not trust** (the old debug-only builder that accepted every certificate was removed): a provider on https needs a real certificate, or the test machine's CA installed on the device. |
+| (debug builds only) | When the provider announces `localhost` (a Keycloak in a container on the developer's machine), the app rewrites it to `10.0.2.2`, the host machine as the Android emulator sees it. |
 
 ### Keycloak client
 

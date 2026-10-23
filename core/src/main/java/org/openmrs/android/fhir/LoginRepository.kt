@@ -37,9 +37,6 @@ import java.util.Base64
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -60,7 +57,6 @@ import org.openmrs.android.fhir.auth.AuthConfigUtil
 import org.openmrs.android.fhir.auth.AuthConfiguration
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
-import org.openmrs.android.fhir.auth.ConnectionBuilderForTesting
 import org.openmrs.android.fhir.auth.model.BasicAuthState
 import timber.log.Timber
 
@@ -73,8 +69,6 @@ private constructor(
   private val clientId = AtomicReference<String?>()
   private val refreshMutex = Mutex()
   private val authRequest = AtomicReference<AuthorizationRequest?>()
-  private val _needLogin = MutableStateFlow(false)
-  val needLogin: StateFlow<Boolean> = _needLogin.asStateFlow()
 
   suspend fun updateAuthIfConfigurationChanged() {
     if (hasConfigurationChanged()) {
@@ -86,9 +80,6 @@ private constructor(
 
   private suspend fun hasConfigurationChanged() =
     authConfig.isNotStored() || authConfig.stored != authConfig.authConfigData
-
-  suspend fun isAuthEstablished() =
-    !hasConfigurationChanged() && authStateManager.current.authorizationServiceConfiguration != null
 
   fun getLastConfigurationError(): AuthorizationException? = authConfig.lastException
 
@@ -162,12 +153,9 @@ private constructor(
       }
       Timber.i("Discovery document retrieved")
 
-      if (authConfig.connectionBuilder is ConnectionBuilderForTesting) {
+      if (authConfig.replaceLocalhost) {
         val updatedConfig =
-          AuthConfigUtil.replaceLocalhost(
-            authServiceConfig.toJsonString(),
-            ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2,
-          )
+          AuthConfigUtil.replaceLocalhost(authServiceConfig.toJsonString(), replaceLocalhost = true)
         authStateManager.replace(
           AuthState(AuthorizationServiceConfiguration.fromJson(updatedConfig)),
         )
@@ -324,11 +312,6 @@ private constructor(
         INSTANCE = LoginRepository(authStateManager, authConfig, authService)
       }
       return INSTANCE as LoginRepository
-    }
-
-    @Synchronized
-    fun unsetInstance() {
-      INSTANCE = null
     }
   }
 }

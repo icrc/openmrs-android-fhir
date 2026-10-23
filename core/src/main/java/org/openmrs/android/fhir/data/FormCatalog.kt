@@ -88,9 +88,4 @@ constructor(
     }
     return Catalog(AppConfig.get(applicationContext).formSections, language, formsByCode)
   }
-
-  companion object {
-    /** The code system OpenMRS uses for encounter types; forms are matched by their code. */
-    const val ENCOUNTER_TYPE_SYSTEM_URL = "http://fhir.openmrs.org/code-system/encounter-type"
-  }
 }

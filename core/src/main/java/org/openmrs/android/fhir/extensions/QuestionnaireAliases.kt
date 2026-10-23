@@ -30,7 +30,6 @@ package org.openmrs.android.fhir.extensions
 
 import android.content.Context
 import ca.uhn.fhir.parser.IParser
-import com.google.android.fhir.FhirEngine
 import java.util.concurrent.ConcurrentHashMap
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.Questionnaire.QuestionnaireItemComponent
@@ -77,12 +76,3 @@ fun Questionnaire.orBundledIfAliased(context: Context, parser: IParser): Questio
   } else {
     context.bundledQuestionnaire(idElement.idPart, parser) ?: withAliasesExpanded(parser)
   }
-
-/**
- * Every questionnaire the app can open: the engine's (made usable) and the bundled ones it lacks.
- */
-suspend fun FhirEngine.allQuestionnaires(context: Context, parser: IParser): List<Questionnaire> {
-  val stored = storedQuestionnaires(context, parser)
-  val storedIds = stored.map { it.idElement.idPart }.toSet()
-  return stored + context.readAssetQuestionnaires(parser, storedIds)
-}

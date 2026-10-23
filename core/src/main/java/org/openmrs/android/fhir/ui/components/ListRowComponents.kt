@@ -850,20 +850,6 @@ fun UnsyncedPatientRow(
   }
 }
 
-@Composable
-fun ObservationCardRow(text: String, modifier: Modifier = Modifier) {
-  Card(
-    modifier = modifier.fillMaxWidth().padding(vertical = 2.dp).testTag("ObservationCard"),
-    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-  ) {
-    Text(
-      modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("ObservationDetail"),
-      text = text,
-      style = MaterialTheme.typography.bodySmall,
-    )
-  }
-}
-
 /** An observation waiting to be uploaded; the deepest level, indented under its encounter. */
 @Composable
 fun UnsyncedObservationRow(

@@ -604,7 +604,6 @@ constructor(
     val html: String,
     var isSynced: Boolean? = false,
     var risk: String? = "",
-    var riskItem: RiskAssessmentItem? = null,
     /** The patient's most recent encounter; null until it has been looked up. */
     val lastEncounter: LastEncounter? = null,
     /** Recorded for "identify patient after": a placeholder, the real patient is not known yet. */

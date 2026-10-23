@@ -107,10 +107,6 @@ constructor(
     }
 
   // Visit related functions
-  suspend fun getVisits(
-    patientId: String,
-  ): Map<Encounter, List<Encounter>> = getVisitsAndOthers(patientId).visits
-
   /** The patient's visits, each with its encounters, and the encounters that are in no visit. */
   suspend fun getVisitsAndOthers(patientId: String): PatientVisits {
     val visits = linkedMapOf<Encounter, List<Encounter>>()

@@ -78,16 +78,6 @@ object AuthConfigUtil {
     }
   }
 
-  fun isRequiredConfigWebUri(propName: String?): Uri {
-    isRequiredConfigUri(propName)
-    val uri: Uri = Uri.parse(propName)
-    val scheme = uri.scheme
-    if (TextUtils.isEmpty(scheme) || !("http" == scheme || "https" == scheme)) {
-      throw InvalidConfigurationException("$propName must have an http or https scheme")
-    }
-    return uri
-  }
-
   fun isRedirectUriRegistered(context: Context, redirectUri: String) {
     // ensure that the redirect URI declared in the configuration is handled by some activity
     // in the app, by querying the package manager speculatively

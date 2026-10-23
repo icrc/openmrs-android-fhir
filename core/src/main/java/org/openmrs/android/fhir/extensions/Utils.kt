@@ -211,25 +211,6 @@ fun Questionnaire.pruneOtherLanguageTranslations(locale: Locale = Locale.getDefa
 
 private const val TRANSLATION_EXTENSION_URL = "http://hl7.org/fhir/StructureDefinition/translation"
 private const val TRANSLATION_LANG_URL = "lang"
-private const val TRANSLATION_CONTENT_URL = "content"
-
-/** The questionnaire's title in [language] (`fr`, ...) if it has a translation, else `null`. */
-fun Questionnaire.translatedTitle(language: String): String? =
-  titleElement
-    ?.extension
-    ?.asSequence()
-    ?.filter { it.url == TRANSLATION_EXTENSION_URL }
-    ?.mapNotNull { translation ->
-      val lang =
-        translation
-          .getExtensionByUrl(TRANSLATION_LANG_URL)
-          ?.value
-          ?.primitiveValue()
-          ?.lowercase(Locale.ROOT)
-      val content = translation.getExtensionByUrl(TRANSLATION_CONTENT_URL)?.value?.primitiveValue()
-      if (lang != null && lang == language) content else null
-    }
-    ?.firstOrNull()
 
 fun findItemByLinkId(
   items: List<QuestionnaireItemComponent>?,

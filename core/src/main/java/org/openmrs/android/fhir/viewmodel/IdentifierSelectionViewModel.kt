@@ -75,24 +75,6 @@ constructor(
     _uiState.update { it.copy(query = query) }
   }
 
-  fun onIdentifierToggle(identifierType: IdentifierType, isSelected: Boolean) {
-    if (identifierType.required) {
-      return
-    }
-    val updated = _uiState.value.selectedIdentifierIds.toMutableSet()
-    if (isSelected) {
-      updated.remove(identifierType.uuid)
-    } else {
-      updated.add(identifierType.uuid)
-    }
-    _uiState.update { it.copy(selectedIdentifierIds = updated) }
-    viewModelScope.launch {
-      applicationContext.dataStore.edit { preferences ->
-        preferences[PreferenceKeys.SELECTED_IDENTIFIER_TYPES] = updated
-      }
-    }
-  }
-
   /** Applies the chosen identifier types (the required ones are always included). */
   fun saveSelection(ids: Set<String>) {
     val required = _uiState.value.identifierTypes.filter { it.required }.map { it.uuid }

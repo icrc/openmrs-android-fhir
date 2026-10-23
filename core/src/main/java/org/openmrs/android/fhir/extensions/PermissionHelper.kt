@@ -128,12 +128,3 @@ constructor(
     return PermissionHelper(activity, permissionChecker)
   }
 }
-
-/** Extension functions for easier usage */
-fun Context.createPermissionChecker(): PermissionChecker {
-  return PermissionChecker(this)
-}
-
-fun AppCompatActivity.createPermissionHelper(): PermissionHelper {
-  return PermissionHelper(this)
-}

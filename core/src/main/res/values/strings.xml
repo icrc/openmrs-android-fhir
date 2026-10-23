@@ -25,27 +25,15 @@
     <string name="title_group_encounter">Group or family session</string>
     <string name="subtitle_group_encounter">Fill in one form for several patients</string>
     <string name="section_system">SYSTEM</string>
-    <string name="title_sync_info">Sync info</string>
     <string name="sync_info">Sync info</string>
-    <string
-        name="subtitle_sync_info"
-    >View pending synchronization resources</string>
-    <string name="title_unsynced_resources">Unsynced resources</string>
-    <string
-        name="subtitle_unsynced_resources"
-    >View synchronization processes</string>
 
     <string name="app_name" translatable="false">OpenMRS</string>
     <string name="title_patient_list">Patients</string>
-    <string name="title_patient_detail">SamplePatient Detail</string>
     <string name="patient_details_title">Patient Details</string>
     <string name="register_patient">Register Patient</string>
-    <string name="menu_about">About Fhir Engine</string>
-    <string name="menu_sync_resources">Sync Resources</string>
     <string name="menu_patient_edit">@string/edit_patient</string>
 
     <!-- For display observations in brief, for a patient -->
-    <string name="observation_brief_text">%1$s: %2$s\nEffective: %3$s</string>
     <string name="query_hint_patient_search">Find by name, identifier or phone</string>
     <string
         name="cancel_questionnaire_message"
@@ -61,25 +49,15 @@
     <string name="start_new_session">Start new session</string>
     <string name="save_as_draft">Save as draft</string>
     <string name="discard">Discard</string>
-    <string name="submit_all">Submit all</string>
     <string name="draft_saved">Draft saved.</string>
     <string
         name="complete_screener_before_submit"
     >Complete the screener before submitting all responses.</string>
-    <string name="patient_id">Id</string>
-    <string name="patient_name">Name</string>
     <string name="patient_gender">Gender</string>
-    <string name="patient_dob">DOB</string>
     <string name="patient_phone_number">Phone Number</string>
-    <string name="patient_city">City</string>
-    <string name="patient_country">Country</string>
-    <string name="patient_is_active">Is Active</string>
-    <string name="patient_property_mobile">Mobile Number</string>
     <string name="patient_property_address">Address</string>
     <string name="patient_property_dob">Date of Birth</string>
-    <string name="patient_property_gender">Gender</string>
     <string name="edit_patient">Edit Patient</string>
-    <string name="new_encounter">New Encounter</string>
     <string name="create_encounter">Create Encounter</string>
     <string name="search_forms">Search forms</string>
     <string name="all_forms">All forms</string>
@@ -90,54 +68,27 @@
     <string name="location">Location</string>
     <string name="identifier">Identifier</string>
     <string name="select_a_location">Select a Location</string>
-    <string
-        name="create_encounter_fragment_headline"
-    >What form would you like to use?</string>
     <string name="select_patient_lists">Select Patient Lists</string>
     <string name="select_identifier_types">Select Identifier Types</string>
     <string name="submit">Submit</string>
-    <string name="message_syncing">Syncing\u2026</string>
 
     <string name="message_patient_updated">Patient is updated.</string>
     <string name="message_encounter_updated">Encounter is updated.</string>
     <string name="inputs_missing">Inputs are missing.</string>
-    <string
-        name="inputs_missing_for_patient"
-    >Inputs are missing for patient:</string>
     <string name="resources_saved">Resources are saved.</string>
-    <string
-        name="response_received"
-    >questionnaire response is received.</string>
-    <string name="html_text">Current status: <font
-            color="#ddd"
-        >UNKNOWN</font></string>
-    <string name="header_observation">Observations</string>
-    <string name="header_conditions">Conditions</string>
-    <string name="message_no_datetime">No effective DateTime</string>
-    <string name="complete_survey">Complete Survey</string>
-    <string name="risk_status">Current status: </string>
-    <string name="unknown">UNKNOWN</string>
-    <string name="none">none</string>
     <string name="description_status">Status</string>
-    <string name="open">Open</string>
     <string name="close">Close</string>
     <string name="sync_menu">Sync now</string>
     <string name="last_sync">Last sync</string>
     <string name="syncing">Syncing</string>
-    <string name="sync">Sync</string>
     <string name="button_login">Log in</string>
     <string name="show_password">Show password</string>
     <string name="hide_password">Hide password</string>
     <string name="header_encounters">Encounters</string>
-    <string name="component_nav_heading">Components</string>
-    <string name="layout_nav_heading">Layouts</string>
-    <string name="behavior_nav_heading">Behaviors</string>
     <string name="error">Error</string>
-    <string name="open_questionnaire">Open questionnaire</string>
     <string name="no_location_selected">No Location Selected</string>
     <string name="patient_unsynced_info">Not synced yet. This patient\'s information will be sent to the server next time you are online.</string>
     <string name="header_visits">Visits</string>
-    <string name="online">Online</string>
     <string
         name="network_status_connected_to_server"
     >Connected to server</string>
@@ -153,7 +104,6 @@
     <string name="settings_live_mode">Live mode</string>
     <string name="settings_live_mode_description">Send what you save to the server right away and search the server for patients that are not on this device. With no connection nothing is lost: it is kept and sent later.</string>
     <string name="live_server_results_title">On the server</string>
-    <string name="live_server_searching">Searching the server…</string>
     <string name="live_server_no_results">No other patients on the server</string>
     <string name="live_server_search_failed">Couldn\'t reach the server to search</string>
     <string name="live_server_open_failed">Couldn\'t open this patient from the server. Try again.</string>
@@ -196,19 +146,9 @@
         name="session_expired"
     >Your session has expired. Do you want to re-login?</string>
     <string name="logout">Log out</string>
-    <string
-        name="logout_message"
-    >Are you sure you want to log out? \n\nIf you proceed, All of this applications data will be deleted permanently. \nThis includes all resources, user sessions, database etc.</string>
     <string name="sync_in_progress">Sync: in progress</string>
     <string name="sync_started">Sync: started</string>
-    <string name="sync_succeeded_at">Sync: succeeded at %1$s</string>
-    <string name="sync_failed_at">Sync: failed at %1$s</string>
-    <string name="sync_unknown_state">Sync: unknown state.</string>
     <string name="sync_terminated">Sync: Terminated</string>
-    <string name="start_time_with_value">Start Time: %1$s</string>
-    <string
-        name="sync_session_progress"
-    >Downloaded %1$d/%2$d | Uploaded %3$d/%4$d</string>
     <string name="completed_at_with_value">Completed At: %1$s</string>
     <string name="errors_with_count">Errors: %1$d</string>
     <string name="logging_out">Logging out..</string>
@@ -226,25 +166,16 @@
     <string name="initial_sync_completed">Initial sync completed</string>
     <string name="initial_sync_failed">Initial sync failed</string>
     <string
-        name="token_expiry_delay_text"
-    >Delay Before Token Expiry Dialog (in Minutes)</string>
-    <string
         name="check_network_connectivity"
     >Check Network Connectivity</string>
-    <string name="show_network_status">Show Network Status</string>
     <string name="enable_notifications">Enable Notifications</string>
     <string
         name="token_check_delay_in_minutes"
     >Token Check Delay (in minutes)</string>
-    <string name="token_check_delay">Token Check Delay</string>
     <string
         name="periodic_sync_delay_in_minutes"
     >Periodic Sync Delay (in minutes)</string>
-    <string name="periodic_sync_delay">Periodic Sync Delay</string>
     <string name="send_diagnostics">Send diagnostics</string>
-    <string
-        name="diagnostics_message"
-    >Do you want to send a full application diagnostic report to the developer team?\nIncludes: Application Logs &amp; Sync Info</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string
@@ -269,15 +200,6 @@
     <string
         name="do_you_want_to_continue_sync"
     >Do you want to continue sync?</string>
-    <string
-        name="location_unassigned_select_location"
-    >Location unassigned, please select location again…</string>
-    <string
-        name="connect_internet_to_select_patient_list"
-    >Please connect to the internet to select a patient list.</string>
-    <string
-        name="server_unreachable_try_again_message"
-    >Cannot reach the configured server. Please try again later.</string>
     <string name="server_unreachable_title">Server unreachable</string>
     <string
         name="server_unreachable_dialog_message"
@@ -294,11 +216,9 @@
     <string
         name="no_patients_available_register_a_new_one_using_the_button_below"
     >No Patients Available, Register a new one using the button below</string>
-    <string name="observation">Observation</string>
     <string name="download_observation">Download Observation</string>
     <string name="delete_observation">Delete Observation</string>
     <string name="expand">Expand</string>
-    <string name="encounter">Encounter</string>
     <string name="download_encounter">Download Encounter</string>
     <string name="delete_encounter">Delete Encounter</string>
     <string name="download_patient">Download Patient</string>
@@ -339,9 +259,7 @@
     <string name="send_unsynced_resources">Send Unsynced Resources</string>
     <string name="download_all">Download All</string>
     <string name="no_locations_available">No Locations available.</string>
-    <string name="no_patient_list_available">No Patient List available</string>
     <string name="task_image">Task Image</string>
-    <string name="patient_list">Patient list</string>
     <string name="select_location">Select Location</string>
     <string name="select_patient_list">Select Patient List</string>
     <string name="search_identifier_types">Search Identifier Types</string>
@@ -357,7 +275,6 @@
     <string name="patient_lists_header">Patient lists</string>
     <string name="patient_lists_empty_title">No patient lists here</string>
     <string name="patient_lists_empty_for_location">There are no patient lists for %1$s. Try another location, or check again.</string>
-    <string name="patient_lists_empty_generic">There are no patient lists to show. Check again in a moment.</string>
     <string name="patient_lists_failed_title">Couldn\'t load the patient lists</string>
     <string name="patient_lists_failed_message">Check the connection and try again.</string>
     <string name="patient_lists_failed_cached">Couldn\'t update the lists. Showing the ones saved on this device.</string>
@@ -384,18 +301,7 @@
     <string name="sync_status_completed_errors">Completed with errors</string>
     <string name="sync_errors_show_all">Show all (%1$d)</string>
     <string name="sync_errors_show_less">Show less</string>
-    <string name="sync_history">Sync history</string>
     <string name="clear_sync_data_confirm">Delete all finished sync records? A sync in progress is kept.</string>
-    <string name="hsu_id" translatable="false">HSU ID</string>
-    <string name="encounter_date">Encounter Date</string>
-    <string name="encounter_name">Encounter Name</string>
-    <string name="location_1">Location 1</string>
-    <string
-        name="this_will_show_observations"
-    >This will show observations.</string>
-    <string name="_50_years_old">50 years old</string>
-    <string name="navya_patel" translatable="false">Navya Patel</string>
-    <string name="patient_list_1">Patient List 1</string>
     <string name="_0" translatable="false">0 %</string>
     <string name="_100" translatable="false">100 %</string>
     <string name="start_time">Start Time</string>
@@ -404,21 +310,7 @@
     <string name="in_progress">In Progress</string>
     <string name="completed_at">Completed At</string>
     <string name="errors">Errors</string>
-    <string name="start_group_encounter">Start Group Encounter</string>
-    <string name="next_patient">Next Patient</string>
-    <string name="save_all_encounters">Save All Encounters</string>
-    <string name="saved">SAVED</string>
     <string name="group_encounters">Group Session</string>
-    <string
-        name="save_all_submitted_encounters"
-    >Save All Submitted Encounters</string>
-    <string
-        name="do_you_want_to_save_all_submitted_encounters"
-    >Do you want to save all submitted encounters?</string>
-    <string name="no_encounters_to_save">No Encounters to save!</string>
-    <string
-        name="all_patients_have_been_submitted"
-    >All patients have been submitted</string>
     <string
         name="please_select_at_least_one_patient"
     >Please select at least one patient.</string>
@@ -430,15 +322,8 @@
     <string name="inputs_are_missing">Inputs are missing.</string>
     <string name="start">Start</string>
     <string
-        name="all_encounter_for_group_session_have_been_saved"
-    >All encounter for Group Session have been saved</string>
-    <string name="do_you_want_to_exit">Do you want to exit?</string>
-    <string
         name="encounter_questionnaire_not_found_try_again_later"
     >Encounter questionnaire not found, try again later</string>
-    <string
-        name="please_complete_the_required_fields_first"
-    >Please answer the required questions first.</string>
     <string name="incomplete_form_dialog_title">Incomplete form</string>
     <string
         name="required_questions_missing_dialog_message"
@@ -456,7 +341,6 @@
     <string
         name="all_encounters_saved_do_you_want_to_exit"
     >All encounters saved! Do you want to exit?</string>
-    <string name="close_this_window">Close this window</string>
     <string name="sync_minimize">Minimize</string>
     <string name="sync_show_progress">Show sync progress</string>
     <string name="sync_percent" translatable="false">%1$d%%</string>
@@ -474,13 +358,10 @@
     <string
         name="this_can_take_up_to_10_minutes_depending_on_your_internet_connection"
     >This can take up to 10 minutes depending on your internet connection</string>
-    <string name="syncing_resources">Syncing resources</string>
     <string name="syncing_patient_data">Syncing patient data</string>
-    <string name="Downloading_patient_data">Downloading patient data</string>
     <string name="uploading_patient_data">Uploading patient data</string>
     <string name="get_started">Get started</string>
     <string name="please_try_again_later">Please try again later.</string>
-    <string name="unknown_sync_state">Unknown sync state</string>
     <string name="sync_failed">Sync Failed</string>
     <string name="sync_completed">Sync Completed</string>
     <string
@@ -489,7 +370,6 @@
     <string
         name="patient_resources_are_being_synchronized"
     >Patient resources are being synchronized…</string>
-    <string name="progress">Progress</string>
     <string name="biometric_prompt_title">Offline Device Authentication</string>
     <string
         name="biometric_prompt_subtitle"
@@ -498,13 +378,10 @@
         name="use_device_credential"
     >Use your device PIN/pattern/password</string>
     <string name="auth_error">Authentication error: %1$s</string>
-    <string name="auth_failed">Authentication failed</string>
-    <string name="invalid_session">Invalid session</string>
     <string
         name="no_supported_offline_auth_method"
     >No supported offline authentication method available</string>
     <string name="version">Version</string>
-    <string name="encryption_not_available">Encryption not available</string>
     <string
         name="please_connect_to_the_internet_to_continue_with_authentication"
     >Please connect to the internet to continue with authentication.</string>
@@ -583,11 +460,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="location_added_to_favorites"
     >Location added to favorites.</string>
-    <string name="identifier_removed">Identifier removed</string>
-    <string name="identifier_added">Identifier added</string>
-    <string
-        name="failed_to_fetch_all_patient_lists"
-    >Failed to fetch all patient lists</string>
     <string
         name="failed_to_fetch_all_locations"
     >Failed to fetch all locations</string>
@@ -615,9 +487,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     >Future date/time is not allowed.</string>
     <string name="select_visit_time_title">Select time for the visit</string>
     <string name="start_new_visit_title">Start a new visit?</string>
-    <string
-        name="no_patient_list_selected_message"
-    >No patient list is selected. Do you want to select one?</string>
     <string name="diagnostic_report_subject">Diagnostic Report</string>
     <string
         name="diagnostic_report_body"
@@ -630,11 +499,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="app_version_with_value">App Version: %1$s</string>
     <string name="not_available">N/A</string>
     <string name="no_name_provided">No Name provided</string>
-    <string
-        name="unsynced_observation_fallback_title"
-    >Observation: %1$s</string>
-    <string name="unsynced_encounter_fallback_title">Encounter: %1$s</string>
-    <string name="unsynced_patient_fallback_name">Patient: %1$s</string>
 
     <string
         name="discard_changes_title"

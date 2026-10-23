@@ -11,96 +11,51 @@
     <string name="title_group_encounter">Sesión grupal o familiar</string>
     <string name="subtitle_group_encounter">Completar un mismo formulario para varios pacientes</string>
     <string name="section_system">SISTEMA</string>
-    <string name="title_sync_info">Información de sincronización</string>
     <string name="sync_info">Información de sincronización</string>
-    <string
-        name="subtitle_sync_info"
-    >Ver recursos pendientes de sincronización</string>
-    <string name="title_unsynced_resources">Recursos no sincronizados</string>
-    <string
-        name="subtitle_unsynced_resources"
-    >Ver procesos de sincronización</string>
 
     <string name="title_patient_list">Pacientes</string>
-    <string name="title_patient_detail">Detalle del Paciente de Muestra</string>
     <string name="patient_details_title">Detalles del paciente</string>
     <string name="register_patient">Registrar Paciente</string>
-    <string name="menu_about">Acerca de Fhir Engine</string>
-    <string name="menu_sync_resources">Sincronizar Recursos</string>
     <string name="menu_patient_edit">@string/edit_patient</string>
 
     <!-- For display observations in brief, for a patient -->
-    <string name="observation_brief_text">%1$s: %2$s\nEfectivo: %3$s</string>
     <string
         name="query_hint_patient_search"
     >Buscar por Nombre de Paciente</string>
     <string
         name="cancel_questionnaire_message"
     >¿Estás seguro de que quieres descartar las respuestas?</string>
-    <string name="patient_id">Id</string>
-    <string name="patient_name">Nombre</string>
     <string name="patient_gender">Género</string>
-    <string name="patient_dob">FDN</string>
     <string name="patient_phone_number">Número de Teléfono</string>
-    <string name="patient_city">Ciudad</string>
-    <string name="patient_country">País</string>
-    <string name="patient_is_active">Activo</string>
-    <string name="patient_property_mobile">Número de Móvil</string>
     <string name="patient_property_address">Dirección</string>
     <string name="patient_property_dob">Fecha de Nacimiento</string>
-    <string name="patient_property_gender">Género</string>
     <string name="edit_patient">Editar Paciente</string>
-    <string name="new_encounter">Nuevo Encuentro</string>
     <string name="create_encounter">Crear Encuentro</string>
     <string name="edit_encounter">Editar Encuentro</string>
     <string name="location">Ubicación</string>
     <string name="identifier">Identificador</string>
     <string name="select_a_location">Seleccionar una Ubicación</string>
-    <string
-        name="create_encounter_fragment_headline"
-    >¿Qué formulario te gustaría usar?</string>
     <string name="select_patient_lists">Seleccionar Listas de Pacientes</string>
     <string
         name="select_identifier_types"
     >Seleccionar Tipos de Identificador</string>
     <string name="submit">Enviar</string>
-    <string name="message_syncing">Sincronizando\u2026</string>
 
     <string name="message_patient_updated">Paciente actualizado.</string>
     <string name="message_encounter_updated">Encuentro actualizado.</string>
     <string name="inputs_missing">Faltan datos de entrada.</string>
     <string name="resources_saved">Recursos guardados.</string>
-    <string
-        name="response_received"
-    >Se recibió la respuesta del cuestionario.</string>
-    <string name="html_text">Estado actual: <font
-            color="#ddd"
-        >DESCONOCIDO</font></string>
-    <string name="header_observation">Observaciones</string>
-    <string name="header_conditions">Condiciones</string>
-    <string name="message_no_datetime">Sin fecha/hora efectiva</string>
-    <string name="complete_survey">Completar Encuesta</string>
-    <string name="risk_status">Estado actual: </string>
-    <string name="unknown">DESCONOCIDO</string>
-    <string name="none">ninguno</string>
     <string name="description_status">Estado</string>
-    <string name="open">Abierto</string>
     <string name="close">Cerrado</string>
     <string name="sync_menu">Sincronizar ahora</string>
     <string name="last_sync">Última sincronización</string>
     <string name="syncing">Sincronizando</string>
-    <string name="sync">Sincronizar</string>
     <string name="button_login">Iniciar sesión</string>
     <string name="header_encounters">Encuentros</string>
-    <string name="component_nav_heading">Componentes</string>
-    <string name="layout_nav_heading">Diseños</string>
-    <string name="behavior_nav_heading">Comportamientos</string>
     <string name="error">Error</string>
-    <string name="open_questionnaire">Abrir cuestionario</string>
     <string name="no_location_selected">Ninguna Ubicación Seleccionada</string>
     <string name="patient_unsynced_info">Aún sin sincronizar. La información de este paciente se enviará al servidor la próxima vez que tenga conexión.</string>
     <string name="header_visits">Visitas</string>
-    <string name="online">En línea</string>
     <string name="offline">Sin conexión</string>
     <string name="yes">Sí</string>
     <string name="no">No</string>
@@ -112,7 +67,6 @@
     <string name="settings_live_mode">Modo en vivo</string>
     <string name="settings_live_mode_description">Envía al servidor lo que guarda de inmediato y busca en el servidor pacientes que no están en este dispositivo. Sin conexión no se pierde nada: se conserva y se envía más tarde.</string>
     <string name="live_server_results_title">En el servidor</string>
-    <string name="live_server_searching">Buscando en el servidor…</string>
     <string name="live_server_no_results">No hay otros pacientes en el servidor</string>
     <string name="live_server_search_failed">No se pudo contactar con el servidor para buscar</string>
     <string name="live_server_open_failed">No se pudo abrir este paciente desde el servidor. Inténtelo de nuevo.</string>
@@ -155,18 +109,8 @@
         name="session_expired"
     >Tu sesión ha expirado. ¿Quieres iniciar sesión de nuevo?</string>
     <string name="logout">Cerrar sesión</string>
-    <string
-        name="logout_message"
-    >¿Estás seguro de que quieres cerrar sesión? \n\nSi continúas, todos los datos de esta aplicación se eliminarán permanentemente. \nEsto incluye todos los recursos, sesiones de usuario, base de datos, etc.</string>
     <string name="sync_in_progress">Sincronización: en progreso</string>
     <string name="sync_started">Sincronización: iniciada</string>
-    <string
-        name="sync_succeeded_at"
-    >Sincronización: completada a las %1$s</string>
-    <string name="sync_failed_at">Sincronización: fallida a las %1$s</string>
-    <string
-        name="sync_unknown_state"
-    >Sincronización: estado desconocido.</string>
     <string name="sync_terminated">Sincronización: Terminada</string>
     <string name="logging_out">Cerrando sesión..</string>
     <string
@@ -176,26 +120,16 @@
     <string name="save">Guardar</string>
     <string name="cancel">Cancelar</string>
     <string
-        name="token_expiry_delay_text"
-    >Retraso antes del Diálogo de Expiración del Token (en Minutos)</string>
-    <string
         name="check_network_connectivity"
     >Verificar Conectividad de Red</string>
     <string name="enable_notifications">Activar Notificaciones</string>
     <string
         name="token_check_delay_in_minutes"
     >Retraso de Verificación de Token (en minutos)</string>
-    <string name="token_check_delay">Retraso de Verificación de Token</string>
     <string
         name="periodic_sync_delay_in_minutes"
     >Retraso de Sincronización Periódica (en minutos)</string>
-    <string
-        name="periodic_sync_delay"
-    >Retraso de Sincronización Periódica</string>
     <string name="send_diagnostics">Enviar Diagnósticos</string>
-    <string
-        name="diagnostics_message"
-    >¿Quieres enviar un informe completo de diagnóstico de la aplicación al equipo de desarrolladores?\nIncluye: Registros de la Aplicación e Información de Sincronización</string>
     <string name="username">Nombre de usuario</string>
     <string name="password">Contraseña</string>
     <string
@@ -221,16 +155,11 @@
         name="do_you_want_to_continue_sync"
     >¿Quieres continuar con la sincronización?</string>
     <string
-        name="location_unassigned_select_location"
-    >Ubicación no asignada, por favor selecciona la ubicación de nuevo…</string>
-    <string
         name="no_patients_available_register_a_new_one_using_the_button_below"
     >No hay Pacientes Disponibles, Registra uno nuevo usando el botón de abajo</string>
-    <string name="observation">Observación</string>
     <string name="download_observation">Descargar Observación</string>
     <string name="delete_observation">Eliminar Observación</string>
     <string name="expand">Expandir</string>
-    <string name="encounter">Encuentro</string>
     <string name="download_encounter">Descargar Encuentro</string>
     <string name="delete_encounter">Eliminar Encuentro</string>
     <string name="download_patient">Descargar Paciente</string>
@@ -244,11 +173,7 @@
     <string
         name="no_locations_available"
     >No hay Ubicaciones disponibles.</string>
-    <string
-        name="no_patient_list_available"
-    >No hay Lista de Pacientes disponible</string>
     <string name="task_image">Imagen de Tarea</string>
-    <string name="patient_list">Lista de pacientes</string>
     <string name="select_location">Seleccionar Ubicación</string>
     <string name="select_patient_list">Seleccionar Lista de Pacientes</string>
     <string
@@ -266,7 +191,6 @@
     <string name="patient_lists_header">Listas de pacientes</string>
     <string name="patient_lists_empty_title">No hay listas de pacientes</string>
     <string name="patient_lists_empty_for_location">No hay listas de pacientes para %1$s. Pruebe con otra ubicación o vuelva a comprobar.</string>
-    <string name="patient_lists_empty_generic">No hay listas de pacientes que mostrar. Vuelva a comprobar en un momento.</string>
     <string name="patient_lists_failed_title">No se pudieron cargar las listas de pacientes</string>
     <string name="patient_lists_failed_message">Compruebe la conexión e inténtelo de nuevo.</string>
     <string name="patient_lists_failed_cached">No se pudieron actualizar las listas. Se muestran las guardadas en este dispositivo.</string>
@@ -297,39 +221,14 @@
     <string name="sync_status_completed_errors">Completada con errores</string>
     <string name="sync_errors_show_all">Mostrar todo (%1$d)</string>
     <string name="sync_errors_show_less">Mostrar menos</string>
-    <string name="sync_history">Historial de sincronización</string>
     <string name="clear_sync_data_confirm">¿Eliminar todos los registros de sincronización terminados? Se conserva una sincronización en curso.</string>
-    <string name="encounter_date">Fecha del Encuentro</string>
-    <string name="encounter_name">Nombre del Encuentro</string>
-    <string name="location_1">Ubicación 1</string>
-    <string
-        name="this_will_show_observations"
-    >Esto mostrará las observaciones.</string>
-    <string name="_50_years_old">50 años de edad</string>
-    <string name="patient_list_1">Lista de Pacientes 1</string>
     <string name="start_time">Hora de inicio</string>
     <string name="downloaded">Descargado</string>
     <string name="uploaded">Subido</string>
     <string name="in_progress">En progreso</string>
     <string name="completed_at">Completado a las</string>
     <string name="errors">Errores</string>
-    <string
-        name="inputs_missing_for_patient"
-    >Faltan datos para el paciente:</string>
-    <string name="start_group_encounter">Iniciar Encuentro Grupal</string>
-    <string name="next_patient">Siguiente Paciente</string>
-    <string name="save_all_encounters">Guardar Todos los Encuentros</string>
-    <string name="saved">GUARDADO</string>
     <string name="group_encounters">Sesión grupal</string>
-    <string
-        name="save_all_submitted_encounters"
-    >Guardar Todos los Encuentros Enviados</string>
-    <string
-        name="do_you_want_to_save_all_submitted_encounters"
-    >¿Desea guardar todos los encuentros enviados?</string>
-    <string
-        name="no_encounters_to_save"
-    >¡No hay encuentros para guardar!</string>
     <string
         name="please_select_at_least_one_patient"
     >Por favor, seleccione al menos un paciente.</string>
@@ -346,18 +245,8 @@
     <string name="inputs_are_missing">Faltan datos.</string>
     <string name="start">Iniciar</string>
     <string
-        name="all_encounter_for_group_session_have_been_saved"
-    >Todos los encuentros de la sesión de grupo se han guardado</string>
-    <string name="do_you_want_to_exit">¿Desea salir?</string>
-    <string
-        name="all_patients_have_been_submitted"
-    >Todos los pacientes han sido enviados</string>
-    <string
         name="encounter_questionnaire_not_found_try_again_later"
     >Cuestionario del encuentro no encontrado, inténtelo más tarde</string>
-    <string
-        name="please_complete_the_required_fields_first"
-    >Por favor, responda primero las preguntas obligatorias.</string>
     <string name="incomplete_form_dialog_title">Formulario incompleto</string>
     <string
         name="required_questions_missing_dialog_message"
@@ -377,7 +266,6 @@
     <string
         name="all_encounters_saved_do_you_want_to_exit"
     >¡Todas las consultas guardadas! ¿Quieres salir?</string>
-    <string name="close_this_window">Cerrar esta ventana</string>
     <string name="sync_minimize">Minimizar</string>
     <string name="sync_show_progress">Mostrar el progreso de la sincronización</string>
     <string
@@ -392,7 +280,6 @@
     <string
         name="this_can_take_up_to_10_minutes_depending_on_your_internet_connection"
     >Esto puede tardar hasta 10 minutos dependiendo de su conexión a Internet</string>
-    <string name="syncing_resources">Sincronizando recursos</string>
     <string
         name="syncing_patient_data"
     >Sincronizando datos del paciente</string>
@@ -400,9 +287,6 @@
     <string
         name="please_try_again_later"
     >Por favor, inténtelo de nuevo más tarde.</string>
-    <string
-        name="unknown_sync_state"
-    >Estado de sincronización desconocido</string>
     <string name="sync_failed">Sincronización fallida</string>
     <string name="sync_completed">Sincronización completada</string>
     <string
@@ -411,10 +295,6 @@
     <string
         name="patient_resources_are_being_synchronized"
     >Sincronizando recursos del paciente…</string>
-    <string name="progress">Progreso</string>
-    <string
-        name="Downloading_patient_data"
-    >Téléchargement des données du patient</string>
     <string
         name="uploading_patient_data"
     >Mise en ligne des données du patient</string>
@@ -428,13 +308,10 @@
         name="use_device_credential"
     >Use su PIN/patrón/contraseña del dispositivo</string>
     <string name="auth_error">Error de autenticación: %1$s</string>
-    <string name="auth_failed">Autenticación fallida</string>
-    <string name="invalid_session">Sesión inválida</string>
     <string
         name="no_supported_offline_auth_method"
     >No hay ningún método de autenticación sin conexión compatible disponible</string>
     <string name="version">Versión</string>
-    <string name="encryption_not_available">Cifrado no disponible</string>
     <string
         name="please_connect_to_the_internet_to_continue_with_authentication"
     >Por favor, conéctate a internet para continuar con la autenticación.</string>
@@ -473,12 +350,6 @@
     <string
         name="auth_failed_offline_login"
     >¡Autenticación fallida! No se puede configurar el inicio de sesión sin conexión ahora</string>
-    <string
-        name="connect_internet_to_select_patient_list"
-    >Por favor, conéctese a internet para seleccionar una lista de pacientes.</string>
-    <string
-        name="server_unreachable_try_again_message"
-    >No se puede acceder al servidor configurado. Por favor, inténtelo de nuevo más tarde.</string>
     <string name="server_unreachable_title">Servidor inaccesible</string>
     <string
         name="server_unreachable_dialog_message"
@@ -519,7 +390,6 @@
     <string name="resume_session">Reanudar sesión</string>
     <string name="start_new_session">Comenzar nueva sesión</string>
     <string name="save_as_draft">Guardar como borrador</string>
-    <string name="submit_all">Enviar todo</string>
     <string name="draft_saved">Borrador guardado.</string>
     <string
         name="complete_screener_before_submit"
@@ -571,11 +441,6 @@
     <string
         name="location_added_to_favorites"
     >Ubicación agregada a favoritos.</string>
-    <string name="identifier_removed">Identificador eliminado</string>
-    <string name="identifier_added">Identificador agregado</string>
-    <string
-        name="failed_to_fetch_all_patient_lists"
-    >No se pudieron obtener todas las listas de pacientes</string>
     <string
         name="failed_to_fetch_all_locations"
     >No se pudieron obtener todas las ubicaciones</string>
@@ -589,17 +454,12 @@
         name="removed_patient_list_from_sync"
     >Lista de pacientes eliminada de la sincronización</string>
     <string name="location_updated">Ubicación actualizada</string>
-    <string name="start_time_with_value">Hora de inicio: %1$s</string>
-    <string
-        name="sync_session_progress"
-    >Descargado %1$d/%2$d | Subido %3$d/%4$d</string>
     <string name="completed_at_with_value">Completado a las: %1$s</string>
     <string name="errors_with_count">Errores: %1$d</string>
     <string name="delete">Eliminar</string>
     <string name="discard">Descartar</string>
     <string name="show_password">Mostrar contraseña</string>
     <string name="hide_password">Ocultar contraseña</string>
-    <string name="show_network_status">Mostrar estado de la red</string>
     <string name="delete_resource_title">Eliminar recurso</string>
     <string
         name="delete_resource_message"
@@ -651,9 +511,6 @@
         name="select_visit_time_title"
     >Selecciona la hora de la visita</string>
     <string name="start_new_visit_title">¿Iniciar una nueva visita?</string>
-    <string
-        name="no_patient_list_selected_message"
-    >No hay ninguna lista de pacientes seleccionada. ¿Quieres seleccionar una?</string>
     <string name="diagnostic_report_subject">Informe de diagnóstico</string>
     <string
         name="diagnostic_report_body"
@@ -666,11 +523,6 @@
     <string name="app_version_with_value">Versión de la app: %1$s</string>
     <string name="not_available">N/D</string>
     <string name="no_name_provided">No se proporcionó nombre</string>
-    <string
-        name="unsynced_observation_fallback_title"
-    >Observación: %1$s</string>
-    <string name="unsynced_encounter_fallback_title">Encuentro: %1$s</string>
-    <string name="unsynced_patient_fallback_name">Paciente: %1$s</string>
 
     <string
         name="discard_changes_title"

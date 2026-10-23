@@ -69,13 +69,6 @@ class LocationFhirSyncWorker(appContext: Context, workerParams: WorkerParameters
     LocationDownloadWorkManagerImpl(applicationContext)
 }
 
-class GroupFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
-  BaseFhirSyncWorker(appContext, workerParams) {
-
-  override fun getDownloadWorkManager(): DownloadWorkManager =
-    GroupDownloadWorkManagerImpl(applicationContext)
-}
-
 /**
  * Downloads and sends nothing (the Sync page's "Download"): the upload phase of the sync does
  * nothing, so what waits on the device stays there.

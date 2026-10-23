@@ -120,17 +120,21 @@ class AuthConfiguration private constructor(private val context: Context) {
     get() =
       if (authConfigData.httpsRequired) {
         DefaultConnectionBuilder.INSTANCE
-      } else if (BuildConfig.DEBUG) {
-        // Development: any certificate is accepted, and "localhost" in the provider's answers is
-        // the
-        // host machine of the emulator.
-        ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2 =
-          authConfigData.replaceLocalhostBy1022 ?: true
-        ConnectionBuilderForTesting
       } else {
-        // A release build never trusts every certificate.
+        // Plain http is allowed (the network security config decides which hosts), https needs a
+        // certificate the system trusts: no build accepts every certificate.
         PlainHttpConnectionBuilder
       }
+
+  /**
+   * Development only: the provider announces "localhost" (a Keycloak in a container on the
+   * developer's machine), which inside the Android emulator is the machine's address 10.0.2.2.
+   */
+  val replaceLocalhost: Boolean
+    get() =
+      BuildConfig.DEBUG &&
+        !authConfigData.httpsRequired &&
+        (authConfigData.replaceLocalhostBy1022 ?: true)
 
   init {
     // Without single sign-on there is nothing to check.

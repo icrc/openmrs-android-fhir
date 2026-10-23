@@ -50,3 +50,16 @@ See [Unsynced resources Compose layout](unsynced-resources-compose.md) for detai
   floating action button in Compose.
 
 See [Patient list Compose layout](patient-list-compose.md) for details.
+
+## What is still XML (and why)
+
+After the clean-up of unused layouts and menus, seven layouts remain in `core/src/main/res/layout`:
+
+| Layout | Why it is still XML |
+|---|---|
+| `activity_main.xml` | The `DrawerLayout` that hosts the navigation graph (`FragmentContainerView`) and the Compose app bar, bottom bar, overlay and drawer. Structural. |
+| `add_patient_fragment.xml`, `generic_formentry_fragment.xml`, `group_formentry_fragment.xml` | Host the form library's own fragment (`QuestionnaireFragment`) in a `FragmentContainerView`. Moving them needs `AndroidFragment` from `androidx.fragment:fragment-compose` and a re-test of every form flow. |
+| `patient_tab_item.xml`, `view_encounter_edit_action.xml` | Item views of the group-session tabs and of the read-only form viewer, inflated by code the form library calls. |
+| `questionnaire_titleless_group.xml` | A view holder layout the form library inflates for groups without a title. |
+
+Every screen the user opens outside a form is Compose. The next candidates are the three form hosts.

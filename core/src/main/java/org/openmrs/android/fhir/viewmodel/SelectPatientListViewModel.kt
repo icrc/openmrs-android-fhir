@@ -72,7 +72,6 @@ constructor(
   private val fhirEngine: FhirEngine,
   private val applicationContext: Context,
 ) : ViewModel() {
-  private var masterSelectPatientListItemList: MutableList<SelectPatientListItem> = mutableListOf()
 
   val selectPatientListItems = MutableLiveData<List<SelectPatientListItem>>()
   private val _uiState = MutableStateFlow(SelectPatientListUiState())
@@ -170,7 +169,6 @@ constructor(
     if (filterPatientListsByGroup && groups.isNotEmpty()) {
       dropSelectionsOutside(selectPatientListItemList.map { it.resourceId }.toSet())
     }
-    masterSelectPatientListItemList = selectPatientListItemList
     selectPatientListItems.value = selectPatientListItemList
     _uiState.update { it.copy(isLoading = false) }
   }
@@ -186,10 +184,6 @@ constructor(
     if (kept.size == selected.size) return
     applicationContext.dataStore.edit { it[PreferenceKeys.SELECTED_PATIENT_LISTS] = kept }
     _uiState.update { it.copy(selectedPatientListIds = kept) }
-  }
-
-  fun getSelectPatientListItemsListFiltered(query: String = ""): List<SelectPatientListItem> {
-    return masterSelectPatientListItemList.filter { it.name.contains(query, true) }
   }
 
   fun onQueryChanged(query: String) {

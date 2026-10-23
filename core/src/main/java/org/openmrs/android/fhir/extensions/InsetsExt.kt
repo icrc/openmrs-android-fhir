@@ -95,8 +95,6 @@ fun rememberAppBarHeight(): Dp {
   return if (measuredPx > 0) with(density) { measuredPx.toDp() } else fallback
 }
 
-@Composable fun statusBarAndActionBarTopInset(): Dp = rememberAppBarHeight() + 16.dp
-
 /**
  * Content padding for screens drawn under the app bar: 16dp gutters plus the app bar height on top.
  * [extraTop] adds screen specific spacing below the bar.
