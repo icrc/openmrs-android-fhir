@@ -31,6 +31,8 @@ package org.openmrs.android.fhir.ui.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -86,6 +88,7 @@ private fun DiagnosticsOption.text() =
  * What to put in the report for support. Everything is ticked at first; while the report is being
  * prepared ([busy]) the choices are locked and a progress bar shows.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DiagnosticsDialog(
   busy: Boolean,
@@ -151,7 +154,11 @@ fun DiagnosticsDialog(
           style = MaterialTheme.typography.titleSmall,
           modifier = Modifier.padding(top = 12.dp),
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        // Wraps to the next line when the chips do not fit (small screen, longer translation).
+        FlowRow(
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
           listOf(
               DiagnosticsRange.EVERYTHING to R.string.diag_range_all,
               DiagnosticsRange.LAST_24_HOURS to R.string.diag_range_24h,
@@ -181,8 +188,20 @@ fun DiagnosticsDialog(
         }
       }
     },
+    // The three buttons in one wrapping row: side by side while they fit, otherwise one under the
+    // other, instead of being squeezed until their words break.
     confirmButton = {
-      Row {
+      FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
+      ) {
+        TextButton(
+          onClick = onDismiss,
+          enabled = !busy,
+          modifier = Modifier.testTag(DiagnosticsDialogTestTags.Cancel),
+        ) {
+          Text(text = stringResource(R.string.cancel))
+        }
         if (onDownload != null) {
           TextButton(
             onClick = { onDownload(chosen, range) },
@@ -199,15 +218,6 @@ fun DiagnosticsDialog(
         ) {
           Text(text = stringResource(R.string.diag_send))
         }
-      }
-    },
-    dismissButton = {
-      TextButton(
-        onClick = onDismiss,
-        enabled = !busy,
-        modifier = Modifier.testTag(DiagnosticsDialogTestTags.Cancel),
-      ) {
-        Text(text = stringResource(R.string.cancel))
       }
     },
   )

@@ -223,31 +223,31 @@ fun ServerSettingsDialog(
         }
       }
     },
+    // All the buttons in one wrapping row, so none is squeezed until its words break.
     confirmButton = {
-      if (showServer) {
-        TextButton(
-          onClick = {
-            val target = normalized ?: return@TextButton
-            if (target == defaultUrl) save(null) else save(target)
-          },
-          enabled = normalized != null,
-          modifier = Modifier.testTag("ServerSaveButton"),
-        ) {
-          Text(text = stringResource(R.string.save))
-        }
-      } else {
-        TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.close)) }
-      }
-    },
-    dismissButton = {
-      if (showServer) {
-        Row {
+      FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
+      ) {
+        if (showServer) {
           if (currentOverride != null) {
             TextButton(onClick = { save(null) }) {
               Text(text = stringResource(R.string.use_default_server))
             }
           }
           TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.cancel)) }
+          TextButton(
+            onClick = {
+              val target = normalized ?: return@TextButton
+              if (target == defaultUrl) save(null) else save(target)
+            },
+            enabled = normalized != null,
+            modifier = Modifier.testTag("ServerSaveButton"),
+          ) {
+            Text(text = stringResource(R.string.save))
+          }
+        } else {
+          TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.close)) }
         }
       }
     },
