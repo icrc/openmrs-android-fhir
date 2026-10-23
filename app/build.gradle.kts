@@ -22,9 +22,27 @@ android {
     versionCode = 1
     versionName = "0.1.1"
   }
+  signingConfigs {
+    // A release key from the environment (never from the repository): OPENMRS_KEYSTORE (path),
+    // OPENMRS_KEYSTORE_PASSWORD, OPENMRS_KEY_ALIAS and OPENMRS_KEY_PASSWORD. See docs/dev/releasing.md.
+    create("release") {
+      providers.environmentVariable("OPENMRS_KEYSTORE").orNull?.let { path ->
+        storeFile = file(path)
+        storePassword = providers.environmentVariable("OPENMRS_KEYSTORE_PASSWORD").orNull
+        keyAlias = providers.environmentVariable("OPENMRS_KEY_ALIAS").orNull
+        keyPassword = providers.environmentVariable("OPENMRS_KEY_PASSWORD").orNull
+      }
+    }
+  }
   buildTypes {
     getByName("release") {
-      signingConfig = signingConfigs.getByName("debug")
+      // Without a release key (a developer's machine) the debug key signs, enough to install.
+      signingConfig =
+        if (signingConfigs.getByName("release").storeFile != null) {
+          signingConfigs.getByName("release")
+        } else {
+          signingConfigs.getByName("debug")
+        }
       // Smaller APK (about a third), off by default: see docs/dev/releasing.md.
       if (providers.gradleProperty("shrinkRelease").orNull == "true") {
         isMinifyEnabled = true

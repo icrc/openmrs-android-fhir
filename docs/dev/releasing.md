@@ -39,18 +39,30 @@ and add keep rules to `proguard-rules.pro` for anything that fails.
 
 ## Signing
 
-The release build is currently signed with the **debug key** of the machine that builds it
-(`signingConfig = signingConfigs.getByName("debug")` in `app/build.gradle.kts` and
-`dev3-app/build.gradle.kts`). That is enough to install it, but:
+With no release key the release build is signed with the **debug key** of the machine that builds
+it. That installs, but an update only installs over a version signed with the same key (APKs built
+on different machines do not update each other) and it cannot be published on Google Play.
 
-- an update only installs over a version signed with the same key, so APKs built on different
-  machines do not update each other;
-- it cannot be published on Google Play.
+For a real distribution, make a release key once and keep it, with its passwords, outside the
+repository:
 
-Before a real distribution, make a release key (`keytool -genkeypair ...`), keep it and its
-passwords outside the repository, and read them from environment variables in a
-`signingConfigs { create("release") { ... } }` block. Losing the key means users have to uninstall
-(and lose the data of the device) to install a version signed with a new one.
+```bash
+keytool -genkeypair -v -keystore openmrs-release.jks -alias openmrs -keyalg RSA -keysize 4096 -validity 10000
+```
+
+Then build with the key in the environment (the build files read these four variables):
+
+```bash
+export OPENMRS_KEYSTORE=/path/to/openmrs-release.jks
+export OPENMRS_KEYSTORE_PASSWORD=...
+export OPENMRS_KEY_ALIAS=openmrs
+export OPENMRS_KEY_PASSWORD=...
+./gradlew :app:assembleRelease
+```
+
+In the CI put the same four as secrets and write the keystore from a base64 secret to a temporary
+file. Losing the key means users have to uninstall (and lose the data of the device) to install a
+version signed with a new one: keep a backup.
 
 ## After
 
