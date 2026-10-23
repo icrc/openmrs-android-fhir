@@ -27,15 +27,21 @@ One APK per processor type is written to `<module>/build/outputs/apk/release/`:
 
 ### Smaller APK (optional)
 
-`./gradlew :app:assembleRelease -PshrinkRelease=true` shrinks the code and resources with R8
-(the `release` block of `app/build.gradle.kts` and `dev3-app/build.gradle.kts`): about 51 MB per ABI instead of 72 MB. It is **off by default**
-because it was only checked partly: the shrunk release build starts, shows the login page, opens
-the guest home and the registration form, and a shrunk *debug* build signed in with the single
-sign-on, synced and navigated. The shrunk **release** build was not run against a server (it does not
-allow plain http, and the test server is http), so sign-in, sync and saving in it are unverified.
-Moshi models use generated adapters and are safe; the FHIR libraries use reflection. Before turning
-it on for a release, run the sign-in, a sync, a patient with an encounter and a save with that APK,
-and add keep rules to `proguard-rules.pro` for anything that fails.
+`./gradlew :app:assembleRelease -PshrinkRelease=true` shrinks the code and resources with R8 (the
+`release` block of `app/build.gradle.kts` and `dev3-app/build.gradle.kts`): about 51 MB per ABI
+instead of 72 MB. It is **off by default**.
+
+Checked on the emulator with the shrunk release APK against the test server (plain http was allowed
+for that build only): starting the app, the login page, the single sign-on, enabling the offline
+login (the Keystore key), the first download (locations through the FHIR SDK), "Sync now" (history
+entries completed), the group-session form list, registering a patient through all the pages of the
+form and saving it, and the patient list showing it.
+
+**Not** checked with it: uploading a saved patient, patient details and encounters with data,
+live mode, the diagnostics archive, import / export, sharing the settings by QR code, the
+tutorial. The FHIR libraries use reflection, so run those with the APK you are about to ship, and
+add keep rules to `proguard-rules.pro` for anything that fails. Moshi models use generated
+adapters and need nothing.
 
 ## Signing
 

@@ -5,8 +5,10 @@
 # Usage: tools/emulator-hosts.sh <host-name> <ip-address>
 #   tools/emulator-hosts.sh sso.example.org 192.168.1.20
 #
-# Needs an emulator image that allows `adb root` (not the "Google Play" ones). A real phone needs
-# the name in its network's DNS or the router instead (see docs/dev/sign-in-setup.md).
+# It lays a hosts file over /system/etc/hosts (a bind mount), which needs no change to the system
+# image but an emulator that allows `adb root` (not the "Google Play" ones). The mapping is gone
+# when the emulator restarts: run this again. A real phone needs the name in its network's DNS or
+# router instead (see docs/dev/sign-in-setup.md).
 set -euo pipefail
 
 if [ "$#" -ne 2 ]; then
@@ -15,15 +17,9 @@ if [ "$#" -ne 2 ]; then
 fi
 host="$1"
 ip="$2"
+export MSYS_NO_PATHCONV=1
 
 adb root >/dev/null
-adb remount >/dev/null 2>&1 || {
-  # First time on this image: the verity check has to be switched off, then the emulator restarted.
-  adb disable-verity
-  echo "Restart the emulator (adb reboot) and run this again." >&2
-  exit 2
-}
-export MSYS_NO_PATHCONV=1
-# Replace an earlier line for the same name, then add the new one.
-adb shell "grep -v ' ${host}\$' /system/etc/hosts > /data/local/tmp/hosts && echo '${ip} ${host}' >> /data/local/tmp/hosts && cp /data/local/tmp/hosts /system/etc/hosts"
-adb shell cat /system/etc/hosts
+adb wait-for-device
+# What is there now (without an earlier line for this name), then the new one.
+adb shell "umount /system/etc/hosts 2>/dev/null; grep -v ' ${host}\$' /system/etc/hosts > /data/local/tmp/hosts; echo '${ip} ${host}' >> /data/local/tmp/hosts; mount -o bind /data/local/tmp/hosts /system/etc/hosts; cat /system/etc/hosts"
