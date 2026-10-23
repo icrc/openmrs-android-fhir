@@ -246,13 +246,16 @@ fun MainActivityScaffold(
   }
 }
 
-/** Items grouped so related actions sit together; the version is a quiet footer. */
+/** Items grouped so related actions sit together. */
 private val DrawerGroups =
   listOf(
     listOf(R.id.menu_sync, R.id.menu_current_location),
     listOf(R.id.menu_settings, R.id.menu_diagnostics),
-    listOf(R.id.menu_logout, R.id.menu_sign_in),
   )
+
+/** What cannot be undone: at the very end of the drawer, above the quiet version footer. */
+private val DrawerEndGroup =
+  listOf(R.id.menu_delete_patient_data, R.id.menu_logout, R.id.menu_sign_in)
 
 @Composable
 fun DrawerContent(
@@ -291,6 +294,13 @@ fun DrawerContent(
       }
     }
 
+    HorizontalDivider(
+      modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+      color = MaterialTheme.colorScheme.outlineVariant,
+    )
+    DrawerEndGroup.mapNotNull { itemsById[it] }
+      .forEach { item -> DrawerEntry(item = item, onClick = { onDrawerItemSelected(item.id) }) }
+
     if (versionItem != null) {
       Text(
         text = versionItem.title,
@@ -308,7 +318,8 @@ fun DrawerContent(
 
 @Composable
 private fun DrawerEntry(item: DrawerItem, onClick: () -> Unit) {
-  val isLogout = item.id == R.id.menu_logout
+  // What cannot be undone is red: leaving the session, and deleting the patient data.
+  val isLogout = item.id == R.id.menu_logout || item.id == R.id.menu_delete_patient_data
   val contentColor =
     if (isLogout) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
   val iconColor =
@@ -578,8 +589,18 @@ private fun SyncPopupCard(
               id = R.string.leave_the_device_in_a_location_with_good_internet_reception,
             ),
         )
+        // The blocking first download cannot be minimized or skipped: say so instead of promising
+        // that other things can be done meanwhile.
         SyncTip(
-          text = stringResource(id = R.string.you_can_do_other_things_on_the_device_while_it_syncs),
+          text =
+            stringResource(
+              id =
+                if (canMinimize) {
+                  R.string.you_can_do_other_things_on_the_device_while_it_syncs
+                } else {
+                  R.string.sync_first_download_wait
+                },
+            ),
         )
       }
       if (canMinimize) {

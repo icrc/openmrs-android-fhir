@@ -32,14 +32,6 @@ import android.content.Context
 import org.openmrs.android.fhir.R
 import org.xmlpull.v1.XmlPullParser
 
-/** Single sign-on provider (OpenID Connect). */
-data class SsoConfig(
-  /** Shown on the login button: "Sign in with <name>". Blank: "Sign in with SSO". */
-  val providerName: String,
-  val discoveryUrl: String,
-  val clientId: String,
-)
-
 /** What the app downloads. */
 data class SyncConfig(
   /** Tag of the locations offered at login (and downloaded). */
@@ -79,7 +71,6 @@ internal constructor(
   val authMethod: String,
   /** Offer "Continue without signing in". */
   val guestMode: Boolean,
-  val sso: SsoConfig?,
   val sync: SyncConfig,
   /** Resource id (synced) or file name (assets) of the patient registration questionnaire. */
   val registrationForm: String,
@@ -115,7 +106,6 @@ internal constructor(
       var serverUrl: String? = null
       var authMethod = "basic"
       var guestMode = false
-      var sso: SsoConfig? = null
       var sync = SyncConfig("Login Location", "", true, "")
       var registrationForm = "new-patient-registration-paginated"
       var fetchIdentifiers = true
@@ -140,13 +130,6 @@ internal constructor(
               authMethod = attr("method") ?: authMethod
               guestMode = attr("guest-mode") == "true"
             }
-            "sso" ->
-              sso =
-                SsoConfig(
-                  providerName = attr("provider-name").orEmpty(),
-                  discoveryUrl = attr("discovery-url").orEmpty(),
-                  clientId = attr("client-id") ?: "openmrs-fhir",
-                )
             "sync" ->
               sync =
                 SyncConfig(
@@ -160,10 +143,8 @@ internal constructor(
               registrationForm = attr("registration-form") ?: registrationForm
               fetchIdentifiers = attr("fetch-identifiers")?.let { it == "true" } ?: true
             }
-            "support" -> {
-              supportEmail = attr("email").orEmpty()
-              diagnosticsPassword = attr("diagnostics-password").orEmpty()
-            }
+            "support" -> supportEmail = attr("email").orEmpty()
+            "diagnostics" -> diagnosticsPassword = attr("password").orEmpty()
             "audit" ->
               auditActions = (attr("max-actions")?.toIntOrNull() ?: auditActions).coerceIn(50, 5000)
             "section" -> {
@@ -193,21 +174,14 @@ internal constructor(
         requireNotNull(serverUrl?.takeIf { it.isNotEmpty() }) {
           "app_config.xml: <server url=\"...\"/> is required"
         }
-      val methods =
-        authMethod.split(',', ' ').map { it.trim().lowercase() }.filter { it.isNotEmpty() }
-      val needsSso = "openid" in methods || "both" in methods
-      require(!needsSso || !sso?.discoveryUrl.isNullOrEmpty()) {
-        "app_config.xml: auth method '$authMethod' needs <sso discovery-url=\"...\"/>"
-      }
       require(diagnosticsPassword.isNotEmpty()) {
-        "app_config.xml: <support diagnostics-password=\"...\"/> is required: it protects the " +
+        "app_config.xml: <diagnostics password=\"...\"/> is required: it protects the " +
           "diagnostics archive and the application logs"
       }
       return AppConfig(
         serverUrl = server.trimEnd('/'),
         authMethod = authMethod,
         guestMode = guestMode,
-        sso = sso,
         sync = sync,
         registrationForm = registrationForm,
         fetchIdentifiers = fetchIdentifiers,

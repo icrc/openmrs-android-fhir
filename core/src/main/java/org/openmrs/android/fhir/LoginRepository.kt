@@ -41,6 +41,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import net.openid.appauth.AppAuthConfiguration
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationException
@@ -69,6 +71,7 @@ private constructor(
   private var authService: AuthorizationService,
 ) : HttpAuthenticator {
   private val clientId = AtomicReference<String?>()
+  private val refreshMutex = Mutex()
   private val authRequest = AtomicReference<AuthorizationRequest?>()
   private val _needLogin = MutableStateFlow(false)
   val needLogin: StateFlow<Boolean> = _needLogin.asStateFlow()
@@ -260,9 +263,33 @@ private constructor(
     }
   }
 
+  /**
+   * The access token for a request. A single sign-on token only lives a few minutes, so one that
+   * has run out is renewed first with the refresh token: the background sync keeps working without
+   * the user signing in again.
+   */
   fun getAccessToken(): String {
-    return runBlocking { authStateManager.current.accessToken ?: "" }
+    return runBlocking {
+      renewAccessTokenIfNeeded()
+      authStateManager.current.accessToken ?: ""
+    }
   }
+
+  /**
+   * Renews the access token with the refresh token when it has run out, once even if several
+   * requests ask at the same time.
+   *
+   * @return whether a valid access token is there afterwards (`false`: the user has to sign in).
+   */
+  suspend fun renewAccessTokenIfNeeded(): Boolean =
+    refreshMutex.withLock {
+      val state = authStateManager.current
+      if (!state.isAuthorized) return@withLock false
+      if (!state.needsTokenRefresh) return@withLock true
+      if (state.refreshToken.isNullOrEmpty()) return@withLock false
+      runCatching { refreshAccessToken() }.onFailure { Timber.w(it, "Token refresh failed") }
+      authStateManager.current.let { it.isAuthorized && !it.needsTokenRefresh }
+    }
 
   suspend fun refreshAccessToken() {
     return suspendCoroutine { cont ->

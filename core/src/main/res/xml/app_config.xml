@@ -11,14 +11,7 @@
 
     <!-- What the login page offers: basic (username and password), openid (single sign-on) or
          both. guest-mode adds "Continue without signing in": work offline, sign in to sync. -->
-    <auth method="both" guest-mode="false">
-        <!-- Needed for openid and both. provider-name is optional: "Sign in with <name>". -->
-        <sso
-            provider-name=""
-            discovery-url="http://10.0.2.2:8081/realms/main/.well-known/openid-configuration"
-            client-id="openmrs-fhir"
-        />
-    </auth>
+    <auth method="both" guest-mode="false" />
 
     <!-- What is downloaded. Locations (with this tag), patient lists (Groups), questionnaires, and
          the patients of the lists the user selects with their encounters and observations.
@@ -39,7 +32,9 @@
 
     <!-- Where "Send diagnostics" goes. The password (required: change it) protects the
          archive and the application logs; support needs it to open a report. -->
-    <support email="support@example.com" diagnostics-password="changeIt" />
+    <support email="support@example.com" />
+
+    <diagnostics password="changeIt" />
 
     <!-- The audit trail kept for the support team (sign-ins, patients and encounters created or
          edited, syncs...): the last max-actions steps (50-5000); older ones are overwritten. -->

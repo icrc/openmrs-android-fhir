@@ -135,74 +135,77 @@ private fun LoginFrame(
     modifier =
       modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).testTag(screenTag),
   ) {
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding()) {
-      Box(modifier = Modifier.fillMaxWidth()) {
-        LoginHeader(logoTag = logoTag)
-        Card(
-          modifier = Modifier.fillMaxWidth().padding(top = 250.dp, start = 20.dp, end = 20.dp),
-          shape = RoundedCornerShape(24.dp),
-          colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-          elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        ) {
-          Column(modifier = Modifier.fillMaxWidth().padding(24.dp), content = content)
+    // The footer is a row of its own under the scrolling page, so on a small screen it never
+    // covers the end of the card.
+    Column(modifier = Modifier.fillMaxSize().imePadding()) {
+      Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+          LoginHeader(logoTag = logoTag)
+          Card(
+            modifier = Modifier.fillMaxWidth().padding(top = 250.dp, start = 20.dp, end = 20.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+          ) {
+            Column(modifier = Modifier.fillMaxWidth().padding(24.dp), content = content)
+          }
         }
+        Spacer(modifier = Modifier.height(16.dp))
       }
-      // Room for the footer below the card.
-      Spacer(modifier = Modifier.height(88.dp))
-    }
 
-    Row(
-      modifier =
-        Modifier.align(Alignment.BottomCenter)
-          .fillMaxWidth()
-          .navigationBarsPadding()
-          .padding(horizontal = 24.dp, vertical = 8.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Text(
-        text = stringResource(R.string.app_version_footer, version),
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.weight(1f).testTag("LoginVersion"),
-      )
-      footerActions()
-      if (onShowTour != null) {
+      Row(
+        modifier =
+          Modifier.fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .navigationBarsPadding()
+            .padding(horizontal = 24.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+          text = stringResource(R.string.app_version_footer, version),
+          style = MaterialTheme.typography.labelMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.weight(1f).testTag("LoginVersion"),
+        )
+        footerActions()
+        if (onShowTour != null) {
+          IconButton(
+            onClick = onShowTour,
+            modifier = Modifier.size(40.dp).testTag("TutorialButton"),
+          ) {
+            Icon(
+              imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
+              contentDescription = stringResource(R.string.tutorial_show),
+              tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+        }
         IconButton(
-          onClick = onShowTour,
-          modifier = Modifier.size(40.dp).testTag("TutorialButton"),
+          onClick = { showShareDialog = true },
+          modifier =
+            Modifier.size(40.dp)
+              .testTag("ShareSettingsButton")
+              .tutorialTarget(TutorialTargets.LOGIN_SHARE),
         ) {
           Icon(
-            imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
-            contentDescription = stringResource(R.string.tutorial_show),
+            imageVector = Icons.Filled.QrCode2,
+            contentDescription = stringResource(R.string.share_title),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
           )
         }
-      }
-      IconButton(
-        onClick = { showShareDialog = true },
-        modifier =
-          Modifier.size(40.dp)
-            .testTag("ShareSettingsButton")
-            .tutorialTarget(TutorialTargets.LOGIN_SHARE),
-      ) {
-        Icon(
-          imageVector = Icons.Filled.QrCode2,
-          contentDescription = stringResource(R.string.share_title),
-          tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-      }
-      IconButton(
-        onClick = { showServerDialog = true },
-        modifier =
-          Modifier.size(40.dp)
-            .testTag("ServerSettingsButton")
-            .tutorialTarget(TutorialTargets.LOGIN_SERVER),
-      ) {
-        Icon(
-          imageVector = Icons.Filled.Settings,
-          contentDescription = stringResource(R.string.settings),
-          tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        IconButton(
+          onClick = { showServerDialog = true },
+          modifier =
+            Modifier.size(40.dp)
+              .testTag("ServerSettingsButton")
+              .tutorialTarget(TutorialTargets.LOGIN_SERVER),
+        ) {
+          Icon(
+            imageVector = Icons.Filled.Settings,
+            contentDescription = stringResource(R.string.settings),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
       }
     }
   }
@@ -279,7 +282,6 @@ fun LoginScreen(
   onBasicLogin: (String, String) -> Unit,
   onSsoLogin: () -> Unit,
   modifier: Modifier = Modifier,
-  ssoProviderName: String? = null,
   initialUsername: String = "",
   onContinueWithoutLogin: (() -> Unit)? = null,
   /** The users with data on the device waiting to upload; `null` while not known. */
@@ -373,7 +375,6 @@ fun LoginScreen(
       }
       if (showSso) {
         SsoLoginButton(
-          providerName = ssoProviderName,
           isPrimary = !showBasic,
           enabled = isSsoEnabled && serverReachable,
           onClick = onSsoLogin,
@@ -490,14 +491,12 @@ private fun ColumnScope.BasicLoginForm(
 /** Single sign-on; the main action when it is the only method, otherwise the alternative. */
 @Composable
 private fun SsoLoginButton(
-  providerName: String?,
   isPrimary: Boolean,
   enabled: Boolean,
   onClick: () -> Unit,
 ) {
   val label =
     when {
-      !providerName.isNullOrBlank() -> stringResource(R.string.sign_in_with_provider, providerName)
       isPrimary -> stringResource(R.string.button_login)
       else -> stringResource(R.string.sign_in_with_sso)
     }

@@ -168,6 +168,11 @@ constructor(
   /** The database was emptied: forget what was cached. */
   fun forget() = store.invalidate()
 
+  /** Their records were removed from the device: nobody is waiting to be identified any more. */
+  suspend fun removeAll() {
+    lock.withLock { store.ids().forEach { store.remove(it) } }
+  }
+
   // ---- records of a placeholder -----------------------------------------------------------------
 
   private suspend fun recordsOf(patientId: String): List<Resource> {

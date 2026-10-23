@@ -54,6 +54,12 @@ interface UserDataDao {
 
   @Delete suspend fun removePending(changes: List<PendingChange>)
 
+  @Query("DELETE FROM patient_owner WHERE patientId IN (:patientIds)")
+  suspend fun removeOwnersOf(patientIds: List<String>)
+
+  @Query("DELETE FROM pending_change WHERE patientId IN (:patientIds)")
+  suspend fun removePendingOf(patientIds: List<String>)
+
   @Query("DELETE FROM pending_change") suspend fun clearPending()
 
   @Query("DELETE FROM patient_owner") suspend fun clearOwners()

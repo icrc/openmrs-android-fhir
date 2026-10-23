@@ -749,7 +749,6 @@
     <string name="offline_login_not_set_status">Вход без подключения ещё не настроен. Его предложат при следующем входе.</string>
     <string name="continue_without_login">Продолжить без входа</string>
     <string name="sign_in_with_sso">Войти через SSO</string>
-    <string name="sign_in_with_provider">Войти через %1$s</string>
     <string name="login_or">или</string>
     <string name="settings_section_shared_device">Общее устройство</string>
     <string name="settings_share_my_data">Разрешить другим пользователям видеть мои зарегистрированные данные</string>
@@ -1149,4 +1148,12 @@
     <string name="encounter_generic_unnamed">Значение без названия</string>
     <string name="choose_location">Выбрать место</string>
     <string name="patient_lists_empty_no_location">Место ещё не выбрано. Выберите место, чтобы увидеть его списки пациентов.</string>
+    <string name="sync_first_download_wait">Подождите здесь: эта первая загрузка нужна, чтобы продолжить, и её нельзя пропустить.</string>
+    <string name="delete_patient_data_menu">Удалить данные пациентов</string>
+    <string name="delete_patient_data_title">Удалить все данные пациентов?</string>
+    <string name="delete_patient_data_message">С устройства будут удалены пациенты (%1$d) этого пользователя вместе с их встречами и наблюдениями, пациенты для последующей идентификации и черновики групповых сессий; списки пациентов будут сняты с выбора. Вы остаётесь в системе, а ваше место сохраняется — можно начать заново.</string>
+    <string name="delete_patient_data_unsynced">У %1$d записей есть изменения, которые ещё не отправлены. Они будут потеряны.</string>
+    <string name="delete_patient_data_confirm">Удалить</string>
+    <string name="delete_patient_data_done">Данные пациентов удалены. Выберите списки пациентов для повторной загрузки.</string>
+    <string name="delete_patient_data_failed">Не удалось удалить данные пациентов.</string>
 </resources>

@@ -674,7 +674,6 @@
     <string name="offline_login_not_set_status">لم يتم إعداد تسجيل الدخول دون اتصال بعد. سيُطلب منك ذلك عند تسجيل الدخول التالي.</string>
     <string name="continue_without_login">المتابعة دون تسجيل الدخول</string>
     <string name="sign_in_with_sso">تسجيل الدخول عبر SSO</string>
-    <string name="sign_in_with_provider">تسجيل الدخول عبر %1$s</string>
     <string name="login_or">أو</string>
     <string name="settings_section_shared_device">جهاز مشترك</string>
     <string name="settings_share_my_data">السماح للمستخدمين الآخرين برؤية بياناتي المسجلة</string>
@@ -1084,4 +1083,12 @@
     <string name="encounter_generic_unnamed">قيمة بلا اسم</string>
     <string name="choose_location">اختيار المكان</string>
     <string name="patient_lists_empty_no_location">لم يتم اختيار مكان بعد. اختر مكانًا لعرض قوائم المرضى الخاصة به.</string>
+    <string name="sync_first_download_wait">يرجى الانتظار هنا: هذا التنزيل الأول مطلوب للمتابعة ولا يمكن تخطيه.</string>
+    <string name="delete_patient_data_menu">حذف بيانات المرضى</string>
+    <string name="delete_patient_data_title">حذف كل بيانات المرضى؟</string>
+    <string name="delete_patient_data_message">سيؤدي هذا إلى إزالة مرضى هذا المستخدم (%1$d) من الجهاز مع لقاءاتهم وملاحظاتهم، والمرضى المراد تحديد هويتهم لاحقًا ومسودات الجلسات الجماعية، وإلغاء تحديد قوائم المرضى. تبقى مسجّلًا دخولك ويُحتفظ بمكانك، فيمكنك بدء مسار جديد.</string>
+    <string name="delete_patient_data_unsynced">لدى %1$d سجلات تغييرات لم يتم رفعها بعد. ستُفقد.</string>
+    <string name="delete_patient_data_confirm">حذف</string>
+    <string name="delete_patient_data_done">تم حذف بيانات المرضى. اختر قوائم المرضى لتنزيلها من جديد.</string>
+    <string name="delete_patient_data_failed">تعذّر حذف بيانات المرضى.</string>
 </resources>

@@ -60,6 +60,13 @@ class DemoDataStore(private val context: Context) {
     context.dataStorage.edit { pref -> pref[stringPreferencesKey(resourceType.name)] = timestamp }
   }
 
+  /** The next download of these types starts from the beginning again. */
+  suspend fun clearLastUpdatedTimestamps(vararg types: ResourceType) {
+    context.dataStorage.edit { pref ->
+      types.forEach { pref.remove(stringPreferencesKey(it.name)) }
+    }
+  }
+
   suspend fun getLasUpdateTimestamp(resourceType: ResourceType): String? {
     return context.dataStorage.data.first()[stringPreferencesKey(resourceType.name)]
   }

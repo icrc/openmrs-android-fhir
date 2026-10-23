@@ -2,18 +2,15 @@
 <app-config>
     <server url="http://10.0.2.2:8080/openmrs" />
 
-    <auth method="openid" guest-mode="false">
-        <sso
-            discovery-url="http://10.0.2.2:8081/realms/main/.well-known/openid-configuration"
-            client-id="openmrs-fhir"
-        />
-    </auth>
+    <auth method="openid" guest-mode="false" />
 
     <sync location-tag="Login Location" filter-patient-lists-by-location="true" />
 
     <patients registration-form="new-patient-registration-paginated" fetch-identifiers="false" />
 
-    <support email="parthgeek@gmail.com" diagnostics-password="changeit" />
+    <support email="parthgeek@gmail.com" />
+
+    <diagnostics password="changeit" />
 
     <form-sections>
         <section name="Test Forms">

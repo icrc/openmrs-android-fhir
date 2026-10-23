@@ -287,6 +287,12 @@ constructor(
       .sortedWith(compareByDescending<PendingUser> { it.records }.thenBy { it.user })
   }
 
+  /** These patients were removed from the device: the notes about them go too. */
+  suspend fun forget(patientIds: Collection<String>) {
+    note { patientIds.chunked(CHUNK).forEach { dao.removeOwnersOf(it) } }
+    note { patientIds.chunked(CHUNK).forEach { dao.removePendingOf(it) } }
+  }
+
   /** The device was wiped: so are the notes. */
   suspend fun clear() {
     dao.clearPending()

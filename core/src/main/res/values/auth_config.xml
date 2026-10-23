@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  Single sign-on (OpenID Connect). Used when the login page offers openid (see <auth method> in
+  app_config.xml). Every application module (app, dev3-app) may ship its own copy of this file in
+  res/values/, which replaces this one.
+
+  auth_redirect_uri_host  the scheme of the redirect the provider sends the user back to; the
+                          manifest registers it, so it is "<host>:<path>" in the provider's
+                          allowed redirect URIs (Keycloak: org.openmrs.android.fhir.app:/oauth2redirect)
+  auth_discovery_uri      the provider's discovery document; from the Android emulator the host
+                          machine is 10.0.2.2
+  auth_https_required     false lets a provider on plain http be used (development only)
+-->
+<resources>
+    <string name="auth_authorization_scope">openid</string>
+    <string name="auth_client_id">openmrs-fhir</string>
+    <string name="auth_redirect_uri_host">org.openmrs.android.fhir.app</string>
+    <string name="auth_redirect_uri_path">/oauth2redirect</string>
+    <string name="auth_discovery_uri">http://10.0.2.2:8081/realms/main/.well-known/openid-configuration</string>
+    <bool name="auth_https_required">false</bool>
+</resources>

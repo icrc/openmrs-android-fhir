@@ -48,6 +48,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
@@ -185,11 +186,24 @@ class SelectPatientListFragment : Fragment() {
   }
 
   private fun proceedToHomeFragment() {
-    mainActivityViewModel.requestSync()
-    findNavController()
-      .navigate(
-        SelectPatientListFragmentDirections.actionSelectPatientListFragmentToHomeFragment(),
-      )
+    viewLifecycleOwner.lifecycleScope.launch {
+      // A sync needs a location (it is stamped on what is uploaded). The user who chose none just
+      // said so: the first sync is not started, and nobody is asked again; the location is asked
+      // for
+      // when a sync is requested.
+      val hasLocation =
+        !requireContext()
+          .applicationContext
+          .dataStore
+          .data
+          .first()[PreferenceKeys.LOCATION_ID]
+          .isNullOrBlank()
+      if (hasLocation) mainActivityViewModel.requestSync()
+      findNavController()
+        .navigate(
+          SelectPatientListFragmentDirections.actionSelectPatientListFragmentToHomeFragment(),
+        )
+    }
   }
 
   private fun configureUi(actionBar: androidx.appcompat.app.ActionBar?) {

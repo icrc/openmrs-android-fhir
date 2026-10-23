@@ -736,7 +736,6 @@
     <string name="offline_login_not_set_status">El acceso sin conexión aún no está configurado. Se le preguntará en el próximo inicio de sesión.</string>
     <string name="continue_without_login">Continuar sin iniciar sesión</string>
     <string name="sign_in_with_sso">Iniciar sesión con SSO</string>
-    <string name="sign_in_with_provider">Iniciar sesión con %1$s</string>
     <string name="login_or">o</string>
     <string name="settings_section_shared_device">Dispositivo compartido</string>
     <string name="settings_share_my_data">Permitir que otros usuarios vean mis datos registrados</string>
@@ -1130,4 +1129,12 @@
     <string name="encounter_generic_unnamed">Valor sin nombre</string>
     <string name="choose_location">Elegir lugar</string>
     <string name="patient_lists_empty_no_location">Todavía no hay un lugar seleccionado. Elija un lugar para ver sus listas de pacientes.</string>
+    <string name="sync_first_download_wait">Espere aquí: esta primera descarga es necesaria para continuar y no se puede omitir.</string>
+    <string name="delete_patient_data_menu">Eliminar datos de pacientes</string>
+    <string name="delete_patient_data_title">¿Eliminar todos los datos de pacientes?</string>
+    <string name="delete_patient_data_message">Esto quita del dispositivo los pacientes (%1$d) de este usuario, con sus encuentros y observaciones, los pacientes por identificar y los borradores de sesiones de grupo, y deselecciona las listas de pacientes. Sigue con la sesión iniciada y se conserva su lugar, así que puede empezar un nuevo flujo.</string>
+    <string name="delete_patient_data_unsynced">%1$d registros tienen cambios que aún no se enviaron. Se perderán.</string>
+    <string name="delete_patient_data_confirm">Eliminar</string>
+    <string name="delete_patient_data_done">Datos de pacientes eliminados. Elija las listas de pacientes que desea descargar de nuevo.</string>
+    <string name="delete_patient_data_failed">No se pudieron eliminar los datos de pacientes.</string>
 </resources>

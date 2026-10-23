@@ -26,6 +26,11 @@
             app:showAsAction="never"
         />
   <item
+            android:id="@+id/menu_delete_patient_data"
+            android:icon="@drawable/ic_delete"
+            android:title="@string/delete_patient_data_menu"
+        />
+  <item
             android:id="@+id/menu_logout"
             android:icon="@drawable/ic_logout"
             android:title="@string/logout"

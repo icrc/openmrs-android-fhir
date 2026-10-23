@@ -51,8 +51,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material3.Button
@@ -394,12 +396,15 @@ fun PatientListSelectionScreen(
                 },
               style = MaterialTheme.typography.bodyMedium,
               fontWeight = FontWeight.Medium,
+              // Not a warning: choosing no location is allowed. A quiet grey that follows the
+              // theme.
               color =
                 if (noLocation) {
-                  OpenMrsTheme.colors.warning
+                  MaterialTheme.colorScheme.onSurfaceVariant
                 } else {
                   MaterialTheme.colorScheme.onSurface
                 },
+              fontStyle = if (noLocation) FontStyle.Italic else FontStyle.Normal,
               maxLines = 3,
               overflow = TextOverflow.Ellipsis,
             )
@@ -452,6 +457,8 @@ fun PatientListSelectionScreen(
             isRefreshing = isRefreshing,
             locationName = locationName,
             onRetry = onRetry,
+            // Takes the room above the action button, which therefore stays at the bottom.
+            modifier = Modifier.weight(1f),
           )
         else -> {
           if (patientLists.isEmpty()) {
@@ -602,6 +609,7 @@ private fun PatientListsEmptyState(
     modifier =
       modifier
         .fillMaxWidth()
+        .verticalScroll(rememberScrollState())
         .padding(horizontal = 32.dp)
         .padding(top = 48.dp)
         .testTag("PatientListEmptyState"),

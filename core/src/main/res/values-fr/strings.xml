@@ -762,7 +762,6 @@
     <string name="offline_login_not_set_status">La connexion hors ligne n\'est pas encore configurée. Elle vous sera proposée à la prochaine connexion.</string>
     <string name="continue_without_login">Continuer sans se connecter</string>
     <string name="sign_in_with_sso">Se connecter avec le SSO</string>
-    <string name="sign_in_with_provider">Se connecter avec %1$s</string>
     <string name="login_or">ou</string>
     <string name="settings_section_shared_device">Appareil partagé</string>
     <string name="settings_share_my_data">Laisser les autres utilisateurs voir mes données enregistrées</string>
@@ -1156,4 +1155,12 @@
     <string name="encounter_generic_unnamed">Valeur sans nom</string>
     <string name="choose_location">Choisir un lieu</string>
     <string name="patient_lists_empty_no_location">Aucun lieu n\'est sélectionné. Choisissez un lieu pour voir ses listes de patients.</string>
+    <string name="sync_first_download_wait">Veuillez patienter ici : ce premier téléchargement est nécessaire pour continuer et ne peut pas être ignoré.</string>
+    <string name="delete_patient_data_menu">Supprimer les données des patients</string>
+    <string name="delete_patient_data_title">Supprimer toutes les données des patients ?</string>
+    <string name="delete_patient_data_message">Cela retire de l\'appareil les patients (%1$d) de cet utilisateur, avec leurs rencontres et observations, les patients à identifier et les brouillons de sessions de groupe, et désélectionne les listes de patients. Vous restez connecté et votre lieu est conservé : vous pouvez recommencer un nouveau parcours.</string>
+    <string name="delete_patient_data_unsynced">%1$d enregistrements ont des modifications pas encore envoyées. Elles seront perdues.</string>
+    <string name="delete_patient_data_confirm">Supprimer</string>
+    <string name="delete_patient_data_done">Données des patients supprimées. Choisissez les listes de patients à télécharger de nouveau.</string>
+    <string name="delete_patient_data_failed">Impossible de supprimer les données des patients.</string>
 </resources>

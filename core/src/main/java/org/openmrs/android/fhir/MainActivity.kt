@@ -78,6 +78,7 @@ import com.google.android.fhir.FhirEngine
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -95,6 +96,7 @@ import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.OpenMRSHelper
+import org.openmrs.android.fhir.data.PatientDataEraser
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.diagnostics.DiagnosticsBuilder
@@ -106,6 +108,7 @@ import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.ServerSettings
 import org.openmrs.android.fhir.data.remote.isServerReachable
+import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.data.sync.SyncMode
 import org.openmrs.android.fhir.data.transfer.DataTransfer
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
@@ -742,6 +745,12 @@ class MainActivity : AppCompatActivity() {
           testTag = "DrawerItemDiagnostics",
         ),
         DrawerItem(
+          id = R.id.menu_delete_patient_data,
+          iconRes = R.drawable.ic_delete,
+          title = context.getString(R.string.delete_patient_data_menu),
+          testTag = "DrawerItemDeletePatientData",
+        ),
+        DrawerItem(
           id = R.id.menu_logout,
           iconRes = R.drawable.ic_logout,
           title = context.getString(R.string.logout),
@@ -818,6 +827,7 @@ class MainActivity : AppCompatActivity() {
         val connectivityState = viewModel.networkStatus.value
         viewModel.requestLogoutDialog(connectivityState)
       }
+      R.id.menu_delete_patient_data -> showDeletePatientDataDialog()
       R.id.menu_settings -> {
         getNavController()?.navigate(R.id.settings_fragment)
       }
@@ -918,15 +928,16 @@ class MainActivity : AppCompatActivity() {
   private fun syncWithLocation() {
     val connectivityState = viewModel.networkStatus.value
     when {
-      !isTokenExpired() && connectivityState.isServerReachable() -> {
-        checkNotificationPermission()
-        val fetchIdentifiers = AppConfig.get(applicationContext).fetchIdentifiers
-        viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers, requestedSyncMode)
-        closeNavigationDrawer()
-      }
-      isTokenExpired() && connectivityState.isServerReachable() -> {
-        viewModel.requestTokenExpiredDialog(connectivityState)
-      }
+      !isTokenExpired() && connectivityState.isServerReachable() -> startSync()
+      isTokenExpired() && connectivityState.isServerReachable() ->
+        lifecycleScope.launch {
+          // A refresh token renews the session without bothering the user.
+          if (loginRepository.renewAccessTokenIfNeeded()) {
+            startSync()
+          } else {
+            viewModel.requestTokenExpiredDialog(connectivityState)
+          }
+        }
       connectivityState is ServerConnectivityState.InternetOnly -> {
         AppMessage.show(
           this@MainActivity,
@@ -938,6 +949,13 @@ class MainActivity : AppCompatActivity() {
         AppMessage.show(this@MainActivity, R.string.sync_device_offline_message, MessageKind.Error)
       }
     }
+  }
+
+  private fun startSync() {
+    checkNotificationPermission()
+    val fetchIdentifiers = AppConfig.get(applicationContext).fetchIdentifiers
+    viewModel.triggerOneTimeSync(applicationContext, fetchIdentifiers, requestedSyncMode)
+    closeNavigationDrawer()
   }
 
   /** Guest patients cannot be uploaded without an identifier; let the user pick the types. */
@@ -1073,8 +1091,18 @@ class MainActivity : AppCompatActivity() {
           if (isTokenExpired()) {
             val connectivityState = viewModel.networkStatus.value
             if (connectivityState.isServerReachable()) {
-              viewModel.requestTokenExpiredDialog(connectivityState)
-              tokenExpiryHandler?.removeCallbacks(this)
+              val check = this
+              lifecycleScope.launch {
+                // Renewed with the refresh token: nothing to ask, the check goes on.
+                if (loginRepository.renewAccessTokenIfNeeded()) {
+                  tokenExpiryHandler?.postDelayed(check, tokenExpiryDelay)
+                } else {
+                  viewModel.requestTokenExpiredDialog(connectivityState)
+                  tokenExpiryHandler?.removeCallbacks(check)
+                }
+              }
+            } else {
+              tokenExpiryHandler?.postDelayed(this, tokenExpiryDelay)
             }
           } else {
             tokenExpiryHandler?.postDelayed(this, tokenExpiryDelay)
@@ -1279,6 +1307,98 @@ class MainActivity : AppCompatActivity() {
       .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.dismiss() }
       .setCancelable(false)
       .show()
+  }
+
+  private fun patientDataEraser(): PatientDataEraser {
+    val component = FhirApplication.appComponent(applicationContext)
+    return PatientDataEraser(
+      applicationContext,
+      fhirEngine,
+      database,
+      component.userDataLedger(),
+      component.unidentifiedPatients(),
+    )
+  }
+
+  /**
+   * Drawer > "Delete patient data": the patients of the signed-in user (with their encounters and
+   * observations) leave the device, the lists are deselected and nobody is waiting to be
+   * identified; the session and the location stay, so a new flow can start.
+   */
+  private fun showDeletePatientDataDialog() {
+    lifecycleScope.launch {
+      val preview = withContext(Dispatchers.Default) { patientDataEraser().preview() }
+      val message =
+        android.text.SpannableStringBuilder(
+          getString(R.string.delete_patient_data_message, preview.patients),
+        )
+      if (preview.notUploaded > 0) {
+        message.append("\n\n")
+        val start = message.length
+        message.append(getString(R.string.delete_patient_data_unsynced, preview.notUploaded))
+        message.setSpan(
+          android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+          start,
+          message.length,
+          android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+        )
+      }
+      val dialog =
+        MaterialAlertDialogBuilder(this@MainActivity)
+          .setTitle(getString(R.string.delete_patient_data_title))
+          .setMessage(message)
+          .setPositiveButton(getString(R.string.delete_patient_data_confirm)) { dialog, _ ->
+            dialog.dismiss()
+            deletePatientData()
+          }
+          .setNegativeButton(getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
+          .setCancelable(false)
+          .create()
+      dialog.show()
+      // The confirming button is in the danger colour.
+      dialog
+        .getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
+        ?.setTextColor(
+          com.google.android.material.color.MaterialColors.getColor(
+            this@MainActivity,
+            androidx.appcompat.R.attr.colorError,
+            android.graphics.Color.RED,
+          ),
+        )
+    }
+  }
+
+  private fun deletePatientData() {
+    // What is running would write what is being deleted.
+    viewModel.cancelSync()
+    WorkManager.getInstance(applicationContext).cancelUniqueWork(LiveSync.WORK_NAME)
+    viewModel.setLoading(true)
+    updateOverlayVisibility()
+    lifecycleScope.launch {
+      val removed =
+        try {
+          withContext(Dispatchers.Default) {
+            delay(500)
+            patientDataEraser().erase()
+          }
+        } catch (e: CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          Timber.e(e, "Could not delete the patient data")
+          null
+        }
+      viewModel.setLoading(false)
+      updateOverlayVisibility()
+      if (removed == null) {
+        AuditLog.failure(AuditAction.PATIENT_DATA_DELETED)
+        AppMessage.show(this@MainActivity, R.string.delete_patient_data_failed, MessageKind.Error)
+        return@launch
+      }
+      AuditLog.record(AuditAction.PATIENT_DATA_DELETED, AuditOutcome.SUCCESS, "patients" to removed)
+      // Back to the start of the flow: nothing from the deleted data is left on any screen.
+      getNavController()?.popBackStack(R.id.home_fragment, false)
+      AppMessage.show(this@MainActivity, R.string.delete_patient_data_done, MessageKind.Success)
+    }
   }
 
   /**

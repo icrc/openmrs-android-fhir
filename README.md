@@ -40,10 +40,9 @@ An app is configured by one file, `res/xml/app_config.xml`, in its module. It is
 ```xml
 <app-config>
     <server url="http://10.0.2.2:8080/openmrs" />
-    <auth method="both" guest-mode="false">
-        <sso discovery-url="http://10.0.2.2:8081/realms/main/.well-known/openid-configuration"
-             client-id="openmrs-fhir" />
-    </auth>
+    <auth method="both" guest-mode="false" />
+    <support email="support@example.com" />
+    <diagnostics password="changeit" />
 </app-config>
 ```
 
@@ -52,8 +51,6 @@ An app is configured by one file, `res/xml/app_config.xml`, in its module. It is
 | `<server>` | `url` | The OpenMRS server. The FHIR, REST and connectivity-check URLs are derived from it (from the emulator the host is `10.0.2.2`). On the login screen the gear can point a device at another server without rebuilding. |
 | `<auth>` | `method` | What the login page offers: `basic` (username and password), `openid` (single sign-on) or `both` (the form, an **or** divider and the SSO button). With `both` the app remembers which one the session was opened with. |
 | | `guest-mode` | `true` adds **Continue without signing in**: patients and forms are filled offline and syncing asks the user to sign in; what was entered is kept. |
-| `<sso>` | `discovery-url`, `client-id` | The OpenID Connect provider (needed for `openid` and `both`). The scope (`openid`), the redirect (`<application id>:/oauth2redirect`), http vs https and the endpoints are worked out from these. |
-| | `provider-name` | Optional label: the button reads **Sign in with <name>**. |
 | `<sync>` | `location-tag` | Tag of the locations offered at login (default `Login Location`). |
 | | `cohort-type` | Optional cohort type (UUID): only patient lists of that cohort are downloaded. |
 | | `filter-patient-lists-by-location` | `true` (default): only the lists of the location the user picked. |
@@ -61,9 +58,30 @@ An app is configured by one file, `res/xml/app_config.xml`, in its module. It is
 | `<patients>` | `registration-form` | Id of a synced questionnaire, or the file name of one in `assets`, used to register patients. |
 | | `fetch-identifiers` | `true`: the device fetches auto-generated identifiers and adds them to new patients; `false`: the server creates them. |
 | `<support>` | `email` | Where **Send diagnostics** and exported unsynced data go. |
-| | `diagnostics-password` | **Required.** Password of the diagnostics archive and of the application log; support needs it to open a report. Change the example value. |
+| `<diagnostics>` | `password` | **Required.** Password of the diagnostics archive and of the application log; support needs it to open a report. Change the example value. A setting of its own: it is not tied to the support e-mail. |
 | `<audit>` | `max-actions` | How many of the user's last steps the audit trail keeps for support (50-5000, default 500); older ones are overwritten. |
 | `<form-sections>` | | The Create Encounter screen, see below. |
+
+### Single sign-on (`auth_config.xml`)
+
+The OpenID Connect provider is not part of `app_config.xml`; it is described by `res/values/auth_config.xml` (an application module's own copy replaces the one in `core`) and is only used when the login page offers `openid`:
+
+```xml
+<resources>
+  <string name="auth_authorization_scope">openid</string>
+  <string name="auth_client_id">openmrs-fhir</string>
+  <string name="auth_redirect_uri_host">org.openmrs.android.fhir.app</string>
+  <string name="auth_redirect_uri_path">/oauth2redirect</string>
+  <string name="auth_discovery_uri">http://10.0.2.2:8081/realms/main/.well-known/openid-configuration</string>
+  <bool name="auth_https_required">false</bool>
+</resources>
+```
+
+- `auth_redirect_uri_host` + `auth_redirect_uri_path` make the redirect URI `org.openmrs.android.fhir.app:/oauth2redirect`, which has to be one of the client's valid redirect URIs in the provider. The manifest registers the same two values, so nothing else has to match.
+- `auth_discovery_uri` is the provider's discovery document (from the emulator the host machine is `10.0.2.2`). The authorization page opens in the browser of the device, so the host name the provider announces (its *frontend URL*, for example `sso.example.org`) has to resolve **on the device**; add it to the hosts file of the machine that gives the device its DNS (or of the emulator) when it is not a public name.
+- `auth_https_required` is `false` only for a provider on plain http (development).
+
+A session started with single sign-on is renewed with the refresh token when the short-lived access token runs out, so a sync does not ask for the password again until the provider's own session ends.
 
 ### What is downloaded
 

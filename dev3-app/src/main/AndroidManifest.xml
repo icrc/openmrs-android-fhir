@@ -54,8 +54,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="${appAuthRedirectScheme}"
-                    android:path="/oauth2redirect"
+                    android:scheme="@string/auth_redirect_uri_host"
+                    android:path="@string/auth_redirect_uri_path"
                 />
             </intent-filter>
         </activity>

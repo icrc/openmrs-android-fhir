@@ -116,6 +116,8 @@ interface Dao {
   )
   suspend fun getGroupSessionDraftSummaries(): List<GroupSessionDraftSummary>
 
+  @Query("DELETE FROM groupsessiondraft") suspend fun clearGroupSessionDrafts()
+
   @Query("DELETE FROM groupsessiondraft WHERE questionnaireId=:questionnaireId")
   suspend fun deleteGroupSessionDraft(questionnaireId: String)
 
