@@ -24,7 +24,8 @@ android {
   }
   signingConfigs {
     // A release key from the environment (never from the repository): OPENMRS_KEYSTORE (path),
-    // OPENMRS_KEYSTORE_PASSWORD, OPENMRS_KEY_ALIAS and OPENMRS_KEY_PASSWORD. See docs/dev/releasing.md.
+    // OPENMRS_KEYSTORE_PASSWORD, OPENMRS_KEY_ALIAS and OPENMRS_KEY_PASSWORD. See
+    // docs/dev/releasing.md.
     create("release") {
       providers.environmentVariable("OPENMRS_KEYSTORE").orNull?.let { path ->
         storeFile = file(path)
