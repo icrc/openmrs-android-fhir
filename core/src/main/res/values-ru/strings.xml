@@ -1180,5 +1180,5 @@
     <string name="settings_auto_sync_unmetered">Только по Wi-Fi</string>
     <string name="settings_auto_sync_unmetered_description">Автосинхронизация ждёт подключения без учёта трафика. Синхронизация, запущенная вами, выполняется всегда.</string>
     <string name="settings_auto_sync_battery">Не при низком заряде</string>
-    <string name="settings_auto_sync_battery_description">Автосинхронизация ждёт, пока заряд ниже 15 %, а устройство не заряжается.</string>
+    <string name="settings_auto_sync_battery_description" formatted="false">Автосинхронизация ждёт, пока заряд ниже 15 %, а устройство не заряжается.</string>
 </resources>

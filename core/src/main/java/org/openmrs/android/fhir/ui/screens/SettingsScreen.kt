@@ -1420,35 +1420,44 @@ private fun SettingsDropdown(
 ) {
   var expanded by remember { mutableStateOf(false) }
 
-  ExposedDropdownMenuBox(
-    expanded = expanded,
-    onExpandedChange = { if (enabled) expanded = !expanded },
-    modifier = modifier.fillMaxWidth(),
-  ) {
-    OutlinedTextField(
-      readOnly = true,
-      enabled = enabled,
-      value = selectedValue.toString(),
-      onValueChange = {},
-      label = { Text(text = label) },
-      singleLine = true,
-      shape = RoundedCornerShape(12.dp),
-      modifier =
-        Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable).testTag(testTag),
-      trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+  // The label is above the field, not in its border: a long label (or a large font) wraps there
+  // instead of breaking the outline.
+  Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Text(
+      text = label,
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      modifier = Modifier.alpha(if (enabled) 1f else 0.5f),
     )
-    DropdownMenu(
+    ExposedDropdownMenuBox(
       expanded = expanded,
-      onDismissRequest = { expanded = false },
+      onExpandedChange = { if (enabled) expanded = !expanded },
+      modifier = Modifier.fillMaxWidth(),
     ) {
-      options.forEach { option ->
-        DropdownMenuItem(
-          text = { Text(text = option.toString()) },
-          onClick = {
-            onOptionSelected(option)
-            expanded = false
-          },
-        )
+      OutlinedTextField(
+        readOnly = true,
+        enabled = enabled,
+        value = selectedValue.toString(),
+        onValueChange = {},
+        singleLine = true,
+        shape = RoundedCornerShape(12.dp),
+        modifier =
+          Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable).testTag(testTag),
+        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+      )
+      DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { expanded = false },
+      ) {
+        options.forEach { option ->
+          DropdownMenuItem(
+            text = { Text(text = option.toString()) },
+            onClick = {
+              onOptionSelected(option)
+              expanded = false
+            },
+          )
+        }
       }
     }
   }

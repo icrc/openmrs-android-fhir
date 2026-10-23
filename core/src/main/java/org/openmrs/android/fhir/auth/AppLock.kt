@@ -62,11 +62,16 @@ object AppLock {
   private var started = 0
 
   /**
-   * Whether coming back after [awayMillis] asks again: the delay chosen in the settings has passed
-   * (0 seconds: always), or the screen went off and the user asked for that to lock.
+   * Whether coming back after [awayMillis] asks again: the delay chosen in the settings has passed,
+   * or the screen went off and the user asked for that to lock. "Every time" (0 seconds) still
+   * needs a real absence ([MIN_AWAY_MILLIS]): the app's own screens following one another (the
+   * start screen handing over to the main one) briefly leave nothing in front.
    */
   internal fun isLockDue(awayMillis: Long, graceSeconds: Int, screenWentOff: Boolean): Boolean =
-    screenWentOff || awayMillis >= graceSeconds * 1000L
+    screenWentOff || awayMillis >= maxOf(graceSeconds * 1000L, MIN_AWAY_MILLIS)
+
+  /** The shortest absence that counts as having left the app. */
+  internal const val MIN_AWAY_MILLIS = 1_500L
 
   /** Follows the activities to know when the app was left and when it is back. */
   fun install(application: Application) {

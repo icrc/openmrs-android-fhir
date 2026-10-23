@@ -1115,5 +1115,5 @@
     <string name="settings_auto_sync_unmetered">عبر Wi-Fi فقط</string>
     <string name="settings_auto_sync_unmetered_description">تنتظر المزامنة التلقائية اتصالًا غير محدود الباقة. المزامنة التي تبدأها بنفسك تتم دائمًا.</string>
     <string name="settings_auto_sync_battery">ليس عند انخفاض البطارية</string>
-    <string name="settings_auto_sync_battery_description">تنتظر المزامنة التلقائية ما دامت البطارية دون 15% والجهاز لا يشحن.</string>
+    <string name="settings_auto_sync_battery_description" formatted="false">تنتظر المزامنة التلقائية ما دامت البطارية دون 15% والجهاز لا يشحن.</string>
 </resources>

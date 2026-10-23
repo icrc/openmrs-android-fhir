@@ -1161,5 +1161,5 @@
     <string name="settings_auto_sync_unmetered">Solo con Wi-Fi</string>
     <string name="settings_auto_sync_unmetered_description">La sincronización automática espera una conexión sin límite de datos. Una sincronización que usted inicia siempre se realiza.</string>
     <string name="settings_auto_sync_battery">No con batería baja</string>
-    <string name="settings_auto_sync_battery_description">La sincronización automática espera mientras la batería esté por debajo del 15 % y el dispositivo no se esté cargando.</string>
+    <string name="settings_auto_sync_battery_description" formatted="false">La sincronización automática espera mientras la batería esté por debajo del 15 % y el dispositivo no se esté cargando.</string>
 </resources>

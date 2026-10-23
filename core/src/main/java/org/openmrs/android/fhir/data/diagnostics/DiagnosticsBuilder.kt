@@ -37,6 +37,7 @@ import android.os.Process
 import android.os.StatFs
 import android.provider.Settings
 import androidx.datastore.preferences.core.Preferences
+import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.search.search
 import java.io.File
@@ -52,6 +53,7 @@ import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.model.ZipParameters
 import net.lingala.zip4j.model.enums.AesKeyStrength
 import net.lingala.zip4j.model.enums.EncryptionMethod
+import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Questionnaire
 import org.openmrs.android.fhir.BuildConfig
 import org.openmrs.android.fhir.DemoDataStore
@@ -70,6 +72,7 @@ import org.openmrs.android.fhir.extensions.FileLoggingTree.Companion.APPLICATION
 import org.openmrs.android.fhir.extensions.ThemeModeStore
 import org.openmrs.android.fhir.extensions.bundledQuestionnaireIds
 import org.openmrs.android.fhir.extensions.getApplicationLogs
+import org.openmrs.android.fhir.extensions.readBundledQuestionnaireForEncounterType
 import timber.log.Timber
 
 /** What a diagnostics report can hold; the user picks, everything is picked by default. */
@@ -339,6 +342,13 @@ constructor(
         "Newest questionnaire update",
         stored.mapNotNull { it.meta.lastUpdated }.maxOrNull(),
       )
+      // Encounters of these types open as a plain list of their data: their form is not here.
+      val withoutForm = encounterTypesWithoutForm(stored)
+      line(
+        "Encounter types without a form",
+        if (withoutForm.isEmpty()) "none" else withoutForm.size,
+      )
+      withoutForm.forEach { (type, count) -> line("  $type", "$count encounter(s)") }
       section("Build configuration")
       line("Server", config.serverUrl)
       line("Auth methods", config.authMethod)
@@ -352,6 +362,21 @@ constructor(
       appendExitReasons(out)
     }
     return true
+  }
+
+  /** The types of the encounters on the device that no stored or shipped questionnaire is for. */
+  private suspend fun encounterTypesWithoutForm(stored: List<Questionnaire>): Map<String, Int> {
+    val storedCodes = stored.flatMap { questionnaire -> questionnaire.code.mapNotNull { it.code } }
+    val parser = FhirContext.forR4Cached().newJsonParser()
+    return fhirEngine
+      .search<Encounter> {}
+      .mapNotNull { it.resource.type.firstOrNull()?.coding?.firstOrNull()?.code }
+      .groupingBy { it }
+      .eachCount()
+      .filterKeys { type ->
+        type !in storedCodes &&
+          context.readBundledQuestionnaireForEncounterType(type, parser) == null
+      }
   }
 
   private fun appendExitReasons(out: java.io.BufferedWriter) {

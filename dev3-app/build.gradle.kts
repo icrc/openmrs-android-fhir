@@ -23,7 +23,15 @@ android {
     versionName = "0.1.1"
   }
   buildTypes {
-    getByName("release") { signingConfig = signingConfigs.getByName("debug") }
+    getByName("release") {
+      signingConfig = signingConfigs.getByName("debug")
+      // Smaller APK (about a third), off by default: see docs/dev/releasing.md.
+      if (providers.gradleProperty("shrinkRelease").orNull == "true") {
+        isMinifyEnabled = true
+        isShrinkResources = true
+        proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+      }
+    }
     debug {
       isMinifyEnabled = false
       applicationIdSuffix = ".debug"

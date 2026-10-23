@@ -1121,5 +1121,5 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="settings_auto_sync_unmetered">Only on Wi-Fi</string>
     <string name="settings_auto_sync_unmetered_description">The automatic sync waits for a connection that is not metered. A sync you start yourself always goes ahead.</string>
     <string name="settings_auto_sync_battery">Not when the battery is low</string>
-    <string name="settings_auto_sync_battery_description">The automatic sync waits while the battery is under 15% and the device is not charging.</string>
+    <string name="settings_auto_sync_battery_description" formatted="false">The automatic sync waits while the battery is under 15% and the device is not charging.</string>
 </resources>

@@ -50,8 +50,13 @@ class AppLockTest {
   }
 
   @Test
-  fun everyTimeLocksEvenAfterAnInstant() {
-    assertTrue(AppLock.isLockDue(awayMillis = 0, graceSeconds = 0, screenWentOff = false))
+  fun everyTimeLocksAfterARealAbsence() {
+    assertTrue(AppLock.isLockDue(awayMillis = 2_000, graceSeconds = 0, screenWentOff = false))
+  }
+
+  @Test
+  fun oneScreenHandingOverToAnotherDoesNotLockEvenOnEveryTime() {
+    assertFalse(AppLock.isLockDue(awayMillis = 40, graceSeconds = 0, screenWentOff = false))
   }
 
   @Test

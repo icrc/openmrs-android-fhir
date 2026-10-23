@@ -35,6 +35,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -81,6 +83,7 @@ import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
  * amount of work is not known yet). Otherwise [liveText] says what live mode is doing and
  * [nextSyncText] when the automatic sync is due.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NetworkStatusBanner(
   text: String,
@@ -104,30 +107,35 @@ fun NetworkStatusBanner(
     modifier =
       modifier.fillMaxWidth().background(accent.copy(alpha = 0.14f)).testTag("NetworkStatusBanner"),
   ) {
-    Row(
+    // The parts wrap onto a second line on a narrow screen or with a large font, instead of being
+    // cut off ("Next sync in" without its number, the Delay link out of sight).
+    FlowRow(
       modifier =
         Modifier.fillMaxWidth().heightIn(min = 28.dp).padding(horizontal = 16.dp, vertical = 4.dp),
-      verticalAlignment = Alignment.CenterVertically,
+      verticalArrangement = Arrangement.Center,
       horizontalArrangement = Arrangement.Center,
+      itemVerticalAlignment = Alignment.CenterVertically,
     ) {
-      if (isSyncing) {
-        CircularProgressIndicator(
-          modifier = Modifier.size(12.dp),
-          strokeWidth = 2.dp,
-          color = accent,
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        if (isSyncing) {
+          CircularProgressIndicator(
+            modifier = Modifier.size(12.dp),
+            strokeWidth = 2.dp,
+            color = accent,
+          )
+        } else {
+          Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accent))
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+          modifier = Modifier.testTag("NetworkStatusText"),
+          text = syncText ?: text,
+          style = MaterialTheme.typography.labelMedium,
+          fontWeight = FontWeight.SemiBold,
+          color = MaterialTheme.colorScheme.onSurface,
+          maxLines = 1,
         )
-      } else {
-        Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(accent))
       }
-      Spacer(modifier = Modifier.width(8.dp))
-      Text(
-        modifier = Modifier.testTag("NetworkStatusText"),
-        text = syncText ?: text,
-        style = MaterialTheme.typography.labelMedium,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onSurface,
-        maxLines = 1,
-      )
       if (!isSyncing && liveText != null) {
         Text(
           modifier = Modifier.padding(start = 6.dp).testTag("LiveStatusText"),

@@ -1187,5 +1187,5 @@
     <string name="settings_auto_sync_unmetered">Uniquement en Wi-Fi</string>
     <string name="settings_auto_sync_unmetered_description">La synchronisation automatique attend une connexion non facturée à l\'usage. Une synchronisation lancée par vous a toujours lieu.</string>
     <string name="settings_auto_sync_battery">Pas quand la batterie est faible</string>
-    <string name="settings_auto_sync_battery_description">La synchronisation automatique attend tant que la batterie est sous 15 % et que l\'appareil ne charge pas.</string>
+    <string name="settings_auto_sync_battery_description" formatted="false">La synchronisation automatique attend tant que la batterie est sous 15 % et que l\'appareil ne charge pas.</string>
 </resources>
