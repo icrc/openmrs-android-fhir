@@ -151,6 +151,10 @@ constructor(
     )
   }
 
+  /** Where the last encounters are read; a test replaces it so no work outlives the test. */
+  @androidx.annotation.VisibleForTesting
+  internal var backgroundDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.Default
+
   fun loadPatients() {
     updatePatientListAndPatientCount(
       { getSearchResults(nameQuery = uiState.value.query) },
@@ -199,7 +203,7 @@ constructor(
           _uiState.update { it.copy(patients = patients, isLoading = false, isRefreshing = false) }
           patientCount.value = count()
           // The list is on screen; the last encounters follow, one query for the whole page.
-          val withEncounters = withContext(Dispatchers.Default) { withLastEncounters(patients) }
+          val withEncounters = withContext(backgroundDispatcher) { withLastEncounters(patients) }
           _uiState.update { it.copy(patients = withEncounters) }
         } catch (e: CancellationException) {
           throw e
