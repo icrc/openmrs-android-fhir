@@ -112,7 +112,8 @@ class HomeFragment : Fragment() {
     mainActivityViewModel.setDrawerEnabled(true)
     observeHomeEvents()
     // The first-run tour, once the screen has been laid out so that it can point at it.
-    view.post { FirstRunTutorial.startIfPending(requireContext()) }
+    // The screen may be gone by then (language or orientation changed): nothing to point at.
+    view.post { context?.let { FirstRunTutorial.startIfPending(it) } }
   }
 
   @Deprecated("Deprecated in Java")

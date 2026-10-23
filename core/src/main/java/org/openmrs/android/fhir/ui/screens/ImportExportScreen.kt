@@ -39,6 +39,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -247,7 +248,8 @@ private fun ExportCard(
       onClick = onExportClick,
       enabled = !state.busy && (pending ?: 0) > 0,
       shape = RoundedCornerShape(14.dp),
-      modifier = Modifier.fillMaxWidth().height(48.dp).testTag(ImportExportTestTags.ExportButton),
+      modifier =
+        Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(ImportExportTestTags.ExportButton),
     ) {
       Text(text = stringResource(R.string.export_button))
     }
@@ -313,7 +315,8 @@ private fun ImportCard(state: ImportExportUiState, onChooseFile: () -> Unit, onU
       onClick = onChooseFile,
       enabled = !state.busy,
       shape = RoundedCornerShape(14.dp),
-      modifier = Modifier.fillMaxWidth().height(48.dp).testTag(ImportExportTestTags.ImportButton),
+      modifier =
+        Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(ImportExportTestTags.ImportButton),
     ) {
       Text(text = stringResource(R.string.import_choose))
     }

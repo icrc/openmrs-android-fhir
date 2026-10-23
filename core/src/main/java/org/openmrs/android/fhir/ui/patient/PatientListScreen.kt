@@ -29,11 +29,10 @@
 package org.openmrs.android.fhir.ui.patient
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -43,6 +42,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -301,12 +301,13 @@ private fun showMoreRow(hasMore: Boolean, onClick: () -> Unit): (LazyListScope.(
 }
 
 /** The order of the list, as chips under the search box. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PatientSortRow(selected: PatientSort, onSelected: (PatientSort) -> Unit) {
-  FlowRow(
+  // One row that scrolls sideways: four chips would take three lines on a narrow screen.
+  Row(
     modifier =
       Modifier.fillMaxWidth()
+        .horizontalScroll(rememberScrollState())
         .padding(horizontal = 16.dp, vertical = 4.dp)
         .tutorialTarget(TutorialTargets.PATIENT_SORT),
     horizontalArrangement = Arrangement.spacedBy(8.dp),

@@ -45,6 +45,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -249,7 +250,7 @@ fun LocationSelectionScreen(
             modifier =
               Modifier.fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp)
-                .height(52.dp)
+                .heightIn(min = 52.dp)
                 .testTag("LocationActionButton"),
             shape = RoundedCornerShape(16.dp),
             onClick = onActionClick,
@@ -510,7 +511,7 @@ fun PatientListSelectionScreen(
             modifier =
               Modifier.fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp)
-                .height(52.dp)
+                .heightIn(min = 52.dp)
                 .testTag("PatientListActionButton"),
             shape = RoundedCornerShape(16.dp),
             onClick = onActionClick,

@@ -52,6 +52,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -59,6 +60,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -286,28 +288,37 @@ fun DrawerContent(
       accountText = accountText,
     )
 
-    Column(
-      modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(vertical = 8.dp),
-    ) {
-      DrawerGroups.forEachIndexed { index, ids ->
-        if (index > 0) {
+    // One scrolling area: with a big font or a small screen everything stays reachable (the end
+    // group used to be pinned and squeeze the rest). With room to spare it sits at the very end.
+    BoxWithConstraints(modifier = Modifier.weight(1f)) {
+      val viewport = maxHeight
+      Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+        Column(modifier = Modifier.heightIn(min = viewport).padding(vertical = 8.dp)) {
+          DrawerGroups.forEachIndexed { index, ids ->
+            if (index > 0) {
+              HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                color = MaterialTheme.colorScheme.outlineVariant,
+              )
+            }
+            ids
+              .mapNotNull { itemsById[it] }
+              .forEach { item ->
+                DrawerEntry(item = item, onClick = { onDrawerItemSelected(item.id) })
+              }
+          }
+          Spacer(modifier = Modifier.weight(1f))
           HorizontalDivider(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             color = MaterialTheme.colorScheme.outlineVariant,
           )
+          DrawerEndGroup.mapNotNull { itemsById[it] }
+            .forEach { item ->
+              DrawerEntry(item = item, onClick = { onDrawerItemSelected(item.id) })
+            }
         }
-        ids
-          .mapNotNull { itemsById[it] }
-          .forEach { item -> DrawerEntry(item = item, onClick = { onDrawerItemSelected(item.id) }) }
       }
     }
-
-    HorizontalDivider(
-      modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-      color = MaterialTheme.colorScheme.outlineVariant,
-    )
-    DrawerEndGroup.mapNotNull { itemsById[it] }
-      .forEach { item -> DrawerEntry(item = item, onClick = { onDrawerItemSelected(item.id) }) }
 
     if (versionItem != null) {
       Text(
@@ -342,7 +353,6 @@ private fun DrawerEntry(item: DrawerItem, onClick: () -> Unit) {
       Text(
         text = item.title,
         style = MaterialTheme.typography.bodyLarge,
-        maxLines = 2,
       )
     },
     icon = {
@@ -616,7 +626,7 @@ private fun SyncPopupCard(
         Spacer(modifier = Modifier.height(24.dp))
         FilledTonalButton(
           onClick = onMinimize,
-          modifier = Modifier.fillMaxWidth().height(48.dp).testTag("SyncMinimizeButton"),
+          modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("SyncMinimizeButton"),
           shape = RoundedCornerShape(14.dp),
         ) {
           Icon(

@@ -39,6 +39,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -482,7 +483,7 @@ private fun ColumnScope.BasicLoginForm(
     onClick = { onLoginClick(username, password) },
     enabled = !isLoading && signInAvailable,
     shape = RoundedCornerShape(16.dp),
-    modifier = Modifier.fillMaxWidth().height(52.dp).testTag("BasicLoginButton"),
+    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("BasicLoginButton"),
   ) {
     Text(text = stringResource(id = R.string.button_login))
   }
@@ -502,7 +503,7 @@ private fun SsoLoginButton(
     }
   val modifier =
     Modifier.fillMaxWidth()
-      .height(52.dp)
+      .heightIn(min = 52.dp)
       .testTag("LoginButton")
       .tutorialTarget(TutorialTargets.LOGIN_SSO)
   if (isPrimary) {
@@ -561,7 +562,7 @@ private fun ColumnScope.ContinueWithoutLogin(onClick: () -> Unit) {
     shape = RoundedCornerShape(16.dp),
     modifier =
       Modifier.fillMaxWidth()
-        .height(48.dp)
+        .heightIn(min = 48.dp)
         .testTag("SkipLoginButton")
         .tutorialTarget(TutorialTargets.LOGIN_GUEST),
   ) {

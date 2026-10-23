@@ -38,7 +38,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -614,7 +614,8 @@ fun SettingsScreen(
       ) {
         OutlinedButton(
           onClick = onBackClicked,
-          modifier = Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.BackButton),
+          modifier =
+            Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(SettingsTestTags.BackButton),
         ) {
           Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -953,7 +954,9 @@ private fun IdentifierTypesSetting(
         showPicker = true
       },
       modifier =
-        Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.IdentifierTypesButton),
+        Modifier.fillMaxWidth()
+          .heightIn(min = 48.dp)
+          .testTag(SettingsTestTags.IdentifierTypesButton),
     ) {
       Icon(
         imageVector = Icons.Default.Tag,
@@ -1026,7 +1029,7 @@ private fun FavoriteFormsSetting(
       onClick = { showPicker = true },
       enabled = options.isNotEmpty(),
       modifier =
-        Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.FavoriteFormsButton),
+        Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(SettingsTestTags.FavoriteFormsButton),
     ) {
       Icon(
         imageVector = Icons.Default.Star,
@@ -1090,7 +1093,8 @@ private fun FormSectionsSetting(
     OutlinedButton(
       onClick = { showEditor = true },
       enabled = options.isNotEmpty(),
-      modifier = Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.FormSectionsButton),
+      modifier =
+        Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(SettingsTestTags.FormSectionsButton),
     ) {
       Icon(
         imageVector = Icons.Default.Edit,
@@ -1300,7 +1304,8 @@ private fun DangerZone(unsyncedCount: Int, onRequested: () -> Unit, onConfirmed:
           containerColor = MaterialTheme.colorScheme.error,
           contentColor = MaterialTheme.colorScheme.onError,
         ),
-      modifier = Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.LogoutDeleteButton),
+      modifier =
+        Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(SettingsTestTags.LogoutDeleteButton),
     ) {
       Icon(
         painter = painterResource(id = R.drawable.ic_logout),
@@ -1392,7 +1397,9 @@ private fun ConnectionTest(onServerChanged: ((String?) -> Unit)?) {
       },
       enabled = state != TestState.Running,
       modifier =
-        Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.ConnectionTestButton),
+        Modifier.fillMaxWidth()
+          .heightIn(min = 48.dp)
+          .testTag(SettingsTestTags.ConnectionTestButton),
     ) {
       Icon(
         imageVector = Icons.Default.Sync,
@@ -1407,7 +1414,9 @@ private fun ConnectionTest(onServerChanged: ((String?) -> Unit)?) {
       OutlinedButton(
         onClick = { choosingServer = true },
         modifier =
-          Modifier.fillMaxWidth().height(48.dp).testTag(SettingsTestTags.ChangeServerButton),
+          Modifier.fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .testTag(SettingsTestTags.ChangeServerButton),
       ) {
         Icon(
           imageVector = Icons.Default.Dns,
@@ -1482,7 +1491,7 @@ private fun SettingsAction(
     OutlinedButton(
       onClick = onClick,
       enabled = enabled,
-      modifier = Modifier.fillMaxWidth().height(48.dp).testTag(testTag),
+      modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag(testTag),
     ) {
       Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp))
       Spacer(modifier = Modifier.width(8.dp))

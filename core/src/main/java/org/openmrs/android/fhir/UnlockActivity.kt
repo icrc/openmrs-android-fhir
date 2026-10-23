@@ -40,6 +40,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -133,7 +134,7 @@ class UnlockActivity : AppCompatActivity() {
           if (canAsk) {
             Button(
               onClick = ::ask,
-              modifier = Modifier.fillMaxWidth().height(52.dp).testTag("UnlockButton"),
+              modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("UnlockButton"),
             ) {
               Text(text = stringResource(R.string.unlock_button))
             }
