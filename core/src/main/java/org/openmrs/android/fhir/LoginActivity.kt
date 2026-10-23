@@ -56,6 +56,7 @@ import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationResponse
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.auth.AppLock
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
@@ -270,6 +271,8 @@ class LoginActivity : AppCompatActivity() {
   }
 
   private fun navigateToMain() {
+    // The sign-in (and the offline login set-up) just proved who the user is.
+    AppLock.unlocked()
     if (signInFromGuest && !isTaskRoot) {
       // Back to the guest session that asked for the sign-in; its data is kept. (After the app
       // restarted on this page, e.g. after a change of server, there is no session to go back to.)

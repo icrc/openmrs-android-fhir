@@ -56,6 +56,7 @@ import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.auth.AppLock
 import org.openmrs.android.fhir.auth.AuthStateManager
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
@@ -335,6 +336,9 @@ class SplashActivity : AppCompatActivity() {
   }
 
   private fun navigateToMainActivity() {
+    // Whoever got here just proved who they are (the system's PIN screen took the app out of
+    // sight meanwhile): the main screen must not ask again for that.
+    AppLock.unlocked()
     startActivity(Intent(this, MainActivity::class.java))
     finish()
   }
