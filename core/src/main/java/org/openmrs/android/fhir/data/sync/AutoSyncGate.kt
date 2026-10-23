@@ -87,13 +87,18 @@ object AutoSyncGate {
         IntentFilter(Intent.ACTION_BATTERY_CHANGED),
       )
         ?: return false
-    val level = status.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-    val scale = status.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-    if (level < 0 || scale <= 0) return false
     val charging =
       status.getIntExtra(BatteryManager.EXTRA_STATUS, -1).let {
         it == BatteryManager.BATTERY_STATUS_CHARGING || it == BatteryManager.BATTERY_STATUS_FULL
       }
-    return !charging && level * 100 / scale < LOW_BATTERY_PERCENT
+    return isLow(
+      level = status.getIntExtra(BatteryManager.EXTRA_LEVEL, -1),
+      scale = status.getIntExtra(BatteryManager.EXTRA_SCALE, -1),
+      charging = charging,
+    )
   }
+
+  /** Under [LOW_BATTERY_PERCENT] and not charging; an unknown level is never "low". */
+  internal fun isLow(level: Int, scale: Int, charging: Boolean): Boolean =
+    level >= 0 && scale > 0 && !charging && level * 100 / scale < LOW_BATTERY_PERCENT
 }

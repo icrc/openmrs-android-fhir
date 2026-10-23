@@ -61,6 +61,13 @@ object AppLock {
   @Volatile private var locking = false
   private var started = 0
 
+  /**
+   * Whether coming back after [awayMillis] asks again: the delay chosen in the settings has passed
+   * (0 seconds: always), or the screen went off and the user asked for that to lock.
+   */
+  internal fun isLockDue(awayMillis: Long, graceSeconds: Int, screenWentOff: Boolean): Boolean =
+    screenWentOff || awayMillis >= graceSeconds * 1000L
+
   /** Follows the activities to know when the app was left and when it is back. */
   fun install(application: Application) {
     application.registerReceiver(
@@ -85,9 +92,11 @@ object AppLock {
             if (
               left != null &&
                 activity is MainActivity &&
-                (screenOff ||
-                  SystemClock.elapsedRealtime() - left >=
-                    AppLockSettings.graceSeconds(activity) * 1000L) &&
+                isLockDue(
+                  awayMillis = SystemClock.elapsedRealtime() - left,
+                  graceSeconds = AppLockSettings.graceSeconds(activity),
+                  screenWentOff = screenOff,
+                ) &&
                 isEnabled(activity)
             ) {
               lockPending = true
