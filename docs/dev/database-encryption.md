@@ -16,7 +16,7 @@ is half enabled.
 
 | Option | What it costs | Risk |
 |---|---|---|
-| Move the app to the Room version the SDK expects (2.6.x), then enable encryption | Downgrade Room, check the schema export and the migrations (`AppDatabaseMigrationTest`), re-test everything | Medium: the app's own database (`AppDatabase`) is also Room |
+| Move the app to the Room version the SDK expects (2.6.x), then enable encryption | Downgrade Room, check the schema export and add a migration test, re-test everything | Medium: the app's own database (`AppDatabase`) is also Room |
 | Upgrade the FHIR SDK to a release built against Room 2.8 | Depends on a release that exists and on API changes in sync and search | Medium to high: the SDK is a fork (`ohs-foundation/android-fhir`) |
 | Leave it off and document it | Nothing | The data is readable on a rooted device |
 

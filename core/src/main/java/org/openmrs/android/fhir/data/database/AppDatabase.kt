@@ -31,8 +31,6 @@ package org.openmrs.android.fhir.data.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.data.database.model.Identifier
 import org.openmrs.android.fhir.data.database.model.IdentifierType
@@ -52,7 +50,7 @@ import org.openmrs.android.fhir.data.database.model.UnidentifiedPatient
       PendingChange::class,
       UnidentifiedPatient::class,
     ],
-  version = 4,
+  version = 1,
   exportSchema = true,
 )
 @TypeConverters(Converters::class)
@@ -62,117 +60,4 @@ abstract class AppDatabase : RoomDatabase() {
   abstract fun userDataDao(): UserDataDao
 
   abstract fun unidentifiedDao(): UnidentifiedDao
-
-  companion object {
-    /** Patients to identify after: records entered for someone not on the device yet. */
-    val MIGRATION_3_4 =
-      object : Migration(3, 4) {
-        override fun migrate(database: SupportSQLiteDatabase) {
-          database.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `unidentified_patient` (
-              `patientId` TEXT NOT NULL,
-              `note` TEXT NOT NULL,
-              `createdAt` INTEGER NOT NULL,
-              PRIMARY KEY(`patientId`)
-            )
-            """
-              .trimIndent(),
-          )
-        }
-      }
-
-    /** Who owns the patients of the device, and who has records waiting to upload. */
-    val MIGRATION_2_3 =
-      object : Migration(2, 3) {
-        override fun migrate(database: SupportSQLiteDatabase) {
-          // The responses of a group session draft became required (the entity is a map, never
-          // null), but the table was made without it: a table's column cannot be changed, so the
-          // table is rebuilt, with the drafts it holds.
-          database.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `groupsessiondraft_new` (
-              `questionnaireId` TEXT NOT NULL,
-              `sessionId` TEXT NOT NULL,
-              `patientIds` TEXT NOT NULL,
-              `patientResponses` TEXT NOT NULL,
-              `screenerResponse` TEXT,
-              `encounterQuestionnaireJson` TEXT,
-              `screenerQuestionnaireJson` TEXT,
-              `sessionDate` INTEGER,
-              `screenerCompleted` INTEGER NOT NULL,
-              `lastUpdated` INTEGER NOT NULL,
-              PRIMARY KEY(`questionnaireId`)
-            )
-            """
-              .trimIndent(),
-          )
-          database.execSQL(
-            """
-            INSERT INTO `groupsessiondraft_new`
-              (questionnaireId, sessionId, patientIds, patientResponses, screenerResponse,
-               encounterQuestionnaireJson, screenerQuestionnaireJson, sessionDate,
-               screenerCompleted, lastUpdated)
-            SELECT questionnaireId, sessionId, patientIds, COALESCE(patientResponses, '{}'),
-               screenerResponse, encounterQuestionnaireJson, screenerQuestionnaireJson, sessionDate,
-               screenerCompleted, lastUpdated
-            FROM `groupsessiondraft`
-            """
-              .trimIndent(),
-          )
-          database.execSQL("DROP TABLE `groupsessiondraft`")
-          database.execSQL("ALTER TABLE `groupsessiondraft_new` RENAME TO `groupsessiondraft`")
-          database.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `patient_owner` (
-              `patientId` TEXT NOT NULL,
-              `owner` TEXT NOT NULL,
-              PRIMARY KEY(`patientId`, `owner`)
-            )
-            """
-              .trimIndent(),
-          )
-          database.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `pending_change` (
-              `resourceType` TEXT NOT NULL,
-              `resourceId` TEXT NOT NULL,
-              `owner` TEXT NOT NULL,
-              `patientId` TEXT,
-              `changedAt` INTEGER NOT NULL,
-              PRIMARY KEY(`resourceType`, `resourceId`, `owner`)
-            )
-            """
-              .trimIndent(),
-          )
-          database.execSQL(
-            "CREATE INDEX IF NOT EXISTS `index_pending_change_owner` ON `pending_change` (`owner`)",
-          )
-        }
-      }
-
-    val MIGRATION_1_2 =
-      object : Migration(1, 2) {
-        override fun migrate(database: SupportSQLiteDatabase) {
-          database.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `groupsessiondraft` (
-              `questionnaireId` TEXT NOT NULL,
-              `sessionId` TEXT NOT NULL,
-              `patientIds` TEXT NOT NULL,
-              `patientResponses` TEXT,
-              `screenerResponse` TEXT,
-              `encounterQuestionnaireJson` TEXT,
-              `screenerQuestionnaireJson` TEXT,
-              `sessionDate` INTEGER,
-              `screenerCompleted` INTEGER NOT NULL,
-              `lastUpdated` INTEGER NOT NULL,
-              PRIMARY KEY(`questionnaireId`)
-            )
-            """
-              .trimIndent(),
-          )
-        }
-      }
-  }
 }

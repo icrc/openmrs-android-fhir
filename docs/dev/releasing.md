@@ -4,8 +4,9 @@
 
 1. `CHANGELOG.md` says what is in the release, and how each change was verified.
 2. `./gradlew spotlessCheck :core:testDebugUnitTest :core:lintDebug` pass (the CI runs them).
-3. A change to the database has a migration, the exported schema and a case in
-   `AppDatabaseMigrationTest` (`./gradlew :core:connectedDebugAndroidTest` on a device or emulator).
+3. A change to the database after devices hold one has a version bump, a migration and its test
+   (see `architecture.md`). The database is at version 1 with no migrations: an update over a
+   build made before the baseline has to be a fresh install.
 4. `app_config.xml` of the module being released: server, authentication method, support e-mail
    and a **diagnostics password that is not the example value** (`validateAppConfig` warns).
 5. Raise `versionCode` (a whole number that only goes up: the stores and the system compare it) and

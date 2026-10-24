@@ -58,9 +58,13 @@ has.
 2. **Tutorial**: a change that adds, moves or removes a user-facing feature updates the tutorial in
    the same change (`ScreenTours.kt`, `TutorialTargets`, the `help_*` strings). See
    `first-run-tutorial.md`.
-3. **Database**: changing an entity needs a version bump, a migration in `AppDatabase`, the new
-   exported schema committed, and a case in `AppDatabaseMigrationTest`. A migration that does not
-   produce the schema Room expects crashes the app of every user who updates.
+3. **Database**: `AppDatabase` is at version 1, the baseline from which the app is installed fresh
+   (the earlier migrations were removed). The first time an entity changes after a release exists on
+   real devices, bump the version, write a `Migration`, commit the new exported schema and test the
+   migration (`androidx.room:room-testing` and the schemas as test assets, as `git log` shows for the
+   removed `AppDatabaseMigrationTest`). A migration that does not produce the schema Room expects
+   crashes the app of every user who updates. Until then, changing an entity needs a fresh install
+   of the devices that hold the old database.
 4. **Settings**: a new setting is shown in `SettingsScreen`, wired in `SettingsFragment`, and
    audited (`AuditAction.SETTINGS_CHANGED`) when it changes.
 5. **Changelog**: `CHANGELOG.md` says what changed, why, and how it was verified (including what was
