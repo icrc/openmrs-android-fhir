@@ -1,5 +1,4 @@
 val composeBomVersion: String by project
-val navigationVersion = "2.9.6"
 
 plugins {
   id("com.android.application")
@@ -89,19 +88,19 @@ android {
 dependencies {
   val composeBom = platform("androidx.compose:compose-bom:$composeBomVersion")
 
-  coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+  coreLibraryDesugaring(libs.desugar.jdk.libs)
   implementation(composeBom)
   implementation(project(":core"))
-  implementation("androidx.activity:activity-compose:1.12.1")
-  implementation("androidx.compose.material3:material3")
-  implementation("androidx.compose.ui:ui")
-  implementation("androidx.compose.ui:ui-tooling-preview")
-  implementation("androidx.navigation:navigation-compose:$navigationVersion")
+  implementation(libs.androidx.activity.compose)
+  implementation(libs.androidx.compose.material3)
+  implementation(libs.androidx.compose.ui.base)
+  implementation(libs.androidx.compose.ui.tooling.preview)
+  implementation(libs.androidx.navigation.compose)
 
   androidTestImplementation(composeBom)
-  androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+  androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 
   debugImplementation(composeBom)
-  debugImplementation("androidx.compose.ui:ui-test-manifest")
-  debugImplementation("androidx.compose.ui:ui-tooling")
+  debugImplementation(libs.androidx.compose.ui.test.manifest)
+  debugImplementation(libs.androidx.compose.ui.tooling.base)
 }

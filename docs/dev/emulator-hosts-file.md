@@ -1,3 +1,8 @@
+# Changing the hosts file of an emulator by hand
+
+The script `tools/emulator-hosts.sh` does this for one name without changing the system image (see
+`sign-in-setup.md`). The long way, for an image where a system-wide hosts file is wanted:
+
 
 To be able to change `/etc/hosts`:
 
