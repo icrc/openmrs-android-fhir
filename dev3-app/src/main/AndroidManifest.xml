@@ -34,12 +34,6 @@
         >
 
         </activity>
-        <activity
-            android:name="org.openmrs.android.fhir.BasicLoginActivity"
-            android:exported="false"
-        >
-
-        </activity>
 
         <activity
             android:name="org.openmrs.android.fhir.MainActivity"
@@ -60,8 +54,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="${appAuthRedirectScheme}"
-                    android:host="@string/auth_redirect_uri_host"
+                    android:scheme="@string/auth_redirect_uri_host"
                     android:path="@string/auth_redirect_uri_path"
                 />
             </intent-filter>

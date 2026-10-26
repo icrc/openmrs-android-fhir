@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <network-security-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">hapi.fhir.org</domain>
-    </domain-config>
+    <!-- Plain http is only for the development hosts below (the emulator's host machine and this
+         machine). A server on another host must use https, or be added here. -->
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">10.0.2.2</domain>
     </domain-config>

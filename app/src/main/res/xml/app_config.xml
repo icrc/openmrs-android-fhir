@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<app-config>
+    <server url="http://10.0.2.2:8080/openmrs" />
+
+    <auth method="openid" guest-mode="false" />
+
+    <sync location-tag="Login Location" filter-patient-lists-by-location="true" />
+
+    <patients registration-form="new-patient-registration-paginated" fetch-identifiers="false" />
+
+    <support email="support@mail.com" />
+
+    <diagnostics password="changeit" />
+
+    <form-sections>
+        <section name="Test Forms">
+            <name lang="fr">Formulaires de test</name>
+            <name lang="es">Formularios de prueba</name>
+            <form code="encounter.type.code" />
+            <form code="encounter.malaria.formBeta" />
+            <form code="encounter.cholera.formCharlie" />
+        </section>
+        <section name="Test B Form">
+            <name lang="fr">Formulaire B de test</name>
+            <name lang="es">Formulario B de prueba</name>
+            <form code="encounter.bForm" />
+            <form code="encounter.cForm" />
+        </section>
+    </form-sections>
+</app-config>

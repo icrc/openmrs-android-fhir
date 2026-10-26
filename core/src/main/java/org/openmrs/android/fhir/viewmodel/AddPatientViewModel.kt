@@ -42,14 +42,17 @@ import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValid
 import com.google.android.fhir.get
 import java.util.UUID
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
-import org.hl7.fhir.r4.model.Quantity
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.Questionnaire.QuestionnaireItemComponent
 import org.hl7.fhir.r4.model.QuestionnaireResponse
@@ -57,11 +60,22 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.Constants.PATIENT_IDENTIFIER_DEFINITION_URL
 import org.openmrs.android.fhir.Constants.PATIENT_LOCATION_IDENTIFIER_URL
+import org.openmrs.android.fhir.FhirApplication
+import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.OpenMRSHelper
+import org.openmrs.android.fhir.data.PatientIdentifierFactory
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
+import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
+import org.openmrs.android.fhir.extensions.pagedBySections
+import org.openmrs.android.fhir.extensions.requireAnswersBeforeReview
 import timber.log.Timber
 
 /** ViewModel for patient registration screen {@link AddPatientFragment}. */
@@ -72,10 +86,25 @@ constructor(
   private val fhirEngine: FhirEngine,
   private val database: AppDatabase,
   private val openMRSHelper: OpenMRSHelper,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
   var locationId: String? = null
+  private val identifierFactory by lazy { PatientIdentifierFactory(applicationContext, database) }
   val isPatientSaved = MutableLiveData<Boolean>()
+
+  /**
+   * The patient to identify after that this registration is for (empty: a normal registration):
+   * once the patient is saved, what was recorded for it is linked to the new patient.
+   */
+  var identifyEntryId: String = ""
+
+  /** The patient just saved, and how many records of [identifyEntryId] were linked to them. */
+  var savedPatientId: String? = null
+  var linkedRecords: Int = 0
+
+  /** Why the last save was refused, when it is more specific than missing inputs. */
+  val saveFailure = MutableLiveData<Int?>()
   var questionnaire: Questionnaire? = Questionnaire()
   val embeddedQuestionnaire = MutableLiveData<String>()
   private var saveInProgress = false
@@ -91,9 +120,15 @@ constructor(
     if (saveInProgress) return // To avoid multiple save of patient.
     viewModelScope.launch {
       saveInProgress = true
+      val form = questionnaire
+      if (form == null) {
+        saveInProgress = false
+        isPatientSaved.value = false
+        return@launch
+      }
       if (
         QuestionnaireResponseValidator.validateQuestionnaireResponse(
-            questionnaire!!,
+            form,
             questionnaireResponse,
             applicationContext,
           )
@@ -102,57 +137,51 @@ constructor(
           .any { it is Invalid }
       ) {
         saveInProgress = false
+        AuditLog.failure(AuditAction.PATIENT_CREATED, "reason" to "invalid_answers")
         isPatientSaved.value = false
         return@launch
       }
 
       val entry =
         ResourceMapper.extract(
-            questionnaire!!,
+            form,
             questionnaireResponse,
           )
           .entryFirstRep
       if (entry.resource !is Patient) {
+        saveInProgress = false
         return@launch
       }
 
       val patient = entry.resource as Patient
       patient.id = generateUuid()
 
-      if (patient.birthDate == null) {
-        val estimatedMonths =
-          questionnaireResponse.allItems
-            .firstOrNull { it.linkId == "estimatedDateOfBirthMonths" }
-            ?.answerFirstRep
-            ?.value as? Quantity
-        val estimatedYears =
-          questionnaireResponse.allItems
-            .firstOrNull { it.linkId == "estimatedDateOfBirthYears" }
-            ?.answerFirstRep
-            ?.value as? Quantity
-        patient.birthDateElement =
-          estimatedYears?.let {
-            openMRSHelper.getDateDiffByQuantity(
-              estimatedAgeYear = estimatedYears,
-              estimatedAgeMonth = estimatedMonths,
-            )
-          }
+      val birthDate = openMRSHelper.birthDateFrom(questionnaireResponse)
+      if (birthDate != null && openMRSHelper.isInTheFuture(birthDate)) {
+        saveFailure.value = R.string.birth_date_in_the_future
+        AuditLog.failure(AuditAction.PATIENT_CREATED, "reason" to "birth_date_in_future")
+        saveInProgress = false
+        isPatientSaved.value = false
+        return@launch
       }
+      patient.birthDateElement = birthDate
 
       val location = locationId?.let { fhirEngine.get(ResourceType.Location, it) } as Location?
+      // Without a location the patient has no identifiers yet: they come with the location.
+      if (location == null) GuestSession.markCompletionPending(applicationContext)
       if (location != null) {
         val identifiers =
           extractLocationIdentifiersFromQuestionnaireResponse(questionnaireResponse, location)
-        identifiers.addAll(createLocationIdentifiers(location, fetchIdentifiers))
+        identifiers.addAll(identifierFactory.locationIdentifiers(location, fetchIdentifiers))
         if (fetchIdentifiers) {
-          identifiers.add(0, createUnsyncedIdentifier(location))
+          identifiers.add(0, identifierFactory.unsyncedIdentifier(location))
         }
         patient.identifier = identifiers
       }
 
       val personAttributeExtensions =
         openMRSHelper.extractPersonAttributeFromQuestionnaireResponse(
-          questionnaire!!,
+          form,
           questionnaireResponse,
         )
 
@@ -162,8 +191,36 @@ constructor(
       patient.extension = personAttributeExtensions
 
       fhirEngine.create(patient)
-      // TODO Pending for cohort-module
-      // addPatientToSelectedPatientList(patient)
+      AuditLog.record(
+        AuditAction.PATIENT_CREATED,
+        AuditOutcome.SUCCESS,
+        "patient" to patient.idElement.idPart,
+      )
+      savedPatientId = patient.idElement.idPart
+      if (identifyEntryId.isNotBlank()) {
+        // Not found on the server: everything recorded for the patient to identify goes to this
+        // one.
+        linkedRecords =
+          try {
+            FhirApplication.appComponent(applicationContext)
+              .unidentifiedPatients()
+              .linkToNewPatient(identifyEntryId, patient.idElement.idPart)
+          } catch (e: CancellationException) {
+            throw e
+          } catch (e: Exception) {
+            Timber.e(e, "Could not link the records to the new patient")
+            0
+          }
+        AuditLog.record(
+          AuditAction.PATIENT_CREATED,
+          AuditOutcome.SUCCESS,
+          "linked_records" to linkedRecords,
+          "from" to "identify_later",
+        )
+      }
+      // Live mode sends it now; otherwise it waits for the sync.
+      LiveSync.requestUpload(applicationContext)
+      // Known gap (docs/dev/known-gaps.md): the patient is not added to a cohort here.
       isPatientSaved.value = true
       saveInProgress = false
     }
@@ -213,66 +270,13 @@ constructor(
     }
   }
 
-  private suspend fun createLocationIdentifiers(
-    location: Location,
-    fetchIdentifiers: Boolean = true,
-  ): List<Identifier> {
-    val identifierList: MutableList<Identifier> = mutableListOf()
-    val selectedIdentifierTypes =
-      applicationContext.dataStore.data.first()[PreferenceKeys.SELECTED_IDENTIFIER_TYPES]?.toList()
-    if (selectedIdentifierTypes != null) {
-      for (identifierTypeId in selectedIdentifierTypes) {
-        val identifierType = database.dao().getIdentifierTypeById(identifierTypeId) ?: continue
-        val isAutoGenerated = identifierType.isAutoGenerated ?: false
-        val value = if (fetchIdentifiers) identifierType.uuid else null
-
-        if (!isAutoGenerated && value.isNullOrBlank()) continue
-
-        val identifier =
-          Identifier().apply {
-            id = generateUuid()
-            use = Identifier.IdentifierUse.OFFICIAL
-            this.value = value
-            type = CodeableConcept().apply { text = identifierType.display }
-          }
-        identifier.addExtension(
-          PATIENT_LOCATION_IDENTIFIER_URL,
-          Reference().apply {
-            reference = location.id
-            type = "Location"
-            display = location.name
-          },
-        )
-        identifierList.add(identifier)
-      }
-    }
-    return identifierList
-  }
-
-  private fun createUnsyncedIdentifier(location: Location): Identifier {
-    val identifier =
-      Identifier().apply {
-        id = generateUuid()
-        use = Identifier.IdentifierUse.OFFICIAL
-        value = "unsynced"
-        type = CodeableConcept().apply { text = "unsynced" }
-      }
-    identifier.addExtension(
-      PATIENT_LOCATION_IDENTIFIER_URL,
-      Reference().apply {
-        reference = location.id
-        type = "Location"
-        display = location.name
-      },
-    )
-    return identifier
-  }
-
   private fun extractLocationIdentifiersFromQuestionnaireResponse(
     questionnaireResponse: QuestionnaireResponse,
     location: Location,
   ): MutableList<Identifier> {
-    val identifierItems = questionnaireResponse.item.filter { it.linkId.contains("identifier-") }
+    // Anywhere in the form: they are on its first page, inside the page's group.
+    val identifierItems =
+      questionnaireResponse.allItems.filter { it.linkId.contains("identifier-") }
 
     val identifierList: MutableList<Identifier> = mutableListOf()
     identifierItems.forEach { identifierItem ->
@@ -301,50 +305,46 @@ constructor(
 
   fun getEmbeddedQuestionnaire(questionnaireName: String) {
     viewModelScope.launch {
-      val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
-      questionnaire =
-        fhirEngine.getQuestionnaireOrFromAssets(questionnaireName, applicationContext, parser)
-      if (questionnaire != null) {
-        embeddedQuestionnaire.value =
-          parser.encodeResourceToString(embeddIdentifierInQuestionnaire(questionnaire!!))
-      } else {
-        embeddedQuestionnaire.value = ""
-      }
+      // Loading the form and writing it as JSON is heavy for the registration form: not on main.
+      val json =
+        withContext(defaultDispatcher) {
+          val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+          questionnaire =
+            fhirEngine.getQuestionnaireOrFromAssets(questionnaireName, applicationContext, parser)
+          questionnaire?.let {
+            // "Review" waits for the required answers, as in the encounter forms.
+            it.requireAnswersBeforeReview()
+            val withIdentifiers = embeddIdentifierInQuestionnaire(it)
+            // One page per section; the identifiers go on the first.
+            withIdentifiers.pagedBySections()
+            parser.encodeResourceToString(withIdentifiers)
+          }
+            ?: ""
+        }
+      embeddedQuestionnaire.value = json
     }
   }
 
+  /** Adds an input for every selected identifier type the server does not generate itself. */
   private suspend fun embeddIdentifierInQuestionnaire(questionnaire: Questionnaire): Questionnaire {
-    val questionnaireItems = questionnaire.item
     val selectedIdentifiers =
       applicationContext.dataStore.data.first()[PreferenceKeys.SELECTED_IDENTIFIER_TYPES]
-    val filteredIdentifiers: List<String>
-    if (selectedIdentifiers != null) {
-      filteredIdentifiers =
-        selectedIdentifiers
-          .filter { identifierId ->
-            val isAutoGenerated = let {
-              database.dao().getIdentifierTypeById(identifierId)?.isAutoGenerated
-            }
-            isAutoGenerated == false
-          }
-          .toMutableList()
-      filteredIdentifiers.forEach { identifierTypeId ->
-        val selectedIdentifierType = database.dao().getIdentifierTypeById(identifierTypeId)
-        if (selectedIdentifierType != null) {
-          questionnaireItems.add(
-            0,
-            QuestionnaireItemComponent().apply {
-              linkId = "identifier-${selectedIdentifierType.uuid}"
-              type = Questionnaire.QuestionnaireItemType.STRING
-              definition = PATIENT_IDENTIFIER_DEFINITION_URL
-              text = selectedIdentifierType.display
-              required = selectedIdentifierType.required
-            },
-          )
-        }
+        ?: return questionnaire
+    selectedIdentifiers
+      .mapNotNull { database.dao().getIdentifierTypeById(it) }
+      .filter { it.isAutoGenerated == false }
+      .forEach { identifierType ->
+        questionnaire.item.add(
+          0,
+          QuestionnaireItemComponent().apply {
+            linkId = "identifier-${identifierType.uuid}"
+            type = Questionnaire.QuestionnaireItemType.STRING
+            definition = PATIENT_IDENTIFIER_DEFINITION_URL
+            text = identifierType.display
+            required = identifierType.required
+          },
+        )
       }
-    }
-    questionnaire.setItem(questionnaireItems)
     return questionnaire
   }
 

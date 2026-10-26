@@ -32,6 +32,8 @@ import android.content.Context
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import org.openmrs.android.fhir.DemoDataStore
+import org.openmrs.android.fhir.data.sync.SyncMode
+import org.openmrs.android.fhir.multiuser.UserRegistry
 
 interface SettingsRepository {
   suspend fun getNetworkStatusVisible(): Boolean
@@ -49,6 +51,40 @@ interface SettingsRepository {
   suspend fun setTokenExpiryDelayMinutes(minutes: Int)
 
   suspend fun setPeriodicSyncDelayMinutes(minutes: Int)
+
+  suspend fun getAutoSyncEnabled(): Boolean = true
+
+  suspend fun setAutoSyncEnabled(enabled: Boolean) {}
+
+  /** What the automatic sync does: [SyncMode.UPLOAD_ONLY] or [SyncMode.BOTH] (the default). */
+  suspend fun getAutoSyncMode(): SyncMode = SyncMode.BOTH
+
+  suspend fun setAutoSyncMode(mode: SyncMode) {}
+
+  suspend fun getLiveModeEnabled(): Boolean = false
+
+  suspend fun setLiveModeEnabled(enabled: Boolean) {}
+
+  suspend fun getKeepLivePatients(): Boolean = true
+
+  suspend fun setKeepLivePatients(keep: Boolean) {}
+
+  suspend fun getAutomaticVisits(): Boolean = true
+
+  suspend fun setAutomaticVisits(automatic: Boolean) {}
+
+  /** The user signed in now (none for a guest): the setting below is theirs. */
+  suspend fun getSignedInUser(): String? = null
+
+  /** Whether the signed-in user lets the other users of the device see the patients they have. */
+  suspend fun getShareMyData(): Boolean = false
+
+  suspend fun setShareMyData(share: Boolean) {}
+
+  /** Whether the signed-in user goes back to the location they used last, after login. */
+  suspend fun getRememberLocation(): Boolean = true
+
+  suspend fun setRememberLocation(remember: Boolean) {}
 }
 
 class DemoSettingsRepository
@@ -56,6 +92,7 @@ class DemoSettingsRepository
 constructor(
   context: Context,
 ) : SettingsRepository {
+  private val appContext = context.applicationContext
   private val dataStore = DemoDataStore(context)
 
   override suspend fun getNetworkStatusVisible(): Boolean {
@@ -88,6 +125,60 @@ constructor(
 
   override suspend fun setPeriodicSyncDelayMinutes(minutes: Int) {
     dataStore.savePeriodicSyncDelay(minutes.toString())
+  }
+
+  override suspend fun getAutoSyncEnabled(): Boolean {
+    return dataStore.getAutoSyncEnabledFlow().first()
+  }
+
+  override suspend fun setAutoSyncEnabled(enabled: Boolean) {
+    dataStore.setAutoSyncEnabled(enabled)
+  }
+
+  override suspend fun getAutoSyncMode(): SyncMode = dataStore.getAutoSyncModeFlow().first()
+
+  override suspend fun setAutoSyncMode(mode: SyncMode) {
+    dataStore.setAutoSyncMode(mode)
+  }
+
+  override suspend fun getLiveModeEnabled(): Boolean {
+    return dataStore.getLiveModeEnabledFlow().first()
+  }
+
+  override suspend fun setLiveModeEnabled(enabled: Boolean) {
+    dataStore.setLiveModeEnabled(enabled)
+  }
+
+  override suspend fun getKeepLivePatients(): Boolean {
+    return dataStore.getKeepLivePatientsFlow().first()
+  }
+
+  override suspend fun setKeepLivePatients(keep: Boolean) {
+    dataStore.setKeepLivePatients(keep)
+  }
+
+  override suspend fun getAutomaticVisits(): Boolean {
+    return dataStore.getAutomaticVisitsFlow().first()
+  }
+
+  override suspend fun setAutomaticVisits(automatic: Boolean) {
+    dataStore.setAutomaticVisits(automatic)
+  }
+
+  override suspend fun getSignedInUser(): String? = UserRegistry.active(appContext)
+
+  override suspend fun getShareMyData(): Boolean =
+    UserRegistry.isSharing(appContext, UserRegistry.active(appContext))
+
+  override suspend fun setShareMyData(share: Boolean) {
+    UserRegistry.setSharing(appContext, UserRegistry.active(appContext), share)
+  }
+
+  override suspend fun getRememberLocation(): Boolean =
+    UserRegistry.isRememberingLocation(appContext, UserRegistry.active(appContext))
+
+  override suspend fun setRememberLocation(remember: Boolean) {
+    UserRegistry.setRememberLocation(appContext, UserRegistry.active(appContext), remember)
   }
 
   private companion object {

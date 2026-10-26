@@ -31,46 +31,33 @@ package org.openmrs.android.fhir.data.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.data.database.model.Identifier
 import org.openmrs.android.fhir.data.database.model.IdentifierType
+import org.openmrs.android.fhir.data.database.model.PatientOwner
+import org.openmrs.android.fhir.data.database.model.PendingChange
 import org.openmrs.android.fhir.data.database.model.SyncSession
+import org.openmrs.android.fhir.data.database.model.UnidentifiedPatient
 
 @Database(
   entities =
-    [Identifier::class, IdentifierType::class, SyncSession::class, GroupSessionDraft::class],
-  version = 2,
+    [
+      Identifier::class,
+      IdentifierType::class,
+      SyncSession::class,
+      GroupSessionDraft::class,
+      PatientOwner::class,
+      PendingChange::class,
+      UnidentifiedPatient::class,
+    ],
+  version = 1,
   exportSchema = true,
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
   abstract fun dao(): Dao
 
-  companion object {
-    val MIGRATION_1_2 =
-      object : Migration(1, 2) {
-        override fun migrate(database: SupportSQLiteDatabase) {
-          database.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `groupsessiondraft` (
-              `questionnaireId` TEXT NOT NULL,
-              `sessionId` TEXT NOT NULL,
-              `patientIds` TEXT NOT NULL,
-              `patientResponses` TEXT,
-              `screenerResponse` TEXT,
-              `encounterQuestionnaireJson` TEXT,
-              `screenerQuestionnaireJson` TEXT,
-              `sessionDate` INTEGER,
-              `screenerCompleted` INTEGER NOT NULL,
-              `lastUpdated` INTEGER NOT NULL,
-              PRIMARY KEY(`questionnaireId`)
-            )
-            """
-              .trimIndent(),
-          )
-        }
-      }
-  }
+  abstract fun userDataDao(): UserDataDao
+
+  abstract fun unidentifiedDao(): UnidentifiedDao
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+>
+    <item
+        android:id="@+id/menu_encounter_edit"
+        android:icon="@drawable/baseline_edit_24"
+        app:actionLayout="@layout/view_encounter_edit_action"
+        android:title="@string/encounter_edit_action"
+        app:showAsAction="always|withText"
+    />
+</menu>

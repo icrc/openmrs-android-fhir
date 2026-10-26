@@ -32,17 +32,22 @@ import android.content.Context
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.search.count
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.hl7.fhir.r4.model.Patient
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.data.remote.ApiManager
-import org.openmrs.android.fhir.data.remote.ServerConnectivityState
-import org.openmrs.android.fhir.extensions.getServerConnectivityState
+import org.openmrs.android.fhir.data.transfer.DataTransfer
+import org.openmrs.android.fhir.multiuser.DataVisibility
+import timber.log.Timber
 
 sealed interface HomeEvent {
   data object NavigateToAddPatient : HomeEvent
@@ -55,19 +60,48 @@ sealed interface HomeEvent {
 
   data object NavigateToSyncInfo : HomeEvent
 
-  data object NavigateToUnsyncedResources : HomeEvent
+  data object NavigateToImportExport : HomeEvent
 
   data class ShowMessage(@param:StringRes val messageResId: Int) : HomeEvent
 }
+
+/**
+ * What the device holds, at a glance: patients (`null` when not worth counting) and changes
+ * waiting.
+ */
+data class HomeSummary(val patients: Long?, val waiting: Int)
 
 class HomeViewModel
 @Inject
 constructor(
   private val applicationContext: Context,
   private val apiManager: ApiManager,
+  private val fhirEngine: FhirEngine,
+  private val dataTransfer: DataTransfer,
+  private val dataVisibility: DataVisibility,
 ) : ViewModel() {
   private val _events = MutableSharedFlow<HomeEvent>(extraBufferCapacity = 1)
   val events: SharedFlow<HomeEvent> = _events
+
+  private val _summary = MutableStateFlow<HomeSummary?>(null)
+  val summary: StateFlow<HomeSummary?> = _summary
+
+  /**
+   * Counts again: after a sync, or when the screen is back in front. Patients are not counted on a
+   * device shared by several users (the list leaves some out per user), only the changes waiting.
+   */
+  fun refreshSummary() {
+    viewModelScope.launch {
+      try {
+        val patients = if (dataVisibility.isSharedDevice()) null else fhirEngine.count<Patient> {}
+        _summary.value = HomeSummary(patients = patients, waiting = dataTransfer.pendingCount())
+      } catch (e: CancellationException) {
+        throw e
+      } catch (e: Exception) {
+        Timber.w(e, "Could not count what is on the device")
+      }
+    }
+  }
 
   fun onNewPatientClicked() {
     handleLocationRequiredClick(HomeEvent.NavigateToAddPatient)
@@ -78,16 +112,13 @@ constructor(
   }
 
   fun onCustomPatientListClicked() {
-    viewModelScope.launch {
-      when (applicationContext.getServerConnectivityState(apiManager)) {
-        ServerConnectivityState.ServerConnected ->
-          _events.emit(HomeEvent.NavigateToCustomPatientList)
-        ServerConnectivityState.InternetOnly ->
-          _events.emit(HomeEvent.ShowMessage(R.string.server_unreachable_try_again_message))
-        ServerConnectivityState.Offline ->
-          _events.emit(HomeEvent.ShowMessage(R.string.connect_internet_to_select_patient_list))
-      }
+    if (GuestSession.isActive(applicationContext)) {
+      _events.tryEmit(HomeEvent.ShowMessage(R.string.sign_in_for_patient_lists))
+      return
     }
+    // No reachability check first: the screen shows the lists saved on the device at once, asks the
+    // server itself and says so when it cannot be reached.
+    _events.tryEmit(HomeEvent.NavigateToCustomPatientList)
   }
 
   fun onGroupEncounterClicked() {
@@ -98,19 +129,13 @@ constructor(
     _events.tryEmit(HomeEvent.NavigateToSyncInfo)
   }
 
-  fun onUnsyncedResourcesClicked() {
-    _events.tryEmit(HomeEvent.NavigateToUnsyncedResources)
+  fun onImportExportClicked() {
+    _events.tryEmit(HomeEvent.NavigateToImportExport)
   }
 
   private fun handleLocationRequiredClick(event: HomeEvent) {
-    viewModelScope.launch {
-      val hasLocationSelected =
-        applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_NAME] != null
-      if (hasLocationSelected) {
-        _events.emit(event)
-      } else {
-        _events.emit(HomeEvent.ShowMessage(R.string.please_select_a_location_first))
-      }
-    }
+    // No location needed to register or look up patients (a guest has none to pick; anyone else
+    // may not have chosen one yet): what is saved gets it later.
+    _events.tryEmit(event)
   }
 }

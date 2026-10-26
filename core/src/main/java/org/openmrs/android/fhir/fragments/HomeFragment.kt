@@ -33,9 +33,8 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
@@ -43,6 +42,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
@@ -50,7 +50,12 @@ import javax.inject.Inject
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.extensions.limitToReadableWidth
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.HomeScreen
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.ui.tutorial.FirstRunTutorial
 import org.openmrs.android.fhir.viewmodel.HomeEvent
 import org.openmrs.android.fhir.viewmodel.HomeViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
@@ -73,14 +78,22 @@ class HomeFragment : Fragment() {
       ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed,
     )
     composeView.setContent {
-      MaterialTheme {
+      OpenMrsTheme {
+        val activityState by mainActivityViewModel.uiState.collectAsStateWithLifecycle()
+        val summary by homeViewModel.summary.collectAsStateWithLifecycle()
+        androidx.compose.runtime.LaunchedEffect(activityState.lastSyncText) {
+          homeViewModel.refreshSummary()
+        }
         HomeScreen(
+          summary = summary,
+          locationName = activityState.locationMenuTitle,
+          lastSyncText = activityState.lastSyncText,
           onNewPatientClicked = homeViewModel::onNewPatientClicked,
           onPatientListClicked = homeViewModel::onPatientListClicked,
           onCustomPatientListClicked = homeViewModel::onCustomPatientListClicked,
           onGroupEncounterClicked = homeViewModel::onGroupEncounterClicked,
           onSyncInfoClicked = homeViewModel::onSyncInfoClicked,
-          onUnsyncedResourcesClicked = homeViewModel::onUnsyncedResourcesClicked,
+          onImportExportClicked = homeViewModel::onImportExportClicked,
         )
       }
     }
@@ -89,6 +102,7 @@ class HomeFragment : Fragment() {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
+    view.limitToReadableWidth()
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title = resources.getString(R.string.app_name)
@@ -97,6 +111,9 @@ class HomeFragment : Fragment() {
     setHasOptionsMenu(true)
     mainActivityViewModel.setDrawerEnabled(true)
     observeHomeEvents()
+    // The first-run tour, once the screen has been laid out so that it can point at it.
+    // The screen may be gone by then (language or orientation changed): nothing to point at.
+    view.post { context?.let { FirstRunTutorial.startIfPending(it) } }
   }
 
   @Deprecated("Deprecated in Java")
@@ -138,11 +155,16 @@ class HomeFragment : Fragment() {
           )
       HomeEvent.NavigateToSyncInfo ->
         findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSyncInfoFragment())
-      HomeEvent.NavigateToUnsyncedResources ->
+      HomeEvent.NavigateToImportExport ->
         findNavController()
-          .navigate(HomeFragmentDirections.actionHomeFragmentToUnsyncedResourcesFragment())
+          .navigate(HomeFragmentDirections.actionHomeFragmentToImportExportFragment())
       is HomeEvent.ShowMessage ->
-        Toast.makeText(requireContext(), getString(event.messageResId), Toast.LENGTH_LONG).show()
+        AppMessage.show(
+          requireContext(),
+          getString(event.messageResId),
+          MessageKind.Info,
+          long = true,
+        )
     }
   }
 }

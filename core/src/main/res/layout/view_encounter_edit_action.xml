@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- The Edit button of the read-only encounter: outlined in the bar's icon color, so it reads on the brand bar and on the dark one. -->
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingEnd="8dp"
+>
+  <com.google.android.material.button.MaterialButton
+    android:id="@+id/encounter_edit_button"
+    style="@style/Widget.Material3.Button.OutlinedButton"
+    android:layout_width="wrap_content"
+    android:layout_height="40dp"
+    android:insetTop="0dp"
+    android:insetBottom="0dp"
+    android:minWidth="0dp"
+    android:paddingStart="14dp"
+    android:paddingEnd="16dp"
+    android:text="@string/encounter_edit_action"
+    android:textAllCaps="false"
+    android:textColor="?attr/colorControlNormal"
+    app:icon="@drawable/baseline_edit_24"
+    app:iconSize="18dp"
+    app:iconTint="?attr/colorControlNormal"
+    app:iconPadding="6dp"
+    app:strokeColor="?attr/colorControlNormal"
+    app:strokeWidth="1dp"
+/>
+</FrameLayout>

@@ -36,14 +36,6 @@ import org.openmrs.android.fhir.viewmodel.SettingsEvent
 class SettingsFragmentTest {
 
   @Test
-  fun resolveSettingsEvent_mapsSaveToNavigationAndToast() {
-    val action = resolveSettingsEvent(SettingsEvent.SettingsSaved)
-
-    assertEquals(true, action.navigateUp)
-    assertEquals(R.string.settings_saved, action.messageResId)
-  }
-
-  @Test
   fun resolveSettingsEvent_mapsInitialSyncFailedToToastOnly() {
     val action = resolveSettingsEvent(SettingsEvent.InitialSyncFailed)
 

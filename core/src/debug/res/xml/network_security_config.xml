@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Debug builds may talk to any server over http, so a development server can be chosen on the
+     login screen. Release builds keep the restricted configuration from src/main. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

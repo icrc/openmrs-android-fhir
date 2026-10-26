@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<app-config>
+    <server url="https://dev3.openmrs.org/openmrs" />
+
+    <auth method="basic" />
+
+    <sync location-tag="Login Location" filter-patient-lists-by-location="true" />
+
+    <patients registration-form="new-patient-registration-paginated" fetch-identifiers="true" />
+
+    <support email="support@mail.com" />
+
+    <diagnostics password="changeit" />
+    <!-- The audit trail kept for the support team (sign-ins, patients and encounters created or
+         edited, syncs...): the last max-actions steps (50-5000); older ones are overwritten. -->
+    <audit max-actions="500" />
+</app-config>

@@ -33,10 +33,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -86,7 +84,7 @@ class SettingsViewModelTest {
   }
 
   @Test
-  fun savePersistsUpdatedValuesAndEmitsEvent() = runTest {
+  fun changesArePersistedAtOnce() = runTest {
     val repository = FakeSettingsRepository()
     val viewModel =
       SettingsViewModel(
@@ -101,17 +99,12 @@ class SettingsViewModelTest {
     viewModel.onTokenDelaySelected(10)
     viewModel.onPeriodicSyncDelaySelected(30)
 
-    val event = async { viewModel.events.first() }
-
-    viewModel.onSaveClicked()
-
     dispatcher.scheduler.advanceUntilIdle()
 
     assertEquals(true, repository.networkStatusVisible)
     assertEquals(true, repository.notificationsEnabled)
     assertEquals(10, repository.tokenDelayMinutes)
     assertEquals(30, repository.periodicDelayMinutes)
-    assertEquals(SettingsEvent.SettingsSaved, event.await())
   }
 
   private class FakeSettingsRepository(

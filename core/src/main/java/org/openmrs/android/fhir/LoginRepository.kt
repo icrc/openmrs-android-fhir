@@ -37,10 +37,9 @@ import java.util.Base64
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import net.openid.appauth.AppAuthConfiguration
 import net.openid.appauth.AuthState
 import net.openid.appauth.AuthorizationException
@@ -58,7 +57,6 @@ import org.openmrs.android.fhir.auth.AuthConfigUtil
 import org.openmrs.android.fhir.auth.AuthConfiguration
 import org.openmrs.android.fhir.auth.AuthMethod
 import org.openmrs.android.fhir.auth.AuthStateManager
-import org.openmrs.android.fhir.auth.ConnectionBuilderForTesting
 import org.openmrs.android.fhir.auth.model.BasicAuthState
 import timber.log.Timber
 
@@ -69,9 +67,8 @@ private constructor(
   private var authService: AuthorizationService,
 ) : HttpAuthenticator {
   private val clientId = AtomicReference<String?>()
+  private val refreshMutex = Mutex()
   private val authRequest = AtomicReference<AuthorizationRequest?>()
-  private val _needLogin = MutableStateFlow(false)
-  val needLogin: StateFlow<Boolean> = _needLogin.asStateFlow()
 
   suspend fun updateAuthIfConfigurationChanged() {
     if (hasConfigurationChanged()) {
@@ -84,9 +81,6 @@ private constructor(
   private suspend fun hasConfigurationChanged() =
     authConfig.isNotStored() || authConfig.stored != authConfig.authConfigData
 
-  suspend fun isAuthEstablished() =
-    !hasConfigurationChanged() && authStateManager.current.authorizationServiceConfiguration != null
-
   fun getLastConfigurationError(): AuthorizationException? = authConfig.lastException
 
   fun getAuthIntent(): Intent? {
@@ -94,17 +88,23 @@ private constructor(
       Timber.i("can't get authorizationServiceConfiguration")
       return null
     }
-    val authRequestBuilder =
-      AuthorizationRequest.Builder(
-          authStateManager.current.authorizationServiceConfiguration!!,
-          clientId.get()!!,
-          ResponseTypeValues.CODE,
-          authConfig.redirectUri!!,
-        )
+    val serviceConfiguration =
+      authStateManager.current.authorizationServiceConfiguration ?: return null
+    val id = clientId.get()
+    val redirectUri = authConfig.redirectUri
+    if (id == null || redirectUri == null) {
+      Timber.w(
+        "can't build the authorization request: the client id or the redirect uri is missing",
+      )
+      return null
+    }
+    val request =
+      AuthorizationRequest.Builder(serviceConfiguration, id, ResponseTypeValues.CODE, redirectUri)
         .setScope(authConfig.scope)
-    authRequest.set(authRequestBuilder.build())
+        .build()
+    authRequest.set(request)
 
-    return authService.getAuthorizationRequestIntent(authRequest.get()!!)
+    return authService.getAuthorizationRequestIntent(request)
   }
 
   suspend fun initializeAppAuth() {
@@ -121,8 +121,8 @@ private constructor(
       Timber.i("Creating auth authConfig from res/raw/auth_config.json")
       val authConfig =
         AuthorizationServiceConfiguration(
-          authConfig.authEndpointUri!!,
-          authConfig.tokenEndpointUri!!,
+          checkNotNull(authConfig.authEndpointUri) { "auth_config has no authorization endpoint" },
+          checkNotNull(authConfig.tokenEndpointUri) { "auth_config has no token endpoint" },
           authConfig.registrationEndpointUri,
           authConfig.endSessionEndpoint,
         )
@@ -135,44 +135,41 @@ private constructor(
   }
 
   private suspend fun retrieveOpenID() {
-    return suspendCoroutine { cont ->
-      AuthorizationServiceConfiguration.fetchFromUrl(
-        authConfig.discoveryUri!!,
-        { config: AuthorizationServiceConfiguration?, ex: AuthorizationException? ->
-          handleConfigurationRetrievalResult(config, ex)
-          cont.resume(Unit)
-        },
-        authConfig.connectionBuilder,
-      )
-    }
+    val discoveryUri = checkNotNull(authConfig.discoveryUri) { "auth_config has no discovery uri" }
+    val (config, ex) =
+      suspendCoroutine<Pair<AuthorizationServiceConfiguration?, AuthorizationException?>> { cont ->
+        AuthorizationServiceConfiguration.fetchFromUrl(
+          discoveryUri,
+          { config: AuthorizationServiceConfiguration?, ex: AuthorizationException? ->
+            cont.resume(config to ex)
+          },
+          authConfig.connectionBuilder,
+        )
+      }
+    handleConfigurationRetrievalResult(config, ex)
   }
 
-  private fun handleConfigurationRetrievalResult(
+  private suspend fun handleConfigurationRetrievalResult(
     authServiceConfig: AuthorizationServiceConfiguration?,
     ex: AuthorizationException?,
   ) {
-    runBlocking {
-      authConfig.lastException = ex
-      if (authServiceConfig == null) {
-        Timber.i("Failed to retrieve discovery document", ex)
-        return@runBlocking
-      }
-      Timber.i("Discovery document retrieved")
-
-      if (authConfig.connectionBuilder is ConnectionBuilderForTesting) {
-        val updatedConfig =
-          AuthConfigUtil.replaceLocalhost(
-            authServiceConfig.toJsonString(),
-            ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2,
-          )
-        authStateManager.replace(
-          AuthState(AuthorizationServiceConfiguration.fromJson(updatedConfig)),
-        )
-      } else {
-        authStateManager.replace(AuthState(authServiceConfig))
-      }
-      clientId.set(this@LoginRepository.authConfig.clientId)
+    authConfig.lastException = ex
+    if (authServiceConfig == null) {
+      Timber.i("Failed to retrieve discovery document", ex)
+      return
     }
+    Timber.i("Discovery document retrieved")
+
+    if (authConfig.replaceLocalhost) {
+      val updatedConfig =
+        AuthConfigUtil.replaceLocalhost(authServiceConfig.toJsonString(), replaceLocalhost = true)
+      authStateManager.replace(
+        AuthState(AuthorizationServiceConfiguration.fromJson(updatedConfig)),
+      )
+    } else {
+      authStateManager.replace(AuthState(authServiceConfig))
+    }
+    clientId.set(authConfig.clientId)
   }
 
   suspend fun updateAfterAuthorization(
@@ -260,9 +257,33 @@ private constructor(
     }
   }
 
+  /**
+   * The access token for a request. A single sign-on token only lives a few minutes, so one that
+   * has run out is renewed first with the refresh token: the background sync keeps working without
+   * the user signing in again.
+   */
   fun getAccessToken(): String {
-    return runBlocking { authStateManager.current.accessToken ?: "" }
+    return runBlocking {
+      renewAccessTokenIfNeeded()
+      authStateManager.current.accessToken ?: ""
+    }
   }
+
+  /**
+   * Renews the access token with the refresh token when it has run out, once even if several
+   * requests ask at the same time.
+   *
+   * @return whether a valid access token is there afterwards (`false`: the user has to sign in).
+   */
+  suspend fun renewAccessTokenIfNeeded(): Boolean =
+    refreshMutex.withLock {
+      val state = authStateManager.current
+      if (!state.isAuthorized) return@withLock false
+      if (!state.needsTokenRefresh) return@withLock true
+      if (state.refreshToken.isNullOrEmpty()) return@withLock false
+      runCatching { refreshAccessToken() }.onFailure { Timber.w(it, "Token refresh failed") }
+      authStateManager.current.let { it.isAuthorized && !it.needsTokenRefresh }
+    }
 
   suspend fun refreshAccessToken() {
     return suspendCoroutine { cont ->
@@ -297,11 +318,6 @@ private constructor(
         INSTANCE = LoginRepository(authStateManager, authConfig, authService)
       }
       return INSTANCE as LoginRepository
-    }
-
-    @Synchronized
-    fun unsetInstance() {
-      INSTANCE = null
     }
   }
 }

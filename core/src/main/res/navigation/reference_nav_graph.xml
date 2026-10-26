@@ -38,8 +38,8 @@
             app:destination="@id/syncInfoFragment"
         />
     <action
-            android:id="@+id/action_home_fragment_to_unsyncedResourcesFragment"
-            app:destination="@id/unsyncedResourcesFragment"
+            android:id="@+id/action_home_fragment_to_importExportFragment"
+            app:destination="@id/importExportFragment"
         />
     <action
             android:id="@+id/action_home_fragment_to_createEncounterFragment"
@@ -126,8 +126,7 @@
   <fragment
         android:id="@+id/createEncounterFragment"
         android:name="org.openmrs.android.fhir.fragments.CreateEncountersFragment"
-        android:label="createEncounterFragment"
-        tools:layout="@layout/create_encounter_fragment"
+        android:label="createEncounterFragment"
     >
     <argument android:name="patient_id" app:argType="string" />
     <argument android:name="is_group_encounter" app:argType="boolean" />
@@ -206,11 +205,16 @@
         android:id="@+id/syncInfoFragment"
         android:label="@string/sync_info"
         android:name="org.openmrs.android.fhir.fragments.SyncInfoFragment"
-    />
+    >
+    <action
+            android:id="@+id/action_syncInfoFragment_to_importExportFragment"
+            app:destination="@id/importExportFragment"
+        />
+  </fragment>
   <fragment
-        android:id="@+id/unsyncedResourcesFragment"
-        android:label="@string/title_unsynced_resources"
-        android:name="org.openmrs.android.fhir.fragments.UnsyncedResourcesFragment"
+        android:id="@+id/importExportFragment"
+        android:label="@string/title_import_export"
+        android:name="org.openmrs.android.fhir.fragments.ImportExportFragment"
     />
 
   <fragment

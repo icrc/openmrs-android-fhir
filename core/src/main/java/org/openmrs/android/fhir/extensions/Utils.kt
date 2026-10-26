@@ -28,18 +28,15 @@
 */
 package org.openmrs.android.fhir.extensions
 
-import android.app.Activity
 import android.content.Context
-import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Base64
-import android.view.View
+import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum
 import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
-import com.google.android.material.snackbar.Snackbar
 import com.squareup.moshi.Moshi
 import java.io.File
 import java.io.FileOutputStream
@@ -54,9 +51,13 @@ import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import org.hl7.fhir.r4.model.CodeType
 import org.hl7.fhir.r4.model.CodeableConcept
+import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.DateType
+import org.hl7.fhir.r4.model.Element
+import org.hl7.fhir.r4.model.Extension
 import org.hl7.fhir.r4.model.IntegerType
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Questionnaire
@@ -65,6 +66,7 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import timber.log.Timber
 
 inline fun <reified T> T.toJson(): String {
   return Moshi.Builder().build().adapter(T::class.java).toJson(this)
@@ -72,23 +74,6 @@ inline fun <reified T> T.toJson(): String {
 
 inline fun <reified T> String.fromJson(): T? {
   return Moshi.Builder().build().adapter(T::class.java).fromJson(this)
-}
-
-fun showSnackBar(
-  activity: Activity,
-  message: String,
-  action: String? = null,
-  actionListener: View.OnClickListener? = null,
-  duration: Int = Snackbar.LENGTH_SHORT,
-) {
-  val snackBar =
-    Snackbar.make(activity.findViewById(android.R.id.content), message, duration)
-      .setBackgroundTint(Color.GRAY)
-      .setTextColor(Color.WHITE)
-  if (action != null && actionListener != null) {
-    snackBar.setAction(action, actionListener)
-  }
-  snackBar.show()
 }
 
 fun saveToFile(context: Context, fileName: String, content: String): File? {
@@ -101,7 +86,7 @@ fun saveToFile(context: Context, fileName: String, content: String): File? {
     FileOutputStream(file).use { outputStream -> outputStream.write(content.toByteArray()) }
     file
   } catch (e: IOException) {
-    e.printStackTrace()
+    Timber.w(e, "Could not write the file")
     null
   }
 }
@@ -199,6 +184,35 @@ fun Date.toLocalString(
   return fmt.format(this.toInstant())
 }
 
+/**
+ * Drops the translations of other languages from every text of the form. The form library only ever
+ * shows the translation of the device language (falling back to the base text), so the others only
+ * make the form several times larger to write, parse and hold in memory.
+ */
+fun Questionnaire.pruneOtherLanguageTranslations(locale: Locale = Locale.getDefault()) {
+  val language = locale.language.lowercase(Locale.ROOT)
+  val tag = locale.toLanguageTag().lowercase(Locale.ROOT)
+  FhirContext.forR4Cached()
+    .newTerser()
+    .getAllPopulatedChildElementsOfType(this, Element::class.java)
+    .forEach { element ->
+      if (!element.hasExtension()) return@forEach
+      element.extension.removeAll { extension ->
+        if (extension.url != TRANSLATION_EXTENSION_URL) return@removeAll false
+        val lang =
+          extension
+            .getExtensionByUrl(TRANSLATION_LANG_URL)
+            ?.value
+            ?.primitiveValue()
+            ?.lowercase(Locale.ROOT)
+        lang != null && lang != tag && lang.substringBefore('-') != language
+      }
+    }
+}
+
+private const val TRANSLATION_EXTENSION_URL = "http://hl7.org/fhir/StructureDefinition/translation"
+private const val TRANSLATION_LANG_URL = "lang"
+
 fun findItemByLinkId(
   items: List<QuestionnaireItemComponent>?,
   linkId: String,
@@ -276,6 +290,62 @@ suspend fun Questionnaire.hasInvalidAnswersIgnoringPageSpacers(
     .values
     .flatten()
     .any { it is Invalid }
+}
+
+private const val SDC_ENTRY_MODE_URL =
+  "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-entryMode"
+
+/**
+ * Makes the form library hold "Next" and "Review" back until the required questions are answered.
+ * It only does so for a form that declares an entry mode (`prior-edit`, as the encounter forms do);
+ * without one it lets the review open with required answers missing. A form that declares one keeps
+ * it.
+ */
+fun Questionnaire.requireAnswersBeforeReview() {
+  if (extension.none { it.url.endsWith("sdc-questionnaire-entryMode") }) {
+    addExtension(Extension(SDC_ENTRY_MODE_URL, CodeType("prior-edit")))
+  }
+}
+
+/**
+ * Shows a form that is one long scroll page by page (Next / Previous), one page per section, with
+ * what is asked and what is extracted from the answers unchanged. The pages are the top-level
+ * groups; when the form is one group that holds the sections (the OpenMRS registration form), the
+ * sections are the pages. A form that is already paged, or has no group, is left alone. Questions
+ * outside any group (identifiers the app adds) go at the top of the first page.
+ *
+ * Only one page is drawn at a time, which is also what makes a long form open and scroll faster.
+ */
+fun Questionnaire.pagedBySections() {
+  if (item.any { it.isPageGroupItem() }) return
+  fun QuestionnaireItemComponent.isGroup() = type == Questionnaire.QuestionnaireItemType.GROUP
+  val groups = item.filter { it.isGroup() }
+  if (groups.isEmpty()) return
+  val loose = item.filter { !it.isGroup() }
+  if (loose.isNotEmpty()) {
+    groups.first().item.addAll(0, loose)
+    item.removeAll(loose)
+  }
+  if (item.size == 1) {
+    val sections = item.first().item.filter { it.isGroup() }
+    if (sections.size >= 2) {
+      val looseInside = item.first().item.filter { !it.isGroup() }
+      item.clear()
+      item.addAll(sections)
+      if (looseInside.isNotEmpty()) sections.first().item.addAll(0, looseInside)
+    }
+  }
+  item.forEach { page ->
+    page.addExtension(
+      Extension(
+        QUESTIONNAIRE_ITEM_CONTROL_URL,
+        CodeableConcept()
+          .addCoding(
+            Coding(QUESTIONNAIRE_ITEM_CONTROL_SYSTEM, QUESTIONNAIRE_ITEM_CONTROL_PAGE, "Page"),
+          ),
+      ),
+    )
+  }
 }
 
 private fun QuestionnaireItemComponent.isPageGroupItem(): Boolean {

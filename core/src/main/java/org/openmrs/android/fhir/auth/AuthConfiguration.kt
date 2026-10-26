@@ -38,8 +38,10 @@ import kotlinx.coroutines.runBlocking
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.connectivity.ConnectionBuilder
 import net.openid.appauth.connectivity.DefaultConnectionBuilder
+import org.openmrs.android.fhir.BuildConfig
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.model.AuthConfigData
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.extensions.fromJson
 import org.openmrs.android.fhir.extensions.toJson
 
@@ -50,7 +52,7 @@ class AuthConfiguration private constructor(private val context: Context) {
     get() {
       val serializedAuth =
         runBlocking { context.dataStore.data.first()[authConfigKey] } ?: return authConfigData
-      return serializedAuth.fromJson<AuthConfigData>()!!
+      return serializedAuth.fromJson<AuthConfigData>() ?: authConfigData
     }
 
   suspend fun isNotStored(): Boolean {
@@ -61,23 +63,28 @@ class AuthConfiguration private constructor(private val context: Context) {
     context.dataStore.edit { pref -> pref[authConfigKey] = authConfigData.toJson() }
   }
 
+  private val appConfig by lazy { AppConfig.get(context) }
+
+  /**
+   * The single sign-on settings, read from `res/values/auth_config.xml` (an application module's
+   * own copy replaces the one in `core`).
+   */
   val authConfigData: AuthConfigData by lazy {
+    val discoveryUrl = context.getString(R.string.auth_discovery_uri).trim()
+    val redirectHost = context.getString(R.string.auth_redirect_uri_host).trim()
+    val redirectPath = context.getString(R.string.auth_redirect_uri_path).trim()
     AuthConfigData(
-      clientId = context.getString(R.string.auth_client_id),
-      redirectUri =
-        context.getString(R.string.auth_redirect_uri_host) +
-          ":" +
-          context.getString(R.string.auth_redirect_uri_path),
-      authorizationScope = context.getString(R.string.auth_authorization_scope),
-      discoveryUri = context.getString(R.string.auth_discovery_uri),
-      authorizationEndpointUri = context.getString(R.string.auth_authorization_endpoint_uri),
-      registrationEndpointUri = context.getString(R.string.auth_registration_endpoint_uri),
-      tokenEndpointUri = context.getString(R.string.auth_token_endpoint_uri),
-      userInfoEndpointUri = context.getString(R.string.auth_user_info_endpoint_uri),
-      endSessionEndpoint = context.getString(R.string.auth_end_session_endpoint),
+      clientId = context.getString(R.string.auth_client_id).trim(),
+      redirectUri = "$redirectHost:$redirectPath",
+      authorizationScope = context.getString(R.string.auth_authorization_scope).trim(),
+      discoveryUri = discoveryUrl,
+      authorizationEndpointUri = "",
+      registrationEndpointUri = "",
+      tokenEndpointUri = "",
+      userInfoEndpointUri = "",
+      endSessionEndpoint = "",
       httpsRequired = context.resources.getBoolean(R.bool.auth_https_required),
-      replaceLocalhostBy1022 =
-        context.resources.getBoolean(R.bool.auth_replace_localhost_by_10_0_2_2),
+      replaceLocalhostBy1022 = true,
     )
   }
   val clientId: String
@@ -114,21 +121,31 @@ class AuthConfiguration private constructor(private val context: Context) {
       if (authConfigData.httpsRequired) {
         DefaultConnectionBuilder.INSTANCE
       } else {
-        ConnectionBuilderForTesting.replace_localhost_by_10_0_2_2 =
-          authConfigData.replaceLocalhostBy1022 ?: true
-        ConnectionBuilderForTesting
+        // Plain http is allowed (the network security config decides which hosts), https needs a
+        // certificate the system trusts: no build accepts every certificate.
+        PlainHttpConnectionBuilder
       }
 
+  /**
+   * Development only: the provider announces "localhost" (a Keycloak in a container on the
+   * developer's machine), which inside the Android emulator is the machine's address 10.0.2.2.
+   */
+  val replaceLocalhost: Boolean
+    get() =
+      BuildConfig.DEBUG &&
+        !authConfigData.httpsRequired &&
+        (authConfigData.replaceLocalhostBy1022 ?: true)
+
   init {
-    AuthConfigUtil.isRequiredConfigString(authConfigData.clientId)
-    AuthConfigUtil.isRequiredConfigString(authConfigData.authorizationScope)
-    AuthConfigUtil.isRequiredConfigUri(authConfigData.redirectUri)
-    AuthConfigUtil.isRedirectUriRegistered(context, authConfigData.redirectUri!!)
-    if (authConfigData.discoveryUri == null || authConfigData.discoveryUri.isNullOrEmpty()) {
-      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.authorizationEndpointUri)
-      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.tokenEndpointUri)
-      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.userInfoEndpointUri)
-      AuthConfigUtil.isRequiredConfigWebUri(authConfigData.endSessionEndpoint)
+    // Without single sign-on there is nothing to check.
+    if (AuthMethod.OPENID in AuthMethod.offeredBy(appConfig.authMethod)) {
+      AuthConfigUtil.isRequiredConfigString(authConfigData.clientId)
+      AuthConfigUtil.isRequiredConfigString(authConfigData.authorizationScope)
+      AuthConfigUtil.isRequiredConfigUri(authConfigData.redirectUri)
+      AuthConfigUtil.isRedirectUriRegistered(
+        context,
+        checkNotNull(authConfigData.redirectUri) { "auth_config has no redirect uri" },
+      )
     }
   }
 

@@ -2,4 +2,12 @@
 <resources>
   <item name="main_nav_host_container" type="id" />
   <item name="toolbar" type="id" />
+  <item name="menu_sign_in" type="id" />
+  <item name="menu_sync" type="id" />
+  <item name="menu_current_location" type="id" />
+  <item name="menu_settings" type="id" />
+  <item name="menu_diagnostics" type="id" />
+  <item name="menu_delete_patient_data" type="id" />
+  <item name="menu_logout" type="id" />
+  <item name="menu_version" type="id" />
 </resources>

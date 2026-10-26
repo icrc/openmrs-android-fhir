@@ -42,9 +42,13 @@ import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import java.time.ZoneId
 import java.util.Date
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
@@ -60,9 +64,15 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.codesystems.ConditionCategory
 import org.openmrs.android.fhir.Constants
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.ensurePageGroupsHaveTrailingSpacer
@@ -84,6 +94,7 @@ constructor(
   private val fhirEngine: FhirEngine,
   private val openMRSHelper: OpenMRSHelper,
   @Assisted val state: SavedStateHandle,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
   @AssistedFactory
@@ -100,16 +111,25 @@ constructor(
   val encounterType = getEncounterTypeValue()
   val isLoading = MutableLiveData<Boolean>()
 
-  fun getEncounterQuestionnaire(questionnaireId: String) {
+  /**
+   * Loads the form and prepares it for the screen: everything heavy (reading, adding the page
+   * spacers, writing the JSON the form library takes) runs off the main thread, once.
+   *
+   * @param startOnToday fills the encounter date with today (a single-patient encounter); group
+   *   sessions take the date from the screener instead.
+   */
+  fun getEncounterQuestionnaire(questionnaireId: String, startOnToday: Boolean = false) {
     viewModelScope.launch {
-      val q = fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
-      q?.ensurePageGroupsHaveTrailingSpacer()
-      _questionnaire.value = q
-      if (_questionnaire.value == null) {
-        _questionnaireJson.value = ""
-      } else {
-        _questionnaireJson.value = parser.encodeResourceToString(_questionnaire.value)
-      }
+      val (loaded, json) =
+        withContext(defaultDispatcher) {
+          val q =
+            fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
+          q?.ensurePageGroupsHaveTrailingSpacer()
+          if (startOnToday && q != null) prepareEnterEncounter(q)
+          q to (q?.let { parser.encodeResourceToString(it) } ?: "")
+        }
+      _questionnaire.value = loaded
+      _questionnaireJson.value = json
     }
   }
 
@@ -184,6 +204,7 @@ constructor(
     patientId: String,
     encounterId: String,
     sessionDate: Date? = null,
+    isGroupSession: Boolean = false,
   ) {
     viewModelScope.launch {
       val questionnaireId = state.get<String>("questionnaire_id")
@@ -204,6 +225,12 @@ constructor(
           applicationContext,
         )
       ) {
+        AuditLog.failure(
+          AuditAction.ENCOUNTER_CREATED,
+          "patient" to patientId,
+          "form" to questionnaireId,
+          "reason" to "invalid_answers",
+        )
         isResourcesSaved.value = "MISSING/$patientId"
         return@launch
       }
@@ -215,13 +242,35 @@ constructor(
       val encounterDate =
         sessionDate ?: extractSessionDateFromQuestionnaireResponse(questionnaireResponse)
 
+      // The visit the encounter belongs to: one made for it (the default), or the one the user
+      // opened (Settings > Visits).
+      var date = encounterDate
       val visit: Encounter
-      visit =
-        if (Constants.WRAP_ENCOUNTER) {
-          createWrapperVisit(patientId, encounterDate)
-        } else {
-          openMRSHelper.getActiveVisit(patientId, true)!!
+      if (openMRSHelper.automaticVisits()) {
+        visit = createWrapperVisit(patientId, encounterDate)
+      } else {
+        val openVisit = openMRSHelper.getActiveVisit(patientId, false)
+        val dateInVisit = openVisit?.let { fitInVisit(encounterDate, it) }
+        when {
+          openVisit != null && dateInVisit != null -> {
+            visit = openVisit
+            date = dateInVisit
+          }
+          // A group session does not ask each patient for a visit: one is made for it.
+          isGroupSession -> visit = createWrapperVisit(patientId, encounterDate)
+          else -> {
+            AuditLog.failure(
+              AuditAction.ENCOUNTER_CREATED,
+              "patient" to patientId,
+              "form" to questionnaireId,
+              "reason" to if (openVisit == null) "no_open_visit" else "date_outside_visit",
+            )
+            isResourcesSaved.value =
+              (if (openVisit == null) "NO_VISIT/" else "VISIT_DATE/") + patientId
+            return@launch
+          }
         }
+      }
 
       saveResources(
         bundle,
@@ -230,10 +279,41 @@ constructor(
         questionnaireResponse,
         encounterId,
         visit.idPart,
-        encounterDate,
+        date,
       )
+      AuditLog.record(
+        AuditAction.ENCOUNTER_CREATED,
+        AuditOutcome.SUCCESS,
+        "patient" to patientId,
+        "encounter" to encounterId,
+        "form" to questionnaireId,
+      )
+      LiveSync.requestUpload(applicationContext)
       isResourcesSaved.value = "SAVED/$patientId"
     }
+  }
+
+  /**
+   * [date] as the encounter's date inside [visit]: a date before the visit started or after it
+   * ended on the same day moves to that moment (the form only asks for a day, the visit has a
+   * time); on another day, null.
+   */
+  private fun fitInVisit(date: Date, visit: Encounter): Date? {
+    fun sameDay(a: Date, b: Date) =
+      a.toInstant().atZone(ZoneId.systemDefault()).toLocalDate() ==
+        b.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+    var fitted = date
+    val start = visit.period?.start
+    val end = visit.period?.end
+    if (start != null && fitted.before(start)) {
+      if (!sameDay(fitted, start)) return null
+      fitted = start
+    }
+    if (end != null && fitted.after(end)) {
+      if (!sameDay(fitted, end)) return null
+      fitted = end
+    }
+    return fitted
   }
 
   private suspend fun saveResources(
@@ -247,6 +327,8 @@ constructor(
   ) {
     val encounterReference = Reference("Encounter/$encounterId")
     val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+    // Saved without a location: it is filled in once one is chosen.
+    if (locationId.isNullOrBlank()) GuestSession.markCompletionPending(applicationContext)
     val encounterType =
       questionnaire.code.firstOrNull {
         it.system == "http://fhir.openmrs.org/code-system/encounter-type"

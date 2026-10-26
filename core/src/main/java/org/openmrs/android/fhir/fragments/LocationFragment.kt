@@ -32,21 +32,14 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -60,6 +53,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.SyncJobStatus
 import com.google.android.fhir.sync.SyncOperation
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -69,9 +63,13 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.LocationSelectionScreen
 import org.openmrs.android.fhir.ui.screens.selectionScreenContentPadding
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
@@ -96,51 +94,36 @@ class LocationFragment : Fragment() {
     container: ViewGroup?,
     savedInstanceState: Bundle?,
   ): View {
-    return ComposeView(requireContext()).apply {
-      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-      setContent {
-        MaterialTheme {
-          val locations by locationViewModel.locations.observeAsState(emptyList())
-          val uiState by locationViewModel.uiState.collectAsStateWithLifecycle()
-          val filteredFavorites =
-            remember(locations, uiState.favoriteLocationIds, uiState.query) {
-              locations.filter {
-                uiState.favoriteLocationIds.contains(it.resourceId) &&
-                  it.name.contains(uiState.query, true)
-              }
-            }
-          val filteredLocations =
-            remember(locations, uiState.favoriteLocationIds, uiState.query) {
-              locations.filter {
-                !uiState.favoriteLocationIds.contains(it.resourceId) &&
-                  it.name.contains(uiState.query, true)
-              }
-            }
-
-          if (uiState.showContent) {
-            LocationSelectionScreen(
-              query = uiState.query,
-              onQueryChange = locationViewModel::onQueryChanged,
-              favoriteLocations = filteredFavorites,
-              locations = filteredLocations,
-              selectedLocationId = uiState.selectedLocationId,
-              showTitle = fromLogin,
-              showActionButton = fromLogin,
-              showEmptyState = locations.isEmpty(),
-              isLoading = uiState.isLoading,
-              onLocationClick = ::selectLocationItem,
-              onFavoriteToggle = ::onFavoriteLocationToggle,
-              onActionClick = ::handleActionClick,
-              topPadding =
-                if (fromLogin) {
-                  20.dp
-                } else {
-                  selectionScreenContentPadding().calculateTopPadding()
-                },
-            )
-          } else {
-            Box(modifier = Modifier.fillMaxSize().background(Color(0xFFE8F0FE)))
+    return composeView {
+      OpenMrsTheme {
+        val locations by locationViewModel.locations.observeAsState(emptyList())
+        val uiState by locationViewModel.uiState.collectAsStateWithLifecycle()
+        // One pass over the list: the matches, split into favorites and the rest.
+        val (filteredFavorites, filteredLocations) =
+          remember(locations, uiState.favoriteLocationIds, uiState.query) {
+            locations
+              .filter { it.name.contains(uiState.query, true) }
+              .partition { uiState.favoriteLocationIds.contains(it.resourceId) }
           }
+
+        if (uiState.showContent) {
+          LocationSelectionScreen(
+            query = uiState.query,
+            onQueryChange = locationViewModel::onQueryChanged,
+            favoriteLocations = filteredFavorites,
+            locations = filteredLocations,
+            selectedLocationId = uiState.selectedLocationId,
+            showTitle = fromLogin,
+            showActionButton = fromLogin,
+            showEmptyState = locations.isEmpty(),
+            isLoading = uiState.isLoading,
+            onLocationClick = ::selectLocationItem,
+            onFavoriteToggle = ::onFavoriteLocationToggle,
+            onActionClick = ::handleActionClick,
+            topPadding = selectionScreenContentPadding().calculateTopPadding(),
+          )
+        } else {
+          Box(modifier = Modifier.fillMaxSize().background(OpenMrsTheme.colors.highlightContainer))
         }
       }
     }
@@ -205,7 +188,7 @@ class LocationFragment : Fragment() {
       locationViewModel.uiState.value.selectedLocationId.isNullOrBlank() &&
         !locationViewModel.locations.value.isNullOrEmpty()
     ) {
-      AlertDialog.Builder(requireContext()).apply {
+      MaterialAlertDialogBuilder(requireContext()).apply {
         setTitle(getString(R.string.select_location))
         setMessage(getString(R.string.no_location_is_selected_do_you_want_to_select_one))
         setPositiveButton(getString(R.string.yes)) { dialog, _ -> dialog.dismiss() }
@@ -252,12 +235,11 @@ class LocationFragment : Fragment() {
             is CurrentSyncJobStatus.Failed -> {
               showLocationScreen()
               locationViewModel.getLocations()
-              Toast.makeText(
-                  context,
-                  getString(R.string.failed_to_fetch_all_locations),
-                  Toast.LENGTH_SHORT,
-                )
-                .show()
+              AppMessage.show(
+                context,
+                getString(R.string.failed_to_fetch_all_locations),
+                MessageKind.Error,
+              )
             }
             else -> {
               //
@@ -273,16 +255,15 @@ class LocationFragment : Fragment() {
     isFavorite: Boolean,
   ) {
     locationViewModel.onFavoriteToggle(locationItem.resourceId, isFavorite)
-    Toast.makeText(
-        context,
-        if (isFavorite) {
-          getString(R.string.location_removed_from_favorites)
-        } else {
-          getString(R.string.location_added_to_favorites)
-        },
-        Toast.LENGTH_SHORT,
-      )
-      .show()
+    AppMessage.show(
+      context,
+      if (isFavorite) {
+        getString(R.string.location_removed_from_favorites)
+      } else {
+        getString(R.string.location_added_to_favorites)
+      },
+      MessageKind.Success,
+    )
   }
 
   private fun selectLocationItem(locationItem: LocationViewModel.LocationItem) {
@@ -291,9 +272,11 @@ class LocationFragment : Fragment() {
       mainActivityViewModel.updateLocationName(locationItem.name)
       (requireActivity() as AppCompatActivity).supportActionBar?.title = locationItem.name
       locationViewModel.updateSessionLocation(locationItem.resourceId)
+      // Data entered as a guest gets this location now.
+      mainActivityViewModel.completeGuestDataForNewLocation()
     }
 
-    Toast.makeText(context, getString(R.string.location_updated), Toast.LENGTH_SHORT).show()
+    AppMessage.show(context, getString(R.string.location_updated), MessageKind.Success)
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {

@@ -28,62 +28,102 @@
 */
 package org.openmrs.android.fhir.ui.screens
 
+import android.os.Build
+import android.view.ContextThemeWrapper
 import android.view.ViewGroup
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.android.material.appbar.MaterialToolbar
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import org.openmrs.android.fhir.extensions.AppBarInsets
+import org.openmrs.android.fhir.extensions.isAppInDarkTheme
+import org.openmrs.android.fhir.extensions.rememberAppBarHeight
+import org.openmrs.android.fhir.ui.components.AutoSyncDelayDialog
 import org.openmrs.android.fhir.ui.components.DrawerHeader
 import org.openmrs.android.fhir.ui.components.NetworkStatusBanner
+import org.openmrs.android.fhir.ui.components.SessionExpiredStrip
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
+import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
+import org.openmrs.android.fhir.viewmodel.LiveStatus
 
 @Stable
 data class DrawerItem(
@@ -98,7 +138,16 @@ data class DrawerItem(
 data class SyncProgressState(
   val current: Int,
   val total: Int,
-)
+) {
+  /**
+   * How far the sync is, or `null` when that is not known. The total the sync library reports only
+   * counts what the main searches match (the patients), while the download also brings their
+   * encounters and observations, so [current] passes it long before the sync is done. From then on
+   * only the amount received so far can be shown honestly, not a percentage.
+   */
+  val fraction: Float?
+    get() = if (total > 0 && current < total) current.toFloat() / total else null
+}
 
 @Composable
 fun MainActivityScaffold(
@@ -106,14 +155,116 @@ fun MainActivityScaffold(
   isNetworkStatusVisible: Boolean,
   onToolbarReady: (MaterialToolbar) -> Unit,
   modifier: Modifier = Modifier,
+  connectivityState: ServerConnectivityState = ServerConnectivityState.ServerConnected,
+  isSyncing: Boolean = false,
+  syncProgress: SyncProgressState = SyncProgressState(0, 0),
+  nextSyncMinutes: Int? = null,
+  liveStatus: LiveStatus = LiveStatus.Off,
+  onDelaySync: (minutes: Int) -> Unit = {},
+  onTurnOffAutoSync: () -> Unit = {},
+  onResetAutoSyncTimer: () -> Unit = {},
+  sessionExpired: Boolean = false,
+  onSignInClick: () -> Unit = {},
 ) {
-  Column(modifier = modifier.fillMaxWidth().statusBarsPadding()) {
-    if (isNetworkStatusVisible) {
-      NetworkStatusBanner(text = networkStatusText)
+  var showDelayDialog by rememberSaveable { mutableStateOf(false) }
+  // One bar: the brand color runs up behind the status bar (a dark surface in the night theme)
+  // with the toolbar on it and, under it, the connection strip, and a soft shadow underneath.
+  // The drawer lays this view out at full height; only the bar itself may take space and paint.
+  val dark = isAppInDarkTheme()
+  val barColor =
+    if (dark) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.primary
+  val barContent =
+    if (dark) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onPrimary
+  Surface(
+    modifier =
+      modifier.fillMaxWidth().wrapContentHeight(Alignment.Top).onGloballyPositioned { bounds ->
+        // Screens under the bar pad by what is really there: the toolbar and the strip.
+        AppBarInsets.heightPx.value = (bounds.positionInWindow().y + bounds.size.height).toInt()
+      },
+    color = barColor,
+    shadowElevation = 3.dp,
+  ) {
+    Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
+      ToolbarHost(onToolbarReady = onToolbarReady, contentColor = barContent)
+      if (isNetworkStatusVisible) {
+        Box(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)) {
+          val fraction =
+            if (syncProgress.total > 0) {
+              (syncProgress.current.toFloat() / syncProgress.total).coerceIn(0f, 1f)
+            } else {
+              null
+            }
+          val syncing = stringResource(id = R.string.syncing)
+          NetworkStatusBanner(
+            text = networkStatusText,
+            state = connectivityState,
+            syncText =
+              when {
+                !isSyncing -> null
+                fraction == null -> syncing
+                else ->
+                  "$syncing · ${stringResource(id = R.string.sync_percent, (fraction * 100).toInt())}"
+              },
+            syncProgress = fraction,
+            nextSyncText =
+              nextSyncMinutes?.let {
+                if (it >= 60) {
+                  stringResource(id = R.string.next_sync_in_hours, it / 60, it % 60)
+                } else {
+                  stringResource(id = R.string.next_sync_in_minutes, it)
+                }
+              },
+            onDelayClick = if (nextSyncMinutes != null) ({ showDelayDialog = true }) else null,
+            liveText =
+              when (liveStatus) {
+                LiveStatus.Off -> null
+                // Live mode needs the server: with no connection there is nothing live to say.
+                LiveStatus.On ->
+                  if (connectivityState == ServerConnectivityState.ServerConnected) {
+                    stringResource(id = R.string.live_status_live)
+                  } else {
+                    null
+                  }
+                LiveStatus.Sending -> stringResource(id = R.string.live_status_sending)
+                LiveStatus.Retrying -> stringResource(id = R.string.live_status_retry)
+              },
+          )
+        }
+      }
+      if (sessionExpired) {
+        SessionExpiredStrip(onSignInClick = onSignInClick)
+      }
     }
-    ToolbarHost(onToolbarReady = onToolbarReady)
+  }
+  if (showDelayDialog) {
+    AutoSyncDelayDialog(
+      onDelay = {
+        showDelayDialog = false
+        onDelaySync(it)
+      },
+      onTurnOff = {
+        showDelayDialog = false
+        onTurnOffAutoSync()
+      },
+      onResetTimer = {
+        showDelayDialog = false
+        onResetAutoSyncTimer()
+      },
+      onDismiss = { showDelayDialog = false },
+    )
   }
 }
+
+/** Items grouped so related actions sit together. */
+private val DrawerGroups =
+  listOf(
+    listOf(R.id.menu_sync, R.id.menu_current_location),
+    listOf(R.id.menu_settings, R.id.menu_diagnostics),
+  )
+
+/** What cannot be undone: at the very end of the drawer, above the quiet version footer. */
+private val DrawerEndGroup =
+  listOf(R.id.menu_delete_patient_data, R.id.menu_logout, R.id.menu_sign_in)
 
 @Composable
 fun DrawerContent(
@@ -121,31 +272,105 @@ fun DrawerContent(
   drawerItems: List<DrawerItem>,
   onDrawerItemSelected: (Int) -> Unit,
   modifier: Modifier = Modifier,
+  accountText: String? = null,
 ) {
+  val itemsById = remember(drawerItems) { drawerItems.associateBy { it.id } }
+  val versionItem = itemsById[R.id.menu_version]
+
   Column(
     modifier =
-      modifier
-        .background(colorResource(id = R.color.white))
-        .verticalScroll(rememberScrollState())
-        .padding(bottom = 16.dp),
+      modifier.width(300.dp).fillMaxHeight().background(MaterialTheme.colorScheme.background),
   ) {
-    DrawerHeader(label = stringResource(R.string.last_sync), lastSyncValue = lastSyncText)
-    Divider()
-    drawerItems.forEach { item ->
-      NavigationDrawerItem(
+    DrawerHeader(
+      label = stringResource(R.string.last_sync),
+      lastSyncValue = lastSyncText,
+      accountText = accountText,
+    )
+
+    // One scrolling area: with a big font or a small screen everything stays reachable (the end
+    // group used to be pinned and squeeze the rest). With room to spare it sits at the very end.
+    BoxWithConstraints(modifier = Modifier.weight(1f)) {
+      val viewport = maxHeight
+      Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+        Column(modifier = Modifier.heightIn(min = viewport).padding(vertical = 8.dp)) {
+          DrawerGroups.forEachIndexed { index, ids ->
+            if (index > 0) {
+              HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                color = MaterialTheme.colorScheme.outlineVariant,
+              )
+            }
+            ids
+              .mapNotNull { itemsById[it] }
+              .forEach { item ->
+                DrawerEntry(item = item, onClick = { onDrawerItemSelected(item.id) })
+              }
+          }
+          Spacer(modifier = Modifier.weight(1f))
+          HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            color = MaterialTheme.colorScheme.outlineVariant,
+          )
+          DrawerEndGroup.mapNotNull { itemsById[it] }
+            .forEach { item ->
+              DrawerEntry(item = item, onClick = { onDrawerItemSelected(item.id) })
+            }
+        }
+      }
+    }
+
+    if (versionItem != null) {
+      Text(
+        text = versionItem.title,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier =
-          Modifier.fillMaxWidth().alpha(if (item.enabled) 1f else 0.6f).testTag(item.testTag),
-        label = { Text(text = item.title) },
-        icon = { IconResource(iconRes = item.iconRes) },
-        selected = false,
-        onClick = { if (item.enabled) onDrawerItemSelected(item.id) },
-        colors =
-          NavigationDrawerItemDefaults.colors(
-            unselectedContainerColor = Color.Transparent,
-          ),
+          Modifier.fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(horizontal = 24.dp, vertical = 12.dp)
+            .testTag(versionItem.testTag),
       )
     }
   }
+}
+
+@Composable
+private fun DrawerEntry(item: DrawerItem, onClick: () -> Unit) {
+  // What cannot be undone is red: leaving the session, and deleting the patient data.
+  val isLogout = item.id == R.id.menu_logout || item.id == R.id.menu_delete_patient_data
+  val contentColor =
+    if (isLogout) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+  val iconColor =
+    if (isLogout) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+  NavigationDrawerItem(
+    modifier =
+      Modifier.padding(horizontal = 12.dp)
+        .fillMaxWidth()
+        .alpha(if (item.enabled) 1f else 0.6f)
+        .testTag(item.testTag),
+    label = {
+      Text(
+        text = item.title,
+        style = MaterialTheme.typography.bodyLarge,
+      )
+    },
+    icon = {
+      Icon(
+        painter = painterResource(item.iconRes),
+        contentDescription = null,
+        modifier = Modifier.size(24.dp),
+      )
+    },
+    selected = false,
+    onClick = { if (item.enabled) onClick() },
+    shape = RoundedCornerShape(12.dp),
+    colors =
+      NavigationDrawerItemDefaults.colors(
+        unselectedContainerColor = Color.Transparent,
+        unselectedIconColor = iconColor,
+        unselectedTextColor = contentColor,
+      ),
+  )
 }
 
 @Composable
@@ -154,53 +379,65 @@ fun MainActivityOverlays(
   syncHeaderText: String,
   showSyncCloseButton: Boolean,
   isSyncTasksVisible: Boolean,
+  isSyncMinimized: Boolean,
   isLoading: Boolean,
-  onCloseSyncTasks: () -> Unit,
+  onMinimizeSyncTasks: () -> Unit,
+  onExpandSyncTasks: () -> Unit,
   modifier: Modifier = Modifier,
+  /** Stops the sync that is running; `null`: not offered. */
+  onCancelSync: (() -> Unit)? = null,
 ) {
   Box(modifier = modifier.fillMaxSize()) {
-    if (isSyncTasksVisible) {
-      SyncTasksOverlay(
-        syncProgressState = syncProgressState,
-        headerText = syncHeaderText,
-        showCloseButton = showSyncCloseButton,
-        onClose = onCloseSyncTasks,
-      )
-    }
+    SyncPopup(
+      visible = isSyncTasksVisible,
+      // The blocking first sync cannot be tucked away: it is the only way forward.
+      minimized = isSyncMinimized && showSyncCloseButton,
+      canMinimize = showSyncCloseButton,
+      progress = syncProgressState,
+      headerText = syncHeaderText,
+      onMinimize = onMinimizeSyncTasks,
+      onExpand = onExpandSyncTasks,
+      onCancel = onCancelSync,
+    )
     if (isLoading) {
       LoadingOverlay()
     }
   }
 }
 
-@Composable
-private fun IconResource(@DrawableRes iconRes: Int) {
-  Image(
-    painter = painterResource(iconRes),
-    contentDescription = null,
-    modifier = Modifier.size(24.dp),
-  )
-}
+private val TITLE_APPEARANCE =
+  com.google.android.material.R.style.TextAppearance_Material3_TitleLarge
+
+private const val SUBTITLE_APPEARANCE =
+  com.google.android.material.R.style.TextAppearance_Material3_BodyMedium
 
 @Composable
-private fun ToolbarHost(onToolbarReady: (MaterialToolbar) -> Unit) {
+private fun ToolbarHost(onToolbarReady: (MaterialToolbar) -> Unit, contentColor: Color) {
   val context = LocalContext.current
   val toolbarState: MutableState<MaterialToolbar?> = remember { mutableStateOf(null) }
-  val toolbarColor = colorResource(id = R.color.white)
+  val titleColor = contentColor.toArgb()
+  val subtitleColor = contentColor.copy(alpha = 0.85f).toArgb()
   AndroidView(
-    modifier = Modifier.fillMaxWidth().testTag("MainToolbar"),
+    modifier =
+      Modifier.fillMaxWidth().testTag("MainToolbar").tutorialTarget(TutorialTargets.HOME_MENU),
     factory = {
-      MaterialToolbar(context).apply {
+      // Its own theme, so the back arrow and the actions are drawn in the bar's content color.
+      MaterialToolbar(ContextThemeWrapper(context, R.style.ThemeOverlay_OpenMrs_Toolbar)).apply {
         id = R.id.toolbar
         layoutParams =
           ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT,
           )
-        setBackgroundColor(toolbarColor.toArgb())
+        // The bar's surface is drawn by the composable around it.
+        setBackgroundColor(android.graphics.Color.TRANSPARENT)
+        setTitleTextAppearance(context, TITLE_APPEARANCE)
+        setSubtitleTextAppearance(context, SUBTITLE_APPEARANCE)
       }
     },
     update = { toolbar ->
+      toolbar.setTitleTextColor(titleColor)
+      toolbar.setSubtitleTextColor(subtitleColor)
       if (toolbarState.value != toolbar) {
         toolbarState.value = toolbar
         onToolbarReady(toolbar)
@@ -209,98 +446,197 @@ private fun ToolbarHost(onToolbarReady: (MaterialToolbar) -> Unit) {
   )
 }
 
+/**
+ * The sync progress as a popup over a dimmed (and, where the system can, blurred) app, so what is
+ * behind stays recognisable. It can be minimised to a small pill under the app bar that leaves the
+ * app usable; tapping the pill brings the popup back.
+ */
 @Composable
-private fun SyncTasksOverlay(
-  syncProgressState: SyncProgressState,
+private fun BoxScope.SyncPopup(
+  visible: Boolean,
+  minimized: Boolean,
+  canMinimize: Boolean,
+  progress: SyncProgressState,
   headerText: String,
-  showCloseButton: Boolean,
-  onClose: () -> Unit,
+  onMinimize: () -> Unit,
+  onExpand: () -> Unit,
+  onCancel: (() -> Unit)? = null,
 ) {
-  val progressFraction =
-    if (syncProgressState.total > 0) {
-      syncProgressState.current.toFloat() / syncProgressState.total.toFloat()
-    } else {
-      0f
-    }
-  Box(
-    modifier =
-      Modifier.fillMaxSize()
-        .background(colorResource(id = R.color.primaryContainer_blue_90))
-        .testTag("SyncTasksOverlay"),
-    contentAlignment = Alignment.Center,
+  // The activity blurs the content itself where it can; elsewhere the scrim has to do more.
+  val scrimAlpha = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) 0.2f else 0.5f
+  val noRipple = remember { MutableInteractionSource() }
+
+  AnimatedVisibility(
+    visible = visible && !minimized,
+    enter = fadeIn(),
+    exit = fadeOut(),
   ) {
-    Card(
-      modifier = Modifier.padding(24.dp),
-      shape = MaterialTheme.shapes.large,
-      border = BorderStroke(1.dp, Color(0xFFE0E7FF)),
-      colors = CardDefaults.cardColors(containerColor = Color.White),
+    Box(
+      modifier =
+        Modifier.fillMaxSize()
+          .background(Color.Black.copy(alpha = scrimAlpha))
+          .clickable(interactionSource = noRipple, indication = null) {
+            if (canMinimize) onMinimize()
+          }
+          .testTag("SyncTasksOverlay"),
+      contentAlignment = Alignment.Center,
     ) {
-      Column(
-        modifier = Modifier.padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+      AnimatedVisibility(
+        visible = visible && !minimized,
+        enter = fadeIn() + scaleIn(initialScale = 0.92f),
+        exit = fadeOut() + scaleOut(targetScale = 0.92f),
       ) {
-        Text(
-          text = headerText,
-          fontSize = 18.sp,
-          color = Color(0xFF666666),
-          textAlign = TextAlign.Center,
+        SyncPopupCard(
+          progress = progress,
+          headerText = headerText,
+          canMinimize = canMinimize,
+          onMinimize = onMinimize,
+          onCancel = onCancel,
+          modifier =
+            Modifier.padding(24.dp).clickable(interactionSource = noRipple, indication = null) {},
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        LinearProgressIndicator(
-          progress = { progressFraction },
-          modifier = Modifier.fillMaxWidth().height(4.dp),
-          color = Color(0xFF1976D2),
-          trackColor = Color(0xFFE0E0E0),
-          strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-        Text(
-          text = stringResource(id = R.string.syncing_resources),
-          fontSize = 32.sp,
-          fontWeight = FontWeight.Bold,
-          color = Color(0xFF333333),
-          textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-          text =
-            stringResource(
-              id = R.string.this_can_take_up_to_10_minutes_depending_on_your_internet_connection,
-            ),
-          fontSize = 16.sp,
-          color = Color(0xFF666666),
-          textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-          SyncChecklistItem(text = stringResource(id = R.string.stay_connected_to_wi_fi_or_data))
-          SyncChecklistItem(
-            text =
-              stringResource(
-                id = R.string.leave_the_device_in_a_location_with_good_internet_reception,
-              ),
+      }
+    }
+  }
+
+  AnimatedVisibility(
+    visible = visible && minimized,
+    modifier = Modifier.align(Alignment.TopCenter),
+    enter = fadeIn() + slideInVertically { -it },
+    exit = fadeOut() + slideOutVertically { -it },
+  ) {
+    SyncPill(
+      progress = progress,
+      onExpand = onExpand,
+      modifier = Modifier.padding(top = rememberAppBarHeight() + 8.dp),
+    )
+  }
+}
+
+@Composable
+private fun SyncPopupCard(
+  progress: SyncProgressState,
+  headerText: String,
+  canMinimize: Boolean,
+  onMinimize: () -> Unit,
+  modifier: Modifier = Modifier,
+  onCancel: (() -> Unit)? = null,
+) {
+  val fraction = progress.fraction
+  Surface(
+    modifier = modifier.widthIn(max = 400.dp).fillMaxWidth(),
+    shape = RoundedCornerShape(28.dp),
+    color = MaterialTheme.colorScheme.surface,
+    shadowElevation = 12.dp,
+  ) {
+    Column(
+      modifier = Modifier.padding(horizontal = 24.dp, vertical = 28.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      SyncBadge()
+      Spacer(modifier = Modifier.height(16.dp))
+      Text(
+        text = headerText,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface,
+        textAlign = TextAlign.Center,
+      )
+      Spacer(modifier = Modifier.height(6.dp))
+      Text(
+        text =
+          stringResource(
+            id = R.string.this_can_take_up_to_10_minutes_depending_on_your_internet_connection,
+          ),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+      )
+      Spacer(modifier = Modifier.height(20.dp))
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        val barModifier = Modifier.weight(1f).height(8.dp).clip(CircleShape)
+        if (fraction != null) {
+          LinearProgressIndicator(
+            progress = { fraction },
+            modifier = barModifier,
+            color = OpenMrsTheme.colors.progress,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            strokeCap = StrokeCap.Round,
+            drawStopIndicator = {},
           )
-          SyncChecklistItem(
-            text =
-              stringResource(
-                id = R.string.you_can_do_other_things_on_the_device_while_it_syncs,
-              ),
+          Spacer(modifier = Modifier.width(12.dp))
+          Text(
+            text = stringResource(id = R.string.sync_percent, (fraction * 100).toInt()),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+          )
+        } else {
+          LinearProgressIndicator(
+            modifier = barModifier,
+            color = OpenMrsTheme.colors.progress,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            strokeCap = StrokeCap.Round,
           )
         }
-        Spacer(modifier = Modifier.height(32.dp))
-        if (showCloseButton) {
-          Button(
-            onClick = onClose,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
-            colors =
-              ButtonDefaults.buttonColors(
-                containerColor = colorResource(id = R.color.dashboard_cardview_textcolor),
-                contentColor = Color.White,
-              ),
-            shape = MaterialTheme.shapes.extraSmall,
-            contentPadding = PaddingValues(vertical = 12.dp),
+      }
+      if (fraction == null && progress.current > 0) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+          text = stringResource(id = R.string.sync_items_so_far, progress.current),
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.testTag("SyncItemsSoFar"),
+        )
+      }
+      Spacer(modifier = Modifier.height(20.dp))
+      Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        SyncTip(text = stringResource(id = R.string.stay_connected_to_wi_fi_or_data))
+        SyncTip(
+          text =
+            stringResource(
+              id = R.string.leave_the_device_in_a_location_with_good_internet_reception,
+            ),
+        )
+        // The blocking first download cannot be minimized or skipped: say so instead of promising
+        // that other things can be done meanwhile.
+        SyncTip(
+          text =
+            stringResource(
+              id =
+                if (canMinimize) {
+                  R.string.you_can_do_other_things_on_the_device_while_it_syncs
+                } else {
+                  R.string.sync_first_download_wait
+                },
+            ),
+        )
+      }
+      if (canMinimize) {
+        Spacer(modifier = Modifier.height(24.dp))
+        FilledTonalButton(
+          onClick = onMinimize,
+          modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("SyncMinimizeButton"),
+          shape = RoundedCornerShape(14.dp),
+        ) {
+          Icon(
+            imageVector = Icons.Filled.KeyboardArrowDown,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+          )
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(text = stringResource(id = R.string.sync_minimize))
+        }
+        if (onCancel != null) {
+          TextButton(
+            onClick = onCancel,
+            modifier =
+              Modifier.fillMaxWidth().padding(top = 4.dp).testTag("SyncCancelOverlayButton"),
           ) {
-            Text(text = stringResource(id = R.string.close_this_window), fontSize = 12.sp)
+            Text(
+              text = stringResource(id = R.string.sync_cancel),
+              color = MaterialTheme.colorScheme.error,
+            )
           }
         }
       }
@@ -308,16 +644,109 @@ private fun SyncTasksOverlay(
   }
 }
 
+/** The turning sync icon; the rotation is applied while drawing, so nothing recomposes. */
 @Composable
-private fun SyncChecklistItem(text: String) {
-  Row(modifier = Modifier.fillMaxWidth()) {
-    Image(
+private fun SyncBadge() {
+  val turn = rememberInfiniteTransition(label = "sync-turn")
+  val angle by
+    turn.animateFloat(
+      initialValue = 0f,
+      targetValue = -360f,
+      animationSpec = infiniteRepeatable(tween(durationMillis = 1600, easing = LinearEasing)),
+      label = "sync-angle",
+    )
+  Box(
+    modifier =
+      Modifier.size(64.dp)
+        .clip(CircleShape)
+        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+    contentAlignment = Alignment.Center,
+  ) {
+    Icon(
+      painter = painterResource(id = R.drawable.ic_baseline_sync_24),
+      contentDescription = null,
+      tint = MaterialTheme.colorScheme.primary,
+      modifier = Modifier.size(32.dp).graphicsLayer { rotationZ = angle },
+    )
+  }
+}
+
+@Composable
+private fun SyncTip(text: String) {
+  Row(verticalAlignment = Alignment.Top) {
+    Icon(
       painter = painterResource(id = R.drawable.ic_check_circle),
       contentDescription = null,
-      modifier = Modifier.size(24.dp),
+      tint = OpenMrsTheme.colors.success,
+      modifier = Modifier.padding(top = 1.dp).size(18.dp),
     )
-    Spacer(modifier = Modifier.width(16.dp))
-    Text(text = text, fontSize = 16.sp, color = Color(0xFF333333))
+    Spacer(modifier = Modifier.width(12.dp))
+    Text(
+      text = text,
+      style = MaterialTheme.typography.bodyMedium,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
+  }
+}
+
+/** What is left of the sync once minimised: a small pill with the progress, tap to expand. */
+@Composable
+private fun SyncPill(
+  progress: SyncProgressState,
+  onExpand: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val fraction = progress.fraction
+  val label =
+    if (fraction != null) {
+      "${stringResource(id = R.string.syncing)} · ${stringResource(id = R.string.sync_percent, (fraction * 100).toInt())}"
+    } else if (progress.current > 0) {
+      "${stringResource(id = R.string.syncing)} · ${progress.current}"
+    } else {
+      stringResource(id = R.string.syncing)
+    }
+  Surface(
+    onClick = onExpand,
+    modifier = modifier.testTag("SyncMinimizedPill"),
+    shape = CircleShape,
+    color = MaterialTheme.colorScheme.surface,
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    shadowElevation = 6.dp,
+  ) {
+    Row(
+      modifier = Modifier.padding(start = 14.dp, end = 10.dp, top = 8.dp, bottom = 8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      if (fraction != null) {
+        CircularProgressIndicator(
+          progress = { fraction },
+          modifier = Modifier.size(18.dp),
+          strokeWidth = 2.5.dp,
+          color = OpenMrsTheme.colors.progress,
+          trackColor = MaterialTheme.colorScheme.surfaceVariant,
+        )
+      } else {
+        CircularProgressIndicator(
+          modifier = Modifier.size(18.dp),
+          strokeWidth = 2.5.dp,
+          color = OpenMrsTheme.colors.progress,
+        )
+      }
+      Spacer(modifier = Modifier.width(10.dp))
+      Text(
+        text = label,
+        style = MaterialTheme.typography.labelLarge,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface,
+      )
+      Spacer(modifier = Modifier.width(6.dp))
+      Icon(
+        imageVector = Icons.Filled.KeyboardArrowDown,
+        contentDescription = stringResource(id = R.string.sync_show_progress),
+        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.size(20.dp),
+      )
+    }
   }
 }
 
@@ -325,10 +754,10 @@ private fun SyncChecklistItem(text: String) {
 private fun LoadingOverlay() {
   Surface(
     modifier = Modifier.fillMaxSize().testTag("MainLoadingOverlay"),
-    color = Color.White,
+    color = MaterialTheme.colorScheme.surface,
   ) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-      androidx.compose.material3.CircularProgressIndicator(color = Color(0xFF4285F4))
+      androidx.compose.material3.CircularProgressIndicator(color = OpenMrsTheme.colors.progress)
     }
   }
 }

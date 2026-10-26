@@ -36,6 +36,7 @@ import org.json.JSONObject
 import org.openmrs.android.fhir.auth.model.EndpointConfig
 import org.openmrs.android.fhir.extensions.fromJson
 import org.openmrs.android.fhir.extensions.toJson
+import timber.log.Timber
 
 object AuthConfigUtil {
 
@@ -78,16 +79,6 @@ object AuthConfigUtil {
     }
   }
 
-  fun isRequiredConfigWebUri(propName: String?): Uri {
-    isRequiredConfigUri(propName)
-    val uri: Uri = Uri.parse(propName)
-    val scheme = uri.scheme
-    if (TextUtils.isEmpty(scheme) || !("http" == scheme || "https" == scheme)) {
-      throw InvalidConfigurationException("$propName must have an http or https scheme")
-    }
-    return uri
-  }
-
   fun isRedirectUriRegistered(context: Context, redirectUri: String) {
     // ensure that the redirect URI declared in the configuration is handled by some activity
     // in the app, by querying the package manager speculatively
@@ -116,7 +107,11 @@ object AuthConfigUtil {
       localhostEndpoints?.authorizationEndpoint?.replace("localhost", androidSystemLocalhostURL)
     val updatedTokenEndpoint =
       localhostEndpoints?.tokenEndpoint?.replace("localhost", androidSystemLocalhostURL)
-    val updatedEndpointConfig = EndpointConfig(updatedAuthEndpoint!!, updatedTokenEndpoint!!)
+    if (updatedAuthEndpoint == null || updatedTokenEndpoint == null) {
+      Timber.w("The discovery document has no authorization or token endpoint: left as it is")
+      return JSONObject(jsonString)
+    }
+    val updatedEndpointConfig = EndpointConfig(updatedAuthEndpoint, updatedTokenEndpoint)
     val oldDiscoveryDoc = JSONObject(jsonString).getString("discoveryDoc")
     val updatedDiscoveryDoc = oldDiscoveryDoc.replace("localhost", androidSystemLocalhostURL)
     val newJson = JSONObject(updatedEndpointConfig.toJson())

@@ -31,34 +31,14 @@ package org.openmrs.android.fhir.data.sync
 import android.content.Context
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 
 class GroupDownloadWorkManagerImpl(context: Context) : BaseDownloadWorkManagerImpl(context) {
   override fun loadInitialUrls(): List<String> {
-    val regex = Regex("(Group\\?[^,]*)")
-    val matchResult = regex.find(context.getString(R.string.first_fhir_sync_url))
-    var extractedPart = matchResult?.value ?: "Group"
-
-    val cohortType = context.getString(R.string.cohort_type).trim().takeIf { it.isNotEmpty() }
-
-    if (context.resources.getBoolean(R.bool.filter_patient_lists_by_group)) {
-      val selectedLocationId = runBlocking {
-        context.applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
-      }
-
-      if (!selectedLocationId.isNullOrBlank()) {
-        val separator = if (extractedPart.contains("?")) "&" else "?"
-        extractedPart = "$extractedPart${separator}location=$selectedLocationId"
-      }
+    val selectedLocationId = runBlocking {
+      context.applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
     }
-
-    if (cohortType != null && !extractedPart.contains("cohort-type=")) {
-      val separator = if (extractedPart.contains("?")) "&" else "?"
-      extractedPart = "$extractedPart${separator}cohort-type=$cohortType"
-    }
-
-    return listOf(extractedPart)
+    return listOf(SyncUrls.groups(context, selectedLocationId))
   }
 }

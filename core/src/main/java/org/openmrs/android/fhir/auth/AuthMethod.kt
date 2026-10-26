@@ -34,8 +34,23 @@ enum class AuthMethod(val value: String) {
   ;
 
   companion object {
+    /** Value of `auth_method` that offers every method on the one login page. */
+    const val BOTH = "both"
+
     fun fromValue(value: String) =
       entries.firstOrNull { it.value == value }
-        ?: throw IllegalArgumentException("Unknown epoch: $value")
+        ?: throw IllegalArgumentException("Unknown auth method: $value")
+
+    /**
+     * The methods the login page offers for a configured `auth_method`: `basic`, `openid`, `both`
+     * (or a list such as `basic,openid`).
+     */
+    fun offeredBy(configured: String): Set<AuthMethod> {
+      val values =
+        configured.split(',', ' ').map { it.trim().lowercase() }.filter { it.isNotEmpty() }
+      if (values.isEmpty()) throw IllegalArgumentException("auth_method is empty")
+      if (BOTH in values) return entries.toSet()
+      return values.map { fromValue(it) }.toSet()
+    }
   }
 }

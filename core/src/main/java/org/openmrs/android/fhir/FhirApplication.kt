@@ -44,12 +44,24 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.auth.AppLock
+import org.openmrs.android.fhir.auth.KeystoreHelper
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.RestApiManager
+import org.openmrs.android.fhir.data.remote.ServerSettings
 import org.openmrs.android.fhir.di.AppComponent
 import org.openmrs.android.fhir.di.DaggerAppComponent
-import org.openmrs.android.fhir.extensions.FileLoggingTree
+import org.openmrs.android.fhir.extensions.ColorVisionStore
+import org.openmrs.android.fhir.extensions.ThemeModeStore
+import org.openmrs.android.fhir.forms.CompactGroupsProviderFactory
+import org.openmrs.android.fhir.forms.bundledFormSummaries
+import org.openmrs.android.fhir.logging.FileLoggingTree
+import org.openmrs.android.fhir.ui.tutorial.FirstRunTutorial
 import timber.log.Timber
 
 class FhirApplication : Application(), DataCaptureConfig.Provider {
@@ -64,10 +76,27 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
 
   override fun onCreate() {
     super.onCreate()
+    ThemeModeStore.applySaved(this)
+    ColorVisionStore.install(this)
+    // Decides, once, whether this is a fresh installation (the first-run tour is for those).
+    FirstRunTutorial.init(this)
+    // The offline login also asks when the user comes back after being away for a while.
+    AppLock.install(this)
+    AuditLog.init(this)
+    AuditLog.record(
+      AuditAction.APP_STARTED,
+      AuditOutcome.SUCCESS,
+      "version" to packageManager.getPackageInfo(packageName, 0).versionName,
+      "android" to android.os.Build.VERSION.SDK_INT,
+      "device" to "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}",
+    )
     Timber.e("FHIR Application started. Test Error log. Is Debug %s", BuildConfig.DEBUG)
     Timber.d("FHIR Application started. Test Debug log")
     val loggingMaxFileSize = 5 * 1024 * 1024L // 5MB
-    val loggingPassword = getString(R.string.diagnostics_password)
+    val loggingPassword = AppConfig.get(this).diagnosticsPassword
+    if (!BuildConfig.DEBUG && loggingPassword.equals("changeit", ignoreCase = true)) {
+      Timber.w("The diagnostics password is still the example value: change it in app_config.xml")
+    }
     Timber.plant(FileLoggingTree(this, loggingMaxFileSize, loggingPassword))
     FhirEngineProvider.init(
       FhirEngineConfiguration(
@@ -79,7 +108,9 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
           httpLogger =
             HttpLogger(
               HttpLogger.Configuration(
-                HttpLogger.Level.BODY,
+                // Never the bodies: they are the patients' data, megabytes of it during a sync, and
+                // all of it was being kept in the app log.
+                HttpLogger.Level.BASIC,
               ),
             ) {
               Timber.tag("App-HttpLog").d(it)
@@ -97,11 +128,14 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     dataCaptureConfig =
       DataCaptureConfig().apply {
         urlResolver = ReferenceUrlResolver(this@FhirApplication as Context)
+        questionnaireItemViewHolderFactoryMatchersProviderFactory = CompactGroupsProviderFactory
         xFhirQueryResolver = XFhirQueryResolver { it ->
           FhirEngineProvider.getInstance(applicationContext).search(it).map { it.resource }
         }
       }
     KeystoreHelper.initialize()
+    // The names and encounter types of the bundled forms are read once, before a list needs them.
+    CoroutineScope(Dispatchers.IO).launch { applicationContext.bundledFormSummaries() }
   }
 
   private fun initializeRestApiManager(): RestApiManager {
@@ -128,17 +162,18 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
     fun restApiClient(context: Context) =
       (context.applicationContext as FhirApplication).restApiClient
 
-    fun fhirBaseURl(context: Context) = context.getString(R.string.fhir_base_url)
+    fun fhirBaseURl(context: Context) = ServerSettings.fhirBaseUrl(context)
 
-    fun authMethod(context: Context) = context.getString(R.string.auth_method)
+    fun authMethod(context: Context) = AppConfig.get(context).authMethod
 
-    fun checkServerUrl(context: Context) = context.getString(R.string.check_server_url)
+    fun checkServerUrl(context: Context) = ServerSettings.checkServerUrl(context)
 
-    fun serverConnectivityTimeoutMillis(context: Context): Long {
-      val seconds = context.resources.getInteger(R.integer.server_connectivity_timeout_seconds)
-      val clampedSeconds = seconds.coerceAtLeast(1)
-      return TimeUnit.SECONDS.toMillis(clampedSeconds.toLong())
-    }
+    /** How long the connectivity probe waits for the server before reporting it unreachable. */
+    @Suppress("UNUSED_PARAMETER")
+    fun serverConnectivityTimeoutMillis(context: Context): Long =
+      TimeUnit.SECONDS.toMillis(CONNECTIVITY_TIMEOUT_SECONDS)
+
+    private const val CONNECTIVITY_TIMEOUT_SECONDS = 10L
   }
 
   override fun getDataCaptureConfig(): DataCaptureConfig = dataCaptureConfig ?: DataCaptureConfig()

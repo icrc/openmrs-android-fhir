@@ -31,9 +31,16 @@ package org.openmrs.android.fhir.extensions
 
 import android.content.Context
 import java.io.IOException
+import java.util.Locale
+import org.openmrs.android.fhir.forms.expandCompactQuestionnaire
+import timber.log.Timber
 
-fun Context.readFileFromAssets(fileName: String): String =
-  assets.open(fileName).bufferedReader().use { it.readText() }
+/**
+ * The text of an asset file; a questionnaire stored in the compact form comes back as plain FHIR
+ * JSON.
+ */
+fun Context.readFileFromAssets(fileName: String, locale: Locale? = null): String =
+  expandCompactQuestionnaire(assets.open(fileName).bufferedReader().use { it.readText() }, locale)
 
 /**
  * Get a list of all JSON file names in the assets folder
@@ -44,7 +51,7 @@ fun Context.getJsonFileNames(): List<String> {
   return try {
     assets.list("")?.filter { it.endsWith(".json") } ?: emptyList()
   } catch (e: IOException) {
-    e.printStackTrace()
+    Timber.w(e, "Could not list the bundled assets")
     emptyList()
   }
 }

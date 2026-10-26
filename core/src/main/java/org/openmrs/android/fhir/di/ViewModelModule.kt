@@ -33,13 +33,15 @@ import dagger.Binds
 import dagger.Module
 import dagger.multibindings.IntoMap
 import org.openmrs.android.fhir.viewmodel.AddPatientViewModel
-import org.openmrs.android.fhir.viewmodel.BasicLoginActivityViewModel
 import org.openmrs.android.fhir.viewmodel.CreateEncounterViewModel
+import org.openmrs.android.fhir.viewmodel.FavoriteFormsViewModel
 import org.openmrs.android.fhir.viewmodel.HomeViewModel
 import org.openmrs.android.fhir.viewmodel.IdentifierSelectionViewModel
+import org.openmrs.android.fhir.viewmodel.ImportExportViewModel
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 import org.openmrs.android.fhir.viewmodel.LoginActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
+import org.openmrs.android.fhir.viewmodel.QuestionnaireFetchViewModel
 import org.openmrs.android.fhir.viewmodel.SelectPatientListViewModel
 import org.openmrs.android.fhir.viewmodel.SettingsViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
@@ -94,6 +96,11 @@ abstract class ViewModelModule {
 
   @Binds
   @IntoMap
+  @ViewModelKey(ImportExportViewModel::class)
+  abstract fun bindImportExportViewModel(viewmodel: ImportExportViewModel): ViewModel
+
+  @Binds
+  @IntoMap
   @ViewModelKey(CreateEncounterViewModel::class)
   abstract fun bindCreateEncounterViewModel(viewmodel: CreateEncounterViewModel): ViewModel
 
@@ -104,8 +111,13 @@ abstract class ViewModelModule {
 
   @Binds
   @IntoMap
-  @ViewModelKey(BasicLoginActivityViewModel::class)
-  abstract fun bindBasicLoginActivityViewModel(viewmodel: BasicLoginActivityViewModel): ViewModel
+  @ViewModelKey(QuestionnaireFetchViewModel::class)
+  abstract fun bindQuestionnaireFetchViewModel(viewmodel: QuestionnaireFetchViewModel): ViewModel
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(FavoriteFormsViewModel::class)
+  abstract fun bindFavoriteFormsViewModel(viewmodel: FavoriteFormsViewModel): ViewModel
 
   @Binds
   @IntoMap

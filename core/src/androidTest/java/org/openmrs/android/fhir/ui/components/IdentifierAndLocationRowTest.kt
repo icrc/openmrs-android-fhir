@@ -31,7 +31,6 @@ package org.openmrs.android.fhir.ui.components
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -40,29 +39,6 @@ import org.junit.Test
 
 class IdentifierAndLocationRowTest {
   @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
-
-  @Test
-  fun identifierRowShowsIconWhenSelectedOrRequired() {
-    composeRule.setContent {
-      MaterialTheme {
-        IdentifierTypeListItemRow(name = "National ID", isRequired = false, isSelected = true)
-      }
-    }
-
-    composeRule.onNodeWithTag("IdentifierTypeIcon").assertIsDisplayed()
-    composeRule.onNodeWithTag("IdentifierTypeName").assertIsDisplayed()
-  }
-
-  @Test
-  fun identifierRowHidesIconWhenOptionalAndUnselected() {
-    composeRule.setContent {
-      MaterialTheme {
-        IdentifierTypeListItemRow(name = "National ID", isRequired = false, isSelected = false)
-      }
-    }
-
-    composeRule.onNodeWithTag("IdentifierTypeIcon").assertIsNotDisplayed()
-  }
 
   @Test
   fun locationRowRendersFavoriteState() {

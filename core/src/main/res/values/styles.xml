@@ -16,7 +16,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/outline_neutral_variant_60</item>
+        <item name="colorPrimary">@color/primary_blue_40</item>
         <item name="colorOnPrimary">@color/onPrimary_blue_100</item>
         <item
             name="colorPrimaryContainer"
@@ -99,32 +99,41 @@
         >?attr/textAppearanceBodyMedium</item>
     </style>
     
+    <!-- Look of the data-capture forms. Fonts are kept to what the form really needs: every text
+         with its own font family costs a typeface lookup for each row that is inflated. -->
     <style name="Questionnaire.questionnaireQuestionTextStyle">
-        <item name="fontFamily">@font/inter_semibold</item>
-        <item name="android:textSize">14sp</item>
-        <item name="android:paddingBottom">4sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:paddingBottom">6dp</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
     <style name="Questionnaire.questionnaireGroupTypeQuestionTextStyle">
-        <item name="android:textSize">24sp</item>
-        <item name="fontFamily">@font/inter_bold</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
     </style>
 
     <style name="Questionnaire.questionnaireTextInputEditTextStyle">
-        <item name="fontFamily">@font/inter_bold</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:layout_margin">0sp</item>
     </style>
 
-    <style name="Questionnaire.questionnaireTextInputLayoutStyle">
-        <item name="fontFamily">@font/inter_bold</item>
+    <style
+        name="Questionnaire.questionnaireTextInputLayoutStyle"
+        parent="Widget.Material3.TextInputLayout.OutlinedBox"
+    >
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
     </style>
 
     <style
         name="Questionnaire.questionnaireRadioButtonStyle"
         parent="Widget.Material3.CompoundButton.RadioButton"
     >
-        <item name="fontFamily">@font/inter</item>
-        <item name="buttonTint">@color/dashboard_cardview_textcolor</item>
+        <item name="buttonTint">?attr/colorPrimary</item>
     </style>
 
     <style
@@ -133,15 +142,38 @@
     >
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="fontFamily">@font/inter</item>
-        <item name="cornerRadius">4sp</item>
-        <item name="backgroundTint">@color/dashboard_cardview_textcolor</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="backgroundTint">?attr/colorPrimary</item>
+    </style>
+    <!-- The page progress line of a form: the app colours, a track that reads as a track. -->
+    <style
+        name="Questionnaire.questionnaireLinearProgressIndicatorStyle"
+        parent="Widget.Material3.LinearProgressIndicator"
+    >
+        <item name="indicatorColor">?attr/colorPrimary</item>
+        <item name="trackColor">?attr/colorSurfaceVariant</item>
+        <item name="trackThickness">4dp</item>
+        <item name="indicatorTrackGapSize">0dp</item>
+        <item name="trackStopIndicatorSize">0dp</item>
+        <item name="trackCornerRadius">2dp</item>
     </style>
     <style name="Questionnaire.questionnaireBottomNavContainerStyle">
-        <item name="android:background">@color/white</item>
-        <item name="backgroundTint">@color/white</item>
+        <item name="android:background">?attr/colorSurface</item>
+        <item name="backgroundTint">?attr/colorSurface</item>
     </style>
     <style name="Questionnaire" parent="Theme.Questionnaire">
+        <item name="colorPrimary">@color/o3_primary</item>
+        <item name="colorOnPrimary">@color/o3_on_primary</item>
+        <item name="colorPrimaryContainer">@color/o3_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/o3_on_primary_container</item>
+        <item name="colorSecondary">@color/o3_secondary</item>
+        <item name="colorSurface">@color/o3_surface</item>
+        <item name="colorOnSurface">@color/o3_on_surface</item>
+        <item name="colorSurfaceVariant">@color/o3_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/o3_on_surface_variant</item>
+        <item name="colorOutline">@color/o3_outline</item>
+        <item name="android:colorBackground">@color/o3_background</item>
         <item
             name="questionnaireQuestionTextStyle"
         >@style/Questionnaire.questionnaireQuestionTextStyle</item>
@@ -167,6 +199,46 @@
         <item
             name="questionnaireBottomNavContainerStyle"
         >@style/Questionnaire.questionnaireBottomNavContainerStyle</item>
+        <item
+            name="questionnaireLinearProgressIndicatorStyle"
+        >@style/Questionnaire.questionnaireLinearProgressIndicatorStyle</item>
+    </style>
+
+    <!-- The color-blind palette on top of the app theme (see ColorVisionStore). -->
+    <style name="ThemeOverlay.OpenMrs.ColorBlind" parent="">
+        <item name="colorPrimary">@color/cb_primary</item>
+        <item name="colorOnPrimary">@color/cb_on_primary</item>
+        <item name="colorPrimaryContainer">@color/cb_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/cb_on_primary_container</item>
+        <item name="colorSecondary">@color/cb_secondary</item>
+        <item name="colorOnSecondary">@color/cb_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/cb_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/cb_on_secondary_container</item>
+        <item name="colorTertiary">@color/cb_tertiary</item>
+        <item name="colorOnTertiary">@color/cb_on_tertiary</item>
+        <item name="colorError">@color/cb_error</item>
+        <item name="colorOnError">@color/cb_on_error</item>
+        <item name="colorErrorContainer">@color/cb_error_container</item>
+        <item name="colorOnErrorContainer">@color/cb_on_error_container</item>
+        <item name="colorOnSurfaceVariant">@color/cb_on_surface_variant</item>
+        <item name="colorOutline">@color/cb_outline</item>
+        <item name="questionnaire_theme">@style/Questionnaire.ColorBlind</item>
+    </style>
+    <style name="Questionnaire.ColorBlind">
+        <item name="colorPrimary">@color/cb_primary</item>
+        <item name="colorOnPrimary">@color/cb_on_primary</item>
+        <item name="colorPrimaryContainer">@color/cb_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/cb_on_primary_container</item>
+        <item name="colorSecondary">@color/cb_secondary</item>
+        <item name="colorError">@color/cb_error</item>
+        <item name="colorOnError">@color/cb_on_error</item>
+        <item name="colorOnSurfaceVariant">@color/cb_on_surface_variant</item>
+        <item name="colorOutline">@color/cb_outline</item>
+    </style>
+
+    <!-- The icons of the app bar sit on the brand color (the bar is dark in the night theme). -->
+    <style name="ThemeOverlay.OpenMrs.Toolbar" parent="">
+        <item name="colorControlNormal">?attr/colorOnPrimary</item>
     </style>
 
     <style name="CustomPatientTabLayout" parent="Widget.Material3.TabLayout">
@@ -176,19 +248,13 @@
         <!-- Custom background for each tab item -->
         <item name="tabBackground">@drawable/tab_background_selector</item>
 
-        <!-- Indicator color and height -->
-        <item name="tabIndicatorColor">@color/tab_indicator_color_blue</item>
-        <item name="tabIndicatorHeight">3dp</item>
-        <item
-            name="tabIndicatorFullWidth"
-        >false</item> <!-- Indicator only under the text -->
-        <item name="tabIndicatorGravity">bottom</item>
+        <!-- The selected tab is the filled one; a line under it would read as a second progress bar -->
+        <item name="tabIndicatorColor">@android:color/transparent</item>
+        <item name="tabIndicatorHeight">0dp</item>
 
         <!-- Text colors -->
-        <item name="tabSelectedTextColor">@color/tab_text_color_primary</item>
-        <item
-            name="tabTextColor"
-        >@color/tab_text_color_primary</item> <!-- Same color for unselected text as in image -->
+        <item name="tabSelectedTextColor">?attr/colorOnPrimaryContainer</item>
+        <item name="tabTextColor">?attr/colorOnSurfaceVariant</item>
 
         <!-- Tab padding -->
         <item name="tabPaddingStart">16dp</item>

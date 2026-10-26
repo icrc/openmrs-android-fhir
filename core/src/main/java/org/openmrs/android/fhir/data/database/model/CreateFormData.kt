@@ -28,28 +28,20 @@
 */
 package org.openmrs.android.fhir.data.database.model
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
-
-@JsonClass(generateAdapter = true)
-data class FormData(
-  val formSections: List<FormSection>,
-  @Json(name = "Translation overrides")
-  val translationOverrides: Map<String, Map<String, String>> = emptyMap(),
-)
-
-@JsonClass(generateAdapter = true)
-data class FormSection(
-  val name: String,
-  val forms: List<String>,
-)
-
 data class FormSectionItem(
   val name: String,
   val forms: List<FormItem>,
+  /** The user's favorite forms, shown first. */
+  val isFavorites: Boolean = false,
 )
 
 data class FormItem(
   val name: String,
   val questionnaireId: String,
+)
+
+/** A section of the user's own (see Settings): a name and the ids of the forms placed in it. */
+data class CustomFormSection(
+  val name: String,
+  val formIds: List<String>,
 )

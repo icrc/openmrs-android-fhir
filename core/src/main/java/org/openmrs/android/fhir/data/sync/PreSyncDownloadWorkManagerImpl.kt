@@ -29,10 +29,19 @@
 package org.openmrs.android.fhir.data.sync
 
 import android.content.Context
-import org.openmrs.android.fhir.R
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
 
 class PreSyncDownloadWorkManagerImpl(context: Context) : BaseDownloadWorkManagerImpl(context) {
   override fun loadInitialUrls(): List<String> {
-    return context.getString(R.string.first_fhir_sync_url).split(',').toList()
+    val selectedPatientLists = runBlocking {
+      context.applicationContext.dataStore.data.first()[PreferenceKeys.SELECTED_PATIENT_LISTS]
+    }
+    // Patient data is only ever downloaded for the selected patient lists.
+    return SyncUrls.firstSync(context).mapNotNull {
+      applyPatientListScope(it, selectedPatientLists)
+    }
   }
 }

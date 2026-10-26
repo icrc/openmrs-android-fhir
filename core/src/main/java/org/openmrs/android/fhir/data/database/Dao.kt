@@ -38,6 +38,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.Flow
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
+import org.openmrs.android.fhir.data.database.model.GroupSessionDraftSummary
 import org.openmrs.android.fhir.data.database.model.Identifier
 import org.openmrs.android.fhir.data.database.model.IdentifierType
 import org.openmrs.android.fhir.data.database.model.SyncSession
@@ -68,6 +69,9 @@ interface Dao {
 
   @Query("SELECT * FROM syncsession WHERE status='ONGOING' ORDER BY startTime DESC LIMIT 1")
   suspend fun getInProgressSyncSession(): SyncSession?
+
+  @Query("SELECT * FROM syncsession WHERE status='ONGOING'")
+  suspend fun getOngoingSyncSessions(): List<SyncSession>
 
   @Query("SELECT * FROM syncsession WHERE status='ONGOING' ORDER BY startTime DESC LIMIT 1")
   fun getInProgressSyncSessionAsFlow(): Flow<SyncSession?>
@@ -102,6 +106,17 @@ interface Dao {
 
   @Query("SELECT * FROM groupsessiondraft WHERE questionnaireId=:questionnaireId LIMIT 1")
   suspend fun getGroupSessionDraft(questionnaireId: String): GroupSessionDraft?
+
+  /** Every draft, without its (large) forms and answers. */
+  @Query(
+    "SELECT questionnaireId, patientIds, lastUpdated, screenerCompleted, " +
+      "(screenerResponse IS NOT NULL AND screenerResponse != '') AS hasScreenerResponse, " +
+      "(patientResponses IS NOT NULL AND patientResponses NOT IN ('', '{}')) AS hasPatientResponses " +
+      "FROM groupsessiondraft",
+  )
+  suspend fun getGroupSessionDraftSummaries(): List<GroupSessionDraftSummary>
+
+  @Query("DELETE FROM groupsessiondraft") suspend fun clearGroupSessionDrafts()
 
   @Query("DELETE FROM groupsessiondraft WHERE questionnaireId=:questionnaireId")
   suspend fun deleteGroupSessionDraft(questionnaireId: String)

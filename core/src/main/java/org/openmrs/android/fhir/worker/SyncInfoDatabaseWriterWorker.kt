@@ -44,23 +44,40 @@ import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.Sync
 import com.google.android.fhir.sync.SyncJobStatus
 import com.google.android.fhir.sync.SyncOperation
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.SyncStatus
+import org.openmrs.android.fhir.data.sync.DownloadOnlyFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.FhirSyncWorker
+import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.data.sync.PatientListDownloader
+import org.openmrs.android.fhir.data.sync.SyncMode
+import org.openmrs.android.fhir.data.sync.UploadFhirSyncWorker
+import org.openmrs.android.fhir.data.sync.UploadGate
 import org.openmrs.android.fhir.di.DaggerWorkerComponent
 import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.extensions.PermissionChecker
+import timber.log.Timber
 
 class SyncInfoDatabaseWriterWorker(
   context: Context,
@@ -73,6 +90,9 @@ class SyncInfoDatabaseWriterWorker(
 
   @Inject lateinit var permissionChecker: PermissionChecker
 
+  /** What this run does: both (the default), only send, or only download. */
+  private val mode by lazy { SyncMode.fromValue(inputData.getString(KEY_MODE)) }
+
   private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
   private val workerScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -84,8 +104,55 @@ class SyncInfoDatabaseWriterWorker(
       .inject(this)
   }
 
+  /**
+   * A sync that was cut short (the app was killed, the phone restarted) never closed its session.
+   * Left open, the next sync would carry on with its numbers, so it is closed as interrupted first.
+   */
+  private suspend fun closeInterruptedSessions() {
+    val dao = database.dao()
+    migrateLegacyCancelledSessions()
+    dao.getOngoingSyncSessions().forEach { session ->
+      dao.updateSyncSessionErrors(
+        session.id,
+        listOf(applicationContext.getString(R.string.sync_interrupted)),
+      )
+      dao.updateSyncSessionStatus(session.id, SyncStatus.COMPLETED_WITH_ERRORS)
+      dao.updateSyncSessionCompletionTime(session.id, LocalDateTime.now().format(formatter))
+    }
+  }
+
+  /**
+   * Builds made while cancelling was being developed closed a cancelled sync as "completed with
+   * errors" and the text "Cancelled by the user". It is a cancelled sync, not an error.
+   */
+  private suspend fun migrateLegacyCancelledSessions() {
+    val dao = database.dao()
+    dao.getAllSyncSessionsAsList().forEach { session ->
+      if (
+        session.status == SyncStatus.COMPLETED_WITH_ERRORS &&
+          session.errors.size == 1 &&
+          session.errors.single() in LEGACY_CANCELLED_TEXTS
+      ) {
+        dao.updateSyncSessionStatus(session.id, SyncStatus.CANCELLED)
+        dao.updateSyncSessionErrors(session.id, emptyList())
+      }
+    }
+  }
+
+  /** The sync was stopped before it ended: its session ends here as cancelled (not an error). */
+  private suspend fun closeCancelledSessions() {
+    val dao = database.dao()
+    dao.getOngoingSyncSessions().forEach { session ->
+      dao.updateSyncSessionStatus(session.id, SyncStatus.CANCELLED)
+      dao.updateSyncSessionCompletionTime(session.id, LocalDateTime.now().format(formatter))
+    }
+    NotificationHelper.cancelSyncNotification(applicationContext)
+    AuditLog.record(AuditAction.SYNC, AuditOutcome.SUCCESS, "state" to "cancelled")
+  }
+
   override suspend fun doWork(): Result {
     return try {
+      closeInterruptedSessions()
       setProgress(
         workDataOf(
           PROGRESS_STATUS to "STARTED",
@@ -93,13 +160,29 @@ class SyncInfoDatabaseWriterWorker(
         ),
       )
 
-      // This flow can still be shared if needed elsewhere
-      val syncFlow =
-        Sync.oneTimeSync<FhirSyncWorker>(applicationContext)
-          .shareIn(workerScope, SharingStarted.Eagerly, 10)
+      if (mode != SyncMode.UPLOAD_ONLY) {
+        // The patients of patient lists added since: the sync below only asks for what changed.
+        try {
+          val fhirEngine = (applicationContext as FhirApplication).appComponent.fhirEngine()
+          PatientListDownloader(applicationContext, fhirEngine).downloadPending()
+        } catch (e: CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          Timber.w(e, "Could not download the patients of the added lists")
+        }
+      }
 
-      // Process each update, but wait for a final state to finish
-      val finalStatus =
+      val runSync: suspend () -> CurrentSyncJobStatus = {
+        // This flow can still be shared if needed elsewhere
+        val syncFlow =
+          when (mode) {
+            SyncMode.UPLOAD_ONLY -> Sync.oneTimeSync<UploadFhirSyncWorker>(applicationContext)
+            SyncMode.DOWNLOAD_ONLY ->
+              Sync.oneTimeSync<DownloadOnlyFhirSyncWorker>(applicationContext)
+            SyncMode.BOTH -> Sync.oneTimeSync<FhirSyncWorker>(applicationContext)
+          }.shareIn(workerScope, SharingStarted.Eagerly, 10)
+
+        // Process each update, but wait for a final state to finish
         syncFlow
           .onEach { syncJobStatus -> handleCurrentSyncJobStatus(syncJobStatus) }
           .first { syncJobStatus ->
@@ -108,6 +191,11 @@ class SyncInfoDatabaseWriterWorker(
               syncJobStatus is CurrentSyncJobStatus.Cancelled ||
               syncJobStatus is CurrentSyncJobStatus.Blocked
           }
+      }
+      // A live upload may be running: two uploads at once would send the same queue twice. A
+      // download sends nothing, so it does not wait for one.
+      val finalStatus =
+        if (mode == SyncMode.DOWNLOAD_ONLY) runSync() else UploadGate.mutex.withLock { runSync() }
 
       // Now, check the final status to determine the worker's result
       return if (finalStatus is CurrentSyncJobStatus.Succeeded) {
@@ -118,6 +206,9 @@ class SyncInfoDatabaseWriterWorker(
           ),
         )
         Result.success()
+      } else if (finalStatus is CurrentSyncJobStatus.Cancelled) {
+        // Stopped on purpose: the work ends, but it is not a failure to report.
+        Result.failure(workDataOf(PROGRESS_STATUS to "CANCELLED"))
       } else {
         // The flow ended with a failure state
         setProgress(
@@ -128,8 +219,23 @@ class SyncInfoDatabaseWriterWorker(
         )
         Result.failure()
       }
+    } catch (e: CancellationException) {
+      // The work was stopped (cancelled by the user, or replaced by a newer request): its session
+      // is closed, so it does not stay "in progress". Let WorkManager see the cancellation.
+      withContext(NonCancellable) {
+        try {
+          closeCancelledSessions()
+        } catch (closing: Exception) {
+          Timber.w(closing, "Could not close the cancelled sync's session")
+        }
+      }
+      throw e
     } catch (e: Exception) {
+      Timber.e(e, "Sync info worker failed")
       Result.failure()
+    } finally {
+      // shareIn(Eagerly) keeps collecting from the sync flow until its scope is cancelled.
+      workerScope.cancel()
     }
   }
 
@@ -160,6 +266,7 @@ class SyncInfoDatabaseWriterWorker(
           }
         }
       }
+      is CurrentSyncJobStatus.Cancelled -> closeCancelledSessions()
       else -> {
         handleUnknownSyncState()
       }
@@ -167,6 +274,12 @@ class SyncInfoDatabaseWriterWorker(
   }
 
   private suspend fun handleSyncStarted() {
+    AuditLog.record(
+      AuditAction.SYNC,
+      AuditOutcome.SUCCESS,
+      "state" to "started",
+      "mode" to mode.value,
+    )
     database.dao().getOrCreateInProgressSyncSession(formatter)
   }
 
@@ -231,6 +344,13 @@ class SyncInfoDatabaseWriterWorker(
   }
 
   private suspend fun handleSuccessSync(state: CurrentSyncJobStatus.Succeeded) {
+    // Only a sync that downloaded is a "last sync".
+    if (mode != SyncMode.UPLOAD_ONLY) {
+      DemoDataStore(applicationContext).saveLastFullSync(state.timestamp)
+    }
+    // What a live upload could not send went with this sync.
+    LiveSync.setState(LiveSync.State.Idle)
+    AuditLog.record(AuditAction.SYNC, AuditOutcome.SUCCESS, "state" to "completed")
     val inProgressSyncSession = database.dao().getInProgressSyncSession()
     if (inProgressSyncSession != null) {
       if (inProgressSyncSession.downloadedPatients + inProgressSyncSession.uploadedPatients == 0) {
@@ -241,17 +361,16 @@ class SyncInfoDatabaseWriterWorker(
           .updateSyncSessionUploadValues(
             sessionId = inProgressSyncSession.id,
             completed = inProgressSyncSession.uploadedPatients,
-            total =
-              inProgressSyncSession
-                .uploadedPatients, // TODO: Make this total once total sync number is accurate
+            // The total the SDK announces counts only part of what a sync handles (the patients,
+            // not their encounters and observations), so a finished sync records what was done.
+            total = inProgressSyncSession.uploadedPatients,
           )
         database
           .dao()
           .updateSyncSessionDownloadValues(
             sessionId = inProgressSyncSession.id,
             completed = inProgressSyncSession.downloadedPatients,
-            total =
-              inProgressSyncSession.downloadedPatients, // TODO: Same as above, make this total
+            total = inProgressSyncSession.downloadedPatients,
           )
         database.dao().updateSyncSessionStatus(inProgressSyncSession.id, SyncStatus.COMPLETED)
         database
@@ -265,6 +384,10 @@ class SyncInfoDatabaseWriterWorker(
   }
 
   private suspend fun handleFailedSync(syncJobStatus: CurrentSyncJobStatus.Failed) {
+    if (mode != SyncMode.UPLOAD_ONLY) {
+      DemoDataStore(applicationContext).saveLastFullSync(syncJobStatus.timestamp)
+    }
+    AuditLog.failure(AuditAction.SYNC, "state" to "failed")
     val inProgressSyncSession = database.dao().getInProgressSyncSession()
     if (inProgressSyncSession != null) {
       database
@@ -293,7 +416,7 @@ class SyncInfoDatabaseWriterWorker(
     try {
       notificationHelper.showSyncCompleted()
     } catch (e: Exception) {
-      println("Failed to show sync completed notification: ${e.message}")
+      Timber.w(e, "Failed to show sync notification")
     }
   }
 
@@ -302,7 +425,7 @@ class SyncInfoDatabaseWriterWorker(
     try {
       notificationHelper.updateSyncProgress(currentCount, totalCount, isDownload)
     } catch (e: Exception) {
-      println("Failed to show sync completed notification: ${e.message}")
+      Timber.w(e, "Failed to show sync notification")
     }
   }
 
@@ -313,21 +436,31 @@ class SyncInfoDatabaseWriterWorker(
         applicationContext.getString(R.string.please_try_again_later),
       )
     } catch (e: Exception) {
-      println("Failed to show sync failed notification: ${e.message}")
+      Timber.w(e, "Failed to show sync notification")
     }
   }
 
   companion object {
     const val WORK_NAME = "sync_manager_work"
+    private val LEGACY_CANCELLED_TEXTS =
+      setOf(
+        "Cancelled by the user",
+        "Annulée par l'utilisateur",
+        "Cancelada por el usuario",
+        "Отменено пользователем",
+        "ألغاها المستخدم",
+      )
     const val PROGRESS_STATUS = "progress_status"
     const val PROGRESS_MESSAGE = "progress_message"
+    private const val KEY_MODE = "sync_mode"
 
-    fun enqueue(context: Context) {
+    fun enqueue(context: Context, mode: SyncMode = SyncMode.BOTH) {
       val constraints = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
       val syncRequest =
         OneTimeWorkRequestBuilder<SyncInfoDatabaseWriterWorker>()
           .setConstraints(constraints)
+          .setInputData(workDataOf(KEY_MODE to mode.value))
           .build()
 
       WorkManager.getInstance(context)

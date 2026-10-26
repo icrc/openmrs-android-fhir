@@ -33,18 +33,17 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.datacapture.QuestionnaireFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -52,7 +51,14 @@ import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.databinding.GenericFormentryFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
-import org.openmrs.android.fhir.extensions.showSnackBar
+import org.openmrs.android.fhir.extensions.keepBelowAppBar
+import org.openmrs.android.fhir.forms.addQuestionnaireWhenDrawn
+import org.openmrs.android.fhir.forms.newQuestionnaireFragment
+import org.openmrs.android.fhir.forms.onQuestionnaireResult
+import org.openmrs.android.fhir.forms.setFormBusy
+import org.openmrs.android.fhir.forms.setFormLoading
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel
 
 /** A fragment class to show screener questionnaire screen. */
@@ -78,6 +84,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
+    view.keepBelowAppBar(viewLifecycleOwner)
     setUpActionBar()
     setHasOptionsMenu(true)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
@@ -86,16 +93,12 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
     if (savedInstanceState == null) {
       viewModel.getEncounterQuestionnaire(
         args.questionnaireId,
+        startOnToday = true,
       )
     }
     observeLoading()
     observeQuestionnaire()
-    childFragmentManager.setFragmentResultListener(
-      QuestionnaireFragment.SUBMIT_REQUEST_KEY,
-      viewLifecycleOwner,
-    ) { _, _ ->
-      onSubmitAction()
-    }
+    onQuestionnaireResult(onSubmit = ::onSubmitAction)
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -115,28 +118,16 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
   }
 
   private fun addQuestionnaireFragment(questionnaireJson: String) {
-    childFragmentManager.commit {
-      if (questionnaireJson.isEmpty()) {
-        showSnackBar(
-          requireActivity(),
-          getString(R.string.questionnaire_error_message),
-        )
-        NavHostFragment.findNavController(this@GenericFormEntryFragment).navigateUp()
-      } else {
-        add(
-          R.id.form_entry_container,
-          QuestionnaireFragment.builder()
-            .showReviewPageBeforeSubmit(
-              requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
-            )
-            .showOptionalText(true)
-            .showRequiredText(false)
-            .setQuestionnaire(questionnaireJson)
-            .build(),
-          QUESTIONNAIRE_FRAGMENT_TAG,
-        )
-      }
+    if (questionnaireJson.isEmpty()) {
+      AppMessage.show(requireActivity(), R.string.questionnaire_error_message, MessageKind.Error)
+      NavHostFragment.findNavController(this).navigateUp()
+      return
     }
+    addQuestionnaireWhenDrawn(
+      containerId = R.id.form_entry_container,
+      tag = QUESTIONNAIRE_FRAGMENT_TAG,
+      create = { newQuestionnaireFragment(questionnaireJson) },
+    )
   }
 
   private fun onSubmitAction() {
@@ -155,7 +146,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
   private fun showCancelScreenerQuestionnaireAlertDialog() {
     val alertDialog: AlertDialog? =
       activity?.let {
-        val builder = AlertDialog.Builder(it)
+        val builder = MaterialAlertDialogBuilder(it)
         builder.apply {
           setMessage(getString(R.string.cancel_questionnaire_message))
           setPositiveButton(getString(android.R.string.yes)) { _, _ ->
@@ -186,12 +177,16 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
       viewModel.isLoading.value = false
       val isSaved = it.contains("SAVED")
       if (!isSaved) {
-        Toast.makeText(requireContext(), getString(R.string.inputs_missing), Toast.LENGTH_SHORT)
-          .show()
+        val message =
+          when {
+            it.startsWith("NO_VISIT") -> R.string.no_open_visit_error
+            it.startsWith("VISIT_DATE") -> R.string.encounter_outside_visit
+            else -> R.string.inputs_missing
+          }
+        AppMessage.show(requireContext(), getString(message), MessageKind.Error, long = true)
         return@observe
       }
-      Toast.makeText(requireContext(), getString(R.string.resources_saved), Toast.LENGTH_SHORT)
-        .show()
+      AppMessage.show(requireContext(), getString(R.string.resources_saved), MessageKind.Success)
 
       findNavController()
         .navigate(GenericFormEntryFragmentDirections.actionGenericFormEntryFragmentToPatientList())
@@ -199,33 +194,15 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
   }
 
   private fun observeQuestionnaire() {
-    viewModel.questionnaire.observe(viewLifecycleOwner) { questionnaire ->
-      if (questionnaire != null) {
-        viewModel.prepareEnterEncounter(questionnaire)
-
-        val questionnaireJson = viewModel.parser.encodeResourceToString(questionnaire)
-        addQuestionnaireFragment(questionnaireJson)
-      } else {
-        Toast.makeText(
-            requireContext(),
-            getString(R.string.questionnaire_error_message),
-            Toast.LENGTH_SHORT,
-          )
-          .show()
-        NavHostFragment.findNavController(this).navigateUp()
-      }
+    setFormLoading(true)
+    viewModel.questionnaireJson.observe(viewLifecycleOwner) { questionnaireJson ->
+      addQuestionnaireFragment(questionnaireJson)
     }
   }
 
   private fun observeLoading() {
     viewModel.isLoading.observe(viewLifecycleOwner) {
-      if (it) {
-        binding.progressBar.visibility = View.VISIBLE
-        binding.touchBlockerView.visibility = View.VISIBLE // Show the blocker
-      } else {
-        binding.progressBar.visibility = View.GONE
-        binding.touchBlockerView.visibility = View.GONE // Hide the blocker
-      }
+      setFormBusy(binding.progressBar, binding.touchBlockerView, it)
     }
   }
 

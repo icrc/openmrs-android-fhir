@@ -28,12 +28,20 @@
 */
 package org.openmrs.android.fhir.data
 
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 
 class PreferenceKeys {
   companion object {
     val LOCATION_ID = stringPreferencesKey("LOCATION_ID")
+
+    /**
+     * The user has been taken to the location screen since signing in. Kept across restarts, so a
+     * user who went on without a location is not asked again each time the app is opened (the
+     * actions that need one ask for it). A new sign-in clears it.
+     */
+    val LOCATION_PROMPT_DONE = booleanPreferencesKey("LOCATION_PROMPT_DONE")
     val SELECTED_PATIENT_LISTS = stringSetPreferencesKey("SELECTED_PATIENT_LISTS")
     val LOCATION_NAME = stringPreferencesKey("LOCATION_NAME")
     val FAVORITE_LOCATIONS = stringSetPreferencesKey("FAVORITE_LOCATIONS")
@@ -43,5 +51,18 @@ class PreferenceKeys {
     val USER_NAME = stringPreferencesKey("USER_NAME")
     val USER_PROVIDER_UUID = stringPreferencesKey("USER_PROVIDER_UUID")
     val USER_PROVIDER_NAME = stringPreferencesKey("USER_PROVIDER_NAME")
+
+    /** Patients brought to the device from the server by the live search (live mode). */
+    val LIVE_PATIENT_IDS = stringSetPreferencesKey("LIVE_PATIENT_IDS")
+
+    /** The same, when the setting is to remove them once the user has left them. */
+    val LIVE_TEMPORARY_IDS = stringSetPreferencesKey("LIVE_TEMPORARY_IDS")
+
+    /**
+     * Patient lists added whose patients have not been downloaded yet: the sync only asks for what
+     * changed since its last run, so it would not bring the patients that were already on the
+     * server.
+     */
+    val PENDING_LIST_DOWNLOADS = stringSetPreferencesKey("PENDING_LIST_DOWNLOADS")
   }
 }

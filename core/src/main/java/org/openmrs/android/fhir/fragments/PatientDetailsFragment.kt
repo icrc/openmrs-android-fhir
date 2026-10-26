@@ -28,7 +28,6 @@
 */
 package org.openmrs.android.fhir.fragments
 
-import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
@@ -39,29 +38,48 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.google.android.fhir.FhirEngine
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.launch
-import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.adapters.PatientDetailsRecyclerViewAdapter
+import org.openmrs.android.fhir.auth.GuestSession
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.OpenMRSHelper
-import org.openmrs.android.fhir.databinding.PatientDetailBinding
+import org.openmrs.android.fhir.data.VisitEditState
+import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.extensions.composeView
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
+import org.openmrs.android.fhir.ui.patient.PatientDetailsScreen
+import org.openmrs.android.fhir.ui.screens.EditVisitDialog
+import org.openmrs.android.fhir.ui.screens.IdentifyPatientDialog
+import org.openmrs.android.fhir.ui.screens.UnidentifiedNoteDialog
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
+import org.openmrs.android.fhir.viewmodel.PatientDetailUnidentified
 import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
 
 class PatientDetailsFragment : Fragment() {
@@ -80,9 +98,6 @@ class PatientDetailsFragment : Fragment() {
     activityViewModels<MainActivityViewModel> { viewModelFactory }
 
   private val args: PatientDetailsFragmentArgs by navArgs()
-  private var _binding: PatientDetailBinding? = null
-  private val binding
-    get() = _binding!!
 
   var editMenuItem: MenuItem? = null
 
@@ -95,22 +110,86 @@ class PatientDetailsFragment : Fragment() {
     inflater: LayoutInflater,
     container: ViewGroup?,
     savedInstanceState: Bundle?,
-  ): View {
-    _binding = PatientDetailBinding.inflate(inflater, container, false)
-    return binding.root
+  ): View = composeView {
+    OpenMrsTheme {
+      val patientData by patientDetailsViewModel.livePatientData.observeAsState(null)
+      var identifying by rememberSaveable { mutableStateOf(false) }
+      var editingNote by rememberSaveable { mutableStateOf(false) }
+      var editingVisit by rememberSaveable { mutableStateOf<String?>(null) }
+      val toIdentify =
+        patientData.orEmpty().filterIsInstance<PatientDetailUnidentified>().firstOrNull()
+      // Identifying searches the server: a signed-in user with a connection.
+      val activityState by mainActivityViewModel.uiState.collectAsStateWithLifecycle()
+      val identifyAvailable =
+        !GuestSession.isActive(requireContext()) &&
+          activityState.connectivityState.isServerReachable()
+      if (identifying) {
+        IdentifyPatientDialog(
+          entryId = args.patientId,
+          onDismiss = { identifying = false },
+          onRegisterNew = { entryId ->
+            identifying = false
+            // Not this page any more: the records are about to belong to a new patient.
+            val navController = findNavController()
+            navController.popBackStack()
+            navController.navigate(
+              R.id.addPatientFragment,
+              bundleOf(AddPatientFragment.ARG_IDENTIFY_ENTRY to entryId),
+            )
+          },
+          onIdentified = { realId, moved ->
+            identifying = false
+            onIdentified(realId, moved)
+          },
+        )
+      }
+      editingVisit?.let { visitId ->
+        val visitState by
+          produceState<VisitEditState?>(null, visitId) {
+            value = patientDetailsViewModel.visitEditState(visitId)
+            if (value == null) editingVisit = null
+          }
+        visitState?.let { loaded ->
+          EditVisitDialog(
+            state = loaded,
+            onSave = { start, end -> patientDetailsViewModel.saveVisitPeriod(visitId, start, end) },
+            onDismiss = { editingVisit = null },
+          )
+        }
+      }
+      if (editingNote && toIdentify != null) {
+        UnidentifiedNoteDialog(
+          title = stringResource(R.string.identify_note_edit_title),
+          initial = toIdentify.note,
+          confirmLabel = stringResource(R.string.save),
+          onConfirm = {
+            editingNote = false
+            patientDetailsViewModel.updateNote(it)
+          },
+          onDismiss = { editingNote = false },
+        )
+      }
+      PatientDetailsScreen(
+        patientData = patientData,
+        onEditPatient = ::onEditPatientClick,
+        onViewEncounter = ::onViewEncounterClick,
+        onEditEncounter = ::onEditEncounterClick,
+        onEndVisit = ::onEditVisitClick,
+        onStartVisit = ::onStartVisitClick,
+        onReopenVisit = ::onReopenVisitClick,
+        onCreateEncounter = ::onCreateEncounterClick,
+        onIdentifyPatient = { identifying = true },
+        onEditVisit = { editingVisit = it },
+        identifyAvailable = identifyAvailable,
+        onEditNote = { editingNote = true },
+      )
+    }
   }
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     updateArguments(args.patientId)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
-    val adapter =
-      PatientDetailsRecyclerViewAdapter(
-        ::onEditEncounterClick,
-        ::onEditVisitClick,
-      )
-    binding.createEncounterFloatingButton.setOnClickListener { onCreateEncounterClick() }
-    binding.recycler.adapter = adapter
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title = getString(R.string.patient_details_title)
       setDisplayHomeAsUpEnabled(true)
@@ -119,7 +198,6 @@ class PatientDetailsFragment : Fragment() {
       )
     }
     patientDetailsViewModel.livePatientData.observe(viewLifecycleOwner) {
-      adapter.submitList(it)
       requireActivity().invalidateOptionsMenu()
     }
     patientDetailsViewModel.getPatientDetailData()
@@ -130,19 +208,48 @@ class PatientDetailsFragment : Fragment() {
     super.onPrepareOptionsMenu(menu)
     val editItem = menu.findItem(R.id.menu_patient_edit)
     editItem?.isEnabled = patientDetailsViewModel.livePatientData.value?.isNotEmpty() == true
+    // A placeholder (patient to identify after) has no registration to edit.
+    editItem?.isVisible =
+      patientDetailsViewModel.livePatientData.value.orEmpty().none {
+        it is PatientDetailUnidentified
+      }
   }
 
   private fun onCreateEncounterClick() {
     lifecycleScope.launch {
-      val hasActiveVisit = patientDetailsViewModel.hasActiveVisit()
-      if (Constants.WRAP_ENCOUNTER) {
+      // With the visits managed by the user, an encounter needs an open one.
+      if (patientDetailsViewModel.automaticVisits() || patientDetailsViewModel.hasActiveVisit()) {
         navigateToCreateEncounter()
       } else {
-        if (hasActiveVisit) {
-          navigateToCreateEncounter()
-        } else {
-          showStartVisitDateTimeDialog()
-        }
+        showNoOpenVisitDialog()
+      }
+    }
+  }
+
+  private fun showNoOpenVisitDialog() {
+    MaterialAlertDialogBuilder(requireContext())
+      .setTitle(getString(R.string.no_open_visit_title))
+      .setMessage(getString(R.string.no_open_visit_message))
+      .setPositiveButton(getString(R.string.open_visit_action)) { _, _ ->
+        showStartVisitDateTimeDialog { navigateToCreateEncounter() }
+      }
+      .setNegativeButton(getString(R.string.cancel), null)
+      .show()
+  }
+
+  private fun onStartVisitClick() {
+    showStartVisitDateTimeDialog {}
+  }
+
+  private fun onReopenVisitClick(visitId: String) {
+    lifecycleScope.launch {
+      if (!patientDetailsViewModel.reopenVisit(visitId)) {
+        AppMessage.show(
+          requireContext(),
+          getString(R.string.reopen_visit_blocked),
+          MessageKind.Error,
+          long = true,
+        )
       }
     }
   }
@@ -158,7 +265,7 @@ class PatientDetailsFragment : Fragment() {
   }
 
   fun showEndVisitDialog(context: Context, visitId: String, onEndVisitConfirmed: (String) -> Unit) {
-    val builder = AlertDialog.Builder(context)
+    val builder = MaterialAlertDialogBuilder(context)
     builder.setMessage(getString(R.string.end_visit_confirmation_message))
 
     builder.setPositiveButton(getString(R.string.yes)) { dialog, _ ->
@@ -172,7 +279,8 @@ class PatientDetailsFragment : Fragment() {
     dialog.show()
   }
 
-  private fun showStartVisitDateTimeDialog() {
+  /** Asks when the visit started, opens it, then calls [onStarted]. */
+  private fun showStartVisitDateTimeDialog(onStarted: () -> Unit) {
     val calendar = Calendar.getInstance()
 
     DatePickerDialog(
@@ -189,15 +297,16 @@ class PatientDetailsFragment : Fragment() {
                 val selectedDateTime = calendar.time
 
                 if (selectedDateTime.after(Date())) {
-                  Toast.makeText(
-                      requireContext(),
-                      getString(R.string.future_visit_datetime_not_allowed),
-                      Toast.LENGTH_SHORT,
-                    )
-                    .show()
+                  AppMessage.show(
+                    requireContext(),
+                    getString(R.string.future_visit_datetime_not_allowed),
+                    MessageKind.Error,
+                  )
                 } else {
-                  patientDetailsViewModel.createVisit(selectedDateTime)
-                  navigateToCreateEncounter()
+                  lifecycleScope.launch {
+                    patientDetailsViewModel.startVisit(selectedDateTime)
+                    onStarted()
+                  }
                 }
               },
               calendar[Calendar.HOUR_OF_DAY],
@@ -218,6 +327,19 @@ class PatientDetailsFragment : Fragment() {
       .show()
   }
 
+  /** Opens the encounter to look at it; the screen has an Edit action for changing it. */
+  private fun onViewEncounterClick(encounterId: String, encounterType: String) {
+    findNavController()
+      .navigate(
+        R.id.action_patient_details_to_editEncounterFragment,
+        bundleOf(
+          "encounter_id" to encounterId,
+          "encounter_type" to encounterType,
+          EditEncounterFragment.ARG_READ_ONLY to true,
+        ),
+      )
+  }
+
   private fun onEditEncounterClick(
     encounterId: String,
     encounterType: String,
@@ -234,7 +356,7 @@ class PatientDetailsFragment : Fragment() {
   private fun onEditVisitClick(visitId: String) {
     context?.let { ctx ->
       showEndVisitDialog(ctx, visitId) { id ->
-        lifecycleScope.launch { openMRSHelper.endVisit(id) }
+        lifecycleScope.launch { patientDetailsViewModel.endVisit(id) }
       }
     }
   }
@@ -251,25 +373,39 @@ class PatientDetailsFragment : Fragment() {
         true
       }
       R.id.menu_patient_edit -> {
-        findNavController()
-          .navigate(
-            PatientDetailsFragmentDirections.navigateToEditPatient(
-              args.patientId,
-              getString(R.string.registration_questionnaire_name),
-            ),
-          )
+        onEditPatientClick()
         true
       }
       else -> super.onOptionsItemSelected(item)
     }
   }
 
-  private fun updateArguments(patientId: String) {
-    requireArguments().putString("patient_id", patientId)
+  /** The records now belong to the real patient: open their page. */
+  private fun onIdentified(patientId: String, moved: Int) {
+    AppMessage.show(
+      requireContext(),
+      getString(R.string.identify_done, moved),
+      MessageKind.Success,
+    )
+    val navController = findNavController()
+    navController.popBackStack()
+    // From the patient list: straight to the patient. From anywhere else, back is enough.
+    runCatching {
+      navController.navigate(PatientListFragmentDirections.navigateToProductDetail(patientId))
+    }
   }
 
-  override fun onDestroyView() {
-    super.onDestroyView()
-    _binding = null
+  private fun onEditPatientClick() {
+    findNavController()
+      .navigate(
+        PatientDetailsFragmentDirections.navigateToEditPatient(
+          args.patientId,
+          AppConfig.get(requireContext()).registrationForm,
+        ),
+      )
+  }
+
+  private fun updateArguments(patientId: String) {
+    requireArguments().putString("patient_id", patientId)
   }
 }

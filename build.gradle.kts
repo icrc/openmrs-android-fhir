@@ -1,5 +1,3 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
-
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
   repositories {
@@ -12,7 +10,7 @@ buildscript {
     classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.0")
     classpath("com.google.gms:google-services:4.4.2")
     classpath("com.diffplug.spotless:spotless-plugin-gradle:6.21.0")
-    classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.9.0")
+    classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.9.6")
     classpath(
       "org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:2.0.0",
     )
@@ -32,17 +30,16 @@ allprojects {
     google()
     mavenCentral()
     gradlePluginPortal()
-    maven {
-      name = "google-android-fhir"
-      url = uri("https://maven.pkg.github.com/ohs-foundation/android-fhir")
-      credentials {
-        username = localPropertyOrEnv(providers, "gpr.user", "USERNAME")
-        password = localPropertyOrEnv(providers, "gpr.key", "TOKEN")
-      }
-    }
   }
 
   configureSpotless()
+}
+
+// Each module that carries an app_config.xml is checked when it is built.
+subprojects {
+  if (name in setOf("app", "dev3-app", "core")) {
+    apply(from = rootProject.file("gradle/validate-app-config.gradle.kts"))
+  }
 }
 
 fun Project.configureSpotless() {
@@ -73,6 +70,3 @@ fun Project.configureSpotless() {
     }
   }
 }
-
-fun localPropertyOrEnv(providers: ProviderFactory, propertyName: String, envName: String): String? =
-  gradleLocalProperties(rootDir, providers).getProperty(propertyName) ?: System.getenv(envName)

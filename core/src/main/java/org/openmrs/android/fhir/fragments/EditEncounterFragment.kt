@@ -29,13 +29,14 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.commit
+import androidx.fragment.app.commitNow
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -47,6 +48,13 @@ import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.extensions.keepBelowAppBar
+import org.openmrs.android.fhir.forms.addQuestionnaireWhenDrawn
+import org.openmrs.android.fhir.forms.newQuestionnaireFragment
+import org.openmrs.android.fhir.forms.onQuestionnaireResult
+import org.openmrs.android.fhir.forms.setFormLoading
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
@@ -67,9 +75,22 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
   private lateinit var encounterType: String
   private lateinit var encounterId: String
 
+  /** The answers are only shown; the Edit action turns this off and the form becomes editable. */
+  private var readOnly = false
+
+  /** The encounter's form is not on the device: what was saved is shown, and cannot be edited. */
+  private val genericForm
+    get() = viewModel.isGenericForm
+
+  private val viewing
+    get() = readOnly || genericForm
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setHasOptionsMenu(true)
+    readOnly =
+      savedInstanceState?.getBoolean(STATE_READ_ONLY)
+        ?: requireArguments().getBoolean(ARG_READ_ONLY, false)
 
     // Retrieve the encounter_id from arguments
     encounterId =
@@ -84,49 +105,59 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
     (requireActivity().application as FhirApplication).appComponent.inject(this)
-    (requireActivity() as AppCompatActivity).supportActionBar?.apply {
-      title = requireContext().getString(R.string.edit_encounter)
-    }
+    view.keepBelowAppBar(viewLifecycleOwner)
+    updateActionBar()
+    setFormLoading(true)
     viewModel.prepareEditEncounter(encounterId, encounterType)
     viewModel.encounterDataPair.observe(viewLifecycleOwner) {
       if (it.first.isBlank()) {
-        Toast.makeText(
-            requireContext(),
-            getString(R.string.encounter_questionnaire_not_found_try_again_later),
-            Toast.LENGTH_SHORT,
-          )
-          .show()
+        AppMessage.show(
+          requireContext(),
+          getString(R.string.encounter_questionnaire_not_found_try_again_later),
+          MessageKind.Error,
+        )
         NavHostFragment.findNavController(this).navigateUp()
         return@observe
+      }
+      if (genericForm) {
+        updateActionBar()
+        requireActivity().invalidateOptionsMenu()
       }
       addQuestionnaireFragment(it)
     }
     viewModel.isResourcesSaved.observe(viewLifecycleOwner) {
       val isSaved = it == "SAVED"
       if (!isSaved) {
-        Toast.makeText(requireContext(), R.string.inputs_missing, Toast.LENGTH_SHORT).show()
+        AppMessage.show(requireContext(), R.string.inputs_missing, MessageKind.Error)
         return@observe
       }
-      Toast.makeText(requireContext(), R.string.message_encounter_updated, Toast.LENGTH_SHORT)
-        .show()
+      AppMessage.show(requireContext(), R.string.message_encounter_updated, MessageKind.Success)
       NavHostFragment.findNavController(this).navigateUp()
     }
 
     mainActivityViewModel.setDrawerEnabled(false)
 
     /** Use the provided cancel|submit buttons from the sdc library */
-    childFragmentManager.setFragmentResultListener(
-      QuestionnaireFragment.SUBMIT_REQUEST_KEY,
-      viewLifecycleOwner,
-    ) { _, _ ->
-      onSubmitAction()
-    }
-    childFragmentManager.setFragmentResultListener(
-      QuestionnaireFragment.CANCEL_REQUEST_KEY,
-      viewLifecycleOwner,
-    ) { _, _ ->
-      NavHostFragment.findNavController(this@EditEncounterFragment).navigateUp()
-    }
+    onQuestionnaireResult(
+      onSubmit = ::onSubmitAction,
+      onCancel = { NavHostFragment.findNavController(this@EditEncounterFragment).navigateUp() },
+    )
+  }
+
+  override fun onSaveInstanceState(outState: Bundle) {
+    super.onSaveInstanceState(outState)
+    outState.putBoolean(STATE_READ_ONLY, readOnly)
+  }
+
+  override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+    if (!readOnly || genericForm) return
+    inflater.inflate(R.menu.view_encounter_menu, menu)
+    // A button as the action: the bar does not route taps on a custom action view to the menu.
+    menu
+      .findItem(R.id.menu_encounter_edit)
+      ?.actionView
+      ?.findViewById<View>(R.id.encounter_edit_button)
+      ?.setOnClickListener { startEditing() }
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -135,31 +166,49 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
         NavHostFragment.findNavController(this@EditEncounterFragment).navigateUp()
         true
       }
+      R.id.menu_encounter_edit -> {
+        startEditing()
+        true
+      }
       else -> false
     }
   }
 
+  private fun updateActionBar() {
+    (requireActivity() as AppCompatActivity).supportActionBar?.apply {
+      title = getString(if (viewing) R.string.view_encounter else R.string.edit_encounter)
+      subtitle = if (viewing) getString(R.string.encounter_read_only) else null
+    }
+  }
+
+  /** From viewing to editing: the same answers, now in a form that can be changed and saved. */
+  private fun startEditing() {
+    val pair = viewModel.encounterDataPair.value ?: return
+    readOnly = false
+    childFragmentManager.findFragmentByTag(QUESTIONNAIRE_FRAGMENT_TAG)?.let {
+      childFragmentManager.commitNow { remove(it) }
+    }
+    updateActionBar()
+    requireActivity().invalidateOptionsMenu()
+    addQuestionnaireFragment(pair)
+  }
+
   private fun addQuestionnaireFragment(pair: Pair<String, String>) {
     if (pair.first.isNotBlank()) {
-      lifecycleScope.launch {
-        val questionnaireJson = pair.first
-
-        childFragmentManager.commit {
-          add(
-            R.id.form_entry_container,
-            QuestionnaireFragment.builder()
-              .setQuestionnaire(questionnaireJson)
-              .setQuestionnaireResponse(pair.second)
-              .showOptionalText(true)
-              .showRequiredText(false)
-              .showReviewPageBeforeSubmit(
-                requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
-              )
-              .build(),
-            QUESTIONNAIRE_FRAGMENT_TAG,
+      val viewing = viewing
+      addQuestionnaireWhenDrawn(
+        containerId = R.id.form_entry_container,
+        tag = QUESTIONNAIRE_FRAGMENT_TAG,
+        create = {
+          newQuestionnaireFragment(
+            pair.first,
+            responseJson = pair.second,
+            showCancelButton = if (viewing) false else null,
+            showSubmitButton = if (viewing) false else null,
+            readOnly = viewing,
           )
-        }
-      }
+        },
+      )
     }
   }
 
@@ -177,5 +226,9 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   companion object {
     const val QUESTIONNAIRE_FRAGMENT_TAG = "edit-questionnaire-fragment-tag"
+
+    /** Navigation argument: open the encounter to look at it, editing only on request. */
+    const val ARG_READ_ONLY = "read_only"
+    private const val STATE_READ_ONLY = "read_only"
   }
 }

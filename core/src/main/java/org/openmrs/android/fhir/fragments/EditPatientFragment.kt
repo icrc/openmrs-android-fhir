@@ -31,11 +31,10 @@ package org.openmrs.android.fhir.fragments
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.mutableStateOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.commit
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -46,10 +45,18 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.AddPatientFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
+import org.openmrs.android.fhir.extensions.UnsavedChangesGuard
+import org.openmrs.android.fhir.forms.addQuestionnaireWhenDrawn
+import org.openmrs.android.fhir.forms.newQuestionnaireFragment
+import org.openmrs.android.fhir.forms.onQuestionnaireResult
+import org.openmrs.android.fhir.forms.savedLocation
+import org.openmrs.android.fhir.forms.setFormLoading
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.LocationBannerState
+import org.openmrs.android.fhir.ui.components.MessageKind
+import org.openmrs.android.fhir.ui.components.setLocationBanner
 import org.openmrs.android.fhir.viewmodel.EditPatientViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
@@ -66,6 +73,9 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
   private val binding
     get() = _binding!!
 
+  private val unsavedChangesGuard by lazy { UnsavedChangesGuard(this) }
+  private val locationBanner = mutableStateOf<LocationBannerState>(LocationBannerState.Loading)
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setHasOptionsMenu(true)
@@ -79,44 +89,44 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
       title = requireContext().getString(R.string.edit_patient)
     }
 
+    binding.locationBanner.setLocationBanner(locationBanner, showHint = false)
     lifecycleScope.launch {
-      val selectedLocation =
-        context?.applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.LOCATION_NAME)
-
-      binding.currentLocationLabel.text =
-        selectedLocation ?: getString(R.string.no_location_selected)
+      val location = context?.savedLocation() ?: return@launch
+      locationBanner.value = location.bannerState(requireContext())
     }
 
+    setFormLoading(true)
     viewModel.livePatientData.observe(viewLifecycleOwner) { addQuestionnaireFragment(it) }
     viewModel.isPatientSaved.observe(viewLifecycleOwner) {
       if (!it) {
-        Toast.makeText(requireContext(), R.string.inputs_missing, Toast.LENGTH_SHORT).show()
+        val reason = viewModel.saveFailure.value ?: R.string.inputs_missing
+        viewModel.saveFailure.value = null
+        AppMessage.show(requireContext(), reason, MessageKind.Error)
         return@observe
       }
-      Toast.makeText(requireContext(), R.string.message_patient_updated, Toast.LENGTH_SHORT).show()
+      AppMessage.show(requireContext(), R.string.message_patient_updated, MessageKind.Success)
       NavHostFragment.findNavController(this).navigateUp()
     }
     mainActivityViewModel.setDrawerEnabled(false)
+    unsavedChangesGuard.attach(binding.root)
 
     /** Use the provided cancel|submit buttons from the sdc library */
-    childFragmentManager.setFragmentResultListener(
-      QuestionnaireFragment.SUBMIT_REQUEST_KEY,
-      viewLifecycleOwner,
-    ) { _, _ ->
-      onSubmitAction()
-    }
-    childFragmentManager.setFragmentResultListener(
-      QuestionnaireFragment.CANCEL_REQUEST_KEY,
-      viewLifecycleOwner,
-    ) { _, _ ->
-      NavHostFragment.findNavController(this@EditPatientFragment).navigateUp()
-    }
+    onQuestionnaireResult(
+      onSubmit = ::onSubmitAction,
+      onCancel = {
+        unsavedChangesGuard.confirmLeave {
+          NavHostFragment.findNavController(this@EditPatientFragment).navigateUp()
+        }
+      },
+    )
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     return when (item.itemId) {
       android.R.id.home -> {
-        NavHostFragment.findNavController(this@EditPatientFragment).navigateUp()
+        unsavedChangesGuard.confirmLeave {
+          NavHostFragment.findNavController(this@EditPatientFragment).navigateUp()
+        }
         true
       }
       else -> false
@@ -125,28 +135,15 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
 
   private fun addQuestionnaireFragment(pair: Pair<String, String>) {
     if (pair.first.isEmpty()) {
-      Toast.makeText(requireContext(), R.string.questionnaire_error_message, Toast.LENGTH_SHORT)
-        .show()
+      AppMessage.show(requireContext(), R.string.questionnaire_error_message, MessageKind.Error)
       NavHostFragment.findNavController(this).navigateUp()
       return
     }
-    lifecycleScope.launch {
-      childFragmentManager.commit {
-        add(
-          R.id.add_patient_container,
-          QuestionnaireFragment.builder()
-            .setQuestionnaire(pair.first)
-            .setQuestionnaireResponse(pair.second)
-            .showOptionalText(true)
-            .showRequiredText(false)
-            .showReviewPageBeforeSubmit(
-              requireContext().resources.getBoolean(R.bool.show_review_page_before_submit),
-            )
-            .build(),
-          QUESTIONNAIRE_FRAGMENT_TAG,
-        )
-      }
-    }
+    addQuestionnaireWhenDrawn(
+      containerId = R.id.add_patient_container,
+      tag = QUESTIONNAIRE_FRAGMENT_TAG,
+      create = { newQuestionnaireFragment(pair.first, responseJson = pair.second) },
+    )
   }
 
   private fun onSubmitAction() {

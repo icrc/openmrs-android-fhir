@@ -15,105 +15,100 @@
  limitations under the License.
 -->
 <resources>
-    <color name="low_risk">#388e3c</color>
-    <color name="low_risk_background">#e8f5e9</color>
-    <color name="moderate_risk">#FFBF00</color>
-    <color name="moderate_risk_background">#fff8e1</color>
-    <color name="high_risk">#c62828</color>
-    <color name="high_risk_background">#ffebee</color>
-    <color name="unknown_risk_background">#77DADCE0</color>
-    <color name="unknown_risk">#FFDADCE0</color>
-    <color name="syncing_background">#E8F0FE</color>
-    <color name="disable_state">#9AFFFFFF</color>
 
-    <color name="primary_blue_40">#0B57D0</color>
-    <color name="blue">#4285F4</color>
+    <color name="primary_blue_40">#005D5D</color>
     <color name="onPrimary_blue_100">#FFFFFF</color>
-    <color name="primaryContainer_blue_90">#D3E3FD</color>
-    <color name="onPrimaryContainer_blue_10">#041E49</color>
-    <color name="orange">#FFA500</color>
+    <color name="primaryContainer_blue_90">#E6F1F0</color>
+    <color name="onPrimaryContainer_blue_10">#004144</color>
 
-    <color name="secondary_blue_40">#00639B</color>
+    <color name="secondary_blue_40">#007D79</color>
     <color name="onSecondary_blue_100">#FFFFFF</color>
-    <color name="secondaryContainer_blue_90">#C2E7FF</color>
-    <color name="onSecondaryContainer_blue_10">#001D35</color>
+    <color name="secondaryContainer_blue_90">#E6F1F0</color>
+    <color name="onSecondaryContainer_blue_10">#004144</color>
 
-    <color name="tertiary_green_40">#146C2E</color>
+    <color name="tertiary_green_40">#198038</color>
     <color name="onTertiary_green_100">#FFFFFF</color>
-    <color name="tertiaryContainer_green_90">#C4EED0</color>
-    <color name="onTertiaryContainer_green_10">#072711</color>
+    <color name="tertiaryContainer_green_90">#DEFBE6</color>
+    <color name="onTertiaryContainer_green_10">#022D0D</color>
 
-    <color name="error_red_40">#B3261E</color>
+    <color name="error_red_40">#DA1E28</color>
     <color name="errorContainer_red_100">#FFFFFF</color>
     <color name="onError_red_90">#F9DEDC</color>
     <color name="onErrorContainer_red_10">#410E0B</color>
 
-    <color name="background_neutral_100">#FFFFFF</color>
-    <color name="onBackground_neutral_10">#1F1F1F</color>
+    <color name="background_neutral_100">#F4F4F4</color>
+    <color name="onBackground_neutral_10">#161616</color>
 
     <color name="surface_neutral_100">#FFFFFF</color>
-    <color name="onSurface_neutral_10">#1F1F1F</color>
+    <color name="onSurface_neutral_10">#161616</color>
 
-    <color name="surfaceVariant_neutral_variant_90">#E1E3E1</color>
-    <color name="onSurfaceVariant_neutral_variant_30">#444746</color>
+    <color name="surfaceVariant_neutral_variant_90">#E0E0E0</color>
+    <color name="onSurfaceVariant_neutral_variant_30">#525252</color>
 
-    <color name="outline_neutral_variant_50">#747775</color>
+    <color name="outline_neutral_variant_50">#8D8D8D</color>
 
-    <color name="primary_blue_80">#A8C7FA</color>
-    <color name="onPrimary_blue_20">#062E6F</color>
-    <color name="primaryContainer_blue_30">#0842A0</color>
-    <color name="onPrimaryContainer_blue_90">#D3E3FD</color>
+    <color name="primary_blue_80">#08BDBA</color>
+    <color name="onPrimary_blue_20">#003A3A</color>
+    <color name="primaryContainer_blue_30">#005D5D</color>
+    <color name="onPrimaryContainer_blue_90">#D9FBFB</color>
 
-    <color name="secondary_blue_80">#7FCFFF</color>
-    <color name="onSecondary_blue_20">#003355</color>
-    <color name="secondaryContainer_blue_30">#004A77</color>
-    <color name="onSecondaryContainer_blue_90">#C2E7FF</color>
+    <color name="secondary_blue_80">#3DDBD9</color>
+    <color name="onSecondary_blue_20">#003A3A</color>
+    <color name="secondaryContainer_blue_30">#004144</color>
+    <color name="onSecondaryContainer_blue_90">#D9FBFB</color>
 
-    <color name="tertiary_green_80">#146C2E</color>
-    <color name="onTertiary_green_20">#0A3818</color>
-    <color name="tertiaryContainer_green_30">#0F5223</color>
-    <color name="onTertiaryContainer_green_90">#C4EED0</color>
+    <color name="tertiary_green_80">#42BE65</color>
+    <color name="onTertiary_green_20">#022D0D</color>
+    <color name="tertiaryContainer_green_30">#0E6027</color>
+    <color name="onTertiaryContainer_green_90">#DEFBE6</color>
 
-    <color name="error_red_80">#F2B8B5</color>
-    <color name="onError_red_30">#8C1D18</color>
+    <color name="error_red_80">#FA4D56</color>
+    <color name="onError_red_30">#161616</color>
     <color name="errorContainer_red_20">#601410</color>
     <color name="onErrorContainer_red_90">#F9DEDC</color>
 
-    <color name="background_neutral_10">#1F1F1F</color>
-    <color name="onBackground_neutral_90">#E3E3E3</color>
+    <color name="background_neutral_10">#161616</color>
+    <color name="onBackground_neutral_90">#F4F4F4</color>
 
-    <color name="surface_neutral_10">#1F1F1F</color>
-    <color name="onSurface_neutral_90">#E3E3E3</color>
+    <color name="surface_neutral_10">#262626</color>
+    <color name="onSurface_neutral_90">#F4F4F4</color>
 
-    <color name="surfaceVariant_neutral_variant_30">#444746</color>
-    <color name="onSurfaceVariant_neutral_variant_80">#C4C7C5</color>
+    <color name="surfaceVariant_neutral_variant_30">#393939</color>
+    <color name="onSurfaceVariant_neutral_variant_80">#C6C6C6</color>
 
-    <color name="outline_neutral_variant_60">#8E918F</color>
+    <color name="outline_neutral_variant_60">#8D8D8D</color>
 
-    <color name="black">#000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="light_grey">#FAFAFA</color>
-    <color name="dashboard_cardview_textcolor">#4D4D4D</color>
 
-    <color
-        name="selected_item_background"
-    >#E8F0FE</color> <!-- Light blue background -->
-    <color
-        name="selected_item_border"
-    >#96B6EF</color> <!-- Accent blue border -->
-    <color
-        name="default_item_background"
-    >#FFFFFF</color> <!-- White background -->
-    <color name="default_item_border">#E0E0E0</color> <!-- Light gray border -->
-    <color name="tab_selected_background_color">#E3F2FD</color>
-    <color
-        name="tab_unselected_background_color"
-    >#F5F5F5</color> <!-- A light grey/off-white -->
-    <color
-        name="tab_indicator_color_blue"
-    >#1976D2</color>     <!-- A darker blue for the indicator -->
-    <color
-        name="tab_text_color_primary"
-    >#DE000000</color>   <!-- 87% Black for text -->
-    <color name="tab_text_color_secondary">#99000000</color>
+<!-- Light blue background -->
+<!-- Accent blue border -->
+<!-- White background -->
+<!-- Light gray border -->
+    <!-- OpenMRS 3 palette used by the data-capture form theme (night variants in values-night) -->
+    <color name="o3_primary">#005D5D</color>
+    <color name="o3_on_primary">#FFFFFF</color>
+    <color name="o3_primary_container">#D9FBFB</color>
+    <color name="o3_on_primary_container">#004144</color>
+    <color name="o3_secondary">#007D79</color>
+    <color name="o3_surface">#FFFFFF</color>
+    <color name="o3_on_surface">#161616</color>
+    <color name="o3_surface_variant">#E0E0E0</color>
+    <color name="o3_on_surface_variant">#525252</color>
+    <color name="o3_outline">#8D8D8D</color>
+    <color name="o3_background">#F4F4F4</color>
+    <color name="cb_primary">#00508C</color>
+    <color name="cb_on_primary">#FFFFFF</color>
+    <color name="cb_primary_container">#D6E8F7</color>
+    <color name="cb_on_primary_container">#00294A</color>
+    <color name="cb_secondary">#0072B2</color>
+    <color name="cb_on_secondary">#FFFFFF</color>
+    <color name="cb_secondary_container">#D6E8F7</color>
+    <color name="cb_on_secondary_container">#00294A</color>
+    <color name="cb_tertiary">#8A4B00</color>
+    <color name="cb_on_tertiary">#FFFFFF</color>
+    <color name="cb_error">#B34700</color>
+    <color name="cb_on_error">#FFFFFF</color>
+    <color name="cb_error_container">#FFE0CC</color>
+    <color name="cb_on_error_container">#4A1D00</color>
+    <color name="cb_on_surface_variant">#3F3F3F</color>
+    <color name="cb_outline">#6F6F6F</color>
 </resources>

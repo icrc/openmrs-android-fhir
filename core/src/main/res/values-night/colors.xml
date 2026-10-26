@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+    <!-- OpenMRS 3 palette, dark -->
+    <color name="o3_primary">#08BDBA</color>
+    <color name="o3_on_primary">#003A3A</color>
+    <color name="o3_primary_container">#005D5D</color>
+    <color name="o3_on_primary_container">#D9FBFB</color>
+    <color name="o3_secondary">#3DDBD9</color>
+    <color name="o3_surface">#262626</color>
+    <color name="o3_on_surface">#F4F4F4</color>
+    <color name="o3_surface_variant">#393939</color>
+    <color name="o3_on_surface_variant">#C6C6C6</color>
+    <color name="o3_outline">#8D8D8D</color>
+    <color name="o3_background">#161616</color>
+    <color name="cb_primary">#7CC4F2</color>
+    <color name="cb_on_primary">#00263F</color>
+    <color name="cb_primary_container">#00508C</color>
+    <color name="cb_on_primary_container">#D6E8F7</color>
+    <color name="cb_secondary">#56B4E9</color>
+    <color name="cb_on_secondary">#00263F</color>
+    <color name="cb_secondary_container">#0B3552</color>
+    <color name="cb_on_secondary_container">#D6E8F7</color>
+    <color name="cb_tertiary">#F0A030</color>
+    <color name="cb_on_tertiary">#2E1800</color>
+    <color name="cb_error">#FFA060</color>
+    <color name="cb_on_error">#3A1500</color>
+    <color name="cb_error_container">#7A3000</color>
+    <color name="cb_on_error_container">#FFE0CC</color>
+    <color name="cb_on_surface_variant">#DADADA</color>
+    <color name="cb_outline">#A8A8A8</color>
+</resources>

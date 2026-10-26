@@ -29,12 +29,14 @@
 package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
-import android.widget.ProgressBar
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -43,29 +45,31 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 import kotlin.getValue
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.adapters.CreateFormSectionAdapter
 import org.openmrs.android.fhir.data.GroupSessionDraftRepository
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.FormSectionItem
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
-import org.openmrs.android.fhir.databinding.CreateEncounterFragmentBinding
+import org.openmrs.android.fhir.data.database.model.GroupSessionDraftSummary
+import org.openmrs.android.fhir.extensions.composeView
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
+import org.openmrs.android.fhir.ui.components.PendingSessionsDialog
+import org.openmrs.android.fhir.ui.screens.CreateEncounterScreen
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.CreateEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 
-class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
+class CreateEncountersFragment : Fragment() {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
   @Inject lateinit var groupSessionDraftRepository: GroupSessionDraftRepository
   private val viewModel by viewModels<CreateEncounterViewModel> { viewModelFactory }
-  private lateinit var recyclerView: RecyclerView
-  private lateinit var progressBar: ProgressBar
   private var draftResumeChecked = false
 
   private val mainActivityViewModel by
@@ -73,19 +77,52 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
 
   private val args: CreateEncountersFragmentArgs by navArgs()
 
-  private var _binding: CreateEncounterFragmentBinding? = null
-
-  private val binding
-    get() = _binding!!
+  /** The unfinished sessions to choose from, when there is more than one. */
+  private val pendingChoices =
+    mutableStateOf<List<Pair<FormItem, GroupSessionDraftSummary>>>(emptyList())
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setHasOptionsMenu(true)
   }
 
+  override fun onCreateView(
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?,
+  ): View = composeView {
+    OpenMrsTheme {
+      val sections by viewModel.formData.observeAsState(null)
+      val isLoading by viewModel.isLoading.observeAsState(false)
+      val pending by viewModel.pendingSessions.observeAsState(emptyMap())
+      val choices = pendingChoices.value
+      if (choices.isNotEmpty()) {
+        PendingSessionsDialog(
+          sessions = choices,
+          onResume = { form, summary ->
+            pendingChoices.value = emptyList()
+            navigateToGroupFormEntry(form.questionnaireId, summary.patientIds.toTypedArray())
+          },
+          onDismiss = { pendingChoices.value = emptyList() },
+        )
+      }
+      CreateEncounterScreen(
+        sections = sections,
+        isLoading = isLoading,
+        pendingSessions = pending,
+        onFormClick = ::handleFormClick,
+      )
+    }
+  }
+
+  override fun onResume() {
+    super.onResume()
+    // A session may have been started, resumed or finished since this list was last in front.
+    if (args.isGroupEncounter) viewModel.loadPendingSessions()
+  }
+
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
-    _binding = CreateEncounterFragmentBinding.bind(view)
     (requireActivity() as AppCompatActivity).supportActionBar?.apply {
       title =
         if (args.isGroupEncounter) {
@@ -93,47 +130,29 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
         } else {
           requireContext().getString(R.string.create_encounter)
         }
+      // What to do here, in the bar, instead of a second title in the page.
+      subtitle =
+        requireContext()
+          .getString(
+            if (args.isGroupEncounter) {
+              R.string.create_group_encounter_subtitle
+            } else {
+              R.string.create_encounter_subtitle
+            },
+          )
       setDisplayHomeAsUpEnabled(true)
     }
     (requireActivity().application as FhirApplication).appComponent.inject(this)
 
-    viewModel.loadFormData(
-      getString(R.string.questionnaires),
-      getString(R.string.encounter_type_system_url),
-    )
-    // Initialize views
-    recyclerView = binding.rvFormSections
-    progressBar = binding.progressBar
+    viewModel.loadFormData()
 
-    // Setup RecyclerView
-    recyclerView.layoutManager = LinearLayoutManager(requireContext())
-
-    // Observe data
-    setupObservers()
-    mainActivityViewModel.setDrawerEnabled(false)
-  }
-
-  private fun setupObservers() {
     viewModel.formData.observe(viewLifecycleOwner) { formData ->
-      formData?.let {
-        setupAdapter(it)
-        maybePromptToResumeDraft(it)
-      }
+      formData?.let { maybePromptToResumeDraft(it) }
     }
-
-    viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-      progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-    }
-
     viewModel.error.observe(viewLifecycleOwner) { errorMessage ->
-      errorMessage?.let { Toast.makeText(requireContext(), it, Toast.LENGTH_LONG).show() }
+      errorMessage?.let { AppMessage.show(requireContext(), it, MessageKind.Error, long = true) }
     }
-  }
-
-  private fun setupAdapter(formSectionItems: List<FormSectionItem>) {
-    val adapter =
-      CreateFormSectionAdapter(formSectionItems) { formItem -> handleFormClick(formItem) }
-    recyclerView.adapter = adapter
+    mainActivityViewModel.setDrawerEnabled(false)
   }
 
   private fun maybePromptToResumeDraft(formSectionItems: List<FormSectionItem>) {
@@ -143,28 +162,25 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     val formItems = formSectionItems.flatMap { section -> section.forms }
 
     viewLifecycleOwner.lifecycleScope.launch {
-      var latestDraft: Pair<FormItem, GroupSessionDraft>? = null
-
-      formItems.forEach { formItem ->
-        val draft = groupSessionDraftRepository.getDraft(formItem.questionnaireId)
-        when {
-          draft == null -> Unit
-          draft.hasContent() -> {
-            val currentLatest = latestDraft
-            if (currentLatest == null || draft.lastUpdated > currentLatest.second.lastUpdated) {
-              latestDraft = formItem to draft
-            }
+      groupSessionDraftRepository.deleteEmptyDrafts()
+      // The most recently touched first; the summaries are light.
+      val sessions =
+        groupSessionDraftRepository
+          .pendingSessions()
+          .values
+          .sortedByDescending { it.lastUpdated }
+          .mapNotNull { draft ->
+            formItems
+              .firstOrNull { it.questionnaireId == draft.questionnaireId }
+              ?.let { it to draft }
           }
-          else -> groupSessionDraftRepository.deleteDraft(formItem.questionnaireId)
+      if (!isAdded) return@launch
+      when {
+        sessions.size > 1 -> pendingChoices.value = sessions
+        sessions.size == 1 -> {
+          val (formItem, draft) = sessions.first()
+          showResumeDraftDialog(formItem, draft.patientIds.toTypedArray(), true)
         }
-      }
-
-      val draftEntry =
-        latestDraft?.let { (formItem, draft) -> formItem to draft.patientIds.toTypedArray() }
-
-      if (draftEntry != null && isAdded) {
-        val (formItem, patientIds) = draftEntry
-        showResumeDraftDialog(formItem, patientIds, true)
       }
     }
   }
@@ -235,7 +251,7 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     showCancel: Boolean = false,
   ) {
     val dialog =
-      AlertDialog.Builder(requireContext())
+      MaterialAlertDialogBuilder(requireContext())
         .setTitle(getString(R.string.resume_group_session))
         .setMessage(
           getString(
@@ -259,10 +275,5 @@ class CreateEncountersFragment : Fragment(R.layout.create_encounter_fragment) {
     }
 
     dialog.create().show()
-  }
-
-  override fun onDestroyView() {
-    super.onDestroyView()
-    _binding = null
   }
 }

@@ -33,33 +33,43 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import ca.uhn.fhir.context.FhirContext
-import com.google.android.fhir.FhirEngine
-import com.google.android.fhir.datacapture.extensions.logicalId
-import com.google.android.fhir.search.search
-import com.squareup.moshi.Moshi
-import java.util.Locale
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import org.hl7.fhir.r4.model.Questionnaire
+import kotlinx.coroutines.withContext
+import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.data.database.model.FormData
+import org.openmrs.android.fhir.data.FormCatalog
+import org.openmrs.android.fhir.data.GroupSessionDraftRepository
+import org.openmrs.android.fhir.data.database.model.CustomFormSection
 import org.openmrs.android.fhir.data.database.model.FormItem
-import org.openmrs.android.fhir.data.database.model.FormSection
 import org.openmrs.android.fhir.data.database.model.FormSectionItem
-import org.openmrs.android.fhir.extensions.getJsonFileNames
-import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
-import org.openmrs.android.fhir.extensions.readFileFromAssets
+import org.openmrs.android.fhir.data.database.model.GroupSessionDraftSummary
+import org.openmrs.android.fhir.di.DefaultDispatcher
+import org.openmrs.android.fhir.di.IoDispatcher
+import timber.log.Timber
 
 class CreateEncounterViewModel
 @Inject
 constructor(
   private val applicationContext: Context,
-  private val fhirEngine: FhirEngine,
+  private val formCatalog: FormCatalog,
+  private val groupSessionDraftRepository: GroupSessionDraftRepository,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
+  @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
+
+  private val demoDataStore = DemoDataStore(applicationContext)
 
   private val _formData = MutableLiveData<List<FormSectionItem>?>()
   val formData: LiveData<List<FormSectionItem>?> = _formData
+
+  private val _pendingSessions = MutableLiveData<Map<String, GroupSessionDraftSummary>>(emptyMap())
+
+  /** The group sessions that can be resumed, by form id. */
+  val pendingSessions: LiveData<Map<String, GroupSessionDraftSummary>> = _pendingSessions
 
   private val _isLoading = MutableLiveData<Boolean>()
   val isLoading: LiveData<Boolean> = _isLoading
@@ -67,125 +77,110 @@ constructor(
   private val _error = MutableLiveData<String>()
   val error: LiveData<String> = _error
 
-  private val parser = FhirContext.forR4Cached().newJsonParser()
+  private var sections: List<FormSectionItem>? = null
+  private var formsById: Map<String, FormItem> = emptyMap()
+  private var favoriteIds: List<String> = emptyList()
+  private var customSections: List<CustomFormSection>? = null
 
-  /*
-   * Load encounter form data from the config.
-   * Fetch all questionnaire & add to the formItem
+  init {
+    // Favorites and the user's own sections follow the settings: a change shows up without
+    // reloading the forms.
+    viewModelScope.launch {
+      combine(demoDataStore.getFavoriteFormIdsFlow(), demoDataStore.getCustomFormSectionsFlow()) {
+          favorites,
+          custom,
+          ->
+          favorites to custom
+        }
+        .collect { (favorites, custom) ->
+          favoriteIds = favorites
+          customSections = custom
+          publish()
+        }
+    }
+  }
+
+  /**
+   * Builds the sections of the **Create Encounter** screen.
+   *
+   * The sections are the ones declared in the app configuration. Each code is resolved to the
+   * questionnaire (synced or bundled in the app) that declares it, and codes without a
+   * questionnaire are skipped. When no sections are configured, every available encounter form is
+   * offered in one list, so the setting can be left out entirely. The favorite forms (picked in
+   * Settings) come first, in a section of their own.
    */
-  fun loadFormData(formDataString: String, encounterTypeSystemUrl: String) {
+  fun loadFormData() {
     viewModelScope.launch {
       _isLoading.value = true
       try {
-        val moshi = Moshi.Builder().build()
-        val adapter = moshi.adapter(FormData::class.java).lenient()
-        val formData = adapter.fromJson(formDataString.trim())
-        val translationOverrides = formData?.translationOverrides ?: emptyMap()
-        val deviceLanguageOverrides = translationOverrides[Locale.getDefault().language].orEmpty()
-        val deviceLanguage = Locale.getDefault().language.lowercase(Locale.ROOT)
-        val questionnaires = fhirEngine.search<Questionnaire> {}.map { it.resource }.toMutableList()
-        // This code can be refactored once there's possiblity to add assets file to fhirEngine.
-        val assetQuestionnaireFileNames = applicationContext.getJsonFileNames()
-        assetQuestionnaireFileNames.forEach {
-          val questionnaireString = applicationContext.readFileFromAssets(it)
-          if (questionnaireString.isNotEmpty()) {
-            questionnaires.add(parser.parseResource(Questionnaire::class.java, questionnaireString))
-          }
-        }
-
-        val encounterTypeCodeToQuestionnaireIdMap = mutableMapOf<String, String>()
-        questionnaires.forEach { questionnaire ->
-          if (questionnaire.hasCode()) {
-            questionnaire.code.forEach {
-              if (it.hasSystem() and (it?.system.toString() == encounterTypeSystemUrl)) {
-                encounterTypeCodeToQuestionnaireIdMap.putIfAbsent(it.code, questionnaire.logicalId)
-              }
-            }
-          }
-        }
-
-        val formSectionItems =
-          formData
-            ?.formSections
-            ?.map {
-              it.toFormSectionItem(
-                encounterTypeCodeToQuestionnaireIdMap,
-                deviceLanguageOverrides,
-                deviceLanguage,
-              )
-            }
-            ?.filter { it.forms.isNotEmpty() }
-            ?: emptyList()
-        _formData.value = formSectionItems
-        _isLoading.value = false
+        val catalog = withContext(defaultDispatcher) { formCatalog.load() }
+        formsById = catalog.allForms.associateBy { it.questionnaireId }
+        sections = buildSections(catalog)
+        publish()
       } catch (e: Exception) {
+        Timber.e(e, "Could not load the encounter forms")
         _error.value = "Failed to load form data: ${e.localizedMessage}"
+      } finally {
         _isLoading.value = false
       }
     }
   }
 
-  /*
-   * Only add forms to the Form Section whose questionaire
-   * are present in local database or in the assets folder.
-   */
-  internal suspend fun FormSection.toFormSectionItem(
-    encounterTypeCodeToQuestionnaireIdMap: Map<String, String>,
-    translationOverrides: Map<String, String>,
-    deviceLanguage: String,
-  ): FormSectionItem {
-    val formItems = mutableListOf<FormItem>()
-    forms.forEach { encounterTypeCode ->
-      val questionnaireId =
-        encounterTypeCodeToQuestionnaireIdMap[encounterTypeCode] ?: return@forEach
-      val questionnaire: Questionnaire? =
-        fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
-      if (questionnaire != null) {
-        val localizedQuestionnaireTitle =
-          questionnaire.getTranslatedTitle(deviceLanguage)
-            ?: questionnaire.title?.let { translationOverrides[it] ?: it }
-              ?: applicationContext.getString(R.string.no_name_provided)
-        formItems.add(
-          FormItem(
-            name = localizedQuestionnaireTitle,
-            questionnaireId = questionnaireId,
-          ),
-        )
+  /** Looks again at the drafts; called whenever the screen comes back in front. */
+  fun loadPendingSessions() {
+    viewModelScope.launch {
+      try {
+        _pendingSessions.value =
+          withContext(ioDispatcher) { groupSessionDraftRepository.pendingSessions() }
+      } catch (e: Exception) {
+        Timber.e(e, "Could not read the pending group sessions")
       }
     }
-    val sectionName = translationOverrides[name] ?: name
-    return FormSectionItem(
-      name = sectionName,
-      forms = formItems,
-    )
   }
 
-  private fun Questionnaire.getTranslatedTitle(deviceLanguage: String): String? {
-    return this.titleElement
-      ?.extension
-      ?.asSequence()
-      ?.filter { it.url == TRANSLATION_EXTENSION_URL }
-      ?.mapNotNull { translationExtension ->
-        val lang =
-          translationExtension.extension
-            .firstOrNull { it.url == LANGUAGE_EXTENSION_URL }
-            ?.value
-            ?.primitiveValue()
-            ?.lowercase(Locale.ROOT)
-        val content =
-          translationExtension.extension
-            .firstOrNull { it.url == CONTENT_EXTENSION_URL }
-            ?.value
-            ?.primitiveValue()
-        if (lang != null && lang == deviceLanguage) content else null
+  private fun publish() {
+    val own =
+      customSections
+        ?.map { FormSectionItem(it.name, it.formIds.mapNotNull { id -> formsById[id] }) }
+        ?.filter { it.forms.isNotEmpty() }
+        ?.takeIf { it.isNotEmpty() }
+    val base = own ?: sections ?: return
+    val favorites = favoriteIds.mapNotNull { formsById[it] }
+    _formData.value =
+      if (favorites.isEmpty()) {
+        base
+      } else {
+        listOf(
+          FormSectionItem(
+            name = applicationContext.getString(R.string.favorite_forms),
+            forms = favorites,
+            isFavorites = true,
+          ),
+        ) + base
       }
-      ?.firstOrNull()
   }
 
-  companion object {
-    private const val TRANSLATION_EXTENSION_URL =
-      "http://hl7.org/fhir/StructureDefinition/translation"
-    private const val LANGUAGE_EXTENSION_URL = "lang"
-    private const val CONTENT_EXTENSION_URL = "content"
+  private fun buildSections(catalog: FormCatalog.Catalog): List<FormSectionItem> {
+    val configured =
+      catalog.sections
+        .map { section ->
+          FormSectionItem(
+            name = section.nameFor(catalog.language),
+            forms = section.forms.mapNotNull { code -> catalog.formsByCode[code] },
+          )
+        }
+        .filter { it.forms.isNotEmpty() }
+    if (configured.isNotEmpty()) return configured
+
+    // Nothing configured, or none of the configured codes has a questionnaire: offer every form.
+    if (catalog.sections.isNotEmpty()) {
+      Timber.w("No questionnaire matches the configured encounter types; listing every form")
+    }
+    val all = catalog.allForms
+    return if (all.isEmpty()) {
+      emptyList()
+    } else {
+      listOf(FormSectionItem(applicationContext.getString(R.string.all_forms), all))
+    }
   }
 }

@@ -30,7 +30,18 @@ package org.openmrs.android.fhir.data.sync
 
 import android.content.Context
 import androidx.work.WorkerParameters
+import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.LocalChange
+import com.google.android.fhir.db.LocalChangeResourceReference
 import com.google.android.fhir.sync.DownloadWorkManager
+import com.google.android.fhir.sync.download.DownloadRequest
+import com.google.android.fhir.sync.upload.SyncUploadProgress
+import com.google.android.fhir.sync.upload.UploadRequestResult
+import com.google.android.fhir.sync.upload.UploadStrategy
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import org.hl7.fhir.r4.model.Resource
+import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.FhirApplication
 
 class FhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
@@ -58,9 +69,43 @@ class LocationFhirSyncWorker(appContext: Context, workerParams: WorkerParameters
     LocationDownloadWorkManagerImpl(applicationContext)
 }
 
-class GroupFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
+/**
+ * Downloads and sends nothing (the Sync page's "Download"): the upload phase of the sync does
+ * nothing, so what waits on the device stays there.
+ */
+class DownloadOnlyFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
   BaseFhirSyncWorker(appContext, workerParams) {
 
-  override fun getDownloadWorkManager(): DownloadWorkManager =
-    GroupDownloadWorkManagerImpl(applicationContext)
+  override fun getDownloadWorkManager(): DownloadWorkManager {
+    return TimestampBasedDownloadWorkManagerImpl(
+      FhirApplication.dataStore(applicationContext),
+      applicationContext,
+    )
+  }
+
+  override fun getFhirEngine(): FhirEngine = SkipUploadFhirEngine(super.getFhirEngine())
+}
+
+/** The app's engine with an upload phase that has nothing to send. */
+private class SkipUploadFhirEngine(private val delegate: FhirEngine) : FhirEngine by delegate {
+  override suspend fun syncUpload(
+    uploadStrategy: UploadStrategy,
+    upload:
+      suspend (List<LocalChange>, List<LocalChangeResourceReference>) -> Flow<UploadRequestResult>,
+  ): Flow<SyncUploadProgress> = emptyFlow()
+}
+
+/** Sends what is waiting on the device and downloads nothing: the live upload ([LiveSync]). */
+class UploadFhirSyncWorker(appContext: Context, workerParams: WorkerParameters) :
+  BaseFhirSyncWorker(appContext, workerParams) {
+
+  override fun getDownloadWorkManager(): DownloadWorkManager = NoDownloadWorkManager
+}
+
+private object NoDownloadWorkManager : DownloadWorkManager {
+  override suspend fun getNextRequest(): DownloadRequest? = null
+
+  override suspend fun getSummaryRequestUrls(): Map<ResourceType, String> = emptyMap()
+
+  override suspend fun processResponse(response: Resource): Collection<Resource> = emptyList()
 }

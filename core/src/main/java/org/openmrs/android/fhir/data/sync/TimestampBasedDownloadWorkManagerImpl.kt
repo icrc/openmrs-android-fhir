@@ -47,76 +47,25 @@ import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.DemoDataStore
-import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import timber.log.Timber
 
 class TimestampBasedDownloadWorkManagerImpl(
   private val dataStore: DemoDataStore,
   private val context: Context,
 ) : DownloadWorkManager {
   private val resourceTypeList = ResourceType.entries.map { it.name }
-  private val urls = LinkedList(loadUrlsFromProperties())
+  private val urls = LinkedList(loadUrls())
 
-  private fun loadUrlsFromProperties(): List<String> {
-    val syncUrls = context.getString(R.string.fhir_sync_urls).split(',')
-    val firstTimeUrls = context.getString(R.string.first_fhir_sync_url).split(',')
-    val cohortType = context.getString(R.string.cohort_type).trim().takeIf { it.isNotEmpty() }
-
-    val shouldFilterGroupsByLocation =
-      context.resources.getBoolean(R.bool.filter_patient_lists_by_group)
-    val selectedLocationId =
-      if (shouldFilterGroupsByLocation) {
-        runBlocking {
-          context.applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
-        }
-      } else {
-        null
-      }
-
-    val urlList =
-      (firstTimeUrls + syncUrls).distinctBy { url ->
-        resourceTypeList.find { resourceType -> url.startsWith(resourceType, ignoreCase = true) }
-      }
-
-    return urlList.map { url ->
-      var updatedUrl = url
-
-      if (
-        shouldFilterGroupsByLocation &&
-          !selectedLocationId.isNullOrBlank() &&
-          updatedUrl.substringBefore("?").equals(ResourceType.Group.name, ignoreCase = true) &&
-          !updatedUrl.contains("location=")
-      ) {
-        val separator = if (updatedUrl.contains("?")) "&" else "?"
-        updatedUrl = "$updatedUrl${separator}location=$selectedLocationId"
-      }
-
-      if (
-        cohortType != null &&
-          updatedUrl.substringBefore("?").equals(ResourceType.Group.name, ignoreCase = true) &&
-          !updatedUrl.contains("cohort-type=")
-      ) {
-        val separator = if (updatedUrl.contains("?")) "&" else "?"
-        updatedUrl = "$updatedUrl${separator}cohort-type=$cohortType"
-      }
-
-      if (updatedUrl.contains("_has:Group:member:id=")) {
-        val selectedPatientLists = runBlocking {
-          context.applicationContext.dataStore.data
-            .first()[PreferenceKeys.Companion.SELECTED_PATIENT_LISTS]
-        }
-
-        if (selectedPatientLists.isNullOrEmpty()) {
-          updatedUrl.replace("_has:Group:member:id=&", "")
-        } else {
-          updatedUrl.replace(
-            "?_has:Group:member:id=",
-            "?_has:Group:member:id=" + selectedPatientLists.joinToString(","),
-          )
-        }
-      } else {
-        updatedUrl
+  private fun loadUrls(): List<String> {
+    val selectedPatientLists = runBlocking {
+      context.applicationContext.dataStore.data
+        .first()[PreferenceKeys.Companion.SELECTED_PATIENT_LISTS]
+    }
+    return SyncUrls.periodic(context).mapNotNull { url ->
+      applyPatientListScope(url, selectedPatientLists).also {
+        if (it == null) Timber.w("No patient list selected, skipping patient data: %s", url)
       }
     }
   }
@@ -124,8 +73,12 @@ class TimestampBasedDownloadWorkManagerImpl(
   override suspend fun getNextRequest(): DownloadRequest? {
     var url = urls.poll() ?: return null
 
-    val resourceTypeToDownload =
-      ResourceType.fromCode(url.findAnyOf(resourceTypeList, ignoreCase = true)!!.second)
+    val resourceTypeCode = url.findAnyOf(resourceTypeList, ignoreCase = true)?.second
+    if (resourceTypeCode == null) {
+      Timber.w("No known resource type in the sync url, skipped: %s", url)
+      return getNextRequest()
+    }
+    val resourceTypeToDownload = ResourceType.fromCode(resourceTypeCode)
     dataStore.getLasUpdateTimestamp(resourceTypeToDownload)?.let {
       url = affixLastUpdatedTimestamp(url, it)
     }
@@ -194,19 +147,72 @@ class TimestampBasedDownloadWorkManagerImpl(
     return bundleCollection
   }
 
+  /**
+   * Remembers, per resource type, the newest `meta.lastUpdated` that came in, so the next sync only
+   * asks for what changed since. A resource without one (the server does not always set it, for
+   * example on questionnaires) is skipped instead of failing the whole page, and a type none of
+   * whose resources has a timestamp keeps the one it had.
+   */
   private suspend fun extractAndSaveLastUpdateTimestampToFetchFutureUpdates(
     resources: List<Resource>,
   ) {
     resources
       .groupBy { it.resourceType }
       .entries
-      .map { map ->
-        dataStore.saveLastUpdatedTimestamp(
-          map.key,
-          map.value.maxOfOrNull { it.meta.lastUpdated }?.toTimeZoneString() ?: "",
-        )
+      .forEach { (resourceType, ofType) ->
+        val newest = ofType.mapNotNull { it.meta?.lastUpdated }.maxOrNull() ?: return@forEach
+        dataStore.saveLastUpdatedTimestamp(resourceType, newest.toTimeZoneString())
       }
   }
+}
+
+private const val PATIENT_LIST_PLACEHOLDER = "_has:Group:member:id="
+
+/** Resource types that hold data about patients; none of it may be downloaded without a list. */
+private val PATIENT_DATA_TYPES =
+  setOf(
+    "Patient",
+    "Encounter",
+    "Observation",
+    "Condition",
+    "Procedure",
+    "MedicationRequest",
+    "MedicationStatement",
+    "AllergyIntolerance",
+    "Immunization",
+    "DiagnosticReport",
+    "RiskAssessment",
+    "ServiceRequest",
+    "Appointment",
+    "EpisodeOfCare",
+    "Flag",
+    "Person",
+  )
+
+/**
+ * Restricts patient requests to the selected patient lists (Groups).
+ * - A request that already carries the `_has:Group:member:id=` placeholder has it filled in.
+ * - A `Patient` request without it gets the filter added, so the scope does not depend on how the
+ *   sync URLs were configured.
+ * - When no list is selected, every patient-data request is skipped (`null`) instead of being sent
+ *   unscoped, which would download the patients of the whole server.
+ *
+ * Requests for anything else (locations, questionnaires, patient lists) are returned unchanged.
+ */
+internal fun applyPatientListScope(url: String, selectedPatientLists: Set<String>?): String? {
+  val resourceType = url.substringBefore("?").substringBefore("/")
+  val hasPlaceholder = url.contains(PATIENT_LIST_PLACEHOLDER)
+  if (!hasPlaceholder && resourceType !in PATIENT_DATA_TYPES) return url
+  if (selectedPatientLists.isNullOrEmpty()) return null
+  val ids = selectedPatientLists.joinToString(",")
+  if (hasPlaceholder) {
+    return url.replace(Regex("([?&])" + Regex.escape(PATIENT_LIST_PLACEHOLDER) + "(?=&|$)")) {
+      it.groupValues[1] + PATIENT_LIST_PLACEHOLDER + ids
+    }
+  }
+  if (resourceType != "Patient") return url
+  val separator = if (url.contains("?")) "&" else "?"
+  return url + separator + PATIENT_LIST_PLACEHOLDER + ids
 }
 
 /**
@@ -216,7 +222,7 @@ class TimestampBasedDownloadWorkManagerImpl(
  * attached using the `_since` parameter. Otherwise, the last updated timestamp will be attached
  * using the `_lastUpdated` parameter.
  */
-private fun affixLastUpdatedTimestamp(url: String, lastUpdated: String): String {
+internal fun affixLastUpdatedTimestamp(url: String, lastUpdated: String): String {
   var downloadUrl = url
 
   // Affix lastUpdate to a $everything query using _since as per:
@@ -255,6 +261,6 @@ private fun Date.toTimeZoneString(): String {
   return simpleDateFormat.format(this.toInstant())
 }
 
-private fun removeSummaryParameter(url: String): String {
+internal fun removeSummaryParameter(url: String): String {
   return url.replace(Regex("&_summary=[^&]*"), "")
 }

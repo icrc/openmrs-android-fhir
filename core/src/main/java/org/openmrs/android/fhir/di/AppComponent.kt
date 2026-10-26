@@ -29,10 +29,10 @@
 package org.openmrs.android.fhir.di
 
 import android.content.Context
+import com.google.android.fhir.FhirEngine
 import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Singleton
-import org.openmrs.android.fhir.BasicLoginActivity
 import org.openmrs.android.fhir.LoginActivity
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.data.database.AppDatabase
@@ -46,6 +46,7 @@ import org.openmrs.android.fhir.fragments.GenericFormEntryFragment
 import org.openmrs.android.fhir.fragments.GroupFormEntryFragment
 import org.openmrs.android.fhir.fragments.HomeFragment
 import org.openmrs.android.fhir.fragments.IdentifierFragment
+import org.openmrs.android.fhir.fragments.ImportExportFragment
 import org.openmrs.android.fhir.fragments.LocationFragment
 import org.openmrs.android.fhir.fragments.PatientDetailsFragment
 import org.openmrs.android.fhir.fragments.PatientListFragment
@@ -53,7 +54,10 @@ import org.openmrs.android.fhir.fragments.PatientSelectionDialogFragment
 import org.openmrs.android.fhir.fragments.SelectPatientListFragment
 import org.openmrs.android.fhir.fragments.SettingsFragment
 import org.openmrs.android.fhir.fragments.SyncInfoFragment
-import org.openmrs.android.fhir.fragments.UnsyncedResourcesFragment
+import org.openmrs.android.fhir.multiuser.UserDataLedger
+import org.openmrs.android.fhir.settingsshare.SettingsShare
+import org.openmrs.android.fhir.unidentified.UnidentifiedPatients
+import org.openmrs.android.fhir.unidentified.UnidentifiedStore
 
 @Singleton
 @Component(
@@ -80,6 +84,17 @@ interface AppComponent {
 
   fun database(): AppDatabase
 
+  /** The engine the sync workers use too, so what they download and upload is noted as well. */
+  fun fhirEngine(): FhirEngine
+
+  fun userDataLedger(): UserDataLedger
+
+  fun unidentifiedPatients(): UnidentifiedPatients
+
+  fun settingsShare(): SettingsShare
+
+  fun unidentifiedStore(): UnidentifiedStore
+
   /*
    * Fragments & Activities
    */
@@ -103,17 +118,15 @@ interface AppComponent {
 
   fun inject(fragment: SyncInfoFragment)
 
+  fun inject(fragment: ImportExportFragment)
+
   fun inject(activity: LoginActivity)
 
   fun inject(activity: MainActivity)
 
   fun inject(fragment: SettingsFragment)
 
-  fun inject(activity: BasicLoginActivity)
-
   fun inject(fragment: CreateEncountersFragment)
-
-  fun inject(fragment: UnsyncedResourcesFragment)
 
   fun inject(fragment: SelectPatientListFragment)
 

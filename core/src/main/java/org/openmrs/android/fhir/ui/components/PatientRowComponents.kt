@@ -28,16 +28,29 @@
 */
 package org.openmrs.android.fhir.ui.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.outlined.CloudDownload
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,127 +61,233 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.hideFromAccessibility
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
+/** What is known of a patient's most recent encounter, for the list row. */
+sealed interface LastEncounterLabel {
+  /** Not looked up yet. */
+  data object Loading : LastEncounterLabel
+
+  data object None : LastEncounterLabel
+
+  data class Value(val name: String?, val date: LocalDate?) : LastEncounterLabel
+}
+
+/**
+ * One patient of the list, as a card: an initials avatar, the name, the identifier with age and
+ * gender, the patient's last encounter (what and when) and, for patients that have not been
+ * uploaded yet, a sync marker.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PatientListItemRow(
   name: String,
   ageGenderLabel: String,
   isSynced: Boolean?,
   modifier: Modifier = Modifier,
+  identifier: String? = null,
+  lastEncounter: LastEncounterLabel = LastEncounterLabel.Loading,
   onClick: (() -> Unit)? = null,
+  /** A patient found on the server, not on this device yet: no last encounter, a cloud icon. */
+  onServer: Boolean = false,
+  /** The patient is being brought from the server. */
+  isOpening: Boolean = false,
 ) {
   Surface(
     modifier =
-      modifier.testTag("PatientListItemRow").let { base ->
-        onClick?.let { base.clickable(onClick = it) } ?: base
+      modifier.fillMaxWidth().testTag("PatientListItemRow").let { base ->
+        onClick?.let { base.clickable(role = Role.Button, onClick = it) } ?: base
       },
-    color = colorResource(id = R.color.white),
+    shape = RoundedCornerShape(20.dp),
+    color = MaterialTheme.colorScheme.surface,
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    shadowElevation = 1.dp,
   ) {
     Row(
-      modifier = Modifier.padding(vertical = 12.dp, horizontal = 8.dp),
+      modifier =
+        Modifier.fillMaxWidth().heightIn(min = if (onServer) 80.dp else 96.dp).padding(14.dp),
       verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.Start,
     ) {
-      if (isSynced != true) {
-        Icon(
-          modifier = Modifier.size(20.dp).testTag("PatientSyncIcon"),
-          painter = painterResource(id = R.drawable.ic_baseline_sync_24),
-          contentDescription = stringResource(id = R.string.description_status),
-          tint = MaterialTheme.colorScheme.error,
-        )
+      PatientAvatar(name = name, size = 48.dp)
+      Spacer(modifier = Modifier.width(12.dp))
+      Column(modifier = Modifier.weight(1f)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(
+            modifier = Modifier.weight(1f, fill = false).testTag("PatientName"),
+            text = name,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+          )
+          if (isSynced != true) {
+            Icon(
+              modifier = Modifier.padding(start = 8.dp).size(20.dp).testTag("PatientSyncIcon"),
+              painter = painterResource(id = R.drawable.ic_baseline_sync_24),
+              contentDescription = stringResource(id = R.string.description_status),
+              tint = MaterialTheme.colorScheme.error,
+            )
+          }
+        }
+        FlowRow(
+          modifier = Modifier.padding(top = 4.dp),
+          horizontalArrangement = Arrangement.spacedBy(10.dp),
+          verticalArrangement = Arrangement.spacedBy(4.dp),
+          itemVerticalAlignment = Alignment.CenterVertically,
+        ) {
+          if (!identifier.isNullOrBlank()) {
+            Text(
+              modifier = Modifier.testTag("PatientIdentifier"),
+              text = identifier,
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+          if (ageGenderLabel.isNotBlank()) {
+            Text(
+              modifier =
+                Modifier.clip(RoundedCornerShape(50))
+                  .background(MaterialTheme.colorScheme.secondaryContainer)
+                  .padding(horizontal = 10.dp, vertical = 2.dp)
+                  .testTag("PatientAgeGender"),
+              text = ageGenderLabel,
+              style = MaterialTheme.typography.labelLarge,
+              color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+          } else {
+            Box(modifier = Modifier.size(0.dp).testTag("PatientAgeGender"))
+          }
+        }
+        if (!onServer) {
+          LastEncounterLine(lastEncounter, modifier = Modifier.padding(top = 8.dp))
+        }
       }
-
-      Spacer(modifier = Modifier.width(12.dp))
-      Text(
-        modifier = Modifier.weight(1f).testTag("PatientName"),
-        text = name,
-        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Normal),
-      )
-      Spacer(modifier = Modifier.width(12.dp))
-      Text(
-        modifier = Modifier.testTag("PatientAgeGender").padding(end = 8.dp),
-        text = ageGenderLabel,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
+      when {
+        isOpening ->
+          CircularProgressIndicator(
+            modifier = Modifier.padding(start = 8.dp).size(24.dp),
+            strokeWidth = 2.dp,
+          )
+        onServer ->
+          Icon(
+            imageVector = Icons.Outlined.CloudDownload,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(start = 8.dp).size(26.dp),
+          )
+        else ->
+          Icon(
+            imageVector = Icons.Filled.ChevronRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 8.dp).size(26.dp),
+          )
+      }
     }
   }
 }
 
 @Composable
-fun IdentifierTypeListItemRow(
-  name: String,
-  isRequired: Boolean,
-  isSelected: Boolean,
-  modifier: Modifier = Modifier,
-  onClick: (() -> Unit)? = null,
-) {
-  val showIcon = isSelected || isRequired
-  val background =
-    if (isSelected) {
-      colorResource(id = R.color.selected_item_background)
-    } else {
-      colorResource(id = R.color.white)
-    }
-
-  Surface(
-    modifier = modifier.testTag("IdentifierTypeRow").clip(RoundedCornerShape(8.dp)),
-    color = background,
-    shadowElevation = if (isSelected) 1.dp else 0.dp,
-  ) {
-    Row(
-      modifier =
-        Modifier.padding(horizontal = 12.dp, vertical = 10.dp).let { base ->
-          if (onClick != null && !isRequired) base.clickable(onClick = onClick) else base
-        },
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-      Text(
-        modifier = Modifier.weight(1f).testTag("IdentifierTypeName"),
-        text = name,
-        style = MaterialTheme.typography.bodyLarge,
-      )
-
-      val iconTint =
-        if (isRequired) {
-          MaterialTheme.colorScheme.primary
-        } else {
-          MaterialTheme.colorScheme.onSurfaceVariant
-        }
-      val iconModifier = Modifier.testTag("IdentifierTypeIcon")
-
-      if (showIcon) {
-        Icon(
-          modifier = iconModifier.size(20.dp),
-          painter =
-            painterResource(
-              id =
-                if (isRequired) {
-                  R.drawable.ic_check_decagram_green
-                } else {
-                  R.drawable.ic_check_decagram
-                },
-            ),
-          contentDescription = stringResource(id = R.string.description_status),
-          tint = iconTint,
-        )
-      } else {
-        // Keep a tagged node for testing while preventing the icon from being laid out/visible.
-        Box(modifier = iconModifier.size(0.dp).semantics { hideFromAccessibility() })
+private fun LastEncounterLine(label: LastEncounterLabel, modifier: Modifier = Modifier) {
+  val locale = Locale.getDefault()
+  val text =
+    when (label) {
+      LastEncounterLabel.Loading -> "…"
+      LastEncounterLabel.None -> stringResource(id = R.string.last_encounter_none)
+      is LastEncounterLabel.Value -> {
+        val date =
+          label.date?.format(
+            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale),
+          )
+        listOfNotNull(
+            label.name ?: stringResource(id = R.string.last_encounter_unknown_type),
+            date,
+          )
+          .joinToString(" · ")
       }
     }
+  val hasValue = label is LastEncounterLabel.Value
+  Row(
+    modifier = modifier.testTag("PatientLastEncounter"),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Icon(
+      imageVector = Icons.Filled.Description,
+      contentDescription = stringResource(id = R.string.last_encounter),
+      tint =
+        if (hasValue) {
+          MaterialTheme.colorScheme.primary
+        } else {
+          MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+        },
+      modifier = Modifier.size(18.dp),
+    )
+    Text(
+      modifier = Modifier.weight(1f, fill = false).padding(start = 8.dp),
+      text = text,
+      style = MaterialTheme.typography.bodyMedium,
+      fontWeight = if (hasValue) FontWeight.Medium else FontWeight.Normal,
+      fontStyle = if (hasValue) FontStyle.Normal else FontStyle.Italic,
+      color =
+        if (hasValue) {
+          MaterialTheme.colorScheme.onSurface
+        } else {
+          MaterialTheme.colorScheme.onSurfaceVariant
+        },
+      maxLines = 2,
+      overflow = TextOverflow.Ellipsis,
+    )
   }
 }
 
+/** The patient's initials in a tonal circle. */
+@Composable
+internal fun PatientAvatar(
+  name: String,
+  modifier: Modifier = Modifier,
+  size: androidx.compose.ui.unit.Dp = 56.dp,
+) {
+  val initials =
+    name
+      .split(' ', '-')
+      .filter { it.isNotBlank() }
+      .take(2)
+      .joinToString("") { it.first().uppercase() }
+      .ifEmpty { "?" }
+  Box(
+    modifier =
+      modifier.size(size).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+    contentAlignment = Alignment.Center,
+  ) {
+    Text(
+      text = initials,
+      style =
+        if (size < 48.dp) {
+          MaterialTheme.typography.titleSmall
+        } else {
+          MaterialTheme.typography.titleMedium
+        },
+      fontWeight = FontWeight.SemiBold,
+      color = MaterialTheme.colorScheme.onPrimaryContainer,
+    )
+  }
+}
+
+/**
+ * One location: a tonal pin (a check when it is the current location), the name, and the favorite
+ * star. The whole card selects the location; the star only toggles the favorite.
+ */
 @Composable
 fun LocationListItemRow(
   name: String,
@@ -178,29 +297,62 @@ fun LocationListItemRow(
   onFavoriteClick: () -> Unit,
   onClick: () -> Unit,
 ) {
-  val backgroundColor =
-    if (isSelected) {
-      colorResource(id = R.color.selected_item_background)
-    } else {
-      colorResource(id = R.color.white)
-    }
-
+  val primary = MaterialTheme.colorScheme.primary
   Surface(
-    modifier = modifier.clip(RoundedCornerShape(8.dp)).testTag("LocationListItem"),
-    color = backgroundColor,
-    tonalElevation = if (isSelected) 1.dp else 0.dp,
+    onClick = onClick,
+    modifier = modifier.fillMaxWidth().testTag("LocationListItem"),
+    shape = RoundedCornerShape(16.dp),
+    color = MaterialTheme.colorScheme.surface,
+    border =
+      BorderStroke(
+        width = if (isSelected) 2.dp else 1.dp,
+        color = if (isSelected) primary else MaterialTheme.colorScheme.outlineVariant,
+      ),
   ) {
     Row(
-      modifier =
-        Modifier.padding(horizontal = 12.dp, vertical = 12.dp).clickable(onClick = onClick),
+      modifier = Modifier.padding(start = 12.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      Column(modifier = Modifier.weight(1f)) {
+      Box(
+        modifier =
+          Modifier.size(40.dp)
+            .clip(CircleShape)
+            .background(if (isSelected) primary else OpenMrsTheme.colors.highlightContainer),
+        contentAlignment = Alignment.Center,
+      ) {
+        if (isSelected) {
+          Icon(
+            imageVector = Icons.Filled.Check,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onPrimary,
+            modifier = Modifier.size(22.dp),
+          )
+        } else {
+          Icon(
+            painter = painterResource(id = R.drawable.ic_location),
+            contentDescription = null,
+            tint = primary,
+            modifier = Modifier.size(22.dp),
+          )
+        }
+      }
+
+      Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 8.dp)) {
         Text(
           modifier = Modifier.testTag("LocationName"),
           text = name,
           style = MaterialTheme.typography.bodyLarge,
+          fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis,
         )
+        if (isSelected) {
+          Text(
+            text = stringResource(id = R.string.location_current_badge),
+            style = MaterialTheme.typography.labelSmall,
+            color = primary,
+          )
+        }
       }
 
       IconButton(modifier = Modifier.testTag("LocationFavorite"), onClick = onFavoriteClick) {
@@ -210,12 +362,7 @@ fun LocationListItemRow(
               id = if (isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outlined,
             ),
           contentDescription = stringResource(id = R.string.description_status),
-          tint =
-            if (isFavorite) {
-              MaterialTheme.colorScheme.primary
-            } else {
-              MaterialTheme.colorScheme.onSurfaceVariant
-            },
+          tint = if (isFavorite) primary else MaterialTheme.colorScheme.onSurfaceVariant,
         )
       }
     }

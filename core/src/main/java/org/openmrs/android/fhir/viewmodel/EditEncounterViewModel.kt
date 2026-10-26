@@ -45,6 +45,8 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import java.util.UUID
 import kotlin.collections.forEach
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
@@ -61,6 +63,12 @@ import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.codesystems.ConditionCategory
 import org.openmrs.android.fhir.Constants
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.data.EncounterFallbackForm
+import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
@@ -68,11 +76,12 @@ import org.openmrs.android.fhir.extensions.convertQuantityObsToIntegerObs
 import org.openmrs.android.fhir.extensions.ensurePageGroupsHaveTrailingSpacer
 import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
-import org.openmrs.android.fhir.extensions.getJsonFileNames
 import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
-import org.openmrs.android.fhir.extensions.readFileFromAssets
+import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
 import org.openmrs.android.fhir.extensions.utcDateToLocalDate
+import org.openmrs.android.fhir.forms.readBundledQuestionnaireForEncounterType
+import org.openmrs.android.fhir.forms.storedQuestionnaires
 import org.openmrs.android.fhir.util.ExistingObservationIndex
 import org.openmrs.android.fhir.util.ObservationChildInfo
 import org.openmrs.android.fhir.util.ObservationGroupLookup
@@ -92,6 +101,7 @@ constructor(
   private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
   @Assisted val state: SavedStateHandle,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
   @AssistedFactory
@@ -103,50 +113,54 @@ constructor(
   val encounterDataPair: LiveData<Pair<String, String>> = _encounterDataPair
 
   val isResourcesSaved = MutableLiveData<String>()
+
+  /**
+   * The form shown was built from the encounter's own data because its questionnaire is not on the
+   * device: it can be looked at, not edited. Set before the form is published.
+   */
+  @Volatile
+  var isGenericForm = false
+    private set
+
   val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
 
   private var pendingResourceOperations: MutableList<suspend () -> Unit>? = null
 
+  /**
+   * The questionnaire shipped with the app for this encounter type (the engine is checked first by
+   * the callers).
+   */
+  private fun findBundledQuestionnaire(encounterType: String): Questionnaire? =
+    applicationContext.readBundledQuestionnaireForEncounterType(encounterType, parser)
+
   fun prepareEditEncounter(encounterId: String, encounterType: String) {
-    viewModelScope.launch {
+    // Reading the encounter, filling the form from its observations and writing both as JSON is the
+    // slow part of opening this screen: keep all of it off the main thread.
+    viewModelScope.launch(defaultDispatcher) {
       val observations = getObservationsEncounterId(encounterId)
       try {
         var questionnaire =
-          fhirEngine
-            .search<Questionnaire> {}
-            .firstOrNull { questionnaire ->
-              questionnaire.resource.code.any { it.code == encounterType }
-            }
-            ?.resource
-        if (questionnaire == null) {
-          // Look into assets folder
-          val assetQuestionnaireFileNames = applicationContext.getJsonFileNames()
-          assetQuestionnaireFileNames.forEach {
-            val questionnaireString = applicationContext.readFileFromAssets(it)
-            if (questionnaireString.isNotEmpty()) {
-              val assetsQuestionnaire =
-                parser.parseResource(Questionnaire::class.java, questionnaireString)
-              if (assetsQuestionnaire.hasCode()) {
-                assetsQuestionnaire.code.forEach {
-                  if (
-                    it.hasSystem() and
-                      (it?.system.toString() ==
-                        "http://fhir.openmrs.org/code-system/encounter-type") and
-                      it.hasCode() and
-                      (it.code == encounterType)
-                  ) {
-                    questionnaire = assetsQuestionnaire
-                    return@forEach
-                  }
-                }
-              }
-            }
+          fhirEngine.storedQuestionnaires(applicationContext, parser).firstOrNull { questionnaire ->
+            questionnaire.code.any { it.code == encounterType }
           }
+        if (questionnaire == null) {
+          // Look into assets folder: read with the translations of the device language only.
+          questionnaire = findBundledQuestionnaire(encounterType)
+        } else {
+          questionnaire.pruneOtherLanguageTranslations()
         }
 
         questionnaire?.ensurePageGroupsHaveTrailingSpacer()
 
         val encounter = fhirEngine.get<Encounter>(encounterId)
+        if (questionnaire == null) {
+          // No form for this type: show the encounter and its observations as they were saved.
+          isGenericForm = true
+          _encounterDataPair.postValue(
+            EncounterFallbackForm.build(applicationContext, encounter, observations),
+          )
+          return@launch
+        }
         val encounterDate = encounter.period?.start?.let { utcDateToLocalDate(it) }
         if (encounterDate != null) {
           val encounterDateItem = findItemByLinkId(questionnaire?.item, "encounter-encounterDate")
@@ -177,17 +191,13 @@ constructor(
           }
 
         val launchContexts = mapOf("observations" to observationBundle)
-        val questionnaireResponse =
-          ResourceMapper.populate(
-            questionnaire!!,
-            launchContexts,
-          ) // if questionnaire is null it'll throw exception while encoding to string.
+        val questionnaireResponse = ResourceMapper.populate(questionnaire, launchContexts)
         convertDateTimeAnswersToDate(questionnaireResponse)
         val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
-        _encounterDataPair.value = questionnaireJson to questionnaireResponseJson
+        _encounterDataPair.postValue(questionnaireJson to questionnaireResponseJson)
       } catch (e: Exception) {
         Timber.e(e.localizedMessage)
-        _encounterDataPair.value = Pair("", "")
+        _encounterDataPair.postValue(Pair("", ""))
       }
     }
   }
@@ -199,36 +209,12 @@ constructor(
   ) {
     viewModelScope.launch {
       var questionnaire =
-        fhirEngine
-          .search<Questionnaire> {}
-          .firstOrNull { questionnaire ->
-            questionnaire.resource.code.any { it.code == encounterType }
-          }
-          ?.resource
+        fhirEngine.storedQuestionnaires(applicationContext, parser).firstOrNull { questionnaire ->
+          questionnaire.code.any { it.code == encounterType }
+        }
       if (questionnaire == null) {
         // Look into assets folder
-        val assetQuestionnaireFileNames = applicationContext.getJsonFileNames()
-        assetQuestionnaireFileNames.forEach {
-          val questionnaireString = applicationContext.readFileFromAssets(it)
-          if (questionnaireString.isNotEmpty()) {
-            val assetsQuestionnaire =
-              parser.parseResource(Questionnaire::class.java, questionnaireString)
-            if (assetsQuestionnaire.hasCode()) {
-              assetsQuestionnaire.code.forEach {
-                if (
-                  it.hasSystem() and
-                    (it?.system.toString() ==
-                      "http://fhir.openmrs.org/code-system/encounter-type") and
-                    it.hasCode() and
-                    (it.code == encounterType)
-                ) {
-                  questionnaire = assetsQuestionnaire
-                  return@forEach
-                }
-              }
-            }
-          }
-        }
+        questionnaire = findBundledQuestionnaire(encounterType)
       }
 
       questionnaire?.ensurePageGroupsHaveTrailingSpacer()
@@ -307,9 +293,20 @@ constructor(
       }
 
       flushPendingResourceOperations()
+      AuditLog.record(
+        AuditAction.ENCOUNTER_EDITED,
+        AuditOutcome.SUCCESS,
+        "encounter" to encounterId,
+      )
+      LiveSync.requestUpload(applicationContext)
       isResourcesSaved.value = "SAVED"
     } catch (e: Exception) {
       Timber.e(e.localizedMessage)
+      AuditLog.failure(
+        AuditAction.ENCOUNTER_EDITED,
+        "encounter" to encounterId,
+        "error" to e.javaClass.simpleName,
+      )
       isResourcesSaved.value = "MISSING"
       pendingResourceOperations?.clear()
     } finally {

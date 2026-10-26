@@ -32,7 +32,6 @@ import android.app.KeyguardManager
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -50,19 +49,29 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.util.concurrent.Executor
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import org.openmrs.android.fhir.auth.AuthMethod
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.auth.AppLock
 import org.openmrs.android.fhir.auth.AuthStateManager
+import org.openmrs.android.fhir.auth.BiometricUtils
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
+import org.openmrs.android.fhir.auth.SessionStatus
+import org.openmrs.android.fhir.auth.SessionValidator
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
-import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.SplashScreen
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
 class SplashActivity : AppCompatActivity() {
   companion object {
@@ -98,10 +107,12 @@ class SplashActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
     setContent {
-      val navController = rememberNavController()
-      NavHost(navController = navController, startDestination = "splash") {
-        composable("splash") {
-          SplashScreen(isProgressVisible = isProgressVisible, statusText = statusText)
+      OpenMrsTheme {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "splash") {
+          composable("splash") {
+            SplashScreen(isProgressVisible = isProgressVisible, statusText = statusText)
+          }
         }
       }
     }
@@ -122,12 +133,27 @@ class SplashActivity : AppCompatActivity() {
   }
 
   private suspend fun handleAuthenticationFlow() {
+    if (GuestSession.isActive(this)) {
+      // Working without an account: nothing to authenticate until the user signs in.
+      navigateToMainActivity()
+      return
+    }
     val userUuid = getUserUuid()
     val offlineAuthMethod = BiometricUtils.getOfflineAuthMethod(this)
+    // No offline login (biometrics or device lock) in the way: a session that is still good is
+    // used.
+    if (offlineAuthMethod == null && !isBiometricReset && canResumeSession()) {
+      AuditLog.record(AuditAction.LOGIN, AuditOutcome.SUCCESS, "method" to "resumed")
+      navigateToMainActivity()
+      return
+    }
     if (userUuid == null || isBiometricReset || offlineAuthMethod == null) {
       handleConnectivityForAuth()
     } else {
-      if (authStateManager.isAuthenticated()) {
+      // A saved session (a single sign-on token that ran out can be renewed with its refresh
+      // token) is unlocked with the offline login, whether or not the server can be reached:
+      // that is what it is for. Only without one is the account asked for.
+      if (authStateManager.hasSavedSession()) {
         promptBiometricAuthentication(offlineAuthMethod)
       } else {
         when (getConnectivityState()) {
@@ -136,6 +162,21 @@ class SplashActivity : AppCompatActivity() {
           ServerConnectivityState.Offline -> promptBiometricAuthentication(offlineAuthMethod)
         }
       }
+    }
+  }
+
+  /**
+   * The user signed in before and the session is still good, so there is nothing to ask. With the
+   * server in reach it has the last word (a password changed there, a revoked token); without it
+   * the saved session decides, so the app opens offline too.
+   */
+  private suspend fun canResumeSession(): Boolean {
+    if (!authStateManager.hasSavedSession()) return false
+    return when (getConnectivityState()) {
+      ServerConnectivityState.ServerConnected ->
+        SessionValidator(applicationContext, apiManager).check() != SessionStatus.Invalid
+      ServerConnectivityState.InternetOnly,
+      ServerConnectivityState.Offline, -> true
     }
   }
 
@@ -238,7 +279,8 @@ class SplashActivity : AppCompatActivity() {
             biometricPrompt.authenticate(promptBuilder.build())
             return
           }
-          return
+          // No key to unlock the session with (it was removed): the account is asked for below,
+          // instead of waiting here for a prompt that never comes.
         } else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
           val km = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
           if (km.isDeviceSecure) {
@@ -267,7 +309,7 @@ class SplashActivity : AppCompatActivity() {
         object : BiometricPrompt.AuthenticationCallback() {
           override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
             super.onAuthenticationError(errorCode, errString)
-            showToast(R.string.auth_error, errString.toString())
+            showToast(R.string.auth_error, errString.toString(), MessageKind.Error)
             lifecycleScope.launch { handleConnectivityWhenOfflineLoginUnavailable() }
           }
 
@@ -277,6 +319,12 @@ class SplashActivity : AppCompatActivity() {
             if (cipher != null) {
               val token = BiometricUtils.decryptToken(cipher, this@SplashActivity)
               if (token != null) {
+                AuditLog.record(
+                  AuditAction.LOGIN,
+                  AuditOutcome.SUCCESS,
+                  "method" to
+                    "offline_${BiometricUtils.getOfflineAuthMethod(this@SplashActivity)?.name?.lowercase()}",
+                )
                 navigateToMainActivity()
                 return
               }
@@ -288,48 +336,49 @@ class SplashActivity : AppCompatActivity() {
   }
 
   private fun navigateToMainActivity() {
+    // Whoever got here just proved who they are (the system's PIN screen took the app out of
+    // sight meanwhile): the main screen must not ask again for that.
+    AppLock.unlocked()
     startActivity(Intent(this, MainActivity::class.java))
     finish()
   }
 
   private fun redirectToAuthFlow() {
-    val intent =
-      when (authStateManager.getAuthMethod()) {
-        AuthMethod.BASIC -> Intent(this, BasicLoginActivity::class.java)
-        AuthMethod.OPENID -> Intent(this, LoginActivity::class.java)
-      }
-    startActivity(intent)
+    startActivity(Intent(this, LoginActivity::class.java))
     finish()
   }
 
   private fun showNoInternetDialog() {
-    AlertDialog.Builder(this)
+    MaterialAlertDialogBuilder(this)
       .setTitle(getString(R.string.no_internet_connection))
       .setMessage(
-        getString(R.string.please_connect_to_the_internet_to_continue_with_authentication),
+        getString(R.string.please_connect_to_the_internet_to_continue_with_authentication) +
+          loginPageHint(),
       )
       .setPositiveButton(getString(R.string.retry)) { _, _ ->
         lifecycleScope.launch { handleAuthenticationFlow() }
       }
       .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
+      .withLoginPageOption()
       .setCancelable(false)
       .show()
   }
 
   private fun showServerUnavailableDialog() {
-    AlertDialog.Builder(this)
+    MaterialAlertDialogBuilder(this)
       .setTitle(getString(R.string.server_unreachable_title))
-      .setMessage(getString(R.string.server_unreachable_dialog_message))
+      .setMessage(getString(R.string.server_unreachable_dialog_message) + loginPageHint())
       .setPositiveButton(getString(R.string.retry)) { _, _ ->
         lifecycleScope.launch { handleConnectivityForAuth() }
       }
       .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
+      .withLoginPageOption()
       .setCancelable(false)
       .show()
   }
 
   private fun loginWithInternetOrExit() {
-    AlertDialog.Builder(this)
+    MaterialAlertDialogBuilder(this)
       .setTitle(getString(R.string.offline_login_unavailable))
       .setMessage(
         getString(R.string.try_logging_in_with_active_internet_connection),
@@ -338,8 +387,40 @@ class SplashActivity : AppCompatActivity() {
         lifecycleScope.launch { redirectToAuthFlow() }
       }
       .setNegativeButton(getString(R.string.exit)) { _, _ -> finish() }
+      .withGuestOption()
       .setCancelable(false)
       .show()
+  }
+
+  /**
+   * With the server out of reach the dialogs do not decide for the user: they offer the login page,
+   * where the server can be changed (the gear) and, when guest mode is enabled, the user can
+   * continue without signing in.
+   */
+  private fun AlertDialog.Builder.withLoginPageOption(): AlertDialog.Builder =
+    setNeutralButton(getString(R.string.splash_go_to_login)) { _, _ -> redirectToAuthFlow() }
+
+  private fun loginPageHint(): String =
+    "\n\n" +
+      getString(
+        if (GuestSession.isAllowed(this)) {
+          R.string.splash_login_page_hint_guest
+        } else {
+          R.string.splash_login_page_hint
+        },
+      )
+
+  /**
+   * Without a server there is nothing to sign in to, but the user can still work: when guest mode
+   * is enabled the dialog also offers to continue without signing in (the data is completed and
+   * uploaded after a later sign-in).
+   */
+  private fun AlertDialog.Builder.withGuestOption(): AlertDialog.Builder {
+    if (!GuestSession.isAllowed(this@SplashActivity)) return this
+    return setNeutralButton(getString(R.string.continue_without_login)) { _, _ ->
+      GuestSession.start(this@SplashActivity)
+      navigateToMainActivity()
+    }
   }
 
   private fun resetBiometricKeyIfNeeded() {
@@ -347,13 +428,18 @@ class SplashActivity : AppCompatActivity() {
       BiometricUtils.deleteBiometricKey(this)
       BiometricUtils.updateBiometricEnrollmentState(this)
       isBiometricReset = true
-      showToast(R.string.password_changed, length = Toast.LENGTH_LONG)
+      showToast(R.string.password_changed, long = true)
     }
   }
 
-  private fun showToast(resId: Int, arg: String? = null, length: Int = Toast.LENGTH_SHORT) {
+  private fun showToast(
+    resId: Int,
+    arg: String? = null,
+    kind: MessageKind = MessageKind.Info,
+    long: Boolean = false,
+  ) {
     val msg = arg?.let { getString(resId, it) } ?: getString(resId)
-    Toast.makeText(this, msg, length).show()
+    AppMessage.show(this, msg, kind, long)
   }
 
   @VisibleForTesting

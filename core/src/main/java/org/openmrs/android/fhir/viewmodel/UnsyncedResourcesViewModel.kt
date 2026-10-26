@@ -47,18 +47,23 @@ import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.database.model.UnsyncedEncounter
 import org.openmrs.android.fhir.data.database.model.UnsyncedObservation
 import org.openmrs.android.fhir.data.database.model.UnsyncedPatient
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
 import org.openmrs.android.fhir.data.database.model.UnsyncedResourceModel
 import org.openmrs.android.fhir.di.IoDispatcher
+import org.openmrs.android.fhir.multiuser.DataVisibility
 
 class UnsyncedResourcesViewModel
 @Inject
 constructor(
   private val fhirEngine: FhirEngine,
   @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+  private val dataVisibility: DataVisibility = DataVisibility.Everything,
 ) : ViewModel() {
 
   private val _resources = MutableLiveData<List<UnsyncedResource>>(emptyList())
@@ -215,6 +220,11 @@ constructor(
               }
           }
         }
+        AuditLog.record(
+          AuditAction.UNSYNCED_DELETED,
+          AuditOutcome.SUCCESS,
+          "scope" to resource::class.simpleName,
+        )
         updateResourcesList()
       } finally {
         _isLoading.value = false
@@ -325,7 +335,9 @@ constructor(
           }
         }
         patients = emptyList()
+        AuditLog.record(AuditAction.UNSYNCED_DELETED, AuditOutcome.SUCCESS, "scope" to "all")
       } catch (_: Exception) {
+        AuditLog.failure(AuditAction.UNSYNCED_DELETED, "scope" to "all")
         patients = fetchUnsyncedPatientsWithEncounterAndObservations()
       } finally {
         updateResourcesList()
@@ -407,7 +419,8 @@ constructor(
       }
     }
 
-    return unsyncedPatients
+    // What another user of the device registered is not listed (unless they share it).
+    return dataVisibility.visibleAmong(unsyncedPatients) { it.logicalId }
   }
 
   private suspend fun hasLocalChanges(

@@ -46,10 +46,7 @@ import net.openid.appauth.AuthorizationResponse
 import net.openid.appauth.AuthorizationService
 import net.openid.appauth.EndSessionRequest
 import net.openid.appauth.TokenResponse
-import org.openmrs.android.fhir.EncryptionHelper
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.KeystoreHelper
-import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.model.BasicAuthState
 import org.openmrs.android.fhir.extensions.decodeToByteArray
 import org.openmrs.android.fhir.extensions.encodeToString
@@ -118,10 +115,35 @@ class AuthStateManager private constructor(private val context: Context) {
     }
   }
 
+  /** The sign-in methods the login page offers, as configured by `auth_method`. */
+  fun getOfferedAuthMethods(): Set<AuthMethod> =
+    AuthMethod.offeredBy(FhirApplication.authMethod(context))
+
+  /**
+   * The method the current session was signed in with. With a single configured method that is the
+   * method; when the login page offers both, it is the one the user last signed in with.
+   */
   fun getAuthMethod(): AuthMethod {
-    val authMethod = FhirApplication.authMethod(context)
-    return AuthMethod.fromValue(authMethod)
+    val offered = getOfferedAuthMethods()
+    if (offered.size == 1) return offered.first()
+    val stored =
+      activeMethodPrefs.getString(ACTIVE_METHOD_KEY, null)?.let {
+        runCatching { AuthMethod.fromValue(it) }.getOrNull()
+      }
+    return stored?.takeIf { it in offered }
+      ?: if (AuthMethod.OPENID in offered && current.isAuthorized) {
+        AuthMethod.OPENID
+      } else {
+        AuthMethod.BASIC
+      }
   }
+
+  fun setActiveAuthMethod(method: AuthMethod) {
+    activeMethodPrefs.edit().putString(ACTIVE_METHOD_KEY, method.value).apply()
+  }
+
+  private val activeMethodPrefs
+    get() = context.getSharedPreferences(ACTIVE_METHOD_PREFS, Context.MODE_PRIVATE)
 
   suspend fun isAuthenticated(): Boolean {
     val authMethod = getAuthMethod()
@@ -135,15 +157,35 @@ class AuthStateManager private constructor(private val context: Context) {
         return false
       }
       AuthMethod.OPENID -> {
-        // TODO: fix that point for real offline mode
-        // by removing needsTokenRefresh we have an exception later on
-        // net.openid.appauth.AuthState.mRefreshToken being null
-        // in this method:
-        // net.openid.appauth.AuthState.createTokenRefreshRequest(java.util.Map<java.lang.String,java.lang.String>)
+        // Only a token that is still valid counts here: asking AppAuth for one that has run out
+        // would try to refresh it. Opening the app offline is decided by hasSavedSession(), and
+        // the token is renewed by LoginRepository.renewAccessTokenIfNeeded().
         current.isAuthorized && !current.needsTokenRefresh
       }
     }
   }
+
+  /**
+   * Whether a session saved on this device can be used as it is, so that opening the app again does
+   * not ask for the credentials: a username and password login that has not run out, or a single
+   * sign-on session whose access token is valid or can be renewed with its refresh token. Changes
+   * nothing; the server's word on it comes from the session validator.
+   */
+  suspend fun hasSavedSession(): Boolean =
+    try {
+      when (getAuthMethod()) {
+        AuthMethod.BASIC ->
+          getBasicAuthState().let {
+            it.authenticated && it.expiryEpoch > System.currentTimeMillis()
+          }
+        AuthMethod.OPENID ->
+          current.isAuthorized &&
+            (!current.needsTokenRefresh || !current.refreshToken.isNullOrEmpty())
+      }
+    } catch (e: Exception) {
+      // E.g. the key that protects the stored credentials is gone.
+      false
+    }
 
   suspend fun updateBasicAuthCredentials(username: String, password: String) {
     val key = KeystoreHelper.getKey()
@@ -228,22 +270,22 @@ class AuthStateManager private constructor(private val context: Context) {
 
   suspend fun clearAuthDataStore() {
     context.dataStore.edit { it.clear() }
+    activeMethodPrefs.edit().remove(ACTIVE_METHOD_KEY).apply()
   }
 
   companion object {
     @SuppressLint("StaticFieldLeak") private var INSTANCE: AuthStateManager? = null
 
+    private const val ACTIVE_METHOD_PREFS = "auth_active_method"
+    private const val ACTIVE_METHOD_KEY = "method"
     private const val MAX_FAILED_ATTEMPTS = 5
     private const val MAX_LOCKOUT_DURATION_MINS = 5
-    private var BASIC_AUTH_EXPIRY_HOURS = 24
+    private const val BASIC_AUTH_EXPIRY_HOURS = 24
 
     @Synchronized
     fun getInstance(context: Context): AuthStateManager {
       if (INSTANCE == null) {
         INSTANCE = AuthStateManager(context.applicationContext)
-        val expiryAuthExpiryHours =
-          context.applicationContext.resources.getInteger(R.integer.basic_auth_expiry_hours)
-        BASIC_AUTH_EXPIRY_HOURS = expiryAuthExpiryHours
       }
       return INSTANCE as AuthStateManager
     }

@@ -8,7 +8,18 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
-    <application android:supportsRtl="true">
+    <application
+        android:supportsRtl="true"
+        android:localeConfig="@xml/locales_config"
+    >
+        <!-- Keeps the language chosen in the app on Android 12 and older. -->
+        <service
+            android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
+            android:enabled="false"
+            android:exported="false"
+        >
+            <meta-data android:name="autoStoreLocales" android:value="true" />
+        </service>
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -20,5 +31,20 @@
                 android:resource="@xml/file_paths"
             />
         </provider>
+        <!-- The lock screen of the offline login, shown when the app is back after a while. -->
+        <activity
+            android:name=".UnlockActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+        />
+        <!-- Scans the QR code of the settings of another device (Share settings > Import). -->
+        <activity
+            android:name=".settingsshare.SettingsScanActivity"
+            android:exported="false"
+            android:screenOrientation="fullSensor"
+            android:stateNotNeeded="true"
+            android:theme="@style/zxing_CaptureTheme"
+            android:windowSoftInputMode="stateAlwaysHidden"
+        />
     </application>
 </manifest>

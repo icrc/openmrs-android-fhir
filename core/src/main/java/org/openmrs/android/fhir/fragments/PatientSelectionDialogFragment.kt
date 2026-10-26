@@ -30,7 +30,6 @@ package org.openmrs.android.fhir.fragments
 
 import android.os.Bundle
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -39,7 +38,6 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
@@ -48,6 +46,9 @@ import androidx.navigation.fragment.navArgs
 import javax.inject.Inject
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.extensions.composeView
+import org.openmrs.android.fhir.ui.components.AppMessage
+import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.patient.PatientSelectionDialogContent
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import org.openmrs.android.fhir.viewmodel.filterSelectedIdsForPatients
@@ -70,49 +71,49 @@ class PatientSelectionDialogFragment : DialogFragment() {
     savedInstanceState: Bundle?,
   ): ComposeView {
     dialog?.setCanceledOnTouchOutside(false)
-    return ComposeView(requireContext()).apply {
-      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-      setContent {
-        val patients by viewModel.liveSearchedPatients.observeAsState(emptyList())
-        var selectedPatientIds by
-          rememberSaveable(stateSaver = stringSetSaver) { mutableStateOf(setOf<String>()) }
+    return composeView {
+      val patients by viewModel.liveSearchedPatients.observeAsState(emptyList())
+      var selectedPatientIds by
+        rememberSaveable(stateSaver = stringSetSaver) { mutableStateOf(setOf<String>()) }
 
-        LaunchedEffect(patients) {
-          selectedPatientIds = filterSelectedIdsForPatients(patients, selectedPatientIds)
-        }
-
-        PatientSelectionDialogContent(
-          patients = patients,
-          selectedIds = selectedPatientIds,
-          onDismissRequest = { dismiss() },
-          onPatientToggle = { patient ->
-            selectedPatientIds = selectedPatientIds.toggleSelection(patient.resourceId)
-          },
-          onSelectAllToggle = { shouldSelectAll ->
-            selectedPatientIds =
-              if (shouldSelectAll) patients.map { it.resourceId }.toSet() else emptySet()
-          },
-          onStartEncounter = { handleStartEncounter(selectedPatientIds) },
-        )
+      LaunchedEffect(patients) {
+        selectedPatientIds = filterSelectedIdsForPatients(patients, selectedPatientIds)
       }
+
+      PatientSelectionDialogContent(
+        patients = patients,
+        selectedIds = selectedPatientIds,
+        onDismissRequest = { dismiss() },
+        onPatientToggle = { patient ->
+          selectedPatientIds = selectedPatientIds.toggleSelection(patient.resourceId)
+        },
+        onSelectAllToggle = { shouldSelectAll ->
+          selectedPatientIds =
+            if (shouldSelectAll) patients.map { it.resourceId }.toSet() else emptySet()
+        },
+        onStartEncounter = { handleStartEncounter(selectedPatientIds) },
+      )
     }
   }
 
   override fun onStart() {
     super.onStart()
-    dialog
-      ?.window
-      ?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+    val window = dialog?.window ?: return
+    // The sheet draws its own rounded corners: nothing square behind it, and not wider than a card.
+    window.setBackgroundDrawableResource(android.R.color.transparent)
+    val metrics = resources.displayMetrics
+    val width = minOf((metrics.widthPixels * 0.92f).toInt(), (560 * metrics.density).toInt())
+    window.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
   }
 
   private fun handleStartEncounter(selectedPatientIds: Set<String>) {
     if (selectedPatientIds.isEmpty()) {
-      Toast.makeText(
-          requireContext(),
-          R.string.please_select_at_least_one_patient,
-          Toast.LENGTH_SHORT,
-        )
-        .show()
+      AppMessage.show(
+        requireContext(),
+        R.string.please_select_at_least_one_patient,
+        MessageKind.Info,
+        container = dialog?.window?.findViewById(android.R.id.content),
+      )
       return
     }
 

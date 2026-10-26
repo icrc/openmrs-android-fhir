@@ -40,6 +40,9 @@ import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.Sync
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,19 +52,26 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Location
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.sync.FirstFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.LocationFhirSyncWorker
+import org.openmrs.android.fhir.di.DefaultDispatcher
+import timber.log.Timber
 
 class LocationViewModel
 @Inject
 constructor(
   private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
   private var masterLocationsList: MutableList<LocationItem> = mutableListOf()
   private val restApiManager = FhirApplication.restApiClient(applicationContext)
@@ -83,7 +93,7 @@ constructor(
   fun fetchPreSyncData() {
     viewModelScope.launch {
       val filterPatientListsByGroup =
-        applicationContext.resources.getBoolean(R.bool.filter_patient_lists_by_group)
+        AppConfig.get(applicationContext).sync.filterPatientListsByLocation
 
       val syncFlow =
         if (filterPatientListsByGroup) {
@@ -106,24 +116,39 @@ constructor(
 
   fun getLocations() {
     viewModelScope.launch {
-      val locationsList: MutableList<LocationItem> = mutableListOf()
-      fhirEngine
-        .search<Location> {
-          sort(
-            StringClientParam(Location.SP_NAME),
-            Order.ASCENDING,
-          )
+      // Reading and mapping every Location can take a moment on big servers: keep it off main.
+      val locationsList =
+        withContext(defaultDispatcher) {
+          fhirEngine
+            .search<Location> {
+              sort(
+                StringClientParam(Location.SP_NAME),
+                Order.ASCENDING,
+              )
+            }
+            .mapIndexed { index, fhirLocation -> fhirLocation.resource.toLocationItem(index + 1) }
+            .toMutableList()
         }
-        .mapIndexed { index, fhirLocation -> fhirLocation.resource.toLocationItem(index + 1) }
-        .let { locationsList.addAll(it) }
       masterLocationsList = locationsList
       locations.value = locationsList
     }
   }
 
-  suspend fun updateSessionLocation(resourceId: String) {
-    restApiManager.updateSessionLocation(resourceId)
-  }
+  /**
+   * Tells the server's session about the location. The choice is saved on the device either way:
+   * with the server out of reach this fails, and it is told again before the next upload, so it
+   * must not take the app down.
+   */
+  suspend fun updateSessionLocation(resourceId: String): Boolean =
+    try {
+      restApiManager.updateSessionLocation(resourceId)
+      true
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      Timber.w(e, "Could not set the session location now; it is set again before the next upload")
+      false
+    }
 
   fun onQueryChanged(query: String) {
     _uiState.update { it.copy(query = query) }
@@ -154,6 +179,12 @@ constructor(
   }
 
   fun onLocationSelected(resourceId: String, name: String) {
+    AuditLog.record(
+      AuditAction.LOCATION_SELECTED,
+      AuditOutcome.SUCCESS,
+      "location" to resourceId,
+      "name" to name,
+    )
     _uiState.update { it.copy(selectedLocationId = resourceId) }
     viewModelScope.launch {
       applicationContext.dataStore.edit { preferences ->

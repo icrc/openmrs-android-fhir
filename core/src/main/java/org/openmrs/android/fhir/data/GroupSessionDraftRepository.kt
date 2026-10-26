@@ -32,6 +32,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
+import org.openmrs.android.fhir.data.database.model.GroupSessionDraftSummary
 
 @Singleton
 class GroupSessionDraftRepository @Inject constructor(private val database: AppDatabase) {
@@ -42,6 +43,23 @@ class GroupSessionDraftRepository @Inject constructor(private val database: AppD
 
   suspend fun getDraft(questionnaireId: String): GroupSessionDraft? {
     return database.dao().getGroupSessionDraft(questionnaireId)
+  }
+
+  /** The drafts worth resuming, by form. */
+  suspend fun pendingSessions(): Map<String, GroupSessionDraftSummary> =
+    database
+      .dao()
+      .getGroupSessionDraftSummaries()
+      .filter { it.hasContent }
+      .associateBy { it.questionnaireId }
+
+  /** Drafts with nothing in them are removed. */
+  suspend fun deleteEmptyDrafts() {
+    database
+      .dao()
+      .getGroupSessionDraftSummaries()
+      .filterNot { it.hasContent }
+      .forEach { database.dao().deleteGroupSessionDraft(it.questionnaireId) }
   }
 
   suspend fun deleteDraft(questionnaireId: String) {

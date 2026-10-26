@@ -29,7 +29,6 @@
 package org.openmrs.android.fhir.ui.components
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +43,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -53,493 +54,96 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.hl7.fhir.r4.model.Identifier
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.SyncSession
 import org.openmrs.android.fhir.data.database.model.SyncStatus
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
-@Composable
-fun PatientPropertyRow(
-  header: String,
-  value: String,
-  showSyncIcon: Boolean,
-  modifier: Modifier = Modifier,
-  onPrimaryClick: (() -> Unit)? = null,
-) {
-  Surface(color = colorResource(id = R.color.white)) {
-    Row(
-      modifier =
-        modifier
-          .fillMaxWidth()
-          .padding(
-            start = dimensionResource(id = R.dimen.text_margin),
-            end = 8.dp,
-            top = 8.dp,
-            bottom = 8.dp,
-          )
-          .testTag("PatientPropertyRow"),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      if (showSyncIcon) {
-        Icon(
-          modifier = Modifier.size(20.dp).padding(end = 8.dp).testTag("SyncStatusIcon"),
-          painter = painterResource(id = R.drawable.ic_baseline_sync_24),
-          contentDescription = stringResource(id = R.string.description_status),
-          tint = colorResource(id = R.color.moderate_risk),
-        )
-      } else {
-        Spacer(modifier = Modifier.width(28.dp))
-      }
-
-      Column(
-        modifier =
-          Modifier.weight(1f).let { base ->
-            onPrimaryClick?.let { base.clickable(onClick = it) } ?: base
-          },
-        verticalArrangement = Arrangement.Center,
-      ) {
-        Text(
-          modifier = Modifier.testTag("PropertyLabel"),
-          text = header,
-          color = Color.DarkGray,
-          fontSize = 14.sp,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-          modifier = Modifier.testTag("PropertyValue"),
-          text = value,
-          fontSize = 16.sp,
-          fontWeight = FontWeight.Normal,
-        )
-      }
-    }
-  }
-}
-
-@Composable
-fun PatientDetailsHeaderRow(title: String, modifier: Modifier = Modifier) {
-  Text(
-    modifier =
-      modifier
-        .fillMaxWidth()
-        .padding(start = 20.dp, end = 8.dp, top = 10.dp, bottom = 10.dp)
-        .testTag("PatientDetailsHeader"),
-    text = title,
-    color = colorResource(id = R.color.black),
-    fontSize = 20.sp,
-    fontWeight = FontWeight.SemiBold,
-  )
-}
-
-@Composable
-fun PatientDetailsOverviewHeader(
-  name: String,
-  identifiers: List<Identifier>,
-  modifier: Modifier = Modifier,
-) {
-  val visibleIdentifiers =
-    identifiers.filterNot { identifier ->
-      identifier.type?.text?.equals("unsynced", ignoreCase = true) == true
-    }
-  Surface(
-    modifier =
-      modifier
-        .fillMaxWidth()
-        .padding(1.dp)
-        .padding(bottom = 12.dp)
-        .testTag("PatientDetailsOverviewHeader"),
-    color = colorResource(id = R.color.white),
-  ) {
-    Row(
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Image(
-        modifier = Modifier.size(120.dp),
-        painter = painterResource(id = R.drawable.ic_user),
-        contentDescription = null,
-        colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color(0xFFF1F2F4)),
-      )
-      Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-      ) {
-        Text(
-          modifier = Modifier.testTag("PatientDetailsName"),
-          text = name,
-          fontSize = 26.sp,
-          fontFamily = FontFamily(Font(R.font.inter_semibold)),
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        visibleIdentifiers.forEach { identifier ->
-          val typeText = identifier.type?.text.orEmpty()
-          val valueText = identifier.value.orEmpty()
-          val label =
-            if (typeText.isNotBlank()) {
-              "$typeText: $valueText"
-            } else {
-              valueText
-            }
-          if (label.isNotBlank()) {
-            Text(
-              modifier = Modifier.testTag("PatientDetailsIdentifier"),
-              text = label,
-              fontSize = 16.sp,
-              fontFamily = FontFamily(Font(R.font.inter)),
-            )
-          }
-        }
-      }
-    }
-  }
-}
-
-@Composable
-fun PatientUnsyncedCard(modifier: Modifier = Modifier) {
-  val backgroundColor = Color(0xFFfef3e6)
-  val accentColor = Color(0xFFb16e1c)
-  Card(
-    modifier =
-      modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp, vertical = 12.dp)
-        .testTag("PatientUnsyncedCard"),
-    colors = CardDefaults.cardColors(containerColor = backgroundColor),
-    border = BorderStroke(4.dp, Color(0xFFFFDCB3)),
-    shape = RoundedCornerShape(dimensionResource(id = R.dimen.cardView_radius_corner)),
-  ) {
-    Row(
-      modifier =
-        Modifier.fillMaxWidth()
-          .padding(all = dimensionResource(id = R.dimen.new_patient_padding))
-          .background(backgroundColor),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Icon(
-        painter = painterResource(id = android.R.drawable.ic_dialog_alert),
-        contentDescription = stringResource(id = R.string.task_image),
-        tint = accentColor,
-      )
-      Spacer(modifier = Modifier.width(12.dp))
-      Text(
-        text = stringResource(id = R.string.patient_unsynced_info),
-        color = accentColor,
-        fontSize = 14.sp,
-      )
-    }
-  }
-}
-
-@Composable
-fun VisitListItemRow(
-  encounterType: String,
-  encounterDate: String,
-  onDateClick: (() -> Unit)? = null,
-) {
-  Surface(color = colorResource(id = R.color.white)) {
-    Column(
-      modifier =
-        Modifier.fillMaxWidth()
-          .padding(
-            start = dimensionResource(id = R.dimen.text_margin),
-            end = 8.dp,
-            top = 8.dp,
-            bottom = 8.dp,
-          )
-          .testTag("VisitListItemRow"),
-    ) {
-      Text(
-        modifier = Modifier.testTag("VisitType"),
-        text = encounterType,
-        fontSize = 16.sp,
-      )
-      Spacer(modifier = Modifier.height(4.dp))
-      Text(
-        modifier =
-          Modifier.testTag("VisitDate").let { base ->
-            onDateClick?.let { base.clickable(onClick = it) } ?: base
-          },
-        text = encounterDate,
-        fontSize = 14.sp,
-        color = Color.DarkGray,
-      )
-    }
-  }
-}
-
-@Composable
-fun EncounterListItemRow(
-  modifier: Modifier = Modifier,
-  encounterType: String,
-  encounterDate: String,
-  showSyncIcon: Boolean,
-  onTitleClick: (() -> Unit)? = null,
-) {
-  Surface(color = colorResource(id = R.color.white)) {
-    Column(
-      modifier = modifier.fillMaxWidth().padding(8.dp).testTag("EncounterListItemRow"),
-    ) {
-      Text(
-        modifier = Modifier.testTag("EncounterDate").padding(start = 20.dp),
-        text = encounterDate,
-        fontSize = 14.sp,
-        color = Color.DarkGray,
-      )
-      Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(start = 20.dp),
-      ) {
-        if (showSyncIcon) {
-          Icon(
-            modifier = Modifier.size(20.dp).testTag("EncounterSyncIcon"),
-            painter = painterResource(id = R.drawable.ic_baseline_sync_24),
-            contentDescription = stringResource(id = R.string.description_status),
-            tint = colorResource(id = R.color.moderate_risk),
-          )
-          Spacer(modifier = Modifier.width(8.dp))
-        }
-        Text(
-          modifier =
-            Modifier.testTag("EncounterType").let { base ->
-              onTitleClick?.let { base.clickable(onClick = it) } ?: base
-            },
-          text = encounterType,
-          fontSize = 16.sp,
-        )
-      }
-    }
-  }
-}
-
-@Composable
-fun UnsyncedEncounterRow(
-  title: String,
-  hasObservations: Boolean,
-  onToggleExpand: () -> Unit,
-  onDownload: () -> Unit,
-  onDelete: () -> Unit,
-  isSynced: Boolean,
-) {
-  Row(
-    modifier =
-      Modifier.fillMaxWidth()
-        .background(Color(0xFFF5F5F5))
-        .padding(horizontal = 16.dp, vertical = 8.dp)
-        .testTag("UnsyncedEncounterRow"),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    IconButton(
-      modifier =
-        Modifier.size(24.dp)
-          .padding(start = 24.dp)
-          .testTag("EncounterExpand")
-          .alpha(if (hasObservations) 1f else 0f),
-      enabled = hasObservations,
-      onClick = onToggleExpand,
-    ) {
-      Icon(
-        painter = painterResource(id = R.drawable.ic_expand),
-        contentDescription = stringResource(id = R.string.expand),
-      )
-    }
-    Text(
-      modifier = Modifier.weight(1f).padding(start = 8.dp).testTag("EncounterTitle"),
-      text = title,
-      fontSize = 14.sp,
-    )
-    IconButton(
-      modifier = Modifier.size(36.dp).testTag("DownloadEncounter"),
-      onClick = onDownload,
-    ) {
-      Icon(
-        painter = painterResource(id = R.drawable.ic_download),
-        contentDescription = stringResource(id = R.string.download_encounter),
-      )
-    }
-    IconButton(
-      modifier = Modifier.size(36.dp).testTag("DeleteEncounter"),
-      enabled = !isSynced,
-      onClick = onDelete,
-    ) {
-      Icon(
-        painter =
-          painterResource(
-            id = if (isSynced) R.drawable.ic_check_decagram_green else R.drawable.ic_delete,
-          ),
-        contentDescription = stringResource(id = R.string.delete_encounter),
-      )
-    }
-  }
-}
-
-@Composable
-fun UnsyncedPatientRow(
-  name: String,
-  onToggleExpand: () -> Unit,
-  onDownload: () -> Unit,
-  onDelete: () -> Unit,
-  showExpand: Boolean,
-  isSynced: Boolean,
-) {
-  Card(
-    modifier =
-      Modifier.fillMaxWidth()
-        .padding(horizontal = 2.dp, vertical = 4.dp)
-        .testTag("UnsyncedPatientRow"),
-    shape = RoundedCornerShape(8.dp),
-    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-  ) {
-    Row(
-      modifier = Modifier.fillMaxWidth().padding(12.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      IconButton(
-        modifier = Modifier.size(24.dp).testTag("PatientExpand").alpha(if (showExpand) 1f else 0f),
-        enabled = showExpand,
-        onClick = onToggleExpand,
-      ) {
-        Icon(
-          painter = painterResource(id = R.drawable.ic_expand),
-          contentDescription = stringResource(id = R.string.expand),
-        )
-      }
-      Text(
-        modifier = Modifier.weight(1f).padding(start = 8.dp).testTag("PatientName"),
-        text = name,
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Bold,
-      )
-      IconButton(
-        modifier = Modifier.size(40.dp).testTag("DownloadPatient"),
-        onClick = onDownload,
-      ) {
-        Icon(
-          painter = painterResource(id = R.drawable.ic_download),
-          contentDescription = stringResource(id = R.string.download_patient),
-        )
-      }
-      IconButton(
-        modifier = Modifier.size(40.dp).testTag("DeletePatient"),
-        enabled = !isSynced,
-        onClick = onDelete,
-      ) {
-        Icon(
-          painter =
-            painterResource(
-              id = if (isSynced) R.drawable.ic_check_decagram_green else R.drawable.ic_delete,
-            ),
-          contentDescription = stringResource(id = R.string.delete_patient),
-        )
-      }
-    }
-  }
-}
-
-@Composable
-fun ObservationCardRow(text: String, modifier: Modifier = Modifier) {
-  Card(
-    modifier = modifier.fillMaxWidth().padding(vertical = 2.dp).testTag("ObservationCard"),
-    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-  ) {
-    Text(
-      modifier = Modifier.fillMaxWidth().padding(16.dp).testTag("ObservationDetail"),
-      text = text,
-      style = MaterialTheme.typography.bodySmall,
-    )
-  }
-}
-
-@Composable
-fun UnsyncedObservationRow(
-  title: String,
-  onDownload: () -> Unit,
-  onDelete: () -> Unit,
-  isSynced: Boolean,
-) {
-  Row(
-    modifier =
-      Modifier.fillMaxWidth()
-        .background(Color(0xFFEEEEEE))
-        .padding(horizontal = 16.dp, vertical = 8.dp)
-        .testTag("UnsyncedObservationRow"),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    Text(
-      modifier = Modifier.weight(1f).padding(start = 64.dp).testTag("ObservationTitle"),
-      text = title,
-      fontSize = 14.sp,
-    )
-    IconButton(
-      modifier = Modifier.size(36.dp).testTag("DownloadObservation"),
-      onClick = onDownload,
-    ) {
-      Icon(
-        painter = painterResource(id = R.drawable.ic_download),
-        contentDescription = stringResource(id = R.string.download_observation),
-      )
-    }
-    IconButton(
-      modifier = Modifier.size(36.dp).testTag("DeleteObservation"),
-      enabled = !isSynced,
-      onClick = onDelete,
-    ) {
-      Icon(
-        painter =
-          painterResource(
-            id = if (isSynced) R.drawable.ic_check_decagram_green else R.drawable.ic_delete_black,
-          ),
-        contentDescription = stringResource(id = R.string.delete_observation),
-      )
-    }
-  }
-}
-
+/**
+ * A selectable patient list: tonal group icon, name and a checkbox. The whole card toggles it; a
+ * selected list gets the brand border and tint.
+ */
 @Composable
 fun SelectPatientListItemRow(
   text: String,
   checked: Boolean,
   onToggle: () -> Unit,
+  modifier: Modifier = Modifier,
+  subtitle: String? = null,
 ) {
-  val backgroundColor =
-    if (checked) {
-      colorResource(id = R.color.selected_item_background)
-    } else {
-      colorResource(id = R.color.default_item_background)
-    }
-  Row(
-    modifier =
-      Modifier.fillMaxWidth()
-        .background(backgroundColor, shape = RoundedCornerShape(8.dp))
-        .padding(horizontal = 12.dp, vertical = 6.dp)
-        .testTag("SelectPatientRow"),
-    verticalAlignment = Alignment.CenterVertically,
+  val primary = MaterialTheme.colorScheme.primary
+  Surface(
+    onClick = onToggle,
+    modifier = modifier.fillMaxWidth().testTag("SelectPatientRow"),
+    shape = RoundedCornerShape(16.dp),
+    color =
+      if (checked) {
+        OpenMrsTheme.colors.highlightContainer
+      } else {
+        MaterialTheme.colorScheme.surface
+      },
+    border =
+      BorderStroke(
+        width = if (checked) 2.dp else 1.dp,
+        color = if (checked) primary else MaterialTheme.colorScheme.outlineVariant,
+      ),
   ) {
-    Text(
-      modifier = Modifier.weight(1f).padding(horizontal = 8.dp).testTag("SelectPatientText"),
-      text = text,
-      maxLines = 1,
-      overflow = TextOverflow.Ellipsis,
-      style = MaterialTheme.typography.bodyLarge,
-    )
-    Checkbox(
-      modifier = Modifier.testTag("SelectPatientCheckbox"),
-      checked = checked,
-      onCheckedChange = { onToggle() },
-    )
+    Row(
+      modifier = Modifier.padding(start = 12.dp, top = 6.dp, bottom = 6.dp, end = 6.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Box(
+        modifier =
+          Modifier.size(40.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (checked) primary else OpenMrsTheme.colors.highlightContainer),
+        contentAlignment = Alignment.Center,
+      ) {
+        Icon(
+          imageVector = Icons.Filled.Groups,
+          contentDescription = null,
+          tint = if (checked) MaterialTheme.colorScheme.onPrimary else primary,
+          modifier = Modifier.size(22.dp),
+        )
+      }
+      Column(modifier = Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 6.dp)) {
+        Text(
+          modifier = Modifier.testTag("SelectPatientText"),
+          text = text,
+          maxLines = 2,
+          overflow = TextOverflow.Ellipsis,
+          style = MaterialTheme.typography.bodyLarge,
+          fontWeight = if (checked) FontWeight.SemiBold else FontWeight.Normal,
+        )
+        if (subtitle != null) {
+          Text(
+            modifier = Modifier.testTag("SelectPatientSubtitle"),
+            text = subtitle,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
+      }
+      Checkbox(
+        modifier = Modifier.testTag("SelectPatientCheckbox"),
+        checked = checked,
+        onCheckedChange = { onToggle() },
+      )
+    }
   }
 }
 
@@ -549,12 +153,12 @@ fun PatientSelectableRow(
   checked: Boolean,
   onToggle: () -> Unit,
 ) {
-  Surface(color = colorResource(id = R.color.white)) {
+  Surface(color = MaterialTheme.colorScheme.surface) {
     Row(
       modifier =
         Modifier.fillMaxWidth()
           .padding(horizontal = 0.dp, vertical = 12.dp)
-          .clickable { onToggle() }
+          .clickable(role = Role.Checkbox) { onToggle() }
           .testTag("PatientSelectableRow"),
       verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -581,15 +185,16 @@ fun SyncSessionRow(
 ) {
   val statusColor =
     when (session.status) {
-      SyncStatus.ONGOING -> colorResource(id = R.color.orange)
-      SyncStatus.COMPLETED -> colorResource(id = R.color.tertiary_green_80)
-      SyncStatus.COMPLETED_WITH_ERRORS -> colorResource(id = R.color.error_red_40)
+      SyncStatus.ONGOING -> OpenMrsTheme.colors.warning
+      SyncStatus.COMPLETED -> OpenMrsTheme.colors.success
+      SyncStatus.COMPLETED_WITH_ERRORS -> MaterialTheme.colorScheme.error
+      SyncStatus.CANCELLED -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
   Card(
     modifier =
       modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp).testTag("SyncSessionRow"),
-    colors = CardDefaults.cardColors(containerColor = colorResource(id = R.color.white)),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     shape = RoundedCornerShape(dimensionResource(id = R.dimen.cardView_radius_corner)),
   ) {
     Row(modifier = Modifier.padding(12.dp)) {
@@ -654,13 +259,13 @@ fun SyncSessionRow(
       if (session.status != SyncStatus.ONGOING && onDelete != null) {
         Surface(
           shape = RoundedCornerShape(8.dp),
-          color = colorResource(id = R.color.error_red_40),
+          color = MaterialTheme.colorScheme.error,
         ) {
           IconButton(modifier = Modifier.testTag("DeleteSyncSession"), onClick = onDelete) {
             Icon(
               painter = painterResource(id = R.drawable.ic_delete),
               contentDescription = stringResource(id = R.string.delete),
-              tint = colorResource(id = R.color.white),
+              tint = MaterialTheme.colorScheme.surface,
             )
           }
         }

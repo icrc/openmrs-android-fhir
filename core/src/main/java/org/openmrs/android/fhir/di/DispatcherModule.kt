@@ -36,8 +36,14 @@ import kotlinx.coroutines.Dispatchers
 
 @Qualifier @Retention(AnnotationRetention.BINARY) annotation class IoDispatcher
 
+@Qualifier @Retention(AnnotationRetention.BINARY) annotation class DefaultDispatcher
+
 @Module
 object DispatcherModule {
 
   @Provides @IoDispatcher fun provideIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
+
+  @Provides
+  @DefaultDispatcher
+  fun provideDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
 }

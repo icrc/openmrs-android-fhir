@@ -31,6 +31,7 @@ package org.openmrs.android.fhir.data
 import android.content.Context
 import ca.uhn.fhir.model.api.TemporalPrecisionEnum
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.get
 import com.google.android.fhir.search.Order
 import com.google.android.fhir.search.search
@@ -54,6 +55,7 @@ import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.Questionnaire.QuestionnaireItemComponent
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
+import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.Type
 import org.openmrs.android.fhir.Constants
@@ -61,7 +63,11 @@ import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_TYPE_URL
 import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_URL
 import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_VALUE_URL
 import org.openmrs.android.fhir.Constants.PERSON_ATTRIBUTE_LINK_ID_PREFIX
+import org.openmrs.android.fhir.DemoDataStore
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.sync.LiveSync
+import timber.log.Timber
 
 class OpenMRSHelper
 @Inject
@@ -84,13 +90,25 @@ constructor(
 
   suspend fun getCurrentAuthLocation(): Reference {
     val selectedLocationId = context.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
+    // Without a location the reference is empty and filled in once one is chosen.
+    if (selectedLocationId.isNullOrBlank()) GuestSession.markCompletionPending(context)
     return Reference("Location/$selectedLocationId") // Reference to the location
   }
 
+  /**
+   * Whether a visit is created for every encounter that is saved (the default) or the user opens
+   * and ends the visits (Settings > Visits).
+   */
+  suspend fun automaticVisits(): Boolean =
+    try {
+      DemoDataStore(context).getAutomaticVisitsFlow().first()
+    } catch (e: Exception) {
+      true
+    }
+
   // Visit related functions
-  suspend fun getVisits(
-    patientId: String,
-  ): Map<Encounter, List<Encounter>> {
+  /** The patient's visits, each with its encounters, and the encounters that are in no visit. */
+  suspend fun getVisitsAndOthers(patientId: String): PatientVisits {
     val visits = linkedMapOf<Encounter, List<Encounter>>()
 
     val allEncounters = LinkedList<Encounter>()
@@ -123,7 +141,15 @@ constructor(
           }
     }
 
-    return visits
+    val visitIds = visitEncounters.map { "Encounter/" + it.idPart }.toSet()
+    val withoutVisit =
+      allEncounters
+        .filter { it !in visitEncounters && it.partOf?.reference !in visitIds }
+        .sortedByDescending { encounter ->
+          encounter.period?.start ?: encounter.period?.end ?: Date(0)
+        }
+
+    return PatientVisits(visits, withoutVisit)
   }
 
   suspend fun getActiveVisit(
@@ -186,22 +212,158 @@ constructor(
         )
       }
     fhirEngine.create(encounter)
+    LiveSync.requestUpload(context)
     return encounter
+  }
+
+  /** The visit's start and end, and the span of its encounters. */
+  suspend fun visitEditState(visitId: String): VisitEditState? {
+    val visit: Encounter = fhirEngine.get(visitId)
+    val start = visit.period?.start ?: return null
+    val encounters = encountersOf(visit)
+    return VisitEditState(
+      start = start,
+      end = visit.period?.end,
+      earliest = encounters.mapNotNull { it.period?.start ?: it.period?.end }.minOrNull(),
+      latest = encounters.mapNotNull { it.period?.end ?: it.period?.start }.maxOrNull(),
+    )
+  }
+
+  private suspend fun encountersOf(visit: Encounter): List<Encounter> =
+    fhirEngine
+      .search<Encounter> {
+        filter(Encounter.SUBJECT, { value = visit.subject.reference.orEmpty() })
+      }
+      .map { it.resource }
+      .filter { it.partOf?.reference == "Encounter/" + visit.idPart }
+
+  /**
+   * Changes when a visit started and ended (`null`: still open). The visit has to contain its
+   * encounters, cannot reach into the future and cannot be open while another visit is.
+   *
+   * @return what stopped it, or `null` when it was saved.
+   */
+  suspend fun updateVisitPeriod(visitId: String, start: Date, end: Date?): VisitPeriodError? {
+    val visit: Encounter = fhirEngine.get(visitId)
+    val encounters = encountersOf(visit)
+    VisitPeriodRules.check(
+        start = start,
+        end = end,
+        earliest = encounters.mapNotNull { it.period?.start ?: it.period?.end }.minOrNull(),
+        latest = encounters.mapNotNull { it.period?.end ?: it.period?.start }.maxOrNull(),
+      )
+      ?.let {
+        return it
+      }
+    if (end == null) {
+      val patientId = visit.subject?.reference?.substringAfter("Patient/").orEmpty()
+      val open = getActiveVisit(patientId, false)
+      if (open != null && open.idPart != visitId) return VisitPeriodError.OTHER_VISIT_OPEN
+    }
+    if (!visit.hasPeriod()) visit.period = Period()
+    visit.period.start = start
+    visit.period.end = end
+    visit.status =
+      if (end == null) Encounter.EncounterStatus.INPROGRESS else Encounter.EncounterStatus.FINISHED
+    fhirEngine.update(visit)
+    LiveSync.requestUpload(context)
+    return null
   }
 
   suspend fun endVisit(visitId: String): Encounter {
     val encounter: Encounter = fhirEngine.get(visitId)
-    val currentDate = Date()
+    val now = Date()
+    // Never before it started (a visit opened at a time the clock has not reached yet).
+    val end = encounter.period?.start?.takeIf { now.before(it) } ?: now
     if (encounter.hasPeriod()) {
-      encounter.period.end = Date()
+      encounter.period.end = end
     } else {
-      encounter.period = Period().apply { end = currentDate }
+      encounter.period = Period().apply { this.end = end }
     }
+    encounter.status = Encounter.EncounterStatus.FINISHED
     fhirEngine.update(encounter)
+    LiveSync.requestUpload(context)
     return encounter
   }
 
+  /**
+   * Opens an ended visit again. Only one visit is open at a time, so this does nothing (and says
+   * so) while another one is.
+   *
+   * @return whether the visit was reopened.
+   */
+  suspend fun reopenVisit(visitId: String): Boolean {
+    val encounter: Encounter = fhirEngine.get(visitId)
+    val patientId = encounter.subject?.reference?.substringAfter("Patient/").orEmpty()
+    val openVisit = getActiveVisit(patientId, false)
+    if (openVisit != null && openVisit.idPart != visitId) return false
+    encounter.period?.end = null
+    encounter.status = Encounter.EncounterStatus.INPROGRESS
+    fhirEngine.update(encounter)
+    LiveSync.requestUpload(context)
+    return true
+  }
+
+  /**
+   * The signed-in user and provider, read from the server when they are not saved, and what was
+   * created without them (a `Practitioner/null` participant, which the server refuses) is
+   * corrected. Offline it does what it can: whatever is still missing is repaired later.
+   *
+   * @return whether the provider is known.
+   */
+  suspend fun ensureIdentity(): Boolean {
+    var preferences = context.dataStore.data.first()
+    fun known() =
+      !preferences[PreferenceKeys.USER_UUID].isNullOrBlank() &&
+        !preferences[PreferenceKeys.USER_PROVIDER_UUID].isNullOrBlank()
+    if (!known()) {
+      RestApiManager.getInstance(context).refreshIdentity()
+      preferences = context.dataStore.data.first()
+    }
+    if (!known()) return false
+    repairParticipants()
+    return true
+  }
+
+  /** Encounters waiting for upload whose participant was written before the provider was known. */
+  private suspend fun repairParticipants() {
+    val preferences = context.dataStore.data.first()
+    val providerUuid = preferences[PreferenceKeys.USER_PROVIDER_UUID]?.takeIf { it.isNotBlank() }
+    val userUuid = preferences[PreferenceKeys.USER_UUID]?.takeIf { it.isNotBlank() }
+    val providerName = preferences[PreferenceKeys.USER_PROVIDER_NAME]
+    if (providerUuid == null || userUuid == null) return
+    fun missing(reference: String?) =
+      reference == "Practitioner/null" || reference == "Practitioner/"
+    fhirEngine
+      .search<Encounter> { filter(Encounter.PARTICIPANT, { value = "Practitioner/null" }) }
+      .map { it.resource }
+      .filter { encounter -> encounter.participant.any { missing(it.individual?.reference) } }
+      .filter {
+        fhirEngine.getLocalChanges(ResourceType.Encounter, it.idElement.idPart).isNotEmpty()
+      }
+      .forEach { encounter ->
+        val isVisit =
+          encounter.type.any { type ->
+            type.coding.any { it.system == Constants.VISIT_TYPE_CODE_SYSTEM }
+          }
+        encounter.participant
+          .filter { missing(it.individual?.reference) }
+          .forEach {
+            it.individual =
+              Reference("Practitioner/${if (isVisit) userUuid else providerUuid}").apply {
+                display = providerName
+                type = "Practitioner"
+              }
+          }
+        fhirEngine.update(encounter)
+        Timber.i("Encounter %s received its provider", encounter.idElement.idPart)
+      }
+  }
+
   suspend fun createEncounterParticipant(): EncounterParticipantComponent {
+    if (getAuthenticatedProviderUuid().isNullOrBlank()) {
+      RestApiManager.getInstance(context).refreshIdentity()
+    }
     val participant = EncounterParticipantComponent()
     participant.individual = Reference("Practitioner/${getAuthenticatedProviderUuid()}")
     participant.individual.display = getAuthenticatedProviderName()
@@ -210,6 +372,9 @@ constructor(
   }
 
   suspend fun createVisitParticipant(): EncounterParticipantComponent {
+    if (getAuthenticatedUserId().isNullOrBlank()) {
+      RestApiManager.getInstance(context).refreshIdentity()
+    }
     val participant = EncounterParticipantComponent()
     participant.individual = Reference("Practitioner/${getAuthenticatedUserId()}")
     participant.individual.display = getAuthenticatedProviderName()
@@ -309,6 +474,31 @@ constructor(
     return linkIds
   }
 
+  /**
+   * The birth date the registration answers describe: the date itself when it is known, otherwise
+   * today minus the estimated age (years, plus months where they were asked). `null` when neither
+   * was answered. Registering and editing a patient both use this one rule.
+   */
+  fun birthDateFrom(response: QuestionnaireResponse): DateType? {
+    fun answer(linkId: String) =
+      response.allItems.firstOrNull { it.linkId == linkId }?.answerFirstRep?.value
+    val known = (answer("dobKnown") as? BooleanType)?.booleanValue()
+    val date = answer("patient-0-birth-date") as? DateType
+    if (known != false && date != null) return date
+    val years = answer("estimatedDateOfBirthYears") as? Quantity ?: return null
+    return getDateDiffByQuantity(years, answer("estimatedDateOfBirthMonths") as? Quantity)
+  }
+
+  /** Whether [birthDate] lies after today: nobody is born in the future. */
+  fun isInTheFuture(birthDate: DateType): Boolean =
+    birthDate.value
+      ?.toInstant()
+      ?.atZone(ZoneId.systemDefault())
+      ?.toLocalDate()
+      ?.isAfter(
+        LocalDate.now(),
+      ) == true
+
   fun getDateDiffByQuantity(estimatedAgeYear: Quantity, estimatedAgeMonth: Quantity?): DateType {
     val now = LocalDate.now()
     val year = estimatedAgeYear.value.toLong()
@@ -321,3 +511,15 @@ constructor(
     }
   }
 }
+
+/** A patient's visits, each with its encounters, and the encounters that belong to no visit. */
+data class PatientVisits(
+  val visits: Map<Encounter, List<Encounter>>,
+  val withoutVisit: List<Encounter>,
+)
+
+/** A visit that has started and not ended. */
+fun Encounter.isOpenVisit(): Boolean =
+  type.any { type -> type.coding.any { it.system == Constants.VISIT_TYPE_CODE_SYSTEM } } &&
+    period?.start != null &&
+    period?.end == null

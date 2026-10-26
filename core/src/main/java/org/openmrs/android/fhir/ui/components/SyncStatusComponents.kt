@@ -29,41 +29,45 @@
 package org.openmrs.android.fhir.ui.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -71,11 +75,10 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.SyncSession
 import org.openmrs.android.fhir.data.database.model.SyncStatus
-import org.openmrs.android.fhir.extensions.statusBarAndActionBarTopInset
+import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
 @Immutable
 sealed class SyncStatusUiState {
@@ -103,8 +106,8 @@ fun SyncStatusLayout(
         val fraction = (progress.toFloat() / total).coerceIn(0f, 1f)
         val percent = (fraction * 100).toInt()
         Quintuple(
-          colorResource(id = R.color.syncing_background),
-          colorResource(id = R.color.dashboard_cardview_textcolor),
+          OpenMrsTheme.colors.highlightContainer,
+          MaterialTheme.colorScheme.onSurfaceVariant,
           R.drawable.ic_baseline_sync_24,
           stringResource(id = R.string.syncing),
           fraction,
@@ -114,23 +117,23 @@ fun SyncStatusLayout(
       }
       is SyncStatusUiState.Success ->
         Quintuple(
-          colorResource(id = R.color.tertiary_green_80),
-          colorResource(id = R.color.white),
+          OpenMrsTheme.colors.success,
+          MaterialTheme.colorScheme.surface,
           R.drawable.ic_check_circle,
           state.message,
           1f,
           stringResource(id = R.string._100),
-          colorResource(id = R.color.tertiary_green_80),
+          OpenMrsTheme.colors.success,
         )
       is SyncStatusUiState.Error ->
         Quintuple(
-          colorResource(id = R.color.error_red_40),
-          colorResource(id = R.color.white),
+          MaterialTheme.colorScheme.error,
+          MaterialTheme.colorScheme.surface,
           R.drawable.ic_error,
           state.message,
           1f,
           stringResource(id = R.string._0),
-          colorResource(id = R.color.error_red_40),
+          MaterialTheme.colorScheme.error,
         )
       SyncStatusUiState.Idle -> throw IllegalStateException("Idle state should return early")
     }
@@ -138,7 +141,7 @@ fun SyncStatusLayout(
   Card(
     modifier =
       modifier.fillMaxWidth().padding(vertical = dimensionResource(id = R.dimen.text_margin)),
-    colors = CardDefaults.cardColors(containerColor = Color.White),
+    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     elevation =
       CardDefaults.cardElevation(defaultElevation = dimensionResource(id = R.dimen.status_margin)),
   ) {
@@ -179,107 +182,207 @@ fun SyncStatusLayout(
   }
 }
 
+/**
+ * One synchronization: when it ran, how far the download and the upload got, and what went wrong.
+ * Finished sessions can be deleted; long error lists are folded.
+ */
 @Composable
 fun SyncSessionCard(
   session: SyncSession,
   onDeleteSession: (SyncSession) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  val statusColor =
+  val (statusColor, statusLabel, statusIcon) =
     when (session.status) {
-      SyncStatus.ONGOING -> R.color.orange
-      SyncStatus.COMPLETED -> R.color.tertiary_green_80
-      SyncStatus.COMPLETED_WITH_ERRORS -> R.color.error_red_40
+      SyncStatus.ONGOING ->
+        Triple(OpenMrsTheme.colors.warning, R.string.in_progress, R.drawable.ic_baseline_sync_24)
+      SyncStatus.COMPLETED ->
+        Triple(
+          OpenMrsTheme.colors.success,
+          R.string.sync_status_completed,
+          R.drawable.ic_check_circle,
+        )
+      SyncStatus.COMPLETED_WITH_ERRORS ->
+        Triple(
+          MaterialTheme.colorScheme.error,
+          R.string.sync_status_completed_errors,
+          R.drawable.ic_error,
+        )
+      SyncStatus.CANCELLED ->
+        Triple(
+          MaterialTheme.colorScheme.onSurfaceVariant,
+          R.string.sync_status_cancelled,
+          R.drawable.ic_cancel,
+        )
     }
 
-  Card(
-    modifier =
-      modifier
-        .fillMaxWidth()
-        .padding(
-          horizontal = dimensionResource(id = R.dimen.cardView_margin_horizontal) / 2,
-          vertical = 4.dp,
-        ),
-    colors = CardDefaults.cardColors(containerColor = Color.White),
-    elevation =
-      CardDefaults.cardElevation(defaultElevation = dimensionResource(id = R.dimen.status_margin)),
-    shape = RoundedCornerShape(dimensionResource(id = R.dimen.cardView_radius_corner)),
+  Surface(
+    modifier = modifier.fillMaxWidth().testTag("SyncSessionCard"),
+    shape = RoundedCornerShape(16.dp),
+    color = MaterialTheme.colorScheme.surface,
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
   ) {
-    Row(
-      modifier =
-        Modifier.fillMaxWidth()
-          .height(IntrinsicSize.Min)
-          .padding(end = 12.dp, top = 8.dp, bottom = 8.dp),
-      verticalAlignment = Alignment.Top,
-    ) {
-      Box(
-        modifier = Modifier.width(8.dp).fillMaxHeight().background(colorResource(id = statusColor)),
-      )
-
-      Column(
-        modifier = Modifier.weight(1f).padding(start = 12.dp, end = 12.dp),
-      ) {
-        Text(
-          text = stringResource(id = R.string.start_time_with_value, session.startTime),
-          fontSize = 16.sp,
-          fontWeight = FontWeight.Bold,
-          color = colorResource(id = R.color.dashboard_cardview_textcolor),
-        )
-        Text(
-          modifier = Modifier.padding(top = 8.dp),
-          text =
-            stringResource(
-              id = R.string.sync_session_progress,
-              session.downloadedPatients,
-              session.totalPatientsToDownload,
-              session.uploadedPatients,
-              session.totalPatientsToUpload,
-            ),
-          fontSize = 14.sp,
-          color = colorResource(id = R.color.dashboard_cardview_textcolor),
-        )
-        Text(
-          modifier = Modifier.padding(top = 8.dp),
-          text =
-            session.completionTime?.let {
-              stringResource(id = R.string.completed_at_with_value, it)
-            }
-              ?: stringResource(id = R.string.in_progress),
-          fontSize = 14.sp,
-          color = colorResource(id = R.color.dashboard_cardview_textcolor),
-        )
-
-        if (session.status == SyncStatus.COMPLETED_WITH_ERRORS && session.errors.isNotEmpty()) {
-          Column(modifier = Modifier.fillMaxWidth().padding(top = 12.dp)) {
-            Text(
-              text = stringResource(id = R.string.errors_with_count, session.errors.size),
-              fontSize = 14.sp,
-              fontWeight = FontWeight.Bold,
-              color = colorResource(id = R.color.dashboard_cardview_textcolor),
+    Column(modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 16.dp, end = 8.dp)) {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+            text = session.startTime,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+          )
+          Row(
+            modifier = Modifier.padding(top = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Icon(
+              painter = painterResource(id = statusIcon),
+              contentDescription = null,
+              tint = statusColor,
+              modifier = Modifier.size(16.dp),
             )
+            Spacer(modifier = Modifier.width(6.dp))
             Text(
-              modifier = Modifier.padding(top = 8.dp),
-              text = session.errors.joinToString(separator = "\n") { "- $it" },
-              fontSize = 12.sp,
-              color = colorResource(id = R.color.dashboard_cardview_textcolor),
+              text = stringResource(id = statusLabel),
+              style = MaterialTheme.typography.labelLarge,
+              fontWeight = FontWeight.SemiBold,
+              color = statusColor,
+            )
+          }
+        }
+        if (session.status != SyncStatus.ONGOING) {
+          IconButton(
+            onClick = { onDeleteSession(session) },
+            modifier = Modifier.testTag("SyncSessionDelete"),
+          ) {
+            Icon(
+              painter = painterResource(id = R.drawable.ic_delete),
+              contentDescription = stringResource(id = R.string.delete),
+              tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
           }
         }
       }
 
-      if (session.status != SyncStatus.ONGOING) {
-        IconButton(
-          modifier =
-            Modifier.size(40.dp)
-              .background(colorResource(id = R.color.unknown_risk_background), shape = CircleShape),
-          onClick = { onDeleteSession(session) },
-          colors =
-            IconButtonDefaults.iconButtonColors(contentColor = colorResource(id = R.color.white)),
-        ) {
-          Icon(
-            painter = painterResource(id = R.drawable.ic_delete),
-            contentDescription = stringResource(id = R.string.delete),
-            tint = Color.White,
+      Column(
+        modifier = Modifier.padding(top = 12.dp, end = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+      ) {
+        SyncProgressLine(
+          label = stringResource(id = R.string.sync_downloaded),
+          done = session.downloadedPatients,
+          total = session.totalPatientsToDownload,
+          inProgress = session.status == SyncStatus.ONGOING,
+          color = statusColor,
+        )
+        SyncProgressLine(
+          label = stringResource(id = R.string.sync_uploaded),
+          done = session.uploadedPatients,
+          total = session.totalPatientsToUpload,
+          inProgress = session.status == SyncStatus.ONGOING,
+          color = statusColor,
+        )
+      }
+
+      // The status above already says "in progress"; the time only matters once it has finished.
+      session.completionTime?.let { completedAt ->
+        Text(
+          modifier = Modifier.padding(top = 12.dp),
+          text = stringResource(id = R.string.completed_at_with_value, completedAt),
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+
+      if (session.status == SyncStatus.COMPLETED_WITH_ERRORS && session.errors.isNotEmpty()) {
+        SyncErrors(errors = session.errors, modifier = Modifier.padding(top = 12.dp, end = 8.dp))
+      }
+    }
+  }
+}
+
+/**
+ * "Downloaded 12 / 30" with a bar showing how far it got. While the sync is running and has passed
+ * the total it was given (that total only counts the patients, not their encounters and
+ * observations), only the amount so far is shown, with a bar that is not filled.
+ */
+@Composable
+private fun SyncProgressLine(
+  label: String,
+  done: Int,
+  total: Int,
+  inProgress: Boolean,
+  color: Color,
+) {
+  val totalUnknown = inProgress && done > 0 && done >= total
+  val fraction = if (total > 0) (done.toFloat() / total).coerceIn(0f, 1f) else 1f
+  Column {
+    Row {
+      Text(
+        text = label,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.weight(1f),
+      )
+      Text(
+        text = if (totalUnknown) "$done" else "$done / $total",
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.Medium,
+        color = MaterialTheme.colorScheme.onSurface,
+      )
+    }
+    if (totalUnknown) {
+      LinearProgressIndicator(
+        color = color,
+        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp).height(6.dp).clip(CircleShape),
+      )
+    } else {
+      LinearProgressIndicator(
+        progress = { fraction },
+        color = color,
+        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp).height(6.dp).clip(CircleShape),
+      )
+    }
+  }
+}
+
+/** The errors of a session; only the first few are shown until the user asks for all of them. */
+@Composable
+private fun SyncErrors(errors: List<String>, modifier: Modifier = Modifier) {
+  var expanded by remember { mutableStateOf(false) }
+  val visible = if (expanded) errors else errors.take(ERRORS_FOLDED)
+  Surface(
+    modifier = modifier.fillMaxWidth().testTag("SyncSessionErrors"),
+    shape = RoundedCornerShape(12.dp),
+    color = MaterialTheme.colorScheme.errorContainer,
+  ) {
+    Column(modifier = Modifier.padding(12.dp)) {
+      Text(
+        text = stringResource(id = R.string.errors_with_count, errors.size),
+        style = MaterialTheme.typography.labelLarge,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onErrorContainer,
+      )
+      visible.forEach { error ->
+        Text(
+          modifier = Modifier.padding(top = 4.dp),
+          text = "• $error",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onErrorContainer,
+        )
+      }
+      if (errors.size > ERRORS_FOLDED) {
+        TextButton(onClick = { expanded = !expanded }) {
+          Text(
+            text =
+              if (expanded) {
+                stringResource(id = R.string.sync_errors_show_less)
+              } else {
+                stringResource(id = R.string.sync_errors_show_all, errors.size)
+              },
+            color = MaterialTheme.colorScheme.onErrorContainer,
           )
         }
       }
@@ -287,69 +390,102 @@ fun SyncSessionCard(
   }
 }
 
+private const val ERRORS_FOLDED = 3
+
+/**
+ * The synchronization history, newest first, with a shortcut to clear what has finished. Clearing
+ * asks first, as it cannot be undone. The screen around it provides the padding.
+ */
 @Composable
-fun SyncInfoContent(
+fun SyncHistoryList(
   syncSessions: List<SyncSession>,
   onDeleteSession: (SyncSession) -> Unit,
   onClearAll: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  val contentPadding =
-    PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp + statusBarAndActionBarTopInset())
+  var confirmClear by remember { mutableStateOf(false) }
+  val hasFinished = syncSessions.any { it.status != SyncStatus.ONGOING }
 
-  Column(modifier = modifier.fillMaxSize().padding(contentPadding)) {
+  Box(modifier = modifier.fillMaxSize().testTag("SyncInfoScreen")) {
     if (syncSessions.isEmpty()) {
-      Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-          Icon(
-            modifier = Modifier.size(80.dp),
-            painter = painterResource(id = R.drawable.ic_baseline_sync_24),
-            contentDescription = stringResource(id = R.string.no_sync_info_available),
-            tint = colorResource(id = R.color.dashboard_cardview_textcolor),
-          )
-          Text(
-            modifier = Modifier.padding(top = 8.dp),
-            text = stringResource(id = R.string.no_sync_info_available),
-            fontSize = 16.sp,
-            fontStyle = FontStyle.Italic,
-            color = colorResource(id = R.color.black),
-            textAlign = TextAlign.Center,
-          )
-        }
+      Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+      ) {
+        Icon(
+          modifier = Modifier.size(72.dp),
+          painter = painterResource(id = R.drawable.ic_baseline_sync_24),
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+          modifier = Modifier.padding(top = 8.dp),
+          text = stringResource(id = R.string.no_sync_info_available),
+          style = MaterialTheme.typography.bodyLarge,
+          fontStyle = FontStyle.Italic,
+          color = MaterialTheme.colorScheme.onSurface,
+          textAlign = TextAlign.Center,
+        )
       }
     } else {
-      Column(
-        modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+      LazyColumn(
+        modifier = Modifier.fillMaxSize().testTag("SyncSessionList"),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
       ) {
-        syncSessions.forEach { session ->
+        item(key = "history-actions", contentType = "actions") {
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+          ) {
+            TextButton(
+              onClick = { confirmClear = true },
+              enabled = hasFinished,
+              modifier = Modifier.testTag("ClearSyncData"),
+            ) {
+              Icon(
+                painter = painterResource(id = R.drawable.ic_delete),
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+              )
+              Spacer(modifier = Modifier.width(6.dp))
+              Text(text = stringResource(id = R.string.clear_sync_data))
+            }
+          }
+        }
+        items(syncSessions, key = { it.id }, contentType = { "session" }) { session ->
           SyncSessionCard(
             session = session,
             onDeleteSession = onDeleteSession,
+            modifier = Modifier.animateItem(),
           )
         }
       }
     }
+  }
 
-    Button(
-      modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp),
-      onClick = onClearAll,
-      enabled = syncSessions.isNotEmpty(),
-      colors =
-        ButtonDefaults.buttonColors(
-          containerColor = colorResource(id = R.color.dashboard_cardview_textcolor),
-          contentColor = colorResource(id = R.color.white),
-        ),
-      shape = RoundedCornerShape(4.dp),
-    ) {
-      Icon(
-        painter = painterResource(id = R.drawable.ic_delete),
-        contentDescription = stringResource(id = R.string.delete),
-        tint = Color.White,
-      )
-      Spacer(modifier = Modifier.width(8.dp))
-      Text(text = stringResource(id = R.string.clear_sync_data), fontSize = 12.sp)
-    }
+  if (confirmClear) {
+    AlertDialog(
+      onDismissRequest = { confirmClear = false },
+      title = { Text(text = stringResource(id = R.string.clear_sync_data)) },
+      text = { Text(text = stringResource(id = R.string.clear_sync_data_confirm)) },
+      confirmButton = {
+        TextButton(
+          onClick = {
+            confirmClear = false
+            onClearAll()
+          },
+        ) {
+          Text(text = stringResource(id = R.string.delete))
+        }
+      },
+      dismissButton = {
+        TextButton(onClick = { confirmClear = false }) {
+          Text(text = stringResource(id = R.string.cancel))
+        }
+      },
+    )
   }
 }
 
