@@ -33,6 +33,7 @@ import org.greenrobot.eventbus.EventBus
 import org.openmrs.android.fhir.data.remote.model.Error
 import org.openmrs.android.fhir.extensions.fromJson
 import retrofit2.Response
+import timber.log.Timber
 
 const val UNEXPECTED_INTERNAL_SERVER = "Unexpected internal server error."
 
@@ -76,7 +77,7 @@ inline fun <T> executeApiHelper(responseMethod: () -> Response<T>): ApiResponse<
       else -> ApiResponse.ServerError(UNEXPECTED_INTERNAL_SERVER)
     }
   } catch (exception: Exception) {
-    exception.printStackTrace()
+    Timber.w(exception, "API call failed")
     when (exception) {
       is UnknownHostException -> ApiResponse.NoInternetConnection
       else -> ApiResponse.ServerError(UNEXPECTED_INTERNAL_SERVER)

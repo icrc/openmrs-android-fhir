@@ -81,7 +81,7 @@ object BiometricPromptHelper {
       return if (cipher != null) {
         biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
       } else {
-        // TODO: add dialog encryption issue, try setting up biometric auth later in settings.
+        // Known gap (docs/dev/known-gaps.md): no dialog explains the encryption problem.
         showToast(activity.getString(R.string.error_encountered_while_setting_offline_login))
         navigateToMain()
       }

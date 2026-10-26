@@ -66,6 +66,7 @@ import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import timber.log.Timber
 
 inline fun <reified T> T.toJson(): String {
   return Moshi.Builder().build().adapter(T::class.java).toJson(this)
@@ -85,7 +86,7 @@ fun saveToFile(context: Context, fileName: String, content: String): File? {
     FileOutputStream(file).use { outputStream -> outputStream.write(content.toByteArray()) }
     file
   } catch (e: IOException) {
-    e.printStackTrace()
+    Timber.w(e, "Could not write the file")
     null
   }
 }

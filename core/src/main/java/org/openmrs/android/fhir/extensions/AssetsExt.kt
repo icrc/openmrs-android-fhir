@@ -32,6 +32,7 @@ package org.openmrs.android.fhir.extensions
 import android.content.Context
 import java.io.IOException
 import java.util.Locale
+import timber.log.Timber
 
 /**
  * The text of an asset file; a questionnaire stored in the compact form comes back as plain FHIR
@@ -49,7 +50,7 @@ fun Context.getJsonFileNames(): List<String> {
   return try {
     assets.list("")?.filter { it.endsWith(".json") } ?: emptyList()
   } catch (e: IOException) {
-    e.printStackTrace()
+    Timber.w(e, "Could not list the bundled assets")
     emptyList()
   }
 }

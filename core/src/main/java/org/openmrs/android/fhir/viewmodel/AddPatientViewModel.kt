@@ -211,8 +211,7 @@ constructor(
       }
       // Live mode sends it now; otherwise it waits for the sync.
       LiveSync.requestUpload(applicationContext)
-      // TODO Pending for cohort-module
-      // addPatientToSelectedPatientList(patient)
+      // Known gap (docs/dev/known-gaps.md): the patient is not added to a cohort here.
       isPatientSaved.value = true
       saveInProgress = false
     }

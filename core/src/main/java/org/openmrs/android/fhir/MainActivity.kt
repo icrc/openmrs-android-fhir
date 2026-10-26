@@ -538,9 +538,6 @@ class MainActivity : AppCompatActivity() {
         }
       }
     }
-    //    lifecycleScope.launch {
-    // viewModel.initPeriodicSyncWorker(demoDataStore.getPeriodicSyncDelay()) } TODO: Discuss on
-    // periodic sync
     viewModel.refreshLocalizedTexts()
     observeNetworkConnection(this)
     observeSyncState()

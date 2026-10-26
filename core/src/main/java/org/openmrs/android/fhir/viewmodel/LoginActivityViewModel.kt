@@ -331,8 +331,7 @@ constructor(
           canBioStrong = canBioStrong == BiometricManager.BIOMETRIC_SUCCESS,
         )
       } else {
-        // TODO: Add intent for device credential setup
-        // handle no-credential/no-biometrics case (fallback UI, PIN setup, etc.)
+        // Known gap (docs/dev/known-gaps.md): no screen offers to set up a screen lock here.
       }
     } else {
       // API 23–29: pick the flow

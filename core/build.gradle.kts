@@ -101,7 +101,6 @@ object Versions {
   const val desugar_jdk_libs = "2.1.5"
   const val appauth = "0.11.1"
   const val timber = "5.0.1"
-  const val jwtdecode = "2.1.0"
   const val fhirEngine = "1.2.0"
   const val fhirDataCapture = "1.3.1"
   const val lifecycle = "2.10.0"
@@ -173,7 +172,6 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
   implementation("com.jakewharton.timber:timber:${Versions.timber}")
   implementation("net.openid:appauth:${Versions.appauth}")
-  implementation("com.auth0.android:jwtdecode:${Versions.jwtdecode}")
   implementation("net.lingala.zip4j:zip4j:${Versions.zip4j}")
   // QR codes: drawing the settings to share, and the scanner that reads them.
   implementation("com.journeyapps:zxing-android-embedded:${Versions.zxingEmbedded}")

@@ -43,6 +43,7 @@ import org.hl7.fhir.r4.model.OperationOutcome
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.Resource
+import org.openmrs.android.fhir.BuildConfig
 import org.openmrs.android.fhir.LoginRepository
 import org.openmrs.android.fhir.data.remote.interceptor.AddCookiesInterceptor
 import org.openmrs.android.fhir.data.remote.interceptor.ReceivedCookiesInterceptor
@@ -81,9 +82,17 @@ class ApiManager @Inject constructor(context: Context) : Api {
         }
         .addInterceptor(AddCookiesInterceptor(context))
         .addInterceptor(ReceivedCookiesInterceptor(context))
-        .addInterceptor(
-          HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY },
-        )
+    if (BuildConfig.DEBUG) {
+      // Only in a debug build, and never the credentials: the bodies are the patients' data.
+      okHttpClientBuilder.addInterceptor(
+        HttpLoggingInterceptor().apply {
+          level = HttpLoggingInterceptor.Level.BASIC
+          redactHeader("Authorization")
+          redactHeader("Cookie")
+          redactHeader("Set-Cookie")
+        },
+      )
+    }
     return@lazy okHttpClientBuilder
   }
 

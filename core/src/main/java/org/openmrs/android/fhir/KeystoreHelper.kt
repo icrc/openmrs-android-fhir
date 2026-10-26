@@ -32,6 +32,7 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+import timber.log.Timber
 
 object KeystoreHelper {
 
@@ -47,7 +48,7 @@ object KeystoreHelper {
         generateKey()
       }
     } catch (e: Exception) {
-      e.printStackTrace()
+      Timber.e(e, "Could not prepare the keystore key")
     }
   }
 
