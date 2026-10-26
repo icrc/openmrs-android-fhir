@@ -45,15 +45,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.auth.GuestSession
-import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.AddPatientFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.UnsavedChangesGuard
 import org.openmrs.android.fhir.extensions.addQuestionnaireWhenDrawn
 import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
 import org.openmrs.android.fhir.extensions.onQuestionnaireResult
+import org.openmrs.android.fhir.extensions.savedLocation
 import org.openmrs.android.fhir.extensions.setFormLoading
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.LocationBannerState
@@ -93,14 +91,8 @@ class EditPatientFragment : Fragment(R.layout.add_patient_fragment) {
 
     binding.locationBanner.setLocationBanner(locationBanner, showHint = false)
     lifecycleScope.launch {
-      val name =
-        context?.applicationContext?.dataStore?.data?.first()?.get(PreferenceKeys.LOCATION_NAME)
-      locationBanner.value =
-        if (name.isNullOrBlank()) {
-          LocationBannerState.None(guest = GuestSession.isActive(requireContext()))
-        } else {
-          LocationBannerState.Selected(name)
-        }
+      val location = context?.savedLocation() ?: return@launch
+      locationBanner.value = location.bannerState(requireContext())
     }
 
     setFormLoading(true)

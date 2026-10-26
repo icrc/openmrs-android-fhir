@@ -55,6 +55,7 @@ import org.openmrs.android.fhir.extensions.addQuestionnaireWhenDrawn
 import org.openmrs.android.fhir.extensions.keepBelowAppBar
 import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
 import org.openmrs.android.fhir.extensions.onQuestionnaireResult
+import org.openmrs.android.fhir.extensions.setFormBusy
 import org.openmrs.android.fhir.extensions.setFormLoading
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
@@ -201,13 +202,7 @@ class GenericFormEntryFragment : Fragment(R.layout.generic_formentry_fragment) {
 
   private fun observeLoading() {
     viewModel.isLoading.observe(viewLifecycleOwner) {
-      if (it) {
-        binding.progressBar.visibility = View.VISIBLE
-        binding.touchBlockerView.visibility = View.VISIBLE // Show the blocker
-      } else {
-        binding.progressBar.visibility = View.GONE
-        binding.touchBlockerView.visibility = View.GONE // Hide the blocker
-      }
+      setFormBusy(binding.progressBar, binding.touchBlockerView, it)
     }
   }
 

@@ -45,20 +45,18 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
 import com.google.android.fhir.datacapture.QuestionnaireFragment
 import javax.inject.Inject
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.auth.GuestSession
-import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.config.AppConfig
-import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.databinding.AddPatientFragmentBinding
 import org.openmrs.android.fhir.extensions.UnsavedChangesGuard
 import org.openmrs.android.fhir.extensions.addQuestionnaireWhenDrawn
 import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
 import org.openmrs.android.fhir.extensions.onQuestionnaireResult
+import org.openmrs.android.fhir.extensions.savedLocation
+import org.openmrs.android.fhir.extensions.setFormBusy
 import org.openmrs.android.fhir.extensions.setFormLoading
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.LocationBannerState
@@ -104,16 +102,9 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
     (requireActivity().application as FhirApplication).appComponent.inject(this)
     binding.locationBanner.setLocationBanner(locationBanner, showHint = true)
     lifecycleScope.launch {
-      // One read of the saved preferences for both values.
-      val saved = context?.applicationContext?.dataStore?.data?.first()
-      val name = saved?.get(PreferenceKeys.LOCATION_NAME)
-      viewModel.locationId = saved?.get(PreferenceKeys.LOCATION_ID)
-      locationBanner.value =
-        if (name.isNullOrBlank()) {
-          LocationBannerState.None(guest = GuestSession.isActive(requireContext()))
-        } else {
-          LocationBannerState.Selected(name)
-        }
+      val location = context?.savedLocation() ?: return@launch
+      viewModel.locationId = location.id
+      locationBanner.value = location.bannerState(requireContext())
     }
     viewModel.identifyEntryId = identifyEntryId
     if (identifyEntryId.isNotEmpty() && savedInstanceState == null) {
@@ -239,13 +230,7 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
 
   private fun observeLoading() {
     viewModel.isLoading.observe(viewLifecycleOwner) {
-      if (it) {
-        binding.progressBar.visibility = View.VISIBLE
-        binding.touchBlockerView.visibility = View.VISIBLE // Show the blocker
-      } else {
-        binding.progressBar.visibility = View.GONE
-        binding.touchBlockerView.visibility = View.GONE // Hide the blocker
-      }
+      setFormBusy(binding.progressBar, binding.touchBlockerView, it)
     }
   }
 
