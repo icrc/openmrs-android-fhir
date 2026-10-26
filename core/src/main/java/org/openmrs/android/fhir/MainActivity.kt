@@ -28,15 +28,11 @@
 */
 package org.openmrs.android.fhir
 
-import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.graphics.RenderEffect
-import android.graphics.Shader
-import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -53,7 +49,6 @@ import androidx.appcompat.graphics.drawable.DrawerArrowDrawable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.FileProvider
 import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -105,6 +100,7 @@ import org.openmrs.android.fhir.data.diagnostics.DiagnosticsEstimate
 import org.openmrs.android.fhir.data.diagnostics.DiagnosticsOption
 import org.openmrs.android.fhir.data.diagnostics.DiagnosticsRange
 import org.openmrs.android.fhir.data.diagnostics.DiagnosticsReport
+import org.openmrs.android.fhir.data.diagnostics.diagnosticsEmailIntent
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.ServerSettings
@@ -121,16 +117,20 @@ import org.openmrs.android.fhir.extensions.OfflineAuthPrompt
 import org.openmrs.android.fhir.extensions.PermissionHelper
 import org.openmrs.android.fhir.extensions.PermissionHelperFactory
 import org.openmrs.android.fhir.extensions.UncaughtExceptionHandler
-import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
 import org.openmrs.android.fhir.fragments.AddPatientFragment
 import org.openmrs.android.fhir.fragments.CreateEncountersFragmentArgs
 import org.openmrs.android.fhir.multiuser.UserRegistry
+import org.openmrs.android.fhir.session.SessionCleaner
+import org.openmrs.android.fhir.ui.BackgroundBlur
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.DiagnosticsDialog
 import org.openmrs.android.fhir.ui.components.MainBottomBar
 import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.components.TopLevelDestination
 import org.openmrs.android.fhir.ui.components.topLevelDestinationFor
+import org.openmrs.android.fhir.ui.deletePatientDataMessage
+import org.openmrs.android.fhir.ui.errorColor
+import org.openmrs.android.fhir.ui.logoutMessage
 import org.openmrs.android.fhir.ui.screens.DrawerContent
 import org.openmrs.android.fhir.ui.screens.DrawerItem
 import org.openmrs.android.fhir.ui.screens.IdentifyPatientDialog
@@ -146,11 +146,10 @@ import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
 import timber.log.Timber
 
 /** Blur radius, in pixels, of the app behind the sync popup. */
-private const val BACKGROUND_BLUR_RADIUS = 18f
-
 class MainActivity : AppCompatActivity() {
   private lateinit var authStateManager: AuthStateManager
   private var tokenMonitorJob: Job? = null
+  private val backgroundBlur = BackgroundBlur(this)
   private lateinit var loginRepository: LoginRepository
   private lateinit var demoDataStore: DemoDataStore
 
@@ -501,7 +500,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.uiState
           .map { it.isSyncTasksVisible && !(it.isSyncMinimized && it.showSyncCloseButton) }
           .distinctUntilChanged()
-          .collect { blurred -> setBackgroundBlurred(blurred) }
+          .collect { blurred -> backgroundBlur.set(blurred) }
       }
     }
     lifecycleScope.launch {
@@ -1177,38 +1176,6 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
-  private var blurAnimator: ValueAnimator? = null
-  private var backgroundBlur = 0f
-
-  /**
-   * Fades a blur in or out on what is behind the sync popup; API 31+, the scrim covers the rest.
-   */
-  private fun setBackgroundBlurred(blurred: Boolean) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
-    val targets =
-      listOfNotNull<View>(
-        findViewById(R.id.main_content_container),
-        findViewById(R.id.top_bar_compose_container),
-      )
-    blurAnimator?.cancel()
-    val to = if (blurred) BACKGROUND_BLUR_RADIUS else 0f
-    blurAnimator =
-      ValueAnimator.ofFloat(backgroundBlur, to).apply {
-        duration = 220
-        addUpdateListener {
-          backgroundBlur = it.animatedValue as Float
-          val effect =
-            if (backgroundBlur < 0.5f) {
-              null
-            } else {
-              RenderEffect.createBlurEffect(backgroundBlur, backgroundBlur, Shader.TileMode.CLAMP)
-            }
-          targets.forEach { view -> view.setRenderEffect(effect) }
-        }
-        start()
-      }
-  }
-
   private fun updateOverlayVisibility() {
     val shouldShow = viewModel.uiState.value.isSyncTasksVisible || viewModel.uiState.value.loading
     overlayComposeView?.isVisible = shouldShow
@@ -1246,56 +1213,8 @@ class MainActivity : AppCompatActivity() {
       } catch (e: Exception) {
         0
       }
-    val message = android.text.SpannableStringBuilder()
-    message.append(
-      getString(if (clearData) R.string.logout_message_delete else R.string.logout_message_keep),
-    )
-    if (pending > 0) {
-      message.append("\n\n")
-      val start = message.length
-      message.append(
-        resources.getQuantityString(
-          if (clearData) R.plurals.logout_pending_lost else R.plurals.logout_pending_kept,
-          pending,
-          pending,
-        ),
-      )
-      message.setSpan(
-        android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
-        start,
-        message.length,
-        android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
-      )
-      if (clearData) {
-        message.setSpan(
-          android.text.style.ForegroundColorSpan(
-            com.google.android.material.color.MaterialColors.getColor(
-              this,
-              androidx.appcompat.R.attr.colorError,
-              android.graphics.Color.RED,
-            ),
-          ),
-          start,
-          message.length,
-          android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
-        )
-      }
-    }
-    if (!canEndProviderSession) {
-      message.append("\n\n")
-      message.append(getString(R.string.logout_offline_note))
-    }
-    // Records for patients "to identify after" are not in the upload count: say what happens.
     val toIdentify = FhirApplication.appComponent(applicationContext).unidentifiedPatients().count()
-    if (toIdentify > 0) {
-      message.append("\n\n")
-      message.append(
-        getString(
-          if (clearData) R.string.identify_logout_lost else R.string.identify_logout_kept,
-          toIdentify,
-        ),
-      )
-    }
+    val message = logoutMessage(clearData, pending, canEndProviderSession, toIdentify)
     MaterialAlertDialogBuilder(this)
       .setTitle(getString(R.string.logout))
       .setMessage(message)
@@ -1327,21 +1246,7 @@ class MainActivity : AppCompatActivity() {
   private fun showDeletePatientDataDialog() {
     lifecycleScope.launch {
       val preview = withContext(Dispatchers.Default) { patientDataEraser().preview() }
-      val message =
-        android.text.SpannableStringBuilder(
-          getString(R.string.delete_patient_data_message, preview.patients),
-        )
-      if (preview.notUploaded > 0) {
-        message.append("\n\n")
-        val start = message.length
-        message.append(getString(R.string.delete_patient_data_unsynced, preview.notUploaded))
-        message.setSpan(
-          android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
-          start,
-          message.length,
-          android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
-        )
-      }
+      val message = deletePatientDataMessage(preview.patients, preview.notUploaded)
       val dialog =
         MaterialAlertDialogBuilder(this@MainActivity)
           .setTitle(getString(R.string.delete_patient_data_title))
@@ -1364,13 +1269,7 @@ class MainActivity : AppCompatActivity() {
       // The confirming button is in the danger colour.
       dialog
         .getButton(androidx.appcompat.app.AlertDialog.BUTTON_POSITIVE)
-        ?.setTextColor(
-          com.google.android.material.color.MaterialColors.getColor(
-            this@MainActivity,
-            androidx.appcompat.R.attr.colorError,
-            android.graphics.Color.RED,
-          ),
-        )
+        ?.setTextColor(errorColor())
     }
   }
 
@@ -1443,7 +1342,7 @@ class MainActivity : AppCompatActivity() {
     updateOverlayVisibility()
     AppMessage.show(this, R.string.logging_out, MessageKind.Info, long = true)
     lifecycleScope.launch {
-      withContext(Dispatchers.Default) { clearAppData() }
+      withContext(Dispatchers.Default) { sessionCleaner().clearAppData() }
       if (wasGuest) GuestSession.end(this@MainActivity)
       if (canEndProviderSession) {
         val loginIntent = Intent(this@MainActivity, LoginActivity::class.java)
@@ -1485,7 +1384,7 @@ class MainActivity : AppCompatActivity() {
           workManager.pruneWork()
           authStateManager.resetBasicAuthCredentials()
           BiometricUtils.deleteBiometricKey(applicationContext)
-          clearSessionPreferences(clearData = true)
+          sessionCleaner().clearSessionPreferences(clearData = true)
         }
         UserRegistry.forgetPersonalState(this@MainActivity)
       }
@@ -1516,7 +1415,9 @@ class MainActivity : AppCompatActivity() {
     AppMessage.show(this@MainActivity, R.string.logging_out, MessageKind.Info, long = true)
 
     lifecycleScope
-      .launch(Dispatchers.Default) { if (clearData) clearAppData() else endSessionKeepingData() }
+      .launch(Dispatchers.Default) {
+        if (clearData) sessionCleaner().clearAppData() else sessionCleaner().endSessionKeepingData()
+      }
       .invokeOnCompletion {
         handleAuthNavigation(
           pendingIntentSuccess,
@@ -1527,39 +1428,8 @@ class MainActivity : AppCompatActivity() {
       }
   }
 
-  /** Logging out with "delete data" off: the session goes, the patients and drafts stay. */
-  private suspend fun endSessionKeepingData() {
-    val workManager = WorkManager.getInstance(this@MainActivity)
-    workManager.cancelAllWork()
-    workManager.pruneWork()
-    authStateManager.resetBasicAuthCredentials()
-    BiometricUtils.deleteBiometricKey(applicationContext)
-  }
-
-  /**
-   * The session's preferences go; when the data stays, so do the choices that belong to it (the
-   * location, the patient lists, the identifier types), or the kept data would not match them.
-   */
-  private suspend fun clearSessionPreferences(clearData: Boolean) {
-    val kept = if (clearData) null else applicationContext.dataStore.data.first()
-    authStateManager.clearAuthDataStore()
-    applicationContext.dataStore.edit { preferences -> preferences.clear() }
-    if (kept != null) {
-      applicationContext.dataStore.edit { preferences ->
-        kept[PreferenceKeys.LOCATION_ID]?.let { preferences[PreferenceKeys.LOCATION_ID] = it }
-        kept[PreferenceKeys.LOCATION_NAME]?.let { preferences[PreferenceKeys.LOCATION_NAME] = it }
-        kept[PreferenceKeys.SELECTED_PATIENT_LISTS]?.let {
-          preferences[PreferenceKeys.SELECTED_PATIENT_LISTS] = it
-        }
-        kept[PreferenceKeys.FAVORITE_LOCATIONS]?.let {
-          preferences[PreferenceKeys.FAVORITE_LOCATIONS] = it
-        }
-        kept[PreferenceKeys.SELECTED_IDENTIFIER_TYPES]?.let {
-          preferences[PreferenceKeys.SELECTED_IDENTIFIER_TYPES] = it
-        }
-      }
-    }
-  }
+  private fun sessionCleaner() =
+    SessionCleaner(applicationContext, authStateManager, fhirEngine, demoDataStore, database)
 
   private fun createPendingIntent(intent: Intent, requestCode: Int): PendingIntent {
     return PendingIntent.getActivity(
@@ -1568,45 +1438,6 @@ class MainActivity : AppCompatActivity() {
       intent,
       PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
     )
-  }
-
-  /*
-   * Clears app data except AuthStateManager's datastore
-   */
-  private suspend fun clearAppData() {
-    val workManager = WorkManager.getInstance(this@MainActivity)
-    workManager.cancelAllWork()
-    workManager.pruneWork()
-    fhirEngine.clearDatabase()
-    demoDataStore.clearAll()
-    database.clearAllTables()
-    FhirApplication.appComponent(applicationContext).unidentifiedPatients().forget()
-    // Nothing of any user is left on the device.
-    UserRegistry.reset(applicationContext)
-    authStateManager.resetBasicAuthCredentials()
-    BiometricUtils.deleteBiometricKey(applicationContext)
-    checkAndDeleteLogFile(applicationContext)
-    clearApplicationFiles()
-  }
-
-  private fun clearApplicationFiles() {
-    val dirs =
-      listOf(
-        applicationContext.filesDir,
-        applicationContext.cacheDir,
-        applicationContext.getExternalFilesDir(null),
-      )
-    dirs.forEach { dir ->
-      dir?.listFiles()?.forEach { file ->
-        if (
-          dir == applicationContext.filesDir &&
-            (file.name == "datastore" || file.name == AuditLog.DIRECTORY)
-        ) {
-          return@forEach
-        }
-        file.deleteRecursively()
-      }
-    }
   }
 
   private fun handleAuthNavigation(
@@ -1619,13 +1450,17 @@ class MainActivity : AppCompatActivity() {
     val method = if (canEndProviderSession) authStateManager.getAuthMethod() else AuthMethod.BASIC
     when (method) {
       AuthMethod.BASIC -> {
-        lifecycleScope.launch(Dispatchers.IO) { clearSessionPreferences(clearData) }
+        lifecycleScope.launch(Dispatchers.IO) {
+          sessionCleaner().clearSessionPreferences(clearData)
+        }
         startActivity(Intent(this, LoginActivity::class.java))
         finish()
       }
       AuthMethod.OPENID -> {
         authStateManager.endSessionRequest(pendingIntentSuccess, pendingIntentCancel)
-        lifecycleScope.launch(Dispatchers.IO) { clearSessionPreferences(clearData) }
+        lifecycleScope.launch(Dispatchers.IO) {
+          sessionCleaner().clearSessionPreferences(clearData)
+        }
       }
     }
   }
@@ -1682,22 +1517,7 @@ class MainActivity : AppCompatActivity() {
           saveDiagnosticsLauncher.launch("openmrs-diagnostics-$stamp.zip")
           return@launch
         }
-        val emailIntent =
-          Intent(Intent.ACTION_SEND).apply {
-            type = "application/zip"
-            putExtra(Intent.EXTRA_EMAIL, arrayOf(AppConfig.get(this@MainActivity).supportEmail))
-            putExtra(Intent.EXTRA_SUBJECT, getString(R.string.diagnostic_report_subject))
-            putExtra(Intent.EXTRA_TEXT, getString(R.string.diagnostic_report_body))
-            putExtra(
-              Intent.EXTRA_STREAM,
-              FileProvider.getUriForFile(
-                applicationContext,
-                "${applicationContext.packageName}.provider",
-                report.file,
-              ),
-            )
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-          }
+        val emailIntent = diagnosticsEmailIntent(report)
         startActivity(
           Intent.createChooser(emailIntent, getString(R.string.send_email_chooser_title)),
         )
