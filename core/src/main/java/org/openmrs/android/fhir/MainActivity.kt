@@ -38,8 +38,6 @@ import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -80,11 +78,13 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.openmrs.android.fhir.audit.AuditAction
@@ -150,8 +150,7 @@ private const val BACKGROUND_BLUR_RADIUS = 18f
 
 class MainActivity : AppCompatActivity() {
   private lateinit var authStateManager: AuthStateManager
-  private var tokenExpiryHandler: Handler? = null
-  private var tokenCheckRunnable: Runnable? = null
+  private var tokenMonitorJob: Job? = null
   private lateinit var loginRepository: LoginRepository
   private lateinit var demoDataStore: DemoDataStore
 
@@ -258,7 +257,6 @@ class MainActivity : AppCompatActivity() {
         }
       }
     }
-    tokenExpiryHandler = Handler(Looper.getMainLooper())
     demoDataStore = DemoDataStore(this)
     setContentView(R.layout.activity_main)
     ensureNavHost(navHostFragmentId)
@@ -1097,33 +1095,29 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
-  private suspend fun monitorTokenExpiry() {
-    val tokenExpiryDelay = withContext(Dispatchers.IO) { demoDataStore.getTokenExpiryDelay() }
-    tokenCheckRunnable =
-      object : Runnable {
-        override fun run() {
+  /**
+   * Watches the access token while the server is reachable: an expired one is renewed with the
+   * refresh token, and only when that fails is the user asked to sign in. One watch at a time: a
+   * new call replaces the one running.
+   */
+  private fun monitorTokenExpiry() {
+    tokenMonitorJob?.cancel()
+    tokenMonitorJob =
+      lifecycleScope.launch {
+        val tokenExpiryDelay = withContext(Dispatchers.IO) { demoDataStore.getTokenExpiryDelay() }
+        while (isActive) {
           if (isTokenExpired()) {
             val connectivityState = viewModel.networkStatus.value
-            if (connectivityState.isServerReachable()) {
-              val check = this
-              lifecycleScope.launch {
-                // Renewed with the refresh token: nothing to ask, the check goes on.
-                if (loginRepository.renewAccessTokenIfNeeded()) {
-                  tokenExpiryHandler?.postDelayed(check, tokenExpiryDelay)
-                } else {
-                  viewModel.requestTokenExpiredDialog(connectivityState)
-                  tokenExpiryHandler?.removeCallbacks(check)
-                }
-              }
-            } else {
-              tokenExpiryHandler?.postDelayed(this, tokenExpiryDelay)
+            if (
+              connectivityState.isServerReachable() && !loginRepository.renewAccessTokenIfNeeded()
+            ) {
+              viewModel.requestTokenExpiredDialog(connectivityState)
+              return@launch
             }
-          } else {
-            tokenExpiryHandler?.postDelayed(this, tokenExpiryDelay)
           }
+          delay(tokenExpiryDelay)
         }
       }
-    tokenCheckRunnable?.let { tokenExpiryHandler?.post(it) }
   }
 
   private fun isTokenExpired(): Boolean {
@@ -1163,14 +1157,10 @@ class MainActivity : AppCompatActivity() {
       .show()
   }
 
+  /** Asks again later (the periodic sync delay, 15 minutes by default). */
   private suspend fun scheduleDialogForLater() {
-    tokenExpiryHandler?.postDelayed(
-      {
-        val connectivityState = viewModel.networkStatus.value
-        viewModel.requestTokenExpiredDialog(connectivityState)
-      },
-      demoDataStore.getPeriodicSyncDelay(),
-    ) // 15 minutes in milliseconds
+    delay(demoDataStore.getPeriodicSyncDelay())
+    viewModel.requestTokenExpiredDialog(viewModel.networkStatus.value)
   }
 
   private fun observeNetworkConnection(context: Context) {
@@ -1232,11 +1222,6 @@ class MainActivity : AppCompatActivity() {
   @VisibleForTesting
   fun updateLastSyncTextForTest(text: String) {
     viewModel.updateLastSyncTextForTest(text)
-  }
-
-  override fun onDestroy() {
-    super.onDestroy()
-    tokenExpiryHandler?.removeCallbacksAndMessages(null)
   }
 
   override fun onStart() {
