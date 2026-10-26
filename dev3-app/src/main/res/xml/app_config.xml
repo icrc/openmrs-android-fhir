@@ -8,7 +8,7 @@
 
     <patients registration-form="new-patient-registration-paginated" fetch-identifiers="true" />
 
-    <support email="support@example.com" />
+    <support email="support@mail.com" />
 
     <diagnostics password="changeit" />
     <!-- The audit trail kept for the support team (sign-ins, patients and encounters created or

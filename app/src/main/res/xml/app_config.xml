@@ -8,7 +8,7 @@
 
     <patients registration-form="new-patient-registration-paginated" fetch-identifiers="false" />
 
-    <support email="parthgeek@gmail.com" />
+    <support email="support@mail.com" />
 
     <diagnostics password="changeit" />
 

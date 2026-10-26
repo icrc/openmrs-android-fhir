@@ -30,7 +30,7 @@
 
     <!-- Where "Send diagnostics" goes. The password (required: change it) protects the
          archive and the application logs; support needs it to open a report. -->
-    <support email="support@example.com" />
+    <support email="support@mail.com" />
 
     <diagnostics password="changeIt" />
 

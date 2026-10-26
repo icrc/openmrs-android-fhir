@@ -41,7 +41,7 @@ An app is configured by one file, `res/xml/app_config.xml`, in its module. It is
 <app-config>
     <server url="http://10.0.2.2:8080/openmrs" />
     <auth method="both" guest-mode="false" />
-    <support email="support@example.com" />
+    <support email="support@mail.com" />
     <diagnostics password="changeit" />
 </app-config>
 ```
