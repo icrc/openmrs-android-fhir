@@ -36,8 +36,9 @@ import org.junit.Test
 import org.w3c.dom.Element
 
 /**
- * The translations the app ships in: every tutorial text (`help_*`) exists in all five languages,
- * and a translation uses the same placeholders as the English text, so formatting it cannot crash.
+ * The translations the app ships in: every string exists in all five languages, none is left
+ * without its English text, and a translation uses the same placeholders as the English text, so
+ * formatting it cannot crash.
  */
 class StringResourcesTest {
   private val languages = listOf("values-fr", "values-es", "values-ru", "values-ar")
@@ -59,13 +60,22 @@ class StringResourcesTest {
   private val placeholder = Regex("%(\\d+\\$)?[sdf]")
 
   @Test
-  fun everyTutorialTextIsTranslated() {
-    val helpKeys = english.keys.filter { it.startsWith("help_") }.toSet()
-    assertTrue(helpKeys.isNotEmpty(), "no help_ strings found: is the test running in core/?")
+  fun everyStringIsTranslated() {
+    assertTrue(english.isNotEmpty(), "no strings found: is the test running in core/?")
     languages.forEach { language ->
-      val translated = strings(language).keys
-      val missing = helpKeys - translated
+      val missing = english.keys - strings(language).keys
       assertTrue(missing.isEmpty(), "$language lacks: ${missing.sorted()}")
+    }
+  }
+
+  @Test
+  fun noTranslationOutlivesItsEnglishText() {
+    languages.forEach { language ->
+      val orphans = strings(language).keys - english.keys
+      assertTrue(
+        orphans.isEmpty(),
+        "$language has translations without an English text: ${orphans.sorted()}",
+      )
     }
   }
 
