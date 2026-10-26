@@ -203,7 +203,15 @@ fun HomeScreen(
     item(key = "home-summary") {
       if (summary != null) HomeSummaryRow(summary = summary, onClick = onSyncInfoClicked)
     }
-    items(rows, key = { row -> row.hashCode() }) { row ->
+    items(
+      rows,
+      key = { row ->
+        when (row) {
+          is HomeRow.SectionHeader -> "header-${row.titleRes}"
+          is HomeRow.Card -> "card-${row.config.testTag}"
+        }
+      },
+    ) { row ->
       when (row) {
         is HomeRow.SectionHeader -> HomeSectionHeader(titleRes = row.titleRes)
         is HomeRow.Card ->

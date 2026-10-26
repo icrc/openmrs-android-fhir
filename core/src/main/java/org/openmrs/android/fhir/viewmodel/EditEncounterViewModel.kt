@@ -45,6 +45,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import java.util.UUID
 import kotlin.collections.forEach
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Bundle
@@ -67,6 +68,7 @@ import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.EncounterFallbackForm
 import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
@@ -99,6 +101,7 @@ constructor(
   private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
   @Assisted val state: SavedStateHandle,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
   @AssistedFactory
@@ -133,7 +136,7 @@ constructor(
   fun prepareEditEncounter(encounterId: String, encounterType: String) {
     // Reading the encounter, filling the form from its observations and writing both as JSON is the
     // slow part of opening this screen: keep all of it off the main thread.
-    viewModelScope.launch(Dispatchers.Default) {
+    viewModelScope.launch(defaultDispatcher) {
       val observations = getObservationsEncounterId(encounterId)
       try {
         var questionnaire =

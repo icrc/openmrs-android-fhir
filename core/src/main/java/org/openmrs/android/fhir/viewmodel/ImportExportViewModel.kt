@@ -34,6 +34,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,6 +51,7 @@ import org.openmrs.android.fhir.data.transfer.ExportResult
 import org.openmrs.android.fhir.data.transfer.ImportResult
 import org.openmrs.android.fhir.data.transfer.InvalidTransferFileException
 import org.openmrs.android.fhir.data.transfer.WrongPinException
+import org.openmrs.android.fhir.di.IoDispatcher
 import org.openmrs.android.fhir.ui.components.MessageKind
 import timber.log.Timber
 
@@ -80,6 +82,7 @@ class ImportExportViewModel
 constructor(
   private val context: Context,
   private val transfer: DataTransfer,
+  @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
   private val _uiState = MutableStateFlow(ImportExportUiState())
   val uiState: StateFlow<ImportExportUiState> = _uiState
@@ -157,7 +160,7 @@ constructor(
     val file = _uiState.value.exported?.file ?: return
     viewModelScope.launch {
       val saved = runCatching {
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
           context.contentResolver.openOutputStream(uri)?.use { out ->
             file.inputStream().use { it.copyTo(out) }
           } != null
@@ -171,7 +174,7 @@ constructor(
   }
 
   private suspend fun readFile(uri: Uri): ByteArray =
-    withContext(Dispatchers.IO) {
+    withContext(ioDispatcher) {
       context.contentResolver.openInputStream(uri)?.use { input ->
         val bytes = input.readNBytesUpTo(DataTransfer.MAX_IMPORT_BYTES)
         bytes ?: throw InvalidTransferFileException()

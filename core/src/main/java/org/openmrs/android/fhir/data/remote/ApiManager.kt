@@ -64,7 +64,8 @@ class ApiManager @Inject constructor(context: Context) : Api {
   private val loginRepository = LoginRepository.getInstance(context)
   private val okHttpClientBuilder: OkHttpClient.Builder by lazy {
     val okHttpClientBuilder =
-      OkHttpClient.Builder()
+      HttpClients.base
+        .newBuilder()
         .callTimeout(60, TimeUnit.SECONDS)
         .connectTimeout(60, TimeUnit.SECONDS)
         .readTimeout(60, TimeUnit.SECONDS)

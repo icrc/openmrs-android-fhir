@@ -41,6 +41,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -63,6 +64,7 @@ import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ApiResponse
 import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.data.remote.model.SessionResponse
+import org.openmrs.android.fhir.di.IoDispatcher
 import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.multiuser.UserDataLedger
@@ -80,6 +82,7 @@ constructor(
   private val apiManager: ApiManager,
   private val fhirEngine: FhirEngine,
   private val userDataLedger: UserDataLedger,
+  @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
   private val loginRepository by lazy { LoginRepository.getInstance(applicationContext) }
@@ -135,7 +138,7 @@ constructor(
     // The connection can come and go while the login page is open.
     runCatching { connectivityManager.registerDefaultNetworkCallback(networkCallback) }
     refreshConnectivity()
-    viewModelScope.launch(Dispatchers.IO) {
+    viewModelScope.launch(ioDispatcher) {
       _pendingUsers.value =
         try {
           userDataLedger.pendingByUser(fhirEngine)
@@ -157,7 +160,7 @@ constructor(
       // A new sign-in: the location screen is offered again.
       applicationContext.dataStore.edit { it.remove(PreferenceKeys.LOCATION_PROMPT_DONE) }
       if (UserRegistry.activate(applicationContext, name)) {
-        withContext(Dispatchers.IO) { userDataLedger.attributeExistingPatients(fhirEngine) }
+        withContext(ioDispatcher) { userDataLedger.attributeExistingPatients(fhirEngine) }
       }
     } catch (e: CancellationException) {
       throw e

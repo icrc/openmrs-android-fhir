@@ -47,6 +47,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import java.util.Date
 import java.util.UUID
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -69,6 +70,8 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.GroupSessionDraftRepository
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
+import org.openmrs.android.fhir.di.DefaultDispatcher
+import org.openmrs.android.fhir.di.IoDispatcher
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
@@ -86,6 +89,8 @@ constructor(
   private val fhirEngine: FhirEngine,
   private val groupSessionDraftRepository: GroupSessionDraftRepository,
   @Assisted private val savedStateHandle: SavedStateHandle,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
+  @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
   @AssistedFactory
@@ -180,7 +185,7 @@ constructor(
         collectEncounterExtras(encounterQuestionnaire.item)
         extras.forEach { s.addItem(it) }
         screenerQuestionnaireJson.value =
-          withContext(Dispatchers.Default) { parser.encodeResourceToString(s) }
+          withContext(defaultDispatcher) { parser.encodeResourceToString(s) }
       }
     }
   }
@@ -431,7 +436,7 @@ constructor(
     applicationContext: Context,
   ): Boolean =
     // Validating walks the whole form; the screen must stay responsive while it does.
-    withContext(Dispatchers.Default) {
+    withContext(defaultDispatcher) {
       !questionnaire.hasInvalidAnswersIgnoringPageSpacers(
         questionnaireResponse,
         applicationContext,
@@ -451,15 +456,15 @@ constructor(
         sessionDate = sessionDate?.time,
         screenerCompleted = isScreenerCompleted,
       )
-    withContext(Dispatchers.IO) { groupSessionDraftRepository.upsertDraft(draft) }
+    withContext(ioDispatcher) { groupSessionDraftRepository.upsertDraft(draft) }
   }
 
   suspend fun loadDraft(questionnaireId: String): GroupSessionDraft? {
-    return withContext(Dispatchers.IO) { groupSessionDraftRepository.getDraft(questionnaireId) }
+    return withContext(ioDispatcher) { groupSessionDraftRepository.getDraft(questionnaireId) }
   }
 
   suspend fun deleteDraft(questionnaireId: String) {
-    withContext(Dispatchers.IO) { groupSessionDraftRepository.deleteDraft(questionnaireId) }
+    withContext(ioDispatcher) { groupSessionDraftRepository.deleteDraft(questionnaireId) }
   }
 
   fun restoreDraft(draft: GroupSessionDraft) {

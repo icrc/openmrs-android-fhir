@@ -36,7 +36,6 @@ import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -44,6 +43,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
@@ -98,7 +98,7 @@ class PatientListFragment : Fragment() {
     )
     composeView.setContent {
       OpenMrsTheme {
-        val uiState by patientListViewModel.uiState.collectAsState()
+        val uiState by patientListViewModel.uiState.collectAsStateWithLifecycle()
         val serverMessage = uiState.serverSearch.messageRes
         LaunchedEffect(serverMessage) {
           if (serverMessage != null) {

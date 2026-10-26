@@ -48,6 +48,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Period
 import java.time.ZoneId
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Address
@@ -70,6 +71,7 @@ import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssetsAsString
 import org.openmrs.android.fhir.fragments.EditPatientFragment
@@ -85,6 +87,7 @@ constructor(
   @Assisted val state: SavedStateHandle,
   private val fhirEngine: FhirEngine,
   private val openMRSHelper: OpenMRSHelper,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
   @AssistedFactory
@@ -98,7 +101,7 @@ constructor(
   private val registrationQuestionnaireName: String =
     requireNotNull(state["registration_questionnaire_name"])
   val livePatientData =
-    liveData(Dispatchers.Default) { emit(prepareEditPatient(registrationQuestionnaireName)) }
+    liveData(defaultDispatcher) { emit(prepareEditPatient(registrationQuestionnaireName)) }
   lateinit var originalPatient: Patient
   lateinit var questionnaireResource: Questionnaire
   val isPatientSaved = MutableLiveData<Boolean>()

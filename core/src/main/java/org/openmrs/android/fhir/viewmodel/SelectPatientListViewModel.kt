@@ -38,6 +38,7 @@ import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.AcceptLocalConflictResolver
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
@@ -64,6 +65,8 @@ import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.sync.PatientListDownloader
 import org.openmrs.android.fhir.data.sync.SyncUrls
+import org.openmrs.android.fhir.di.DefaultDispatcher
+import org.openmrs.android.fhir.di.IoDispatcher
 import timber.log.Timber
 
 class SelectPatientListViewModel
@@ -71,6 +74,8 @@ class SelectPatientListViewModel
 constructor(
   private val fhirEngine: FhirEngine,
   private val applicationContext: Context,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
+  @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
   val selectPatientListItems = MutableLiveData<List<SelectPatientListItem>>()
@@ -124,11 +129,11 @@ constructor(
           val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
           val groups =
             withTimeout(REFRESH_TIMEOUT_MILLIS) {
-              withContext(Dispatchers.IO) {
+              withContext(ioDispatcher) {
                 apiManager.fetchPatientLists(SyncUrls.groups(applicationContext, locationId))
               }
             }
-          withContext(Dispatchers.IO) {
+          withContext(ioDispatcher) {
             // Stored the way a sync stores them: nothing here is a local change.
             fhirEngine.syncDownload(AcceptLocalConflictResolver) { flowOf(groups) }
           }
@@ -152,7 +157,7 @@ constructor(
     val locationId = applicationContext.dataStore.data.first()[PreferenceKeys.LOCATION_ID]
     // Reading and filtering every Group can take a moment on big servers: keep it off main.
     val (groups, selectPatientListItemList) =
-      withContext(Dispatchers.Default) {
+      withContext(defaultDispatcher) {
         val groups = fhirEngine.search<Group> {}.map { it.resource }
         val filteredGroups =
           if (filterPatientListsByGroup) {

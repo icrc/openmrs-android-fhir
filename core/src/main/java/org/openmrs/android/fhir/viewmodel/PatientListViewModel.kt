@@ -166,6 +166,10 @@ constructor(
   @androidx.annotation.VisibleForTesting
   internal var backgroundDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.Default
 
+  /** Where the server is searched and a patient downloaded; a test replaces it. */
+  @androidx.annotation.VisibleForTesting
+  internal var ioDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.IO
+
   /** How many patients are listed; "Show more" raises it by a page. */
   private var limit = PAGE_SIZE
 
@@ -406,7 +410,7 @@ constructor(
         try {
           val found =
             withTimeout(SERVER_SEARCH_TIMEOUT_MILLIS) {
-              withContext(Dispatchers.IO) { live.search(text) }
+              withContext(ioDispatcher) { live.search(text) }
             }
           updateServerSearch {
             it.copy(
@@ -454,7 +458,7 @@ constructor(
     viewModelScope.launch {
       try {
         withTimeout(SERVER_OPEN_TIMEOUT_MILLIS) {
-          withContext(Dispatchers.IO) { live.download(patient.resourceId) }
+          withContext(ioDispatcher) { live.download(patient.resourceId) }
         }
         // The list now includes them.
         reloadQuietly()

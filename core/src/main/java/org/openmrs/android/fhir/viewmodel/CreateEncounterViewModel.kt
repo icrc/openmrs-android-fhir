@@ -34,6 +34,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -46,6 +47,8 @@ import org.openmrs.android.fhir.data.database.model.CustomFormSection
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.data.database.model.FormSectionItem
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraftSummary
+import org.openmrs.android.fhir.di.DefaultDispatcher
+import org.openmrs.android.fhir.di.IoDispatcher
 import timber.log.Timber
 
 class CreateEncounterViewModel
@@ -54,6 +57,8 @@ constructor(
   private val applicationContext: Context,
   private val formCatalog: FormCatalog,
   private val groupSessionDraftRepository: GroupSessionDraftRepository,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
+  @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
   private val demoDataStore = DemoDataStore(applicationContext)
@@ -108,7 +113,7 @@ constructor(
     viewModelScope.launch {
       _isLoading.value = true
       try {
-        val catalog = withContext(Dispatchers.Default) { formCatalog.load() }
+        val catalog = withContext(defaultDispatcher) { formCatalog.load() }
         formsById = catalog.allForms.associateBy { it.questionnaireId }
         sections = buildSections(catalog)
         publish()
@@ -126,7 +131,7 @@ constructor(
     viewModelScope.launch {
       try {
         _pendingSessions.value =
-          withContext(Dispatchers.IO) { groupSessionDraftRepository.pendingSessions() }
+          withContext(ioDispatcher) { groupSessionDraftRepository.pendingSessions() }
       } catch (e: Exception) {
         Timber.e(e, "Could not read the pending group sessions")
       }

@@ -44,6 +44,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import java.time.ZoneId
 import java.util.Date
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -71,6 +72,7 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.ensurePageGroupsHaveTrailingSpacer
@@ -92,6 +94,7 @@ constructor(
   private val fhirEngine: FhirEngine,
   private val openMRSHelper: OpenMRSHelper,
   @Assisted val state: SavedStateHandle,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
   @AssistedFactory
@@ -118,7 +121,7 @@ constructor(
   fun getEncounterQuestionnaire(questionnaireId: String, startOnToday: Boolean = false) {
     viewModelScope.launch {
       val (loaded, json) =
-        withContext(Dispatchers.Default) {
+        withContext(defaultDispatcher) {
           val q =
             fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
           q?.ensurePageGroupsHaveTrailingSpacer()

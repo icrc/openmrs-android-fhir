@@ -40,7 +40,6 @@ import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.openmrs.android.fhir.SplashActivity
 import org.openmrs.android.fhir.config.AppConfig
@@ -147,7 +146,8 @@ object ServerSettings {
           .getOrNull()
           ?: return@withContext TestResult.Failure(Reason.InvalidAddress)
       val client =
-        OkHttpClient.Builder()
+        HttpClients.base
+          .newBuilder()
           .connectTimeout(8, TimeUnit.SECONDS)
           .readTimeout(8, TimeUnit.SECONDS)
           .followRedirects(false)

@@ -43,6 +43,7 @@ import com.google.android.fhir.get
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -71,6 +72,7 @@ import org.openmrs.android.fhir.data.PatientIdentifierFactory
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.pagedBySections
 import org.openmrs.android.fhir.extensions.requireAnswersBeforeReview
@@ -84,6 +86,7 @@ constructor(
   private val fhirEngine: FhirEngine,
   private val database: AppDatabase,
   private val openMRSHelper: OpenMRSHelper,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
   var locationId: String? = null
@@ -304,7 +307,7 @@ constructor(
     viewModelScope.launch {
       // Loading the form and writing it as JSON is heavy for the registration form: not on main.
       val json =
-        withContext(Dispatchers.Default) {
+        withContext(defaultDispatcher) {
           val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
           questionnaire =
             fhirEngine.getQuestionnaireOrFromAssets(questionnaireName, applicationContext, parser)

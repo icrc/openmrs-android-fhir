@@ -36,7 +36,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -45,6 +44,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.view.updatePadding
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -87,7 +87,7 @@ fun View.keepBelowAppBar(owner: LifecycleOwner, extra: Dp = 4.dp) {
 fun rememberAppBarHeight(): Dp {
   val context = LocalContext.current
   val density = LocalDensity.current
-  val measuredPx by AppBarInsets.heightPx.collectAsState()
+  val measuredPx by AppBarInsets.heightPx.collectAsStateWithLifecycle()
   val actionBarHeightPx = remember { context.resolveActionBarHeightPx() }
   val fallback =
     WindowInsets.statusBars.asPaddingValues().calculateTopPadding() +

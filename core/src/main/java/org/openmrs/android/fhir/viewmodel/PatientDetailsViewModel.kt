@@ -44,6 +44,7 @@ import dagger.assisted.AssistedInject
 import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -72,6 +73,8 @@ import org.openmrs.android.fhir.data.VisitPeriodError
 import org.openmrs.android.fhir.data.isOpenVisit
 import org.openmrs.android.fhir.data.sync.LivePatients
 import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.di.DefaultDispatcher
+import org.openmrs.android.fhir.di.IoDispatcher
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.FormSummary
@@ -93,6 +96,8 @@ constructor(
   private val openMRSHelper: OpenMRSHelper,
   private val unidentified: UnidentifiedPatients,
   @Assisted val state: SavedStateHandle,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
+  @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
   @AssistedFactory
@@ -132,7 +137,7 @@ constructor(
     try {
       if (!LiveSync.isEnabled(applicationContext) || LivePatients.isFresh(patientId)) return
       withTimeout(REFRESH_TIMEOUT_MILLIS) {
-        withContext(Dispatchers.IO) { live.download(patientId, remember = false) }
+        withContext(ioDispatcher) { live.download(patientId, remember = false) }
       }
       if (livePatientData.value != null) getPatientDetailData()
     } catch (e: CancellationException) {
@@ -325,7 +330,7 @@ constructor(
   /** The registration form's wording of each person attribute, by its link id. */
   private suspend fun registrationFormLabels(): Map<String, String> =
     try {
-      withContext(Dispatchers.Default) {
+      withContext(defaultDispatcher) {
         val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
         val form =
           fhirEngine.getQuestionnaireOrFromAssets(

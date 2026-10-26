@@ -39,13 +39,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricPrompt
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.withResumed
@@ -135,8 +135,8 @@ class LoginActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     (application as FhirApplication).appComponent.inject(this)
     setContent {
-      val pendingUsers by viewModel.pendingUsers.collectAsState()
-      val reachable by viewModel.serverReachable.collectAsState()
+      val pendingUsers by viewModel.pendingUsers.collectAsStateWithLifecycle()
+      val reachable by viewModel.serverReachable.collectAsStateWithLifecycle()
       OpenMrsTheme {
         LoginScreen(
           showBasic = showBasic,

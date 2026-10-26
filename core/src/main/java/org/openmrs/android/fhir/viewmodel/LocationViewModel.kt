@@ -41,6 +41,7 @@ import com.google.android.fhir.sync.CurrentSyncJobStatus
 import com.google.android.fhir.sync.Sync
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -62,6 +63,7 @@ import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.sync.FirstFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.LocationFhirSyncWorker
+import org.openmrs.android.fhir.di.DefaultDispatcher
 import timber.log.Timber
 
 class LocationViewModel
@@ -69,6 +71,7 @@ class LocationViewModel
 constructor(
   private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
   private var masterLocationsList: MutableList<LocationItem> = mutableListOf()
   private val restApiManager = FhirApplication.restApiClient(applicationContext)
@@ -115,7 +118,7 @@ constructor(
     viewModelScope.launch {
       // Reading and mapping every Location can take a moment on big servers: keep it off main.
       val locationsList =
-        withContext(Dispatchers.Default) {
+        withContext(defaultDispatcher) {
           fhirEngine
             .search<Location> {
               sort(

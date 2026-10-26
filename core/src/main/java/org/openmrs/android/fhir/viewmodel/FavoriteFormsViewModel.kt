@@ -32,6 +32,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -43,6 +44,7 @@ import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.data.FormCatalog
 import org.openmrs.android.fhir.data.database.model.CustomFormSection
 import org.openmrs.android.fhir.data.database.model.FormItem
+import org.openmrs.android.fhir.di.DefaultDispatcher
 import timber.log.Timber
 
 /** The forms the user can pick favorites from (Settings), and which ones are picked. */
@@ -51,6 +53,7 @@ class FavoriteFormsViewModel
 constructor(
   applicationContext: Context,
   private val formCatalog: FormCatalog,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
   private val demoDataStore = DemoDataStore(applicationContext)
 
@@ -79,7 +82,7 @@ constructor(
   fun load() {
     viewModelScope.launch {
       try {
-        val catalog = withContext(Dispatchers.Default) { formCatalog.load() }
+        val catalog = withContext(defaultDispatcher) { formCatalog.load() }
         _forms.value = catalog.allForms
         _defaultSections.value =
           catalog.sections

@@ -42,13 +42,14 @@ import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.LoginRepository
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.remote.HttpClients
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
 import org.openmrs.android.fhir.data.remote.model.SessionResponse
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import timber.log.Timber
 
 class RestApiManager private constructor(private val context: Context) {
-  private val client: OkHttpClient = OkHttpClient.Builder().build()
+  private val client: OkHttpClient = HttpClients.base.newBuilder().build()
   private var sessionCookie: String? = null
   private val apiManager by lazy { ApiManager(context) }
 

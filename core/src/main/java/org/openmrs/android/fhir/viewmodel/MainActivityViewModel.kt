@@ -51,6 +51,7 @@ import dagger.assisted.AssistedInject
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
@@ -97,6 +98,7 @@ import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.data.sync.SyncMode
 import org.openmrs.android.fhir.data.sync.UploadFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.UploadPreparer
+import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.ui.screens.SyncProgressState
@@ -113,6 +115,7 @@ constructor(
   val database: AppDatabase,
   val apiManager: ApiManager,
   val identifierTypeManager: IdentifierTypeManager,
+  @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
   @AssistedFactory
   interface Factory : org.openmrs.android.fhir.di.ViewModelAssistedFactory<MainActivityViewModel> {
@@ -318,7 +321,7 @@ constructor(
     _uiEvents.tryEmit(MainActivityEvent.HideSyncTasks)
     setIsSyncing(false)
     NotificationHelper.cancelSyncNotification(applicationContext)
-    CoroutineScope(Dispatchers.Default).launch {
+    CoroutineScope(defaultDispatcher).launch {
       workManager.cancelUniqueWork(SyncInfoDatabaseWriterWorker.WORK_NAME)
       Sync.cancelOneTimeSync<FhirSyncWorker>(applicationContext)
       Sync.cancelOneTimeSync<UploadFhirSyncWorker>(applicationContext)
