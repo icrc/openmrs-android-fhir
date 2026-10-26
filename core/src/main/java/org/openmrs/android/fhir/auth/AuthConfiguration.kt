@@ -52,7 +52,7 @@ class AuthConfiguration private constructor(private val context: Context) {
     get() {
       val serializedAuth =
         runBlocking { context.dataStore.data.first()[authConfigKey] } ?: return authConfigData
-      return serializedAuth.fromJson<AuthConfigData>()!!
+      return serializedAuth.fromJson<AuthConfigData>() ?: authConfigData
     }
 
   suspend fun isNotStored(): Boolean {
@@ -142,7 +142,10 @@ class AuthConfiguration private constructor(private val context: Context) {
       AuthConfigUtil.isRequiredConfigString(authConfigData.clientId)
       AuthConfigUtil.isRequiredConfigString(authConfigData.authorizationScope)
       AuthConfigUtil.isRequiredConfigUri(authConfigData.redirectUri)
-      AuthConfigUtil.isRedirectUriRegistered(context, authConfigData.redirectUri!!)
+      AuthConfigUtil.isRedirectUriRegistered(
+        context,
+        checkNotNull(authConfigData.redirectUri) { "auth_config has no redirect uri" },
+      )
     }
   }
 

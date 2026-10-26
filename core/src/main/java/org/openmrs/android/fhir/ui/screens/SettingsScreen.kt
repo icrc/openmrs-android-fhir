@@ -570,8 +570,8 @@ fun SettingsScreen(
                 options = favoriteFormOptions.orEmpty(),
                 custom = customFormSections,
                 defaults = defaultFormSections,
-                onSaved = onFormSectionsSaved!!,
-                onReset = onFormSectionsReset!!,
+                onSaved = onFormSectionsSaved,
+                onReset = onFormSectionsReset,
               )
             }
           }

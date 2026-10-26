@@ -93,12 +93,13 @@ object EncounterFallbackForm {
         R.string.encounter_generic_status to
           encounter.status?.takeIf { it != Encounter.EncounterStatus.UNKNOWN }?.display,
       )
-    val shownFacts = facts.filter { !it.second.isNullOrBlank() }
+    val shownFacts =
+      facts.mapNotNull { (label, value) -> value?.takeIf { it.isNotBlank() }?.let { label to it } }
     if (shownFacts.isNotEmpty()) {
       val group = group(ENCOUNTER_GROUP, context.getString(R.string.encounter_generic_title))
       val answers = responseGroup(ENCOUNTER_GROUP)
       shownFacts.forEachIndexed { index, (label, value) ->
-        addAnswer(group, answers, "generic-fact-$index", context.getString(label), value!!)
+        addAnswer(group, answers, "generic-fact-$index", context.getString(label), value)
       }
       questionnaire.addItem(group)
       response.addItem(answers)

@@ -88,17 +88,23 @@ private constructor(
       Timber.i("can't get authorizationServiceConfiguration")
       return null
     }
-    val authRequestBuilder =
-      AuthorizationRequest.Builder(
-          authStateManager.current.authorizationServiceConfiguration!!,
-          clientId.get()!!,
-          ResponseTypeValues.CODE,
-          authConfig.redirectUri!!,
-        )
+    val serviceConfiguration =
+      authStateManager.current.authorizationServiceConfiguration ?: return null
+    val id = clientId.get()
+    val redirectUri = authConfig.redirectUri
+    if (id == null || redirectUri == null) {
+      Timber.w(
+        "can't build the authorization request: the client id or the redirect uri is missing",
+      )
+      return null
+    }
+    val request =
+      AuthorizationRequest.Builder(serviceConfiguration, id, ResponseTypeValues.CODE, redirectUri)
         .setScope(authConfig.scope)
-    authRequest.set(authRequestBuilder.build())
+        .build()
+    authRequest.set(request)
 
-    return authService.getAuthorizationRequestIntent(authRequest.get()!!)
+    return authService.getAuthorizationRequestIntent(request)
   }
 
   suspend fun initializeAppAuth() {
@@ -115,8 +121,8 @@ private constructor(
       Timber.i("Creating auth authConfig from res/raw/auth_config.json")
       val authConfig =
         AuthorizationServiceConfiguration(
-          authConfig.authEndpointUri!!,
-          authConfig.tokenEndpointUri!!,
+          checkNotNull(authConfig.authEndpointUri) { "auth_config has no authorization endpoint" },
+          checkNotNull(authConfig.tokenEndpointUri) { "auth_config has no token endpoint" },
           authConfig.registrationEndpointUri,
           authConfig.endSessionEndpoint,
         )
@@ -129,41 +135,41 @@ private constructor(
   }
 
   private suspend fun retrieveOpenID() {
-    return suspendCoroutine { cont ->
-      AuthorizationServiceConfiguration.fetchFromUrl(
-        authConfig.discoveryUri!!,
-        { config: AuthorizationServiceConfiguration?, ex: AuthorizationException? ->
-          handleConfigurationRetrievalResult(config, ex)
-          cont.resume(Unit)
-        },
-        authConfig.connectionBuilder,
-      )
-    }
+    val discoveryUri = checkNotNull(authConfig.discoveryUri) { "auth_config has no discovery uri" }
+    val (config, ex) =
+      suspendCoroutine<Pair<AuthorizationServiceConfiguration?, AuthorizationException?>> { cont ->
+        AuthorizationServiceConfiguration.fetchFromUrl(
+          discoveryUri,
+          { config: AuthorizationServiceConfiguration?, ex: AuthorizationException? ->
+            cont.resume(config to ex)
+          },
+          authConfig.connectionBuilder,
+        )
+      }
+    handleConfigurationRetrievalResult(config, ex)
   }
 
-  private fun handleConfigurationRetrievalResult(
+  private suspend fun handleConfigurationRetrievalResult(
     authServiceConfig: AuthorizationServiceConfiguration?,
     ex: AuthorizationException?,
   ) {
-    runBlocking {
-      authConfig.lastException = ex
-      if (authServiceConfig == null) {
-        Timber.i("Failed to retrieve discovery document", ex)
-        return@runBlocking
-      }
-      Timber.i("Discovery document retrieved")
-
-      if (authConfig.replaceLocalhost) {
-        val updatedConfig =
-          AuthConfigUtil.replaceLocalhost(authServiceConfig.toJsonString(), replaceLocalhost = true)
-        authStateManager.replace(
-          AuthState(AuthorizationServiceConfiguration.fromJson(updatedConfig)),
-        )
-      } else {
-        authStateManager.replace(AuthState(authServiceConfig))
-      }
-      clientId.set(this@LoginRepository.authConfig.clientId)
+    authConfig.lastException = ex
+    if (authServiceConfig == null) {
+      Timber.i("Failed to retrieve discovery document", ex)
+      return
     }
+    Timber.i("Discovery document retrieved")
+
+    if (authConfig.replaceLocalhost) {
+      val updatedConfig =
+        AuthConfigUtil.replaceLocalhost(authServiceConfig.toJsonString(), replaceLocalhost = true)
+      authStateManager.replace(
+        AuthState(AuthorizationServiceConfiguration.fromJson(updatedConfig)),
+      )
+    } else {
+      authStateManager.replace(AuthState(authServiceConfig))
+    }
+    clientId.set(authConfig.clientId)
   }
 
   suspend fun updateAfterAuthorization(

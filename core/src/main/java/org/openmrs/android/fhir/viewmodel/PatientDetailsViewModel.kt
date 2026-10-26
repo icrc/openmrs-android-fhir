@@ -46,7 +46,6 @@ import java.util.Locale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.hl7.fhir.r4.model.BooleanType
@@ -209,27 +208,25 @@ constructor(
     return fhirEngine.getLocalChanges(ResourceType.Encounter, encounter.logicalId).isEmpty()
   }
 
-  private fun MutableList<PatientDetailData>.addPatientDetailData(
+  private suspend fun MutableList<PatientDetailData>.addPatientDetailData(
     patient: Patient,
   ) {
     patient.toPatientItem(0).let { patientItem ->
-      runBlocking {
-        patientItem.isSynced =
-          fhirEngine.getLocalChanges(ResourceType.Patient, patientItem.resourceId).isEmpty()
-        val toIdentify = unidentified.note(patientItem.resourceId)
-        add(
-          PatientDetailOverview(
-            patientItem,
-            firstInGroup = true,
-            extraDetails =
-              if (toIdentify == null) extraDetailsOf(patient, patientItem.phone) else emptyList(),
-            unidentified = toIdentify != null,
-          ),
-        )
-        if (toIdentify != null) add(PatientDetailUnidentified(toIdentify))
-        if (patientItem.isSynced != null && !patientItem.isSynced!!) {
-          add(PatientUnsynced(false, false))
-        }
+      patientItem.isSynced =
+        fhirEngine.getLocalChanges(ResourceType.Patient, patientItem.resourceId).isEmpty()
+      val toIdentify = unidentified.note(patientItem.resourceId)
+      add(
+        PatientDetailOverview(
+          patientItem,
+          firstInGroup = true,
+          extraDetails =
+            if (toIdentify == null) extraDetailsOf(patient, patientItem.phone) else emptyList(),
+          unidentified = toIdentify != null,
+        ),
+      )
+      if (toIdentify != null) add(PatientDetailUnidentified(toIdentify))
+      if (patientItem.isSynced == false) {
+        add(PatientUnsynced(false, false))
       }
       // Add other patient details if necessary
     }

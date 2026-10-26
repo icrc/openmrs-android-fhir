@@ -73,8 +73,12 @@ class TimestampBasedDownloadWorkManagerImpl(
   override suspend fun getNextRequest(): DownloadRequest? {
     var url = urls.poll() ?: return null
 
-    val resourceTypeToDownload =
-      ResourceType.fromCode(url.findAnyOf(resourceTypeList, ignoreCase = true)!!.second)
+    val resourceTypeCode = url.findAnyOf(resourceTypeList, ignoreCase = true)?.second
+    if (resourceTypeCode == null) {
+      Timber.w("No known resource type in the sync url, skipped: %s", url)
+      return getNextRequest()
+    }
+    val resourceTypeToDownload = ResourceType.fromCode(resourceTypeCode)
     dataStore.getLasUpdateTimestamp(resourceTypeToDownload)?.let {
       url = affixLastUpdatedTimestamp(url, it)
     }

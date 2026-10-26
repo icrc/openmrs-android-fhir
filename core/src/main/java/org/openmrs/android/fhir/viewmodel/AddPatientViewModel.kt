@@ -117,9 +117,15 @@ constructor(
     if (saveInProgress) return // To avoid multiple save of patient.
     viewModelScope.launch {
       saveInProgress = true
+      val form = questionnaire
+      if (form == null) {
+        saveInProgress = false
+        isPatientSaved.value = false
+        return@launch
+      }
       if (
         QuestionnaireResponseValidator.validateQuestionnaireResponse(
-            questionnaire!!,
+            form,
             questionnaireResponse,
             applicationContext,
           )
@@ -135,7 +141,7 @@ constructor(
 
       val entry =
         ResourceMapper.extract(
-            questionnaire!!,
+            form,
             questionnaireResponse,
           )
           .entryFirstRep
@@ -172,7 +178,7 @@ constructor(
 
       val personAttributeExtensions =
         openMRSHelper.extractPersonAttributeFromQuestionnaireResponse(
-          questionnaire!!,
+          form,
           questionnaireResponse,
         )
 
