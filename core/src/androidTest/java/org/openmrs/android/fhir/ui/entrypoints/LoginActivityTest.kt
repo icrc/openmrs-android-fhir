@@ -39,7 +39,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.openmrs.android.fhir.LoginActivity
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.extensions.AuthDialogs
+import org.openmrs.android.fhir.auth.AuthDialogs
 
 @RunWith(AndroidJUnit4::class)
 class LoginActivityTest {

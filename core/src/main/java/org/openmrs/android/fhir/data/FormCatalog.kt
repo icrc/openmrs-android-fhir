@@ -37,8 +37,8 @@ import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.config.FormSectionConfig
 import org.openmrs.android.fhir.data.database.model.FormItem
 import org.openmrs.android.fhir.extensions.AppLanguage
-import org.openmrs.android.fhir.extensions.FormSummary
-import org.openmrs.android.fhir.extensions.allFormSummaries
+import org.openmrs.android.fhir.forms.FormSummary
+import org.openmrs.android.fhir.forms.allFormSummaries
 
 /**
  * The encounter forms available on this device: the questionnaires the server synced plus the ones

@@ -68,7 +68,7 @@ import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.AppLock
-import org.openmrs.android.fhir.extensions.OfflineAuthPrompt
+import org.openmrs.android.fhir.auth.OfflineAuthPrompt
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
 /**

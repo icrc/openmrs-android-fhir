@@ -51,12 +51,12 @@ import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.databinding.GenericFormentryFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
-import org.openmrs.android.fhir.extensions.addQuestionnaireWhenDrawn
 import org.openmrs.android.fhir.extensions.keepBelowAppBar
-import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
-import org.openmrs.android.fhir.extensions.onQuestionnaireResult
-import org.openmrs.android.fhir.extensions.setFormBusy
-import org.openmrs.android.fhir.extensions.setFormLoading
+import org.openmrs.android.fhir.forms.addQuestionnaireWhenDrawn
+import org.openmrs.android.fhir.forms.newQuestionnaireFragment
+import org.openmrs.android.fhir.forms.onQuestionnaireResult
+import org.openmrs.android.fhir.forms.setFormBusy
+import org.openmrs.android.fhir.forms.setFormLoading
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.viewmodel.GenericFormEntryViewModel

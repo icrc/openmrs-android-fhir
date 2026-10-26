@@ -38,7 +38,6 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.view.WindowManager
 import org.openmrs.android.fhir.MainActivity
-import org.openmrs.android.fhir.extensions.BiometricUtils
 
 /**
  * What the offline login is for: when the user leaves the app and comes back, they prove who they

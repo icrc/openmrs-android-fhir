@@ -37,11 +37,11 @@ import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.auth.AuthStateManager
+import org.openmrs.android.fhir.auth.BiometricUtils
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
-import org.openmrs.android.fhir.extensions.BiometricUtils
-import org.openmrs.android.fhir.extensions.checkAndDeleteLogFile
+import org.openmrs.android.fhir.logging.checkAndDeleteLogFile
 import org.openmrs.android.fhir.multiuser.UserRegistry
 
 /**

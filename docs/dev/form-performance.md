@@ -34,7 +34,7 @@ largest bundled form (Assessment, 311 items), warm process, with the profiler's 
    pruning afterwards. The result is identical to pruning (checked on all forms and 7 locales).
 4. **Reading every form to read a name.** The lists (patients, patient details, create encounter,
    favorites) parsed all bundled questionnaires only to get their names and encounter types. They
-   use `FormSummary` (`extensions/FormSummaries.kt`) instead: a streaming read of five fields,
+   use `FormSummary` (`forms/FormSummaries.kt`) instead: a streaming read of five fields,
    done once per run. Editing an encounter reads the one form for its type instead of all of them.
 
 ## Keeping a form fast

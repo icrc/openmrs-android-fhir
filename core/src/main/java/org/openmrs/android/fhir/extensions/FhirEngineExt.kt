@@ -34,6 +34,9 @@ import com.google.android.fhir.FhirEngine
 import java.util.Locale
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.ResourceType
+import org.openmrs.android.fhir.forms.orBundledIfAliased
+import org.openmrs.android.fhir.forms.readBundledQuestionnaire
+import org.openmrs.android.fhir.forms.useEmbeddedFormsOnly
 
 /**
  * The questionnaire to fill in, with the translations of the device language only: the form library

@@ -26,28 +26,36 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.extensions
+package org.openmrs.android.fhir.forms
 
 import android.content.Context
-import android.os.Process
-import kotlin.system.exitProcess
-import timber.log.Timber
+import android.view.View
+import kotlinx.coroutines.flow.first
+import org.openmrs.android.fhir.auth.GuestSession
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.ui.components.LocationBannerState
 
-/*
-Logs the stacktrace of unhandled exception,
-hence it is handled by FileLoggingTree.kt and added to the application log file.
-*/
-class UncaughtExceptionHandler(
-  val context: Context,
-  private val defaultUncaughtHandler: Thread.UncaughtExceptionHandler?,
-) : Thread.UncaughtExceptionHandler {
-  override fun uncaughtException(thread: Thread, exception: Throwable) {
-    Timber.tag("App-ExceptionLog").d(exception.stackTraceToString())
-    if (defaultUncaughtHandler != null) {
-      defaultUncaughtHandler.uncaughtException(thread, exception)
+/** Shows or hides the progress bar and the layer that blocks touches while a form is saved. */
+fun setFormBusy(progressBar: View, touchBlocker: View, busy: Boolean) {
+  val visibility = if (busy) View.VISIBLE else View.GONE
+  progressBar.visibility = visibility
+  touchBlocker.visibility = visibility
+}
+
+/** The location chosen on this device, as saved with the preferences. */
+data class SavedLocation(val id: String?, val name: String?) {
+  /** What the banner above a form says about it. */
+  fun bannerState(context: Context): LocationBannerState =
+    if (name.isNullOrBlank()) {
+      LocationBannerState.None(guest = GuestSession.isActive(context))
     } else {
-      Process.killProcess(Process.myPid())
-      exitProcess(0)
+      LocationBannerState.Selected(name)
     }
-  }
+}
+
+/** One read of the saved preferences for the location's id and name. */
+suspend fun Context.savedLocation(): SavedLocation {
+  val saved = applicationContext.dataStore.data.first()
+  return SavedLocation(saved[PreferenceKeys.LOCATION_ID], saved[PreferenceKeys.LOCATION_NAME])
 }

@@ -46,9 +46,7 @@ import net.openid.appauth.AuthorizationResponse
 import net.openid.appauth.AuthorizationService
 import net.openid.appauth.EndSessionRequest
 import net.openid.appauth.TokenResponse
-import org.openmrs.android.fhir.EncryptionHelper
 import org.openmrs.android.fhir.FhirApplication
-import org.openmrs.android.fhir.KeystoreHelper
 import org.openmrs.android.fhir.auth.model.BasicAuthState
 import org.openmrs.android.fhir.extensions.decodeToByteArray
 import org.openmrs.android.fhir.extensions.encodeToString

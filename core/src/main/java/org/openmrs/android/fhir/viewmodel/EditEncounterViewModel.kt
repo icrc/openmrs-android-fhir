@@ -79,9 +79,9 @@ import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
 import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
-import org.openmrs.android.fhir.extensions.readBundledQuestionnaireForEncounterType
-import org.openmrs.android.fhir.extensions.storedQuestionnaires
 import org.openmrs.android.fhir.extensions.utcDateToLocalDate
+import org.openmrs.android.fhir.forms.readBundledQuestionnaireForEncounterType
+import org.openmrs.android.fhir.forms.storedQuestionnaires
 import org.openmrs.android.fhir.util.ExistingObservationIndex
 import org.openmrs.android.fhir.util.ObservationChildInfo
 import org.openmrs.android.fhir.util.ObservationGroupLookup

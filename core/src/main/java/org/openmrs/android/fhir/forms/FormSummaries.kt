@@ -26,7 +26,7 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.extensions
+package org.openmrs.android.fhir.forms
 
 import android.content.Context
 import android.util.JsonReader
@@ -37,6 +37,7 @@ import java.io.IOException
 import java.io.StringReader
 import java.util.Locale
 import org.hl7.fhir.r4.model.Questionnaire
+import org.openmrs.android.fhir.extensions.getJsonFileNames
 import timber.log.Timber
 
 /**

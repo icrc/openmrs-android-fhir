@@ -30,7 +30,7 @@ package org.openmrs.android.fhir.data.sync
 
 import android.content.Context
 import org.openmrs.android.fhir.config.AppConfig
-import org.openmrs.android.fhir.extensions.useEmbeddedFormsOnly
+import org.openmrs.android.fhir.forms.useEmbeddedFormsOnly
 
 /**
  * The FHIR searches the app downloads. They are the same in every deployment, so only the few

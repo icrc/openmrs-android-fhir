@@ -26,7 +26,7 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.extensions
+package org.openmrs.android.fhir.auth
 
 import android.os.Build
 import androidx.biometric.BiometricManager
@@ -37,7 +37,6 @@ import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.auth.OfflineAuthMethod
 
 /**
  * Asks the user to prove who they are with what the offline login uses: the fingerprint or face

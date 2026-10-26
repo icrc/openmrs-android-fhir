@@ -67,7 +67,7 @@ import org.openmrs.android.fhir.databinding.GroupFormentryFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
 import org.openmrs.android.fhir.extensions.AppBarInsets
 import org.openmrs.android.fhir.extensions.generateUuid
-import org.openmrs.android.fhir.extensions.newQuestionnaireFragment
+import org.openmrs.android.fhir.forms.newQuestionnaireFragment
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.viewmodel.EditEncounterViewModel

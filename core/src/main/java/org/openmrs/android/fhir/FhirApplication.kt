@@ -48,6 +48,7 @@ import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.AppLock
+import org.openmrs.android.fhir.auth.KeystoreHelper
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -56,10 +57,10 @@ import org.openmrs.android.fhir.data.remote.ServerSettings
 import org.openmrs.android.fhir.di.AppComponent
 import org.openmrs.android.fhir.di.DaggerAppComponent
 import org.openmrs.android.fhir.extensions.ColorVisionStore
-import org.openmrs.android.fhir.extensions.CompactGroupsProviderFactory
-import org.openmrs.android.fhir.extensions.FileLoggingTree
 import org.openmrs.android.fhir.extensions.ThemeModeStore
-import org.openmrs.android.fhir.extensions.bundledFormSummaries
+import org.openmrs.android.fhir.forms.CompactGroupsProviderFactory
+import org.openmrs.android.fhir.forms.bundledFormSummaries
+import org.openmrs.android.fhir.logging.FileLoggingTree
 import org.openmrs.android.fhir.ui.tutorial.FirstRunTutorial
 import timber.log.Timber
 

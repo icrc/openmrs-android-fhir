@@ -77,10 +77,10 @@ import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.di.IoDispatcher
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.AppLanguage
-import org.openmrs.android.fhir.extensions.FormSummary
-import org.openmrs.android.fhir.extensions.allFormSummaries
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.toLocalString
+import org.openmrs.android.fhir.forms.FormSummary
+import org.openmrs.android.fhir.forms.allFormSummaries
 import org.openmrs.android.fhir.unidentified.UnidentifiedPatients
 import timber.log.Timber
 

@@ -26,36 +26,51 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.extensions
+package org.openmrs.android.fhir.auth
 
-import android.content.Context
-import android.view.View
-import kotlinx.coroutines.flow.first
-import org.openmrs.android.fhir.auth.GuestSession
-import org.openmrs.android.fhir.auth.dataStore
-import org.openmrs.android.fhir.data.PreferenceKeys
-import org.openmrs.android.fhir.ui.components.LocationBannerState
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import timber.log.Timber
 
-/** Shows or hides the progress bar and the layer that blocks touches while a form is saved. */
-fun setFormBusy(progressBar: View, touchBlocker: View, busy: Boolean) {
-  val visibility = if (busy) View.VISIBLE else View.GONE
-  progressBar.visibility = visibility
-  touchBlocker.visibility = visibility
-}
+object KeystoreHelper {
 
-/** The location chosen on this device, as saved with the preferences. */
-data class SavedLocation(val id: String?, val name: String?) {
-  /** What the banner above a form says about it. */
-  fun bannerState(context: Context): LocationBannerState =
-    if (name.isNullOrBlank()) {
-      LocationBannerState.None(guest = GuestSession.isActive(context))
-    } else {
-      LocationBannerState.Selected(name)
+  private const val KEY_ALIAS = "MyEncryptionKey"
+  private const val ANDROID_KEYSTORE = "AndroidKeyStore"
+
+  fun initialize() {
+    try {
+      val keyStore = java.security.KeyStore.getInstance(ANDROID_KEYSTORE)
+      keyStore.load(null)
+
+      if (!keyStore.containsAlias(KEY_ALIAS)) {
+        generateKey()
+      }
+    } catch (e: Exception) {
+      Timber.e(e, "Could not prepare the keystore key")
     }
-}
+  }
 
-/** One read of the saved preferences for the location's id and name. */
-suspend fun Context.savedLocation(): SavedLocation {
-  val saved = applicationContext.dataStore.data.first()
-  return SavedLocation(saved[PreferenceKeys.LOCATION_ID], saved[PreferenceKeys.LOCATION_NAME])
+  private fun generateKey() {
+    val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)
+    val keyGenParameterSpec =
+      KeyGenParameterSpec.Builder(
+          KEY_ALIAS,
+          KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
+        )
+        .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+        .setRandomizedEncryptionRequired(true)
+        .build()
+
+    keyGenerator.init(keyGenParameterSpec)
+    keyGenerator.generateKey()
+  }
+
+  fun getKey(): SecretKey {
+    val keyStore = java.security.KeyStore.getInstance(ANDROID_KEYSTORE)
+    keyStore.load(null)
+    return keyStore.getKey(KEY_ALIAS, null) as SecretKey
+  }
 }

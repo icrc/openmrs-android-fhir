@@ -26,51 +26,39 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir
+package org.openmrs.android.fhir.auth
 
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyProperties
-import javax.crypto.KeyGenerator
+import android.util.Base64
+import javax.crypto.Cipher
 import javax.crypto.SecretKey
-import timber.log.Timber
+import javax.crypto.spec.GCMParameterSpec
 
-object KeystoreHelper {
+object EncryptionHelper {
 
-  private const val KEY_ALIAS = "MyEncryptionKey"
-  private const val ANDROID_KEYSTORE = "AndroidKeyStore"
+  private const val AES_TRANSFORMATION = "AES/GCM/NoPadding"
+  private const val GCM_TAG_LENGTH = 16
 
-  fun initialize() {
-    try {
-      val keyStore = java.security.KeyStore.getInstance(ANDROID_KEYSTORE)
-      keyStore.load(null)
-
-      if (!keyStore.containsAlias(KEY_ALIAS)) {
-        generateKey()
-      }
-    } catch (e: Exception) {
-      Timber.e(e, "Could not prepare the keystore key")
-    }
+  fun encrypt(data: String, secretKey: SecretKey): Pair<String, ByteArray> {
+    val cipher = Cipher.getInstance(AES_TRANSFORMATION)
+    cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+    val iv = cipher.iv // Save this IV for decryption
+    val encryptedBytes = cipher.doFinal(data.toByteArray(Charsets.UTF_8))
+    return Pair(Base64.encodeToString(encryptedBytes, Base64.NO_WRAP), iv)
   }
 
-  private fun generateKey() {
-    val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)
-    val keyGenParameterSpec =
-      KeyGenParameterSpec.Builder(
-          KEY_ALIAS,
-          KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
-        )
-        .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-        .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-        .setRandomizedEncryptionRequired(true)
-        .build()
-
-    keyGenerator.init(keyGenParameterSpec)
-    keyGenerator.generateKey()
+  fun decrypt(encryptedData: String, secretKey: SecretKey, iv: ByteArray): String {
+    if (encryptedData.isEmpty()) return ""
+    val cipher = Cipher.getInstance(AES_TRANSFORMATION)
+    val ivSpec = GCMParameterSpec(GCM_TAG_LENGTH * 8, iv)
+    cipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
+    val decryptedBytes = cipher.doFinal(Base64.decode(encryptedData, Base64.NO_WRAP))
+    return String(decryptedBytes, Charsets.UTF_8)
   }
 
-  fun getKey(): SecretKey {
-    val keyStore = java.security.KeyStore.getInstance(ANDROID_KEYSTORE)
-    keyStore.load(null)
-    return keyStore.getKey(KEY_ALIAS, null) as SecretKey
+  fun getDecryptionCipher(secretKey: SecretKey, iv: ByteArray): Cipher {
+    val cipher = Cipher.getInstance(AES_TRANSFORMATION)
+    val gcmSpec = GCMParameterSpec(16 * 8, iv)
+    cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmSpec)
+    return cipher
   }
 }

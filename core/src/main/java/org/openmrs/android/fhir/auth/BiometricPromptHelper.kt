@@ -26,7 +26,7 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.extensions
+package org.openmrs.android.fhir.auth
 
 import android.app.Activity
 import android.app.KeyguardManager
@@ -42,7 +42,6 @@ import androidx.fragment.app.FragmentActivity
 import java.util.concurrent.Executor
 import javax.crypto.Cipher
 import org.openmrs.android.fhir.R
-import org.openmrs.android.fhir.auth.OfflineAuthMethod
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
 

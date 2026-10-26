@@ -67,12 +67,12 @@ import org.openmrs.android.fhir.data.remote.ServerSettings
 import org.openmrs.android.fhir.data.transfer.DataTransfer
 import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.ColorVisionStore
-import org.openmrs.android.fhir.extensions.EmbeddedFormsStore
-import org.openmrs.android.fhir.extensions.FileLoggingTree.Companion.APPLICATION_LOG_FILE_NAME
 import org.openmrs.android.fhir.extensions.ThemeModeStore
-import org.openmrs.android.fhir.extensions.bundledQuestionnaireIds
-import org.openmrs.android.fhir.extensions.getApplicationLogs
-import org.openmrs.android.fhir.extensions.readBundledQuestionnaireForEncounterType
+import org.openmrs.android.fhir.forms.EmbeddedFormsStore
+import org.openmrs.android.fhir.forms.bundledQuestionnaireIds
+import org.openmrs.android.fhir.forms.readBundledQuestionnaireForEncounterType
+import org.openmrs.android.fhir.logging.FileLoggingTree.Companion.APPLICATION_LOG_FILE_NAME
+import org.openmrs.android.fhir.logging.getApplicationLogs
 import timber.log.Timber
 
 /** What a diagnostics report can hold; the user picks, everything is picked by default. */

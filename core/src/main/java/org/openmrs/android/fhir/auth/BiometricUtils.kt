@@ -26,7 +26,7 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.extensions
+package org.openmrs.android.fhir.auth
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -42,8 +42,7 @@ import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
-import org.openmrs.android.fhir.EncryptionHelper
-import org.openmrs.android.fhir.auth.OfflineAuthMethod
+import org.openmrs.android.fhir.extensions.encodeToString
 import org.openmrs.android.fhir.viewmodel.LegacyAuthFlow
 import timber.log.Timber
 

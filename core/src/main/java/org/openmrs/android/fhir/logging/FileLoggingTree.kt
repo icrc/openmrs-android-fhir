@@ -26,7 +26,7 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.extensions
+package org.openmrs.android.fhir.logging
 
 import android.content.Context
 import android.util.Log
@@ -37,8 +37,10 @@ import java.io.FileWriter
 import java.io.IOException
 import java.security.MessageDigest
 import javax.crypto.spec.SecretKeySpec
-import org.openmrs.android.fhir.EncryptionHelper
-import org.openmrs.android.fhir.extensions.FileLoggingTree.Companion.APPLICATION_LOG_FILE_NAME
+import org.openmrs.android.fhir.auth.EncryptionHelper
+import org.openmrs.android.fhir.extensions.decodeToByteArray
+import org.openmrs.android.fhir.extensions.encodeToString
+import org.openmrs.android.fhir.logging.FileLoggingTree.Companion.APPLICATION_LOG_FILE_NAME
 import timber.log.Timber
 
 class FileLoggingTree(context: Context, private val maxFileSize: Long, password: String) :

@@ -3,7 +3,7 @@
 
     python tools/compact_questionnaires.py core/src/main/assets/questionnaires
 
-The compact form (read by `expandCompactQuestionnaire`, core/.../extensions/CompactQuestionnaire.kt):
+The compact form (read by `expandCompactQuestionnaire`, core/.../forms/CompactQuestionnaire.kt):
   * translations: "_text": {"extension": [{translation ...}]}  ->  "text:i18n": {"fr": "...", ...}
   * "url" / "system" values start with a short prefix name: "@h/questionnaire-itemControl"
   * the first key, "$compact", maps the prefix names to the URLs they stand for.

@@ -32,6 +32,7 @@ package org.openmrs.android.fhir.extensions
 import android.content.Context
 import java.io.IOException
 import java.util.Locale
+import org.openmrs.android.fhir.forms.expandCompactQuestionnaire
 import timber.log.Timber
 
 /**

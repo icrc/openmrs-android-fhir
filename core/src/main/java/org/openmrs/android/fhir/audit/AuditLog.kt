@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicLong
 import javax.crypto.spec.SecretKeySpec
 import org.json.JSONArray
 import org.json.JSONObject
-import org.openmrs.android.fhir.EncryptionHelper
+import org.openmrs.android.fhir.auth.EncryptionHelper
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.extensions.decodeToByteArray
 import org.openmrs.android.fhir.extensions.encodeToString

@@ -26,13 +26,15 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.extensions
+package org.openmrs.android.fhir.forms
 
 import android.content.Context
 import ca.uhn.fhir.parser.IParser
 import java.io.IOException
 import java.util.Locale
 import org.hl7.fhir.r4.model.Questionnaire
+import org.openmrs.android.fhir.extensions.getJsonFileNames
+import org.openmrs.android.fhir.extensions.readFileFromAssets
 
 /**
  * Folder under `assets/` holding the questionnaires that ship with the app, one `<questionnaire

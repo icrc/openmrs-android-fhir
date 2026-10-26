@@ -26,11 +26,12 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.extensions
+package org.openmrs.android.fhir.forms
 
 import java.util.Locale
 import org.json.JSONArray
 import org.json.JSONObject
+import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
 
 /**
  * The questionnaires bundled in the app are stored in a compact form (see

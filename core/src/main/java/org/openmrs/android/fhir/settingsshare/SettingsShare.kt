@@ -41,9 +41,9 @@ import org.openmrs.android.fhir.extensions.AppLanguage
 import org.openmrs.android.fhir.extensions.ClearDataOnLogoutStore
 import org.openmrs.android.fhir.extensions.ColorVisionMode
 import org.openmrs.android.fhir.extensions.ColorVisionStore
-import org.openmrs.android.fhir.extensions.EmbeddedFormsStore
 import org.openmrs.android.fhir.extensions.ThemeMode
 import org.openmrs.android.fhir.extensions.ThemeModeStore
+import org.openmrs.android.fhir.forms.EmbeddedFormsStore
 import org.openmrs.android.fhir.ui.screens.SettingsDefaults
 
 /** The settings of the app that can be passed to another device, each with its name in the code. */

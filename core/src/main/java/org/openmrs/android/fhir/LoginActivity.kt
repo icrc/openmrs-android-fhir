@@ -57,12 +57,12 @@ import net.openid.appauth.AuthorizationResponse
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.auth.AppLock
+import org.openmrs.android.fhir.auth.AuthDialogs
 import org.openmrs.android.fhir.auth.AuthMethod
+import org.openmrs.android.fhir.auth.BiometricPromptHelper
+import org.openmrs.android.fhir.auth.BiometricUtils
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
-import org.openmrs.android.fhir.extensions.AuthDialogs
-import org.openmrs.android.fhir.extensions.BiometricPromptHelper
-import org.openmrs.android.fhir.extensions.BiometricUtils
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.LoginScreen

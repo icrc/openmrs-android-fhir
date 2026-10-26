@@ -25,11 +25,13 @@
   (`PreferenceKeys`) and small `SharedPreferences` stores for settings read before anything else.
 - **Auth** (`auth/`): `AuthMethod` (OpenID through AppAuth, or Basic), the offline login
   (`BiometricUtils`, `OfflineAuthPrompt`, `AppLock`, `AppLockSettings`) and the stored session
-  (`AuthStateManager`). See `sign-in-setup.md` and `offline_login_flow.mmd`.
+  (`AuthStateManager`). The Keystore and encryption helpers live here too. See `sign-in-setup.md` and `offline_login_flow.mmd`.
 - **Several users on one device**: `multi-user/` (`UserRegistry`, `UserDataLedger`); see
   `multi-user.md`. Deleting a user's data: `delete-patient-data.md`.
 - **Forms**: questionnaires come from the server or `core/src/main/assets`; the viewer of an
-  encounter whose form is not on the device is `EncounterFallbackForm`.
+  encounter whose form is not on the device is `EncounterFallbackForm`. The helpers around forms (compact
+  questionnaires, summaries, the fragment helpers) are in `forms/`; the log file and the crash
+  handler are in `logging/`.
 - **Configuration**: one `app_config.xml` per application module, read by `config/AppConfig`. The
   build checks it (`validateAppConfig`, `gradle/validate-app-config.gradle.kts`).
 - **Audit trail**: `audit/AuditLog` keeps the last steps (sign-ins, syncs, setting changes) for the
