@@ -4,9 +4,15 @@
 
     <auth method="openid" guest-mode="false" />
 
-    <sync location-tag="Login Location" filter-patient-lists-by-location="true" />
+    <sync
+        location-tag="Login Location"
+        filter-patient-lists-by-location="true"
+    />
 
-    <patients registration-form="new-patient-registration-paginated" fetch-identifiers="false" />
+    <patients
+        registration-form="new-patient-registration-paginated"
+        fetch-identifiers="false"
+    />
 
     <support email="support@mail.com" />
 

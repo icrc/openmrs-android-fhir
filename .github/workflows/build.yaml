@@ -56,6 +56,8 @@
 
         - name: Setup Android SDK
           uses: android-actions/setup-android@v3
+          with:
+            packages: build-tools;34.0.0 platforms;android-34
 
         - name: Change wrapper permissions
           run: chmod +x ./gradlew

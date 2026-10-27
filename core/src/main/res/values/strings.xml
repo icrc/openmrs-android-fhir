@@ -16,14 +16,22 @@
 <resources>
     <string name="section_patient_management">PATIENT MANAGEMENT</string>
     <string name="title_add_patient">Register patient</string>
-    <string name="subtitle_add_patient">Enter the details of a new patient</string>
+    <string
+        name="subtitle_add_patient"
+    >Enter the details of a new patient</string>
     <string name="title_search_patient">Patients</string>
-    <string name="subtitle_search_patient">Search, open and edit the patients on this device</string>
+    <string
+        name="subtitle_search_patient"
+    >Search, open and edit the patients on this device</string>
     <string name="title_custom_patient_list">Patient lists</string>
-    <string name="subtitle_custom_patient_list">Choose the lists to download to this device</string>
+    <string
+        name="subtitle_custom_patient_list"
+    >Choose the lists to download to this device</string>
     <string name="section_encounters">ENCOUNTERS</string>
     <string name="title_group_encounter">Group or family session</string>
-    <string name="subtitle_group_encounter">Fill in one form for several patients</string>
+    <string
+        name="subtitle_group_encounter"
+    >Fill in one form for several patients</string>
     <string name="section_system">SYSTEM</string>
     <string name="sync_info">Sync info</string>
 
@@ -34,7 +42,9 @@
     <string name="menu_patient_edit">@string/edit_patient</string>
 
     <!-- For display observations in brief, for a patient -->
-    <string name="query_hint_patient_search">Find by name, identifier or phone</string>
+    <string
+        name="query_hint_patient_search"
+    >Find by name, identifier or phone</string>
     <string
         name="cancel_questionnaire_message"
     >Are you sure you want to discard the answers?</string>
@@ -61,7 +71,9 @@
     <string name="create_encounter">Create Encounter</string>
     <string name="search_forms">Search forms</string>
     <string name="all_forms">All forms</string>
-    <string name="create_encounter_no_forms">No forms are available for encounters yet.</string>
+    <string
+        name="create_encounter_no_forms"
+    >No forms are available for encounters yet.</string>
     <string name="create_encounter_no_match">No forms match “%1$s”</string>
     <string name="create_group_encounter">New Group Session</string>
     <string name="edit_encounter">Edit Encounter</string>
@@ -87,7 +99,9 @@
     <string name="header_encounters">Encounters</string>
     <string name="error">Error</string>
     <string name="no_location_selected">No Location Selected</string>
-    <string name="patient_unsynced_info">Not synced yet. This patient\'s information will be sent to the server next time you are online.</string>
+    <string
+        name="patient_unsynced_info"
+    >Not synced yet. This patient\'s information will be sent to the server next time you are online.</string>
     <string name="header_visits">Visits</string>
     <string
         name="network_status_connected_to_server"
@@ -102,35 +116,61 @@
     <string name="login_expired">Login Expired</string>
     <string name="settings_auto_sync">Sync automatically</string>
     <string name="settings_live_mode">Live mode</string>
-    <string name="settings_live_mode_description">Send what you save to the server right away and search the server for patients that are not on this device. With no connection nothing is lost: it is kept and sent later.</string>
+    <string
+        name="settings_live_mode_description"
+    >Send what you save to the server right away and search the server for patients that are not on this device. With no connection nothing is lost: it is kept and sent later.</string>
     <string name="live_server_results_title">On the server</string>
-    <string name="live_server_no_results">No other patients on the server</string>
-    <string name="live_server_search_failed">Couldn\'t reach the server to search</string>
-    <string name="live_server_open_failed">Couldn\'t open this patient from the server. Try again.</string>
+    <string
+        name="live_server_no_results"
+    >No other patients on the server</string>
+    <string
+        name="live_server_search_failed"
+    >Couldn\'t reach the server to search</string>
+    <string
+        name="live_server_open_failed"
+    >Couldn\'t open this patient from the server. Try again.</string>
     <string name="live_status_live">Live</string>
     <string name="live_status_sending">Sending…</string>
     <string name="live_status_retry">Not sent yet, will retry</string>
     <string name="settings_language">Language</string>
     <string name="settings_section_identifiers">Patient identifiers</string>
-    <string name="settings_identifiers_description">Choose which identifier types new patients get.</string>
-    <string name="identifier_types_hint">Choose the identifier types new patients get. Required ones are always included.</string>
+    <string
+        name="settings_identifiers_description"
+    >Choose which identifier types new patients get.</string>
+    <string
+        name="identifier_types_hint"
+    >Choose the identifier types new patients get. Required ones are always included.</string>
     <string name="identifier_type_required">Required</string>
-    <string name="identifier_types_empty">No identifier types available yet. Check the connection and try again.</string>
+    <string
+        name="identifier_types_empty"
+    >No identifier types available yet. Check the connection and try again.</string>
     <string name="last_encounter">Last encounter</string>
     <string name="last_encounter_none">No encounters yet</string>
     <string name="last_encounter_unknown_type">Encounter</string>
     <string name="favorite_forms">Favorite forms</string>
-    <string name="favorite_forms_description">Choose up to %1$d forms to show first when creating an encounter.</string>
+    <string
+        name="favorite_forms_description"
+    >Choose up to %1$d forms to show first when creating an encounter.</string>
     <string name="favorite_forms_count">%1$d of %2$d selected</string>
     <string name="favorite_forms_choose">Choose favorites</string>
     <string name="form_sections_title">Form sections</string>
-    <string name="form_sections_description">Organise the forms of the Create Encounter screen your own way: your own sections, with the forms you want in each.</string>
-    <string name="form_sections_default_status">Using the app’s sections</string>
-    <string name="form_sections_custom_status">Using your own sections (%1$d)</string>
+    <string
+        name="form_sections_description"
+    >Organise the forms of the Create Encounter screen your own way: your own sections, with the forms you want in each.</string>
+    <string
+        name="form_sections_default_status"
+    >Using the app’s sections</string>
+    <string
+        name="form_sections_custom_status"
+    >Using your own sections (%1$d)</string>
     <string name="form_sections_customize">Customize sections</string>
     <string name="form_sections_reset">Reset to default</string>
-    <string name="form_sections_reset_message">Go back to the sections the app comes with? Your own sections are removed; your favorites are kept.</string>
-    <string name="form_sections_editor_hint">Name your sections, add the forms and put them in the order you like. Nothing changes until you save.</string>
+    <string
+        name="form_sections_reset_message"
+    >Go back to the sections the app comes with? Your own sections are removed; your favorites are kept.</string>
+    <string
+        name="form_sections_editor_hint"
+    >Name your sections, add the forms and put them in the order you like. Nothing changes until you save.</string>
     <string name="form_section_name">Section name</string>
     <string name="form_section_default_name">Section</string>
     <string name="form_section_add">Add section</string>
@@ -140,7 +180,9 @@
     <string name="form_section_move_down">Move down</string>
     <string name="forms_selected_count">%1$d selected</string>
     <string name="next_sync_in_minutes">Next sync in %1$d min</string>
-    <string name="auto_sync_session_expired_message">Your session is no longer valid, so the automatic sync could not run. Sign in again to keep your data in sync. What you entered on this device is kept.</string>
+    <string
+        name="auto_sync_session_expired_message"
+    >Your session is no longer valid, so the automatic sync could not run. Sign in again to keep your data in sync. What you entered on this device is kept.</string>
     <string name="later">Later</string>
     <string
         name="session_expired"
@@ -264,24 +306,42 @@
     <string name="select_patient_list">Select Patient List</string>
     <string name="search_identifier_types">Search Identifier Types</string>
     <string name="search_a_location">Search a location</string>
-    <string name="select_location_subtitle">Choose where you are working. You can change it later from the menu.</string>
+    <string
+        name="select_location_subtitle"
+    >Choose where you are working. You can change it later from the menu.</string>
     <string name="locations_favorites">Favorites</string>
     <string name="locations_all">All locations</string>
     <string name="locations_no_match">No locations match “%1$s”</string>
     <string name="location_current_badge">Current location</string>
     <string name="next">Next</string>
     <string name="search_patient_lists">Search patient lists</string>
-    <string name="select_patient_list_subtitle">Pick the lists whose patients you want on this device. Only their patients are downloaded.</string>
+    <string
+        name="select_patient_list_subtitle"
+    >Pick the lists whose patients you want on this device. Only their patients are downloaded.</string>
     <string name="patient_lists_header">Patient lists</string>
     <string name="patient_lists_empty_title">No patient lists here</string>
-    <string name="patient_lists_empty_for_location">There are no patient lists for %1$s. Try another location, or check again.</string>
-    <string name="patient_lists_failed_title">Couldn\'t load the patient lists</string>
-    <string name="patient_lists_failed_message">Check the connection and try again.</string>
-    <string name="patient_lists_failed_cached">Couldn\'t update the lists. Showing the ones saved on this device.</string>
+    <string
+        name="patient_lists_empty_for_location"
+    >There are no patient lists for %1$s. Try another location, or check again.</string>
+    <string
+        name="patient_lists_failed_title"
+    >Couldn\'t load the patient lists</string>
+    <string
+        name="patient_lists_failed_message"
+    >Check the connection and try again.</string>
+    <string
+        name="patient_lists_failed_cached"
+    >Couldn\'t update the lists. Showing the ones saved on this device.</string>
     <string name="patient_lists_try_again">Try again</string>
-    <string name="patient_lists_continue_without">Continue without a list</string>
-    <string name="patient_lists_continue_without_title">Continue without a patient list?</string>
-    <string name="patient_lists_continue_without_message">No patients will be downloaded to this device. You can still register patients, and choose lists later from Patient lists on the home screen.</string>
+    <string
+        name="patient_lists_continue_without"
+    >Continue without a list</string>
+    <string
+        name="patient_lists_continue_without_title"
+    >Continue without a patient list?</string>
+    <string
+        name="patient_lists_continue_without_message"
+    >No patients will be downloaded to this device. You can still register patients, and choose lists later from Patient lists on the home screen.</string>
     <string name="patient_lists_continue_action">Continue</string>
     <string name="patient_list_patient_count">Patients: %1$d</string>
     <string name="patient_lists_no_match">No patient lists match “%1$s”</string>
@@ -294,14 +354,18 @@
     <string name="sync_last_value">Last sync: %1$s</string>
     <string name="sync_tab_pending">Pending</string>
     <string name="sync_tab_history">History</string>
-    <string name="subtitle_sync_center">Upload changes, see what is waiting and past syncs</string>
+    <string
+        name="subtitle_sync_center"
+    >Upload changes, see what is waiting and past syncs</string>
     <string name="sync_downloaded">Downloaded</string>
     <string name="sync_uploaded">Uploaded</string>
     <string name="sync_status_completed">Completed</string>
     <string name="sync_status_completed_errors">Completed with errors</string>
     <string name="sync_errors_show_all">Show all (%1$d)</string>
     <string name="sync_errors_show_less">Show less</string>
-    <string name="clear_sync_data_confirm">Delete all finished sync records? A sync in progress is kept.</string>
+    <string
+        name="clear_sync_data_confirm"
+    >Delete all finished sync records? A sync in progress is kept.</string>
     <string name="_0" translatable="false">0 %</string>
     <string name="_100" translatable="false">100 %</string>
     <string name="start_time">Start Time</string>
@@ -344,7 +408,9 @@
     <string name="sync_minimize">Minimize</string>
     <string name="sync_show_progress">Show sync progress</string>
     <string name="sync_percent" translatable="false">%1$d%%</string>
-    <string name="sync_interrupted">The sync was interrupted before it finished.</string>
+    <string
+        name="sync_interrupted"
+    >The sync was interrupted before it finished.</string>
     <string name="sync_items_so_far">%1$d items synced so far</string>
     <string
         name="you_can_do_other_things_on_the_device_while_it_syncs"
@@ -500,18 +566,12 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="not_available">N/A</string>
     <string name="no_name_provided">No Name provided</string>
 
-    <string
-        name="discard_changes_title"
-    >Discard changes?</string>
+    <string name="discard_changes_title">Discard changes?</string>
     <string
         name="discard_changes_message"
     >You have unsaved changes. If you leave now they will be lost.</string>
-    <string
-        name="discard_changes_confirm"
-    >Discard</string>
-    <string
-        name="discard_changes_keep_editing"
-    >Keep editing</string>
+    <string name="discard_changes_confirm">Discard</string>
+    <string name="discard_changes_keep_editing">Keep editing</string>
     <string name="age_years_short">%d y</string>
     <string name="age_months_short">%d mo</string>
     <string name="age_days_short">%d d</string>
@@ -522,220 +582,418 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="clear_search">Clear search</string>
     <string name="fetch_questionnaires">Check for new and updated forms</string>
     <string name="fetching_questionnaires">Fetching questionnaires…</string>
-    <string name="fetch_questionnaires_description">Check the server for forms that are not in the app yet and for newer versions of the ones it has.</string>
-    <string name="questionnaires_up_to_date">Questionnaires are up to date.</string>
-    <string name="questionnaires_fetch_failed">Could not fetch questionnaires. Check the connection and try again.</string>
+    <string
+        name="fetch_questionnaires_description"
+    >Check the server for forms that are not in the app yet and for newer versions of the ones it has.</string>
+    <string
+        name="questionnaires_up_to_date"
+    >Questionnaires are up to date.</string>
+    <string
+        name="questionnaires_fetch_failed"
+    >Could not fetch questionnaires. Check the connection and try again.</string>
     <string name="questionnaires_added">New questionnaires added: %d</string>
-    <string name="questionnaire_required_answers_missing">Answer the required questions on this page to continue. They are marked in red.</string>
+    <string
+        name="questionnaire_required_answers_missing"
+    >Answer the required questions on this page to continue. They are marked in red.</string>
     <string name="change_location">Change location</string>
     <string name="settings_section_general">General</string>
     <string name="settings_section_sync">Synchronization</string>
     <string name="settings_section_live">Live mode</string>
-    <string name="settings_live_keep_patients">Keep patients from the server on this device</string>
-    <string name="settings_live_keep_patients_description">On: a patient you open from the server stays on this device and can be used offline. Off: the patient is removed from the device once you leave them; anything not yet sent is kept until it is sent.</string>
+    <string
+        name="settings_live_keep_patients"
+    >Keep patients from the server on this device</string>
+    <string
+        name="settings_live_keep_patients_description"
+    >On: a patient you open from the server stays on this device and can be used offline. Off: the patient is removed from the device once you leave them; anything not yet sent is kept until it is sent.</string>
     <string name="settings_section_forms">Forms</string>
     <string name="settings_section_visits">Visits</string>
-    <string name="settings_automatic_visits">Create visits automatically</string>
-    <string name="settings_automatic_visits_description">On: every encounter you save gets its own visit, created for you. Off: you open a visit, record its encounters and end it yourself, like in OpenMRS, and a patient\'s encounters are shown grouped by visit.</string>
-    <string name="header_encounters_without_visit">Encounters without a visit</string>
+    <string
+        name="settings_automatic_visits"
+    >Create visits automatically</string>
+    <string
+        name="settings_automatic_visits_description"
+    >On: every encounter you save gets its own visit, created for you. Off: you open a visit, record its encounters and end it yourself, like in OpenMRS, and a patient\'s encounters are shown grouped by visit.</string>
+    <string
+        name="header_encounters_without_visit"
+    >Encounters without a visit</string>
     <string name="start_visit">New visit</string>
     <string name="visit_status_active">Active</string>
     <string name="visit_status_closed">Closed</string>
     <string name="visit_started_at">Started %1$s</string>
     <string name="reopen_visit">Reopen</string>
-    <string name="reopen_visit_blocked">Another visit is already open. End it first.</string>
+    <string
+        name="reopen_visit_blocked"
+    >Another visit is already open. End it first.</string>
     <string name="no_open_visit_title">No open visit</string>
-    <string name="no_open_visit_message">Open a visit to record an encounter for this patient.</string>
+    <string
+        name="no_open_visit_message"
+    >Open a visit to record an encounter for this patient.</string>
     <string name="open_visit_action">Open visit</string>
-    <string name="encounter_outside_visit">The encounter date is outside the open visit. Change the date, or end the visit and open a new one.</string>
-    <string name="no_open_visit_error">This patient has no open visit. Open one first.</string>
-    <string name="settings_initial_sync_description">Run a full synchronization with the server now.</string>
+    <string
+        name="encounter_outside_visit"
+    >The encounter date is outside the open visit. Change the date, or end the visit and open a new one.</string>
+    <string
+        name="no_open_visit_error"
+    >This patient has no open visit. Open one first.</string>
+    <string
+        name="settings_initial_sync_description"
+    >Run a full synchronization with the server now.</string>
     <string name="settings_section_appearance">Appearance</string>
     <string name="theme_system">System default</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="settings_section_security">Security</string>
-    <string name="offline_login_enabled_status">Offline login is on for this device.</string>
-    <string name="offline_login_disabled_status">Offline login was not enabled on this device. Reset to be asked again at your next login.</string>
+    <string
+        name="offline_login_enabled_status"
+    >Offline login is on for this device.</string>
+    <string
+        name="offline_login_disabled_status"
+    >Offline login was not enabled on this device. Reset to be asked again at your next login.</string>
     <string name="reset_offline_login">Reset offline login</string>
-    <string name="reset_offline_login_confirm_title">Reset offline login?</string>
-    <string name="reset_offline_login_confirm_message">The saved offline login is removed. You will be asked to set it up again the next time you log in.</string>
+    <string
+        name="reset_offline_login_confirm_title"
+    >Reset offline login?</string>
+    <string
+        name="reset_offline_login_confirm_message"
+    >The saved offline login is removed. You will be asked to set it up again the next time you log in.</string>
     <string name="offline_login_reset_done">Offline login reset.</string>
-    <string name="offline_login_not_set_status">Offline login is not set up yet. You will be asked at your next login.</string>
+    <string
+        name="offline_login_not_set_status"
+    >Offline login is not set up yet. You will be asked at your next login.</string>
     <string name="continue_without_login">Continue without signing in</string>
     <string name="sign_in_with_sso">Sign in with SSO</string>
     <string name="login_or">or</string>
     <string name="settings_section_shared_device">Shared device</string>
-    <string name="settings_share_my_data">Let other users see my registered data</string>
-    <string name="settings_share_my_data_description">Signed in as %1$s. Off by default. When off, other users who sign in on this device cannot see the patients you registered or downloaded here, unless they have access to them and download them themselves. When on, they can see them. This setting is yours only: each user has their own.</string>
+    <string
+        name="settings_share_my_data"
+    >Let other users see my registered data</string>
+    <string
+        name="settings_share_my_data_description"
+    >Signed in as %1$s. Off by default. When off, other users who sign in on this device cannot see the patients you registered or downloaded here, unless they have access to them and download them themselves. When on, they can see them. This setting is yours only: each user has their own.</string>
     <string name="settings_remember_location">Remember my location</string>
-    <string name="settings_remember_location_description">On: after you log in you go straight to the location you used last time. Off: you are asked for the location every time you log in. The location is yours only: another user who signs in on this device is asked for theirs.</string>
+    <string
+        name="settings_remember_location_description"
+    >On: after you log in you go straight to the location you used last time. Off: you are asked for the location every time you log in. The location is yours only: another user who signs in on this device is asked for theirs.</string>
     <string name="login_pending_icon_none">Nothing is waiting to upload</string>
-    <string name="login_pending_icon_waiting">Data waiting to upload: %1$d user(s)</string>
+    <string
+        name="login_pending_icon_waiting"
+    >Data waiting to upload: %1$d user(s)</string>
     <string name="login_pending_title">Waiting to upload</string>
-    <string name="login_pending_message">These users have data on this device that has not reached the server yet. Log in as the user, then sync, to send it.</string>
-    <string name="login_pending_none">Nothing is waiting to upload. Everything saved on this device has reached the server.</string>
+    <string
+        name="login_pending_message"
+    >These users have data on this device that has not reached the server yet. Log in as the user, then sync, to send it.</string>
+    <string
+        name="login_pending_none"
+    >Nothing is waiting to upload. Everything saved on this device has reached the server.</string>
     <string name="login_pending_counts">Patients: %1$d · Records: %2$d</string>
     <string name="login_pending_records_only">Records: %1$d</string>
     <string name="login_pending_use_user">Log in as this user</string>
     <string name="settings_auto_sync_mode">What the automatic sync does</string>
-    <string name="settings_auto_sync_mode_description">Upload only sends what you recorded on this device. Upload and download also brings the latest data from the server.</string>
+    <string
+        name="settings_auto_sync_mode_description"
+    >Upload only sends what you recorded on this device. Upload and download also brings the latest data from the server.</string>
     <string name="sync_mode_both">Upload and download</string>
     <string name="sync_mode_upload_only">Upload only</string>
     <string name="sync_page_mode_download">Download</string>
     <string name="sync_page_mode_upload">Upload</string>
     <string name="sync_page_mode_both">Both</string>
-    <string name="sync_download_only_hint">What is waiting to upload stays on this device until you upload it.</string>
-    <string name="patient_lists_downloading">Downloading the patients of the patient lists…</string>
+    <string
+        name="sync_download_only_hint"
+    >What is waiting to upload stays on this device until you upload it.</string>
+    <string
+        name="patient_lists_downloading"
+    >Downloading the patients of the patient lists…</string>
     <string name="tutorial_show">Show the tour</string>
     <string name="tutorial_login_credentials_title">Sign in</string>
-    <string name="tutorial_login_credentials_body">Type your username and your password, then press Log in. After the first login the app can also be used offline.</string>
+    <string
+        name="tutorial_login_credentials_body"
+    >Type your username and your password, then press Log in. After the first login the app can also be used offline.</string>
     <string name="tutorial_login_sso_title">Single sign-on</string>
-    <string name="tutorial_login_sso_body">Sign in with your organization\'s account instead of a password.</string>
-    <string name="tutorial_login_guest_title">Continue without signing in</string>
-    <string name="tutorial_login_guest_body">Work as a guest, offline: what you record stays on this device and is completed when you sign in later.</string>
+    <string
+        name="tutorial_login_sso_body"
+    >Sign in with your organization\'s account instead of a password.</string>
+    <string
+        name="tutorial_login_guest_title"
+    >Continue without signing in</string>
+    <string
+        name="tutorial_login_guest_body"
+    >Work as a guest, offline: what you record stays on this device and is completed when you sign in later.</string>
     <string name="tutorial_login_server_title">Server</string>
-    <string name="tutorial_login_server_body">The gear changes the server this app connects to, the theme and other settings, before anyone signs in.</string>
+    <string
+        name="tutorial_login_server_body"
+    >The gear changes the server this app connects to, the theme and other settings, before anyone signs in.</string>
     <string name="tutorial_login_share_title">Share settings</string>
-    <string name="tutorial_login_share_body">Show a QR code of this device\'s settings for another device to scan, or scan one from another device.</string>
+    <string
+        name="tutorial_login_share_body"
+    >Show a QR code of this device\'s settings for another device to scan, or scan one from another device.</string>
     <string name="tutorial_show_screen">Show the tour of this screen</string>
     <string name="help_home_status_title">Where you work</string>
-    <string name="help_home_status_body">Your location and when the data was last synced.</string>
+    <string
+        name="help_home_status_body"
+    >Your location and when the data was last synced.</string>
     <string name="help_home_register_title">Register a patient</string>
-    <string name="help_home_register_body">Enter the details of a new patient. It cannot be saved while required data is missing.</string>
+    <string
+        name="help_home_register_body"
+    >Enter the details of a new patient. It cannot be saved while required data is missing.</string>
     <string name="help_home_patients_title">Patients</string>
-    <string name="help_home_patients_body">Search, open and edit the patients on this device.</string>
+    <string
+        name="help_home_patients_body"
+    >Search, open and edit the patients on this device.</string>
     <string name="help_home_lists_title">Patient lists</string>
-    <string name="help_home_lists_body">Choose the patient lists to bring to this device. Their patients are downloaded at once.</string>
+    <string
+        name="help_home_lists_body"
+    >Choose the patient lists to bring to this device. Their patients are downloaded at once.</string>
     <string name="help_home_group_title">Group or family session</string>
-    <string name="help_home_group_body">Fill in one form for several patients at once.</string>
+    <string
+        name="help_home_group_body"
+    >Fill in one form for several patients at once.</string>
     <string name="help_home_sync_title">Sync</string>
-    <string name="help_home_sync_body">Upload what you recorded and download the latest data. See what is waiting and past syncs.</string>
+    <string
+        name="help_home_sync_body"
+    >Upload what you recorded and download the latest data. See what is waiting and past syncs.</string>
     <string name="help_home_importexport_title">Import / Export</string>
-    <string name="help_home_importexport_body">Pass on data this device cannot sync, in a PIN-protected file.</string>
+    <string
+        name="help_home_importexport_body"
+    >Pass on data this device cannot sync, in a PIN-protected file.</string>
     <string name="help_patients_list_title">Patients on this device</string>
-    <string name="help_patients_list_body">Tap a patient to open the profile, with their visits and encounters. A cloud mark shows what is not synced yet.</string>
+    <string
+        name="help_patients_list_body"
+    >Tap a patient to open the profile, with their visits and encounters. A cloud mark shows what is not synced yet.</string>
     <string name="help_patients_identify_title">Identify later</string>
-    <string name="help_patients_identify_body">Offline, and the patient is on the server but not here? Record now and identify them later, without creating a duplicate.</string>
-    <string name="help_patients_register_body">Add a new patient. Required data must be filled in before it can be saved.</string>
+    <string
+        name="help_patients_identify_body"
+    >Offline, and the patient is on the server but not here? Record now and identify them later, without creating a duplicate.</string>
+    <string
+        name="help_patients_register_body"
+    >Add a new patient. Required data must be filled in before it can be saved.</string>
     <string name="help_details_overview_title">The patient</string>
-    <string name="help_details_overview_body">Name, identifiers, age and contact details. The pencil edits the registration, and a phone number can be tapped to call.</string>
+    <string
+        name="help_details_overview_body"
+    >Name, identifiers, age and contact details. The pencil edits the registration, and a phone number can be tapped to call.</string>
     <string name="help_details_encounters_title">Visits and encounters</string>
-    <string name="help_details_encounters_body">Everything recorded for the patient, by visit. Tap a title to view it and the pencil to edit it. When visits are managed, tap a visit to change when it started and ended: it has to contain its encounters.</string>
+    <string
+        name="help_details_encounters_body"
+    >Everything recorded for the patient, by visit. Tap a title to view it and the pencil to edit it. When visits are managed, tap a visit to change when it started and ended: it has to contain its encounters.</string>
     <string name="help_details_new_title">New encounter</string>
-    <string name="help_details_new_body">Record a visit or fill in a form for this patient.</string>
+    <string
+        name="help_details_new_body"
+    >Record a visit or fill in a form for this patient.</string>
     <string name="help_sync_status_title">Sync status</string>
-    <string name="help_sync_status_body">Whether something is waiting to upload, and when the data was last synced.</string>
+    <string
+        name="help_sync_status_body"
+    >Whether something is waiting to upload, and when the data was last synced.</string>
     <string name="help_sync_mode_title">Download, upload or both</string>
-    <string name="help_sync_mode_body">Choose what Sync now does this time. The automatic sync follows the setting in Settings, which this does not change.</string>
+    <string
+        name="help_sync_mode_body"
+    >Choose what Sync now does this time. The automatic sync follows the setting in Settings, which this does not change.</string>
     <string name="help_sync_now_title">Sync now</string>
-    <string name="help_sync_now_body">Starts the sync you chose. It needs a connection to the server, and you can keep using the app while it runs. While it runs, Cancel sync stops it.</string>
+    <string
+        name="help_sync_now_body"
+    >Starts the sync you chose. It needs a connection to the server, and you can keep using the app while it runs. While it runs, Cancel sync stops it.</string>
     <string name="help_sync_tabs_title">Pending and history</string>
-    <string name="help_sync_tabs_body">Pending lists what has not been sent yet; History lists the past syncs and how they ended.</string>
+    <string
+        name="help_sync_tabs_body"
+    >Pending lists what has not been sent yet; History lists the past syncs and how they ended.</string>
     <string name="help_ie_export_title">Export</string>
-    <string name="help_ie_export_body">Save this device\'s data in a PIN-protected file to pass on when it cannot sync.</string>
+    <string
+        name="help_ie_export_body"
+    >Save this device\'s data in a PIN-protected file to pass on when it cannot sync.</string>
     <string name="help_ie_import_title">Import</string>
-    <string name="help_ie_import_body">Open a file from another device with its PIN, then upload what it holds.</string>
+    <string
+        name="help_ie_import_body"
+    >Open a file from another device with its PIN, then upload what it holds.</string>
     <string name="help_settings_language_title">Language</string>
-    <string name="help_settings_language_body">Choose the language of the app.</string>
+    <string
+        name="help_settings_language_body"
+    >Choose the language of the app.</string>
     <string name="help_settings_appearance_title">Appearance</string>
-    <string name="help_settings_appearance_body">Light, dark or the system theme, and a palette for color blindness.</string>
+    <string
+        name="help_settings_appearance_body"
+    >Light, dark or the system theme, and a palette for color blindness.</string>
     <string name="help_settings_sync_title">Synchronization</string>
-    <string name="help_settings_sync_body">The server, the automatic sync, what it does (upload only, or upload and download) and when it waits (Wi-Fi only, low battery). Settings are saved as you change them.</string>
+    <string
+        name="help_settings_sync_body"
+    >The server, the automatic sync, what it does (upload only, or upload and download) and when it waits (Wi-Fi only, low battery). Settings are saved as you change them.</string>
     <string name="help_settings_live_title">Live mode</string>
-    <string name="help_settings_live_body">Send what you save to the server right away and search the server for patients that are not on this device.</string>
+    <string
+        name="help_settings_live_body"
+    >Send what you save to the server right away and search the server for patients that are not on this device.</string>
     <string name="help_settings_shared_title">Shared device</string>
-    <string name="help_settings_shared_body">Choose whether other users of this device can see the patients you registered or downloaded.</string>
+    <string
+        name="help_settings_shared_body"
+    >Choose whether other users of this device can see the patients you registered or downloaded.</string>
     <string name="help_settings_security_title">Security</string>
-    <string name="help_settings_security_body">Offline login, how long the app waits before asking for it again, hiding the app in recent apps, and what happens to the data when you log out.</string>
+    <string
+        name="help_settings_security_body"
+    >Offline login, how long the app waits before asking for it again, hiding the app in recent apps, and what happens to the data when you log out.</string>
     <string name="help_lists_search_title">Search the lists</string>
-    <string name="help_lists_search_body">Type part of a list\'s name to find it.</string>
+    <string
+        name="help_lists_search_body"
+    >Type part of a list\'s name to find it.</string>
     <string name="help_lists_list_title">Choose the lists</string>
-    <string name="help_lists_list_body">Tick the lists whose patients you want on this device. Ticking a list downloads its patients at once; with none ticked no patients are downloaded.</string>
+    <string
+        name="help_lists_list_body"
+    >Tick the lists whose patients you want on this device. Ticking a list downloads its patients at once; with none ticked no patients are downloaded.</string>
     <string name="help_location_search_title">Search locations</string>
-    <string name="help_location_search_body">Type part of a name to find a location.</string>
+    <string
+        name="help_location_search_body"
+    >Type part of a name to find a location.</string>
     <string name="help_location_list_title">Where you work</string>
-    <string name="help_location_list_body">Pick the location you work at: what you register and record is recorded at it. Starred locations come first.</string>
+    <string
+        name="help_location_list_body"
+    >Pick the location you work at: what you register and record is recorded at it. Starred locations come first.</string>
     <string name="help_forms_search_title">Search forms</string>
-    <string name="help_forms_search_body">Type part of a form\'s name to find it.</string>
+    <string
+        name="help_forms_search_body"
+    >Type part of a form\'s name to find it.</string>
     <string name="help_forms_list_title">Choose a form</string>
-    <string name="help_forms_list_body">Tap a form to fill it in. Sessions that were started and not finished are shown so you can continue them.</string>
+    <string
+        name="help_forms_list_body"
+    >Tap a form to fill it in. Sessions that were started and not finished are shown so you can continue them.</string>
     <string name="help_form_registration_title">Registration form</string>
-    <string name="help_form_registration_body">Answer the questions page by page (Next and Previous). The required ones must be filled in before you can go on, and the patient cannot be saved with data missing. Review your answers before submitting.</string>
+    <string
+        name="help_form_registration_body"
+    >Answer the questions page by page (Next and Previous). The required ones must be filled in before you can go on, and the patient cannot be saved with data missing. Review your answers before submitting.</string>
     <string name="help_form_encounter_title">Encounter form</string>
-    <string name="help_form_encounter_body">Fill in the questions, then review and submit. What you save stays on this device and is uploaded at the next sync.</string>
+    <string
+        name="help_form_encounter_body"
+    >Fill in the questions, then review and submit. What you save stays on this device and is uploaded at the next sync.</string>
     <string name="help_group_tabs_title">Patients of the session</string>
-    <string name="help_group_tabs_body">Switch between the patients of the session; each has their own answers.</string>
+    <string
+        name="help_group_tabs_body"
+    >Switch between the patients of the session; each has their own answers.</string>
     <string name="network_status_server_reachable">Server reachable</string>
-    <string name="sync_unavailable_offline">No connection to the server: syncing is not available now.</string>
+    <string
+        name="sync_unavailable_offline"
+    >No connection to the server: syncing is not available now.</string>
     <string name="sync_identify_title">Patients to identify: %1$d</string>
-    <string name="sync_identify_subtitle">Identify them before syncing: their records are not sent until you do.</string>
+    <string
+        name="sync_identify_subtitle"
+    >Identify them before syncing: their records are not sent until you do.</string>
     <string name="help_sync_identify_title">Patients to identify</string>
-    <string name="help_sync_identify_body">When patients were recorded to be identified later, this shows how many. What they hold is never sent by a sync until you identify them, so do it before syncing. It needs a signed-in user connected to the server; if the patient is not on the server you can register a new one, carefully.</string>
-    <string name="identify_requires_connection">Sign in and connect to the server to identify them.</string>
-    <string name="identify_register_action">Not on the server? Register a new patient</string>
+    <string
+        name="help_sync_identify_body"
+    >When patients were recorded to be identified later, this shows how many. What they hold is never sent by a sync until you identify them, so do it before syncing. It needs a signed-in user connected to the server; if the patient is not on the server you can register a new one, carefully.</string>
+    <string
+        name="identify_requires_connection"
+    >Sign in and connect to the server to identify them.</string>
+    <string
+        name="identify_register_action"
+    >Not on the server? Register a new patient</string>
     <string name="identify_register_warning_title">Proceed with caution</string>
-    <string name="identify_register_warning_message">Register a new patient only if you are sure this patient is not in the system. Creating a new patient when they already exist creates a duplicate, which is hard to undo. Search again first, with other spellings, the identifier or the phone number.</string>
-    <string name="identify_register_warning_confirm">Register new patient</string>
+    <string
+        name="identify_register_warning_message"
+    >Register a new patient only if you are sure this patient is not in the system. Creating a new patient when they already exist creates a duplicate, which is hard to undo. Search again first, with other spellings, the identifier or the phone number.</string>
+    <string
+        name="identify_register_warning_confirm"
+    >Register new patient</string>
     <string name="identify_register_warning_cancel">Keep searching</string>
-    <string name="identify_register_hint">Register the patient. What was recorded for them is linked to the new patient once it is saved.</string>
-    <string name="login_offline_note">No connection to the server: signing in is not available now.</string>
-    <string name="login_offline_note_guest">No connection to the server: signing in is not available now. You can continue without signing in.</string>
+    <string
+        name="identify_register_hint"
+    >Register the patient. What was recorded for them is linked to the new patient once it is saved.</string>
+    <string
+        name="login_offline_note"
+    >No connection to the server: signing in is not available now.</string>
+    <string
+        name="login_offline_note_guest"
+    >No connection to the server: signing in is not available now. You can continue without signing in.</string>
     <string name="sync_cancel">Cancel sync</string>
-    <string name="sync_cancelled">Sync cancelled. What was already sent stays sent; the next sync does the rest.</string>
+    <string
+        name="sync_cancelled"
+    >Sync cancelled. What was already sent stays sent; the next sync does the rest.</string>
     <string name="sync_status_cancelled">Cancelled</string>
     <string name="visit_edit_title">Edit visit</string>
     <string name="visit_edit_start">Visit start</string>
     <string name="visit_edit_end">Visit end</string>
     <string name="visit_edit_still_open">Visit still open</string>
-    <string name="visit_edit_encounters_range">Its encounters are between %1$s and %2$s: the visit has to contain them.</string>
-    <string name="visit_edit_error_start_future">The visit cannot start in the future.</string>
-    <string name="visit_edit_error_end_future">The visit cannot end in the future.</string>
-    <string name="visit_edit_error_end_before_start">The end has to be after the start.</string>
-    <string name="visit_edit_error_encounter_before">An encounter of this visit starts at %1$s: the visit cannot start after it.</string>
-    <string name="visit_edit_error_encounter_after">An encounter of this visit ends at %1$s: the visit cannot end before it.</string>
+    <string
+        name="visit_edit_encounters_range"
+    >Its encounters are between %1$s and %2$s: the visit has to contain them.</string>
+    <string
+        name="visit_edit_error_start_future"
+    >The visit cannot start in the future.</string>
+    <string
+        name="visit_edit_error_end_future"
+    >The visit cannot end in the future.</string>
+    <string
+        name="visit_edit_error_end_before_start"
+    >The end has to be after the start.</string>
+    <string
+        name="visit_edit_error_encounter_before"
+    >An encounter of this visit starts at %1$s: the visit cannot start after it.</string>
+    <string
+        name="visit_edit_error_encounter_after"
+    >An encounter of this visit ends at %1$s: the visit cannot end before it.</string>
     <string name="tutorial_step_counter">Step %1$d of %2$d</string>
     <string name="tutorial_close">Close the tour</string>
     <string name="tutorial_skip">Skip tour</string>
     <string name="tutorial_next">Got it</string>
-    <string name="tutorial_tap_to_continue">Tap the highlighted item to continue</string>
+    <string
+        name="tutorial_tap_to_continue"
+    >Tap the highlighted item to continue</string>
     <string name="tutorial_home_patients_title">Find your patients</string>
-    <string name="tutorial_home_patients_body">Open Patients to search and open the patients on this device.</string>
+    <string
+        name="tutorial_home_patients_body"
+    >Open Patients to search and open the patients on this device.</string>
     <string name="tutorial_patients_search_title">Search</string>
-    <string name="tutorial_patients_search_body">Type a name or an identifier to find a patient. Patients not on this device can be searched on the server in live mode.</string>
+    <string
+        name="tutorial_patients_search_body"
+    >Type a name or an identifier to find a patient. Patients not on this device can be searched on the server in live mode.</string>
     <string name="tutorial_patients_register_title">Register a patient</string>
-    <string name="tutorial_patients_register_body">Tap Register patient to add a new patient. This ends the tour.</string>
-    <string name="patient_lists_download_later">The patients will be downloaded with the next sync.</string>
+    <string
+        name="tutorial_patients_register_body"
+    >Tap Register patient to add a new patient. This ends the tour.</string>
+    <string
+        name="patient_lists_download_later"
+    >The patients will be downloaded with the next sync.</string>
     <plurals name="patient_lists_downloaded">
         <item quantity="one">%d patient downloaded</item>
         <item quantity="other">%d patients downloaded</item>
     </plurals>
     <string name="share_title">Share settings</string>
-    <string name="share_choose">Copy the settings of this device to another one, or take the settings of another device.</string>
+    <string
+        name="share_choose"
+    >Copy the settings of this device to another one, or take the settings of another device.</string>
     <string name="share_export">Export</string>
-    <string name="share_export_desc">Show a QR code for the other device to scan</string>
+    <string
+        name="share_export_desc"
+    >Show a QR code for the other device to scan</string>
     <string name="share_import">Import</string>
     <string name="share_import_desc">Scan the QR code of another device</string>
     <string name="share_export_title">Settings QR code</string>
-    <string name="share_export_hint">On the other device open Share settings, choose Import and scan this code. It holds the settings of the app only: no patients, passwords or account.</string>
+    <string
+        name="share_export_hint"
+    >On the other device open Share settings, choose Import and scan this code. It holds the settings of the app only: no patients, passwords or account.</string>
     <string name="share_copy_code">Copy code</string>
     <string name="share_code_copied">Code copied</string>
     <string name="share_scan">Scan a QR code</string>
-    <string name="share_scan_prompt">Point the camera at the QR code of the other device</string>
+    <string
+        name="share_scan_prompt"
+    >Point the camera at the QR code of the other device</string>
     <string name="share_paste_label">Or paste the code</string>
     <string name="share_review">Review</string>
-    <string name="share_invalid">This is not a settings code of this app.</string>
+    <string
+        name="share_invalid"
+    >This is not a settings code of this app.</string>
     <string name="share_review_title">Review the changes</string>
-    <string name="share_review_hint">These settings differ from this device\'s. Turn one off to keep yours; nothing changes until you apply.</string>
-    <string name="share_no_changes">This device already has these settings.</string>
+    <string
+        name="share_review_hint"
+    >These settings differ from this device\'s. Turn one off to keep yours; nothing changes until you apply.</string>
+    <string
+        name="share_no_changes"
+    >This device already has these settings.</string>
     <string name="share_apply">Apply %1$d</string>
     <string name="share_take">Take</string>
     <string name="share_keep">Keep mine</string>
-    <string name="share_server_warning">Changes the server and signs you out. Only take it if you trust who gave you this code.</string>
+    <string
+        name="share_server_warning"
+    >Changes the server and signs you out. Only take it if you trust who gave you this code.</string>
     <string name="share_value_on">On</string>
     <string name="share_value_off">Off</string>
     <string name="share_minutes">%1$d min</string>
-    <string name="logout_offline_note">The server cannot be reached: you will be signed out on this device only.</string>
+    <string
+        name="logout_offline_note"
+    >The server cannot be reached: you will be signed out on this device only.</string>
     <string name="settings_back">Back</string>
     <string name="identify_later_action">Identify later</string>
     <string name="identify_later_chip">Identify later</string>
@@ -744,31 +1002,53 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="identify_note_title">Patient to identify after</string>
     <string name="identify_note_edit_title">Edit the note</string>
     <string name="identify_note_label">Note</string>
-    <string name="identify_note_hint">Record visits and encounters for a patient who is not on this device, without registering them. Write what will help you find them on the server later: name, village, relative, phone number...</string>
+    <string
+        name="identify_note_hint"
+    >Record visits and encounters for a patient who is not on this device, without registering them. Write what will help you find them on the server later: name, village, relative, phone number...</string>
     <string name="identify_note_create">Create</string>
     <string name="identify_banner_title">To identify after</string>
-    <string name="identify_banner_message">Recorded without registering the patient. Nothing is sent to the server until you identify them.</string>
+    <string
+        name="identify_banner_message"
+    >Recorded without registering the patient. Nothing is sent to the server until you identify them.</string>
     <string name="identify_banner_identify">Identify patient</string>
     <string name="identify_banner_edit_note">Edit note</string>
     <string name="identify_title">Identify patient</string>
     <string name="identify_list_title">Patients to identify</string>
-    <string name="identify_list_empty">Nothing is waiting to be identified.</string>
-    <string name="identify_records_summary">Visits: %1$d · Encounters: %2$d</string>
+    <string
+        name="identify_list_empty"
+    >Nothing is waiting to be identified.</string>
+    <string
+        name="identify_records_summary"
+    >Visits: %1$d · Encounters: %2$d</string>
     <string name="identify_search_label">Search the server</string>
     <string name="identify_search_hint">Name or identifier</string>
-    <string name="identify_search_idle">Type at least two letters to search the server.</string>
+    <string
+        name="identify_search_idle"
+    >Type at least two letters to search the server.</string>
     <string name="identify_no_results">No patient found on the server</string>
     <string name="identify_confirm_title">Identify this patient?</string>
-    <string name="identify_confirm_message">The records of "%1$s" will become those of %2$s and be sent to the server with the next sync.</string>
+    <string
+        name="identify_confirm_message"
+    >The records of "%1$s" will become those of %2$s and be sent to the server with the next sync.</string>
     <string name="identify_confirm_action">Identify</string>
-    <string name="identify_done">%1$d record(s) now belong to the patient.</string>
-    <string name="identify_failed">Could not identify the patient. Check the connection and try again.</string>
+    <string
+        name="identify_done"
+    >%1$d record(s) now belong to the patient.</string>
+    <string
+        name="identify_failed"
+    >Could not identify the patient. Check the connection and try again.</string>
     <string name="identify_sync_title">Patients to identify</string>
-    <string name="identify_sync_message">%1$d patient(s) were recorded to be identified later. Their records are not sent until you identify them.</string>
+    <string
+        name="identify_sync_message"
+    >%1$d patient(s) were recorded to be identified later. Their records are not sent until you identify them.</string>
     <string name="identify_sync_now">Identify now</string>
     <string name="identify_sync_anyway">Sync anyway</string>
-    <string name="identify_logout_lost">%1$d patient(s) to identify later will be deleted too, with what was recorded for them.</string>
-    <string name="identify_logout_kept">%1$d patient(s) to identify later stay on this device; they are not sent until identified.</string>
+    <string
+        name="identify_logout_lost"
+    >%1$d patient(s) to identify later will be deleted too, with what was recorded for them.</string>
+    <string
+        name="identify_logout_kept"
+    >%1$d patient(s) to identify later stay on this device; they are not sent until identified.</string>
     <string name="patient_detail_email">Email</string>
     <string name="patient_detail_contact">Contact</string>
     <string name="patient_details_show_all">Show all details</string>
@@ -776,44 +1056,74 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="no_app_for_action">No app was found to do this.</string>
     <string name="settings_change_server">Change server</string>
     <string name="server_change_title">Change the server?</string>
-    <string name="server_change_message">The app will use %1$s and restart. You will be signed out and asked to log in on the new server. Data on this device stays, but it came from the previous server: anything still waiting to upload will be sent to the new one.</string>
+    <string
+        name="server_change_message"
+    >The app will use %1$s and restart. You will be signed out and asked to log in on the new server. Data on this device stays, but it came from the previous server: anything still waiting to upload will be sent to the new one.</string>
     <string name="server_change_confirm">Change and sign out</string>
     <string name="diag_download">Download</string>
     <string name="diag_saved">Diagnostics report saved.</string>
-    <string name="diag_save_failed">Could not save the diagnostics report.</string>
+    <string
+        name="diag_save_failed"
+    >Could not save the diagnostics report.</string>
     <string name="drawer_guest_account">Guest (not signed in)</string>
     <string name="splash_go_to_login">Login page</string>
-    <string name="splash_login_page_hint">On the login page you can change the server.</string>
-    <string name="splash_login_page_hint_guest">On the login page you can change the server or continue without signing in.</string>
-    <string name="continue_without_login_hint">Register patients and fill the forms offline. You will be asked to sign in when you sync.</string>
+    <string
+        name="splash_login_page_hint"
+    >On the login page you can change the server.</string>
+    <string
+        name="splash_login_page_hint_guest"
+    >On the login page you can change the server or continue without signing in.</string>
+    <string
+        name="continue_without_login_hint"
+    >Register patients and fill the forms offline. You will be asked to sign in when you sync.</string>
     <string name="sign_in_to_sync_title">Sign in to sync</string>
-    <string name="sign_in_to_sync_message">To upload the patients and forms you entered, sign in first. Everything you entered stays on this device.</string>
+    <string
+        name="sign_in_to_sync_message"
+    >To upload the patients and forms you entered, sign in first. Everything you entered stays on this device.</string>
     <string name="sign_in">Sign in</string>
-    <string name="sign_in_for_patient_lists">Sign in to download patient lists.</string>
+    <string
+        name="sign_in_for_patient_lists"
+    >Sign in to download patient lists.</string>
     <string name="identifier_types_required_title">Identifier needed</string>
-    <string name="identifier_types_required_message">The patients you registered without an account need an identifier before they can be uploaded. Select the identifier types to use, then sync again.</string>
+    <string
+        name="identifier_types_required_message"
+    >The patients you registered without an account need an identifier before they can be uploaded. Select the identifier types to use, then sync again.</string>
     <string name="login_welcome">Welcome back</string>
     <string name="login_subtitle">Sign in to continue</string>
     <string name="app_version_footer">Version %1$s</string>
     <string name="server_settings_title">Server</string>
-    <string name="server_settings_description">Connect to another OpenMRS server by IP address or domain. The app restarts when you save.</string>
+    <string
+        name="server_settings_description"
+    >Connect to another OpenMRS server by IP address or domain. The app restarts when you save.</string>
     <string name="server_address">Server address</string>
     <string name="server_will_use">Will connect to %1$s</string>
-    <string name="server_address_invalid">Enter a valid address, such as 192.168.1.10:8080</string>
+    <string
+        name="server_address_invalid"
+    >Enter a valid address, such as 192.168.1.10:8080</string>
     <string name="test_connection">Test connection</string>
     <string name="testing_connection">Testing…</string>
     <string name="connection_success">Connected in %1$d ms</string>
     <string name="connection_error_not_found">Server not found</string>
     <string name="connection_error_timeout">No answer (timed out)</string>
     <string name="connection_error_certificate">Certificate problem</string>
-    <string name="connection_error_cleartext">http is not allowed for this server in this build; use https</string>
-    <string name="connection_error_unexpected">Unexpected answer from the server</string>
-    <string name="connection_error_unreachable">Could not reach the server</string>
+    <string
+        name="connection_error_cleartext"
+    >http is not allowed for this server in this build; use https</string>
+    <string
+        name="connection_error_unexpected"
+    >Unexpected answer from the server</string>
+    <string
+        name="connection_error_unreachable"
+    >Could not reach the server</string>
     <string name="use_default_server">Use default</string>
     <string name="title_import_export">Import / Export</string>
-    <string name="subtitle_import_export">Pass on data this device cannot sync, in a PIN-protected file</string>
+    <string
+        name="subtitle_import_export"
+    >Pass on data this device cannot sync, in a PIN-protected file</string>
     <string name="sync_cannot_sync_link">Cannot sync? Import / Export</string>
-    <string name="import_export_intro">Use this when this device cannot sync. Export what is waiting to be uploaded into a file protected with a PIN, send it to someone who can sync, and they import it here and upload it.</string>
+    <string
+        name="import_export_intro"
+    >Use this when this device cannot sync. Export what is waiting to be uploaded into a file protected with a PIN, send it to someone who can sync, and they import it here and upload it.</string>
     <string name="export_title">Export</string>
     <string name="export_pending">Waiting to be uploaded: %1$d</string>
     <string name="export_nothing">Nothing is waiting to be uploaded.</string>
@@ -827,50 +1137,88 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="export_share_subject">OpenMRS export</string>
     <string name="export_share_chooser">Send the export file</string>
     <string name="import_title">Import</string>
-    <string name="import_description">Load a file exported from another device, then upload what it contains.</string>
+    <string
+        name="import_description"
+    >Load a file exported from another device, then upload what it contains.</string>
     <string name="import_choose">Choose file</string>
     <string name="import_done_title">Import finished</string>
-    <string name="import_done_summary">%1$d added · %2$d updated · %3$d skipped</string>
-    <string name="import_skipped_hint">Skipped items are already on this device, or are edits of records this device has not downloaded.</string>
+    <string
+        name="import_done_summary"
+    >%1$d added · %2$d updated · %3$d skipped</string>
+    <string
+        name="import_skipped_hint"
+    >Skipped items are already on this device, or are edits of records this device has not downloaded.</string>
     <string name="import_upload_now">Upload now</string>
-    <string name="import_invalid_file">This is not a file exported by this app</string>
+    <string
+        name="import_invalid_file"
+    >This is not a file exported by this app</string>
     <string name="import_failed">The import failed</string>
     <string name="pin_export_title">Protect the file with a PIN</string>
-    <string name="pin_export_message">Choose 4 digits. Whoever imports the file will need them.</string>
+    <string
+        name="pin_export_message"
+    >Choose 4 digits. Whoever imports the file will need them.</string>
     <string name="pin_import_title">Enter the PIN</string>
-    <string name="pin_import_message">Enter the 4 digits chosen when the file was exported.</string>
+    <string
+        name="pin_import_message"
+    >Enter the 4 digits chosen when the file was exported.</string>
     <string name="pin_label">PIN</string>
     <string name="pin_repeat_label">Repeat PIN</string>
     <string name="pin_mismatch">The PINs do not match</string>
     <string name="pin_wrong">Wrong PIN</string>
-    <string name="birth_date_in_the_future">The date of birth cannot be in the future</string>
+    <string
+        name="birth_date_in_the_future"
+    >The date of birth cannot be in the future</string>
     <string name="color_vision_title">Color vision</string>
-    <string name="color_vision_description">Blue and orange instead of green and red, with stronger contrast.</string>
+    <string
+        name="color_vision_description"
+    >Blue and orange instead of green and red, with stronger contrast.</string>
     <string name="color_vision_standard">Standard</string>
     <string name="color_vision_color_blind">Color-blind friendly</string>
     <string name="embedded_forms_only">Use embedded forms only</string>
-    <string name="embedded_forms_only_description">The app uses only the forms shipped with it and does not download questionnaires from the server.</string>
-    <string name="fetch_questionnaires_sign_in">Sign in to check the server for new and updated forms.</string>
-    <string name="questionnaires_changes">New forms: %1$d, updated: %2$d</string>
-    <string name="diag_message">Choose what to send to the support team. Everything is selected by default. The report is an encrypted archive that you send by email.</string>
+    <string
+        name="embedded_forms_only_description"
+    >The app uses only the forms shipped with it and does not download questionnaires from the server.</string>
+    <string
+        name="fetch_questionnaires_sign_in"
+    >Sign in to check the server for new and updated forms.</string>
+    <string
+        name="questionnaires_changes"
+    >New forms: %1$d, updated: %2$d</string>
+    <string
+        name="diag_message"
+    >Choose what to send to the support team. Everything is selected by default. The report is an encrypted archive that you send by email.</string>
     <string name="diag_logs">Application logs</string>
-    <string name="diag_logs_description">What the app recorded while it ran, to find errors.</string>
+    <string
+        name="diag_logs_description"
+    >What the app recorded while it ran, to find errors.</string>
     <string name="diag_audit">Audit trail</string>
-    <string name="diag_audit_description">The recent steps taken in the app: sign-ins, patients and encounters created or edited, syncs.</string>
+    <string
+        name="diag_audit_description"
+    >The recent steps taken in the app: sign-ins, patients and encounters created or edited, syncs.</string>
     <string name="diag_sync">Sync information</string>
-    <string name="diag_sync_description">The latest synchronization sessions, with their counts and errors.</string>
+    <string
+        name="diag_sync_description"
+    >The latest synchronization sessions, with their counts and errors.</string>
     <string name="diag_unsynced">Unsynced resources</string>
-    <string name="diag_unsynced_description">Everything still waiting to be uploaded, in full. Contains patient data.</string>
+    <string
+        name="diag_unsynced_description"
+    >Everything still waiting to be uploaded, in full. Contains patient data.</string>
     <string name="diag_device">Device and app information</string>
-    <string name="diag_device_description">Version, device, storage, network, settings and forms. No patient data.</string>
+    <string
+        name="diag_device_description"
+    >Version, device, storage, network, settings and forms. No patient data.</string>
     <string name="diag_preparing">Preparing the report…</string>
     <string name="diag_send">Send</string>
-    <string name="diag_failed">Could not prepare the diagnostics report.</string>
+    <string
+        name="diag_failed"
+    >Could not prepare the diagnostics report.</string>
     <string name="diag_range_title">Time range</string>
     <string name="diag_range_all">Everything</string>
     <string name="diag_range_24h">Last 24 hours</string>
     <string name="diag_range_7d">Last 7 days</string>
-    <string name="diag_range_note">Applies to the logs, the audit trail and the sync information.</string>
+    <string
+        name="diag_range_note"
+    >Applies to the logs, the audit trail and the sync information.</string>
     <string name="diag_est_size">About %s</string>
     <string name="diag_est_entries">Entries: %d</string>
     <string name="diag_est_sessions">Sessions: %d</string>
@@ -882,21 +1230,35 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="pending_session_line">Pending session · %1$s · %2$s</string>
     <string name="patients_selected_of">%1$d of %2$d selected</string>
     <string name="search_patients_hint">Search patients</string>
-    <string name="no_patients_to_select">No patients to select. Register or sync patients first.</string>
+    <string
+        name="no_patients_to_select"
+    >No patients to select. Register or sync patients first.</string>
     <string name="start_with_count">Start (%1$d)</string>
     <string name="logout_delete_title">Log out and delete all data</string>
-    <string name="logout_delete_description">Signs you out and removes everything stored on this device: patients, encounters, drafts and the changes not yet uploaded.</string>
+    <string
+        name="logout_delete_description"
+    >Signs you out and removes everything stored on this device: patients, encounters, drafts and the changes not yet uploaded.</string>
     <string name="logout_delete_button">Log out and delete all data</string>
-    <string name="logout_delete_confirm_title">Delete all data and log out?</string>
-    <string name="logout_delete_confirm_message">This cannot be undone. Everything stored on this device will be deleted: patients, encounters, drafts, downloaded data and your session. You will have to sign in and download your data again.</string>
+    <string
+        name="logout_delete_confirm_title"
+    >Delete all data and log out?</string>
+    <string
+        name="logout_delete_confirm_message"
+    >This cannot be undone. Everything stored on this device will be deleted: patients, encounters, drafts, downloaded data and your session. You will have to sign in and download your data again.</string>
     <string name="logout_delete_confirm_button">Delete and log out</string>
     <plurals name="logout_delete_unsynced">
-        <item quantity="one">%d change has not been uploaded and will be lost for good.</item>
-        <item quantity="other">%d changes have not been uploaded and will be lost for good.</item>
+        <item
+            quantity="one"
+        >%d change has not been uploaded and will be lost for good.</item>
+        <item
+            quantity="other"
+        >%d changes have not been uploaded and will be lost for good.</item>
     </plurals>
     <string name="settings_reset_menu">Reset settings to default</string>
     <string name="settings_reset_title">Reset settings</string>
-    <string name="settings_reset_message">Every setting on this page goes back to its default value: appearance, language, notifications, synchronization, forms and favorites. Your patients, data and session are not affected.</string>
+    <string
+        name="settings_reset_message"
+    >Every setting on this page goes back to its default value: appearance, language, notifications, synchronization, forms and favorites. Your patients, data and session are not affected.</string>
     <string name="settings_reset_confirm">Reset</string>
     <string name="settings_reset_done">Settings were reset to default</string>
     <string name="auto_sync_delay_link">Delay</string>
@@ -906,43 +1268,77 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="auto_sync_delay_1_hour">1 hour</string>
     <string name="auto_sync_delay_2_hours">2 hours</string>
     <string name="auto_sync_turn_off">Turn off automatic sync</string>
-    <string name="auto_sync_turn_off_hint">You can turn it back on in Settings.</string>
-    <string name="auto_sync_turned_off">Automatic sync is off. Turn it back on in Settings.</string>
+    <string
+        name="auto_sync_turn_off_hint"
+    >You can turn it back on in Settings.</string>
+    <string
+        name="auto_sync_turned_off"
+    >Automatic sync is off. Turn it back on in Settings.</string>
     <string name="next_sync_in_hours">Next sync in %1$d h %2$d min</string>
     <string name="auto_sync_reset_timer">Reset timer</string>
-    <string name="settings_connection_description">Server: %1$s. Check that this device can reach it.</string>
+    <string
+        name="settings_connection_description"
+    >Server: %1$s. Check that this device can reach it.</string>
     <string name="logout_section_title">Logout</string>
     <string name="clear_on_logout_title">Delete data when logging out</string>
-    <string name="clear_on_logout_description">On: logging out removes everything stored on this device. Off: the data stays on the device after you log out.</string>
+    <string
+        name="clear_on_logout_description"
+    >On: logging out removes everything stored on this device. Off: the data stays on the device after you log out.</string>
     <string name="clear_on_logout_on_title">Delete data on logout?</string>
-    <string name="clear_on_logout_on_message">From now on, logging out will delete everything stored on this device: patients, encounters, drafts and downloaded data. You will have to download it again after signing in.</string>
+    <string
+        name="clear_on_logout_on_message"
+    >From now on, logging out will delete everything stored on this device: patients, encounters, drafts and downloaded data. You will have to download it again after signing in.</string>
     <string name="clear_on_logout_on_button">Turn on</string>
     <string name="clear_on_logout_off_title">Keep data after logout?</string>
-    <string name="clear_on_logout_off_message">Logging out will no longer delete the patients, encounters and drafts stored on this device. Anyone who signs in on it afterwards will be able to see them.</string>
+    <string
+        name="clear_on_logout_off_message"
+    >Logging out will no longer delete the patients, encounters and drafts stored on this device. Anyone who signs in on it afterwards will be able to see them.</string>
     <string name="clear_on_logout_off_button">Turn off</string>
-    <string name="logout_message_delete">Logging out will delete all data stored on this device: patients, encounters, drafts and downloaded data. You will have to download it again after signing in. Do you want to log out?</string>
-    <string name="logout_message_keep">You will be signed out. The data stays on this device. Do you want to log out?</string>
+    <string
+        name="logout_message_delete"
+    >Logging out will delete all data stored on this device: patients, encounters, drafts and downloaded data. You will have to download it again after signing in. Do you want to log out?</string>
+    <string
+        name="logout_message_keep"
+    >You will be signed out. The data stays on this device. Do you want to log out?</string>
     <plurals name="logout_pending_lost">
-        <item quantity="one">%d resource is pending upload and will be lost for good.</item>
-        <item quantity="other">%d resources are pending upload and will be lost for good.</item>
+        <item
+            quantity="one"
+        >%d resource is pending upload and will be lost for good.</item>
+        <item
+            quantity="other"
+        >%d resources are pending upload and will be lost for good.</item>
     </plurals>
     <plurals name="logout_pending_kept">
-        <item quantity="one">%d resource is still waiting to be uploaded. It stays on this device until you sign in and sync.</item>
-        <item quantity="other">%d resources are still waiting to be uploaded. They stay on this device until you sign in and sync.</item>
+        <item
+            quantity="one"
+        >%d resource is still waiting to be uploaded. It stays on this device until you sign in and sync.</item>
+        <item
+            quantity="other"
+        >%d resources are still waiting to be uploaded. They stay on this device until you sign in and sync.</item>
     </plurals>
     <string name="pending_sessions_title">Pending sessions</string>
-    <string name="pending_sessions_message">Several group sessions are waiting. Choose the one you want to resume.</string>
+    <string
+        name="pending_sessions_message"
+    >Several group sessions are waiting. Choose the one you want to resume.</string>
     <string name="pending_session_detail">%1$s · %2$s</string>
     <string name="create_encounter_subtitle">Choose a form to start</string>
-    <string name="create_group_encounter_subtitle">Choose a form, then the patients</string>
+    <string
+        name="create_group_encounter_subtitle"
+    >Choose a form, then the patients</string>
     <string name="location_banner_label">Location</string>
     <string name="location_banner_none">No location selected</string>
-    <string name="location_banner_none_hint">This patient will be saved without a location. It gets the location you choose later.</string>
-    <string name="location_banner_guest_hint">You will choose the location after signing in.</string>
+    <string
+        name="location_banner_none_hint"
+    >This patient will be saved without a location. It gets the location you choose later.</string>
+    <string
+        name="location_banner_guest_hint"
+    >You will choose the location after signing in.</string>
     <string name="view_encounter">View Encounter</string>
     <string name="encounter_edit_action">Edit</string>
     <string name="encounter_read_only">Read only</string>
-    <string name="encounter_generic_note">The form for this encounter is not on this device, so the values are shown as they were saved. Editing is not available.</string>
+    <string
+        name="encounter_generic_note"
+    >The form for this encounter is not on this device, so the values are shown as they were saved. Editing is not available.</string>
     <string name="encounter_generic_title">Encounter</string>
     <string name="encounter_generic_observations">Recorded values</string>
     <string name="encounter_generic_type">Encounter type</string>
@@ -952,58 +1348,107 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="encounter_generic_status">Status</string>
     <string name="encounter_generic_unnamed">Unnamed value</string>
     <string name="choose_location">Choose location</string>
-    <string name="patient_lists_empty_no_location">No location is selected yet. Choose a location to see its patient lists.</string>
-    <string name="sync_first_download_wait">Please wait here: this first download is needed before you can continue, and it cannot be skipped.</string>
+    <string
+        name="patient_lists_empty_no_location"
+    >No location is selected yet. Choose a location to see its patient lists.</string>
+    <string
+        name="sync_first_download_wait"
+    >Please wait here: this first download is needed before you can continue, and it cannot be skipped.</string>
     <string name="delete_patient_data_menu">Delete patient data</string>
     <string name="delete_patient_data_title">Delete all patient data?</string>
-    <string name="delete_patient_data_message">This removes the patients (%1$d) of this user from the device, with their encounters and observations, the patients to identify and the group-session drafts, and it deselects the patient lists. You stay signed in and your location is kept, so you can start a new flow.</string>
-    <string name="delete_patient_data_unsynced">%1$d records have changes that were not uploaded yet. They will be lost.</string>
+    <string
+        name="delete_patient_data_message"
+    >This removes the patients (%1$d) of this user from the device, with their encounters and observations, the patients to identify and the group-session drafts, and it deselects the patient lists. You stay signed in and your location is kept, so you can start a new flow.</string>
+    <string
+        name="delete_patient_data_unsynced"
+    >%1$d records have changes that were not uploaded yet. They will be lost.</string>
     <string name="delete_patient_data_confirm">Delete</string>
-    <string name="delete_patient_data_done">Patient data deleted. Choose the patient lists to download again.</string>
-    <string name="delete_patient_data_failed">Could not delete the patient data.</string>
+    <string
+        name="delete_patient_data_done"
+    >Patient data deleted. Choose the patient lists to download again.</string>
+    <string
+        name="delete_patient_data_failed"
+    >Could not delete the patient data.</string>
     <string name="unlock_title">OpenMRS is locked</string>
-    <string name="unlock_message">Confirm it is you to carry on where you left off.</string>
-    <string name="unlock_unavailable">A fingerprint, face or screen lock is not set up on this device any more. Sign in with your account to continue.</string>
+    <string
+        name="unlock_message"
+    >Confirm it is you to carry on where you left off.</string>
+    <string
+        name="unlock_unavailable"
+    >A fingerprint, face or screen lock is not set up on this device any more. Sign in with your account to continue.</string>
     <string name="unlock_button">Unlock</string>
     <string name="unlock_sign_in_again">Sign in with my account instead</string>
     <string name="unlock_prompt_title">Unlock OpenMRS</string>
     <string name="confirm_identity_title">Confirm it is you</string>
-    <string name="delete_patient_data_auth_subtitle">Deleting the patient data needs your fingerprint, face or screen lock.</string>
-    <string name="logout_delete_auth_subtitle">Logging out and deleting all data needs your fingerprint, face or screen lock.</string>
-    <string name="offline_login_unavailable_status">Offline login is on, but this device has no fingerprint, face or screen lock any more. Set one up, or reset the offline login and sign in again.</string>
+    <string
+        name="delete_patient_data_auth_subtitle"
+    >Deleting the patient data needs your fingerprint, face or screen lock.</string>
+    <string
+        name="logout_delete_auth_subtitle"
+    >Logging out and deleting all data needs your fingerprint, face or screen lock.</string>
+    <string
+        name="offline_login_unavailable_status"
+    >Offline login is on, but this device has no fingerprint, face or screen lock any more. Set one up, or reset the offline login and sign in again.</string>
     <string name="app_lock_delay">Ask again after</string>
-    <string name="app_lock_delay_description">How long the app can be out of sight before it asks for your fingerprint, face or screen lock.</string>
+    <string
+        name="app_lock_delay_description"
+    >How long the app can be out of sight before it asks for your fingerprint, face or screen lock.</string>
     <string name="app_lock_delay_immediately">Every time</string>
     <string name="app_lock_delay_seconds">%1$d seconds</string>
     <string name="app_lock_delay_minutes">%1$d min</string>
     <string name="app_lock_screen_off">Lock when the screen turns off</string>
-    <string name="app_lock_screen_off_description">Ask again as soon as the screen is turned back on, whatever the time above.</string>
+    <string
+        name="app_lock_screen_off_description"
+    >Ask again as soon as the screen is turned back on, whatever the time above.</string>
     <string name="app_lock_hide_recents">Hide the app in recent apps</string>
-    <string name="app_lock_hide_recents_description">The recent apps list and screenshots show a blank screen, so patient data is not visible. Takes effect for new screens.</string>
-    <string name="invalid_username_password_sso_hint">Login failed. Check your credentials. If your organisation uses single sign-on, tap "Sign in with SSO" instead.</string>
-    <string name="session_expired_strip">Session expired. Changes are kept on this device.</string>
+    <string
+        name="app_lock_hide_recents_description"
+    >The recent apps list and screenshots show a blank screen, so patient data is not visible. Takes effect for new screens.</string>
+    <string
+        name="invalid_username_password_sso_hint"
+    >Login failed. Check your credentials. If your organisation uses single sign-on, tap "Sign in with SSO" instead.</string>
+    <string
+        name="session_expired_strip"
+    >Session expired. Changes are kept on this device.</string>
     <string name="settings_auto_sync_unmetered">Only on Wi-Fi</string>
-    <string name="settings_auto_sync_unmetered_description">The automatic sync waits for a connection that is not metered. A sync you start yourself always goes ahead.</string>
-    <string name="settings_auto_sync_battery">Not when the battery is low</string>
-    <string name="settings_auto_sync_battery_description" formatted="false">The automatic sync waits while the battery is under 15% and the device is not charging.</string>
+    <string
+        name="settings_auto_sync_unmetered_description"
+    >The automatic sync waits for a connection that is not metered. A sync you start yourself always goes ahead.</string>
+    <string
+        name="settings_auto_sync_battery"
+    >Not when the battery is low</string>
+    <string
+        name="settings_auto_sync_battery_description"
+        formatted="false"
+    >The automatic sync waits while the battery is under 15% and the device is not charging.</string>
     <string name="patient_sort_name_asc">Name A–Z</string>
     <string name="patient_sort_name_desc">Name Z–A</string>
     <string name="patient_sort_age_youngest">Youngest first</string>
     <string name="patient_sort_age_oldest">Oldest first</string>
     <string name="patients_show_more">Show more patients</string>
     <string name="help_patients_sort_title">Sort and show more</string>
-    <string name="help_patients_sort_body">Choose the order of the list. It shows 100 patients at a time: use Show more at the end to see the rest.</string>
+    <string
+        name="help_patients_sort_body"
+    >Choose the order of the list. It shows 100 patients at a time: use Show more at the end to see the rest.</string>
     <string name="home_summary_patients">%1$d patients on this device</string>
     <string name="home_summary_waiting">%1$d changes not uploaded yet</string>
     <string name="home_summary_uploaded">Everything is uploaded</string>
     <string name="help_home_summary_title">At a glance</string>
-    <string name="help_home_summary_body">How many patients are on this device and how many changes still wait to be uploaded. Tap it to open the Sync page.</string>
+    <string
+        name="help_home_summary_body"
+    >How many patients are on this device and how many changes still wait to be uploaded. Tap it to open the Sync page.</string>
     <string name="help_home_menu_title">The menu</string>
-    <string name="help_home_menu_body">Open it with the button at the top: Settings, Send diagnostics, Delete patient data and Log out. The last two ask you to confirm.</string>
+    <string
+        name="help_home_menu_body"
+    >Open it with the button at the top: Settings, Send diagnostics, Delete patient data and Log out. The last two ask you to confirm.</string>
     <string name="help_home_session_title">Session expired</string>
-    <string name="help_home_session_body">When the server no longer accepts your login, this strip appears under the connection status. Tap Sign in: what you did meanwhile stays on the device and is sent after.</string>
+    <string
+        name="help_home_session_body"
+    >When the server no longer accepts your login, this strip appears under the connection status. Tap Sign in: what you did meanwhile stays on the device and is sent after.</string>
     <string name="settings_search_hint">Search settings</string>
     <string name="settings_search_none">No setting matches</string>
     <string name="help_settings_search_title">Search the settings</string>
-    <string name="help_settings_search_body">Type a word (sync, language, lock…) to show only the sections that mention it.</string>
+    <string
+        name="help_settings_search_body"
+    >Type a word (sync, language, lock…) to show only the sections that mention it.</string>
 </resources>

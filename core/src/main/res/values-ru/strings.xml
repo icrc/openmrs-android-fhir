@@ -3,13 +3,19 @@
     <string name="title_add_patient">Зарегистрировать пациента</string>
     <string name="subtitle_add_patient">Ввести данные нового пациента</string>
     <string name="title_search_patient">Пациенты</string>
-    <string name="subtitle_search_patient">Поиск, просмотр и редактирование пациентов на этом устройстве</string>
+    <string
+        name="subtitle_search_patient"
+    >Поиск, просмотр и редактирование пациентов на этом устройстве</string>
     <string name="title_custom_patient_list">Списки пациентов</string>
-    <string name="subtitle_custom_patient_list">Выбрать списки для загрузки на это устройство</string>
+    <string
+        name="subtitle_custom_patient_list"
+    >Выбрать списки для загрузки на это устройство</string>
 
     <string name="section_encounters">ВСТРЕЧИ</string>
     <string name="title_group_encounter">Групповая или семейная сессия</string>
-    <string name="subtitle_group_encounter">Заполнить одну форму для нескольких пациентов</string>
+    <string
+        name="subtitle_group_encounter"
+    >Заполнить одну форму для нескольких пациентов</string>
 
     <string name="section_system">СИСТЕМА</string>
     <string name="sync_info">Информация о синхронизации</string>
@@ -34,8 +40,12 @@
     <string name="create_encounter">Создать встречу</string>
     <string name="search_forms">Поиск форм</string>
     <string name="all_forms">Все формы</string>
-    <string name="create_encounter_no_forms">Для визитов пока нет доступных форм.</string>
-    <string name="create_encounter_no_match">Нет форм, соответствующих «%1$s»</string>
+    <string
+        name="create_encounter_no_forms"
+    >Для визитов пока нет доступных форм.</string>
+    <string
+        name="create_encounter_no_match"
+    >Нет форм, соответствующих «%1$s»</string>
     <string name="create_group_encounter">Новая групповая сессия</string>
     <string name="edit_encounter">Редактировать встречу</string>
 
@@ -67,7 +77,9 @@
     <string name="error">Ошибка</string>
     <string name="no_location_selected">Локация не выбрана</string>
 
-    <string name="patient_unsynced_info">Ещё не синхронизировано. Данные этого пациента будут отправлены на сервер, когда появится соединение.</string>
+    <string
+        name="patient_unsynced_info"
+    >Ещё не синхронизировано. Данные этого пациента будут отправлены на сервер, когда появится соединение.</string>
 
     <string name="header_visits">Визиты</string>
 
@@ -86,35 +98,61 @@
     <string name="login_expired">Сессия истекла</string>
     <string name="settings_auto_sync">Синхронизировать автоматически</string>
     <string name="settings_live_mode">Режим онлайн</string>
-    <string name="settings_live_mode_description">Отправляет сохранённое на сервер сразу и ищет на сервере пациентов, которых нет на этом устройстве. Без связи ничего не теряется: данные сохраняются и отправляются позже.</string>
+    <string
+        name="settings_live_mode_description"
+    >Отправляет сохранённое на сервер сразу и ищет на сервере пациентов, которых нет на этом устройстве. Без связи ничего не теряется: данные сохраняются и отправляются позже.</string>
     <string name="live_server_results_title">На сервере</string>
-    <string name="live_server_no_results">Других пациентов на сервере нет</string>
-    <string name="live_server_search_failed">Не удалось связаться с сервером для поиска</string>
-    <string name="live_server_open_failed">Не удалось открыть пациента с сервера. Повторите попытку.</string>
+    <string
+        name="live_server_no_results"
+    >Других пациентов на сервере нет</string>
+    <string
+        name="live_server_search_failed"
+    >Не удалось связаться с сервером для поиска</string>
+    <string
+        name="live_server_open_failed"
+    >Не удалось открыть пациента с сервера. Повторите попытку.</string>
     <string name="live_status_live">Онлайн</string>
     <string name="live_status_sending">Отправка…</string>
-    <string name="live_status_retry">Пока не отправлено, будет повторная попытка</string>
+    <string
+        name="live_status_retry"
+    >Пока не отправлено, будет повторная попытка</string>
     <string name="settings_language">Язык</string>
-    <string name="settings_section_identifiers">Идентификаторы пациентов</string>
-    <string name="settings_identifiers_description">Выберите типы идентификаторов для новых пациентов.</string>
-    <string name="identifier_types_hint">Выберите типы идентификаторов для новых пациентов. Обязательные включены всегда.</string>
+    <string
+        name="settings_section_identifiers"
+    >Идентификаторы пациентов</string>
+    <string
+        name="settings_identifiers_description"
+    >Выберите типы идентификаторов для новых пациентов.</string>
+    <string
+        name="identifier_types_hint"
+    >Выберите типы идентификаторов для новых пациентов. Обязательные включены всегда.</string>
     <string name="identifier_type_required">Обязательно</string>
-    <string name="identifier_types_empty">Типы идентификаторов пока недоступны. Проверьте соединение и повторите попытку.</string>
+    <string
+        name="identifier_types_empty"
+    >Типы идентификаторов пока недоступны. Проверьте соединение и повторите попытку.</string>
     <string name="last_encounter">Последний визит</string>
     <string name="last_encounter_none">Пока нет визитов</string>
     <string name="last_encounter_unknown_type">Визит</string>
     <string name="favorite_forms">Избранные формы</string>
-    <string name="favorite_forms_description">Выберите до %1$d форм, которые будут показаны первыми при создании визита.</string>
+    <string
+        name="favorite_forms_description"
+    >Выберите до %1$d форм, которые будут показаны первыми при создании визита.</string>
     <string name="favorite_forms_count">Выбрано %1$d из %2$d</string>
     <string name="favorite_forms_choose">Выбрать избранное</string>
     <string name="form_sections_title">Разделы форм</string>
-    <string name="form_sections_description">Организуйте формы на экране создания визита по-своему: свои разделы с нужными формами.</string>
+    <string
+        name="form_sections_description"
+    >Организуйте формы на экране создания визита по-своему: свои разделы с нужными формами.</string>
     <string name="form_sections_default_status">Разделы приложения</string>
     <string name="form_sections_custom_status">Ваши разделы (%1$d)</string>
     <string name="form_sections_customize">Настроить разделы</string>
     <string name="form_sections_reset">Сбросить по умолчанию</string>
-    <string name="form_sections_reset_message">Вернуться к разделам приложения? Ваши разделы будут удалены; избранное сохранится.</string>
-    <string name="form_sections_editor_hint">Назовите разделы, добавьте формы и расположите их по порядку. Пока вы не сохраните, ничего не меняется.</string>
+    <string
+        name="form_sections_reset_message"
+    >Вернуться к разделам приложения? Ваши разделы будут удалены; избранное сохранится.</string>
+    <string
+        name="form_sections_editor_hint"
+    >Назовите разделы, добавьте формы и расположите их по порядку. Пока вы не сохраните, ничего не меняется.</string>
     <string name="form_section_name">Название раздела</string>
     <string name="form_section_default_name">Раздел</string>
     <string name="form_section_add">Добавить раздел</string>
@@ -123,8 +161,12 @@
     <string name="form_section_move_up">Вверх</string>
     <string name="form_section_move_down">Вниз</string>
     <string name="forms_selected_count">Выбрано: %1$d</string>
-    <string name="next_sync_in_minutes">Следующая синхронизация через %1$d мин</string>
-    <string name="auto_sync_session_expired_message">Ваш сеанс больше недействителен, поэтому автоматическая синхронизация не выполнена. Войдите снова, чтобы данные продолжали синхронизироваться. Введённые на этом устройстве данные сохранены.</string>
+    <string
+        name="next_sync_in_minutes"
+    >Следующая синхронизация через %1$d мин</string>
+    <string
+        name="auto_sync_session_expired_message"
+    >Ваш сеанс больше недействителен, поэтому автоматическая синхронизация не выполнена. Войдите снова, чтобы данные продолжали синхронизироваться. Введённые на этом устройстве данные сохранены.</string>
     <string name="later">Позже</string>
     <string name="session_expired">Ваша сессия истекла. Войти снова?</string>
 
@@ -231,28 +273,48 @@
     <string name="select_patient_list">Выбрать список пациентов</string>
     <string name="search_identifier_types">Поиск типов идентификаторов</string>
     <string name="search_a_location">Поиск локации</string>
-    <string name="select_location_subtitle">Выберите место работы. Позже его можно изменить в меню.</string>
+    <string
+        name="select_location_subtitle"
+    >Выберите место работы. Позже его можно изменить в меню.</string>
     <string name="locations_favorites">Избранное</string>
     <string name="locations_all">Все местоположения</string>
-    <string name="locations_no_match">Нет местоположений, соответствующих «%1$s»</string>
+    <string
+        name="locations_no_match"
+    >Нет местоположений, соответствующих «%1$s»</string>
     <string name="location_current_badge">Текущее местоположение</string>
 
     <string name="next">Далее</string>
     <string name="search_patient_lists">Поиск списков пациентов</string>
-    <string name="select_patient_list_subtitle">Выберите списки, пациенты которых нужны на этом устройстве. Загружаются только их пациенты.</string>
+    <string
+        name="select_patient_list_subtitle"
+    >Выберите списки, пациенты которых нужны на этом устройстве. Загружаются только их пациенты.</string>
     <string name="patient_lists_header">Списки пациентов</string>
     <string name="patient_lists_empty_title">Нет списков пациентов</string>
-    <string name="patient_lists_empty_for_location">Для места «%1$s» нет списков пациентов. Попробуйте другое место или проверьте снова.</string>
-    <string name="patient_lists_failed_title">Не удалось загрузить списки пациентов</string>
-    <string name="patient_lists_failed_message">Проверьте соединение и повторите попытку.</string>
-    <string name="patient_lists_failed_cached">Не удалось обновить списки. Показаны списки, сохранённые на этом устройстве.</string>
+    <string
+        name="patient_lists_empty_for_location"
+    >Для места «%1$s» нет списков пациентов. Попробуйте другое место или проверьте снова.</string>
+    <string
+        name="patient_lists_failed_title"
+    >Не удалось загрузить списки пациентов</string>
+    <string
+        name="patient_lists_failed_message"
+    >Проверьте соединение и повторите попытку.</string>
+    <string
+        name="patient_lists_failed_cached"
+    >Не удалось обновить списки. Показаны списки, сохранённые на этом устройстве.</string>
     <string name="patient_lists_try_again">Повторить</string>
     <string name="patient_lists_continue_without">Продолжить без списка</string>
-    <string name="patient_lists_continue_without_title">Продолжить без списка пациентов?</string>
-    <string name="patient_lists_continue_without_message">Пациенты не будут загружены на это устройство. Вы по-прежнему можете регистрировать пациентов и выбрать списки позже в разделе «Списки пациентов» на главном экране.</string>
+    <string
+        name="patient_lists_continue_without_title"
+    >Продолжить без списка пациентов?</string>
+    <string
+        name="patient_lists_continue_without_message"
+    >Пациенты не будут загружены на это устройство. Вы по-прежнему можете регистрировать пациентов и выбрать списки позже в разделе «Списки пациентов» на главном экране.</string>
     <string name="patient_lists_continue_action">Продолжить</string>
     <string name="patient_list_patient_count">Пациентов: %1$d</string>
-    <string name="patient_lists_no_match">Нет списков пациентов, соответствующих «%1$s»</string>
+    <string
+        name="patient_lists_no_match"
+    >Нет списков пациентов, соответствующих «%1$s»</string>
     <string name="patient_lists_selected_count">Выбрано: %1$d</string>
 
     <string name="no_sync_info_available">Нет данных о синхронизации</string>
@@ -263,16 +325,22 @@
     <string name="sync_last_value">Последняя синхронизация: %1$s</string>
     <string name="sync_tab_pending">Ожидают</string>
     <string name="sync_tab_history">История</string>
-    <string name="subtitle_sync_center">Отправка изменений, ожидающие данные и история</string>
+    <string
+        name="subtitle_sync_center"
+    >Отправка изменений, ожидающие данные и история</string>
     <string name="sync_downloaded">Загружено</string>
-    <string name="sync_interrupted">Синхронизация была прервана до завершения.</string>
+    <string
+        name="sync_interrupted"
+    >Синхронизация была прервана до завершения.</string>
     <string name="sync_items_so_far">Синхронизировано элементов: %1$d</string>
     <string name="sync_uploaded">Отправлено</string>
     <string name="sync_status_completed">Завершена</string>
     <string name="sync_status_completed_errors">Завершена с ошибками</string>
     <string name="sync_errors_show_all">Показать все (%1$d)</string>
     <string name="sync_errors_show_less">Показать меньше</string>
-    <string name="clear_sync_data_confirm">Удалить все завершённые записи синхронизации? Текущая синхронизация сохранится.</string>
+    <string
+        name="clear_sync_data_confirm"
+    >Удалить все завершённые записи синхронизации? Текущая синхронизация сохранится.</string>
 
 
 
@@ -547,15 +615,11 @@
     <string name="not_available">Н/Д</string>
     <string name="no_name_provided">Имя не указано</string>
 
-    <string
-        name="discard_changes_title"
-    >Отменить изменения?</string>
+    <string name="discard_changes_title">Отменить изменения?</string>
     <string
         name="discard_changes_message"
     >У вас есть несохранённые изменения. Если вы выйдете сейчас, они будут потеряны.</string>
-    <string
-        name="discard_changes_confirm"
-    >Отменить</string>
+    <string name="discard_changes_confirm">Отменить</string>
     <string
         name="discard_changes_keep_editing"
     >Продолжить редактирование</string>
@@ -567,192 +631,376 @@
     <string name="nav_group_session">Группа</string>
     <string name="nav_sync">Синхр.</string>
     <string name="clear_search">Очистить поиск</string>
-    <string name="fetch_questionnaires">Проверить новые и обновлённые формы</string>
+    <string
+        name="fetch_questionnaires"
+    >Проверить новые и обновлённые формы</string>
     <string name="fetching_questionnaires">Загрузка анкет…</string>
-    <string name="fetch_questionnaires_description">Проверяет сервер на наличие форм, которых ещё нет в приложении, и более новых версий имеющихся.</string>
+    <string
+        name="fetch_questionnaires_description"
+    >Проверяет сервер на наличие форм, которых ещё нет в приложении, и более новых версий имеющихся.</string>
     <string name="questionnaires_up_to_date">Анкеты актуальны.</string>
-    <string name="questionnaires_fetch_failed">Не удалось загрузить анкеты. Проверьте соединение и повторите попытку.</string>
+    <string
+        name="questionnaires_fetch_failed"
+    >Не удалось загрузить анкеты. Проверьте соединение и повторите попытку.</string>
     <string name="questionnaires_added">Добавлено новых анкет: %d</string>
-    <string name="questionnaire_required_answers_missing">Ответьте на обязательные вопросы на этой странице, чтобы продолжить. Они отмечены красным.</string>
+    <string
+        name="questionnaire_required_answers_missing"
+    >Ответьте на обязательные вопросы на этой странице, чтобы продолжить. Они отмечены красным.</string>
     <string name="change_location">Сменить местоположение</string>
     <string name="settings_section_general">Общие</string>
     <string name="settings_section_sync">Синхронизация</string>
     <string name="settings_section_live">Режим онлайн</string>
-    <string name="settings_live_keep_patients">Сохранять пациентов с сервера на этом устройстве</string>
-    <string name="settings_live_keep_patients_description">Включено: пациент, открытый с сервера, остаётся на этом устройстве и доступен без связи. Выключено: пациент удаляется с устройства, когда вы его закрываете; то, что ещё не отправлено, сохраняется до отправки.</string>
+    <string
+        name="settings_live_keep_patients"
+    >Сохранять пациентов с сервера на этом устройстве</string>
+    <string
+        name="settings_live_keep_patients_description"
+    >Включено: пациент, открытый с сервера, остаётся на этом устройстве и доступен без связи. Выключено: пациент удаляется с устройства, когда вы его закрываете; то, что ещё не отправлено, сохраняется до отправки.</string>
     <string name="settings_section_forms">Формы</string>
     <string name="settings_section_visits">Визиты</string>
-    <string name="settings_automatic_visits">Создавать визиты автоматически</string>
-    <string name="settings_automatic_visits_description">Включено: для каждой сохранённой встречи визит создаётся автоматически. Выключено: вы сами открываете визит, записываете в него встречи и завершаете его, как в OpenMRS; встречи пациента показываются сгруппированными по визитам.</string>
+    <string
+        name="settings_automatic_visits"
+    >Создавать визиты автоматически</string>
+    <string
+        name="settings_automatic_visits_description"
+    >Включено: для каждой сохранённой встречи визит создаётся автоматически. Выключено: вы сами открываете визит, записываете в него встречи и завершаете его, как в OpenMRS; встречи пациента показываются сгруппированными по визитам.</string>
     <string name="header_encounters_without_visit">Встречи без визита</string>
     <string name="start_visit">Новый визит</string>
     <string name="visit_status_active">Активен</string>
     <string name="visit_status_closed">Завершён</string>
     <string name="visit_started_at">Начат %1$s</string>
     <string name="reopen_visit">Открыть снова</string>
-    <string name="reopen_visit_blocked">Другой визит уже открыт. Сначала завершите его.</string>
+    <string
+        name="reopen_visit_blocked"
+    >Другой визит уже открыт. Сначала завершите его.</string>
     <string name="no_open_visit_title">Нет открытого визита</string>
-    <string name="no_open_visit_message">Откройте визит, чтобы записать встречу для этого пациента.</string>
+    <string
+        name="no_open_visit_message"
+    >Откройте визит, чтобы записать встречу для этого пациента.</string>
     <string name="open_visit_action">Открыть визит</string>
-    <string name="encounter_outside_visit">Дата встречи вне открытого визита. Измените дату или завершите визит и откройте новый.</string>
-    <string name="no_open_visit_error">У этого пациента нет открытого визита. Сначала откройте его.</string>
-    <string name="settings_initial_sync_description">Запустить полную синхронизацию с сервером сейчас.</string>
+    <string
+        name="encounter_outside_visit"
+    >Дата встречи вне открытого визита. Измените дату или завершите визит и откройте новый.</string>
+    <string
+        name="no_open_visit_error"
+    >У этого пациента нет открытого визита. Сначала откройте его.</string>
+    <string
+        name="settings_initial_sync_description"
+    >Запустить полную синхронизацию с сервером сейчас.</string>
     <string name="settings_section_appearance">Оформление</string>
     <string name="theme_system">Как в системе</string>
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Тёмная</string>
     <string name="settings_section_security">Безопасность</string>
-    <string name="offline_login_enabled_status">Вход без подключения включён на этом устройстве.</string>
-    <string name="offline_login_disabled_status">Вход без подключения не был включён на этом устройстве. Сбросьте, чтобы его снова предложили при следующем входе.</string>
+    <string
+        name="offline_login_enabled_status"
+    >Вход без подключения включён на этом устройстве.</string>
+    <string
+        name="offline_login_disabled_status"
+    >Вход без подключения не был включён на этом устройстве. Сбросьте, чтобы его снова предложили при следующем входе.</string>
     <string name="reset_offline_login">Сбросить вход без подключения</string>
-    <string name="reset_offline_login_confirm_title">Сбросить вход без подключения?</string>
-    <string name="reset_offline_login_confirm_message">Сохранённый вход без подключения будет удалён. При следующем входе его снова предложат настроить.</string>
-    <string name="offline_login_reset_done">Вход без подключения сброшен.</string>
-    <string name="offline_login_not_set_status">Вход без подключения ещё не настроен. Его предложат при следующем входе.</string>
+    <string
+        name="reset_offline_login_confirm_title"
+    >Сбросить вход без подключения?</string>
+    <string
+        name="reset_offline_login_confirm_message"
+    >Сохранённый вход без подключения будет удалён. При следующем входе его снова предложат настроить.</string>
+    <string
+        name="offline_login_reset_done"
+    >Вход без подключения сброшен.</string>
+    <string
+        name="offline_login_not_set_status"
+    >Вход без подключения ещё не настроен. Его предложат при следующем входе.</string>
     <string name="continue_without_login">Продолжить без входа</string>
     <string name="sign_in_with_sso">Войти через SSO</string>
     <string name="login_or">или</string>
     <string name="settings_section_shared_device">Общее устройство</string>
-    <string name="settings_share_my_data">Разрешить другим пользователям видеть мои зарегистрированные данные</string>
-    <string name="settings_share_my_data_description">Вы вошли как %1$s. По умолчанию выключено. Если выключено, другие пользователи, входящие на этом устройстве, не увидят пациентов, которых вы зарегистрировали или загрузили здесь, если только у них нет к ним доступа и они не загрузят их сами. Если включено, они смогут их видеть. Эта настройка личная: у каждого пользователя своя.</string>
+    <string
+        name="settings_share_my_data"
+    >Разрешить другим пользователям видеть мои зарегистрированные данные</string>
+    <string
+        name="settings_share_my_data_description"
+    >Вы вошли как %1$s. По умолчанию выключено. Если выключено, другие пользователи, входящие на этом устройстве, не увидят пациентов, которых вы зарегистрировали или загрузили здесь, если только у них нет к ним доступа и они не загрузят их сами. Если включено, они смогут их видеть. Эта настройка личная: у каждого пользователя своя.</string>
     <string name="settings_remember_location">Запомнить мою локацию</string>
-    <string name="settings_remember_location_description">Включено: после входа вы сразу попадаете в последнюю использованную локацию. Выключено: локацию нужно выбирать при каждом входе. Локация личная: другой пользователь, вошедший на этом устройстве, выберет свою.</string>
-    <string name="login_pending_icon_none">Нет данных, ожидающих отправки</string>
-    <string name="login_pending_icon_waiting">Данные ожидают отправки: пользователей — %1$d</string>
+    <string
+        name="settings_remember_location_description"
+    >Включено: после входа вы сразу попадаете в последнюю использованную локацию. Выключено: локацию нужно выбирать при каждом входе. Локация личная: другой пользователь, вошедший на этом устройстве, выберет свою.</string>
+    <string
+        name="login_pending_icon_none"
+    >Нет данных, ожидающих отправки</string>
+    <string
+        name="login_pending_icon_waiting"
+    >Данные ожидают отправки: пользователей — %1$d</string>
     <string name="login_pending_title">Ожидает отправки</string>
-    <string name="login_pending_message">У этих пользователей на устройстве есть данные, которые ещё не попали на сервер. Войдите под этим пользователем и выполните синхронизацию, чтобы отправить их.</string>
-    <string name="login_pending_none">Ничего не ожидает отправки. Всё сохранённое на этом устройстве уже передано на сервер.</string>
+    <string
+        name="login_pending_message"
+    >У этих пользователей на устройстве есть данные, которые ещё не попали на сервер. Войдите под этим пользователем и выполните синхронизацию, чтобы отправить их.</string>
+    <string
+        name="login_pending_none"
+    >Ничего не ожидает отправки. Всё сохранённое на этом устройстве уже передано на сервер.</string>
     <string name="login_pending_counts">Пациенты: %1$d · Записи: %2$d</string>
     <string name="login_pending_records_only">Записи: %1$d</string>
     <string name="login_pending_use_user">Войти под этим пользователем</string>
     <string name="settings_auto_sync_mode">Что делает автосинхронизация</string>
-    <string name="settings_auto_sync_mode_description">«Только отправка» отправляет то, что вы записали на этом устройстве. «Отправка и загрузка» ещё и получает последние данные с сервера.</string>
+    <string
+        name="settings_auto_sync_mode_description"
+    >«Только отправка» отправляет то, что вы записали на этом устройстве. «Отправка и загрузка» ещё и получает последние данные с сервера.</string>
     <string name="sync_mode_both">Отправка и загрузка</string>
     <string name="sync_mode_upload_only">Только отправка</string>
     <string name="sync_page_mode_download">Загрузка</string>
     <string name="sync_page_mode_upload">Отправка</string>
     <string name="sync_page_mode_both">Обе</string>
-    <string name="sync_download_only_hint">Ожидающее отправки остаётся на этом устройстве, пока вы его не отправите.</string>
-    <string name="patient_lists_downloading">Загрузка пациентов из списков…</string>
+    <string
+        name="sync_download_only_hint"
+    >Ожидающее отправки остаётся на этом устройстве, пока вы его не отправите.</string>
+    <string
+        name="patient_lists_downloading"
+    >Загрузка пациентов из списков…</string>
     <string name="tutorial_show">Показать обзор</string>
     <string name="tutorial_login_credentials_title">Вход</string>
-    <string name="tutorial_login_credentials_body">Введите имя пользователя и пароль и нажмите «Войти». После первого входа приложение работает и без сети.</string>
+    <string
+        name="tutorial_login_credentials_body"
+    >Введите имя пользователя и пароль и нажмите «Войти». После первого входа приложение работает и без сети.</string>
     <string name="tutorial_login_sso_title">Единый вход</string>
-    <string name="tutorial_login_sso_body">Войдите с учётной записью вашей организации вместо пароля.</string>
+    <string
+        name="tutorial_login_sso_body"
+    >Войдите с учётной записью вашей организации вместо пароля.</string>
     <string name="tutorial_login_guest_title">Продолжить без входа</string>
-    <string name="tutorial_login_guest_body">Работайте как гость, без сети: записанное остаётся на этом устройстве и дополняется после следующего входа.</string>
+    <string
+        name="tutorial_login_guest_body"
+    >Работайте как гость, без сети: записанное остаётся на этом устройстве и дополняется после следующего входа.</string>
     <string name="tutorial_login_server_title">Сервер</string>
-    <string name="tutorial_login_server_body">Шестерёнка меняет сервер, к которому подключается приложение, тему и другие настройки до входа.</string>
+    <string
+        name="tutorial_login_server_body"
+    >Шестерёнка меняет сервер, к которому подключается приложение, тему и другие настройки до входа.</string>
     <string name="tutorial_login_share_title">Поделиться настройками</string>
-    <string name="tutorial_login_share_body">Покажите QR-код настроек этого устройства для сканирования на другом или отсканируйте код с другого устройства.</string>
+    <string
+        name="tutorial_login_share_body"
+    >Покажите QR-код настроек этого устройства для сканирования на другом или отсканируйте код с другого устройства.</string>
     <string name="tutorial_show_screen">Показать обзор этого экрана</string>
     <string name="help_home_status_title">Где вы работаете</string>
-    <string name="help_home_status_body">Ваше местоположение и время последней синхронизации.</string>
+    <string
+        name="help_home_status_body"
+    >Ваше местоположение и время последней синхронизации.</string>
     <string name="help_home_register_title">Зарегистрировать пациента</string>
-    <string name="help_home_register_body">Введите данные нового пациента. Его нельзя сохранить, пока не заполнены обязательные данные.</string>
+    <string
+        name="help_home_register_body"
+    >Введите данные нового пациента. Его нельзя сохранить, пока не заполнены обязательные данные.</string>
     <string name="help_home_patients_title">Пациенты</string>
-    <string name="help_home_patients_body">Ищите, открывайте и редактируйте пациентов на этом устройстве.</string>
+    <string
+        name="help_home_patients_body"
+    >Ищите, открывайте и редактируйте пациентов на этом устройстве.</string>
     <string name="help_home_lists_title">Списки пациентов</string>
-    <string name="help_home_lists_body">Выберите списки пациентов для этого устройства. Их пациенты загружаются сразу.</string>
+    <string
+        name="help_home_lists_body"
+    >Выберите списки пациентов для этого устройства. Их пациенты загружаются сразу.</string>
     <string name="help_home_group_title">Групповая или семейная сессия</string>
-    <string name="help_home_group_body">Заполните одну форму сразу для нескольких пациентов.</string>
+    <string
+        name="help_home_group_body"
+    >Заполните одну форму сразу для нескольких пациентов.</string>
     <string name="help_home_sync_title">Синхронизация</string>
-    <string name="help_home_sync_body">Отправьте записанное и загрузите свежие данные. Смотрите, что ожидает отправки, и историю синхронизаций.</string>
+    <string
+        name="help_home_sync_body"
+    >Отправьте записанное и загрузите свежие данные. Смотрите, что ожидает отправки, и историю синхронизаций.</string>
     <string name="help_home_importexport_title">Импорт / экспорт</string>
-    <string name="help_home_importexport_body">Передайте данные, которые это устройство не может синхронизировать, в файле, защищённом PIN-кодом.</string>
+    <string
+        name="help_home_importexport_body"
+    >Передайте данные, которые это устройство не может синхронизировать, в файле, защищённом PIN-кодом.</string>
     <string name="help_patients_list_title">Пациенты на этом устройстве</string>
-    <string name="help_patients_list_body">Нажмите на пациента, чтобы открыть профиль с визитами и приёмами. Значок облака показывает, что ещё не синхронизировано.</string>
+    <string
+        name="help_patients_list_body"
+    >Нажмите на пациента, чтобы открыть профиль с визитами и приёмами. Значок облака показывает, что ещё не синхронизировано.</string>
     <string name="help_patients_identify_title">Идентифицировать позже</string>
-    <string name="help_patients_identify_body">Нет сети, а пациент есть на сервере, но не здесь? Записывайте сейчас и идентифицируйте позже, не создавая дубликат.</string>
-    <string name="help_patients_register_body">Добавьте нового пациента. Перед сохранением нужно заполнить обязательные данные.</string>
+    <string
+        name="help_patients_identify_body"
+    >Нет сети, а пациент есть на сервере, но не здесь? Записывайте сейчас и идентифицируйте позже, не создавая дубликат.</string>
+    <string
+        name="help_patients_register_body"
+    >Добавьте нового пациента. Перед сохранением нужно заполнить обязательные данные.</string>
     <string name="help_details_overview_title">Пациент</string>
-    <string name="help_details_overview_body">Имя, идентификаторы, возраст и контакты. Карандаш редактирует регистрацию, а на номер телефона можно нажать, чтобы позвонить.</string>
+    <string
+        name="help_details_overview_body"
+    >Имя, идентификаторы, возраст и контакты. Карандаш редактирует регистрацию, а на номер телефона можно нажать, чтобы позвонить.</string>
     <string name="help_details_encounters_title">Визиты и приёмы</string>
-    <string name="help_details_encounters_body">Всё, что записано о пациенте, по визитам. Нажмите на название, чтобы просмотреть, и на карандаш, чтобы изменить. Когда визитами управляют вручную, нажмите на визит, чтобы изменить его начало и конец: он должен охватывать свои приёмы.</string>
+    <string
+        name="help_details_encounters_body"
+    >Всё, что записано о пациенте, по визитам. Нажмите на название, чтобы просмотреть, и на карандаш, чтобы изменить. Когда визитами управляют вручную, нажмите на визит, чтобы изменить его начало и конец: он должен охватывать свои приёмы.</string>
     <string name="help_details_new_title">Новый приём</string>
-    <string name="help_details_new_body">Запишите визит или заполните форму для этого пациента.</string>
+    <string
+        name="help_details_new_body"
+    >Запишите визит или заполните форму для этого пациента.</string>
     <string name="help_sync_status_title">Состояние синхронизации</string>
-    <string name="help_sync_status_body">Есть ли что-то для отправки и когда данные синхронизировались в последний раз.</string>
+    <string
+        name="help_sync_status_body"
+    >Есть ли что-то для отправки и когда данные синхронизировались в последний раз.</string>
     <string name="help_sync_mode_title">Загрузка, отправка или обе</string>
-    <string name="help_sync_mode_body">Выберите, что сделает «Синхронизировать» на этот раз. Автосинхронизация следует настройке в «Настройках», которую это не меняет.</string>
+    <string
+        name="help_sync_mode_body"
+    >Выберите, что сделает «Синхронизировать» на этот раз. Автосинхронизация следует настройке в «Настройках», которую это не меняет.</string>
     <string name="help_sync_now_title">Синхронизировать сейчас</string>
-    <string name="help_sync_now_body">Запускает выбранную синхронизацию. Нужна связь с сервером; пока она идёт, приложением можно пользоваться. Пока она идёт, «Отменить синхронизацию» её останавливает.</string>
+    <string
+        name="help_sync_now_body"
+    >Запускает выбранную синхронизацию. Нужна связь с сервером; пока она идёт, приложением можно пользоваться. Пока она идёт, «Отменить синхронизацию» её останавливает.</string>
     <string name="help_sync_tabs_title">Ожидает и история</string>
-    <string name="help_sync_tabs_body">«Ожидает» — что ещё не отправлено; «История» — прошлые синхронизации и их результат.</string>
+    <string
+        name="help_sync_tabs_body"
+    >«Ожидает» — что ещё не отправлено; «История» — прошлые синхронизации и их результат.</string>
     <string name="help_ie_export_title">Экспорт</string>
-    <string name="help_ie_export_body">Сохраните данные этого устройства в файле с PIN-кодом, чтобы передать их, когда синхронизация невозможна.</string>
+    <string
+        name="help_ie_export_body"
+    >Сохраните данные этого устройства в файле с PIN-кодом, чтобы передать их, когда синхронизация невозможна.</string>
     <string name="help_ie_import_title">Импорт</string>
-    <string name="help_ie_import_body">Откройте файл с другого устройства по его PIN-коду и отправьте его содержимое.</string>
+    <string
+        name="help_ie_import_body"
+    >Откройте файл с другого устройства по его PIN-коду и отправьте его содержимое.</string>
     <string name="help_settings_language_title">Язык</string>
-    <string name="help_settings_language_body">Выберите язык приложения.</string>
+    <string
+        name="help_settings_language_body"
+    >Выберите язык приложения.</string>
     <string name="help_settings_appearance_title">Оформление</string>
-    <string name="help_settings_appearance_body">Светлая, тёмная или системная тема и палитра для дальтоников.</string>
+    <string
+        name="help_settings_appearance_body"
+    >Светлая, тёмная или системная тема и палитра для дальтоников.</string>
     <string name="help_settings_sync_title">Синхронизация</string>
-    <string name="help_settings_sync_body">Сервер, автосинхронизация, что она делает (только отправка или отправка и загрузка) и когда ждёт (только Wi-Fi, низкий заряд). Настройки сохраняются сразу при изменении.</string>
+    <string
+        name="help_settings_sync_body"
+    >Сервер, автосинхронизация, что она делает (только отправка или отправка и загрузка) и когда ждёт (только Wi-Fi, низкий заряд). Настройки сохраняются сразу при изменении.</string>
     <string name="help_settings_live_title">Режим реального времени</string>
-    <string name="help_settings_live_body">Отправляйте сохранённое на сервер сразу и ищите на сервере пациентов, которых нет на этом устройстве.</string>
+    <string
+        name="help_settings_live_body"
+    >Отправляйте сохранённое на сервер сразу и ищите на сервере пациентов, которых нет на этом устройстве.</string>
     <string name="help_settings_shared_title">Общее устройство</string>
-    <string name="help_settings_shared_body">Решите, смогут ли другие пользователи этого устройства видеть пациентов, которых вы зарегистрировали или загрузили.</string>
+    <string
+        name="help_settings_shared_body"
+    >Решите, смогут ли другие пользователи этого устройства видеть пациентов, которых вы зарегистрировали или загрузили.</string>
     <string name="help_settings_security_title">Безопасность</string>
-    <string name="help_settings_security_body">Вход без сети, как долго приложение ждёт перед повторным запросом, скрытие приложения в списке недавних и что происходит с данными при выходе.</string>
+    <string
+        name="help_settings_security_body"
+    >Вход без сети, как долго приложение ждёт перед повторным запросом, скрытие приложения в списке недавних и что происходит с данными при выходе.</string>
     <string name="help_lists_search_title">Поиск списков</string>
-    <string name="help_lists_search_body">Введите часть названия списка, чтобы найти его.</string>
+    <string
+        name="help_lists_search_body"
+    >Введите часть названия списка, чтобы найти его.</string>
     <string name="help_lists_list_title">Выбор списков</string>
-    <string name="help_lists_list_body">Отметьте списки, пациенты которых нужны на этом устройстве. Отметка загружает пациентов списка сразу; без отмеченных списков пациенты не загружаются.</string>
+    <string
+        name="help_lists_list_body"
+    >Отметьте списки, пациенты которых нужны на этом устройстве. Отметка загружает пациентов списка сразу; без отмеченных списков пациенты не загружаются.</string>
     <string name="help_location_search_title">Поиск местоположений</string>
-    <string name="help_location_search_body">Введите часть названия, чтобы найти местоположение.</string>
+    <string
+        name="help_location_search_body"
+    >Введите часть названия, чтобы найти местоположение.</string>
     <string name="help_location_list_title">Где вы работаете</string>
-    <string name="help_location_list_body">Выберите место работы: всё, что вы регистрируете, привязывается к нему. Избранные места идут первыми.</string>
+    <string
+        name="help_location_list_body"
+    >Выберите место работы: всё, что вы регистрируете, привязывается к нему. Избранные места идут первыми.</string>
     <string name="help_forms_search_title">Поиск форм</string>
-    <string name="help_forms_search_body">Введите часть названия формы, чтобы найти её.</string>
+    <string
+        name="help_forms_search_body"
+    >Введите часть названия формы, чтобы найти её.</string>
     <string name="help_forms_list_title">Выбор формы</string>
-    <string name="help_forms_list_body">Нажмите на форму, чтобы заполнить её. Начатые и незавершённые сессии показаны, чтобы их продолжить.</string>
+    <string
+        name="help_forms_list_body"
+    >Нажмите на форму, чтобы заполнить её. Начатые и незавершённые сессии показаны, чтобы их продолжить.</string>
     <string name="help_form_registration_title">Форма регистрации</string>
-    <string name="help_form_registration_body">Отвечайте на вопросы по страницам (Далее и Назад). Обязательные нужно заполнить, чтобы продолжить, а пациента нельзя сохранить без них. Проверьте ответы перед отправкой.</string>
+    <string
+        name="help_form_registration_body"
+    >Отвечайте на вопросы по страницам (Далее и Назад). Обязательные нужно заполнить, чтобы продолжить, а пациента нельзя сохранить без них. Проверьте ответы перед отправкой.</string>
     <string name="help_form_encounter_title">Форма приёма</string>
-    <string name="help_form_encounter_body">Заполните вопросы, затем проверьте и отправьте. Сохранённое остаётся на устройстве и отправляется при следующей синхронизации.</string>
+    <string
+        name="help_form_encounter_body"
+    >Заполните вопросы, затем проверьте и отправьте. Сохранённое остаётся на устройстве и отправляется при следующей синхронизации.</string>
     <string name="help_group_tabs_title">Пациенты сессии</string>
-    <string name="help_group_tabs_body">Переключайтесь между пациентами сессии; у каждого свои ответы.</string>
+    <string
+        name="help_group_tabs_body"
+    >Переключайтесь между пациентами сессии; у каждого свои ответы.</string>
     <string name="network_status_server_reachable">Сервер доступен</string>
-    <string name="sync_unavailable_offline">Нет соединения с сервером: синхронизация сейчас недоступна.</string>
-    <string name="sync_identify_title">Пациентов для идентификации: %1$d</string>
-    <string name="sync_identify_subtitle">Идентифицируйте их до синхронизации: их записи не отправляются, пока вы этого не сделаете.</string>
+    <string
+        name="sync_unavailable_offline"
+    >Нет соединения с сервером: синхронизация сейчас недоступна.</string>
+    <string
+        name="sync_identify_title"
+    >Пациентов для идентификации: %1$d</string>
+    <string
+        name="sync_identify_subtitle"
+    >Идентифицируйте их до синхронизации: их записи не отправляются, пока вы этого не сделаете.</string>
     <string name="help_sync_identify_title">Пациенты для идентификации</string>
-    <string name="help_sync_identify_body">Если пациенты записаны для идентификации позже, здесь показано их число. Синхронизация не отправляет их данные, пока вы их не идентифицируете, поэтому сделайте это до синхронизации. Нужен вошедший пользователь со связью с сервером; если пациента нет на сервере, можно осторожно зарегистрировать нового.</string>
-    <string name="identify_requires_connection">Войдите в систему и подключитесь к серверу, чтобы их идентифицировать.</string>
-    <string name="identify_register_action">Нет на сервере? Зарегистрировать нового пациента</string>
+    <string
+        name="help_sync_identify_body"
+    >Если пациенты записаны для идентификации позже, здесь показано их число. Синхронизация не отправляет их данные, пока вы их не идентифицируете, поэтому сделайте это до синхронизации. Нужен вошедший пользователь со связью с сервером; если пациента нет на сервере, можно осторожно зарегистрировать нового.</string>
+    <string
+        name="identify_requires_connection"
+    >Войдите в систему и подключитесь к серверу, чтобы их идентифицировать.</string>
+    <string
+        name="identify_register_action"
+    >Нет на сервере? Зарегистрировать нового пациента</string>
     <string name="identify_register_warning_title">Действуйте осторожно</string>
-    <string name="identify_register_warning_message">Регистрируйте нового пациента, только если уверены, что его нет в системе. Создание нового пациента, когда он уже есть, порождает дубликат, который трудно исправить. Сначала повторите поиск: с другим написанием, по идентификатору или номеру телефона.</string>
-    <string name="identify_register_warning_confirm">Зарегистрировать нового</string>
+    <string
+        name="identify_register_warning_message"
+    >Регистрируйте нового пациента, только если уверены, что его нет в системе. Создание нового пациента, когда он уже есть, порождает дубликат, который трудно исправить. Сначала повторите поиск: с другим написанием, по идентификатору или номеру телефона.</string>
+    <string
+        name="identify_register_warning_confirm"
+    >Зарегистрировать нового</string>
     <string name="identify_register_warning_cancel">Продолжить поиск</string>
-    <string name="identify_register_hint">Зарегистрируйте пациента. Записанное для него будет привязано к новому пациенту после сохранения.</string>
-    <string name="login_offline_note">Нет соединения с сервером: вход сейчас недоступен.</string>
-    <string name="login_offline_note_guest">Нет соединения с сервером: вход сейчас недоступен. Можно продолжить без входа.</string>
+    <string
+        name="identify_register_hint"
+    >Зарегистрируйте пациента. Записанное для него будет привязано к новому пациенту после сохранения.</string>
+    <string
+        name="login_offline_note"
+    >Нет соединения с сервером: вход сейчас недоступен.</string>
+    <string
+        name="login_offline_note_guest"
+    >Нет соединения с сервером: вход сейчас недоступен. Можно продолжить без входа.</string>
     <string name="sync_cancel">Отменить синхронизацию</string>
-    <string name="sync_cancelled">Синхронизация отменена. Уже отправленное остаётся отправленным; остальное сделает следующая синхронизация.</string>
+    <string
+        name="sync_cancelled"
+    >Синхронизация отменена. Уже отправленное остаётся отправленным; остальное сделает следующая синхронизация.</string>
     <string name="sync_status_cancelled">Отменена</string>
     <string name="visit_edit_title">Изменить визит</string>
     <string name="visit_edit_start">Начало визита</string>
     <string name="visit_edit_end">Окончание визита</string>
     <string name="visit_edit_still_open">Визит ещё открыт</string>
-    <string name="visit_edit_encounters_range">Его приёмы идут с %1$s по %2$s: визит должен их охватывать.</string>
-    <string name="visit_edit_error_start_future">Визит не может начаться в будущем.</string>
-    <string name="visit_edit_error_end_future">Визит не может закончиться в будущем.</string>
-    <string name="visit_edit_error_end_before_start">Окончание должно быть позже начала.</string>
-    <string name="visit_edit_error_encounter_before">Приём этого визита начинается в %1$s: визит не может начаться позже.</string>
-    <string name="visit_edit_error_encounter_after">Приём этого визита заканчивается в %1$s: визит не может закончиться раньше.</string>
+    <string
+        name="visit_edit_encounters_range"
+    >Его приёмы идут с %1$s по %2$s: визит должен их охватывать.</string>
+    <string
+        name="visit_edit_error_start_future"
+    >Визит не может начаться в будущем.</string>
+    <string
+        name="visit_edit_error_end_future"
+    >Визит не может закончиться в будущем.</string>
+    <string
+        name="visit_edit_error_end_before_start"
+    >Окончание должно быть позже начала.</string>
+    <string
+        name="visit_edit_error_encounter_before"
+    >Приём этого визита начинается в %1$s: визит не может начаться позже.</string>
+    <string
+        name="visit_edit_error_encounter_after"
+    >Приём этого визита заканчивается в %1$s: визит не может закончиться раньше.</string>
     <string name="tutorial_step_counter">Шаг %1$d из %2$d</string>
     <string name="tutorial_close">Закрыть обзор</string>
     <string name="tutorial_skip">Пропустить обзор</string>
     <string name="tutorial_next">Понятно</string>
-    <string name="tutorial_tap_to_continue">Нажмите на выделенный элемент, чтобы продолжить</string>
+    <string
+        name="tutorial_tap_to_continue"
+    >Нажмите на выделенный элемент, чтобы продолжить</string>
     <string name="tutorial_home_patients_title">Найдите своих пациентов</string>
-    <string name="tutorial_home_patients_body">Откройте «Пациенты», чтобы искать и открывать пациентов на этом устройстве.</string>
+    <string
+        name="tutorial_home_patients_body"
+    >Откройте «Пациенты», чтобы искать и открывать пациентов на этом устройстве.</string>
     <string name="tutorial_patients_search_title">Поиск</string>
-    <string name="tutorial_patients_search_body">Введите имя или идентификатор, чтобы найти пациента. Пациентов, которых нет на устройстве, можно искать на сервере в режиме реального времени.</string>
-    <string name="tutorial_patients_register_title">Зарегистрировать пациента</string>
-    <string name="tutorial_patients_register_body">Нажмите «Зарегистрировать пациента», чтобы добавить нового пациента. На этом обзор заканчивается.</string>
-    <string name="patient_lists_download_later">Пациенты будут загружены при следующей синхронизации.</string>
+    <string
+        name="tutorial_patients_search_body"
+    >Введите имя или идентификатор, чтобы найти пациента. Пациентов, которых нет на устройстве, можно искать на сервере в режиме реального времени.</string>
+    <string
+        name="tutorial_patients_register_title"
+    >Зарегистрировать пациента</string>
+    <string
+        name="tutorial_patients_register_body"
+    >Нажмите «Зарегистрировать пациента», чтобы добавить нового пациента. На этом обзор заканчивается.</string>
+    <string
+        name="patient_lists_download_later"
+    >Пациенты будут загружены при следующей синхронизации.</string>
     <plurals name="patient_lists_downloaded">
         <item quantity="one">%d пациент загружен</item>
         <item quantity="few">%d пациента загружено</item>
@@ -760,31 +1008,49 @@
         <item quantity="other">%d пациентов загружено</item>
     </plurals>
     <string name="share_title">Поделиться настройками</string>
-    <string name="share_choose">Скопируйте настройки этого устройства на другое или возьмите настройки другого устройства.</string>
+    <string
+        name="share_choose"
+    >Скопируйте настройки этого устройства на другое или возьмите настройки другого устройства.</string>
     <string name="share_export">Экспорт</string>
-    <string name="share_export_desc">Показать QR-код для сканирования другим устройством</string>
+    <string
+        name="share_export_desc"
+    >Показать QR-код для сканирования другим устройством</string>
     <string name="share_import">Импорт</string>
-    <string name="share_import_desc">Сканировать QR-код другого устройства</string>
+    <string
+        name="share_import_desc"
+    >Сканировать QR-код другого устройства</string>
     <string name="share_export_title">QR-код настроек</string>
-    <string name="share_export_hint">На другом устройстве откройте «Поделиться настройками», выберите «Импорт» и отсканируйте этот код. В нём только настройки приложения: без пациентов, паролей и аккаунта.</string>
+    <string
+        name="share_export_hint"
+    >На другом устройстве откройте «Поделиться настройками», выберите «Импорт» и отсканируйте этот код. В нём только настройки приложения: без пациентов, паролей и аккаунта.</string>
     <string name="share_copy_code">Копировать код</string>
     <string name="share_code_copied">Код скопирован</string>
     <string name="share_scan">Сканировать QR-код</string>
-    <string name="share_scan_prompt">Наведите камеру на QR-код другого устройства</string>
+    <string
+        name="share_scan_prompt"
+    >Наведите камеру на QR-код другого устройства</string>
     <string name="share_paste_label">Или вставьте код</string>
     <string name="share_review">Проверить</string>
     <string name="share_invalid">Это не код настроек этого приложения.</string>
     <string name="share_review_title">Проверьте изменения</string>
-    <string name="share_review_hint">Эти настройки отличаются от настроек этого устройства. Выключите нужные, чтобы оставить свои; пока вы не примените, ничего не изменится.</string>
-    <string name="share_no_changes">На этом устройстве уже такие настройки.</string>
+    <string
+        name="share_review_hint"
+    >Эти настройки отличаются от настроек этого устройства. Выключите нужные, чтобы оставить свои; пока вы не примените, ничего не изменится.</string>
+    <string
+        name="share_no_changes"
+    >На этом устройстве уже такие настройки.</string>
     <string name="share_apply">Применить: %1$d</string>
     <string name="share_take">Взять</string>
     <string name="share_keep">Оставить мои</string>
-    <string name="share_server_warning">Меняет сервер и завершает ваш сеанс. Берите, только если доверяете тому, кто дал код.</string>
+    <string
+        name="share_server_warning"
+    >Меняет сервер и завершает ваш сеанс. Берите, только если доверяете тому, кто дал код.</string>
     <string name="share_value_on">Вкл.</string>
     <string name="share_value_off">Выкл.</string>
     <string name="share_minutes">%1$d мин</string>
-    <string name="logout_offline_note">Сервер недоступен: вы выйдете из системы только на этом устройстве.</string>
+    <string
+        name="logout_offline_note"
+    >Сервер недоступен: вы выйдете из системы только на этом устройстве.</string>
     <string name="settings_back">Назад</string>
     <string name="identify_later_action">Опознать позже</string>
     <string name="identify_later_chip">Опознать позже</string>
@@ -793,80 +1059,138 @@
     <string name="identify_note_title">Пациент для опознания позже</string>
     <string name="identify_note_edit_title">Изменить заметку</string>
     <string name="identify_note_label">Заметка</string>
-    <string name="identify_note_hint">Записывайте визиты и приёмы пациента, которого нет на этом устройстве, не регистрируя его. Напишите то, что поможет найти его на сервере позже: имя, село, родственник, телефон...</string>
+    <string
+        name="identify_note_hint"
+    >Записывайте визиты и приёмы пациента, которого нет на этом устройстве, не регистрируя его. Напишите то, что поможет найти его на сервере позже: имя, село, родственник, телефон...</string>
     <string name="identify_note_create">Создать</string>
     <string name="identify_banner_title">Опознать позже</string>
-    <string name="identify_banner_message">Записано без регистрации пациента. Ничего не отправляется на сервер, пока вы его не опознаете.</string>
+    <string
+        name="identify_banner_message"
+    >Записано без регистрации пациента. Ничего не отправляется на сервер, пока вы его не опознаете.</string>
     <string name="identify_banner_identify">Опознать пациента</string>
     <string name="identify_banner_edit_note">Изменить заметку</string>
     <string name="identify_title">Опознание пациента</string>
     <string name="identify_list_title">Пациенты для опознания</string>
-    <string name="identify_list_empty">Нет пациентов, ожидающих опознания.</string>
+    <string
+        name="identify_list_empty"
+    >Нет пациентов, ожидающих опознания.</string>
     <string name="identify_records_summary">Визиты: %1$d · Приёмы: %2$d</string>
     <string name="identify_search_label">Поиск на сервере</string>
     <string name="identify_search_hint">Имя или идентификатор</string>
-    <string name="identify_search_idle">Введите не менее двух букв для поиска на сервере.</string>
+    <string
+        name="identify_search_idle"
+    >Введите не менее двух букв для поиска на сервере.</string>
     <string name="identify_no_results">Пациент на сервере не найден</string>
     <string name="identify_confirm_title">Опознать этого пациента?</string>
-    <string name="identify_confirm_message">Записи «%1$s» станут записями пациента %2$s и будут отправлены на сервер при следующей синхронизации.</string>
+    <string
+        name="identify_confirm_message"
+    >Записи «%1$s» станут записями пациента %2$s и будут отправлены на сервер при следующей синхронизации.</string>
     <string name="identify_confirm_action">Опознать</string>
-    <string name="identify_done">Записей, перенесённых к пациенту: %1$d.</string>
-    <string name="identify_failed">Не удалось опознать пациента. Проверьте соединение и повторите.</string>
+    <string
+        name="identify_done"
+    >Записей, перенесённых к пациенту: %1$d.</string>
+    <string
+        name="identify_failed"
+    >Не удалось опознать пациента. Проверьте соединение и повторите.</string>
     <string name="identify_sync_title">Пациенты для опознания</string>
-    <string name="identify_sync_message">Пациентов, записанных для опознания позже: %1$d. Их записи не отправляются, пока вы их не опознаете.</string>
+    <string
+        name="identify_sync_message"
+    >Пациентов, записанных для опознания позже: %1$d. Их записи не отправляются, пока вы их не опознаете.</string>
     <string name="identify_sync_now">Опознать сейчас</string>
     <string name="identify_sync_anyway">Всё равно синхронизировать</string>
-    <string name="identify_logout_lost">Пациенты для опознания позже (%1$d) тоже будут удалены вместе с записанным для них.</string>
-    <string name="identify_logout_kept">Пациенты для опознания позже (%1$d) остаются на этом устройстве; они не отправляются, пока их не опознают.</string>
+    <string
+        name="identify_logout_lost"
+    >Пациенты для опознания позже (%1$d) тоже будут удалены вместе с записанным для них.</string>
+    <string
+        name="identify_logout_kept"
+    >Пациенты для опознания позже (%1$d) остаются на этом устройстве; они не отправляются, пока их не опознают.</string>
     <string name="patient_detail_email">Эл. почта</string>
     <string name="patient_detail_contact">Контакт</string>
     <string name="patient_details_show_all">Показать все данные</string>
     <string name="patient_details_hide">Скрыть данные</string>
-    <string name="no_app_for_action">Не найдено приложение для этого действия.</string>
+    <string
+        name="no_app_for_action"
+    >Не найдено приложение для этого действия.</string>
     <string name="settings_change_server">Сменить сервер</string>
     <string name="server_change_title">Сменить сервер?</string>
-    <string name="server_change_message">Приложение будет использовать %1$s и перезапустится. Вы выйдете из системы и войдёте на новом сервере. Данные на устройстве сохранятся, но они получены с прежнего сервера: всё, что ещё ожидает отправки, будет отправлено на новый.</string>
+    <string
+        name="server_change_message"
+    >Приложение будет использовать %1$s и перезапустится. Вы выйдете из системы и войдёте на новом сервере. Данные на устройстве сохранятся, но они получены с прежнего сервера: всё, что ещё ожидает отправки, будет отправлено на новый.</string>
     <string name="server_change_confirm">Сменить и выйти</string>
     <string name="diag_download">Скачать</string>
     <string name="diag_saved">Диагностический отчёт сохранён.</string>
-    <string name="diag_save_failed">Не удалось сохранить диагностический отчёт.</string>
+    <string
+        name="diag_save_failed"
+    >Не удалось сохранить диагностический отчёт.</string>
     <string name="drawer_guest_account">Гость (без входа)</string>
     <string name="splash_go_to_login">Страница входа</string>
-    <string name="splash_login_page_hint">На странице входа можно изменить сервер.</string>
-    <string name="splash_login_page_hint_guest">На странице входа можно изменить сервер или продолжить без входа.</string>
-    <string name="continue_without_login_hint">Регистрируйте пациентов и заполняйте формы без подключения. При синхронизации потребуется войти.</string>
-    <string name="sign_in_to_sync_title">Войдите, чтобы синхронизировать</string>
-    <string name="sign_in_to_sync_message">Чтобы отправить введённых пациентов и формы, сначала войдите. Всё введённое останется на этом устройстве.</string>
+    <string
+        name="splash_login_page_hint"
+    >На странице входа можно изменить сервер.</string>
+    <string
+        name="splash_login_page_hint_guest"
+    >На странице входа можно изменить сервер или продолжить без входа.</string>
+    <string
+        name="continue_without_login_hint"
+    >Регистрируйте пациентов и заполняйте формы без подключения. При синхронизации потребуется войти.</string>
+    <string
+        name="sign_in_to_sync_title"
+    >Войдите, чтобы синхронизировать</string>
+    <string
+        name="sign_in_to_sync_message"
+    >Чтобы отправить введённых пациентов и формы, сначала войдите. Всё введённое останется на этом устройстве.</string>
     <string name="sign_in">Войти</string>
-    <string name="sign_in_for_patient_lists">Войдите, чтобы загрузить списки пациентов.</string>
+    <string
+        name="sign_in_for_patient_lists"
+    >Войдите, чтобы загрузить списки пациентов.</string>
     <string name="identifier_types_required_title">Нужен идентификатор</string>
-    <string name="identifier_types_required_message">Пациентам, зарегистрированным без учётной записи, нужен идентификатор перед отправкой. Выберите типы идентификаторов и синхронизируйте снова.</string>
+    <string
+        name="identifier_types_required_message"
+    >Пациентам, зарегистрированным без учётной записи, нужен идентификатор перед отправкой. Выберите типы идентификаторов и синхронизируйте снова.</string>
     <string name="login_welcome">С возвращением</string>
     <string name="login_subtitle">Войдите, чтобы продолжить</string>
     <string name="app_version_footer">Версия %1$s</string>
     <string name="server_settings_title">Сервер</string>
-    <string name="server_settings_description">Подключитесь к другому серверу OpenMRS по IP-адресу или домену. Приложение перезапустится после сохранения.</string>
+    <string
+        name="server_settings_description"
+    >Подключитесь к другому серверу OpenMRS по IP-адресу или домену. Приложение перезапустится после сохранения.</string>
     <string name="server_address">Адрес сервера</string>
     <string name="server_will_use">Подключение к %1$s</string>
-    <string name="server_address_invalid">Введите корректный адрес, например 192.168.1.10:8080</string>
+    <string
+        name="server_address_invalid"
+    >Введите корректный адрес, например 192.168.1.10:8080</string>
     <string name="test_connection">Проверить соединение</string>
     <string name="testing_connection">Проверка…</string>
     <string name="connection_success">Подключено за %1$d мс</string>
     <string name="connection_error_not_found">Сервер не найден</string>
     <string name="connection_error_timeout">Нет ответа (тайм-аут)</string>
     <string name="connection_error_certificate">Проблема с сертификатом</string>
-    <string name="connection_error_cleartext">http не разрешён для этого сервера в этой сборке; используйте https</string>
-    <string name="connection_error_unexpected">Неожиданный ответ сервера</string>
-    <string name="connection_error_unreachable">Не удалось связаться с сервером</string>
+    <string
+        name="connection_error_cleartext"
+    >http не разрешён для этого сервера в этой сборке; используйте https</string>
+    <string
+        name="connection_error_unexpected"
+    >Неожиданный ответ сервера</string>
+    <string
+        name="connection_error_unreachable"
+    >Не удалось связаться с сервером</string>
     <string name="use_default_server">По умолчанию</string>
     <string name="title_import_export">Импорт / Экспорт</string>
-    <string name="subtitle_import_export">Передать в файле с PIN-кодом данные, которые это устройство не может синхронизировать</string>
-    <string name="sync_cannot_sync_link">Не удаётся синхронизировать? Импорт / Экспорт</string>
-    <string name="import_export_intro">Используйте, если это устройство не может синхронизироваться. Экспортируйте всё, что ожидает отправки, в файл, защищённый PIN-кодом, передайте его тому, кто может синхронизироваться, — он импортирует файл здесь и отправит данные.</string>
+    <string
+        name="subtitle_import_export"
+    >Передать в файле с PIN-кодом данные, которые это устройство не может синхронизировать</string>
+    <string
+        name="sync_cannot_sync_link"
+    >Не удаётся синхронизировать? Импорт / Экспорт</string>
+    <string
+        name="import_export_intro"
+    >Используйте, если это устройство не может синхронизироваться. Экспортируйте всё, что ожидает отправки, в файл, защищённый PIN-кодом, передайте его тому, кто может синхронизироваться, — он импортирует файл здесь и отправит данные.</string>
     <string name="export_title">Экспорт</string>
     <string name="export_pending">Ожидают отправки: %1$d</string>
     <string name="export_nothing">Нет данных, ожидающих отправки.</string>
-    <string name="export_button">Экспортировать несинхронизированные данные</string>
+    <string
+        name="export_button"
+    >Экспортировать несинхронизированные данные</string>
     <string name="export_ready_title">Файл готов</string>
     <string name="export_summary">Элементов: %1$d · %2$s</string>
     <string name="export_share">Поделиться</string>
@@ -876,50 +1200,88 @@
     <string name="export_share_subject">Экспорт OpenMRS</string>
     <string name="export_share_chooser">Отправить файл экспорта</string>
     <string name="import_title">Импорт</string>
-    <string name="import_description">Загрузите файл, экспортированный с другого устройства, и отправьте его содержимое.</string>
+    <string
+        name="import_description"
+    >Загрузите файл, экспортированный с другого устройства, и отправьте его содержимое.</string>
     <string name="import_choose">Выбрать файл</string>
     <string name="import_done_title">Импорт завершён</string>
-    <string name="import_done_summary">Добавлено: %1$d · обновлено: %2$d · пропущено: %3$d</string>
-    <string name="import_skipped_hint">Пропущенные элементы уже есть на этом устройстве или являются правками записей, которые это устройство не загружало.</string>
+    <string
+        name="import_done_summary"
+    >Добавлено: %1$d · обновлено: %2$d · пропущено: %3$d</string>
+    <string
+        name="import_skipped_hint"
+    >Пропущенные элементы уже есть на этом устройстве или являются правками записей, которые это устройство не загружало.</string>
     <string name="import_upload_now">Отправить сейчас</string>
-    <string name="import_invalid_file">Этот файл не был экспортирован этим приложением</string>
+    <string
+        name="import_invalid_file"
+    >Этот файл не был экспортирован этим приложением</string>
     <string name="import_failed">Не удалось выполнить импорт</string>
     <string name="pin_export_title">Защитите файл PIN-кодом</string>
-    <string name="pin_export_message">Выберите 4 цифры. Они понадобятся тому, кто будет импортировать файл.</string>
+    <string
+        name="pin_export_message"
+    >Выберите 4 цифры. Они понадобятся тому, кто будет импортировать файл.</string>
     <string name="pin_import_title">Введите PIN-код</string>
-    <string name="pin_import_message">Введите 4 цифры, выбранные при экспорте файла.</string>
+    <string
+        name="pin_import_message"
+    >Введите 4 цифры, выбранные при экспорте файла.</string>
     <string name="pin_label">PIN-код</string>
     <string name="pin_repeat_label">Повторите PIN-код</string>
     <string name="pin_mismatch">PIN-коды не совпадают</string>
     <string name="pin_wrong">Неверный PIN-код</string>
-    <string name="birth_date_in_the_future">Дата рождения не может быть в будущем</string>
+    <string
+        name="birth_date_in_the_future"
+    >Дата рождения не может быть в будущем</string>
     <string name="color_vision_title">Цветовое зрение</string>
-    <string name="color_vision_description">Синий и оранжевый вместо зелёного и красного, с более сильным контрастом.</string>
+    <string
+        name="color_vision_description"
+    >Синий и оранжевый вместо зелёного и красного, с более сильным контрастом.</string>
     <string name="color_vision_standard">Стандартная</string>
     <string name="color_vision_color_blind">Для дальтоников</string>
     <string name="embedded_forms_only">Только встроенные формы</string>
-    <string name="embedded_forms_only_description">Приложение использует только встроенные формы и не загружает опросники с сервера.</string>
-    <string name="fetch_questionnaires_sign_in">Войдите, чтобы проверить на сервере новые и обновлённые формы.</string>
-    <string name="questionnaires_changes">Новых форм: %1$d, обновлено: %2$d</string>
-    <string name="diag_message">Выберите, что отправить в службу поддержки. По умолчанию выбрано всё. Отчёт — зашифрованный архив, который отправляется по электронной почте.</string>
+    <string
+        name="embedded_forms_only_description"
+    >Приложение использует только встроенные формы и не загружает опросники с сервера.</string>
+    <string
+        name="fetch_questionnaires_sign_in"
+    >Войдите, чтобы проверить на сервере новые и обновлённые формы.</string>
+    <string
+        name="questionnaires_changes"
+    >Новых форм: %1$d, обновлено: %2$d</string>
+    <string
+        name="diag_message"
+    >Выберите, что отправить в службу поддержки. По умолчанию выбрано всё. Отчёт — зашифрованный архив, который отправляется по электронной почте.</string>
     <string name="diag_logs">Журналы приложения</string>
-    <string name="diag_logs_description">Что приложение записывало во время работы, для поиска ошибок.</string>
+    <string
+        name="diag_logs_description"
+    >Что приложение записывало во время работы, для поиска ошибок.</string>
     <string name="diag_audit">Журнал действий</string>
-    <string name="diag_audit_description">Последние шаги в приложении: входы, созданные или изменённые пациенты и визиты, синхронизации.</string>
+    <string
+        name="diag_audit_description"
+    >Последние шаги в приложении: входы, созданные или изменённые пациенты и визиты, синхронизации.</string>
     <string name="diag_sync">Сведения о синхронизации</string>
-    <string name="diag_sync_description">Последние сеансы синхронизации с их счётчиками и ошибками.</string>
+    <string
+        name="diag_sync_description"
+    >Последние сеансы синхронизации с их счётчиками и ошибками.</string>
     <string name="diag_unsynced">Несинхронизированные данные</string>
-    <string name="diag_unsynced_description">Всё, что ещё ждёт отправки, целиком. Содержит данные пациентов.</string>
+    <string
+        name="diag_unsynced_description"
+    >Всё, что ещё ждёт отправки, целиком. Содержит данные пациентов.</string>
     <string name="diag_device">Устройство и приложение</string>
-    <string name="diag_device_description">Версия, устройство, память, сеть, настройки и формы. Без данных пациентов.</string>
+    <string
+        name="diag_device_description"
+    >Версия, устройство, память, сеть, настройки и формы. Без данных пациентов.</string>
     <string name="diag_preparing">Подготовка отчёта…</string>
     <string name="diag_send">Отправить</string>
-    <string name="diag_failed">Не удалось подготовить диагностический отчёт.</string>
+    <string
+        name="diag_failed"
+    >Не удалось подготовить диагностический отчёт.</string>
     <string name="diag_range_title">Период</string>
     <string name="diag_range_all">Всё</string>
     <string name="diag_range_24h">Последние 24 часа</string>
     <string name="diag_range_7d">Последние 7 дней</string>
-    <string name="diag_range_note">Относится к журналам, журналу действий и сведениям о синхронизации.</string>
+    <string
+        name="diag_range_note"
+    >Относится к журналам, журналу действий и сведениям о синхронизации.</string>
     <string name="diag_est_size">Около %s</string>
     <string name="diag_est_entries">Записей: %d</string>
     <string name="diag_est_sessions">Сеансов: %d</string>
@@ -930,76 +1292,148 @@
         <item quantity="many">%d пациентов</item>
         <item quantity="other">%d пациента</item>
     </plurals>
-    <string name="pending_session_line">Незавершённый сеанс · %1$s · %2$s</string>
+    <string
+        name="pending_session_line"
+    >Незавершённый сеанс · %1$s · %2$s</string>
     <string name="patients_selected_of">Выбрано %1$d из %2$d</string>
     <string name="search_patients_hint">Поиск пациентов</string>
-    <string name="no_patients_to_select">Нет пациентов для выбора. Сначала зарегистрируйте или синхронизируйте пациентов.</string>
+    <string
+        name="no_patients_to_select"
+    >Нет пациентов для выбора. Сначала зарегистрируйте или синхронизируйте пациентов.</string>
     <string name="start_with_count">Начать (%1$d)</string>
     <string name="logout_delete_title">Выйти и удалить все данные</string>
-    <string name="logout_delete_description">Выполняет выход и удаляет всё, что хранится на этом устройстве: пациентов, визиты, черновики и ещё не отправленные изменения.</string>
+    <string
+        name="logout_delete_description"
+    >Выполняет выход и удаляет всё, что хранится на этом устройстве: пациентов, визиты, черновики и ещё не отправленные изменения.</string>
     <string name="logout_delete_button">Выйти и удалить все данные</string>
-    <string name="logout_delete_confirm_title">Удалить все данные и выйти?</string>
-    <string name="logout_delete_confirm_message">Это действие нельзя отменить. Всё, что хранится на этом устройстве, будет удалено: пациенты, визиты, черновики, загруженные данные и ваш сеанс. Придётся снова войти и загрузить данные.</string>
+    <string
+        name="logout_delete_confirm_title"
+    >Удалить все данные и выйти?</string>
+    <string
+        name="logout_delete_confirm_message"
+    >Это действие нельзя отменить. Всё, что хранится на этом устройстве, будет удалено: пациенты, визиты, черновики, загруженные данные и ваш сеанс. Придётся снова войти и загрузить данные.</string>
     <string name="logout_delete_confirm_button">Удалить и выйти</string>
     <plurals name="logout_delete_unsynced">
-        <item quantity="one">%d изменение не отправлено и будет потеряно безвозвратно.</item>
-        <item quantity="few">%d изменения не отправлены и будут потеряны безвозвратно.</item>
-        <item quantity="many">%d изменений не отправлено и будет потеряно безвозвратно.</item>
-        <item quantity="other">%d изменения не отправлены и будут потеряны безвозвратно.</item>
+        <item
+            quantity="one"
+        >%d изменение не отправлено и будет потеряно безвозвратно.</item>
+        <item
+            quantity="few"
+        >%d изменения не отправлены и будут потеряны безвозвратно.</item>
+        <item
+            quantity="many"
+        >%d изменений не отправлено и будет потеряно безвозвратно.</item>
+        <item
+            quantity="other"
+        >%d изменения не отправлены и будут потеряны безвозвратно.</item>
     </plurals>
     <string name="settings_reset_menu">Сбросить настройки</string>
     <string name="settings_reset_title">Сброс настроек</string>
-    <string name="settings_reset_message">Все настройки на этой странице вернутся к значениям по умолчанию: оформление, язык, уведомления, синхронизация, формы и избранное. Пациенты, данные и сеанс не затрагиваются.</string>
+    <string
+        name="settings_reset_message"
+    >Все настройки на этой странице вернутся к значениям по умолчанию: оформление, язык, уведомления, синхронизация, формы и избранное. Пациенты, данные и сеанс не затрагиваются.</string>
     <string name="settings_reset_confirm">Сбросить</string>
     <string name="settings_reset_done">Настройки сброшены</string>
     <string name="auto_sync_delay_link">Отложить</string>
-    <string name="auto_sync_delay_title">Отложить следующую синхронизацию</string>
+    <string
+        name="auto_sync_delay_title"
+    >Отложить следующую синхронизацию</string>
     <string name="auto_sync_delay_5_minutes">5 минут</string>
     <string name="auto_sync_delay_30_minutes">30 минут</string>
     <string name="auto_sync_delay_1_hour">1 час</string>
     <string name="auto_sync_delay_2_hours">2 часа</string>
-    <string name="auto_sync_turn_off">Отключить автоматическую синхронизацию</string>
-    <string name="auto_sync_turn_off_hint">Её можно снова включить в настройках.</string>
-    <string name="auto_sync_turned_off">Автоматическая синхронизация отключена. Включите её снова в настройках.</string>
-    <string name="next_sync_in_hours">Следующая синхронизация через %1$d ч %2$d мин</string>
+    <string
+        name="auto_sync_turn_off"
+    >Отключить автоматическую синхронизацию</string>
+    <string
+        name="auto_sync_turn_off_hint"
+    >Её можно снова включить в настройках.</string>
+    <string
+        name="auto_sync_turned_off"
+    >Автоматическая синхронизация отключена. Включите её снова в настройках.</string>
+    <string
+        name="next_sync_in_hours"
+    >Следующая синхронизация через %1$d ч %2$d мин</string>
     <string name="auto_sync_reset_timer">Сбросить таймер</string>
-    <string name="settings_connection_description">Сервер: %1$s. Проверьте, что устройство может до него дотянуться.</string>
+    <string
+        name="settings_connection_description"
+    >Сервер: %1$s. Проверьте, что устройство может до него дотянуться.</string>
     <string name="logout_section_title">Выход</string>
     <string name="clear_on_logout_title">Удалять данные при выходе</string>
-    <string name="clear_on_logout_description">Включено: при выходе удаляется всё, что хранится на этом устройстве. Выключено: данные остаются на устройстве.</string>
+    <string
+        name="clear_on_logout_description"
+    >Включено: при выходе удаляется всё, что хранится на этом устройстве. Выключено: данные остаются на устройстве.</string>
     <string name="clear_on_logout_on_title">Удалять данные при выходе?</string>
-    <string name="clear_on_logout_on_message">Теперь при выходе будет удаляться всё, что хранится на этом устройстве: пациенты, визиты, черновики и загруженные данные. После входа их придётся загрузить заново.</string>
+    <string
+        name="clear_on_logout_on_message"
+    >Теперь при выходе будет удаляться всё, что хранится на этом устройстве: пациенты, визиты, черновики и загруженные данные. После входа их придётся загрузить заново.</string>
     <string name="clear_on_logout_on_button">Включить</string>
-    <string name="clear_on_logout_off_title">Сохранять данные после выхода?</string>
-    <string name="clear_on_logout_off_message">При выходе пациенты, визиты и черновики на этом устройстве больше не будут удаляться. Любой, кто войдёт позже, сможет их увидеть.</string>
+    <string
+        name="clear_on_logout_off_title"
+    >Сохранять данные после выхода?</string>
+    <string
+        name="clear_on_logout_off_message"
+    >При выходе пациенты, визиты и черновики на этом устройстве больше не будут удаляться. Любой, кто войдёт позже, сможет их увидеть.</string>
     <string name="clear_on_logout_off_button">Выключить</string>
-    <string name="logout_message_delete">При выходе будут удалены все данные на этом устройстве: пациенты, визиты, черновики и загруженные данные. После входа их придётся загрузить заново. Выйти?</string>
-    <string name="logout_message_keep">Вы выйдете из аккаунта. Данные останутся на этом устройстве. Выйти?</string>
+    <string
+        name="logout_message_delete"
+    >При выходе будут удалены все данные на этом устройстве: пациенты, визиты, черновики и загруженные данные. После входа их придётся загрузить заново. Выйти?</string>
+    <string
+        name="logout_message_keep"
+    >Вы выйдете из аккаунта. Данные останутся на этом устройстве. Выйти?</string>
     <plurals name="logout_pending_lost">
-        <item quantity="one">%d ресурс ожидает отправки и будет потерян безвозвратно.</item>
-        <item quantity="few">%d ресурса ожидают отправки и будут потеряны безвозвратно.</item>
-        <item quantity="many">%d ресурсов ожидают отправки и будут потеряны безвозвратно.</item>
-        <item quantity="other">%d ресурса ожидают отправки и будут потеряны безвозвратно.</item>
+        <item
+            quantity="one"
+        >%d ресурс ожидает отправки и будет потерян безвозвратно.</item>
+        <item
+            quantity="few"
+        >%d ресурса ожидают отправки и будут потеряны безвозвратно.</item>
+        <item
+            quantity="many"
+        >%d ресурсов ожидают отправки и будут потеряны безвозвратно.</item>
+        <item
+            quantity="other"
+        >%d ресурса ожидают отправки и будут потеряны безвозвратно.</item>
     </plurals>
     <plurals name="logout_pending_kept">
-        <item quantity="one">%d ресурс всё ещё ждёт отправки. Он останется на устройстве до входа и синхронизации.</item>
-        <item quantity="few">%d ресурса всё ещё ждут отправки. Они останутся на устройстве до входа и синхронизации.</item>
-        <item quantity="many">%d ресурсов всё ещё ждут отправки. Они останутся на устройстве до входа и синхронизации.</item>
-        <item quantity="other">%d ресурса всё ещё ждут отправки. Они останутся на устройстве до входа и синхронизации.</item>
+        <item
+            quantity="one"
+        >%d ресурс всё ещё ждёт отправки. Он останется на устройстве до входа и синхронизации.</item>
+        <item
+            quantity="few"
+        >%d ресурса всё ещё ждут отправки. Они останутся на устройстве до входа и синхронизации.</item>
+        <item
+            quantity="many"
+        >%d ресурсов всё ещё ждут отправки. Они останутся на устройстве до входа и синхронизации.</item>
+        <item
+            quantity="other"
+        >%d ресурса всё ещё ждут отправки. Они останутся на устройстве до входа и синхронизации.</item>
     </plurals>
     <string name="pending_sessions_title">Незавершённые сеансы</string>
-    <string name="pending_sessions_message">Ожидают несколько групповых сеансов. Выберите тот, который нужно продолжить.</string>
+    <string
+        name="pending_sessions_message"
+    >Ожидают несколько групповых сеансов. Выберите тот, который нужно продолжить.</string>
     <string name="pending_session_detail">%1$s · %2$s</string>
-    <string name="create_encounter_subtitle">Выберите форму, чтобы начать</string>
-    <string name="create_group_encounter_subtitle">Выберите форму, затем пациентов</string>
+    <string
+        name="create_encounter_subtitle"
+    >Выберите форму, чтобы начать</string>
+    <string
+        name="create_group_encounter_subtitle"
+    >Выберите форму, затем пациентов</string>
     <string name="location_banner_label">Локация</string>
     <string name="location_banner_none">Локация не выбрана</string>
-    <string name="location_banner_none_hint">Пациент будет сохранён без локации. Он получит ту, которую вы выберете позже.</string>
-    <string name="location_banner_guest_hint">Локацию можно будет выбрать после входа.</string>
+    <string
+        name="location_banner_none_hint"
+    >Пациент будет сохранён без локации. Он получит ту, которую вы выберете позже.</string>
+    <string
+        name="location_banner_guest_hint"
+    >Локацию можно будет выбрать после входа.</string>
     <string name="view_encounter">Просмотр встречи</string>
     <string name="encounter_edit_action">Изменить</string>
     <string name="encounter_read_only">Только чтение</string>
-    <string name="encounter_generic_note">Формы для этой встречи нет на устройстве, поэтому значения показаны так, как были сохранены. Редактирование недоступно.</string>
+    <string
+        name="encounter_generic_note"
+    >Формы для этой встречи нет на устройстве, поэтому значения показаны так, как были сохранены. Редактирование недоступно.</string>
     <string name="encounter_generic_title">Встреча</string>
     <string name="encounter_generic_observations">Записанные значения</string>
     <string name="encounter_generic_type">Тип встречи</string>
@@ -1009,58 +1443,113 @@
     <string name="encounter_generic_status">Статус</string>
     <string name="encounter_generic_unnamed">Значение без названия</string>
     <string name="choose_location">Выбрать место</string>
-    <string name="patient_lists_empty_no_location">Место ещё не выбрано. Выберите место, чтобы увидеть его списки пациентов.</string>
-    <string name="sync_first_download_wait">Подождите здесь: эта первая загрузка нужна, чтобы продолжить, и её нельзя пропустить.</string>
+    <string
+        name="patient_lists_empty_no_location"
+    >Место ещё не выбрано. Выберите место, чтобы увидеть его списки пациентов.</string>
+    <string
+        name="sync_first_download_wait"
+    >Подождите здесь: эта первая загрузка нужна, чтобы продолжить, и её нельзя пропустить.</string>
     <string name="delete_patient_data_menu">Удалить данные пациентов</string>
-    <string name="delete_patient_data_title">Удалить все данные пациентов?</string>
-    <string name="delete_patient_data_message">С устройства будут удалены пациенты (%1$d) этого пользователя вместе с их встречами и наблюдениями, пациенты для последующей идентификации и черновики групповых сессий; списки пациентов будут сняты с выбора. Вы остаётесь в системе, а ваше место сохраняется — можно начать заново.</string>
-    <string name="delete_patient_data_unsynced">У %1$d записей есть изменения, которые ещё не отправлены. Они будут потеряны.</string>
+    <string
+        name="delete_patient_data_title"
+    >Удалить все данные пациентов?</string>
+    <string
+        name="delete_patient_data_message"
+    >С устройства будут удалены пациенты (%1$d) этого пользователя вместе с их встречами и наблюдениями, пациенты для последующей идентификации и черновики групповых сессий; списки пациентов будут сняты с выбора. Вы остаётесь в системе, а ваше место сохраняется — можно начать заново.</string>
+    <string
+        name="delete_patient_data_unsynced"
+    >У %1$d записей есть изменения, которые ещё не отправлены. Они будут потеряны.</string>
     <string name="delete_patient_data_confirm">Удалить</string>
-    <string name="delete_patient_data_done">Данные пациентов удалены. Выберите списки пациентов для повторной загрузки.</string>
-    <string name="delete_patient_data_failed">Не удалось удалить данные пациентов.</string>
+    <string
+        name="delete_patient_data_done"
+    >Данные пациентов удалены. Выберите списки пациентов для повторной загрузки.</string>
+    <string
+        name="delete_patient_data_failed"
+    >Не удалось удалить данные пациентов.</string>
     <string name="unlock_title">OpenMRS заблокирован</string>
-    <string name="unlock_message">Подтвердите, что это вы, чтобы продолжить с того же места.</string>
-    <string name="unlock_unavailable">На устройстве больше не настроены отпечаток, лицо или блокировка экрана. Войдите в свою учётную запись, чтобы продолжить.</string>
+    <string
+        name="unlock_message"
+    >Подтвердите, что это вы, чтобы продолжить с того же места.</string>
+    <string
+        name="unlock_unavailable"
+    >На устройстве больше не настроены отпечаток, лицо или блокировка экрана. Войдите в свою учётную запись, чтобы продолжить.</string>
     <string name="unlock_button">Разблокировать</string>
     <string name="unlock_sign_in_again">Войти через учётную запись</string>
     <string name="unlock_prompt_title">Разблокировать OpenMRS</string>
     <string name="confirm_identity_title">Подтвердите, что это вы</string>
-    <string name="delete_patient_data_auth_subtitle">Для удаления данных пациентов нужен ваш отпечаток, лицо или блокировка экрана.</string>
-    <string name="logout_delete_auth_subtitle">Для выхода и удаления всех данных нужен ваш отпечаток, лицо или блокировка экрана.</string>
-    <string name="offline_login_unavailable_status">Автономный вход включён, но на устройстве больше нет отпечатка, лица или блокировки экрана. Настройте их или сбросьте автономный вход и войдите снова.</string>
+    <string
+        name="delete_patient_data_auth_subtitle"
+    >Для удаления данных пациентов нужен ваш отпечаток, лицо или блокировка экрана.</string>
+    <string
+        name="logout_delete_auth_subtitle"
+    >Для выхода и удаления всех данных нужен ваш отпечаток, лицо или блокировка экрана.</string>
+    <string
+        name="offline_login_unavailable_status"
+    >Автономный вход включён, но на устройстве больше нет отпечатка, лица или блокировки экрана. Настройте их или сбросьте автономный вход и войдите снова.</string>
     <string name="app_lock_delay">Спрашивать снова через</string>
-    <string name="app_lock_delay_description">Как долго приложение может быть скрыто, прежде чем снова запросит отпечаток, лицо или блокировку экрана.</string>
+    <string
+        name="app_lock_delay_description"
+    >Как долго приложение может быть скрыто, прежде чем снова запросит отпечаток, лицо или блокировку экрана.</string>
     <string name="app_lock_delay_immediately">Каждый раз</string>
     <string name="app_lock_delay_seconds">%1$d сек.</string>
     <string name="app_lock_delay_minutes">%1$d мин</string>
-    <string name="app_lock_screen_off">Блокировать при выключении экрана</string>
-    <string name="app_lock_screen_off_description">Спрашивать снова сразу после включения экрана, независимо от времени выше.</string>
-    <string name="app_lock_hide_recents">Скрывать приложение в списке недавних</string>
-    <string name="app_lock_hide_recents_description">В списке недавних приложений и на снимках экрана будет пустой экран, данные пациентов не видны. Действует для новых экранов.</string>
-    <string name="invalid_username_password_sso_hint">Не удалось войти. Проверьте данные. Если ваша организация использует единый вход, нажмите «Войти через SSO».</string>
-    <string name="session_expired_strip">Сеанс истёк. Изменения хранятся на этом устройстве.</string>
+    <string
+        name="app_lock_screen_off"
+    >Блокировать при выключении экрана</string>
+    <string
+        name="app_lock_screen_off_description"
+    >Спрашивать снова сразу после включения экрана, независимо от времени выше.</string>
+    <string
+        name="app_lock_hide_recents"
+    >Скрывать приложение в списке недавних</string>
+    <string
+        name="app_lock_hide_recents_description"
+    >В списке недавних приложений и на снимках экрана будет пустой экран, данные пациентов не видны. Действует для новых экранов.</string>
+    <string
+        name="invalid_username_password_sso_hint"
+    >Не удалось войти. Проверьте данные. Если ваша организация использует единый вход, нажмите «Войти через SSO».</string>
+    <string
+        name="session_expired_strip"
+    >Сеанс истёк. Изменения хранятся на этом устройстве.</string>
     <string name="settings_auto_sync_unmetered">Только по Wi-Fi</string>
-    <string name="settings_auto_sync_unmetered_description">Автосинхронизация ждёт подключения без учёта трафика. Синхронизация, запущенная вами, выполняется всегда.</string>
+    <string
+        name="settings_auto_sync_unmetered_description"
+    >Автосинхронизация ждёт подключения без учёта трафика. Синхронизация, запущенная вами, выполняется всегда.</string>
     <string name="settings_auto_sync_battery">Не при низком заряде</string>
-    <string name="settings_auto_sync_battery_description" formatted="false">Автосинхронизация ждёт, пока заряд ниже 15 %, а устройство не заряжается.</string>
+    <string
+        name="settings_auto_sync_battery_description"
+        formatted="false"
+    >Автосинхронизация ждёт, пока заряд ниже 15 %, а устройство не заряжается.</string>
     <string name="patient_sort_name_asc">Имя А–Я</string>
     <string name="patient_sort_name_desc">Имя Я–А</string>
     <string name="patient_sort_age_youngest">Сначала младшие</string>
     <string name="patient_sort_age_oldest">Сначала старшие</string>
     <string name="patients_show_more">Показать больше пациентов</string>
-    <string name="help_patients_sort_title">Сортировка и показать больше</string>
-    <string name="help_patients_sort_body">Выберите порядок списка. Показывается по 100 пациентов: нажмите «Показать больше» в конце, чтобы увидеть остальных.</string>
+    <string
+        name="help_patients_sort_title"
+    >Сортировка и показать больше</string>
+    <string
+        name="help_patients_sort_body"
+    >Выберите порядок списка. Показывается по 100 пациентов: нажмите «Показать больше» в конце, чтобы увидеть остальных.</string>
     <string name="home_summary_patients">Пациентов на устройстве: %1$d</string>
     <string name="home_summary_waiting">Не отправлено изменений: %1$d</string>
     <string name="home_summary_uploaded">Всё отправлено</string>
     <string name="help_home_summary_title">Коротко</string>
-    <string name="help_home_summary_body">Сколько пациентов на устройстве и сколько изменений ещё ждёт отправки. Нажмите, чтобы открыть страницу синхронизации.</string>
+    <string
+        name="help_home_summary_body"
+    >Сколько пациентов на устройстве и сколько изменений ещё ждёт отправки. Нажмите, чтобы открыть страницу синхронизации.</string>
     <string name="help_home_menu_title">Меню</string>
-    <string name="help_home_menu_body">Откройте его кнопкой сверху: настройки, отправка диагностики, удаление данных пациентов и выход. Для двух последних нужно подтверждение.</string>
+    <string
+        name="help_home_menu_body"
+    >Откройте его кнопкой сверху: настройки, отправка диагностики, удаление данных пациентов и выход. Для двух последних нужно подтверждение.</string>
     <string name="help_home_session_title">Сеанс истёк</string>
-    <string name="help_home_session_body">Когда сервер больше не принимает ваш вход, эта полоса появляется под состоянием подключения. Нажмите «Войти»: сделанное за это время останется на устройстве и будет отправлено позже.</string>
+    <string
+        name="help_home_session_body"
+    >Когда сервер больше не принимает ваш вход, эта полоса появляется под состоянием подключения. Нажмите «Войти»: сделанное за это время останется на устройстве и будет отправлено позже.</string>
     <string name="settings_search_hint">Поиск по настройкам</string>
     <string name="settings_search_none">Ничего не найдено</string>
     <string name="help_settings_search_title">Поиск по настройкам</string>
-    <string name="help_settings_search_body">Введите слово (синхронизация, язык, блокировка…), чтобы показать только разделы, где оно встречается.</string>
+    <string
+        name="help_settings_search_body"
+    >Введите слово (синхронизация, язык, блокировка…), чтобы показать только разделы, где оно встречается.</string>
 </resources>

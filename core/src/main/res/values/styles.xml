@@ -166,7 +166,9 @@
         <item name="colorPrimary">@color/o3_primary</item>
         <item name="colorOnPrimary">@color/o3_on_primary</item>
         <item name="colorPrimaryContainer">@color/o3_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/o3_on_primary_container</item>
+        <item
+            name="colorOnPrimaryContainer"
+        >@color/o3_on_primary_container</item>
         <item name="colorSecondary">@color/o3_secondary</item>
         <item name="colorSurface">@color/o3_surface</item>
         <item name="colorOnSurface">@color/o3_on_surface</item>
@@ -209,11 +211,17 @@
         <item name="colorPrimary">@color/cb_primary</item>
         <item name="colorOnPrimary">@color/cb_on_primary</item>
         <item name="colorPrimaryContainer">@color/cb_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/cb_on_primary_container</item>
+        <item
+            name="colorOnPrimaryContainer"
+        >@color/cb_on_primary_container</item>
         <item name="colorSecondary">@color/cb_secondary</item>
         <item name="colorOnSecondary">@color/cb_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/cb_secondary_container</item>
-        <item name="colorOnSecondaryContainer">@color/cb_on_secondary_container</item>
+        <item
+            name="colorSecondaryContainer"
+        >@color/cb_secondary_container</item>
+        <item
+            name="colorOnSecondaryContainer"
+        >@color/cb_on_secondary_container</item>
         <item name="colorTertiary">@color/cb_tertiary</item>
         <item name="colorOnTertiary">@color/cb_on_tertiary</item>
         <item name="colorError">@color/cb_error</item>
@@ -228,7 +236,9 @@
         <item name="colorPrimary">@color/cb_primary</item>
         <item name="colorOnPrimary">@color/cb_on_primary</item>
         <item name="colorPrimaryContainer">@color/cb_primary_container</item>
-        <item name="colorOnPrimaryContainer">@color/cb_on_primary_container</item>
+        <item
+            name="colorOnPrimaryContainer"
+        >@color/cb_on_primary_container</item>
         <item name="colorSecondary">@color/cb_secondary</item>
         <item name="colorError">@color/cb_error</item>
         <item name="colorOnError">@color/cb_on_error</item>

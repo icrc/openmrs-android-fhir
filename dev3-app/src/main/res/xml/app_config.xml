@@ -4,9 +4,15 @@
 
     <auth method="basic" />
 
-    <sync location-tag="Login Location" filter-patient-lists-by-location="true" />
+    <sync
+        location-tag="Login Location"
+        filter-patient-lists-by-location="true"
+    />
 
-    <patients registration-form="new-patient-registration-paginated" fetch-identifiers="true" />
+    <patients
+        registration-form="new-patient-registration-paginated"
+        fetch-identifiers="true"
+    />
 
     <support email="support@mail.com" />
 
