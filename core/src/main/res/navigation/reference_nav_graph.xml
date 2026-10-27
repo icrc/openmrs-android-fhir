@@ -126,7 +126,7 @@
   <fragment
         android:id="@+id/createEncounterFragment"
         android:name="org.openmrs.android.fhir.fragments.CreateEncountersFragment"
-        android:label="createEncounterFragment"
+        android:label="createEncounterFragment"
     >
     <argument android:name="patient_id" app:argType="string" />
     <argument android:name="is_group_encounter" app:argType="boolean" />

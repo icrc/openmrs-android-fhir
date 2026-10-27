@@ -26,7 +26,10 @@
     <!-- registration-form: id of a synced questionnaire or file name in assets.
          fetch-identifiers: fetch auto-generated identifiers on the device and embed them in new
          patients (false: the server creates them). -->
-    <patients registration-form="new-patient-registration-paginated" fetch-identifiers="true" />
+    <patients
+        registration-form="new-patient-registration-paginated"
+        fetch-identifiers="true"
+    />
 
     <!-- Where "Send diagnostics" goes. The password (required: change it) protects the
          archive and the application logs; support needs it to open a report. -->
