@@ -890,6 +890,11 @@
     <string
         name="help_form_encounter_body"
     >Заполните вопросы, затем проверьте и отправьте. Сохранённое остаётся на устройстве и отправляется при следующей синхронизации.</string>
+    <string name="help_form_pages_title">Страницы формы</string>
+    <string
+        name="help_form_pages_body"
+    >Нажмите на страницу, чтобы перейти к ней сразу, без кнопок «Далее» и «Назад». Текущая страница выделена; прокрутите строку вбок, чтобы увидеть остальные.</string>
+    <string name="form_page_fallback_title">Страница</string>
     <string name="help_group_tabs_title">Пациенты сессии</string>
     <string
         name="help_group_tabs_body"

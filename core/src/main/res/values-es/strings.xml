@@ -895,6 +895,11 @@
     <string
         name="help_form_encounter_body"
     >Rellene las preguntas, revise y envíe. Lo que guarde queda en este dispositivo y se sube en la próxima sincronización.</string>
+    <string name="help_form_pages_title">Páginas del formulario</string>
+    <string
+        name="help_form_pages_body"
+    >Toque una página para ir directamente a ella, sin pulsar Siguiente y Anterior. La página actual está resaltada; deslice la fila hacia los lados para ver las demás.</string>
+    <string name="form_page_fallback_title">Página</string>
     <string name="help_group_tabs_title">Pacientes de la sesión</string>
     <string
         name="help_group_tabs_body"

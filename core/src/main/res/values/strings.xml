@@ -841,6 +841,11 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="help_form_encounter_body"
     >Fill in the questions, then review and submit. What you save stays on this device and is uploaded at the next sync.</string>
+    <string name="help_form_pages_title">Pages of the form</string>
+    <string
+        name="help_form_pages_body"
+    >Tap a page to go straight to it, without pressing Next and Previous. The page you are on is highlighted; swipe the row sideways to see the others.</string>
+    <string name="form_page_fallback_title">Page</string>
     <string name="help_group_tabs_title">Patients of the session</string>
     <string
         name="help_group_tabs_body"

@@ -656,7 +656,9 @@ class MainActivity : AppCompatActivity() {
     val tour = currentScreenTour() ?: return
     // Forms that are still Android views announce their place now.
     tour.viewTargets.forEach { (key, viewId) ->
-      findViewById<View>(viewId)?.let { registerViewTarget(it, key) }
+      findViewById<View>(viewId)
+        ?.takeIf { it.isShown && it.width > 0 }
+        ?.let { registerViewTarget(it, key) }
     }
     TutorialController.start(tour.steps)
   }

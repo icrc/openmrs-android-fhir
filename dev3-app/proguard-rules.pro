@@ -19,3 +19,12 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+
+# The page breadcrumbs of a form (core/forms/PageBreadcrumbs.kt) read and set the form library's
+# internal state by reflection: keep these names.
+-keep class com.google.android.fhir.datacapture.QuestionnaireViewModel { *; }
+-keep class com.google.android.fhir.datacapture.QuestionnaireState { *; }
+-keep class com.google.android.fhir.datacapture.QuestionnairePagination { *; }
+-keep class com.google.android.fhir.datacapture.QuestionnairePage { *; }
+-keep class com.google.android.fhir.datacapture.DisplayMode** { *; }

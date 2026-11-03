@@ -921,6 +921,11 @@
     <string
         name="help_form_encounter_body"
     >Remplissez les questions, puis relisez et validez. Ce que vous enregistrez reste sur cet appareil et est envoyé à la prochaine synchronisation.</string>
+    <string name="help_form_pages_title">Pages du formulaire</string>
+    <string
+        name="help_form_pages_body"
+    >Touchez une page pour y aller directement, sans passer par Suivant et Précédent. La page en cours est surlignée ; faites glisser la ligne pour voir les autres.</string>
+    <string name="form_page_fallback_title">Page</string>
     <string name="help_group_tabs_title">Patients de la séance</string>
     <string
         name="help_group_tabs_body"

@@ -803,6 +803,11 @@
     <string
         name="help_form_encounter_body"
     >املأ الأسئلة ثم راجع وأرسل. ما تحفظه يبقى على هذا الجهاز ويُرفع في المزامنة التالية.</string>
+    <string name="help_form_pages_title">صفحات النموذج</string>
+    <string
+        name="help_form_pages_body"
+    >المس صفحة للانتقال إليها مباشرة دون الضغط على «التالي» و«السابق». الصفحة الحالية مميّزة؛ مرّر الصف جانبيًا لرؤية بقية الصفحات.</string>
+    <string name="form_page_fallback_title">صفحة</string>
     <string name="help_group_tabs_title">مرضى الجلسة</string>
     <string
         name="help_group_tabs_body"
