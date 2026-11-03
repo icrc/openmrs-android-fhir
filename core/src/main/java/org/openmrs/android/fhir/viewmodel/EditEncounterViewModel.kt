@@ -75,6 +75,7 @@ import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
 import org.openmrs.android.fhir.extensions.convertQuantityObsToIntegerObs
+import org.openmrs.android.fhir.extensions.dropInitialValuesFilledFromSavedData
 import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.hasInvalidAnswers
@@ -157,6 +158,7 @@ constructor(
           questionnaire.pruneOtherLanguageTranslations()
         }
 
+        questionnaire?.dropInitialValuesFilledFromSavedData()
         val encounter = fhirEngine.get<Encounter>(encounterId)
         if (questionnaire == null) {
           // No form for this type: show the encounter and its observations as they were saved.

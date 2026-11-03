@@ -236,6 +236,27 @@ private const val QUESTIONNAIRE_ITEM_CONTROL_SYSTEM =
   "http://hl7.org/fhir/questionnaire-item-control"
 private const val QUESTIONNAIRE_ITEM_CONTROL_PAGE = "page"
 
+private const val SDC_INITIAL_EXPRESSION_URL =
+  "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+
+/**
+ * A question can start on a value in a new encounter (`initial`, for example 0 for a count) and be
+ * filled from what was saved when the encounter is opened again (an initial expression). The form
+ * library takes one or the other when it fills a form from saved data, never both, so for the
+ * questions that have both the starting value is dropped here: the expression gives the saved
+ * answer, or the starting value itself when there is none.
+ */
+fun Questionnaire.dropInitialValuesFilledFromSavedData() {
+  item.forEach { it.dropInitialValuesFilledFromSavedData() }
+}
+
+private fun QuestionnaireItemComponent.dropInitialValuesFilledFromSavedData() {
+  if (hasInitial() && hasExtension(SDC_INITIAL_EXPRESSION_URL)) {
+    initial = mutableListOf()
+  }
+  item.forEach { it.dropInitialValuesFilledFromSavedData() }
+}
+
 suspend fun Questionnaire.hasInvalidAnswers(
   questionnaireResponse: QuestionnaireResponse,
   applicationContext: Context,
