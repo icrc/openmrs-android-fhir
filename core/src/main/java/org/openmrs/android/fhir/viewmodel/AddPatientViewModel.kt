@@ -165,6 +165,8 @@ constructor(
         return@launch
       }
       patient.birthDateElement = birthDate
+      // The extraction of the answers leaves the gender out of the paged form: set it from them.
+      openMRSHelper.genderFrom(questionnaireResponse)?.let { patient.gender = it }
 
       val location = locationId?.let { fhirEngine.get(ResourceType.Location, it) } as Location?
       // Without a location the patient has no identifiers yet: they come with the location.

@@ -42,12 +42,14 @@ import java.util.LinkedList
 import javax.inject.Inject
 import kotlin.collections.forEach
 import kotlinx.coroutines.flow.first
+import org.hl7.fhir.exceptions.FHIRException
 import org.hl7.fhir.r4.model.BooleanType
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Encounter.EncounterParticipantComponent
+import org.hl7.fhir.r4.model.Enumerations
 import org.hl7.fhir.r4.model.Extension
 import org.hl7.fhir.r4.model.Period
 import org.hl7.fhir.r4.model.Quantity
@@ -489,6 +491,26 @@ constructor(
     return getDateDiffByQuantity(years, answer("estimatedDateOfBirthMonths") as? Quantity)
   }
 
+  /**
+   * The gender answered in the registration form, or `null` when there is none. The form is paged
+   * (`pagedBySections`), which puts this question inside the page of the name, a group of its own
+   * definition, so the extraction of the answers does not set it on the patient: this reads it from
+   * the response, as the birth date is.
+   */
+  fun genderFrom(response: QuestionnaireResponse): Enumerations.AdministrativeGender? {
+    val code =
+      (response.allItems.firstOrNull { it.linkId == GENDER_LINK_ID }?.answerFirstRep?.value
+          as? Coding)
+        ?.code
+    return code?.let {
+      try {
+        Enumerations.AdministrativeGender.fromCode(it)
+      } catch (e: FHIRException) {
+        null
+      }
+    }
+  }
+
   /** Whether [birthDate] lies after today: nobody is born in the future. */
   fun isInTheFuture(birthDate: DateType): Boolean =
     birthDate.value
@@ -511,6 +533,9 @@ constructor(
     }
   }
 }
+
+/** The question of the registration form that holds the gender. */
+private const val GENDER_LINK_ID = "patient-0-gender"
 
 /** A patient's visits, each with its encounters, and the encounters that belong to no visit. */
 data class PatientVisits(
