@@ -164,13 +164,13 @@ A list of predefined users for OpenMRS can be found here:\
 
 * * * * *
 
-🌐 Keycloak and Hostname Configuration (localhost vs 10.0.0.2)
+🌐 Keycloak and Hostname Configuration (localhost vs 10.0.2.2)
 --------------------------------------------------------------
 
 Keycloak can be accessed through different URLs depending on the use case:
 
 -   **localhost** is used to log into the OpenMRS web application.
--   **10.0.0.2** is used by the Android app.
+-   **10.0.2.2** is used by the Android app.
 
 To configure this:
 

@@ -1,17 +1,18 @@
-# First-run tutorial (spotlight tour)
+# Tutorial (spotlight tour)
 
-A reusable onboarding tour (`org.openmrs.android.fhir.ui.tutorial`) and the tour that runs once
-after a fresh installation. Everything is local: no server, no account, no analytics.
+An in-app tour of the screens (`ui/tutorial`). It is entirely local: no server, no account, no
+analytics. There are three kinds of tour: the first run, the login page, and one per screen.
 
 ## Pieces
 
 | File | Role |
 |---|---|
-| `TutorialStep` / `TutorialAction` | One step: the key of the element to highlight, a title and a body, and what the user must do: `Tap` the element, or `Acknowledge` the card |
-| `TutorialController` | The state of the tour (a Compose `mutableStateOf`, one tour at a time, held by the process) and the registry of where each element is, in window coordinates |
-| `Modifier.tutorialTarget(key)` | Anchors a step to any composable: reports its bounds and watches taps |
-| `TutorialOverlay` | Draws the tour above the whole window and enforces the flow. Hosted once in `MainActivity` as a `ComposeView` added with `addContentView`, so it covers the app bar and bottom bar, which are not in the screens' compositions |
-| `FirstRunTutorial` | The tour of the app and the once-only flag |
+| `TutorialStep` / `TutorialAction` | One step: the key of the element to highlight, a title and a body, and what the user does: `Tap` the element or `Acknowledge` the card |
+| `TutorialController` | The state of the tour (one at a time) and where each element is, in window coordinates |
+| `Modifier.tutorialTarget(key)` | Anchors a step to a composable: reports its bounds and watches taps |
+| `TutorialOverlay` | Draws the tour above the whole window and enforces the flow. `MainActivity` hosts it in a `ComposeView` added with `addContentView`, to cover the app bar and the bottom bar |
+| `FirstRunTutorial` | The first-run tour and its once-only flag |
+| `ScreenTours` | The tour of each screen |
 
 ## Targeting
 
@@ -23,144 +24,51 @@ Card(
 )
 ```
 
-The element keeps working exactly as before. `tutorialTarget` registers `boundsInWindow()` on every
-layout and removes it when the element leaves the composition. The pointer observer runs in the
-`Initial` pass and consumes nothing: it only tells the controller that the element was tapped (down
-and up), and the controller advances only when the current step is a `Tap` on that key.
+The element works as before: the target only observes taps and consumes nothing. A step may point at
+an element of a screen that is not open yet (the tap of the previous step opens it): until it appears
+the overlay blocks the screen, and after 4 seconds the tour ends. A target below the fold is scrolled
+into view.
 
-A step can point at an element of a screen that is not open yet (step 2 is in the Patients
-screen, which the tap of step 1 opens): while the element is not there the overlay blocks the
-screen, and if it never appears within 4 seconds the tour ends, so it cannot trap the user.
+## How a step is enforced
 
-## Enforcing the flow
+* `Tap`: the element is left uncovered and panels block everything else, so the tap both advances the
+  tour and does its normal job.
+* `Acknowledge`: the whole window is blocked and the card's button moves on.
+* The card always has **Skip tour** and a close button, and Back ends the tour: there is no way to be
+  stuck. The card is a live region, so TalkBack reads each step.
 
-* `Tap` step: the hole is left empty and four panels (above, below, left, right of it) swallow every
-  pointer event. The element underneath receives the touch natively, which is why a Tap both
-  advances the tour and does its normal job (opens the screen, the form...). Nothing else on the
-  window can be pressed, scrolled or swiped, the app bar and the bottom bar included.
-* `Acknowledge` step: one panel blocks the whole window, the hole included; the button of the card
-  moves on.
-* The card is always reachable, and has **Skip tour** (a text button), a close button (an icon with
-  its content description) and, in an Acknowledge step, the "Got it" button. **Back** ends the tour
-  too (`BackHandler`). Skip, close and Back all end the whole tour; there is no way to be stuck.
-* Accessibility: the card is a live region with a pane title, so TalkBack announces each step; every
-  control has a text or a content description. The panels block touches, not TalkBack's own
-  navigation of the screens below (Android does not allow hiding another view from the overlay): the
-  card is read first.
+## The tours
 
-## Drawing
+**First run.** `FirstRunTutorial` keeps a flag in its own preferences file. `FhirApplication.onCreate`
+sets it once, to `firstInstallTime == lastUpdateTime`: a fresh installation gets the tour and an update
+of an app already in use does not. `HomeFragment` starts the tour when it is laid out, and the flag is
+cleared as the tour starts, so it never repeats. The manifests set `allowBackup="false"`, so
+reinstalling runs it again. To see it again on a device, write `<boolean name="pending" value="true" />`
+in `shared_prefs/first_run_tutorial.xml`.
 
-A `Canvas` fills the window: `clipPath(hole, ClipOp.Difference)` paints the dim layer around a
-rounded hole (no offscreen layer or blend mode), then a soft glow and an outline, pulsing with an
-`infiniteTransition`, are drawn around the hole. The card goes below the element when it is in the
-top half of the window, above it otherwise.
+**Login page.** The "?" in the footer starts it, as often as wanted. `LoginScreen` builds the steps
+from what the page offers (basic, SSO, guest) and hosts its own `TutorialOverlay`, being a separate
+activity. All its steps are `Acknowledge`, so the page cannot be left during the tour.
 
-## First run, locally
+**Screens.** `ScreenTours` maps each navigation destination to a `Tour`. `MainActivity` shows the "?"
+action (`menu/help_menu.xml`) only when the screen on show has a tour, and `startScreenTour()` starts
+it. Its steps are all `Acknowledge`. A step is `optional` when its element may be absent (an empty
+list, an action only some users have): it is skipped instead of ending the tour. Views that are not
+composables are listed in `Tour.viewTargets` (key to view id). A screen without a tour (identifier
+choice, the patient dialog of a group session, unsynced resources) has no "?".
 
-`FirstRunTutorial` keeps one boolean, `pending`, in its own `SharedPreferences` file
-(`shared_prefs/first_run_tutorial.xml`), in the app's private storage. The manifests set
-`allowBackup="false"`, so nothing is restored from a backup: **uninstalling and installing again
-starts from scratch and the tour runs again**, an update keeps the flag.
-
-1. `FirstRunTutorial.init` (from `FhirApplication.onCreate`) decides once, the first time it runs:
-   `pending = (firstInstallTime == lastUpdateTime)`: a fresh installation gets the tour, an update of
-   an app that was already in use (installed before the tour existed) does not.
-2. `HomeFragment` calls `FirstRunTutorial.startIfPending` once its screen is laid out (the screens
-   before it, login, location and patient lists, are not part of the tour).
-3. The flag is cleared **as the tour starts**, so it never comes back whether the user finishes it,
-   skips it or closes it (or the app is killed in the middle).
-
-To try it on a device that already has the app, write
-`<boolean name="pending" value="true" />` in that file (debug builds: `run-as`) and start the app.
-
-## The tour
-
-1. Home: tap **Patients** (Tap).
-2. Patients screen: the search field (Acknowledge).
-3. Patients screen: tap **Register patient** (Tap), which opens the form and ends the tour.
-
-## The login page tour
-
-The login page has its own tour, started by hand: the "?" button (`TutorialButton`, content
-description "Show the tour") in the footer, before the QR and gear icons. It is not automatic and
-does not use the first-run flag, so it can be run as often as wanted, before anyone has signed in.
-
-`LoginScreen` builds the steps for what the page shows (`showBasic`, `showSso`, and
-`onContinueWithoutLogin != null`): username and password (the username field is the target),
-single sign-on, "Continue without signing in", the settings gear and the QR icon. All are
-`Acknowledge` steps: pressing the elements of the login page during the tour is not the point, and
-a tap on "Continue without signing in" would leave the page. The page hosts its own
-`TutorialOverlay()` above its content (it is a separate activity from `MainActivity`).
-
-`tutorialTarget` also asks to be brought into view when its step comes up
-(`BringIntoViewRequester`), so a target below the fold of the scrolling page is shown.
-
-## Tours of every screen (the help button)
-
-`ScreenTours` maps the navigation destination of each screen to its `Tour` (steps, and for XML
-screens the ids of the views to point at). `MainActivity` adds the "?" action to the app bar
-(`menu/help_menu.xml`, shown by `onPrepareOptionsMenu` only when `ScreenTours.forDestination` has a
-tour for the destination on show, refreshed on every navigation), and `startScreenTour()` registers
-the view targets, then starts the tour.
-
-All the steps of these tours are `Acknowledge` ones: a tour only explains and nothing on the screen
-can be used (or left) while it runs. A step is `optional` when its element may not be on the screen
-(an empty list, an action only some users have): it is skipped after a moment instead of ending the
-tour. Views that are not composables (the forms) are listed in `Tour.viewTargets` (key to view id):
-their place is read when the tour starts.
-
-| Screen | Destination |
-|---|---|
-| Home | `home_fragment` |
-| Patients | `patient_list` |
-| Patient profile | `patient_details` |
-| Sync | `syncInfoFragment` |
-| Import / Export | `importExportFragment` |
-| Settings | `settings_fragment` |
-| Patient lists | `selectPatientListFragment` |
-| Location | `locationFragment` |
-| Forms of an encounter | `createEncounterFragment` |
-| New / edit patient | `addPatientFragment`, `editPatientFragment` |
-| Encounter form (new / edit) | `genericFormEntryFragment`, `editEncounterFragment` |
-| Group session form | `groupFormEntryFragment` |
-
-Screens without a tour (the identifier choice, the patient selection dialog of a group session,
-the unsynced resources) have no "?" button.
-
-## Keeping the tutorial up to date
+## When a feature changes
 
 A change that adds, moves, renames or removes a feature, screen, setting or control updates the
-tutorial **in the same change**:
+tutorial in the same change:
 
-1. Tag the element: `Modifier.tutorialTarget(TutorialTargets.SOMETHING)` (add the key to
-   `TutorialTargets`); an XML screen lists the view id in the tour's `viewTargets`. A key is used by
-   one element only (for a list, tag the first item).
-2. Add the step to the tour of the screen in `ScreenTours.kt`. A new screen needs a new `Tour` and a
-   `forDestination` entry; use `optional = true` for elements that are not always there.
-3. Add `help_<screen>_<element>_title` and `_body` in `values`, `values-fr`, `values-es`,
-   `values-ru` and `values-ar`.
-4. Say it in the CHANGELOG entry.
-5. A removed or renamed feature: update or delete its step, and the strings.
-6. Try it on a device: the "?" button, every step, and that an `optional` step that is missing does
-   not stop the tour.
-
-This is also written in the repository's `CLAUDE.md`, which is what future changes (by anyone, or
-by Claude Code) are expected to follow.
-
-## Using it elsewhere
-
-```kotlin
-// 1. anchor the elements
-Button(modifier = Modifier.tutorialTarget("settings.sync")) { ... }
-
-// 2. describe the steps
-val steps = listOf(
-  TutorialStep("settings.sync", R.string.t_title, R.string.t_body, TutorialAction.Tap),
-)
-
-// 3. start it (anywhere, once the screen is laid out)
-TutorialController.start(steps)
-```
-
-`TutorialOverlay` is already hosted by `MainActivity`; a screen outside it (another activity) adds
-its own `ComposeView { OpenMrsTheme { TutorialOverlay() } }` over its content.
+1. Tag the element with `Modifier.tutorialTarget(TutorialTargets.X)` (add the key to
+   `TutorialTargets`; one element per key, so tag the first item of a list). An XML screen lists the
+   view id in the tour's `viewTargets`.
+2. Add the step to the screen's tour in `ScreenTours.kt`. A new screen needs a new `Tour` and a
+   `forDestination` entry. Use `optional = true` for an element that is not always there.
+3. Add `help_<screen>_<element>_title` and `_body` in `values`, `values-fr`, `values-es`, `values-ru`
+   and `values-ar` (`StringResourcesTest` fails if one is missing).
+4. Mention the step in the CHANGELOG entry.
+5. A removed or renamed feature: update or delete its step and strings.
+6. Run the tour on a device: every step, and a missing `optional` step must not stop it.
