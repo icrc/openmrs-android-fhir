@@ -90,9 +90,9 @@ import org.openmrs.android.fhir.forms.diagnosis.pickedDiagnoses
 import org.openmrs.android.fhir.forms.diagnosis.populateDiagnosisAnswers
 import org.openmrs.android.fhir.forms.readBundledQuestionnaireForEncounterType
 import org.openmrs.android.fhir.forms.storedQuestionnaires
+import org.openmrs.android.fhir.util.ChildInfoAssignment
 import org.openmrs.android.fhir.util.ExistingObservationIndex
 import org.openmrs.android.fhir.util.ObservationChildInfo
-import org.openmrs.android.fhir.util.ObservationGroupLookup
 import org.openmrs.android.fhir.util.ParentEnsureResult
 import org.openmrs.android.fhir.util.ParentObservationTracker
 import org.openmrs.android.fhir.util.areSameValue
@@ -269,7 +269,12 @@ constructor(
       val conditions = getConditionsEncounterId(encounterId)
 
       val observationGroupLookup = buildObservationGroupLookup(questionnaire, questionnaireResponse)
-      removeReplacedParentObservations(bundle, observationGroupLookup, observations)
+      // One assignment for every step, so that they all agree on the parent of each observation.
+      val childInfos =
+        observationGroupLookup.assignChildInfos(
+          bundle.entry.mapNotNull { it.resource as? Observation },
+        )
+      removeReplacedParentObservations(bundle, childInfos, observations)
       val observationIndex =
         ExistingObservationIndex(observationGroupLookup.parentCodingKeys, observations)
       val parentTracker = ParentObservationTracker()
@@ -282,7 +287,7 @@ constructor(
                 resource,
                 encounterReference,
                 encounterSubject,
-                observationGroupLookup,
+                childInfos,
                 observationIndex,
                 parentTracker,
               )
@@ -344,14 +349,14 @@ constructor(
 
   private suspend fun removeReplacedParentObservations(
     bundle: Bundle,
-    observationGroupLookup: ObservationGroupLookup,
+    childInfos: ChildInfoAssignment,
     observations: MutableList<Observation>,
   ) {
     val processedParentIds = mutableSetOf<String>()
     bundle.entry
       .mapNotNull { it.resource as? Observation }
       .forEach { extractedObservation ->
-        val childInfo = observationGroupLookup.findChildInfo(extractedObservation) ?: return@forEach
+        val childInfo = childInfos.infoOf(extractedObservation) ?: return@forEach
         val parentObservation =
           observations.firstOrNull { candidate ->
             candidate.code.coding.any { coding -> coding.matchesCoding(childInfo.parentCoding) }
@@ -378,13 +383,13 @@ constructor(
     resource: Observation,
     encounterReference: Reference,
     subjectReference: Reference,
-    observationGroupLookup: ObservationGroupLookup,
+    childInfos: ChildInfoAssignment,
     observationIndex: ExistingObservationIndex,
     parentTracker: ParentObservationTracker,
   ) {
     if (!resource.hasCode() || !resource.hasValue()) return
 
-    val matchingInfo = observationGroupLookup.findChildInfo(resource)
+    val matchingInfo = childInfos.infoOf(resource)
     val parentResult =
       if (matchingInfo != null) {
         observationIndex.ensureParentObservation(

@@ -394,6 +394,10 @@ constructor(
       }
 
     val observationGroupLookup = buildObservationGroupLookup(questionnaire, questionnaireResponse)
+    val childInfos =
+      observationGroupLookup.assignChildInfos(
+        bundle.entry.mapNotNull { it.resource as? Observation },
+      )
     val parentObservationsByKey = mutableMapOf<ParentKey, Observation>()
     val observationsToSave = mutableListOf<Observation>()
 
@@ -404,7 +408,13 @@ constructor(
             val observationEntities =
               createObservationEntities(resource, patientReference, encounterReference)
             observationEntities.forEach { observation ->
-              val matchingInfo = observationGroupLookup.findChildInfo(observation)
+              // An answer of several choices becomes several observations, each matched by itself.
+              val matchingInfo =
+                if (observationEntities.size == 1) {
+                  childInfos.infoOf(resource)
+                } else {
+                  observationGroupLookup.findChildInfo(observation)
+                }
               if (matchingInfo != null) {
                 val parentKey = ParentKey(matchingInfo.parentCodingKey)
                 val parentObservation =

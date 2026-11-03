@@ -49,10 +49,16 @@ import org.hl7.fhir.r4.model.Type
  * Candidate definitions are gathered by matching each coding on the Observation against the
  * precomputed child-info map, then value-comparison tokens are used to disambiguate when multiple
  * candidates share the same coding. Null is returned when no child definition matches.
+ *
+ * The same question can sit under several parents (a count by age and sex under "new cases", under
+ * "cases closed", ...) and then equal values cannot tell the candidates apart: among the equally
+ * good ones the first that is not in [claimedInfos] (matched to another observation already) is
+ * taken, so observations given in the order of the form land on their own parents.
  */
 internal fun findObservationChildInfo(
   observation: Observation,
   childInfosByCodingKey: Map<CodingKey, List<ObservationChildInfo>>,
+  claimedInfos: Set<ObservationChildInfo> = emptySet(),
 ): ObservationChildInfo? {
   if (!observation.hasCode()) {
     return null
@@ -73,7 +79,7 @@ internal fun findObservationChildInfo(
 
   val observationTokens = observation.value.toComparisonTokens()
   if (observationTokens.isEmpty()) {
-    return candidateInfos.first()
+    return candidateInfos.firstUnclaimed(claimedInfos)
   }
 
   data class MatchResult(
@@ -90,16 +96,24 @@ internal fun findObservationChildInfo(
   val positiveMatches = matches.filter { it.matchedTokens.isNotEmpty() }
   if (positiveMatches.isNotEmpty()) {
     val bestMatchSize = positiveMatches.maxOf { it.matchedTokens.size }
-    return positiveMatches.first { it.matchedTokens.size == bestMatchSize }.info
+    return positiveMatches
+      .filter { it.matchedTokens.size == bestMatchSize }
+      .map { it.info }
+      .firstUnclaimed(claimedInfos)
   }
 
   val emptyExpectationMatches = matches.filter { it.info.expectedValueTokens.isEmpty() }
   if (emptyExpectationMatches.isNotEmpty()) {
-    return emptyExpectationMatches.first().info
+    return emptyExpectationMatches.map { it.info }.firstUnclaimed(claimedInfos)
   }
 
-  return candidateInfos.first()
+  return candidateInfos.firstUnclaimed(claimedInfos)
 }
+
+/** The first of the definitions that no other observation was matched to, else the first. */
+private fun List<ObservationChildInfo>.firstUnclaimed(
+  claimed: Set<ObservationChildInfo>,
+): ObservationChildInfo = firstOrNull { info -> claimed.none { it === info } } ?: first()
 
 /**
  * Walks the questionnaire (and its response) to enumerate every observation-child item. For each
