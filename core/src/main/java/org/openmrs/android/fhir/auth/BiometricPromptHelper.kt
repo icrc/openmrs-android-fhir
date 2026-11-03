@@ -169,7 +169,11 @@ object BiometricPromptHelper {
       object : BiometricPrompt.AuthenticationCallback() {
         override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
           super.onAuthenticationSucceeded(result)
-          val cipher = result.cryptoObject?.cipher
+          // A prompt for the screen lock alone on Android 9 to 11 has no crypto object: its key
+          // is open for a moment after the unlock.
+          val cipher =
+            result.cryptoObject?.cipher
+              ?: BiometricUtils.getEncryptionCipher(activity.applicationContext)
           val token = sessionTokenProvider()
           if (cipher != null && token != null) {
             BiometricUtils.encryptAndSaveToken(token, cipher, activity.applicationContext)

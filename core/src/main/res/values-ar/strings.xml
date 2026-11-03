@@ -611,27 +611,6 @@
     <string name="theme_light">فاتح</string>
     <string name="theme_dark">داكن</string>
     <string name="settings_section_security">الأمان</string>
-    <string
-        name="offline_login_enabled_status"
-    >تسجيل الدخول دون اتصال مفعّل على هذا الجهاز.</string>
-    <string
-        name="offline_login_disabled_status"
-    >لم يتم تفعيل تسجيل الدخول دون اتصال على هذا الجهاز. أعد التعيين ليُطلب منك مجددًا عند تسجيل الدخول التالي.</string>
-    <string
-        name="reset_offline_login"
-    >إعادة تعيين تسجيل الدخول دون اتصال</string>
-    <string
-        name="reset_offline_login_confirm_title"
-    >إعادة تعيين تسجيل الدخول دون اتصال؟</string>
-    <string
-        name="reset_offline_login_confirm_message"
-    >سيتم حذف تسجيل الدخول دون اتصال المحفوظ. سيُطلب منك إعداده مجددًا عند تسجيل الدخول التالي.</string>
-    <string
-        name="offline_login_reset_done"
-    >تمت إعادة تعيين تسجيل الدخول دون اتصال.</string>
-    <string
-        name="offline_login_not_set_status"
-    >لم يتم إعداد تسجيل الدخول دون اتصال بعد. سيُطلب منك ذلك عند تسجيل الدخول التالي.</string>
     <string name="continue_without_login">المتابعة دون تسجيل الدخول</string>
     <string name="sign_in_with_sso">تسجيل الدخول عبر SSO</string>
     <string name="login_or">أو</string>
@@ -1370,7 +1349,14 @@
     >تسجيل الخروج وحذف كل البيانات يتطلب بصمتك أو وجهك أو قفل الشاشة.</string>
     <string
         name="offline_login_unavailable_status"
-    >تسجيل الدخول دون اتصال مفعّل، لكن لم يعد في هذا الجهاز بصمة أو وجه أو قفل شاشة. أعدّ واحدًا منها، أو أعد ضبط تسجيل الدخول دون اتصال وسجّل الدخول من جديد.</string>
+    >تسجيل الدخول دون اتصال مفعّل، لكن لم يعد في هذا الجهاز بصمة أو وجه أو قفل شاشة. أعدّ واحدًا منها، أو أوقف تسجيل الدخول دون اتصال.</string>
+    <string name="offline_login_title">تسجيل الدخول دون اتصال</string>
+    <string name="offline_login_description">افتح قفل التطبيق على هذا الجهاز ببصمتك أو وجهك أو قفل الشاشة، حتى دون اتصال.</string>
+    <string name="offline_login_on_done">تم تفعيل تسجيل الدخول دون اتصال.</string>
+    <string name="offline_login_off_title">إيقاف تسجيل الدخول دون اتصال؟</string>
+    <string name="offline_login_off_message">سيتم حذف تسجيل الدخول دون اتصال المحفوظ. إلى أن تفعّله من جديد، يتطلب تسجيل الدخول اتصالاً بالخادم.</string>
+    <string name="offline_login_off_button">إيقاف</string>
+    <string name="offline_login_off_done">تم إيقاف تسجيل الدخول دون اتصال.</string>
     <string name="app_lock_delay">اطلب مجددًا بعد</string>
     <string
         name="app_lock_delay_description"

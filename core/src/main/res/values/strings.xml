@@ -643,23 +643,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="settings_section_security">Security</string>
-    <string
-        name="offline_login_enabled_status"
-    >Offline login is on for this device.</string>
-    <string
-        name="offline_login_disabled_status"
-    >Offline login was not enabled on this device. Reset to be asked again at your next login.</string>
-    <string name="reset_offline_login">Reset offline login</string>
-    <string
-        name="reset_offline_login_confirm_title"
-    >Reset offline login?</string>
-    <string
-        name="reset_offline_login_confirm_message"
-    >The saved offline login is removed. You will be asked to set it up again the next time you log in.</string>
-    <string name="offline_login_reset_done">Offline login reset.</string>
-    <string
-        name="offline_login_not_set_status"
-    >Offline login is not set up yet. You will be asked at your next login.</string>
     <string name="continue_without_login">Continue without signing in</string>
     <string name="sign_in_with_sso">Sign in with SSO</string>
     <string name="login_or">or</string>
@@ -1388,7 +1371,14 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     >Logging out and deleting all data needs your fingerprint, face or screen lock.</string>
     <string
         name="offline_login_unavailable_status"
-    >Offline login is on, but this device has no fingerprint, face or screen lock any more. Set one up, or reset the offline login and sign in again.</string>
+    >Offline login is on, but this device has no fingerprint, face or screen lock any more. Set one up, or turn offline login off.</string>
+    <string name="offline_login_title">Offline login</string>
+    <string name="offline_login_description">Unlock the app on this device with your fingerprint, face or screen lock, even without a connection.</string>
+    <string name="offline_login_on_done">Offline login is on.</string>
+    <string name="offline_login_off_title">Turn off offline login?</string>
+    <string name="offline_login_off_message">The saved offline login is removed. Until you turn it on again, signing in needs a connection to the server.</string>
+    <string name="offline_login_off_button">Turn off</string>
+    <string name="offline_login_off_done">Offline login is off.</string>
     <string name="app_lock_delay">Ask again after</string>
     <string
         name="app_lock_delay_description"

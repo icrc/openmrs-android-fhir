@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.fragments
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -35,12 +36,15 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricManager
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -62,8 +66,10 @@ import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.AppLock
 import org.openmrs.android.fhir.auth.AppLockSettings
+import org.openmrs.android.fhir.auth.BiometricPromptHelper
 import org.openmrs.android.fhir.auth.BiometricUtils
 import org.openmrs.android.fhir.auth.GuestSession
+import org.openmrs.android.fhir.auth.OfflineAuthMethod
 import org.openmrs.android.fhir.auth.OfflineAuthPrompt
 import org.openmrs.android.fhir.data.QuestionnaireUpdater
 import org.openmrs.android.fhir.data.remote.isServerReachable
@@ -91,6 +97,9 @@ import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.QuestionnaireFetchViewModel
 import org.openmrs.android.fhir.viewmodel.SettingsEvent
 import org.openmrs.android.fhir.viewmodel.SettingsViewModel
+
+/** What the offline login seals: only the proof of a successful unlock, never a credential. */
+private const val OFFLINE_LOGIN_PROOF = "offline-login"
 
 class SettingsFragment : Fragment() {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -285,7 +294,9 @@ class SettingsFragment : Fragment() {
             )
           },
           offlineLoginEnabled = offlineLoginEnabled.value,
-          onResetOfflineLoginClicked = ::confirmResetOfflineLogin,
+          onOfflineLoginChange = { on ->
+            if (on) enableOfflineLogin() else confirmTurnOffOfflineLogin()
+          },
           offlineLoginUnavailable = offlineLoginUnavailable.value,
           appLock = appLockUi.value,
           onLockDelaySelected = { seconds ->
@@ -448,25 +459,96 @@ class SettingsFragment : Fragment() {
     }
   }
 
-  private fun confirmResetOfflineLogin() {
+  private fun loadOfflineLogin(context: android.content.Context) {
+    offlineLoginEnabled.value = BiometricUtils.getOfflineAuthMethod(context) != null
+    offlineLoginUnavailable.value =
+      offlineLoginEnabled.value == true && !OfflineAuthPrompt.isAvailable(requireActivity())
+  }
+
+  /**
+   * Settings > Offline login on: the fingerprint, face or screen lock is asked once, and what that
+   * proves is kept so the app can be opened without a connection. The key is made here, as at the
+   * first sign-in, so it also works for a user who said "Not now" then.
+   */
+  private fun enableOfflineLogin() {
+    val host = requireActivity()
+    val canAuthenticate =
+      BiometricManager.from(host)
+        .canAuthenticate(
+          BiometricManager.Authenticators.BIOMETRIC_STRONG or
+            BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+        ) == BiometricManager.BIOMETRIC_SUCCESS
+    if (!canAuthenticate && Build.VERSION.SDK_INT > Build.VERSION_CODES.O_MR1) {
+      AppMessage.show(
+        host,
+        R.string.setup_biometrics_to_enable_offline_login,
+        MessageKind.Error,
+        long = true,
+      )
+      return
+    }
+    BiometricUtils.createKeyForThisDevice(host)
+    val prompt =
+      BiometricPromptHelper.createBiometricPrompt(
+        activity = host,
+        executor = ContextCompat.getMainExecutor(host),
+        sessionTokenProvider = { OFFLINE_LOGIN_PROOF },
+        onNavigate = { context?.let(::loadOfflineLogin) },
+        onSaved = ::offlineLoginSaved,
+      )
+    BiometricPromptHelper.promptBiometricEncryption(
+      activity = host,
+      biometricPrompt = prompt,
+      confirmCredLauncher = confirmCredLauncher,
+      navigateToMain = { context?.let(::loadOfflineLogin) },
+      showToast = { message -> AppMessage.show(host, message, MessageKind.Error, long = true) },
+      onMethodSelected = { pendingOfflineMethod = it },
+    )
+  }
+
+  private fun offlineLoginSaved() {
+    val context = context ?: return
+    pendingOfflineMethod?.let { BiometricUtils.setOfflineAuthMethod(context, it) }
+    AuditLog.record(
+      AuditAction.SETTINGS_CHANGED,
+      AuditOutcome.SUCCESS,
+      "changed" to listOf("offline_login=true"),
+    )
+    AppMessage.show(context, R.string.offline_login_on_done, MessageKind.Success)
+  }
+
+  private fun confirmTurnOffOfflineLogin() {
     MaterialAlertDialogBuilder(requireContext())
-      .setTitle(R.string.reset_offline_login_confirm_title)
-      .setMessage(R.string.reset_offline_login_confirm_message)
-      .setPositiveButton(R.string.reset_offline_login) { _, _ ->
-        BiometricUtils.resetOfflineLogin(requireContext())
-        AppLockSettings.reset(requireContext())
-        activity?.let { AppLock.applyRecentsPrivacy(it) }
-        offlineLoginEnabled.value = null
-        offlineLoginUnavailable.value = false
-        AppMessage.show(
-          requireContext(),
-          R.string.offline_login_reset_done,
-          MessageKind.Success,
-          long = true,
-        )
+      .setTitle(R.string.offline_login_off_title)
+      .setMessage(R.string.offline_login_off_message)
+      .setPositiveButton(R.string.offline_login_off_button) { _, _ ->
+        // Turning off a protection: the fingerprint or the screen lock confirms it is the user.
+        OfflineAuthPrompt.confirm(
+          requireActivity(),
+          getString(R.string.confirm_identity_title),
+          null,
+        ) {
+          turnOffOfflineLogin()
+        }
       }
       .setNegativeButton(R.string.cancel, null)
       .show()
+  }
+
+  private fun turnOffOfflineLogin() {
+    val context = context ?: return
+    BiometricUtils.resetOfflineLogin(context)
+    // Switched off on purpose: the sign-in page does not offer it again; this switch does.
+    BiometricUtils.setOfflineLoginDeclined(context)
+    AppLockSettings.reset(context)
+    activity?.let { AppLock.applyRecentsPrivacy(it) }
+    loadOfflineLogin(context)
+    AuditLog.record(
+      AuditAction.SETTINGS_CHANGED,
+      AuditOutcome.SUCCESS,
+      "changed" to listOf("offline_login=false"),
+    )
+    AppMessage.show(context, R.string.offline_login_off_done, MessageKind.Success)
   }
 
   private fun showQuestionnaireOutcome(outcome: QuestionnaireUpdater.Outcome) {

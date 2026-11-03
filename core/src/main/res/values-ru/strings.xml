@@ -692,25 +692,6 @@
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Тёмная</string>
     <string name="settings_section_security">Безопасность</string>
-    <string
-        name="offline_login_enabled_status"
-    >Вход без подключения включён на этом устройстве.</string>
-    <string
-        name="offline_login_disabled_status"
-    >Вход без подключения не был включён на этом устройстве. Сбросьте, чтобы его снова предложили при следующем входе.</string>
-    <string name="reset_offline_login">Сбросить вход без подключения</string>
-    <string
-        name="reset_offline_login_confirm_title"
-    >Сбросить вход без подключения?</string>
-    <string
-        name="reset_offline_login_confirm_message"
-    >Сохранённый вход без подключения будет удалён. При следующем входе его снова предложат настроить.</string>
-    <string
-        name="offline_login_reset_done"
-    >Вход без подключения сброшен.</string>
-    <string
-        name="offline_login_not_set_status"
-    >Вход без подключения ещё не настроен. Его предложат при следующем входе.</string>
     <string name="continue_without_login">Продолжить без входа</string>
     <string name="sign_in_with_sso">Войти через SSO</string>
     <string name="login_or">или</string>
@@ -1485,7 +1466,14 @@
     >Для выхода и удаления всех данных нужен ваш отпечаток, лицо или блокировка экрана.</string>
     <string
         name="offline_login_unavailable_status"
-    >Автономный вход включён, но на устройстве больше нет отпечатка, лица или блокировки экрана. Настройте их или сбросьте автономный вход и войдите снова.</string>
+    >Автономный вход включён, но на устройстве больше нет отпечатка, лица или блокировки экрана. Настройте их или отключите автономный вход.</string>
+    <string name="offline_login_title">Автономный вход</string>
+    <string name="offline_login_description">Разблокируйте приложение на этом устройстве отпечатком пальца, лицом или блокировкой экрана, даже без подключения.</string>
+    <string name="offline_login_on_done">Автономный вход включён.</string>
+    <string name="offline_login_off_title">Отключить автономный вход?</string>
+    <string name="offline_login_off_message">Сохранённый автономный вход удаляется. Пока вы не включите его снова, для входа нужно подключение к серверу.</string>
+    <string name="offline_login_off_button">Отключить</string>
+    <string name="offline_login_off_done">Автономный вход отключён.</string>
     <string name="app_lock_delay">Спрашивать снова через</string>
     <string
         name="app_lock_delay_description"
