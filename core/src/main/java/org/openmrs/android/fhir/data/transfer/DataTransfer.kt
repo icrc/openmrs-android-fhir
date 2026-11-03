@@ -46,23 +46,45 @@ import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Encounter
+import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
+import org.hl7.fhir.r4.model.StringType
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.multiuser.UserRegistry
 import timber.log.Timber
 
 /** What was written by [DataTransfer.export]. */
 data class ExportResult(val file: File, val items: Int, val sizeBytes: Long)
 
-/** What [DataTransfer.import] did with the items of a file. */
-data class ImportResult(val added: Int, val updated: Int, val skipped: Int)
+/**
+ * Who exported a file and from where, as the file says. Shown to whoever imports it; it changes
+ * nothing about the records (they keep the provider and the location they were recorded with).
+ */
+data class TransferSource(val user: String?, val provider: String?, val location: String?)
+
+/**
+ * What [DataTransfer.import] did with the items of a file. [skipped] is every item that was not
+ * stored; [missingOriginal] is the part of it that are edits of records this device does not have
+ * (those cannot be applied: the edit only makes sense on top of the record it changes).
+ */
+data class ImportResult(
+  val added: Int,
+  val updated: Int,
+  val skipped: Int,
+  val missingOriginal: Int = 0,
+  val source: TransferSource? = null,
+)
 
 /**
  * Moves the data that could not be synced from one device to another: the resources with changes
@@ -84,6 +106,12 @@ constructor(
 
   /** A resource with changes that were not uploaded yet. */
   private data class Pending(val type: ResourceType, val id: String, val isNew: Boolean)
+
+  /** The ids of the resources of [type] that were created on this device and are not uploaded. */
+  suspend fun pendingNewIds(type: ResourceType): List<String> =
+    withContext(Dispatchers.IO) {
+      pendingChanges().filter { it.type == type && it.isNew }.map { it.id }
+    }
 
   /** How many resources are waiting to be uploaded. */
   suspend fun pendingCount(): Int = withContext(Dispatchers.IO) { pendingChanges().size }
@@ -126,6 +154,7 @@ constructor(
           id = UUID.randomUUID().toString()
           timestamp = Date()
         }
+      writeSource(bundle)
       pendingChanges()
         .sortedBy { dependencyOrder(it.type) }
         .forEach { pending ->
@@ -154,6 +183,34 @@ constructor(
       ExportResult(file, bundle.entry.size, file.length())
     }
 
+  /** Notes in the file who exports it and where: the importer is shown it. */
+  private suspend fun writeSource(bundle: Bundle) {
+    val preferences = context.dataStore.data.first()
+    val location =
+      preferences[PreferenceKeys.LOCATION_ID]
+        ?.takeIf { it.isNotBlank() }
+        ?.let { id ->
+          try {
+            (fhirEngine.get(ResourceType.Location, id) as? Location)?.name
+          } catch (e: Exception) {
+            null
+          }
+        }
+    fun note(url: String, value: String?) {
+      if (!value.isNullOrBlank()) bundle.meta.addExtension(url, StringType(value))
+    }
+    note(SOURCE_USER_URL, UserRegistry.active(context))
+    note(SOURCE_PROVIDER_URL, preferences[PreferenceKeys.USER_PROVIDER_NAME])
+    note(SOURCE_LOCATION_URL, location)
+  }
+
+  private fun readSource(bundle: Bundle): TransferSource? {
+    fun note(url: String) = bundle.meta.getExtensionByUrl(url)?.value?.primitiveValue()
+    val source =
+      TransferSource(note(SOURCE_USER_URL), note(SOURCE_PROVIDER_URL), note(SOURCE_LOCATION_URL))
+    return source.takeIf { it.user != null || it.provider != null || it.location != null }
+  }
+
   /**
    * @throws InvalidTransferFileException if this is not an export file
    * @throws WrongPinException if the PIN does not open it
@@ -167,7 +224,7 @@ constructor(
         } catch (e: Exception) {
           throw InvalidTransferFileException()
         }
-      withContext(Dispatchers.IO) { apply(bundle) }
+      withContext(Dispatchers.IO) { apply(bundle).copy(source = readSource(bundle)) }
         .also {
           AuditLog.record(
             AuditAction.DATA_IMPORTED,
@@ -184,6 +241,8 @@ constructor(
     var added = 0
     var updated = 0
     var skipped = 0
+    var missingOriginal = 0
+    val importedEncounters = mutableListOf<String>()
     val entries =
       bundle.entry
         .filter { it.hasResource() }
@@ -199,15 +258,24 @@ constructor(
           }
           entry.request.method == Bundle.HTTPVerb.POST && local == null -> {
             create(resource)
+            if (resource is Encounter) importedEncounters += resource.idElement.idPart
             added++
           }
-          // Already here (the file was imported before) or an edit whose original this device has
-          // not downloaded: nothing can safely be done with it.
+          // An edit whose original this device has not downloaded: it only makes sense on top of
+          // that record, so it cannot be stored (and creating the record from it would upload it
+          // as a new one).
+          entry.request.method == Bundle.HTTPVerb.PUT -> {
+            skipped++
+            missingOriginal++
+          }
+          // Already here: the file was imported before.
           else -> skipped++
         }
       }
     }
-    return ImportResult(added, updated, skipped)
+    // Their provider is checked before they are uploaded, and only theirs.
+    ImportedEncounters.add(context, importedEncounters)
+    return ImportResult(added, updated, skipped, missingOriginal)
   }
 
   private suspend fun findLocal(resource: Resource): Resource? =
@@ -301,6 +369,10 @@ constructor(
     /** The largest file the import will read (a file from this app is a few megabytes at most). */
     const val MAX_IMPORT_BYTES = 64L * 1024 * 1024
 
+    private const val SOURCE_URL = "http://openmrs.org/android-fhir/StructureDefinition/export-"
+    private const val SOURCE_USER_URL = SOURCE_URL + "user"
+    private const val SOURCE_PROVIDER_URL = SOURCE_URL + "provider"
+    private const val SOURCE_LOCATION_URL = SOURCE_URL + "location"
     private const val ENGINE_DATABASE = "resources.db"
     private const val CHANGE_INSERT = 1
     private const val CHANGE_UPDATE = 2

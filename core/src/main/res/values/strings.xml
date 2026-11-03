@@ -1106,7 +1106,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="sync_cannot_sync_link">Cannot sync? Import / Export</string>
     <string
         name="import_export_intro"
-    >Use this when this device cannot sync. Export what is waiting to be uploaded into a file protected with a PIN, send it to someone who can sync, and they import it here and upload it.</string>
+    >Use this to hand your work to a colleague, or when this device cannot sync. Export what is waiting to be uploaded into a file protected with a PIN and send it; whoever imports it here uploads it with their own account. Every record keeps the provider and the location it was recorded with.</string>
     <string name="export_title">Export</string>
     <string name="export_pending">Waiting to be uploaded: %1$d</string>
     <string name="export_nothing">Nothing is waiting to be uploaded.</string>
@@ -1131,6 +1131,13 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="import_skipped_hint"
     >Skipped items are already on this device, or are edits of records this device has not downloaded.</string>
+    <string name="import_source">From %1$s</string>
+    <string
+        name="import_kept_as_recorded"
+    >Each record keeps the provider and the location it was recorded with, whoever uploads it.</string>
+    <string
+        name="import_missing_hint"
+    >%1$d edits could not be applied because this device does not have the record. Download the patient first (patient list or search), then import the file again.</string>
     <string name="import_upload_now">Upload now</string>
     <string
         name="import_invalid_file"

@@ -1200,7 +1200,7 @@
     >Synchronisation impossible ? Importer / Exporter</string>
     <string
         name="import_export_intro"
-    >À utiliser quand cet appareil ne peut pas se synchroniser. Exportez ce qui attend d’être envoyé dans un fichier protégé par un code PIN, transmettez-le à quelqu’un qui peut se synchroniser, qui l’importera ici et l’enverra.</string>
+    >Utilisez ceci pour passer votre travail à un collègue, ou lorsque cet appareil ne peut pas se synchroniser. Exportez ce qui attend d\'être envoyé dans un fichier protégé par un code PIN et transmettez-le ; la personne qui l\'importe ici l\'envoie avec son propre compte. Chaque enregistrement garde le prestataire et le lieu avec lesquels il a été saisi.</string>
     <string name="export_title">Exporter</string>
     <string name="export_pending">En attente d’envoi : %1$d</string>
     <string name="export_nothing">Rien n’attend d’être envoyé.</string>
@@ -1225,6 +1225,13 @@
     <string
         name="import_skipped_hint"
     >Les éléments ignorés sont déjà sur cet appareil, ou sont des modifications de dossiers que cet appareil n’a pas téléchargés.</string>
+    <string name="import_source">Source : %1$s</string>
+    <string
+        name="import_kept_as_recorded"
+    >Chaque enregistrement garde le prestataire et le lieu avec lesquels il a été saisi, quel que soit l\'utilisateur qui le téléverse.</string>
+    <string
+        name="import_missing_hint"
+    >%1$d modifications n\'ont pas pu être appliquées, car cet appareil n\'a pas l\'enregistrement. Téléchargez d\'abord le patient (liste de patients ou recherche), puis importez de nouveau le fichier.</string>
     <string name="import_upload_now">Envoyer maintenant</string>
     <string
         name="import_invalid_file"

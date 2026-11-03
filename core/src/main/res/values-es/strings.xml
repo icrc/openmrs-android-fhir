@@ -1178,7 +1178,7 @@
     >¿No puede sincronizar? Importar / Exportar</string>
     <string
         name="import_export_intro"
-    >Úselo cuando este dispositivo no pueda sincronizar. Exporte lo que está pendiente de subir a un archivo protegido con un PIN, envíelo a alguien que sí pueda sincronizar, y esa persona lo importará aquí y lo subirá.</string>
+    >Use esto para pasar su trabajo a un colega, o cuando este dispositivo no pueda sincronizar. Exporte lo que espera ser subido en un archivo protegido con un PIN y envíelo; quien lo importe aquí lo sube con su propia cuenta. Cada registro conserva el proveedor y el lugar con los que se registró.</string>
     <string name="export_title">Exportar</string>
     <string name="export_pending">Pendientes de subir: %1$d</string>
     <string name="export_nothing">No hay nada pendiente de subir.</string>
@@ -1205,6 +1205,13 @@
     <string
         name="import_skipped_hint"
     >Los elementos omitidos ya están en este dispositivo o son ediciones de registros que este dispositivo no ha descargado.</string>
+    <string name="import_source">Origen: %1$s</string>
+    <string
+        name="import_kept_as_recorded"
+    >Cada registro conserva el proveedor y el lugar con los que se registró, sea quien sea quien lo suba.</string>
+    <string
+        name="import_missing_hint"
+    >%1$d modificaciones no se pudieron aplicar porque este dispositivo no tiene el registro. Descargue primero al paciente (lista de pacientes o búsqueda) y vuelva a importar el archivo.</string>
     <string name="import_upload_now">Subir ahora</string>
     <string
         name="import_invalid_file"

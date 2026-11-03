@@ -347,11 +347,35 @@ private fun ImportCard(state: ImportExportUiState, onChooseFile: () -> Unit, onU
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
+          result.source?.let { source ->
+            val from =
+              listOfNotNull(source.user ?: source.provider, source.location).joinToString(" · ")
+            Text(
+              text = stringResource(R.string.import_source, from),
+              style = MaterialTheme.typography.bodySmall,
+              fontWeight = FontWeight.SemiBold,
+              color = MaterialTheme.colorScheme.onSurface,
+            )
+          }
+          if (result.added + result.updated > 0) {
+            Text(
+              text = stringResource(R.string.import_kept_as_recorded),
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
           if (result.skipped > 0) {
             Text(
               text = stringResource(R.string.import_skipped_hint),
               style = MaterialTheme.typography.bodySmall,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+          if (result.missingOriginal > 0) {
+            Text(
+              text = stringResource(R.string.import_missing_hint, result.missingOriginal),
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.error,
             )
           }
           if (result.added + result.updated > 0) {
