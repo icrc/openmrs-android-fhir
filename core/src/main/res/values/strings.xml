@@ -987,7 +987,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="identify_note_label">Note</string>
     <string
         name="identify_note_hint"
-    >Record visits and encounters for a patient who is not on this device, without registering them. Write what will help you find them on the server later: name, village, relative, phone number...</string>
+    >Record visits and encounters for a patient who is not on this device, without registering them. Write a note, like the name or the patient identifier, that will help you find them on the server later.</string>
     <string name="identify_note_create">Create</string>
     <string name="identify_banner_title">To identify after</string>
     <string

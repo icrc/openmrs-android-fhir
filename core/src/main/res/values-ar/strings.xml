@@ -947,7 +947,7 @@
     <string name="identify_note_label">ملاحظة</string>
     <string
         name="identify_note_hint"
-    >سجّل زيارات ولقاءات لمريض غير موجود على هذا الجهاز دون تسجيله. اكتب ما يساعدك على العثور عليه لاحقاً على الخادم: الاسم، القرية، قريب، رقم الهاتف...</string>
+    >سجّل زيارات ولقاءات لمريض غير موجود على هذا الجهاز دون تسجيله. اكتب ملاحظة، مثل اسم المريض أو معرّفه، تساعدك على العثور عليه لاحقاً على الخادم.</string>
     <string name="identify_note_create">إنشاء</string>
     <string name="identify_banner_title">للتعرّف لاحقاً</string>
     <string

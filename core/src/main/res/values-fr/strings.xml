@@ -1073,7 +1073,7 @@
     <string name="identify_note_label">Note</string>
     <string
         name="identify_note_hint"
-    >Enregistrez des visites et des consultations pour un patient qui n\'est pas sur cet appareil, sans l\'enregistrer. Écrivez ce qui vous aidera à le retrouver sur le serveur : nom, village, proche, téléphone...</string>
+    >Enregistrez des visites et des consultations pour un patient qui n\'est pas sur cet appareil, sans l\'enregistrer. Écrivez une note, comme le nom ou l\'identifiant du patient, qui vous aidera à le retrouver sur le serveur plus tard.</string>
     <string name="identify_note_create">Créer</string>
     <string name="identify_banner_title">À identifier plus tard</string>
     <string

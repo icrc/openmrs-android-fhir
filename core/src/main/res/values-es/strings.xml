@@ -1049,7 +1049,7 @@
     <string name="identify_note_label">Nota</string>
     <string
         name="identify_note_hint"
-    >Registre visitas y encuentros de un paciente que no está en este dispositivo, sin registrarlo. Escriba lo que le ayude a encontrarlo después en el servidor: nombre, aldea, familiar, teléfono...</string>
+    >Registre visitas y encuentros de un paciente que no está en este dispositivo, sin registrarlo. Escriba una nota, como el nombre o el identificador del paciente, que le ayude a encontrarlo después en el servidor.</string>
     <string name="identify_note_create">Crear</string>
     <string name="identify_banner_title">Por identificar después</string>
     <string
