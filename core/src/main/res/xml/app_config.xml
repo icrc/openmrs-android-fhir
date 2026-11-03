@@ -16,11 +16,14 @@
     <!-- What is downloaded. Locations (with this tag), patient lists (Groups), questionnaires, and
          the patients of the lists the user selects with their encounters and observations.
          cohort-type (UUID, optional): only download the lists of that cohort.
-         filter-patient-lists-by-location: only the lists of the location the user picked. -->
+         filter-patient-lists-by-location: only the lists of the location the user picked.
+         live-mode-default: live mode (what is saved is sent at once, the server can be searched)
+         is on (true) or off (false, default) until the user changes it in Settings. -->
     <sync
         location-tag="Login Location"
         cohort-type=""
         filter-patient-lists-by-location="true"
+        live-mode-default="true"
     />
 
     <!-- registration-form: id of a synced questionnaire or file name in assets.

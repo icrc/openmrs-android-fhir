@@ -40,6 +40,8 @@ data class SyncConfig(
   val cohortType: String,
   /** Only download the patient lists of the location the user picked. */
   val filterPatientListsByLocation: Boolean,
+  /** Live mode (sent at once, server searchable) is on until the user changes it. */
+  val liveModeDefault: Boolean = false,
 )
 
 /** A group of encounter forms on the Create Encounter screen. */
@@ -135,6 +137,7 @@ internal constructor(
                   cohortType = attr("cohort-type").orEmpty(),
                   filterPatientListsByLocation =
                     attr("filter-patient-lists-by-location")?.let { it == "true" } ?: true,
+                  liveModeDefault = attr("live-mode-default") == "true",
                 )
             "patients" -> {
               registrationForm = attr("registration-form") ?: registrationForm

@@ -32,6 +32,7 @@ import android.content.Context
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import org.openmrs.android.fhir.DemoDataStore
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.sync.SyncMode
 import org.openmrs.android.fhir.multiuser.UserRegistry
 
@@ -64,6 +65,11 @@ interface SettingsRepository {
   suspend fun getLiveModeEnabled(): Boolean = false
 
   suspend fun setLiveModeEnabled(enabled: Boolean) {}
+
+  /**
+   * Live mode as the app starts with it (`app_config.xml`), what resetting the settings goes to.
+   */
+  suspend fun getLiveModeDefault(): Boolean = false
 
   suspend fun getKeepLivePatients(): Boolean = true
 
@@ -148,6 +154,9 @@ constructor(
   override suspend fun setLiveModeEnabled(enabled: Boolean) {
     dataStore.setLiveModeEnabled(enabled)
   }
+
+  override suspend fun getLiveModeDefault(): Boolean =
+    AppConfig.get(appContext).sync.liveModeDefault
 
   override suspend fun getKeepLivePatients(): Boolean {
     return dataStore.getKeepLivePatientsFlow().first()

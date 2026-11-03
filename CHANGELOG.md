@@ -17,6 +17,9 @@ Recorded on `main` @ `cdd4117`, JDK 17 toolchain, no emulator.
 ## Unreleased
 
 
+### Features
+- **Live mode default in the app configuration** (`<sync live-mode-default="true|false"/>` in `app_config.xml`): decides whether live mode is on or off for a user who has not touched the setting (off when the attribute is missing, as before). A choice made in Settings still wins, and "Reset to defaults" goes back to the configured value. Documented in the README and the fallback `core` file; the build check warns about a value that is not `true` or `false`. No tutorial step changes (the live mode switch is unchanged). The `app`, `dev3-app` and `core` configuration files now set `live-mode-default="true"`: live mode starts on for a user who has not chosen.
+
 ### Fixes
 - **Blank gap between form pages in the review** (`ensurePageGroupsHaveTrailingSpacer`, removed): every page of a form ended with a hidden item of empty lines, which the review of an encounter listed as a tall blank block between pages. The item is gone: the form area ends above the buttons and shrinks above the keyboard, so the last question scrolls clear of both without it. Group-session drafts saved by earlier builds that had the item are not cleaned (decided: old drafts are not worth the extra code). Validation no longer copies the answers first. No tutorial step changes (no control added or moved).
 - **Group session form drawn twice** (`GroupFormEntryFragment`): the form of a patient is asked for several times while the session starts, and a transaction is not applied at once, so the lookup by tag found nothing and a second (third, fourth) copy of the same form was added over the first (a date field showed its hint over its value). The live forms are now tracked in a map, including those not yet added. Checked on a device: one form layer after the screener, after resuming a draft, and when switching patient tabs.

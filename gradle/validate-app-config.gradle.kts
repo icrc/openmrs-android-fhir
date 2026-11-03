@@ -57,6 +57,12 @@ val validateAppConfig =
         }
       }
 
+      single("sync")?.getAttribute("live-mode-default")?.takeIf { it.isNotEmpty() }?.let {
+        if (it !in setOf("true", "false")) {
+          warnings += "<sync live-mode-default> should be true or false (is \"$it\")"
+        }
+      }
+
       single("audit")?.getAttribute("max-actions")?.takeIf { it.isNotEmpty() }?.let {
         val value = it.toIntOrNull()
         if (value == null || value !in 50..5000) {
