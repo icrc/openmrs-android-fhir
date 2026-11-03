@@ -161,7 +161,7 @@ fun SettingsScreen(
   onLockOnScreenOffChange: (Boolean) -> Unit = {},
   onHideInRecentsChange: (Boolean) -> Unit = {},
   unsyncedCount: Int = 0,
-  clearDataOnLogout: Boolean = true,
+  clearDataOnLogout: Boolean = false,
   onClearDataOnLogoutChange: ((Boolean) -> Unit)? = null,
   autoSyncUnmeteredOnly: Boolean = false,
   autoSyncSkipLowBattery: Boolean = true,

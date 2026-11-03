@@ -31,9 +31,9 @@ package org.openmrs.android.fhir.extensions
 import android.content.Context
 
 /**
- * What logging out does to the data on the device. On (the default, and how the app has always
- * behaved): everything is deleted, the next person starts from nothing. Off: only the session ends;
- * patients, encounters and drafts stay for the next sign-in.
+ * What logging out does to the data on the device. Off (the default): only the session ends;
+ * patients, encounters and drafts stay for the next sign-in. On: everything is deleted, the next
+ * person starts from nothing.
  */
 object ClearDataOnLogoutStore {
   private const val PREFS_NAME = "app_logout"
@@ -45,7 +45,7 @@ object ClearDataOnLogoutStore {
     cached
       ?: context.applicationContext
         .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        .getBoolean(KEY, true)
+        .getBoolean(KEY, false)
         .also { cached = it }
 
   fun set(context: Context, clear: Boolean) {

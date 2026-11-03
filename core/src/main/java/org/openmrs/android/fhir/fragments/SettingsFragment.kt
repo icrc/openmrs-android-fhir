@@ -108,12 +108,29 @@ class SettingsFragment : Fragment() {
   private val colorVisionSelection = mutableStateOf(ColorVisionMode.STANDARD)
   private val unsyncedCount = mutableStateOf(0)
   private val showShare = mutableStateOf(false)
-  private val clearDataOnLogout = mutableStateOf(true)
+  private val clearDataOnLogout = mutableStateOf(false)
   private val embeddedFormsSelection = mutableStateOf(true)
 
-  /** true: enabled, false: declined, null: not answered yet. */
+  /** Whether the offline login is on; null until it is read. */
   private val offlineLoginEnabled = mutableStateOf<Boolean?>(null)
   private val offlineLoginUnavailable = mutableStateOf(false)
+
+  /** How the offline login being set up checks the user, known once the prompt is chosen. */
+  private var pendingOfflineMethod: OfflineAuthMethod? = null
+
+  /** Android 8.0 and 8.1 confirm the screen lock in a screen of the system's own. */
+  private val confirmCredLauncher =
+    registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+      val host = activity ?: return@registerForActivityResult
+      BiometricPromptHelper.handleConfirmCredentialResult(
+        activity = host,
+        result = result,
+        sessionTokenProvider = { OFFLINE_LOGIN_PROOF },
+        cipherProvider = { BiometricUtils.getEncryptionCipher(host) },
+        onNavigate = { loadOfflineLogin(host) },
+        onSaved = ::offlineLoginSaved,
+      )
+    }
   private val autoSyncUnmeteredOnly = mutableStateOf(false)
   private val autoSyncSkipLowBattery = mutableStateOf(true)
   private val appLockUi = mutableStateOf<AppLockUi?>(null)
@@ -157,14 +174,7 @@ class SettingsFragment : Fragment() {
         colorVisionSelection.value = ColorVisionStore.get(context)
         embeddedFormsSelection.value = EmbeddedFormsStore.get(context)
         clearDataOnLogout.value = ClearDataOnLogoutStore.get(context)
-        offlineLoginEnabled.value =
-          when {
-            BiometricUtils.getOfflineAuthMethod(context) != null -> true
-            BiometricUtils.hasOfflineLoginDecision(context) -> false
-            else -> null
-          }
-        offlineLoginUnavailable.value =
-          offlineLoginEnabled.value == true && !OfflineAuthPrompt.isAvailable(requireActivity())
+        loadOfflineLogin(context)
         loadAppLock(context)
         autoSyncUnmeteredOnly.value = AutoSyncGate.unmeteredOnly(context)
         autoSyncSkipLowBattery.value = AutoSyncGate.skipOnLowBattery(context)
@@ -397,8 +407,8 @@ class SettingsFragment : Fragment() {
     favoriteFormsViewModel.resetSections()
     EmbeddedFormsStore.set(context, true)
     embeddedFormsSelection.value = true
-    ClearDataOnLogoutStore.set(context, true)
-    clearDataOnLogout.value = true
+    ClearDataOnLogoutStore.set(context, false)
+    clearDataOnLogout.value = false
     ColorVisionStore.set(context, ColorVisionMode.STANDARD)
     colorVisionSelection.value = ColorVisionMode.STANDARD
     themeSelection.value = ThemeMode.SYSTEM
