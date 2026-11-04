@@ -56,6 +56,51 @@ object BiometricUtils {
   private const val OFFLINE_AUTH_METHOD_KEY = "offline_auth_method"
   private const val OFFLINE_LOGIN_DECLINED_KEY = "offline_login_declined"
 
+  /**
+   * The key that protects the offline login, made the way this device allows (strong biometrics per
+   * use, or the screen lock). Nothing is made when the device has neither.
+   */
+  fun createKeyForThisDevice(context: Context) {
+    val bm = BiometricManager.from(context)
+
+    val canBioStrong = bm.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+    val canBioOrCred =
+      bm.canAuthenticate(
+        BiometricManager.Authenticators.BIOMETRIC_STRONG or
+          BiometricManager.Authenticators.DEVICE_CREDENTIAL,
+      )
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      // API 30+: always use per-use with biometrics or device credential
+      if (canBioOrCred == BiometricManager.BIOMETRIC_SUCCESS) {
+        createBiometricKeyIfNotExists(
+          context,
+          canBioStrong = canBioStrong == BiometricManager.BIOMETRIC_SUCCESS,
+        )
+      } else {
+        // Known gap (docs/dev/known-gaps.md): no screen offers to set up a screen lock here.
+      }
+    } else {
+      // API 23–29: pick the flow
+      val legacyFlow =
+        when {
+          // If strong biometrics present, prefer per-use biometrics (CryptoObject path)
+          canBioStrong == BiometricManager.BIOMETRIC_SUCCESS -> LegacyAuthFlow.BIOMETRIC_PER_USE
+
+          // If (bio OR device PIN) is available, use validity window so PIN works
+          canBioOrCred == BiometricManager.BIOMETRIC_SUCCESS ->
+            LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW
+          else -> LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW // conservative fallback
+        }
+
+      createBiometricKeyIfNotExists(
+        context,
+        legacyFlow = legacyFlow,
+        validityWindowSeconds = 30,
+      )
+    }
+  }
+
   /** Creates a biometric key in the AndroidKeyStore if it does not already exist. */
   fun createBiometricKeyIfNotExists(
     context: Context,

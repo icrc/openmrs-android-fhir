@@ -42,12 +42,14 @@ import java.util.LinkedList
 import javax.inject.Inject
 import kotlin.collections.forEach
 import kotlinx.coroutines.flow.first
+import org.hl7.fhir.exceptions.FHIRException
 import org.hl7.fhir.r4.model.BooleanType
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.DateType
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Encounter.EncounterParticipantComponent
+import org.hl7.fhir.r4.model.Enumerations
 import org.hl7.fhir.r4.model.Extension
 import org.hl7.fhir.r4.model.Period
 import org.hl7.fhir.r4.model.Quantity
@@ -64,9 +66,14 @@ import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_URL
 import org.openmrs.android.fhir.Constants.OPENMRS_PERSON_ATTRIBUTE_VALUE_URL
 import org.openmrs.android.fhir.Constants.PERSON_ATTRIBUTE_LINK_ID_PREFIX
 import org.openmrs.android.fhir.DemoDataStore
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.data.transfer.DataTransfer
+import org.openmrs.android.fhir.data.transfer.ImportedEncounters
 import timber.log.Timber
 
 class OpenMRSHelper
@@ -322,7 +329,92 @@ constructor(
     }
     if (!known()) return false
     repairParticipants()
+    useOwnProviderWhereTheOriginalIsNotVisible()
     return true
+  }
+
+  /**
+   * An encounter keeps the provider of the user who recorded it, also when it is handed to a
+   * colleague (Import / Export) who uploads it. The server only takes a provider the uploading
+   * account can see, and refuses the encounter otherwise ("provider_id cannot be null"). So, right
+   * before an upload, an encounter that came in through an import ([ImportedEncounters]) and is
+   * waiting to be sent, whose provider the signed-in account cannot see, is sent under the
+   * account's own provider, and the original provider is kept on the participant
+   * ([ORIGINAL_PROVIDER_URL]). One that the account can see keeps its provider. Visits are left
+   * alone (the server ignores their participant). Offline, or as a guest, nothing is changed and
+   * the encounter is looked at again at the next upload. What a user records on their own device is
+   * never looked at: it has their own provider.
+   *
+   * @return how many encounters were changed.
+   */
+  suspend fun useOwnProviderWhereTheOriginalIsNotVisible(): Int {
+    val preferences = context.dataStore.data.first()
+    val ownProvider =
+      preferences[PreferenceKeys.USER_PROVIDER_UUID]?.takeIf { it.isNotBlank() } ?: return 0
+    val ownName = preferences[PreferenceKeys.USER_PROVIDER_NAME]
+    val imported = ImportedEncounters.ids(context)
+    if (imported.isEmpty()) return 0
+    val waiting = DataTransfer(context, fhirEngine).pendingNewIds(ResourceType.Encounter).toSet()
+    // Not waiting any more (uploaded, removed): nothing left to look at.
+    val done = HashSet<String>(imported - waiting)
+    val visible = HashMap<String, Boolean?>()
+    var changed = 0
+    for (id in imported.intersect(waiting)) {
+      val encounter =
+        try {
+          fhirEngine.get<Encounter>(id)
+        } catch (e: Exception) {
+          done += id
+          continue
+        }
+      val isVisit =
+        encounter.type.any { type ->
+          type.coding.any { it.system == Constants.VISIT_TYPE_CODE_SYSTEM }
+        }
+      if (isVisit) {
+        done += id
+        continue
+      }
+      var touched = false
+      var undecided = false
+      encounter.participant.forEach { participant ->
+        val reference = participant.individual?.reference.orEmpty()
+        val uuid = reference.removePrefix("Practitioner/")
+        if (!reference.startsWith("Practitioner/") || uuid.isBlank() || uuid == "null") {
+          return@forEach
+        }
+        if (uuid == ownProvider) return@forEach
+        if (!visible.containsKey(uuid)) {
+          visible[uuid] = RestApiManager.getInstance(context).canSeeProvider(uuid)
+        }
+        if (visible[uuid] == null) undecided = true
+        if (visible[uuid] == false) {
+          participant.addExtension(ORIGINAL_PROVIDER_URL, participant.individual.copy())
+          participant.individual =
+            Reference("Practitioner/$ownProvider").apply {
+              type = "Practitioner"
+              display = ownName
+            }
+          touched = true
+        }
+      }
+      if (touched) {
+        fhirEngine.update(encounter)
+        changed++
+      }
+      if (!undecided) done += id
+    }
+    ImportedEncounters.remove(context, done)
+    if (changed > 0) {
+      Timber.i("%d encounters are sent under the provider of the signed-in user", changed)
+      AuditLog.record(
+        AuditAction.SYNC,
+        AuditOutcome.SUCCESS,
+        "state" to "provider_replaced",
+        "encounters" to changed,
+      )
+    }
+    return changed
   }
 
   /** Encounters waiting for upload whose participant was written before the provider was known. */
@@ -489,6 +581,26 @@ constructor(
     return getDateDiffByQuantity(years, answer("estimatedDateOfBirthMonths") as? Quantity)
   }
 
+  /**
+   * The gender answered in the registration form, or `null` when there is none. The form is paged
+   * (`pagedBySections`), which puts this question inside the page of the name, a group of its own
+   * definition, so the extraction of the answers does not set it on the patient: this reads it from
+   * the response, as the birth date is.
+   */
+  fun genderFrom(response: QuestionnaireResponse): Enumerations.AdministrativeGender? {
+    val code =
+      (response.allItems.firstOrNull { it.linkId == GENDER_LINK_ID }?.answerFirstRep?.value
+          as? Coding)
+        ?.code
+    return code?.let {
+      try {
+        Enumerations.AdministrativeGender.fromCode(it)
+      } catch (e: FHIRException) {
+        null
+      }
+    }
+  }
+
   /** Whether [birthDate] lies after today: nobody is born in the future. */
   fun isInTheFuture(birthDate: DateType): Boolean =
     birthDate.value
@@ -511,6 +623,13 @@ constructor(
     }
   }
 }
+
+/** On a participant: the provider who recorded the encounter, when it is sent under another. */
+const val ORIGINAL_PROVIDER_URL =
+  "http://openmrs.org/android-fhir/StructureDefinition/original-provider"
+
+/** The question of the registration form that holds the gender. */
+private const val GENDER_LINK_ID = "patient-0-gender"
 
 /** A patient's visits, each with its encounters, and the encounters that belong to no visit. */
 data class PatientVisits(

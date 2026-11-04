@@ -107,12 +107,40 @@ class SettingsViewModelTest {
     assertEquals(30, repository.periodicDelayMinutes)
   }
 
+  @Test
+  fun resetGoesBackToTheConfiguredLiveModeDefault() = runTest {
+    val repository = FakeSettingsRepository(liveModeEnabled = false, liveModeDefault = true)
+    val viewModel =
+      SettingsViewModel(
+        settingsRepository = repository,
+        initialSyncRunner = FakeInitialSyncRunner(),
+      )
+    dispatcher.scheduler.advanceUntilIdle()
+    assertFalse(viewModel.uiState.value.isLiveModeEnabled)
+
+    viewModel.onResetToDefaults()
+    dispatcher.scheduler.advanceUntilIdle()
+
+    assertEquals(true, viewModel.uiState.value.isLiveModeEnabled)
+    assertEquals(true, repository.liveModeEnabled)
+  }
+
   private class FakeSettingsRepository(
     var networkStatusVisible: Boolean = true,
     var notificationsEnabled: Boolean = true,
     var tokenDelayMinutes: Int = 1,
     var periodicDelayMinutes: Int = 15,
+    var liveModeEnabled: Boolean = false,
+    var liveModeDefault: Boolean = false,
   ) : SettingsRepository {
+    override suspend fun getLiveModeEnabled(): Boolean = liveModeEnabled
+
+    override suspend fun setLiveModeEnabled(enabled: Boolean) {
+      liveModeEnabled = enabled
+    }
+
+    override suspend fun getLiveModeDefault(): Boolean = liveModeDefault
+
     override suspend fun getNetworkStatusVisible(): Boolean = networkStatusVisible
 
     override suspend fun getNotificationsEnabled(): Boolean = notificationsEnabled

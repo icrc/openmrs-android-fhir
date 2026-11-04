@@ -30,6 +30,7 @@ androidx-test-ext-junit = "1.2.1"
 coroutine-test = "1.11.0"
 mockito = "5.24.0"
 mockito-kotlin = "6.4.0"
+org-json = "20240303"
 dagger = "2.60.1"
 eventbus = "3.3.1"
 moshi = "1.15.2"
@@ -92,6 +93,7 @@ logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", ver
 material = { module = "com.google.android.material:material", version.ref = "material" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito-kotlin" }
+org-json = { module = "org.json:json", version.ref = "org-json" }
 moshi-base = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
 moshi-kotlin-codegen = { module = "com.squareup.moshi:moshi-kotlin-codegen", version.ref = "moshi" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }

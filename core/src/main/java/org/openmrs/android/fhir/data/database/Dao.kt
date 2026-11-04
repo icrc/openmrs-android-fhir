@@ -104,6 +104,12 @@ interface Dao {
   @Insert(onConflict = OnConflictStrategy.REPLACE)
   suspend fun upsertGroupSessionDraft(groupSessionDraft: GroupSessionDraft)
 
+  /** Marks a draft as saved now without rewriting it; returns how many drafts there were. */
+  @Query(
+    "UPDATE groupsessiondraft SET lastUpdated=:lastUpdated WHERE questionnaireId=:questionnaireId",
+  )
+  suspend fun touchGroupSessionDraft(questionnaireId: String, lastUpdated: Long): Int
+
   @Query("SELECT * FROM groupsessiondraft WHERE questionnaireId=:questionnaireId LIMIT 1")
   suspend fun getGroupSessionDraft(questionnaireId: String): GroupSessionDraft?
 

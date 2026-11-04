@@ -685,25 +685,6 @@
     <string name="theme_light">Claro</string>
     <string name="theme_dark">Oscuro</string>
     <string name="settings_section_security">Seguridad</string>
-    <string
-        name="offline_login_enabled_status"
-    >El acceso sin conexión está activado en este dispositivo.</string>
-    <string
-        name="offline_login_disabled_status"
-    >El acceso sin conexión no se activó en este dispositivo. Restablezca para que se le pregunte en el próximo inicio de sesión.</string>
-    <string name="reset_offline_login">Restablecer acceso sin conexión</string>
-    <string
-        name="reset_offline_login_confirm_title"
-    >¿Restablecer el acceso sin conexión?</string>
-    <string
-        name="reset_offline_login_confirm_message"
-    >Se elimina el acceso sin conexión guardado. Se le pedirá configurarlo de nuevo en el próximo inicio de sesión.</string>
-    <string
-        name="offline_login_reset_done"
-    >Acceso sin conexión restablecido.</string>
-    <string
-        name="offline_login_not_set_status"
-    >El acceso sin conexión aún no está configurado. Se le preguntará en el próximo inicio de sesión.</string>
     <string name="continue_without_login">Continuar sin iniciar sesión</string>
     <string name="sign_in_with_sso">Iniciar sesión con SSO</string>
     <string name="login_or">o</string>
@@ -914,6 +895,11 @@
     <string
         name="help_form_encounter_body"
     >Rellene las preguntas, revise y envíe. Lo que guarde queda en este dispositivo y se sube en la próxima sincronización.</string>
+    <string name="help_form_pages_title">Páginas del formulario</string>
+    <string
+        name="help_form_pages_body"
+    >Toque una página para ir directamente a ella, sin pulsar Siguiente y Anterior. La página actual está resaltada; deslice la fila hacia los lados para ver las demás.</string>
+    <string name="form_page_fallback_title">Página</string>
     <string name="help_group_tabs_title">Pacientes de la sesión</string>
     <string
         name="help_group_tabs_body"
@@ -1068,7 +1054,7 @@
     <string name="identify_note_label">Nota</string>
     <string
         name="identify_note_hint"
-    >Registre visitas y encuentros de un paciente que no está en este dispositivo, sin registrarlo. Escriba lo que le ayude a encontrarlo después en el servidor: nombre, aldea, familiar, teléfono...</string>
+    >Registre visitas y encuentros de un paciente que no está en este dispositivo, sin registrarlo. Escriba una nota, como el nombre o el identificador del paciente, que le ayude a encontrarlo después en el servidor.</string>
     <string name="identify_note_create">Crear</string>
     <string name="identify_banner_title">Por identificar después</string>
     <string
@@ -1197,7 +1183,7 @@
     >¿No puede sincronizar? Importar / Exportar</string>
     <string
         name="import_export_intro"
-    >Úselo cuando este dispositivo no pueda sincronizar. Exporte lo que está pendiente de subir a un archivo protegido con un PIN, envíelo a alguien que sí pueda sincronizar, y esa persona lo importará aquí y lo subirá.</string>
+    >Use esto para pasar su trabajo a un colega, o cuando este dispositivo no pueda sincronizar. Exporte lo que espera ser subido en un archivo protegido con un PIN y envíelo; quien lo importe aquí lo sube con su propia cuenta. Cada registro conserva el proveedor y el lugar con los que se registró.</string>
     <string name="export_title">Exportar</string>
     <string name="export_pending">Pendientes de subir: %1$d</string>
     <string name="export_nothing">No hay nada pendiente de subir.</string>
@@ -1224,6 +1210,13 @@
     <string
         name="import_skipped_hint"
     >Los elementos omitidos ya están en este dispositivo o son ediciones de registros que este dispositivo no ha descargado.</string>
+    <string name="import_source">Origen: %1$s</string>
+    <string
+        name="import_kept_as_recorded"
+    >Cada registro conserva el proveedor y el lugar con los que se registró, sea quien sea quien lo suba.</string>
+    <string
+        name="import_missing_hint"
+    >%1$d modificaciones no se pudieron aplicar porque este dispositivo no tiene el registro. Descargue primero al paciente (lista de pacientes o búsqueda) y vuelva a importar el archivo.</string>
     <string name="import_upload_now">Subir ahora</string>
     <string
         name="import_invalid_file"
@@ -1494,7 +1487,22 @@
     >Cerrar sesión y eliminar todos los datos requiere su huella, rostro o bloqueo de pantalla.</string>
     <string
         name="offline_login_unavailable_status"
-    >El inicio de sesión sin conexión está activado, pero este dispositivo ya no tiene huella, rostro ni bloqueo de pantalla. Configure uno, o restablezca el inicio de sesión sin conexión y vuelva a iniciar sesión.</string>
+    >El inicio de sesión sin conexión está activado, pero este dispositivo ya no tiene huella, rostro ni bloqueo de pantalla. Configure uno, o desactive el acceso sin conexión.</string>
+    <string name="offline_login_title">Acceso sin conexión</string>
+    <string
+        name="offline_login_description"
+    >Desbloquee la aplicación en este dispositivo con su huella, su rostro o el bloqueo de pantalla, incluso sin conexión.</string>
+    <string name="offline_login_on_done">Acceso sin conexión activado.</string>
+    <string
+        name="offline_login_off_title"
+    >¿Desactivar el acceso sin conexión?</string>
+    <string
+        name="offline_login_off_message"
+    >Se elimina el acceso sin conexión guardado. Hasta que lo vuelva a activar, iniciar sesión requiere conexión con el servidor.</string>
+    <string name="offline_login_off_button">Desactivar</string>
+    <string
+        name="offline_login_off_done"
+    >Acceso sin conexión desactivado.</string>
     <string name="app_lock_delay">Volver a pedir tras</string>
     <string
         name="app_lock_delay_description"
@@ -1559,4 +1567,43 @@
     <string
         name="help_settings_search_body"
     >Escriba una palabra (sincronización, idioma, bloqueo…) para ver solo las secciones que la mencionan.</string>
+    <string name="diagnosis_picker_title">Seleccionar diagnósticos</string>
+    <string name="diagnosis_picker_add">Buscar diagnósticos</string>
+    <string
+        name="diagnosis_picker_title_single"
+    >Seleccionar un diagnóstico</string>
+    <string name="diagnosis_picker_add_single">Buscar un diagnóstico</string>
+    <string
+        name="diagnosis_picker_none_single"
+    >Aún no hay ningún diagnóstico seleccionado</string>
+    <string name="diagnosis_picker_recent">Diagnósticos recientes</string>
+    <string
+        name="diagnosis_picker_none"
+    >Aún no hay diagnósticos seleccionados</string>
+    <string
+        name="diagnosis_picker_search_hint"
+    >Buscar por nombre o código</string>
+    <string name="diagnosis_picker_clear">Borrar la búsqueda</string>
+    <string name="diagnosis_picker_selected_count">%1$d seleccionado(s)</string>
+    <string name="diagnosis_picker_matches">%1$d resultado(s)</string>
+    <string
+        name="diagnosis_picker_more"
+    >Se muestran los primeros %1$d de %2$d resultados. Siga escribiendo para acotarlos.</string>
+    <string
+        name="diagnosis_picker_no_match"
+    >Ningún diagnóstico coincide con la búsqueda</string>
+    <string name="diagnosis_picker_done">Listo</string>
+    <string name="diagnosis_picker_remove">Quitar %1$s</string>
+    <string
+        name="diagnosis_picker_unavailable"
+    >La lista de diagnósticos no está en este dispositivo.</string>
+    <string
+        name="diagnosis_picker_loading"
+    >Cargando la lista de diagnósticos…</string>
+    <string
+        name="diagnosis_picker_type_to_search"
+    >Escriba un nombre o un código CIE-10 para buscar entre %1$d diagnósticos</string>
+    <string
+        name="diagnosis_picker_rank_hint"
+    >El primer diagnóstico es el principal; los demás son secundarios.</string>
 </resources>

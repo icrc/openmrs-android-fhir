@@ -43,6 +43,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.internal.toImmutableList
 import org.hl7.fhir.r4.model.Bundle
+import org.hl7.fhir.r4.model.Condition
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Observation
 import org.hl7.fhir.r4.model.Patient
@@ -150,24 +151,7 @@ constructor(
     _isLoading.value = true
     viewModelScope.launch {
       try {
-        val resourceIdMap =
-          when (resource) {
-            is UnsyncedResource.PatientItem ->
-              getUnsyncedResourceCurrentAndChildrenResourceId(
-                resource.patient,
-                onlyUnSyncedFlag = true,
-              )
-            is UnsyncedResource.EncounterItem ->
-              getUnsyncedResourceCurrentAndChildrenResourceId(
-                resource.encounter,
-                onlyUnSyncedFlag = true,
-              )
-            is UnsyncedResource.ObservationItem ->
-              getUnsyncedResourceCurrentAndChildrenResourceId(
-                resource.observation,
-                onlyUnSyncedFlag = true,
-              )
-          }
+        val resourceIdMap = unsyncedIdsOf(resource.model())
 
         // Purge all related resources
         resourceIdMap.forEach { (resourceType, resourceIds) ->
@@ -248,24 +232,7 @@ constructor(
 
     viewModelScope.launch {
       try {
-        val resourceIdMap =
-          when (unsyncedResource) {
-            is UnsyncedResource.PatientItem ->
-              getUnsyncedResourceCurrentAndChildrenResourceId(
-                unsyncedResource.patient,
-                onlyUnSyncedFlag = true,
-              )
-            is UnsyncedResource.EncounterItem ->
-              getUnsyncedResourceCurrentAndChildrenResourceId(
-                unsyncedResource.encounter,
-                onlyUnSyncedFlag = true,
-              )
-            is UnsyncedResource.ObservationItem ->
-              getUnsyncedResourceCurrentAndChildrenResourceId(
-                unsyncedResource.observation,
-                onlyUnSyncedFlag = true,
-              )
-          }
+        val resourceIdMap = unsyncedIdsOf(unsyncedResource.model())
 
         // Bundle all related resources
         resourceIdMap.forEach { (resourceType, resourceIds) ->
@@ -300,8 +267,7 @@ constructor(
     viewModelScope.launch {
       try {
         patients.forEach { patient ->
-          val resourceIdMap =
-            getUnsyncedResourceCurrentAndChildrenResourceId(patient, onlyUnSyncedFlag = true)
+          val resourceIdMap = unsyncedIdsOf(patient)
           resourceIdMap.forEach { (resourceType, resourceIds) ->
             resourceIds.forEach {
               bundle.addEntry(
@@ -328,8 +294,7 @@ constructor(
       _isLoading.value = true
       try {
         patients.forEach { patient ->
-          val resourceIdMap =
-            getUnsyncedResourceCurrentAndChildrenResourceId(patient, onlyUnSyncedFlag = true)
+          val resourceIdMap = unsyncedIdsOf(patient)
           resourceIdMap.forEach { (resourceType, resourceIds) ->
             fhirEngine.purge(resourceType, resourceIds, forcePurge = true)
           }
@@ -477,6 +442,41 @@ constructor(
       isSynced = isSynced,
       encounters = unsyncedEncounters,
     )
+  }
+
+  private fun UnsyncedResource.model(): UnsyncedResourceModel =
+    when (this) {
+      is UnsyncedResource.PatientItem -> patient
+      is UnsyncedResource.EncounterItem -> encounter
+      is UnsyncedResource.ObservationItem -> observation
+    }
+
+  /**
+   * The unsynced resources of [resource] and under it: the diagnoses saved with an encounter go
+   * with it, or they would stay on the device with nothing to attach to and block every upload.
+   */
+  private suspend fun unsyncedIdsOf(
+    resource: UnsyncedResourceModel,
+  ): Map<ResourceType, Set<String>> {
+    val ids =
+      getUnsyncedResourceCurrentAndChildrenResourceId(resource, onlyUnSyncedFlag = true)
+        .toMutableMap()
+    val encounterIds =
+      when (resource) {
+        is UnsyncedPatient -> resource.encounters.map { it.logicalId }
+        is UnsyncedEncounter -> listOf(resource.logicalId)
+        else -> emptyList()
+      }
+    val diagnoses =
+      encounterIds
+        .flatMap { encounterId ->
+          fhirEngine
+            .search<Condition> { filter(Condition.ENCOUNTER, { value = "Encounter/$encounterId" }) }
+            .map { it.resource.logicalId }
+        }
+        .filter { fhirEngine.getLocalChanges(ResourceType.Condition, it).isNotEmpty() }
+    if (diagnoses.isNotEmpty()) ids[ResourceType.Condition] = diagnoses.toSet()
+    return ids
   }
 
   internal fun getUnsyncedResourceCurrentAndChildrenResourceId(

@@ -75,12 +75,14 @@ import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
-import org.openmrs.android.fhir.extensions.ensurePageGroupsHaveTrailingSpacer
 import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
-import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
+import org.openmrs.android.fhir.extensions.hasInvalidAnswers
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
+import org.openmrs.android.fhir.forms.diagnosis.diagnosisCatalogs
+import org.openmrs.android.fhir.forms.diagnosis.diagnosisConditions
+import org.openmrs.android.fhir.forms.diagnosis.diagnosisPickers
 import org.openmrs.android.fhir.util.ParentKey
 import org.openmrs.android.fhir.util.buildObservationGroupLookup
 import org.openmrs.android.fhir.util.createParentObservation
@@ -124,12 +126,16 @@ constructor(
         withContext(defaultDispatcher) {
           val q =
             fhirEngine.getQuestionnaireOrFromAssets(questionnaireId, applicationContext, parser)
-          q?.ensurePageGroupsHaveTrailingSpacer()
           if (startOnToday && q != null) prepareEnterEncounter(q)
           q to (q?.let { parser.encodeResourceToString(it) } ?: "")
         }
       _questionnaire.value = loaded
       _questionnaireJson.value = json
+      // A long list of diagnoses is read while the first pages are filled in, not when it is
+      // opened.
+      if (loaded != null && loaded.diagnosisPickers().isNotEmpty()) {
+        withContext(defaultDispatcher) { loaded.diagnosisCatalogs(applicationContext) }
+      }
     }
   }
 
@@ -220,7 +226,7 @@ constructor(
       }
 
       if (
-        questionnaire.hasInvalidAnswersIgnoringPageSpacers(
+        questionnaire.hasInvalidAnswers(
           questionnaireResponse,
           applicationContext,
         )
@@ -388,6 +394,10 @@ constructor(
       }
 
     val observationGroupLookup = buildObservationGroupLookup(questionnaire, questionnaireResponse)
+    val childInfos =
+      observationGroupLookup.assignChildInfos(
+        bundle.entry.mapNotNull { it.resource as? Observation },
+      )
     val parentObservationsByKey = mutableMapOf<ParentKey, Observation>()
     val observationsToSave = mutableListOf<Observation>()
 
@@ -398,7 +408,13 @@ constructor(
             val observationEntities =
               createObservationEntities(resource, patientReference, encounterReference)
             observationEntities.forEach { observation ->
-              val matchingInfo = observationGroupLookup.findChildInfo(observation)
+              // An answer of several choices becomes several observations, each matched by itself.
+              val matchingInfo =
+                if (observationEntities.size == 1) {
+                  childInfos.infoOf(resource)
+                } else {
+                  observationGroupLookup.findChildInfo(observation)
+                }
               if (matchingInfo != null) {
                 val parentKey = ParentKey(matchingInfo.parentCodingKey)
                 val parentObservation =
@@ -435,6 +451,16 @@ constructor(
         }
       }
     }
+
+    // The diagnoses picked in a diagnosis question, one encounter diagnosis each.
+    questionnaire
+      .diagnosisConditions(
+        applicationContext,
+        questionnaireResponse,
+        patientReference,
+        encounterReference,
+      )
+      .forEach { saveResourceToDatabase(it) }
 
     parentObservationsByKey.values.forEach { saveResourceToDatabase(it) }
     observationsToSave.forEach { saveResourceToDatabase(it) }
@@ -483,9 +509,13 @@ constructor(
     fhirEngine.create(resource)
   }
 
-  fun updateQuestionnaire(updated: Questionnaire) {
+  /** [json] is [updated] written out, when the caller already has it. */
+  fun updateQuestionnaire(
+    updated: Questionnaire,
+    json: String = parser.encodeResourceToString(updated),
+  ) {
     _questionnaire.value = updated
-    _questionnaireJson.value = parser.encodeResourceToString(updated)
+    _questionnaireJson.value = json
   }
 
   private fun extractSessionDateFromQuestionnaireResponse(

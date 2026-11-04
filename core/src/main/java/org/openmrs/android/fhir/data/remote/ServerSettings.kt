@@ -136,6 +136,17 @@ object ServerSettings {
     Unreachable,
   }
 
+  /**
+   * Whether an HTTP answer proves that something answers at the address. A 401 or 403 means a
+   * server wants a login, and a redirect means the address is served but sends the caller on,
+   * typically to a sign-in page (single sign-on) or from http to https. Neither says the app can
+   * use the server, only that it was reached, which is what the test reports.
+   */
+  internal fun isServerAnswer(code: Int): Boolean =
+    code in 200..299 || code == 401 || code == 403 || code in REDIRECT_CODES
+
+  private val REDIRECT_CODES = setOf(300, 301, 302, 303, 307, 308)
+
   /** Asks the server for its public session endpoint, which needs no login. */
   suspend fun testConnection(baseUrl: String): TestResult =
     withContext(Dispatchers.IO) {
@@ -155,8 +166,7 @@ object ServerSettings {
       val started = System.currentTimeMillis()
       try {
         client.newCall(request).execute().use { response ->
-          // 401/403 still prove an OpenMRS server answered.
-          if (response.isSuccessful || response.code == 401 || response.code == 403) {
+          if (isServerAnswer(response.code)) {
             TestResult.Success(System.currentTimeMillis() - started)
           } else {
             TestResult.Failure(Reason.UnexpectedAnswer, response.code)

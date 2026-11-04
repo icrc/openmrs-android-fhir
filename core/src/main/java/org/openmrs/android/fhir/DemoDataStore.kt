@@ -43,6 +43,7 @@ import org.hl7.fhir.r4.model.ResourceType
 import org.json.JSONArray
 import org.json.JSONObject
 import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.database.model.CustomFormSection
 import org.openmrs.android.fhir.data.sync.SyncMode
 
@@ -142,10 +143,13 @@ class DemoDataStore(private val context: Context) {
 
   /**
    * Whether what is saved is sent to the server at once and the server can be searched (live mode).
-   * Off by default: the app is offline first and only syncs when asked or on its timer.
+   * Until the user decides, it is what `<sync live-mode-default>` of `app_config.xml` says (off
+   * unless set: the app is offline first and only syncs when asked or on its timer).
    */
   fun getLiveModeEnabledFlow() =
-    context.dataStorage.data.map { pref -> pref[booleanPreferencesKey(LIVE_MODE)] ?: false }
+    context.dataStorage.data.map { pref ->
+      pref[booleanPreferencesKey(LIVE_MODE)] ?: AppConfig.get(context).sync.liveModeDefault
+    }
 
   suspend fun setKeepLivePatients(keep: Boolean) {
     context.dataStorage.edit { pref -> pref[booleanPreferencesKey(KEEP_LIVE_PATIENTS)] = keep }

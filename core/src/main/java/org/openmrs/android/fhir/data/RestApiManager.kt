@@ -44,6 +44,7 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.HttpClients
 import org.openmrs.android.fhir.data.remote.ServerConnectivityState
+import org.openmrs.android.fhir.data.remote.ServerSettings
 import org.openmrs.android.fhir.data.remote.model.SessionResponse
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import timber.log.Timber
@@ -177,6 +178,42 @@ class RestApiManager private constructor(private val context: Context) {
       } catch (e: IOException) {
         Timber.w(e, "Could not read who is signed in")
         false
+      }
+    }
+
+  /**
+   * Whether the signed-in account can see the provider [providerUuid] on the server: `true` when it
+   * answers, `false` when it says there is none (or the account may not see it), `null` when this
+   * could not be told (no sign-in, no connection, a server error).
+   */
+  suspend fun canSeeProvider(providerUuid: String): Boolean? =
+    withContext(Dispatchers.IO) {
+      try {
+        val accessToken = LoginRepository.getInstance(context).getAccessToken()
+        val basicAuthEncodedString =
+          LoginRepository.getInstance(context).getBasicAuthEncodedString()
+        val authorization =
+          when {
+            accessToken.isNotEmpty() -> "Bearer $accessToken"
+            basicAuthEncodedString.isNotEmpty() -> "Basic $basicAuthEncodedString"
+            else -> return@withContext null
+          }
+        val request =
+          Request.Builder()
+            .url(ServerSettings.restUrl(context) + "provider/" + providerUuid)
+            .addHeader("Authorization", authorization)
+            .get()
+            .build()
+        client.newCall(request).execute().use { response ->
+          when {
+            response.isSuccessful -> true
+            response.code == 404 || response.code == 403 -> false
+            else -> null
+          }
+        }
+      } catch (e: IOException) {
+        Timber.w(e, "Could not ask the server about a provider")
+        null
       }
     }
 

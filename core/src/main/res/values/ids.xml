@@ -10,4 +10,5 @@
   <item name="menu_delete_patient_data" type="id" />
   <item name="menu_logout" type="id" />
   <item name="menu_version" type="id" />
+  <item name="form_page_breadcrumbs" type="id" />
 </resources>

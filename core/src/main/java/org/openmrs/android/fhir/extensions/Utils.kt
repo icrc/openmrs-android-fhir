@@ -235,62 +235,40 @@ private const val QUESTIONNAIRE_ITEM_CONTROL_URL =
 private const val QUESTIONNAIRE_ITEM_CONTROL_SYSTEM =
   "http://hl7.org/fhir/questionnaire-item-control"
 private const val QUESTIONNAIRE_ITEM_CONTROL_PAGE = "page"
-private const val PAGE_SPACER_TEXT = "&#8203;<br><br><br><br><br><br><br>"
-const val PAGE_SPACER_LINK_ID_PREFIX = "__page_spacer__"
 
-fun Questionnaire.ensurePageGroupsHaveTrailingSpacer() {
-  item.forEach { questionnaireItem -> questionnaireItem.ensurePageGroupsHaveTrailingSpacer() }
+private const val SDC_INITIAL_EXPRESSION_URL =
+  "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression"
+
+/**
+ * A question can start on a value in a new encounter (`initial`, for example 0 for a count) and be
+ * filled from what was saved when the encounter is opened again (an initial expression). The form
+ * library takes one or the other when it fills a form from saved data, never both, so for the
+ * questions that have both the starting value is dropped here: the expression gives the saved
+ * answer, or the starting value itself when there is none.
+ */
+fun Questionnaire.dropInitialValuesFilledFromSavedData() {
+  item.forEach { it.dropInitialValuesFilledFromSavedData() }
 }
 
-private fun QuestionnaireItemComponent.ensurePageGroupsHaveTrailingSpacer() {
-  item.forEach { childItem -> childItem.ensurePageGroupsHaveTrailingSpacer() }
-
-  if (!isPageGroupItem()) {
-    return
+private fun QuestionnaireItemComponent.dropInitialValuesFilledFromSavedData() {
+  if (hasInitial() && hasExtension(SDC_INITIAL_EXPRESSION_URL)) {
+    initial = mutableListOf()
   }
-
-  val existingSpacerIndex = item.indexOfFirst { it.isPageSpacerItem() }
-  if (existingSpacerIndex != -1) {
-    val spacerItem = item.removeAt(existingSpacerIndex)
-    item.add(spacerItem)
-    return
-  }
-
-  item.add(
-    QuestionnaireItemComponent().apply {
-      linkId = PAGE_SPACER_LINK_ID_PREFIX + generateUuid()
-      type = Questionnaire.QuestionnaireItemType.DISPLAY
-      text = PAGE_SPACER_TEXT
-    },
-  )
+  item.forEach { it.dropInitialValuesFilledFromSavedData() }
 }
 
-fun QuestionnaireResponse.removePageSpacerItemsRecursively() {
-  item.removePageSpacerItemsRecursively()
-}
-
-private fun MutableList<QuestionnaireResponse.QuestionnaireResponseItemComponent>
-  .removePageSpacerItemsRecursively() {
-  removeAll { responseItem -> responseItem.linkId.startsWith(PAGE_SPACER_LINK_ID_PREFIX) }
-  forEach { responseItem -> responseItem.item.removePageSpacerItemsRecursively() }
-}
-
-suspend fun Questionnaire.hasInvalidAnswersIgnoringPageSpacers(
+suspend fun Questionnaire.hasInvalidAnswers(
   questionnaireResponse: QuestionnaireResponse,
   applicationContext: Context,
-): Boolean {
-  val sanitizedResponse = questionnaireResponse.copy() as QuestionnaireResponse
-  sanitizedResponse.removePageSpacerItemsRecursively()
-
-  return QuestionnaireResponseValidator.validateQuestionnaireResponse(
+): Boolean =
+  QuestionnaireResponseValidator.validateQuestionnaireResponse(
       this,
-      sanitizedResponse,
+      questionnaireResponse,
       applicationContext,
     )
     .values
     .flatten()
     .any { it is Invalid }
-}
 
 private const val SDC_ENTRY_MODE_URL =
   "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-entryMode"
@@ -311,8 +289,10 @@ fun Questionnaire.requireAnswersBeforeReview() {
  * Shows a form that is one long scroll page by page (Next / Previous), one page per section, with
  * what is asked and what is extracted from the answers unchanged. The pages are the top-level
  * groups; when the form is one group that holds the sections (the OpenMRS registration form), the
- * sections are the pages. A form that is already paged, or has no group, is left alone. Questions
- * outside any group (identifiers the app adds) go at the top of the first page.
+ * sections are the pages, and a question of that group that is in no section stays where it was: at
+ * the end of the section before it, or at the top of the first page when it comes before every
+ * section. A form that is already paged, or has no group, is left alone. Questions outside any
+ * group (identifiers the app adds) go at the top of the first page.
  *
  * Only one page is drawn at a time, which is also what makes a long form open and scroll faster.
  */
@@ -329,10 +309,18 @@ fun Questionnaire.pagedBySections() {
   if (item.size == 1) {
     val sections = item.first().item.filter { it.isGroup() }
     if (sections.size >= 2) {
-      val looseInside = item.first().item.filter { !it.isGroup() }
+      val leading = mutableListOf<QuestionnaireItemComponent>()
+      var current: QuestionnaireItemComponent? = null
+      item.first().item.forEach { child ->
+        when {
+          child.isGroup() -> current = child
+          current == null -> leading.add(child)
+          else -> current!!.item.add(child)
+        }
+      }
       item.clear()
       item.addAll(sections)
-      if (looseInside.isNotEmpty()) sections.first().item.addAll(0, looseInside)
+      if (leading.isNotEmpty()) sections.first().item.addAll(0, leading)
     }
   }
   item.forEach { page ->
@@ -356,8 +344,4 @@ private fun QuestionnaireItemComponent.isPageGroupItem(): Boolean {
           coding.code == QUESTIONNAIRE_ITEM_CONTROL_PAGE
       } == true
   }
-}
-
-private fun QuestionnaireItemComponent.isPageSpacerItem(): Boolean {
-  return type == Questionnaire.QuestionnaireItemType.DISPLAY && text == PAGE_SPACER_TEXT
 }

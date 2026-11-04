@@ -29,6 +29,7 @@
 package org.openmrs.android.fhir
 
 import android.app.Application
+import android.content.ComponentCallbacks2
 import android.content.Context
 import com.google.android.fhir.DatabaseErrorStrategy.RECREATE_AT_OPEN
 import com.google.android.fhir.FhirEngineConfiguration
@@ -60,6 +61,7 @@ import org.openmrs.android.fhir.extensions.ColorVisionStore
 import org.openmrs.android.fhir.extensions.ThemeModeStore
 import org.openmrs.android.fhir.forms.CompactGroupsProviderFactory
 import org.openmrs.android.fhir.forms.bundledFormSummaries
+import org.openmrs.android.fhir.forms.diagnosis.DiagnosisCatalogs
 import org.openmrs.android.fhir.logging.FileLoggingTree
 import org.openmrs.android.fhir.ui.tutorial.FirstRunTutorial
 import timber.log.Timber
@@ -73,6 +75,21 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
   private val dataStore by lazy { DemoDataStore(this) }
 
   private val restApiClient: RestApiManager by lazy { initializeRestApiManager() }
+
+  override fun onTrimMemory(level: Int) {
+    super.onTrimMemory(level)
+    // The list of diagnoses is the biggest thing the app holds only for convenience, and it is read
+    // again from its processed copy in a fraction of the time: it is the first to go. (Levels 10
+    // and 15 are "running low" and "critical", which newer versions of Android no longer send.)
+    if (level == 10 || level == 15 || level >= ComponentCallbacks2.TRIM_MEMORY_BACKGROUND) {
+      DiagnosisCatalogs.release()
+    }
+  }
+
+  override fun onLowMemory() {
+    super.onLowMemory()
+    DiagnosisCatalogs.release()
+  }
 
   override fun onCreate() {
     super.onCreate()

@@ -713,27 +713,6 @@
     <string name="theme_light">Clair</string>
     <string name="theme_dark">Sombre</string>
     <string name="settings_section_security">Sécurité</string>
-    <string
-        name="offline_login_enabled_status"
-    >La connexion hors ligne est activée sur cet appareil.</string>
-    <string
-        name="offline_login_disabled_status"
-    >La connexion hors ligne n\'a pas été activée sur cet appareil. Réinitialisez pour qu\'elle vous soit reproposée à la prochaine connexion.</string>
-    <string
-        name="reset_offline_login"
-    >Réinitialiser la connexion hors ligne</string>
-    <string
-        name="reset_offline_login_confirm_title"
-    >Réinitialiser la connexion hors ligne ?</string>
-    <string
-        name="reset_offline_login_confirm_message"
-    >La connexion hors ligne enregistrée est supprimée. Elle vous sera proposée à nouveau à la prochaine connexion.</string>
-    <string
-        name="offline_login_reset_done"
-    >Connexion hors ligne réinitialisée.</string>
-    <string
-        name="offline_login_not_set_status"
-    >La connexion hors ligne n\'est pas encore configurée. Elle vous sera proposée à la prochaine connexion.</string>
     <string name="continue_without_login">Continuer sans se connecter</string>
     <string name="sign_in_with_sso">Se connecter avec le SSO</string>
     <string name="login_or">ou</string>
@@ -942,6 +921,11 @@
     <string
         name="help_form_encounter_body"
     >Remplissez les questions, puis relisez et validez. Ce que vous enregistrez reste sur cet appareil et est envoyé à la prochaine synchronisation.</string>
+    <string name="help_form_pages_title">Pages du formulaire</string>
+    <string
+        name="help_form_pages_body"
+    >Touchez une page pour y aller directement, sans passer par Suivant et Précédent. La page en cours est surlignée ; faites glisser la ligne pour voir les autres.</string>
+    <string name="form_page_fallback_title">Page</string>
     <string name="help_group_tabs_title">Patients de la séance</string>
     <string
         name="help_group_tabs_body"
@@ -1094,7 +1078,7 @@
     <string name="identify_note_label">Note</string>
     <string
         name="identify_note_hint"
-    >Enregistrez des visites et des consultations pour un patient qui n\'est pas sur cet appareil, sans l\'enregistrer. Écrivez ce qui vous aidera à le retrouver sur le serveur : nom, village, proche, téléphone...</string>
+    >Enregistrez des visites et des consultations pour un patient qui n\'est pas sur cet appareil, sans l\'enregistrer. Écrivez une note, comme le nom ou l\'identifiant du patient, qui vous aidera à le retrouver sur le serveur plus tard.</string>
     <string name="identify_note_create">Créer</string>
     <string name="identify_banner_title">À identifier plus tard</string>
     <string
@@ -1221,7 +1205,7 @@
     >Synchronisation impossible ? Importer / Exporter</string>
     <string
         name="import_export_intro"
-    >À utiliser quand cet appareil ne peut pas se synchroniser. Exportez ce qui attend d’être envoyé dans un fichier protégé par un code PIN, transmettez-le à quelqu’un qui peut se synchroniser, qui l’importera ici et l’enverra.</string>
+    >Utilisez ceci pour passer votre travail à un collègue, ou lorsque cet appareil ne peut pas se synchroniser. Exportez ce qui attend d\'être envoyé dans un fichier protégé par un code PIN et transmettez-le ; la personne qui l\'importe ici l\'envoie avec son propre compte. Chaque enregistrement garde le prestataire et le lieu avec lesquels il a été saisi.</string>
     <string name="export_title">Exporter</string>
     <string name="export_pending">En attente d’envoi : %1$d</string>
     <string name="export_nothing">Rien n’attend d’être envoyé.</string>
@@ -1246,6 +1230,13 @@
     <string
         name="import_skipped_hint"
     >Les éléments ignorés sont déjà sur cet appareil, ou sont des modifications de dossiers que cet appareil n’a pas téléchargés.</string>
+    <string name="import_source">Source : %1$s</string>
+    <string
+        name="import_kept_as_recorded"
+    >Chaque enregistrement garde le prestataire et le lieu avec lesquels il a été saisi, quel que soit l\'utilisateur qui le téléverse.</string>
+    <string
+        name="import_missing_hint"
+    >%1$d modifications n\'ont pas pu être appliquées, car cet appareil n\'a pas l\'enregistrement. Téléchargez d\'abord le patient (liste de patients ou recherche), puis importez de nouveau le fichier.</string>
     <string name="import_upload_now">Envoyer maintenant</string>
     <string
         name="import_invalid_file"
@@ -1526,7 +1517,22 @@
     >Se déconnecter et supprimer toutes les données demande votre empreinte, votre visage ou le verrouillage d\'écran.</string>
     <string
         name="offline_login_unavailable_status"
-    >La connexion hors ligne est activée, mais cet appareil n\'a plus d\'empreinte, de visage ni de verrouillage d\'écran. Configurez-en un, ou réinitialisez la connexion hors ligne et reconnectez-vous.</string>
+    >La connexion hors ligne est activée, mais cet appareil n\'a plus d\'empreinte, de visage ni de verrouillage d\'écran. Configurez-en un, ou désactivez la connexion hors ligne.</string>
+    <string name="offline_login_title">Connexion hors ligne</string>
+    <string
+        name="offline_login_description"
+    >Déverrouillez l\'application sur cet appareil avec votre empreinte, votre visage ou le verrouillage d\'écran, même sans connexion.</string>
+    <string name="offline_login_on_done">Connexion hors ligne activée.</string>
+    <string
+        name="offline_login_off_title"
+    >Désactiver la connexion hors ligne ?</string>
+    <string
+        name="offline_login_off_message"
+    >La connexion hors ligne enregistrée est supprimée. Tant que vous ne la réactivez pas, la connexion nécessite un accès au serveur.</string>
+    <string name="offline_login_off_button">Désactiver</string>
+    <string
+        name="offline_login_off_done"
+    >Connexion hors ligne désactivée.</string>
     <string name="app_lock_delay">Redemander après</string>
     <string
         name="app_lock_delay_description"
@@ -1597,4 +1603,43 @@
     <string
         name="help_settings_search_body"
     >Tapez un mot (synchronisation, langue, verrouillage…) pour n\'afficher que les sections qui le mentionnent.</string>
+    <string name="diagnosis_picker_title">Sélectionner des diagnostics</string>
+    <string name="diagnosis_picker_add">Rechercher des diagnostics</string>
+    <string
+        name="diagnosis_picker_title_single"
+    >Sélectionner un diagnostic</string>
+    <string name="diagnosis_picker_add_single">Rechercher un diagnostic</string>
+    <string
+        name="diagnosis_picker_none_single"
+    >Aucun diagnostic sélectionné pour le moment</string>
+    <string name="diagnosis_picker_recent">Diagnostics récents</string>
+    <string
+        name="diagnosis_picker_none"
+    >Aucun diagnostic sélectionné pour le moment</string>
+    <string
+        name="diagnosis_picker_search_hint"
+    >Rechercher par nom ou par code</string>
+    <string name="diagnosis_picker_clear">Effacer la recherche</string>
+    <string name="diagnosis_picker_selected_count">%1$d sélectionné(s)</string>
+    <string name="diagnosis_picker_matches">%1$d résultat(s)</string>
+    <string
+        name="diagnosis_picker_more"
+    >Les %1$d premiers résultats sur %2$d sont affichés. Continuez à saisir pour affiner.</string>
+    <string
+        name="diagnosis_picker_no_match"
+    >Aucun diagnostic ne correspond à la recherche</string>
+    <string name="diagnosis_picker_done">Terminé</string>
+    <string name="diagnosis_picker_remove">Retirer %1$s</string>
+    <string
+        name="diagnosis_picker_unavailable"
+    >La liste des diagnostics n’est pas sur cet appareil.</string>
+    <string
+        name="diagnosis_picker_loading"
+    >Chargement de la liste des diagnostics…</string>
+    <string
+        name="diagnosis_picker_type_to_search"
+    >Saisissez un nom ou un code CIM-10 pour chercher parmi %1$d diagnostics</string>
+    <string
+        name="diagnosis_picker_rank_hint"
+    >Le premier diagnostic est le diagnostic principal ; les autres sont secondaires.</string>
 </resources>

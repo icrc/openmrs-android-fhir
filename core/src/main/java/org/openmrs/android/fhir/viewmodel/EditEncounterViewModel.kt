@@ -37,6 +37,7 @@ import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.LocalChange
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.google.android.fhir.get
 import com.google.android.fhir.search.search
@@ -60,6 +61,7 @@ import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
+import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.codesystems.ConditionCategory
 import org.openmrs.android.fhir.Constants
@@ -73,18 +75,24 @@ import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
 import org.openmrs.android.fhir.extensions.convertQuantityObsToIntegerObs
-import org.openmrs.android.fhir.extensions.ensurePageGroupsHaveTrailingSpacer
+import org.openmrs.android.fhir.extensions.dropInitialValuesFilledFromSavedData
 import org.openmrs.android.fhir.extensions.findItemByLinkId
 import org.openmrs.android.fhir.extensions.generateUuid
-import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
+import org.openmrs.android.fhir.extensions.hasInvalidAnswers
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
 import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
 import org.openmrs.android.fhir.extensions.utcDateToLocalDate
+import org.openmrs.android.fhir.forms.diagnosis.RecentDiagnoses
+import org.openmrs.android.fhir.forms.diagnosis.diagnosisCatalogs
+import org.openmrs.android.fhir.forms.diagnosis.diagnosisChanges
+import org.openmrs.android.fhir.forms.diagnosis.diagnosisPickers
+import org.openmrs.android.fhir.forms.diagnosis.pickedDiagnoses
+import org.openmrs.android.fhir.forms.diagnosis.populateDiagnosisAnswers
 import org.openmrs.android.fhir.forms.readBundledQuestionnaireForEncounterType
 import org.openmrs.android.fhir.forms.storedQuestionnaires
+import org.openmrs.android.fhir.util.ChildInfoAssignment
 import org.openmrs.android.fhir.util.ExistingObservationIndex
 import org.openmrs.android.fhir.util.ObservationChildInfo
-import org.openmrs.android.fhir.util.ObservationGroupLookup
 import org.openmrs.android.fhir.util.ParentEnsureResult
 import org.openmrs.android.fhir.util.ParentObservationTracker
 import org.openmrs.android.fhir.util.areSameValue
@@ -150,8 +158,7 @@ constructor(
           questionnaire.pruneOtherLanguageTranslations()
         }
 
-        questionnaire?.ensurePageGroupsHaveTrailingSpacer()
-
+        questionnaire?.dropInitialValuesFilledFromSavedData()
         val encounter = fhirEngine.get<Encounter>(encounterId)
         if (questionnaire == null) {
           // No form for this type: show the encounter and its observations as they were saved.
@@ -192,6 +199,13 @@ constructor(
 
         val launchContexts = mapOf("observations" to observationBundle)
         val questionnaireResponse = ResourceMapper.populate(questionnaire, launchContexts)
+        if (questionnaire.diagnosisPickers().isNotEmpty()) {
+          questionnaire.populateDiagnosisAnswers(
+            questionnaireResponse,
+            getConditionsEncounterId(encounterId),
+            questionnaire.diagnosisCatalogs(applicationContext),
+          )
+        }
         convertDateTimeAnswersToDate(questionnaireResponse)
         val questionnaireResponseJson = parser.encodeResourceToString(questionnaireResponse)
         _encounterDataPair.postValue(questionnaireJson to questionnaireResponseJson)
@@ -217,8 +231,6 @@ constructor(
         questionnaire = findBundledQuestionnaire(encounterType)
       }
 
-      questionnaire?.ensurePageGroupsHaveTrailingSpacer()
-
       val questionnaireResource =
         questionnaire
           ?: run {
@@ -230,7 +242,7 @@ constructor(
       val bundle = ResourceMapper.extract(questionnaireResource, questionnaireResponse)
 
       if (
-        questionnaireResource.hasInvalidAnswersIgnoringPageSpacers(
+        questionnaireResource.hasInvalidAnswers(
           questionnaireResponse,
           applicationContext,
         )
@@ -257,7 +269,12 @@ constructor(
       val conditions = getConditionsEncounterId(encounterId)
 
       val observationGroupLookup = buildObservationGroupLookup(questionnaire, questionnaireResponse)
-      removeReplacedParentObservations(bundle, observationGroupLookup, observations)
+      // One assignment for every step, so that they all agree on the parent of each observation.
+      val childInfos =
+        observationGroupLookup.assignChildInfos(
+          bundle.entry.mapNotNull { it.resource as? Observation },
+        )
+      removeReplacedParentObservations(bundle, childInfos, observations)
       val observationIndex =
         ExistingObservationIndex(observationGroupLookup.parentCodingKeys, observations)
       val parentTracker = ParentObservationTracker()
@@ -270,7 +287,7 @@ constructor(
                 resource,
                 encounterReference,
                 encounterSubject,
-                observationGroupLookup,
+                childInfos,
                 observationIndex,
                 parentTracker,
               )
@@ -282,6 +299,22 @@ constructor(
             }
           }
         }
+      }
+
+      if (questionnaire.diagnosisPickers().isNotEmpty()) {
+        val changes = questionnaire.diagnosisChanges(questionnaireResponse, conditions)
+        RecentDiagnoses.record(
+          applicationContext,
+          questionnaire.pickedDiagnoses(questionnaireResponse).map { it.code },
+        )
+        changes
+          .newConditions(
+            questionnaire.diagnosisCatalogs(applicationContext),
+            encounterSubject,
+            encounterReference,
+          )
+          .forEach { createResourceToDatabase(it) }
+        changes.toRemove.forEach { removeDiagnosis(it) }
       }
 
       deleteRemainingChildObservations(observationIndex, parentTracker)
@@ -316,14 +349,14 @@ constructor(
 
   private suspend fun removeReplacedParentObservations(
     bundle: Bundle,
-    observationGroupLookup: ObservationGroupLookup,
+    childInfos: ChildInfoAssignment,
     observations: MutableList<Observation>,
   ) {
     val processedParentIds = mutableSetOf<String>()
     bundle.entry
       .mapNotNull { it.resource as? Observation }
       .forEach { extractedObservation ->
-        val childInfo = observationGroupLookup.findChildInfo(extractedObservation) ?: return@forEach
+        val childInfo = childInfos.infoOf(extractedObservation) ?: return@forEach
         val parentObservation =
           observations.firstOrNull { candidate ->
             candidate.code.coding.any { coding -> coding.matchesCoding(childInfo.parentCoding) }
@@ -350,13 +383,13 @@ constructor(
     resource: Observation,
     encounterReference: Reference,
     subjectReference: Reference,
-    observationGroupLookup: ObservationGroupLookup,
+    childInfos: ChildInfoAssignment,
     observationIndex: ExistingObservationIndex,
     parentTracker: ParentObservationTracker,
   ) {
     if (!resource.hasCode() || !resource.hasValue()) return
 
-    val matchingInfo = observationGroupLookup.findChildInfo(resource)
+    val matchingInfo = childInfos.infoOf(resource)
     val parentResult =
       if (matchingInfo != null) {
         observationIndex.ensureParentObservation(
@@ -579,6 +612,24 @@ constructor(
         filter(Condition.ENCOUNTER, { value = "Encounter/$encounterId" })
       }
     return searchResult.map { it.resource }
+  }
+
+  /**
+   * Takes a diagnosis back: one the server never received (still waiting to be uploaded) is simply
+   * dropped; one it has is deleted there too (the upload sends the delete).
+   */
+  private suspend fun removeDiagnosis(condition: Condition) {
+    enqueueResourceOperation {
+      val neverUploaded =
+        fhirEngine.getLocalChanges(ResourceType.Condition, condition.idPart).any {
+          it.type == LocalChange.Type.INSERT
+        }
+      if (neverUploaded) {
+        fhirEngine.purge(ResourceType.Condition, setOf(condition.idPart), true)
+      } else {
+        fhirEngine.delete(ResourceType.Condition, condition.idPart)
+      }
+    }
   }
 
   private suspend fun updateResourceToDatabase(resource: Resource) {

@@ -45,7 +45,16 @@ import org.openmrs.android.fhir.extensions.pruneOtherLanguageTranslations
  *   `"http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl"`.
  */
 private const val COMPACT_MARKER = "\$compact"
+
+/**
+ * A compact file opens with the marker. Spaces and line breaks before it do not matter: a form
+ * saved by an editor that formats JSON is as compact as one written without them.
+ */
+private val COMPACT_START = Regex("^\\s*\\{\\s*\"" + Regex.escape(COMPACT_MARKER) + "\"\\s*:")
 private const val I18N_SUFFIX = ":i18n"
+
+/** How far into a file the marker is looked for. */
+private const val COMPACT_START_WINDOW = 256
 private const val TRANSLATION_URL = "http://hl7.org/fhir/StructureDefinition/translation"
 
 /**
@@ -72,7 +81,7 @@ fun expandAliasedUrls(json: String): String {
  * weighs, to write, parse and hold in memory.
  */
 fun expandCompactQuestionnaire(json: String, locale: Locale? = null): String {
-  if (!json.trimStart().startsWith("{\"$COMPACT_MARKER\"")) return json
+  if (!COMPACT_START.containsMatchIn(json.take(COMPACT_START_WINDOW))) return json
   val root = JSONObject(json)
   val prefixes = root.getJSONObject(COMPACT_MARKER)
   root.remove(COMPACT_MARKER)

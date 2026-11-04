@@ -132,7 +132,10 @@ private fun explainBlockedNavigationIn(host: Fragment) {
         v: View,
         savedInstanceState: Bundle?,
       ) {
-        if (f is QuestionnaireFragment) v.watchNavigationButtons()
+        if (f is QuestionnaireFragment) {
+          v.watchNavigationButtons()
+          f.installPageBreadcrumbs(v)
+        }
       }
     },
     false,

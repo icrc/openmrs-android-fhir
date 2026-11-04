@@ -29,7 +29,9 @@
 package org.openmrs.android.fhir.data.remote
 
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import org.junit.Test
 
 class ServerSettingsTest {
@@ -61,6 +63,20 @@ class ServerSettingsTest {
   @Test
   fun spacesAroundTheAddressAreIgnored() {
     assertEquals("http://10.0.2.2:8080/openmrs", ServerSettings.normalize("  10.0.2.2:8080  "))
+  }
+
+  @Test
+  fun aServerAnswersWithAPageALoginOrARedirect() {
+    listOf(200, 204, 401, 403, 301, 302, 303, 307, 308).forEach {
+      assertTrue(ServerSettings.isServerAnswer(it), "$it")
+    }
+  }
+
+  @Test
+  fun aMissingPageOrAServerErrorIsNotAnAnswerOfTheServer() {
+    listOf(400, 404, 405, 500, 502, 503, 504).forEach {
+      assertFalse(ServerSettings.isServerAnswer(it), "$it")
+    }
   }
 
   @Test

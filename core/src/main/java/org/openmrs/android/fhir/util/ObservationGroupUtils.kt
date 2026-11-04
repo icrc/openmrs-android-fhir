@@ -28,6 +28,8 @@
 */
 package org.openmrs.android.fhir.util
 
+import java.util.Collections
+import java.util.IdentityHashMap
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Observation
@@ -82,6 +84,40 @@ internal data class ObservationGroupLookup(
   fun findChildInfo(observation: Observation): ObservationChildInfo? {
     return findObservationChildInfo(observation, childInfosByCodingKey)
   }
+
+  /**
+   * Matches the observations of a save to their definitions all at once, in the order given (the
+   * order of the form): one that cannot be told from another by its value goes to the first
+   * definition not taken yet. Only the observations that have a code and a value are matched, as
+   * only the questions that were answered produce one. Use it for every step of one save, so that
+   * they all agree on the parent of each observation.
+   */
+  fun assignChildInfos(observations: List<Observation>): ChildInfoAssignment {
+    val claimed = Collections.newSetFromMap(IdentityHashMap<ObservationChildInfo, Boolean>())
+    val assigned = IdentityHashMap<Observation, ObservationChildInfo?>()
+    observations
+      .filter { it.hasCode() && it.hasValue() }
+      .forEach { observation ->
+        val info = findObservationChildInfo(observation, childInfosByCodingKey, claimed)
+        if (info != null) claimed.add(info)
+        assigned[observation] = info
+      }
+    return ChildInfoAssignment(this, assigned)
+  }
+}
+
+/** The definitions [ObservationGroupLookup.assignChildInfos] matched to the observations. */
+internal class ChildInfoAssignment(
+  private val lookup: ObservationGroupLookup,
+  private val assigned: Map<Observation, ObservationChildInfo?>,
+) {
+  /** The definition of [observation]; one that was not part of the assignment is matched alone. */
+  fun infoOf(observation: Observation): ObservationChildInfo? =
+    if (assigned.containsKey(observation)) {
+      assigned[observation]
+    } else {
+      lookup.findChildInfo(observation)
+    }
 }
 
 internal class ParentObservationTracker {

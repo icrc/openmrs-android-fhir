@@ -692,25 +692,6 @@
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Тёмная</string>
     <string name="settings_section_security">Безопасность</string>
-    <string
-        name="offline_login_enabled_status"
-    >Вход без подключения включён на этом устройстве.</string>
-    <string
-        name="offline_login_disabled_status"
-    >Вход без подключения не был включён на этом устройстве. Сбросьте, чтобы его снова предложили при следующем входе.</string>
-    <string name="reset_offline_login">Сбросить вход без подключения</string>
-    <string
-        name="reset_offline_login_confirm_title"
-    >Сбросить вход без подключения?</string>
-    <string
-        name="reset_offline_login_confirm_message"
-    >Сохранённый вход без подключения будет удалён. При следующем входе его снова предложат настроить.</string>
-    <string
-        name="offline_login_reset_done"
-    >Вход без подключения сброшен.</string>
-    <string
-        name="offline_login_not_set_status"
-    >Вход без подключения ещё не настроен. Его предложат при следующем входе.</string>
     <string name="continue_without_login">Продолжить без входа</string>
     <string name="sign_in_with_sso">Войти через SSO</string>
     <string name="login_or">или</string>
@@ -909,6 +890,11 @@
     <string
         name="help_form_encounter_body"
     >Заполните вопросы, затем проверьте и отправьте. Сохранённое остаётся на устройстве и отправляется при следующей синхронизации.</string>
+    <string name="help_form_pages_title">Страницы формы</string>
+    <string
+        name="help_form_pages_body"
+    >Нажмите на страницу, чтобы перейти к ней сразу, без кнопок «Далее» и «Назад». Текущая страница выделена; прокрутите строку вбок, чтобы увидеть остальные.</string>
+    <string name="form_page_fallback_title">Страница</string>
     <string name="help_group_tabs_title">Пациенты сессии</string>
     <string
         name="help_group_tabs_body"
@@ -1061,7 +1047,7 @@
     <string name="identify_note_label">Заметка</string>
     <string
         name="identify_note_hint"
-    >Записывайте визиты и приёмы пациента, которого нет на этом устройстве, не регистрируя его. Напишите то, что поможет найти его на сервере позже: имя, село, родственник, телефон...</string>
+    >Записывайте визиты и приёмы пациента, которого нет на этом устройстве, не регистрируя его. Напишите заметку, например имя или идентификатор пациента, которая поможет найти его на сервере позже.</string>
     <string name="identify_note_create">Создать</string>
     <string name="identify_banner_title">Опознать позже</string>
     <string
@@ -1184,7 +1170,7 @@
     >Не удаётся синхронизировать? Импорт / Экспорт</string>
     <string
         name="import_export_intro"
-    >Используйте, если это устройство не может синхронизироваться. Экспортируйте всё, что ожидает отправки, в файл, защищённый PIN-кодом, передайте его тому, кто может синхронизироваться, — он импортирует файл здесь и отправит данные.</string>
+    >Используйте это, чтобы передать свою работу коллеге или когда это устройство не может синхронизироваться. Экспортируйте то, что ожидает отправки, в файл, защищённый PIN-кодом, и передайте его; тот, кто импортирует его здесь, загрузит данные со своей учётной записью. Каждая запись сохраняет специалиста и место, с которыми её внесли.</string>
     <string name="export_title">Экспорт</string>
     <string name="export_pending">Ожидают отправки: %1$d</string>
     <string name="export_nothing">Нет данных, ожидающих отправки.</string>
@@ -1211,6 +1197,13 @@
     <string
         name="import_skipped_hint"
     >Пропущенные элементы уже есть на этом устройстве или являются правками записей, которые это устройство не загружало.</string>
+    <string name="import_source">Источник: %1$s</string>
+    <string
+        name="import_kept_as_recorded"
+    >Каждая запись сохраняет специалиста и место, с которыми её внесли, независимо от того, кто её загружает.</string>
+    <string
+        name="import_missing_hint"
+    >Не удалось применить изменений: %1$d, так как на этом устройстве нет записи. Сначала загрузите пациента (список пациентов или поиск), затем импортируйте файл ещё раз.</string>
     <string name="import_upload_now">Отправить сейчас</string>
     <string
         name="import_invalid_file"
@@ -1485,7 +1478,18 @@
     >Для выхода и удаления всех данных нужен ваш отпечаток, лицо или блокировка экрана.</string>
     <string
         name="offline_login_unavailable_status"
-    >Автономный вход включён, но на устройстве больше нет отпечатка, лица или блокировки экрана. Настройте их или сбросьте автономный вход и войдите снова.</string>
+    >Автономный вход включён, но на устройстве больше нет отпечатка, лица или блокировки экрана. Настройте их или отключите автономный вход.</string>
+    <string name="offline_login_title">Автономный вход</string>
+    <string
+        name="offline_login_description"
+    >Разблокируйте приложение на этом устройстве отпечатком пальца, лицом или блокировкой экрана, даже без подключения.</string>
+    <string name="offline_login_on_done">Автономный вход включён.</string>
+    <string name="offline_login_off_title">Отключить автономный вход?</string>
+    <string
+        name="offline_login_off_message"
+    >Сохранённый автономный вход удаляется. Пока вы не включите его снова, для входа нужно подключение к серверу.</string>
+    <string name="offline_login_off_button">Отключить</string>
+    <string name="offline_login_off_done">Автономный вход отключён.</string>
     <string name="app_lock_delay">Спрашивать снова через</string>
     <string
         name="app_lock_delay_description"
@@ -1552,4 +1556,35 @@
     <string
         name="help_settings_search_body"
     >Введите слово (синхронизация, язык, блокировка…), чтобы показать только разделы, где оно встречается.</string>
+    <string name="diagnosis_picker_title">Выберите диагнозы</string>
+    <string name="diagnosis_picker_add">Поиск диагнозов</string>
+    <string name="diagnosis_picker_title_single">Выберите диагноз</string>
+    <string name="diagnosis_picker_add_single">Поиск диагноза</string>
+    <string name="diagnosis_picker_none_single">Диагноз ещё не выбран</string>
+    <string name="diagnosis_picker_recent">Недавние диагнозы</string>
+    <string name="diagnosis_picker_none">Диагнозы ещё не выбраны</string>
+    <string
+        name="diagnosis_picker_search_hint"
+    >Поиск по названию или коду</string>
+    <string name="diagnosis_picker_clear">Очистить поиск</string>
+    <string name="diagnosis_picker_selected_count">Выбрано: %1$d</string>
+    <string name="diagnosis_picker_matches">Найдено: %1$d</string>
+    <string
+        name="diagnosis_picker_more"
+    >Показаны первые %1$d из %2$d. Продолжайте вводить, чтобы сузить результаты.</string>
+    <string
+        name="diagnosis_picker_no_match"
+    >Нет диагнозов, соответствующих поиску</string>
+    <string name="diagnosis_picker_done">Готово</string>
+    <string name="diagnosis_picker_remove">Удалить %1$s</string>
+    <string
+        name="diagnosis_picker_unavailable"
+    >Списка диагнозов нет на этом устройстве.</string>
+    <string name="diagnosis_picker_loading">Загрузка списка диагнозов…</string>
+    <string
+        name="diagnosis_picker_type_to_search"
+    >Введите название или код МКБ-10, чтобы искать среди диагнозов (%1$d)</string>
+    <string
+        name="diagnosis_picker_rank_hint"
+    >Первый диагноз — основной, остальные — вторичные.</string>
 </resources>

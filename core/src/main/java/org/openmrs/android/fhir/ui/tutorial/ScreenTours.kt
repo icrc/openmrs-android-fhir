@@ -309,24 +309,42 @@ object ScreenTours {
     Tour(
       listOf(
         step(
+          TutorialTargets.FORM_PAGES,
+          R.string.help_form_pages_title,
+          R.string.help_form_pages_body,
+          optional = true,
+        ),
+        step(
           TutorialTargets.FORM_CONTAINER,
           R.string.help_form_registration_title,
           R.string.help_form_registration_body,
         ),
       ),
-      mapOf(TutorialTargets.FORM_CONTAINER to R.id.add_patient_container),
+      mapOf(
+        TutorialTargets.FORM_CONTAINER to R.id.add_patient_container,
+        TutorialTargets.FORM_PAGES to R.id.form_page_breadcrumbs,
+      ),
     )
 
   private val encounterForm =
     Tour(
       listOf(
         step(
+          TutorialTargets.FORM_PAGES,
+          R.string.help_form_pages_title,
+          R.string.help_form_pages_body,
+          optional = true,
+        ),
+        step(
           TutorialTargets.FORM_CONTAINER,
           R.string.help_form_encounter_title,
           R.string.help_form_encounter_body,
         ),
       ),
-      mapOf(TutorialTargets.FORM_CONTAINER to R.id.form_entry_container),
+      mapOf(
+        TutorialTargets.FORM_CONTAINER to R.id.form_entry_container,
+        TutorialTargets.FORM_PAGES to R.id.form_page_breadcrumbs,
+      ),
     )
 
   private val groupForm =
@@ -339,6 +357,12 @@ object ScreenTours {
           optional = true,
         ),
         step(
+          TutorialTargets.FORM_PAGES,
+          R.string.help_form_pages_title,
+          R.string.help_form_pages_body,
+          optional = true,
+        ),
+        step(
           TutorialTargets.FORM_CONTAINER,
           R.string.help_form_encounter_title,
           R.string.help_form_encounter_body,
@@ -347,6 +371,7 @@ object ScreenTours {
       mapOf(
         TutorialTargets.FORM_CONTAINER to R.id.form_entry_container,
         TutorialTargets.FORM_TABS to R.id.patientTabLayout,
+        TutorialTargets.FORM_PAGES to R.id.form_page_breadcrumbs,
       ),
     )
 
@@ -371,5 +396,6 @@ object ScreenTours {
     }
 
   /** Every view target key of every tour, to forget them when the screen is left. */
-  val viewTargetKeys: Set<String> = setOf(TutorialTargets.FORM_CONTAINER, TutorialTargets.FORM_TABS)
+  val viewTargetKeys: Set<String> =
+    setOf(TutorialTargets.FORM_CONTAINER, TutorialTargets.FORM_TABS, TutorialTargets.FORM_PAGES)
 }

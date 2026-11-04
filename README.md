@@ -54,6 +54,7 @@ An app is configured by one file, `res/xml/app_config.xml`, in its module. It is
 | `<sync>` | `location-tag` | Tag of the locations offered at login (default `Login Location`). |
 | | `cohort-type` | Optional cohort type (UUID): only patient lists of that cohort are downloaded. |
 | | `filter-patient-lists-by-location` | `true` (default): only the lists of the location the user picked. |
+| | `live-mode-default` | `true`: live mode (what is saved is sent at once, the server can be searched) is on until the user changes it in Settings; `false` (default): off. Resetting the settings goes back to this value. |
 | `<patients>` | `registration-form` | Id of a synced questionnaire, or the file name of one in `assets`, used to register patients. |
 | | `fetch-identifiers` | `true`: the device fetches auto-generated identifiers and adds them to new patients; `false`: the server creates them. |
 | `<support>` | `email` | Where **Send diagnostics** and exported unsynced data go. |
@@ -164,13 +165,13 @@ A list of predefined users for OpenMRS can be found here:\
 
 * * * * *
 
-🌐 Keycloak and Hostname Configuration (localhost vs 10.0.0.2)
+🌐 Keycloak and Hostname Configuration (localhost vs 10.0.2.2)
 --------------------------------------------------------------
 
 Keycloak can be accessed through different URLs depending on the use case:
 
 -   **localhost** is used to log into the OpenMRS web application.
--   **10.0.0.2** is used by the Android app.
+-   **10.0.2.2** is used by the Android app.
 
 To configure this:
 

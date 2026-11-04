@@ -6,14 +6,13 @@
 |---|---|
 | `core` | Android library with nearly all the code (`org.openmrs.android.fhir`). |
 | `app` | The application shell. Its `res/xml/app_config.xml` and `res/values/auth_config.xml` configure one build. |
-| `dev3-app` | The same shell pointed at dev3.openmrs.org (the release APK of the CI). |
+| `dev3-app` | The same shell with its own configuration (the release APK of the CI). |
 
 ## How the code is laid out (in `core`)
 
-- **UI**: activities (`SplashActivity`, `LoginActivity`, `MainActivity`, `UnlockActivity`) host
-  Compose. Screens that are still XML fragments live in the `reference_nav_graph`; many fragments
-  wrap a Compose screen from `ui/screens`. Strings are in `res/values*/strings.xml`, in five
-  languages: English (default), French, Spanish, Russian and Arabic.
+- **UI**: Compose screens hosted by fragments and activities, see `ui.md`. Strings are in
+  `res/values*/strings.xml`, in five languages: English (default), French, Spanish, Russian and
+  Arabic.
 - **Injection**: Dagger 2 (`di/`). A new ViewModel is registered in `ViewModelModule` (or
   `AssistedViewModelModule` when it takes arguments).
 - **Sync** (`data/sync`): the FHIR SDK's download managers build the searches (`SyncUrls`); uploads
@@ -48,9 +47,7 @@
 ./gradlew :core:connectedDebugAndroidTest "-Pandroid.testInstrumentationRunnerArguments.class=<test class>"
 ```
 
-On Windows, if Gradle stops with `BindException: Address already in use`, set
-`GRADLE_OPTS=-Djava.net.preferIPv4Stack=true`. The XML formatting check needs Node/npm, which the CI
-has.
+The XML formatting check needs Node/npm, which the CI has.
 
 ## Rules of the house
 
@@ -70,6 +67,6 @@ has.
 4. **Settings**: a new setting is shown in `SettingsScreen`, wired in `SettingsFragment`, and
    audited (`AuditAction.SETTINGS_CHANGED`) when it changes.
 5. **Changelog**: `CHANGELOG.md` says what changed, why, and how it was verified (including what was
-   not).
+   not). The pages in `docs/` describe how things are, not how they were checked: see `docs/README.md`.
 6. **Small screens**: check a 320 dp wide screen, a 1.3 times font and a long language (French,
    Russian) before calling a screen done; dialogs wrap their buttons.

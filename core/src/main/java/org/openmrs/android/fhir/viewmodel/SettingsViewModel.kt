@@ -172,7 +172,14 @@ constructor(
 
   /** Every value of this page that lives here goes back to what the app starts with. */
   fun onResetToDefaults() {
-    val defaults = SettingsUiState()
+    viewModelScope.launch {
+      val defaults =
+        SettingsUiState().copy(isLiveModeEnabled = settingsRepository.getLiveModeDefault())
+      applyDefaults(defaults)
+    }
+  }
+
+  private suspend fun applyDefaults(defaults: SettingsUiState) {
     _uiState.update {
       it.copy(
         isNetworkStatusVisible = defaults.isNetworkStatusVisible,
@@ -188,22 +195,20 @@ constructor(
         rememberLocation = defaults.rememberLocation,
       )
     }
-    viewModelScope.launch {
-      settingsRepository.setNetworkStatusVisible(defaults.isNetworkStatusVisible)
-      settingsRepository.setNotificationsEnabled(defaults.isNotificationsEnabled)
-      settingsRepository.setTokenExpiryDelayMinutes(defaults.tokenCheckDelayMinutes)
-      settingsRepository.setPeriodicSyncDelayMinutes(defaults.periodicSyncDelayMinutes)
-      settingsRepository.setAutoSyncEnabled(defaults.isAutoSyncEnabled)
-      settingsRepository.setAutoSyncMode(defaults.autoSyncMode)
-      settingsRepository.setLiveModeEnabled(defaults.isLiveModeEnabled)
-      settingsRepository.setKeepLivePatients(defaults.keepLivePatients)
-      settingsRepository.setAutomaticVisits(defaults.automaticVisits)
-      if (uiState.value.signedInUser != null) {
-        settingsRepository.setShareMyData(defaults.shareMyData)
-        settingsRepository.setRememberLocation(defaults.rememberLocation)
-      }
-      _events.emit(SettingsEvent.SettingsReset)
+    settingsRepository.setNetworkStatusVisible(defaults.isNetworkStatusVisible)
+    settingsRepository.setNotificationsEnabled(defaults.isNotificationsEnabled)
+    settingsRepository.setTokenExpiryDelayMinutes(defaults.tokenCheckDelayMinutes)
+    settingsRepository.setPeriodicSyncDelayMinutes(defaults.periodicSyncDelayMinutes)
+    settingsRepository.setAutoSyncEnabled(defaults.isAutoSyncEnabled)
+    settingsRepository.setAutoSyncMode(defaults.autoSyncMode)
+    settingsRepository.setLiveModeEnabled(defaults.isLiveModeEnabled)
+    settingsRepository.setKeepLivePatients(defaults.keepLivePatients)
+    settingsRepository.setAutomaticVisits(defaults.automaticVisits)
+    if (uiState.value.signedInUser != null) {
+      settingsRepository.setShareMyData(defaults.shareMyData)
+      settingsRepository.setRememberLocation(defaults.rememberLocation)
     }
+    _events.emit(SettingsEvent.SettingsReset)
   }
 
   fun onInitialSyncClicked() {

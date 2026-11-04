@@ -171,6 +171,8 @@ dependencies {
   testImplementation(libs.mockito.core)
   testImplementation(libs.mockito.kotlin)
   testImplementation(libs.kotlinx.coroutines.test)
+  // The real org.json: the one in android.jar only has stubs in a plain JVM test.
+  testImplementation(libs.org.json)
 
   // Dependency injection
   implementation(libs.dagger.base)

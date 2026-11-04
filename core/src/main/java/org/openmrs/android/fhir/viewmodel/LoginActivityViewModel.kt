@@ -32,9 +32,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Network
-import android.os.Build
 import android.util.Base64
-import androidx.biometric.BiometricManager
 import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -316,46 +314,7 @@ constructor(
     }
 
   /** The key that protects the offline login, created once a session exists. */
-  private fun createBiometricKey() {
-    val bm = BiometricManager.from(applicationContext)
-
-    val canBioStrong = bm.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
-    val canBioOrCred =
-      bm.canAuthenticate(
-        BiometricManager.Authenticators.BIOMETRIC_STRONG or
-          BiometricManager.Authenticators.DEVICE_CREDENTIAL,
-      )
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-      // API 30+: always use per-use with biometrics or device credential
-      if (canBioOrCred == BiometricManager.BIOMETRIC_SUCCESS) {
-        BiometricUtils.createBiometricKeyIfNotExists(
-          applicationContext,
-          canBioStrong = canBioStrong == BiometricManager.BIOMETRIC_SUCCESS,
-        )
-      } else {
-        // Known gap (docs/dev/known-gaps.md): no screen offers to set up a screen lock here.
-      }
-    } else {
-      // API 23–29: pick the flow
-      val legacyFlow =
-        when {
-          // If strong biometrics present, prefer per-use biometrics (CryptoObject path)
-          canBioStrong == BiometricManager.BIOMETRIC_SUCCESS -> LegacyAuthFlow.BIOMETRIC_PER_USE
-
-          // If (bio OR device PIN) is available, use validity window so PIN works
-          canBioOrCred == BiometricManager.BIOMETRIC_SUCCESS ->
-            LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW
-          else -> LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW // conservative fallback
-        }
-
-      BiometricUtils.createBiometricKeyIfNotExists(
-        applicationContext,
-        legacyFlow = legacyFlow,
-        validityWindowSeconds = 30,
-      )
-    }
-  }
+  private fun createBiometricKey() = BiometricUtils.createKeyForThisDevice(applicationContext)
 }
 
 private const val LOGIN_PREFS = "login"

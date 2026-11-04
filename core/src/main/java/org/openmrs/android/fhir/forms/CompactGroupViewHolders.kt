@@ -36,6 +36,8 @@ import com.google.android.fhir.datacapture.views.factories.QuestionnaireItemAndr
 import com.google.android.fhir.datacapture.views.factories.QuestionnaireItemAndroidViewHolderFactory
 import org.hl7.fhir.r4.model.Questionnaire
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.forms.diagnosis.DiagnosisPickerFactory
+import org.openmrs.android.fhir.forms.diagnosis.isDiagnosisPicker
 
 /**
  * Tag of the form items provider below: forms ask for it with
@@ -83,6 +85,10 @@ object CompactGroupsProviderFactory : QuestionnaireItemViewHolderFactoryMatchers
             TitlelessGroupViewHolderFactory,
           ) {
             it.isTitlelessGroup()
+          },
+          // A question answered by searching a long list of diagnoses and ticking several.
+          QuestionnaireFragment.QuestionnaireItemViewHolderFactoryMatcher(DiagnosisPickerFactory) {
+            it.isDiagnosisPicker()
           },
         )
     }

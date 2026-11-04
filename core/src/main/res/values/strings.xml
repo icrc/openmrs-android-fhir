@@ -643,23 +643,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="settings_section_security">Security</string>
-    <string
-        name="offline_login_enabled_status"
-    >Offline login is on for this device.</string>
-    <string
-        name="offline_login_disabled_status"
-    >Offline login was not enabled on this device. Reset to be asked again at your next login.</string>
-    <string name="reset_offline_login">Reset offline login</string>
-    <string
-        name="reset_offline_login_confirm_title"
-    >Reset offline login?</string>
-    <string
-        name="reset_offline_login_confirm_message"
-    >The saved offline login is removed. You will be asked to set it up again the next time you log in.</string>
-    <string name="offline_login_reset_done">Offline login reset.</string>
-    <string
-        name="offline_login_not_set_status"
-    >Offline login is not set up yet. You will be asked at your next login.</string>
     <string name="continue_without_login">Continue without signing in</string>
     <string name="sign_in_with_sso">Sign in with SSO</string>
     <string name="login_or">or</string>
@@ -858,6 +841,11 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="help_form_encounter_body"
     >Fill in the questions, then review and submit. What you save stays on this device and is uploaded at the next sync.</string>
+    <string name="help_form_pages_title">Pages of the form</string>
+    <string
+        name="help_form_pages_body"
+    >Tap a page to go straight to it, without pressing Next and Previous. The page you are on is highlighted; swipe the row sideways to see the others.</string>
+    <string name="form_page_fallback_title">Page</string>
     <string name="help_group_tabs_title">Patients of the session</string>
     <string
         name="help_group_tabs_body"
@@ -1004,7 +992,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="identify_note_label">Note</string>
     <string
         name="identify_note_hint"
-    >Record visits and encounters for a patient who is not on this device, without registering them. Write what will help you find them on the server later: name, village, relative, phone number...</string>
+    >Record visits and encounters for a patient who is not on this device, without registering them. Write a note, like the name or the patient identifier, that will help you find them on the server later.</string>
     <string name="identify_note_create">Create</string>
     <string name="identify_banner_title">To identify after</string>
     <string
@@ -1123,7 +1111,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="sync_cannot_sync_link">Cannot sync? Import / Export</string>
     <string
         name="import_export_intro"
-    >Use this when this device cannot sync. Export what is waiting to be uploaded into a file protected with a PIN, send it to someone who can sync, and they import it here and upload it.</string>
+    >Use this to hand your work to a colleague, or when this device cannot sync. Export what is waiting to be uploaded into a file protected with a PIN and send it; whoever imports it here uploads it with their own account. Every record keeps the provider and the location it was recorded with.</string>
     <string name="export_title">Export</string>
     <string name="export_pending">Waiting to be uploaded: %1$d</string>
     <string name="export_nothing">Nothing is waiting to be uploaded.</string>
@@ -1148,6 +1136,13 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="import_skipped_hint"
     >Skipped items are already on this device, or are edits of records this device has not downloaded.</string>
+    <string name="import_source">From %1$s</string>
+    <string
+        name="import_kept_as_recorded"
+    >Each record keeps the provider and the location it was recorded with, whoever uploads it.</string>
+    <string
+        name="import_missing_hint"
+    >%1$d edits could not be applied because this device does not have the record. Download the patient first (patient list or search), then import the file again.</string>
     <string name="import_upload_now">Upload now</string>
     <string
         name="import_invalid_file"
@@ -1388,7 +1383,18 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     >Logging out and deleting all data needs your fingerprint, face or screen lock.</string>
     <string
         name="offline_login_unavailable_status"
-    >Offline login is on, but this device has no fingerprint, face or screen lock any more. Set one up, or reset the offline login and sign in again.</string>
+    >Offline login is on, but this device has no fingerprint, face or screen lock any more. Set one up, or turn offline login off.</string>
+    <string name="offline_login_title">Offline login</string>
+    <string
+        name="offline_login_description"
+    >Unlock the app on this device with your fingerprint, face or screen lock, even without a connection.</string>
+    <string name="offline_login_on_done">Offline login is on.</string>
+    <string name="offline_login_off_title">Turn off offline login?</string>
+    <string
+        name="offline_login_off_message"
+    >The saved offline login is removed. Until you turn it on again, signing in needs a connection to the server.</string>
+    <string name="offline_login_off_button">Turn off</string>
+    <string name="offline_login_off_done">Offline login is off.</string>
     <string name="app_lock_delay">Ask again after</string>
     <string
         name="app_lock_delay_description"
@@ -1451,4 +1457,37 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="help_settings_search_body"
     >Type a word (sync, language, lock…) to show only the sections that mention it.</string>
+    <string name="diagnosis_picker_title">Select diagnoses</string>
+    <string name="diagnosis_picker_add">Search diagnoses</string>
+    <string name="diagnosis_picker_title_single">Select a diagnosis</string>
+    <string name="diagnosis_picker_add_single">Search for a diagnosis</string>
+    <string
+        name="diagnosis_picker_none_single"
+    >No diagnosis selected yet</string>
+    <string name="diagnosis_picker_recent">Recent diagnoses</string>
+    <string name="diagnosis_picker_none">No diagnosis selected yet</string>
+    <string name="diagnosis_picker_search_hint">Search by name or code</string>
+    <string name="diagnosis_picker_clear">Clear the search</string>
+    <string name="diagnosis_picker_selected_count">%1$d selected</string>
+    <string name="diagnosis_picker_matches">%1$d matches</string>
+    <string
+        name="diagnosis_picker_more"
+    >Showing the first %1$d of %2$d matches. Keep typing to narrow them down.</string>
+    <string
+        name="diagnosis_picker_no_match"
+    >No diagnosis matches your search</string>
+    <string name="diagnosis_picker_done">Done</string>
+    <string name="diagnosis_picker_remove">Remove %1$s</string>
+    <string
+        name="diagnosis_picker_unavailable"
+    >The list of diagnoses is not on this device.</string>
+    <string
+        name="diagnosis_picker_loading"
+    >Loading the list of diagnoses…</string>
+    <string
+        name="diagnosis_picker_type_to_search"
+    >Type a name or an ICD-10 code to search %1$d diagnoses</string>
+    <string
+        name="diagnosis_picker_rank_hint"
+    >The first diagnosis is the primary one; the others are secondary.</string>
 </resources>

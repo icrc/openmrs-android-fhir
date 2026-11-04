@@ -131,6 +131,7 @@ object TutorialTargets {
   const val FORMS_LIST = "forms.list"
   const val FORM_CONTAINER = "form.container"
   const val FORM_TABS = "form.tabs"
+  const val FORM_PAGES = "form.pages"
   const val LOGIN_USERNAME = "login.username"
   const val LOGIN_SSO = "login.sso"
   const val LOGIN_GUEST = "login.guest"

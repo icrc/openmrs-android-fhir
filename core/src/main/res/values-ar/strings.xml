@@ -611,27 +611,6 @@
     <string name="theme_light">فاتح</string>
     <string name="theme_dark">داكن</string>
     <string name="settings_section_security">الأمان</string>
-    <string
-        name="offline_login_enabled_status"
-    >تسجيل الدخول دون اتصال مفعّل على هذا الجهاز.</string>
-    <string
-        name="offline_login_disabled_status"
-    >لم يتم تفعيل تسجيل الدخول دون اتصال على هذا الجهاز. أعد التعيين ليُطلب منك مجددًا عند تسجيل الدخول التالي.</string>
-    <string
-        name="reset_offline_login"
-    >إعادة تعيين تسجيل الدخول دون اتصال</string>
-    <string
-        name="reset_offline_login_confirm_title"
-    >إعادة تعيين تسجيل الدخول دون اتصال؟</string>
-    <string
-        name="reset_offline_login_confirm_message"
-    >سيتم حذف تسجيل الدخول دون اتصال المحفوظ. سيُطلب منك إعداده مجددًا عند تسجيل الدخول التالي.</string>
-    <string
-        name="offline_login_reset_done"
-    >تمت إعادة تعيين تسجيل الدخول دون اتصال.</string>
-    <string
-        name="offline_login_not_set_status"
-    >لم يتم إعداد تسجيل الدخول دون اتصال بعد. سيُطلب منك ذلك عند تسجيل الدخول التالي.</string>
     <string name="continue_without_login">المتابعة دون تسجيل الدخول</string>
     <string name="sign_in_with_sso">تسجيل الدخول عبر SSO</string>
     <string name="login_or">أو</string>
@@ -824,6 +803,11 @@
     <string
         name="help_form_encounter_body"
     >املأ الأسئلة ثم راجع وأرسل. ما تحفظه يبقى على هذا الجهاز ويُرفع في المزامنة التالية.</string>
+    <string name="help_form_pages_title">صفحات النموذج</string>
+    <string
+        name="help_form_pages_body"
+    >المس صفحة للانتقال إليها مباشرة دون الضغط على «التالي» و«السابق». الصفحة الحالية مميّزة؛ مرّر الصف جانبيًا لرؤية بقية الصفحات.</string>
+    <string name="form_page_fallback_title">صفحة</string>
     <string name="help_group_tabs_title">مرضى الجلسة</string>
     <string
         name="help_group_tabs_body"
@@ -968,7 +952,7 @@
     <string name="identify_note_label">ملاحظة</string>
     <string
         name="identify_note_hint"
-    >سجّل زيارات ولقاءات لمريض غير موجود على هذا الجهاز دون تسجيله. اكتب ما يساعدك على العثور عليه لاحقاً على الخادم: الاسم، القرية، قريب، رقم الهاتف...</string>
+    >سجّل زيارات ولقاءات لمريض غير موجود على هذا الجهاز دون تسجيله. اكتب ملاحظة، مثل اسم المريض أو معرّفه، تساعدك على العثور عليه لاحقاً على الخادم.</string>
     <string name="identify_note_create">إنشاء</string>
     <string name="identify_banner_title">للتعرّف لاحقاً</string>
     <string
@@ -1085,7 +1069,7 @@
     >لا يمكن المزامنة؟ استيراد / تصدير</string>
     <string
         name="import_export_intro"
-    >استخدم هذا عندما يتعذر على هذا الجهاز المزامنة. صدّر ما ينتظر الرفع إلى ملف محمي برقم PIN، وأرسله إلى شخص يستطيع المزامنة ليستورده هنا ويرفعه.</string>
+    >استخدم هذا لتسليم عملك إلى زميل، أو عندما لا يستطيع هذا الجهاز المزامنة. صدّر ما ينتظر الرفع إلى ملف محمي برمز PIN وأرسله؛ ومن يستورده هنا يرفعه بحسابه الخاص. يحتفظ كل سجل بمقدّم الرعاية والموقع اللذين سُجّل بهما.</string>
     <string name="export_title">تصدير</string>
     <string name="export_pending">بانتظار الرفع: %1$d</string>
     <string name="export_nothing">لا شيء بانتظار الرفع.</string>
@@ -1110,6 +1094,13 @@
     <string
         name="import_skipped_hint"
     >العناصر المتخطاة موجودة بالفعل على هذا الجهاز، أو هي تعديلات على سجلات لم يقم هذا الجهاز بتنزيلها.</string>
+    <string name="import_source">المصدر: %1$s</string>
+    <string
+        name="import_kept_as_recorded"
+    >يحتفظ كل سجل بمقدّم الرعاية والموقع اللذين سُجّل بهما، أياً كان من يرفعه.</string>
+    <string
+        name="import_missing_hint"
+    >تعذّر تطبيق %1$d تعديلات لأن هذا الجهاز لا يملك السجل. نزّل المريض أولاً (قائمة المرضى أو البحث) ثم استورد الملف مرة أخرى.</string>
     <string name="import_upload_now">ارفع الآن</string>
     <string
         name="import_invalid_file"
@@ -1370,7 +1361,24 @@
     >تسجيل الخروج وحذف كل البيانات يتطلب بصمتك أو وجهك أو قفل الشاشة.</string>
     <string
         name="offline_login_unavailable_status"
-    >تسجيل الدخول دون اتصال مفعّل، لكن لم يعد في هذا الجهاز بصمة أو وجه أو قفل شاشة. أعدّ واحدًا منها، أو أعد ضبط تسجيل الدخول دون اتصال وسجّل الدخول من جديد.</string>
+    >تسجيل الدخول دون اتصال مفعّل، لكن لم يعد في هذا الجهاز بصمة أو وجه أو قفل شاشة. أعدّ واحدًا منها، أو أوقف تسجيل الدخول دون اتصال.</string>
+    <string name="offline_login_title">تسجيل الدخول دون اتصال</string>
+    <string
+        name="offline_login_description"
+    >افتح قفل التطبيق على هذا الجهاز ببصمتك أو وجهك أو قفل الشاشة، حتى دون اتصال.</string>
+    <string
+        name="offline_login_on_done"
+    >تم تفعيل تسجيل الدخول دون اتصال.</string>
+    <string
+        name="offline_login_off_title"
+    >إيقاف تسجيل الدخول دون اتصال؟</string>
+    <string
+        name="offline_login_off_message"
+    >سيتم حذف تسجيل الدخول دون اتصال المحفوظ. إلى أن تفعّله من جديد، يتطلب تسجيل الدخول اتصالاً بالخادم.</string>
+    <string name="offline_login_off_button">إيقاف</string>
+    <string
+        name="offline_login_off_done"
+    >تم إيقاف تسجيل الدخول دون اتصال.</string>
     <string name="app_lock_delay">اطلب مجددًا بعد</string>
     <string
         name="app_lock_delay_description"
@@ -1435,4 +1443,33 @@
     <string
         name="help_settings_search_body"
     >اكتب كلمة (المزامنة، اللغة، القفل…) لإظهار الأقسام التي تذكرها فقط.</string>
+    <string name="diagnosis_picker_title">اختيار التشخيصات</string>
+    <string name="diagnosis_picker_add">البحث عن تشخيصات</string>
+    <string name="diagnosis_picker_title_single">اختيار تشخيص</string>
+    <string name="diagnosis_picker_add_single">البحث عن تشخيص</string>
+    <string
+        name="diagnosis_picker_none_single"
+    >لم يتم اختيار أي تشخيص بعد</string>
+    <string name="diagnosis_picker_recent">التشخيصات الأخيرة</string>
+    <string name="diagnosis_picker_none">لم يتم اختيار أي تشخيص بعد</string>
+    <string name="diagnosis_picker_search_hint">ابحث بالاسم أو الرمز</string>
+    <string name="diagnosis_picker_clear">مسح البحث</string>
+    <string name="diagnosis_picker_selected_count">تم اختيار %1$d</string>
+    <string name="diagnosis_picker_matches">%1$d نتيجة</string>
+    <string
+        name="diagnosis_picker_more"
+    >يتم عرض أول %1$d من أصل %2$d نتيجة. واصل الكتابة لتضييق النتائج.</string>
+    <string name="diagnosis_picker_no_match">لا يوجد تشخيص مطابق للبحث</string>
+    <string name="diagnosis_picker_done">تم</string>
+    <string name="diagnosis_picker_remove">إزالة %1$s</string>
+    <string
+        name="diagnosis_picker_unavailable"
+    >قائمة التشخيصات غير موجودة على هذا الجهاز.</string>
+    <string name="diagnosis_picker_loading">جارٍ تحميل قائمة التشخيصات…</string>
+    <string
+        name="diagnosis_picker_type_to_search"
+    >اكتب اسمًا أو رمز التصنيف الدولي للأمراض (ICD-10) للبحث بين %1$d تشخيصًا</string>
+    <string
+        name="diagnosis_picker_rank_hint"
+    >التشخيص الأول هو التشخيص الأساسي، والبقية ثانوية.</string>
 </resources>

@@ -28,8 +28,12 @@
 */
 package org.openmrs.android.fhir.data
 
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraftSummary
@@ -37,9 +41,27 @@ import org.openmrs.android.fhir.data.database.model.GroupSessionDraftSummary
 @Singleton
 class GroupSessionDraftRepository @Inject constructor(private val database: AppDatabase) {
 
-  suspend fun upsertDraft(draft: GroupSessionDraft) {
-    database.dao().upsertGroupSessionDraft(draft.copy(lastUpdated = System.currentTimeMillis()))
-  }
+  private val lock = Mutex()
+
+  /** What was last written for each form, as a digest: the draft itself is large. */
+  private val written = mutableMapOf<String, ByteArray>()
+
+  /**
+   * Saves the draft. It holds every answer and both forms, and it is saved on every switch of
+   * patient: when nothing changed since it was last written, only its time is updated, which leaves
+   * the database exactly as a full write would.
+   */
+  suspend fun upsertDraft(draft: GroupSessionDraft) =
+    lock.withLock {
+      val dao = database.dao()
+      val now = System.currentTimeMillis()
+      val digest = draft.contentDigest()
+      val unchanged = written[draft.questionnaireId]?.contentEquals(digest) == true
+      // A draft deleted behind our back (rows touched = 0) is written again, whole.
+      if (unchanged && dao.touchGroupSessionDraft(draft.questionnaireId, now) > 0) return@withLock
+      dao.upsertGroupSessionDraft(draft.copy(lastUpdated = now))
+      written[draft.questionnaireId] = digest
+    }
 
   suspend fun getDraft(questionnaireId: String): GroupSessionDraft? {
     return database.dao().getGroupSessionDraft(questionnaireId)
@@ -59,10 +81,44 @@ class GroupSessionDraftRepository @Inject constructor(private val database: AppD
       .dao()
       .getGroupSessionDraftSummaries()
       .filterNot { it.hasContent }
-      .forEach { database.dao().deleteGroupSessionDraft(it.questionnaireId) }
+      .forEach { deleteDraft(it.questionnaireId) }
   }
 
-  suspend fun deleteDraft(questionnaireId: String) {
-    database.dao().deleteGroupSessionDraft(questionnaireId)
+  suspend fun deleteDraft(questionnaireId: String) =
+    lock.withLock {
+      written.remove(questionnaireId)
+      database.dao().deleteGroupSessionDraft(questionnaireId)
+    }
+}
+
+/** A digest of everything in the draft that is saved, but when it was. */
+private fun GroupSessionDraft.contentDigest(): ByteArray {
+  val digest = MessageDigest.getInstance("SHA-256")
+
+  fun add(text: String?) {
+    if (text == null) {
+      digest.update(-1)
+      return
+    }
+    val bytes = text.toByteArray(StandardCharsets.UTF_8)
+    digest.update(bytes.size.toString().toByteArray(StandardCharsets.UTF_8))
+    digest.update(0)
+    digest.update(bytes)
   }
+
+  add(questionnaireId)
+  add(sessionId)
+  add(patientIds.size.toString())
+  patientIds.forEach(::add)
+  add(patientResponses.size.toString())
+  patientResponses.forEach { (patientId, response) ->
+    add(patientId)
+    add(response)
+  }
+  add(screenerResponse)
+  add(encounterQuestionnaireJson)
+  add(screenerQuestionnaireJson)
+  add(sessionDate?.toString())
+  add(screenerCompleted.toString())
+  return digest.digest()
 }

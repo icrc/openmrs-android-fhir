@@ -75,10 +75,9 @@ import org.openmrs.android.fhir.di.IoDispatcher
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
 import org.openmrs.android.fhir.extensions.convertDateAnswersToUtcDateTime
 import org.openmrs.android.fhir.extensions.convertDateTimeAnswersToDate
-import org.openmrs.android.fhir.extensions.ensurePageGroupsHaveTrailingSpacer
 import org.openmrs.android.fhir.extensions.generateUuid
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
-import org.openmrs.android.fhir.extensions.hasInvalidAnswersIgnoringPageSpacers
+import org.openmrs.android.fhir.extensions.hasInvalidAnswers
 import org.openmrs.android.fhir.extensions.nowLocalDateTime
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
 
@@ -117,6 +116,16 @@ constructor(
   var sessionDate: Date? = null
   var screenerResponseJson: String? = null
   private val parser = FhirContext.forCached(FhirVersionEnum.R4).newJsonParser()
+  private val answersValidity = AnswersValidationMemo()
+  private var clockCheckedForm: Questionnaire? = null
+  private var formDependsOnClock = false
+
+  /**
+   * The encounter form as [encounterQuestionnaireJson] last described it (a copy, so it does not
+   * change with the form being prepared), for the screen to use instead of reading the JSON back.
+   */
+  var publishedEncounterQuestionnaire: Questionnaire? = null
+    private set
 
   var hasActiveSession: Boolean
     get() = savedStateHandle[ACTIVE_SESSION_KEY] ?: false
@@ -147,7 +156,6 @@ constructor(
 
   fun prepareScreenerQuestionnaire(encounterQuestionnaire: Questionnaire) {
     viewModelScope.launch {
-      encounterQuestionnaire.ensurePageGroupsHaveTrailingSpacer()
       this@GroupFormEntryViewModel.encounterQuestionnaire = encounterQuestionnaire
       val screener =
         fhirEngine.getQuestionnaireOrFromAssets(
@@ -344,8 +352,7 @@ constructor(
         }
       }
       plug(questionnaire.item)
-      questionnaire.ensurePageGroupsHaveTrailingSpacer()
-      encounterQuestionnaireJson.value = parser.encodeResourceToString(questionnaire)
+      publishEncounterQuestionnaire(questionnaire)
     }
   }
 
@@ -437,11 +444,57 @@ constructor(
   ): Boolean =
     // Validating walks the whole form; the screen must stay responsive while it does.
     withContext(defaultDispatcher) {
-      !questionnaire.hasInvalidAnswersIgnoringPageSpacers(
+      !questionnaire.hasInvalidAnswers(
         questionnaireResponse,
         applicationContext,
       )
     }
+
+  /**
+   * Whether the answers of a patient are valid for [questionnaire]. Answers already checked against
+   * this very form are not walked again (see [AnswersValidationMemo]), except for a form whose
+   * rules look at the clock (`today()`, `now()`): its result can change by itself. [answers] is the
+   * parsed [answersJson], when the caller has it.
+   */
+  suspend fun areAnswersValid(
+    patientId: String,
+    questionnaire: Questionnaire,
+    answersJson: String,
+    applicationContext: Context,
+    answers: QuestionnaireResponse? = null,
+  ): Boolean {
+    val check: suspend () -> Boolean = {
+      val response =
+        answers
+          ?: withContext(defaultDispatcher) {
+            FhirContext.forCached(FhirVersionEnum.R4)
+              .newJsonParser()
+              .parseResource(QuestionnaireResponse::class.java, answersJson)
+          }
+      isValidQuestionnaireResponse(questionnaire, response, applicationContext)
+    }
+    return if (dependsOnClock(questionnaire)) {
+      check()
+    } else {
+      answersValidity.isValid(patientId, questionnaire, answersJson, check)
+    }
+  }
+
+  private fun dependsOnClock(questionnaire: Questionnaire): Boolean {
+    if (clockCheckedForm !== questionnaire) {
+      formDependsOnClock =
+        CLOCK_DEPENDENT.containsMatchIn(parser.encodeResourceToString(questionnaire))
+      clockCheckedForm = questionnaire
+    }
+    return formDependsOnClock
+  }
+
+  /** Hands the encounter form to the screen: the JSON it is built from and a copy of the form. */
+  private fun publishEncounterQuestionnaire(questionnaire: Questionnaire) {
+    val json = parser.encodeResourceToString(questionnaire)
+    publishedEncounterQuestionnaire = questionnaire.copy()
+    encounterQuestionnaireJson.value = json
+  }
 
   suspend fun saveDraft(questionnaireId: String, patientIds: List<String>) {
     val draft =
@@ -482,10 +535,13 @@ constructor(
       encounterQuestionnaire =
         parser.parseResource(Questionnaire::class.java, draft.encounterQuestionnaireJson)
           as Questionnaire
-      encounterQuestionnaire?.ensurePageGroupsHaveTrailingSpacer()
-      encounterQuestionnaireJson.value =
-        encounterQuestionnaire?.let { parser.encodeResourceToString(it) }
-          ?: draft.encounterQuestionnaireJson
+      val restored = encounterQuestionnaire
+      if (restored != null) {
+        publishEncounterQuestionnaire(restored)
+      } else {
+        publishedEncounterQuestionnaire = null
+        encounterQuestionnaireJson.value = draft.encounterQuestionnaireJson
+      }
     }
     if (!draft.screenerQuestionnaireJson.isNullOrBlank()) {
       screenerQuestionnaireJson.value = draft.screenerQuestionnaireJson
@@ -504,6 +560,8 @@ constructor(
     screenerResponseJson = null
     encounterQuestionnaire = null
     screenerQuestionnaire = null
+    publishedEncounterQuestionnaire = null
+    answersValidity.clear()
     sessionDate = null
     isScreenerCompleted = false
     sessionId = UUID.randomUUID().toString()
@@ -520,5 +578,6 @@ constructor(
 
   companion object {
     private const val ACTIVE_SESSION_KEY = "active_session"
+    private val CLOCK_DEPENDENT = Regex("""\b(today|now|timeOfDay)\(\)""")
   }
 }

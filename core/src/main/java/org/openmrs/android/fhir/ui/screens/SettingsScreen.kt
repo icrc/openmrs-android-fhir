@@ -104,7 +104,7 @@ object SettingsTestTags {
   const val FormSectionsReset = "SettingsFormSectionsReset"
   const val InitialSyncButton = "SettingsInitialSyncButton"
   const val FetchQuestionnairesButton = "SettingsFetchQuestionnairesButton"
-  const val ResetOfflineLoginButton = "SettingsResetOfflineLoginButton"
+  const val OfflineLoginSwitch = "SettingsOfflineLoginSwitch"
   const val AutoSyncUnmeteredSwitch = "SettingsAutoSyncUnmeteredSwitch"
   const val AutoSyncBatterySwitch = "SettingsAutoSyncBatterySwitch"
   const val SearchField = "SettingsSearchField"
@@ -153,7 +153,8 @@ fun SettingsScreen(
   colorVision: ColorVisionMode = ColorVisionMode.STANDARD,
   onColorVisionSelected: ((ColorVisionMode) -> Unit)? = null,
   offlineLoginEnabled: Boolean? = null,
-  onResetOfflineLoginClicked: (() -> Unit)? = null,
+  /** Turns the offline login on (true) or off (false); null hides the section. */
+  onOfflineLoginChange: ((Boolean) -> Unit)? = null,
   /** The offline login is on but the device has no fingerprint, face or screen lock any more. */
   offlineLoginUnavailable: Boolean = false,
   appLock: AppLockUi? = null,
@@ -161,7 +162,7 @@ fun SettingsScreen(
   onLockOnScreenOffChange: (Boolean) -> Unit = {},
   onHideInRecentsChange: (Boolean) -> Unit = {},
   unsyncedCount: Int = 0,
-  clearDataOnLogout: Boolean = true,
+  clearDataOnLogout: Boolean = false,
   onClearDataOnLogoutChange: ((Boolean) -> Unit)? = null,
   autoSyncUnmeteredOnly: Boolean = false,
   autoSyncSkipLowBattery: Boolean = true,
@@ -396,12 +397,14 @@ fun SettingsScreen(
           }
         }
 
-        if (onResetOfflineLoginClicked != null) {
+        if (onOfflineLoginChange != null) {
           SettingsSection(
             title = stringResource(R.string.settings_section_security),
             tutorialKey = TutorialTargets.SETTINGS_SECURITY,
             searchText =
               stringResource(R.string.help_settings_security_body) +
+                " " +
+                stringResource(R.string.offline_login_title) +
                 " " +
                 stringResource(R.string.app_lock_delay) +
                 " " +
@@ -409,23 +412,20 @@ fun SettingsScreen(
                 " " +
                 stringResource(R.string.app_lock_hide_recents),
           ) {
-            SettingsAction(
+            SettingsSwitchRow(
+              label = stringResource(R.string.offline_login_title),
               description =
                 stringResource(
-                  when {
-                    offlineLoginEnabled == true && offlineLoginUnavailable ->
-                      R.string.offline_login_unavailable_status
-                    offlineLoginEnabled == true -> R.string.offline_login_enabled_status
-                    offlineLoginEnabled == false -> R.string.offline_login_disabled_status
-                    else -> R.string.offline_login_not_set_status
+                  if (offlineLoginEnabled == true && offlineLoginUnavailable) {
+                    R.string.offline_login_unavailable_status
+                  } else {
+                    R.string.offline_login_description
                   },
                 ),
-              buttonText = stringResource(R.string.reset_offline_login),
-              icon = Icons.Default.Refresh,
-              onClick = onResetOfflineLoginClicked,
+              checked = offlineLoginEnabled == true,
+              onCheckedChange = onOfflineLoginChange,
+              testTag = SettingsTestTags.OfflineLoginSwitch,
               enabled = offlineLoginEnabled != null,
-              inProgress = false,
-              testTag = SettingsTestTags.ResetOfflineLoginButton,
             )
             if (offlineLoginEnabled == true && appLock != null) {
               HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

@@ -32,17 +32,9 @@ One APK per processor type is written to `<module>/build/outputs/apk/release/`:
 `release` block of `app/build.gradle.kts` and `dev3-app/build.gradle.kts`): about 51 MB per ABI
 instead of 72 MB. It is **off by default**.
 
-Checked on the emulator with the shrunk release APK against the test server (plain http was allowed
-for that build only): starting the app, the login page, the single sign-on, enabling the offline
-login (the Keystore key), the first download (locations through the FHIR SDK), "Sync now" (history
-entries completed), the group-session form list, registering a patient through all the pages of the
-form and saving it, and the patient list showing it.
-
-**Not** checked with it: uploading a saved patient, patient details and encounters with data,
-live mode, the diagnostics archive, import / export, sharing the settings by QR code, the
-tutorial. The FHIR libraries use reflection, so run those with the APK you are about to ship, and
-add keep rules to `proguard-rules.pro` for anything that fails. Moshi models use generated
-adapters and need nothing.
+The FHIR libraries, and the page breadcrumbs, use reflection, so run the whole app with the APK you are
+about to ship and add keep rules to `proguard-rules.pro` (of `app` and `dev3-app`) for anything that
+fails. Moshi models use generated adapters and need nothing.
 
 ## Signing
 
