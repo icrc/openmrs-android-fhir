@@ -243,8 +243,8 @@ class ApiManager @Inject constructor(context: Context) : Api {
   ): Int {
     val search = applyPatientListScope(SyncUrls.patients(appContext), listIds) ?: return 0
     var patients = 0
-    var url: String? =
-      ServerSettings.fhirBaseUrl(appContext) + search + "&_count=$PATIENT_DOWNLOAD_PAGE"
+    // The page size is part of the search (SyncUrls.PATIENT_PAGE_SIZE).
+    var url: String? = ServerSettings.fhirBaseUrl(appContext) + search
     var pages = 0
     while (url != null) {
       check(pages++ < MAX_PATIENT_DOWNLOAD_PAGES) { "Too many pages of patients" }
@@ -306,8 +306,7 @@ private const val MAX_QUESTIONNAIRE_PAGES = 20
 private const val MAX_RECORD_PAGES = 20
 private const val MAX_PATIENT_LIST_PAGES = 20
 private const val PATIENT_LIST_PAGE = 100
-private const val PATIENT_DOWNLOAD_PAGE = 50
-private const val MAX_PATIENT_DOWNLOAD_PAGES = 500
+private const val MAX_PATIENT_DOWNLOAD_PAGES = 10_000
 private const val PATIENT_SEARCH_LIMIT = 20
 private const val PATIENT_SEARCH_ELEMENTS =
   "id,name,identifier,birthDate,gender,address,telecom,active"

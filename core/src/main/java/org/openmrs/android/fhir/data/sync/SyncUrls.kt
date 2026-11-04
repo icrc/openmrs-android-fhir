@@ -45,10 +45,23 @@ object SyncUrls {
   fun questionnaires(context: Context): String? =
     if (context.useEmbeddedFormsOnly()) null else "Questionnaire?_sort=_lastUpdated"
 
-  /** The patients of the selected patient lists; the lists are filled in when it is requested. */
-  fun patients(context: Context): String =
+  /**
+   * How many patients a page of [patients] holds. The server cannot page what it includes, so a
+   * page carries the whole history (encounters and observations) of each patient in it: a few
+   * patients make a page that arrives in seconds, is stored, and moves the sync forward, so a sync
+   * that is interrupted resumes after the last page instead of starting over. Without it the server
+   * answers its own default of 10, and the download of added patient lists asked for 50: pages of
+   * many megabytes that a phone on a real network could not receive before being cut.
+   */
+  const val PATIENT_PAGE_SIZE = 2
+
+  /** The search for [patients]; the lists are filled in when it is requested. */
+  internal const val PATIENT_SEARCH =
     "Patient?_has:Group:member:id=&_revinclude=Encounter:patient" +
-      "&_revinclude=Observation:patient&_sort=_lastUpdated"
+      "&_revinclude=Observation:patient&_sort=_lastUpdated&_count=$PATIENT_PAGE_SIZE"
+
+  /** The patients of the selected patient lists, a few per page. */
+  @Suppress("UNUSED_PARAMETER") fun patients(context: Context): String = PATIENT_SEARCH
 
   /** The patient lists, of [locationId] when the app is set to scope them to the location. */
   fun groups(context: Context, locationId: String?): String {

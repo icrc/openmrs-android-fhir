@@ -30,6 +30,7 @@ package org.openmrs.android.fhir.data.sync
 
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import org.junit.Test
 
 /**
@@ -38,6 +39,27 @@ import org.junit.Test
  */
 class TimestampUrlHelpersTest {
   private val ts = "2026-10-08T10:28:23.000+00:00"
+
+  @Test
+  fun savedLastUpdated_stepsBackASecondWhileThereAreMorePages() {
+    val newest = java.util.Date(1_762_272_000_000L)
+    assertEquals(
+      savedLastUpdated(java.util.Date(newest.time - 1_000L), hasNextPage = false),
+      savedLastUpdated(newest, hasNextPage = true),
+    )
+  }
+
+  @Test
+  fun savedLastUpdated_isExactOnTheLastPage() {
+    val newest = java.util.Date(1_762_272_000_000L)
+    assertEquals(
+      savedLastUpdated(newest, hasNextPage = false),
+      savedLastUpdated(java.util.Date(newest.time), hasNextPage = false),
+    )
+    assertTrue(
+      savedLastUpdated(newest, hasNextPage = false) != savedLastUpdated(newest, hasNextPage = true),
+    )
+  }
 
   @Test
   fun affix_appendsLastUpdatedToUrlWithQuery() {

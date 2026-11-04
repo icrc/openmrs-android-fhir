@@ -72,6 +72,7 @@ import org.openmrs.android.fhir.data.sync.FhirSyncWorker
 import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.data.sync.PatientListDownloader
 import org.openmrs.android.fhir.data.sync.SyncMode
+import org.openmrs.android.fhir.data.sync.SyncStopReason
 import org.openmrs.android.fhir.data.sync.UploadFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.UploadGate
 import org.openmrs.android.fhir.di.DaggerWorkerComponent
@@ -147,7 +148,15 @@ class SyncInfoDatabaseWriterWorker(
       dao.updateSyncSessionCompletionTime(session.id, LocalDateTime.now().format(formatter))
     }
     NotificationHelper.cancelSyncNotification(applicationContext)
-    AuditLog.record(AuditAction.SYNC, AuditOutcome.SUCCESS, "state" to "cancelled")
+    // Nobody may have asked for it: say why WorkManager stopped the sync.
+    val reason = SyncStopReason.describe(applicationContext, stopReason)
+    Timber.w("The sync was stopped (%s)", reason)
+    AuditLog.record(
+      AuditAction.SYNC,
+      AuditOutcome.SUCCESS,
+      "state" to "cancelled",
+      "stop_reason" to reason,
+    )
   }
 
   override suspend fun doWork(): Result {

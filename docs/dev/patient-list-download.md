@@ -11,7 +11,7 @@ patients of a list added later, which were on the server long before, would not 
    personal preferences by `UserRegistry`) and schedules `PatientListDownloader.schedule`: 1.5 s
    after the last tick, in an application scope (leaving the screen does not stop it).
 2. `ApiManager.downloadPatientsOfLists` asks for the patients of the remembered lists that are still
-   selected (`SyncUrls.patients` with the lists filled in, no timestamp, 50 per page, following
+   selected (`SyncUrls.patients` with the lists filled in, no timestamp, a few per page, following
    `next`), with their encounters and observations, and each page is stored the way a sync stores
    it (`syncDownload` with `AcceptLocalConflictResolver`: nothing is a local change, and what waits
    to upload is kept). Patient lists on screen reload as the pages arrive.
@@ -23,3 +23,15 @@ patients of a list added later, which were on the server long before, would not 
    downloads (not in an upload-only one).
 
 Read only: nothing is sent to the server.
+
+## Page size
+
+The server cannot page what it includes, so a page of `SyncUrls.patients` carries the whole history
+of every patient in it. The page is `SyncUrls.PATIENT_PAGE_SIZE` patients (the sync and this
+download share it): with the server's default of 10 for the sync (and 50 for this download) a page was many megabytes
+that a phone on a real network did not receive before being cut, and a sync interrupted before its first page restarted from the start for
+ever. Small pages arrive and are stored one by one, and the sync resumes after the last stored one.
+`TimestampBasedDownloadWorkManagerImpl` saves a page's `lastUpdated` only when it is asked for the
+next request, after that page is stored, so a cut cannot make the next sync skip it. While there are more pages it saves one second earlier
+(`savedLastUpdated`): the server keeps whole seconds and the next sync asks for what is *after* the
+saved time, so patients updated in the same second as the last of a page would be skipped.

@@ -58,6 +58,14 @@ class TimestampBasedDownloadWorkManagerImpl(
   private val resourceTypeList = ResourceType.entries.map { it.name }
   private val urls = LinkedList(loadUrls())
 
+  /**
+   * The newest `lastUpdated` of each type in the page just received. They are saved when the next
+   * request is asked for, which is after the sync has stored that page: saved sooner, a sync cut
+   * between receiving a page and storing it would skip those resources for good, because the next
+   * sync starts after the saved time.
+   */
+  private val pendingTimestamps = mutableMapOf<ResourceType, String>()
+
   private fun loadUrls(): List<String> {
     val selectedPatientLists = runBlocking {
       context.applicationContext.dataStore.data
@@ -71,6 +79,7 @@ class TimestampBasedDownloadWorkManagerImpl(
   }
 
   override suspend fun getNextRequest(): DownloadRequest? {
+    savePendingTimestamps()
     var url = urls.poll() ?: return null
 
     val resourceTypeCode = url.findAnyOf(resourceTypeList, ignoreCase = true)?.second
@@ -139,10 +148,9 @@ class TimestampBasedDownloadWorkManagerImpl(
     // Finally, extract the downloaded resources from the bundle.
     var bundleCollection: Collection<Resource> = mutableListOf()
     if (response is Bundle && response.type == Bundle.BundleType.SEARCHSET) {
+      val hasNextPage = response.link.any { it.relation == "next" }
       bundleCollection =
-        response.entry
-          .map { it.resource }
-          .also { extractAndSaveLastUpdateTimestampToFetchFutureUpdates(it) }
+        response.entry.map { it.resource }.also { rememberLastUpdateTimestamps(it, hasNextPage) }
     }
     return bundleCollection
   }
@@ -153,16 +161,21 @@ class TimestampBasedDownloadWorkManagerImpl(
    * example on questionnaires) is skipped instead of failing the whole page, and a type none of
    * whose resources has a timestamp keeps the one it had.
    */
-  private suspend fun extractAndSaveLastUpdateTimestampToFetchFutureUpdates(
-    resources: List<Resource>,
-  ) {
+  private fun rememberLastUpdateTimestamps(resources: List<Resource>, hasNextPage: Boolean) {
     resources
       .groupBy { it.resourceType }
       .entries
       .forEach { (resourceType, ofType) ->
         val newest = ofType.mapNotNull { it.meta?.lastUpdated }.maxOrNull() ?: return@forEach
-        dataStore.saveLastUpdatedTimestamp(resourceType, newest.toTimeZoneString())
+        pendingTimestamps[resourceType] = savedLastUpdated(newest, hasNextPage)
       }
+  }
+
+  private suspend fun savePendingTimestamps() {
+    pendingTimestamps.forEach { (resourceType, timestamp) ->
+      dataStore.saveLastUpdatedTimestamp(resourceType, timestamp)
+    }
+    pendingTimestamps.clear()
   }
 }
 
@@ -253,6 +266,18 @@ internal fun affixLastUpdatedTimestamp(url: String, lastUpdated: String): String
 
   return downloadUrl
 }
+
+/**
+ * The time to save after a page whose newest resource was updated at [newest]. The server keeps
+ * whole seconds, and the next sync asks for what is *after* the saved time, so a download that
+ * stopped between two pages would skip the resources of the next page that were updated in the same
+ * second as the last one of this page. While there are more pages the time is one second earlier,
+ * which only downloads a few resources twice; the last page saves the exact time.
+ */
+internal fun savedLastUpdated(newest: Date, hasNextPage: Boolean): String =
+  Date(if (hasNextPage) newest.time - MILLIS_PER_SECOND else newest.time).toTimeZoneString()
+
+private const val MILLIS_PER_SECOND = 1_000L
 
 private fun Date.toTimeZoneString(): String {
   val simpleDateFormat =
