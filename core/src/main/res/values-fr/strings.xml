@@ -1519,12 +1519,20 @@
         name="offline_login_unavailable_status"
     >La connexion hors ligne est activée, mais cet appareil n\'a plus d\'empreinte, de visage ni de verrouillage d\'écran. Configurez-en un, ou désactivez la connexion hors ligne.</string>
     <string name="offline_login_title">Connexion hors ligne</string>
-    <string name="offline_login_description">Déverrouillez l\'application sur cet appareil avec votre empreinte, votre visage ou le verrouillage d\'écran, même sans connexion.</string>
+    <string
+        name="offline_login_description"
+    >Déverrouillez l\'application sur cet appareil avec votre empreinte, votre visage ou le verrouillage d\'écran, même sans connexion.</string>
     <string name="offline_login_on_done">Connexion hors ligne activée.</string>
-    <string name="offline_login_off_title">Désactiver la connexion hors ligne ?</string>
-    <string name="offline_login_off_message">La connexion hors ligne enregistrée est supprimée. Tant que vous ne la réactivez pas, la connexion nécessite un accès au serveur.</string>
+    <string
+        name="offline_login_off_title"
+    >Désactiver la connexion hors ligne ?</string>
+    <string
+        name="offline_login_off_message"
+    >La connexion hors ligne enregistrée est supprimée. Tant que vous ne la réactivez pas, la connexion nécessite un accès au serveur.</string>
     <string name="offline_login_off_button">Désactiver</string>
-    <string name="offline_login_off_done">Connexion hors ligne désactivée.</string>
+    <string
+        name="offline_login_off_done"
+    >Connexion hors ligne désactivée.</string>
     <string name="app_lock_delay">Redemander après</string>
     <string
         name="app_lock_delay_description"

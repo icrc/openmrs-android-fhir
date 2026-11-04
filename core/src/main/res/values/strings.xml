@@ -1385,10 +1385,14 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
         name="offline_login_unavailable_status"
     >Offline login is on, but this device has no fingerprint, face or screen lock any more. Set one up, or turn offline login off.</string>
     <string name="offline_login_title">Offline login</string>
-    <string name="offline_login_description">Unlock the app on this device with your fingerprint, face or screen lock, even without a connection.</string>
+    <string
+        name="offline_login_description"
+    >Unlock the app on this device with your fingerprint, face or screen lock, even without a connection.</string>
     <string name="offline_login_on_done">Offline login is on.</string>
     <string name="offline_login_off_title">Turn off offline login?</string>
-    <string name="offline_login_off_message">The saved offline login is removed. Until you turn it on again, signing in needs a connection to the server.</string>
+    <string
+        name="offline_login_off_message"
+    >The saved offline login is removed. Until you turn it on again, signing in needs a connection to the server.</string>
     <string name="offline_login_off_button">Turn off</string>
     <string name="offline_login_off_done">Offline login is off.</string>
     <string name="app_lock_delay">Ask again after</string>

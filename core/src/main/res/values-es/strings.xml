@@ -1489,12 +1489,20 @@
         name="offline_login_unavailable_status"
     >El inicio de sesión sin conexión está activado, pero este dispositivo ya no tiene huella, rostro ni bloqueo de pantalla. Configure uno, o desactive el acceso sin conexión.</string>
     <string name="offline_login_title">Acceso sin conexión</string>
-    <string name="offline_login_description">Desbloquee la aplicación en este dispositivo con su huella, su rostro o el bloqueo de pantalla, incluso sin conexión.</string>
+    <string
+        name="offline_login_description"
+    >Desbloquee la aplicación en este dispositivo con su huella, su rostro o el bloqueo de pantalla, incluso sin conexión.</string>
     <string name="offline_login_on_done">Acceso sin conexión activado.</string>
-    <string name="offline_login_off_title">¿Desactivar el acceso sin conexión?</string>
-    <string name="offline_login_off_message">Se elimina el acceso sin conexión guardado. Hasta que lo vuelva a activar, iniciar sesión requiere conexión con el servidor.</string>
+    <string
+        name="offline_login_off_title"
+    >¿Desactivar el acceso sin conexión?</string>
+    <string
+        name="offline_login_off_message"
+    >Se elimina el acceso sin conexión guardado. Hasta que lo vuelva a activar, iniciar sesión requiere conexión con el servidor.</string>
     <string name="offline_login_off_button">Desactivar</string>
-    <string name="offline_login_off_done">Acceso sin conexión desactivado.</string>
+    <string
+        name="offline_login_off_done"
+    >Acceso sin conexión desactivado.</string>
     <string name="app_lock_delay">Volver a pedir tras</string>
     <string
         name="app_lock_delay_description"

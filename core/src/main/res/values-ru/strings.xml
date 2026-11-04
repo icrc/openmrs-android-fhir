@@ -1480,10 +1480,14 @@
         name="offline_login_unavailable_status"
     >Автономный вход включён, но на устройстве больше нет отпечатка, лица или блокировки экрана. Настройте их или отключите автономный вход.</string>
     <string name="offline_login_title">Автономный вход</string>
-    <string name="offline_login_description">Разблокируйте приложение на этом устройстве отпечатком пальца, лицом или блокировкой экрана, даже без подключения.</string>
+    <string
+        name="offline_login_description"
+    >Разблокируйте приложение на этом устройстве отпечатком пальца, лицом или блокировкой экрана, даже без подключения.</string>
     <string name="offline_login_on_done">Автономный вход включён.</string>
     <string name="offline_login_off_title">Отключить автономный вход?</string>
-    <string name="offline_login_off_message">Сохранённый автономный вход удаляется. Пока вы не включите его снова, для входа нужно подключение к серверу.</string>
+    <string
+        name="offline_login_off_message"
+    >Сохранённый автономный вход удаляется. Пока вы не включите его снова, для входа нужно подключение к серверу.</string>
     <string name="offline_login_off_button">Отключить</string>
     <string name="offline_login_off_done">Автономный вход отключён.</string>
     <string name="app_lock_delay">Спрашивать снова через</string>
