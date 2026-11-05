@@ -31,6 +31,7 @@ package org.openmrs.android.fhir.worker
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import androidx.annotation.RequiresPermission
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -149,7 +150,10 @@ class SyncInfoDatabaseWriterWorker(
     }
     NotificationHelper.cancelSyncNotification(applicationContext)
     // Nobody may have asked for it: say why WorkManager stopped the sync.
-    val reason = SyncStopReason.describe(applicationContext, stopReason)
+    // The worker's own reason exists from Android 12; the SDK workers' are read from their work
+    // info.
+    val own = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) stopReason else null
+    val reason = SyncStopReason.describe(applicationContext, own)
     Timber.w("The sync was stopped (%s)", reason)
     AuditLog.record(
       AuditAction.SYNC,
