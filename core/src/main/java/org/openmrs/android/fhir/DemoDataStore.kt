@@ -34,6 +34,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.android.fhir.sync.DownloadWorkManager
 import java.time.OffsetDateTime
@@ -59,6 +60,51 @@ class DemoDataStore(private val context: Context) {
 
   suspend fun saveLastUpdatedTimestamp(resourceType: ResourceType, timestamp: String) {
     context.dataStorage.edit { pref -> pref[stringPreferencesKey(resourceType.name)] = timestamp }
+  }
+
+  /**
+   * The patients whose data (the patient, encounters, observations) was downloaded, and up to when.
+   */
+  suspend fun patientHistoryDone(): Map<String, String> =
+    context.dataStorage.data.first()[stringSetPreferencesKey(HISTORY_DONE)].orEmpty().associate {
+      it.substringBefore('|') to it.substringAfter('|')
+    }
+
+  suspend fun markPatientHistoryDone(ids: Collection<String>, upTo: String) {
+    val marked = ids.toSet()
+    context.dataStorage.edit { pref ->
+      val key = stringSetPreferencesKey(HISTORY_DONE)
+      pref[key] =
+        pref[key].orEmpty().filterNot { it.substringBefore('|') in marked }.toSet() +
+          marked.map { "$it|$upTo" }
+    }
+  }
+
+  /**
+   * These patients get all of their data again at the next download. How far the batches got is
+   * forgotten too: it is named by the patients of a batch, and is of no use to the others.
+   */
+  suspend fun forgetPatientHistory(ids: Collection<String>) {
+    val forgotten = ids.toSet()
+    context.dataStorage.edit { pref ->
+      val key = stringSetPreferencesKey(HISTORY_DONE)
+      pref[key] = pref[key].orEmpty().filterNot { it.substringBefore('|') in forgotten }.toSet()
+      pref.asMap().keys.filter { it.name.startsWith(HISTORY_PROGRESS) }.forEach { pref.remove(it) }
+    }
+  }
+
+  /** How far the data of a batch of patients got (see [HISTORY_PROGRESS]). */
+  suspend fun historyProgress(key: String): String? =
+    context.dataStorage.data.first()[stringPreferencesKey(HISTORY_PROGRESS + key)]
+
+  suspend fun saveHistoryProgress(key: String, value: String) {
+    context.dataStorage.edit { pref -> pref[stringPreferencesKey(HISTORY_PROGRESS + key)] = value }
+  }
+
+  suspend fun clearHistoryProgress(keys: Collection<String>) {
+    context.dataStorage.edit { pref ->
+      keys.forEach { pref.remove(stringPreferencesKey(HISTORY_PROGRESS + it)) }
+    }
   }
 
   /** The next download of these types starts from the beginning again. */
@@ -265,6 +311,8 @@ class DemoDataStore(private val context: Context) {
     const val AUTOMATIC_VISITS = "automatic-visits"
     const val KEEP_LIVE_PATIENTS = "keep-live-patients"
     const val LAST_FULL_SYNC = "last-full-sync"
+    private const val HISTORY_DONE = "patient-history-done"
+    private const val HISTORY_PROGRESS = "history-progress-"
     const val FAVORITE_FORMS = "favorite-forms"
     const val CUSTOM_FORM_SECTIONS = "custom-form-sections"
     private const val FAVORITE_FORMS_SEPARATOR = ","

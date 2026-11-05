@@ -29,6 +29,7 @@
 package org.openmrs.android.fhir.data.sync
 
 import android.content.Context
+import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.forms.useEmbeddedFormsOnly
 
@@ -45,23 +46,54 @@ object SyncUrls {
   fun questionnaires(context: Context): String? =
     if (context.useEmbeddedFormsOnly()) null else "Questionnaire?_sort=_lastUpdated"
 
+  /** Patients per page of the search for their ids (nothing but the id comes back). */
+  const val PATIENT_IDS_PAGE_SIZE = 200
+
   /**
-   * How many patients a page of [patients] holds. The server cannot page what it includes, so a
-   * page carries the whole history (encounters and observations) of each patient in it: a few
-   * patients make a page that arrives in seconds, is stored, and moves the sync forward, so a sync
-   * that is interrupted resumes after the last page instead of starting over. Without it the server
-   * answers its own default of 10, and the download of added patient lists asked for 50: pages of
-   * many megabytes that a phone on a real network could not receive before being cut.
+   * Patients whose data is asked for together, and resources per page of that. The server cannot
+   * page what a search includes, so asking for the patients with their history made one response of
+   * the whole history of each (on a real server a page of ten patients was almost 2 MB and took 25
+   * s to build, and a phone cut it); with these, no response has more than [HISTORY_PAGE_SIZE]
+   * resources whatever the history, and a batch is small enough to be done between two cuts.
    */
-  const val PATIENT_PAGE_SIZE = 2
+  const val HISTORY_BATCH_SIZE = 10
+  const val HISTORY_PAGE_SIZE = 50
 
-  /** The search for [patients]; the lists are filled in when it is requested. */
-  internal const val PATIENT_SEARCH =
-    "Patient?_has:Group:member:id=&_revinclude=Encounter:patient" +
-      "&_revinclude=Observation:patient&_sort=_lastUpdated&_count=$PATIENT_PAGE_SIZE"
+  /** Patients per batch when only what changed is asked for: there is little to fetch. */
+  const val KNOWN_BATCH_SIZE = 40
 
-  /** The patients of the selected patient lists, a few per page. */
-  @Suppress("UNUSED_PARAMETER") fun patients(context: Context): String = PATIENT_SEARCH
+  /**
+   * Lists in one search. Selecting every list of a server (150 on one) made a URL of 5.6 KB, which
+   * a proxy or a server may refuse; the searches are split in groups of this many.
+   */
+  const val LISTS_PER_SEARCH = 40
+
+  internal const val PATIENT_IDS_SEARCH =
+    "Patient?_has:Group:member:id=&_elements=id&_count=$PATIENT_IDS_PAGE_SIZE"
+
+  /** The searches for the ids of the patients of [lists], [LISTS_PER_SEARCH] lists in each. */
+  fun patientIdSearches(lists: Collection<String>): List<String> =
+    lists.sorted().chunked(LISTS_PER_SEARCH).mapNotNull {
+      applyPatientListScope(PATIENT_IDS_SEARCH, it.toSet())
+    }
+
+  /**
+   * The patients, their encounters or their observations, for [patientIds], a page of
+   * [HISTORY_PAGE_SIZE], oldest change first. With [since], only what changed after it
+   * ([inclusive]: at or after it, to go on from the last resource stored without missing those
+   * changed in the same second).
+   */
+  fun history(
+    type: ResourceType,
+    patientIds: List<String>,
+    since: String? = null,
+    inclusive: Boolean = false,
+  ): String {
+    val by = if (type == ResourceType.Patient) "_id" else "patient"
+    return "${type.name}?$by=${patientIds.joinToString(",")}&_count=$HISTORY_PAGE_SIZE" +
+      "&_sort=_lastUpdated" +
+      (since?.let { "&_lastUpdated=${if (inclusive) "ge" else "gt"}$it" } ?: "")
+  }
 
   /** The patient lists, of [locationId] when the app is set to scope them to the location. */
   fun groups(context: Context, locationId: String?): String {
@@ -78,7 +110,7 @@ object SyncUrls {
   fun firstSync(context: Context): List<String> =
     listOfNotNull(location(context), questionnaires(context))
 
-  /** What every later sync fetches. */
+  /** What every later sync fetches besides the patients, which the lists chosen decide. */
   fun periodic(context: Context): List<String> =
-    listOfNotNull(location(context), questionnaires(context), patients(context))
+    listOfNotNull(location(context), questionnaires(context))
 }

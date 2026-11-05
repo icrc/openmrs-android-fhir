@@ -30,152 +30,35 @@ package org.openmrs.android.fhir.data.sync
 
 import android.content.Context
 import com.google.android.fhir.sync.DownloadWorkManager
-import com.google.android.fhir.sync.SyncDataParams
-import com.google.android.fhir.sync.download.DownloadRequest
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Date
-import java.util.LinkedList
-import java.util.Locale
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import org.hl7.fhir.exceptions.FHIRException
-import org.hl7.fhir.r4.model.Bundle
-import org.hl7.fhir.r4.model.ListResource
-import org.hl7.fhir.r4.model.OperationOutcome
-import org.hl7.fhir.r4.model.Reference
-import org.hl7.fhir.r4.model.Resource
-import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
-import timber.log.Timber
 
-class TimestampBasedDownloadWorkManagerImpl(
-  private val dataStore: DemoDataStore,
-  private val context: Context,
-) : DownloadWorkManager {
-  private val resourceTypeList = ResourceType.entries.map { it.name }
-  private val urls = LinkedList(loadUrls())
+/**
+ * What the sync downloads: locations, forms, and the patients of the selected patient lists with
+ * their encounters and observations, in small pieces ([PatientDownloadWorkManager]).
+ */
+class TimestampBasedDownloadWorkManagerImpl
+private constructor(private val manager: PatientDownloadWorkManager) :
+  DownloadWorkManager by manager {
 
-  /**
-   * The newest `lastUpdated` of each type in the page just received. They are saved when the next
-   * request is asked for, which is after the sync has stored that page: saved sooner, a sync cut
-   * between receiving a page and storing it would skip those resources for good, because the next
-   * sync starts after the saved time.
-   */
-  private val pendingTimestamps = mutableMapOf<ResourceType, String>()
+  constructor(dataStore: DemoDataStore, context: Context) : this(create(dataStore, context))
 
-  private fun loadUrls(): List<String> {
-    val selectedPatientLists = runBlocking {
-      context.applicationContext.dataStore.data
-        .first()[PreferenceKeys.Companion.SELECTED_PATIENT_LISTS]
-    }
-    return SyncUrls.periodic(context).mapNotNull { url ->
-      applyPatientListScope(url, selectedPatientLists).also {
-        if (it == null) Timber.w("No patient list selected, skipping patient data: %s", url)
+  private companion object {
+    fun create(dataStore: DemoDataStore, context: Context): PatientDownloadWorkManager {
+      val lists = runBlocking {
+        context.applicationContext.dataStore.data
+          .first()[PreferenceKeys.Companion.SELECTED_PATIENT_LISTS]
+          .orEmpty()
       }
+      return PatientDownloadWorkManager(
+        searches = SyncUrls.periodic(context),
+        idSearches = SyncUrls.patientIdSearches(lists),
+        store = DemoSyncProgressStore(dataStore),
+      )
     }
-  }
-
-  override suspend fun getNextRequest(): DownloadRequest? {
-    savePendingTimestamps()
-    var url = urls.poll() ?: return null
-
-    val resourceTypeCode = url.findAnyOf(resourceTypeList, ignoreCase = true)?.second
-    if (resourceTypeCode == null) {
-      Timber.w("No known resource type in the sync url, skipped: %s", url)
-      return getNextRequest()
-    }
-    val resourceTypeToDownload = ResourceType.fromCode(resourceTypeCode)
-    dataStore.getLasUpdateTimestamp(resourceTypeToDownload)?.let {
-      url = affixLastUpdatedTimestamp(url, it)
-    }
-    return DownloadRequest.Companion.of(url)
-  }
-
-  override suspend fun getSummaryRequestUrls(): Map<ResourceType, String> {
-    return urls.associate { url ->
-      val resourceType = ResourceType.fromCode(url.substringBefore("?"))
-      val lastUpdated = dataStore.getLasUpdateTimestamp(resourceType)
-
-      var baseUrl =
-        if (lastUpdated.isNullOrEmpty()) {
-          url
-        } else {
-          affixLastUpdatedTimestamp(url, lastUpdated)
-        }
-
-      baseUrl = removeSummaryParameter(baseUrl)
-
-      val summaryUrl =
-        baseUrl + "&${SyncDataParams.SUMMARY_KEY}=${SyncDataParams.SUMMARY_COUNT_VALUE}"
-
-      resourceType to summaryUrl
-    }
-  }
-
-  override suspend fun processResponse(response: Resource): Collection<Resource> {
-    // As per FHIR documentation :
-    // If the search fails (cannot be executed, not that there are no matches), the
-    // return value SHALL be a status code 4xx or 5xx with an OperationOutcome.
-    // See https://www.hl7.org/fhir/http.html#search for more details.
-    if (response is OperationOutcome) {
-      throw FHIRException(response.issueFirstRep.diagnostics)
-    }
-
-    // If the resource returned is a List containing Patients, extract Patient references and fetch
-    // all resources related to the patient using the $everything operation.
-    if (response is ListResource) {
-      for (entry in response.entry) {
-        val reference = Reference(entry.item.reference)
-        if (reference.referenceElement.resourceType == "Patient") {
-          val patientUrl = "${entry.item.reference}/\$everything"
-          urls.add(patientUrl)
-        }
-      }
-    }
-
-    // If the resource returned is a Bundle, check to see if there is a "next" relation referenced
-    // in the Bundle.link component, if so, append the URL referenced to list of URLs to download.
-    if (response is Bundle) {
-      val nextUrl = response.link.firstOrNull { component -> component.relation == "next" }?.url
-      if (nextUrl != null) {
-        urls.add(nextUrl)
-      }
-    }
-
-    // Finally, extract the downloaded resources from the bundle.
-    var bundleCollection: Collection<Resource> = mutableListOf()
-    if (response is Bundle && response.type == Bundle.BundleType.SEARCHSET) {
-      val hasNextPage = response.link.any { it.relation == "next" }
-      bundleCollection =
-        response.entry.map { it.resource }.also { rememberLastUpdateTimestamps(it, hasNextPage) }
-    }
-    return bundleCollection
-  }
-
-  /**
-   * Remembers, per resource type, the newest `meta.lastUpdated` that came in, so the next sync only
-   * asks for what changed since. A resource without one (the server does not always set it, for
-   * example on questionnaires) is skipped instead of failing the whole page, and a type none of
-   * whose resources has a timestamp keeps the one it had.
-   */
-  private fun rememberLastUpdateTimestamps(resources: List<Resource>, hasNextPage: Boolean) {
-    resources
-      .groupBy { it.resourceType }
-      .entries
-      .forEach { (resourceType, ofType) ->
-        val newest = ofType.mapNotNull { it.meta?.lastUpdated }.maxOrNull() ?: return@forEach
-        pendingTimestamps[resourceType] = savedLastUpdated(newest, hasNextPage)
-      }
-  }
-
-  private suspend fun savePendingTimestamps() {
-    pendingTimestamps.forEach { (resourceType, timestamp) ->
-      dataStore.saveLastUpdatedTimestamp(resourceType, timestamp)
-    }
-    pendingTimestamps.clear()
   }
 }
 
@@ -265,25 +148,6 @@ internal fun affixLastUpdatedTimestamp(url: String, lastUpdated: String): String
   }
 
   return downloadUrl
-}
-
-/**
- * The time to save after a page whose newest resource was updated at [newest]. The server keeps
- * whole seconds, and the next sync asks for what is *after* the saved time, so a download that
- * stopped between two pages would skip the resources of the next page that were updated in the same
- * second as the last one of this page. While there are more pages the time is one second earlier,
- * which only downloads a few resources twice; the last page saves the exact time.
- */
-internal fun savedLastUpdated(newest: Date, hasNextPage: Boolean): String =
-  Date(if (hasNextPage) newest.time - MILLIS_PER_SECOND else newest.time).toTimeZoneString()
-
-private const val MILLIS_PER_SECOND = 1_000L
-
-private fun Date.toTimeZoneString(): String {
-  val simpleDateFormat =
-    DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.getDefault())
-      .withZone(ZoneId.systemDefault())
-  return simpleDateFormat.format(this.toInstant())
 }
 
 internal fun removeSummaryParameter(url: String): String {

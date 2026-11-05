@@ -30,36 +30,57 @@ package org.openmrs.android.fhir.data.sync
 
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.hl7.fhir.r4.model.ResourceType
 import org.junit.Test
 
 class SyncUrlsTest {
 
   @Test
-  fun patients_askForAFewPatientsPerPage() {
-    assertTrue(SyncUrls.PATIENT_SEARCH.contains("&_count=${SyncUrls.PATIENT_PAGE_SIZE}"))
-    assertTrue(SyncUrls.PATIENT_PAGE_SIZE in 1..5)
-  }
-
-  @Test
-  fun patients_stillIncludeTheEncountersAndObservations() {
-    assertTrue(SyncUrls.PATIENT_SEARCH.contains("_revinclude=Encounter:patient"))
-    assertTrue(SyncUrls.PATIENT_SEARCH.contains("_revinclude=Observation:patient"))
-  }
-
-  @Test
-  fun patientLists_arePutInWithoutLosingThePageSize() {
-    val url = applyPatientListScope(SyncUrls.PATIENT_SEARCH, setOf("a", "b"))
+  fun history_asksForAPageOfTheDataOfSomePatients() {
     assertEquals(
-      "Patient?_has:Group:member:id=a,b&_revinclude=Encounter:patient" +
-        "&_revinclude=Observation:patient&_sort=_lastUpdated&_count=${SyncUrls.PATIENT_PAGE_SIZE}",
-      url,
+      "Encounter?patient=a,b&_count=${SyncUrls.HISTORY_PAGE_SIZE}&_sort=_lastUpdated",
+      SyncUrls.history(ResourceType.Encounter, listOf("a", "b")),
+    )
+    assertEquals(
+      "Patient?_id=a,b&_count=${SyncUrls.HISTORY_PAGE_SIZE}&_sort=_lastUpdated",
+      SyncUrls.history(ResourceType.Patient, listOf("a", "b")),
     )
   }
 
   @Test
-  fun lastUpdated_isAddedAfterThePageSize() {
-    val url = affixLastUpdatedTimestamp(SyncUrls.PATIENT_SEARCH, "2026-11-04T16:00:00.000+00:00")
-    assertTrue(url.contains("&_count=${SyncUrls.PATIENT_PAGE_SIZE}"))
-    assertTrue(url.endsWith("_lastUpdated=gt2026-11-04T16:00:00.000+00:00"))
+  fun history_sinceIsAfterOrAtTheTimeAsAsked() {
+    val after = SyncUrls.history(ResourceType.Observation, listOf("a"), "2026-11-05T10:00:00Z")
+    val atOrAfter =
+      SyncUrls.history(
+        ResourceType.Observation,
+        listOf("a"),
+        "2026-11-05T10:00:00Z",
+        inclusive = true,
+      )
+    assertTrue(after.endsWith("&_lastUpdated=gt2026-11-05T10:00:00Z"))
+    assertTrue(atOrAfter.endsWith("&_lastUpdated=ge2026-11-05T10:00:00Z"))
+  }
+
+  @Test
+  fun pagesAndBatchesAreSmall() {
+    assertTrue(SyncUrls.HISTORY_PAGE_SIZE in 1..100)
+    assertTrue(SyncUrls.HISTORY_BATCH_SIZE in 1..25)
+    // The ids of a batch make a short URL.
+    val ids = List(SyncUrls.KNOWN_BATCH_SIZE) { "a1b2c3d4-0000-4000-8000-%012d".format(it) }
+    assertTrue(SyncUrls.history(ResourceType.Observation, ids).length < 2_000)
+  }
+
+  @Test
+  fun idSearches_keepOnlyTheIdsAndTheListsAreFilledIn() {
+    val search = SyncUrls.patientIdSearches(listOf("b", "a")).single()
+    assertEquals(
+      "Patient?_has:Group:member:id=a,b&_elements=id&_count=${SyncUrls.PATIENT_IDS_PAGE_SIZE}",
+      search,
+    )
+  }
+
+  @Test
+  fun idSearches_areNoneWithoutLists() {
+    assertTrue(SyncUrls.patientIdSearches(emptyList()).isEmpty())
   }
 }
