@@ -592,6 +592,7 @@
     <string
         name="reopen_visit_blocked"
     >توجد زيارة أخرى مفتوحة. أنهِها أولاً.</string>
+    <string name="patient_refresh_failed">تعذّر الوصول إلى الخادم. يتم عرض البيانات الموجودة على هذا الجهاز.</string>
     <string name="no_open_visit_title">لا توجد زيارة مفتوحة</string>
     <string
         name="no_open_visit_message"
@@ -712,7 +713,7 @@
     <string name="help_details_overview_title">المريض</string>
     <string
         name="help_details_overview_body"
-    >الاسم والمعرّفات والعمر وبيانات الاتصال. القلم يعدّل التسجيل ويمكن الضغط على رقم الهاتف للاتصال.</string>
+    >الاسم والمعرّفات والعمر وبيانات الاتصال. القلم يعدّل التسجيل ويمكن الضغط على رقم الهاتف للاتصال. اسحب الصفحة للأسفل لإعادة قراءة السجل من الخادم.</string>
     <string name="help_details_encounters_title">الزيارات واللقاءات</string>
     <string
         name="help_details_encounters_body"

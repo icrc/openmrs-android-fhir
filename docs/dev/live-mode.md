@@ -53,6 +53,10 @@ the device.
   ordinary patient, offline too. Its id is kept in `PreferenceKeys.LIVE_PATIENT_IDS` so the list shows
   it although it is in none of the selected patient lists.
 * Opening any patient re-reads the record in the background (once per 30 s per patient).
+* **Pull to refresh** on the patient's page (`PatientDetailsViewModel.refresh`) reads the record again
+  at once, whether live mode is on or not (it is not limited by the 30 s). It does nothing but reload
+  the device's data for a guest session, for a patient created on the device and not sent yet, and
+  offline (a message says the server could not be reached). What waits for upload is kept.
 * The app searches instead of downloading because the server holds far more patients than a device
   should.
 

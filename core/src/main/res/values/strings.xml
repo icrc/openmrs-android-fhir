@@ -624,6 +624,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="reopen_visit_blocked"
     >Another visit is already open. End it first.</string>
+    <string name="patient_refresh_failed">Could not reach the server. Showing the data on this device.</string>
     <string name="no_open_visit_title">No open visit</string>
     <string
         name="no_open_visit_message"
@@ -748,7 +749,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="help_details_overview_title">The patient</string>
     <string
         name="help_details_overview_body"
-    >Name, identifiers, age and contact details. The pencil edits the registration, and a phone number can be tapped to call.</string>
+    >Name, identifiers, age and contact details. The pencil edits the registration, and a phone number can be tapped to call. Pull the page down to read the record again from the server.</string>
     <string name="help_details_encounters_title">Visits and encounters</string>
     <string
         name="help_details_encounters_body"

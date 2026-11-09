@@ -36,6 +36,7 @@ import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.LocalChange
 import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
 import dagger.assisted.Assisted
@@ -46,6 +47,11 @@ import java.util.Locale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -65,6 +71,7 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PatientVisits
@@ -136,15 +143,78 @@ constructor(
   private suspend fun refreshFromServer() {
     try {
       if (!LiveSync.isEnabled(applicationContext) || LivePatients.isFresh(patientId)) return
-      withTimeout(REFRESH_TIMEOUT_MILLIS) {
-        withContext(ioDispatcher) { live.download(patientId, remember = false) }
+      if (downloadFromServer() == ServerRead.Done && livePatientData.value != null) {
+        getPatientDetailData()
       }
-      if (livePatientData.value != null) getPatientDetailData()
     } catch (e: CancellationException) {
       throw e
     } catch (e: Exception) {
-      // Offline, or a patient the server does not know yet: the device's copy is what is shown.
       Timber.d(e, "The patient was not refreshed from the server")
+    }
+  }
+
+  private enum class ServerRead {
+    /** The record was read and stored. */
+    Done,
+
+    /** Nothing to ask: a guest session, or a patient the server does not know yet. */
+    NotNeeded,
+
+    /** Offline, or the server did not answer: the device's copy is what is shown. */
+    Failed,
+  }
+
+  /**
+   * Reads the patient's record again from the server and stores it; what waits for upload on the
+   * device wins over it. Used whatever the mode: opening the page in live mode, and the pull to
+   * refresh.
+   */
+  private suspend fun downloadFromServer(): ServerRead {
+    if (GuestSession.isActive(applicationContext)) return ServerRead.NotNeeded
+    // Created on this device and not sent yet: the server has nothing to give.
+    val notSentYet =
+      fhirEngine.getLocalChanges(ResourceType.Patient, patientId).any {
+        it.type == LocalChange.Type.INSERT
+      }
+    if (notSentYet) return ServerRead.NotNeeded
+    return try {
+      withTimeout(REFRESH_TIMEOUT_MILLIS) {
+        withContext(ioDispatcher) { live.download(patientId, remember = false) }
+      }
+      ServerRead.Done
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      Timber.d(e, "The patient was not read from the server")
+      ServerRead.Failed
+    }
+  }
+
+  private val _isRefreshing = MutableStateFlow(false)
+
+  /** The pull to refresh is running. */
+  val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+  private val _refreshFailed = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+  /** Emits when a pull to refresh could not reach the server (the device's data is shown). */
+  val refreshFailed: SharedFlow<Unit> = _refreshFailed
+
+  /**
+   * The pull to refresh: reads the record from the server again (live mode or not; offline it only
+   * reloads what the device holds) and rebuilds the page.
+   */
+  fun refresh() {
+    if (_isRefreshing.value) return
+    _isRefreshing.value = true
+    viewModelScope.launch {
+      try {
+        val result = downloadFromServer()
+        livePatientData.value = getPatientDetailDataModel()
+        if (result == ServerRead.Failed) _refreshFailed.tryEmit(Unit)
+      } finally {
+        _isRefreshing.value = false
+      }
     }
   }
 

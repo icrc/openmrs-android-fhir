@@ -666,6 +666,7 @@
     <string
         name="reopen_visit_blocked"
     >Ya hay otra visita abierta. Finalícela primero.</string>
+    <string name="patient_refresh_failed">No se pudo contactar con el servidor. Se muestran los datos de este dispositivo.</string>
     <string name="no_open_visit_title">Ninguna visita abierta</string>
     <string
         name="no_open_visit_message"
@@ -802,7 +803,7 @@
     <string name="help_details_overview_title">El paciente</string>
     <string
         name="help_details_overview_body"
-    >Nombre, identificadores, edad y datos de contacto. El lápiz edita el registro y se puede tocar un teléfono para llamar.</string>
+    >Nombre, identificadores, edad y datos de contacto. El lápiz edita el registro y se puede tocar un teléfono para llamar. Desliza la página hacia abajo para volver a leer el registro del servidor.</string>
     <string name="help_details_encounters_title">Visitas y encuentros</string>
     <string
         name="help_details_encounters_body"

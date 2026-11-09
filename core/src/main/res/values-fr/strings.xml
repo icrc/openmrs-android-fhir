@@ -694,6 +694,7 @@
     <string
         name="reopen_visit_blocked"
     >Une autre visite est déjà ouverte. Terminez-la d\'abord.</string>
+    <string name="patient_refresh_failed">Le serveur est injoignable. Les données de cet appareil sont affichées.</string>
     <string name="no_open_visit_title">Aucune visite ouverte</string>
     <string
         name="no_open_visit_message"
@@ -826,7 +827,7 @@
     <string name="help_details_overview_title">Le patient</string>
     <string
         name="help_details_overview_body"
-    >Nom, identifiants, âge et coordonnées. Le crayon modifie l\'enregistrement et un numéro de téléphone peut être touché pour appeler.</string>
+    >Nom, identifiants, âge et coordonnées. Le crayon modifie l\'enregistrement et un numéro de téléphone peut être touché pour appeler. Tirez la page vers le bas pour relire le dossier depuis le serveur.</string>
     <string name="help_details_encounters_title">Visites et rencontres</string>
     <string
         name="help_details_encounters_body"
