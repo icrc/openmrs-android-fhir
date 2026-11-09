@@ -82,6 +82,9 @@ import org.openmrs.android.fhir.viewmodel.SettingsUiState
 object SettingsDefaults {
   val TokenDelayOptions = listOf(1, 2, 4, 5, 10)
   val PeriodicSyncDelayOptions = listOf(5, 10, 15, 20, 30, 60)
+
+  /** How many recent patients the Patients screen lists; 0 turns the section off. */
+  val RecentPatientsOptions = listOf(0, 5, 10, 15, 20)
 }
 
 object SettingsTestTags {
@@ -94,6 +97,7 @@ object SettingsTestTags {
   const val LiveModeSwitch = "SettingsLiveModeSwitch"
   const val KeepLivePatientsSwitch = "SettingsKeepLivePatientsSwitch"
   const val AutomaticVisitsSwitch = "SettingsAutomaticVisitsSwitch"
+  const val RecentPatientsField = "SettingsRecentPatientsField"
   const val ShareMyDataSwitch = "SettingsShareMyDataSwitch"
   const val ChangeServerButton = "SettingsChangeServerButton"
   const val RememberLocationSwitch = "SettingsRememberLocationSwitch"
@@ -175,6 +179,7 @@ fun SettingsScreen(
   onLiveModeToggle: (Boolean) -> Unit = {},
   onKeepLivePatientsToggle: (Boolean) -> Unit = {},
   onAutomaticVisitsToggle: (Boolean) -> Unit = {},
+  onRecentPatientsLimitSelected: (Int) -> Unit = {},
   onShareMyDataToggle: (Boolean) -> Unit = {},
   onRememberLocationToggle: (Boolean) -> Unit = {},
   /** Called with the new server (`null`: the build's default) once the user confirmed. */
@@ -369,6 +374,25 @@ fun SettingsScreen(
             checked = uiState.automaticVisits,
             onCheckedChange = onAutomaticVisitsToggle,
             testTag = SettingsTestTags.AutomaticVisitsSwitch,
+          )
+        }
+
+        val recentPatientsOff = stringResource(R.string.settings_recent_patients_off)
+        SettingsSection(
+          title = stringResource(R.string.settings_section_patients),
+          tutorialKey = TutorialTargets.SETTINGS_PATIENTS,
+          searchText =
+            stringResource(R.string.help_settings_patients_body) +
+              " " +
+              stringResource(R.string.settings_recent_patients),
+        ) {
+          SettingsDropdown(
+            label = stringResource(R.string.settings_recent_patients),
+            selectedValue = uiState.recentPatientsLimit,
+            options = SettingsDefaults.RecentPatientsOptions,
+            onOptionSelected = onRecentPatientsLimitSelected,
+            testTag = SettingsTestTags.RecentPatientsField,
+            format = { if (it == 0) recentPatientsOff else it.toString() },
           )
         }
 

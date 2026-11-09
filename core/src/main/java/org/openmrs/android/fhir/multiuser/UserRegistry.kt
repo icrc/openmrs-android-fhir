@@ -71,6 +71,10 @@ object UserRegistry {
       PreferenceKeys.LOCATION_NAME,
     )
 
+  /** Personal too, but not forgotten at login the way the location is (see [activate]). */
+  private val PERSONAL_KEPT_TEXT_KEYS: List<Preferences.Key<String>> =
+    listOf(PreferenceKeys.RECENT_PATIENT_IDS)
+
   private fun prefs(context: Context) =
     context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -210,7 +214,7 @@ object UserRegistry {
         val saved = preferences.getStringSet(stateKey(to, key), null)
         if (saved != null) stored[key] = saved.toSet() else stored.remove(key)
       }
-      PERSONAL_TEXT_KEYS.forEach { key ->
+      (PERSONAL_TEXT_KEYS + PERSONAL_KEPT_TEXT_KEYS).forEach { key ->
         val current = stored[key]
         if (current != null) {
           editor.putString(stateKey(from, key), current)

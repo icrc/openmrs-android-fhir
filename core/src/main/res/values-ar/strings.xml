@@ -1470,4 +1470,13 @@
     <string
         name="diagnosis_picker_rank_hint"
     >التشخيص الأول هو التشخيص الأساسي، والبقية ثانوية.</string>
+    <string name="settings_section_patients">المرضى</string>
+    <string name="settings_recent_patients">عدد المرضى الأخيرين المعروضين</string>
+    <string name="settings_recent_patients_off">متوقف</string>
+    <string name="recent_patients_title">المرضى الأخيرون</string>
+    <string name="patients_all_title">جميع المرضى</string>
+    <string name="help_settings_patients_title">المرضى الأخيرون</string>
+    <string name="help_settings_patients_body">عدد المرضى الذين عملت معهم مؤخراً والمعروضين أعلى شاشة المرضى. الإيقاف يخفي القسم.</string>
+    <string name="help_patients_recent_title">المرضى الأخيرون</string>
+    <string name="help_patients_recent_body">المرضى الذين فتحت ملفهم أو حفظت لهم شيئاً مؤخراً، الأحدث أولاً. العدد من الإعدادات.</string>
 </resources>

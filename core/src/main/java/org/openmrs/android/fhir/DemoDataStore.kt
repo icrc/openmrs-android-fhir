@@ -33,6 +33,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -208,6 +209,19 @@ class DemoDataStore(private val context: Context) {
   fun getKeepLivePatientsFlow() =
     context.dataStorage.data.map { pref -> pref[booleanPreferencesKey(KEEP_LIVE_PATIENTS)] ?: true }
 
+  suspend fun setRecentPatientsLimit(limit: Int) {
+    context.dataStorage.edit { pref -> pref[intPreferencesKey(RECENT_PATIENTS_LIMIT)] = limit }
+  }
+
+  /** How many recent patients the Patients screen lists; 0 turns the section off. */
+  fun getRecentPatientsLimitFlow() =
+    context.dataStorage.data.map { pref ->
+      (pref[intPreferencesKey(RECENT_PATIENTS_LIMIT)] ?: DEFAULT_RECENT_PATIENTS).coerceIn(
+        0,
+        MAX_RECENT_PATIENTS,
+      )
+    }
+
   suspend fun setAutomaticVisits(automatic: Boolean) {
     context.dataStorage.edit { pref -> pref[booleanPreferencesKey(AUTOMATIC_VISITS)] = automatic }
   }
@@ -310,12 +324,17 @@ class DemoDataStore(private val context: Context) {
     const val LIVE_MODE = "live-mode"
     const val AUTOMATIC_VISITS = "automatic-visits"
     const val KEEP_LIVE_PATIENTS = "keep-live-patients"
+    const val RECENT_PATIENTS_LIMIT = "recent-patients-limit"
     const val LAST_FULL_SYNC = "last-full-sync"
     private const val HISTORY_DONE = "patient-history-done"
     private const val HISTORY_PROGRESS = "history-progress-"
     const val FAVORITE_FORMS = "favorite-forms"
     const val CUSTOM_FORM_SECTIONS = "custom-form-sections"
     private const val FAVORITE_FORMS_SEPARATOR = ","
+
+    /** The recent patients listed when the user has not chosen, and the most that can be kept. */
+    const val DEFAULT_RECENT_PATIENTS = 5
+    const val MAX_RECENT_PATIENTS = 20
 
     /** How many forms can be favorites. */
     const val MAX_FAVORITE_FORMS = 5

@@ -57,6 +57,7 @@ enum class SharedSetting(val key: String, @StringRes val label: Int) {
   LIVE_MODE("live_mode", R.string.settings_live_mode),
   KEEP_LIVE_PATIENTS("keep_live_patients", R.string.settings_live_keep_patients),
   AUTOMATIC_VISITS("automatic_visits", R.string.settings_automatic_visits),
+  RECENT_PATIENTS("recent_patients", R.string.settings_recent_patients),
   THEME("theme", R.string.settings_section_appearance),
   COLOR_VISION("color_vision", R.string.color_vision_title),
   EMBEDDED_FORMS("embedded_forms_only", R.string.embedded_forms_only),
@@ -113,6 +114,7 @@ constructor(
       SharedSetting.LIVE_MODE to repository.getLiveModeEnabled().toString(),
       SharedSetting.KEEP_LIVE_PATIENTS to repository.getKeepLivePatients().toString(),
       SharedSetting.AUTOMATIC_VISITS to repository.getAutomaticVisits().toString(),
+      SharedSetting.RECENT_PATIENTS to repository.getRecentPatientsLimit().toString(),
       SharedSetting.THEME to ThemeModeStore.get(context).value,
       SharedSetting.COLOR_VISION to ColorVisionStore.get(context).value,
       SharedSetting.EMBEDDED_FORMS to EmbeddedFormsStore.get(context).toString(),
@@ -154,6 +156,8 @@ constructor(
         raw.toIntOrNull()?.takeIf { it in SettingsDefaults.TokenDelayOptions }?.toString()
       setting == SharedSetting.PERIODIC_DELAY ->
         raw.toIntOrNull()?.takeIf { it in SettingsDefaults.PeriodicSyncDelayOptions }?.toString()
+      setting == SharedSetting.RECENT_PATIENTS ->
+        raw.toIntOrNull()?.takeIf { it in SettingsDefaults.RecentPatientsOptions }?.toString()
       setting == SharedSetting.AUTO_SYNC_MODE ->
         raw.takeIf { it == SyncMode.BOTH.value || it == SyncMode.UPLOAD_ONLY.value }
       setting == SharedSetting.THEME -> raw.takeIf { v -> ThemeMode.entries.any { it.value == v } }
@@ -200,6 +204,7 @@ constructor(
         SharedSetting.LIVE_MODE -> repository.setLiveModeEnabled(value.toBoolean())
         SharedSetting.KEEP_LIVE_PATIENTS -> repository.setKeepLivePatients(value.toBoolean())
         SharedSetting.AUTOMATIC_VISITS -> repository.setAutomaticVisits(value.toBoolean())
+        SharedSetting.RECENT_PATIENTS -> repository.setRecentPatientsLimit(value.toInt())
         SharedSetting.EMBEDDED_FORMS -> EmbeddedFormsStore.set(context, value.toBoolean())
         SharedSetting.CLEAR_ON_LOGOUT -> ClearDataOnLogoutStore.set(context, value.toBoolean())
         SharedSetting.COLOR_VISION ->

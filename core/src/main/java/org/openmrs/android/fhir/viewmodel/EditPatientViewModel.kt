@@ -70,6 +70,7 @@ import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.OpenMRSHelper
+import org.openmrs.android.fhir.data.RecentPatients
 import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
@@ -285,6 +286,7 @@ constructor(
         fhirEngine.update(originalPatient)
         AuditLog.record(AuditAction.PATIENT_EDITED, AuditOutcome.SUCCESS, "patient" to patientId)
         LiveSync.requestUpload(applicationContext)
+        RecentPatients.record(applicationContext, patientId)
         isPatientSaved.value = true
         return@launch
       }

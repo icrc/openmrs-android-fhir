@@ -58,6 +58,8 @@ data class SettingsUiState(
   val isLiveModeEnabled: Boolean = false,
   val keepLivePatients: Boolean = true,
   val automaticVisits: Boolean = true,
+  /** How many recent patients the Patients screen lists; 0 turns the section off. */
+  val recentPatientsLimit: Int = DemoDataStore.DEFAULT_RECENT_PATIENTS,
   /** The user signed in now; the sharing setting is theirs. None for a guest. */
   val signedInUser: String? = null,
   val shareMyData: Boolean = false,
@@ -131,6 +133,11 @@ constructor(
     persist("keep_live_patients", keep) { settingsRepository.setKeepLivePatients(keep) }
   }
 
+  fun onRecentPatientsLimitSelected(limit: Int) {
+    _uiState.update { it.copy(recentPatientsLimit = limit) }
+    persist("recent_patients_limit", limit) { settingsRepository.setRecentPatientsLimit(limit) }
+  }
+
   fun onAutomaticVisitsToggle(automatic: Boolean) {
     _uiState.update { it.copy(automaticVisits = automatic) }
     persist("automatic_visits", automatic) { settingsRepository.setAutomaticVisits(automatic) }
@@ -191,6 +198,7 @@ constructor(
         isLiveModeEnabled = defaults.isLiveModeEnabled,
         keepLivePatients = defaults.keepLivePatients,
         automaticVisits = defaults.automaticVisits,
+        recentPatientsLimit = defaults.recentPatientsLimit,
         shareMyData = defaults.shareMyData,
         rememberLocation = defaults.rememberLocation,
       )
@@ -204,6 +212,7 @@ constructor(
     settingsRepository.setLiveModeEnabled(defaults.isLiveModeEnabled)
     settingsRepository.setKeepLivePatients(defaults.keepLivePatients)
     settingsRepository.setAutomaticVisits(defaults.automaticVisits)
+    settingsRepository.setRecentPatientsLimit(defaults.recentPatientsLimit)
     if (uiState.value.signedInUser != null) {
       settingsRepository.setShareMyData(defaults.shareMyData)
       settingsRepository.setRememberLocation(defaults.rememberLocation)
@@ -235,6 +244,7 @@ constructor(
     val liveModeEnabled = settingsRepository.getLiveModeEnabled()
     val keepLivePatients = settingsRepository.getKeepLivePatients()
     val automaticVisits = settingsRepository.getAutomaticVisits()
+    val recentPatientsLimit = settingsRepository.getRecentPatientsLimit()
     val signedInUser = settingsRepository.getSignedInUser()
     val shareMyData = settingsRepository.getShareMyData()
     val rememberLocation = settingsRepository.getRememberLocation()
@@ -249,6 +259,7 @@ constructor(
         isLiveModeEnabled = liveModeEnabled,
         keepLivePatients = keepLivePatients,
         automaticVisits = automaticVisits,
+        recentPatientsLimit = recentPatientsLimit,
         signedInUser = signedInUser,
         shareMyData = shareMyData,
         rememberLocation = rememberLocation,

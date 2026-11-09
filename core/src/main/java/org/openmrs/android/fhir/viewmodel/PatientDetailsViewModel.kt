@@ -75,6 +75,7 @@ import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PatientVisits
+import org.openmrs.android.fhir.data.RecentPatients
 import org.openmrs.android.fhir.data.VisitEditState
 import org.openmrs.android.fhir.data.VisitPeriodError
 import org.openmrs.android.fhir.data.isOpenVisit
@@ -121,12 +122,16 @@ constructor(
   init {
     AuditLog.record(AuditAction.PATIENT_OPENED, AuditOutcome.SUCCESS, "patient" to patientId)
     LivePatients.markOpen(patientId)
+    touch()
     // An upload went through: what is shown as waiting for the server may not be any more.
     viewModelScope.launch {
       LiveSync.uploaded.collect { if (livePatientData.value != null) getPatientDetailData() }
     }
     viewModelScope.launch { refreshFromServer() }
   }
+
+  /** The patient is the one the user is working with now: first of the recent patients. */
+  private fun touch() = RecentPatients.record(applicationContext, patientId)
 
   override fun onCleared() {
     // The patient was brought by the live search and the user does not want those kept: they are
@@ -451,11 +456,13 @@ constructor(
   /** Opens a visit that started at [startDate], and shows it. */
   suspend fun startVisit(startDate: Date) {
     openMRSHelper.startVisit(patientId, Constants.VISIT_TYPE_UUID, startDate)
+    touch()
     getPatientDetailData()
   }
 
   suspend fun endVisit(visitId: String) {
     openMRSHelper.endVisit(visitId)
+    touch()
     getPatientDetailData()
   }
 
@@ -469,14 +476,20 @@ constructor(
   /** @return what stopped the change, or `null` when it was saved. */
   suspend fun saveVisitPeriod(visitId: String, start: Date, end: Date?): VisitPeriodError? {
     val problem = openMRSHelper.updateVisitPeriod(visitId, start, end)
-    if (problem == null) getPatientDetailData()
+    if (problem == null) {
+      touch()
+      getPatientDetailData()
+    }
     return problem
   }
 
   /** @return false when another visit is open, which has to be ended first. */
   suspend fun reopenVisit(visitId: String): Boolean {
     val reopened = openMRSHelper.reopenVisit(visitId)
-    if (reopened) getPatientDetailData()
+    if (reopened) {
+      touch()
+      getPatientDetailData()
+    }
     return reopened
   }
 

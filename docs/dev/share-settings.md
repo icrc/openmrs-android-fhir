@@ -16,7 +16,7 @@ A short JSON text (`OPENMRS-SETTINGS:{"v":1,"settings":{...}}`), drawn as a QR c
 available as text ("Copy code", and "Or paste the code" on the importing side):
 
 * notifications, network status, token check delay, periodic sync delay, automatic sync (and what it does: upload only, or upload and download), live mode
-  and "keep patients", automatic visits, theme, color vision, embedded forms only, delete data when
+  and "keep patients", automatic visits, recent patients shown, theme, color vision, embedded forms only, delete data when
   logging out, language and **the server**.
 * Never patients, passwords, tokens or the account, and not what belongs to a user (sharing,
   remember my location).

@@ -253,6 +253,8 @@ internal fun SettingsDropdown(
   testTag: String,
   modifier: Modifier = Modifier,
   enabled: Boolean = true,
+  /** How a value is written (the value itself by default). */
+  format: (Int) -> String = { it.toString() },
 ) {
   var expanded by remember { mutableStateOf(false) }
 
@@ -273,7 +275,7 @@ internal fun SettingsDropdown(
       OutlinedTextField(
         readOnly = true,
         enabled = enabled,
-        value = selectedValue.toString(),
+        value = format(selectedValue),
         onValueChange = {},
         singleLine = true,
         shape = RoundedCornerShape(12.dp),
@@ -287,7 +289,7 @@ internal fun SettingsDropdown(
       ) {
         options.forEach { option ->
           DropdownMenuItem(
-            text = { Text(text = option.toString()) },
+            text = { Text(text = format(option)) },
             onClick = {
               onOptionSelected(option)
               expanded = false

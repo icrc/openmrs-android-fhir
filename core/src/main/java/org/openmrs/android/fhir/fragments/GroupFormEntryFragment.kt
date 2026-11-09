@@ -61,6 +61,7 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.data.RecentPatients
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.databinding.GroupFormentryFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
@@ -768,6 +769,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       patients.forEach { patient ->
         val patientId = patient.resourceId
         val responseJson = viewModel.patientResponses[patientId] ?: return@forEach
+        RecentPatients.record(requireContext(), patientId)
         val response =
           parser.parseResource(QuestionnaireResponse::class.java, responseJson)
             as QuestionnaireResponse

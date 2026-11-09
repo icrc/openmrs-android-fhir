@@ -707,6 +707,15 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="tutorial_login_server_body"
     >The gear changes the server this app connects to, the theme and other settings, before anyone signs in.</string>
+    <string name="settings_section_patients">Patients</string>
+    <string name="settings_recent_patients">Recent patients shown</string>
+    <string name="settings_recent_patients_off">Off</string>
+    <string name="recent_patients_title">Recent patients</string>
+    <string name="patients_all_title">All patients</string>
+    <string name="help_settings_patients_title">Recent patients</string>
+    <string name="help_settings_patients_body">How many of the patients you worked with last are listed at the top of the Patients screen. Off hides the section.</string>
+    <string name="help_patients_recent_title">Recent patients</string>
+    <string name="help_patients_recent_body">The patients you opened or saved something for last, most recent first. The number is a setting.</string>
     <string name="tutorial_show_screen">Show the tour of this screen</string>
     <string name="help_home_status_title">Where you work</string>
     <string

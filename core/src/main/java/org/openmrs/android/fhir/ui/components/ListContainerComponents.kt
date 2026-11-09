@@ -76,6 +76,8 @@ fun <T> SwipeRefreshListContainer(
   contentPadding: PaddingValues = PaddingValues(0.dp),
   verticalArrangement: Arrangement.Vertical = Arrangement.Top,
   itemKey: ((T) -> Any)? = null,
+  /** More rows above the items (the recent patients); the empty state waits for them too. */
+  headerRows: (LazyListScope.() -> Unit)? = null,
   /** More rows under the items (the live search's results); the empty state waits for them. */
   extraRows: (LazyListScope.() -> Unit)? = null,
   itemContent: @Composable (T) -> Unit,
@@ -83,7 +85,7 @@ fun <T> SwipeRefreshListContainer(
   val refreshState = rememberPullRefreshState(refreshing = isRefreshing, onRefresh = onRefresh)
 
   Box(modifier = modifier.fillMaxSize().pullRefresh(refreshState)) {
-    if (items.isEmpty() && !isLoading && extraRows == null) {
+    if (items.isEmpty() && !isLoading && extraRows == null && headerRows == null) {
       Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { emptyContent() }
     } else {
       LazyColumn(
@@ -91,6 +93,7 @@ fun <T> SwipeRefreshListContainer(
         contentPadding = contentPadding,
         verticalArrangement = verticalArrangement,
       ) {
+        headerRows?.invoke(this)
         if (itemKey == null) {
           items(items) { item -> itemContent(item) }
         } else {
@@ -131,6 +134,7 @@ fun PatientListContainerScreen(
       style = MaterialTheme.typography.bodyMedium,
     )
   },
+  headerRows: (LazyListScope.() -> Unit)? = null,
   extraRows: (LazyListScope.() -> Unit)? = null,
   itemContent: @Composable (PatientListViewModel.PatientItem) -> Unit,
 ) {
@@ -145,6 +149,7 @@ fun PatientListContainerScreen(
     contentPadding = contentPadding,
     verticalArrangement = verticalArrangement,
     itemKey = { it.resourceId },
+    headerRows = headerRows,
     extraRows = extraRows,
     itemContent = itemContent,
   )

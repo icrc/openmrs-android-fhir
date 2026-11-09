@@ -69,6 +69,7 @@ import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.EncounterFallbackForm
+import org.openmrs.android.fhir.data.RecentPatients
 import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
@@ -332,6 +333,9 @@ constructor(
         "encounter" to encounterId,
       )
       LiveSync.requestUpload(applicationContext)
+      encounterSubject?.referenceElement?.idPart?.let {
+        RecentPatients.record(applicationContext, it)
+      }
       isResourcesSaved.value = "SAVED"
     } catch (e: Exception) {
       Timber.e(e.localizedMessage)

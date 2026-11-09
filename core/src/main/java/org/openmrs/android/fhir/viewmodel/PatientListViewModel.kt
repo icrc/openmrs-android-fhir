@@ -73,9 +73,11 @@ import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.RiskAssessment
 import org.openmrs.android.fhir.Constants.VISIT_TYPE_CODE_SYSTEM
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.FormCatalog
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.RecentPatients
 import org.openmrs.android.fhir.data.sync.LivePatients
 import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.multiuser.DataVisibility
@@ -104,6 +106,8 @@ data class PatientListUiState(
   val isRefreshing: Boolean = false,
   /** What the live search found on the server (live mode only). */
   val serverSearch: ServerSearchState = ServerSearchState(),
+  /** The patients the user interacted with last, most recent first (see `RecentPatients`). */
+  val recentPatients: List<PatientListViewModel.PatientItem> = emptyList(),
 )
 
 /**
@@ -131,6 +135,7 @@ constructor(
   private val applicationContext: Context,
   private val dataVisibility: DataVisibility = DataVisibility.Everything,
   private val unidentified: UnidentifiedStore? = null,
+  private val recents: RecentPatients? = null,
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(PatientListUiState())
@@ -148,6 +153,7 @@ constructor(
 
   init {
     loadPatients()
+    loadRecents()
     // An upload went through: what was marked as waiting is not any more.
     viewModelScope.launch { LiveSync.uploaded.collect { reloadQuietly() } }
   }
@@ -156,6 +162,7 @@ constructor(
   fun reload() = reloadQuietly()
 
   private fun reloadQuietly() {
+    loadRecents()
     updatePatientListAndPatientCount(
       { getSearchResults(nameQuery = uiState.value.query, quiet = true) },
       { count(uiState.value.query) },
@@ -196,6 +203,7 @@ constructor(
   }
 
   fun refreshPatients() {
+    loadRecents()
     updatePatientListAndPatientCount(
       { getSearchResults(nameQuery = uiState.value.query, refreshing = true) },
       { count(uiState.value.query) },
@@ -383,6 +391,61 @@ constructor(
       _uiState.update { it.copy(isLoading = false) }
     }
     return patients
+  }
+
+  // ---- Recent patients -------------------------------------------------------------------
+
+  private var recentsJob: Job? = null
+
+  /**
+   * The patients of the recent list that are on the device and that this user may see, as many as
+   * the setting says (none when it is off, and for a guest). Ones that are not on the device any
+   * more are dropped from the list.
+   */
+  private fun loadRecents() {
+    val store = recents ?: return
+    recentsJob?.cancel()
+    recentsJob =
+      viewModelScope.launch {
+        try {
+          val limit = store.limit()
+          if (limit == 0 || GuestSession.isActive(applicationContext)) {
+            _uiState.update { it.copy(recentPatients = emptyList()) }
+            return@launch
+          }
+          val missing = mutableListOf<String>()
+          // A few more than are listed, for the ones that turn out not to be shown.
+          val found =
+            store.ids().take(limit + RECENT_SPARE).mapNotNull { id ->
+              try {
+                fhirEngine.get<Patient>(id)
+              } catch (e: ResourceNotFoundException) {
+                missing += id
+                null
+              }
+            }
+          val access = (selectedListMemberIds() ?: emptySet()) + live.rememberedIds()
+          val visible = dataVisibility.visibleAmong(found, access) { it.idElement.idPart }
+          val toIdentify = unidentified?.ids().orEmpty()
+          val items =
+            visible.take(limit).mapIndexed { index, patient ->
+              patient.toPatientItem(index + 1).also { item ->
+                item.isSynced =
+                  fhirEngine.getLocalChanges(ResourceType.Patient, item.resourceId).isEmpty()
+              }
+            }
+          val marked =
+            items.map { if (it.resourceId in toIdentify) it.copy(unidentified = true) else it }
+          _uiState.update { it.copy(recentPatients = marked) }
+          val withEncounters = withContext(backgroundDispatcher) { withLastEncounters(marked) }
+          _uiState.update { it.copy(recentPatients = withEncounters) }
+          if (missing.isNotEmpty()) store.forget(missing)
+        } catch (e: CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          Timber.w(e, "Could not load the recent patients")
+        }
+      }
   }
 
   // ---- Live search -----------------------------------------------------------------------
@@ -590,6 +653,9 @@ constructor(
   private companion object {
     const val PAGE_SIZE = 100
     const val MIN_SERVER_QUERY_LENGTH = 3
+
+    /** Recent patients looked at beyond the ones listed, for those not shown. */
+    const val RECENT_SPARE = 5
     const val SERVER_SEARCH_PAUSE_MILLIS = 450L
     const val SERVER_SEARCH_TIMEOUT_MILLIS = 15_000L
     const val SERVER_OPEN_TIMEOUT_MILLIS = 60_000L

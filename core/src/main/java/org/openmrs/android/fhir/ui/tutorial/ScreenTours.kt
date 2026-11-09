@@ -124,6 +124,12 @@ object ScreenTours {
           R.string.help_patients_sort_body,
         ),
         step(
+          TutorialTargets.PATIENT_RECENT,
+          R.string.help_patients_recent_title,
+          R.string.help_patients_recent_body,
+          optional = true,
+        ),
+        step(
           TutorialTargets.PATIENT_LIST,
           R.string.help_patients_list_title,
           R.string.help_patients_list_body,
@@ -238,6 +244,11 @@ object ScreenTours {
           TutorialTargets.SETTINGS_LIVE,
           R.string.help_settings_live_title,
           R.string.help_settings_live_body,
+        ),
+        step(
+          TutorialTargets.SETTINGS_PATIENTS,
+          R.string.help_settings_patients_title,
+          R.string.help_settings_patients_body,
         ),
         step(
           TutorialTargets.SETTINGS_SHARED,

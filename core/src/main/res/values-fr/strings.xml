@@ -785,6 +785,15 @@
     <string
         name="tutorial_login_server_body"
     >L\'engrenage change le serveur auquel l\'application se connecte, le thème et d\'autres réglages, avant toute connexion.</string>
+    <string name="settings_section_patients">Patients</string>
+    <string name="settings_recent_patients">Patients récents affichés</string>
+    <string name="settings_recent_patients_off">Désactivé</string>
+    <string name="recent_patients_title">Patients récents</string>
+    <string name="patients_all_title">Tous les patients</string>
+    <string name="help_settings_patients_title">Patients récents</string>
+    <string name="help_settings_patients_body">Combien des derniers patients avec lesquels vous avez travaillé sont listés en haut de l\'écran Patients. Désactivé masque la section.</string>
+    <string name="help_patients_recent_title">Patients récents</string>
+    <string name="help_patients_recent_body">Les patients que vous avez ouverts ou pour lesquels vous avez enregistré quelque chose en dernier, le plus récent d\'abord. Le nombre est un réglage.</string>
     <string name="tutorial_show_screen">Afficher la visite de cet écran</string>
     <string name="help_home_status_title">Où vous travaillez</string>
     <string

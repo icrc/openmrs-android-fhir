@@ -100,6 +100,7 @@ class PatientDataEraser(
       preferences.remove(PreferenceKeys.PENDING_LIST_DOWNLOADS)
       preferences.remove(PreferenceKeys.LIVE_PATIENT_IDS)
       preferences.remove(PreferenceKeys.LIVE_TEMPORARY_IDS)
+      preferences.remove(PreferenceKeys.RECENT_PATIENT_IDS)
     }
     val demoDataStore = DemoDataStore(context.applicationContext)
     demoDataStore.clearLastUpdatedTimestamps(*ORDER.toTypedArray())

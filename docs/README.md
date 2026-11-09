@@ -20,6 +20,7 @@ and run is in the root `README.md`; the rules for working on the code are in `CL
 | `dev/sync-retries.md` | Requests lost on a bad network are sent again inside the sync |
 | `dev/patient-list-download.md` | Downloading the patients of selected patient lists |
 | `dev/live-mode.md` | Uploading at once and searching the server, on top of the offline database |
+| `dev/recent-patients.md` | The recent patients section of the Patients screen |
 | `dev/visits.md` | Visits created automatically or managed by the user |
 | `dev/observations.md` | How answers become observation groups, and how an edit reconciles them |
 | `dev/diagnosis-picker.md` | The form question that searches a long list of diagnoses |

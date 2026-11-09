@@ -71,6 +71,7 @@ import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.RecentPatients
 import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
@@ -295,6 +296,7 @@ constructor(
         "form" to questionnaireId,
       )
       LiveSync.requestUpload(applicationContext)
+      RecentPatients.record(applicationContext, patientId)
       isResourcesSaved.value = "SAVED/$patientId"
     }
   }

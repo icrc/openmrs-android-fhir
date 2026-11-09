@@ -1585,4 +1585,13 @@
     <string
         name="diagnosis_picker_rank_hint"
     >Первый диагноз — основной, остальные — вторичные.</string>
+    <string name="settings_section_patients">Пациенты</string>
+    <string name="settings_recent_patients">Показывать недавних пациентов</string>
+    <string name="settings_recent_patients_off">Выключено</string>
+    <string name="recent_patients_title">Недавние пациенты</string>
+    <string name="patients_all_title">Все пациенты</string>
+    <string name="help_settings_patients_title">Недавние пациенты</string>
+    <string name="help_settings_patients_body">Сколько пациентов, с которыми вы работали последними, показывается вверху экрана «Пациенты». «Выключено» скрывает раздел.</string>
+    <string name="help_patients_recent_title">Недавние пациенты</string>
+    <string name="help_patients_recent_body">Пациенты, чью карту вы открывали или для кого сохраняли данные в последний раз, самые свежие сверху. Количество задаётся в настройках.</string>
 </resources>

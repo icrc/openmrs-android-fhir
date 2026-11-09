@@ -79,6 +79,7 @@ import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PatientIdentifierFactory
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.RecentPatients
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.di.DefaultDispatcher
@@ -236,6 +237,7 @@ constructor(
         uploaded.await()
         savedPatientId = idAfterUpload(patient)
       }
+      savedPatientId?.let { RecentPatients.record(applicationContext, it) }
       // Known gap (docs/dev/known-gaps.md): the patient is not added to a cohort here.
       isPatientSaved.value = true
       saveInProgress = false
