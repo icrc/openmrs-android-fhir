@@ -47,6 +47,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import javax.inject.Inject
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
@@ -56,6 +60,7 @@ import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.screens.HomeScreen
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.ui.tutorial.FirstRunTutorial
+import org.openmrs.android.fhir.ui.tutorial.TutorialGate
 import org.openmrs.android.fhir.viewmodel.HomeEvent
 import org.openmrs.android.fhir.viewmodel.HomeViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
@@ -111,9 +116,33 @@ class HomeFragment : Fragment() {
     setHasOptionsMenu(true)
     mainActivityViewModel.setDrawerEnabled(true)
     observeHomeEvents()
-    // The first-run tour, once the screen has been laid out so that it can point at it.
-    // The screen may be gone by then (language or orientation changed): nothing to point at.
-    view.post { context?.let { FirstRunTutorial.startIfPending(it) } }
+    startFirstRunTourWhenReady()
+  }
+
+  /**
+   * The first-run tour starts once the screen shows its data (the counts are in) and nothing is
+   * syncing or loading: the first sync covers the app, and the numbers the tour points at change
+   * while it runs. If a sync starts during the short wait the start is put off again. The tour
+   * stays pending until it has started.
+   */
+  private fun startFirstRunTourWhenReady() {
+    val appContext = context?.applicationContext ?: return
+    if (!FirstRunTutorial.isPending(appContext)) return
+    viewLifecycleOwner.lifecycleScope.launch {
+      viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        combine(mainActivityViewModel.uiState, homeViewModel.summary) { state, summary ->
+            summary != null &&
+              !TutorialGate.isBusy(state.isSyncing, state.isSyncTasksVisible, state.loading)
+          }
+          .distinctUntilChanged()
+          .collectLatest { ready ->
+            if (!ready) return@collectLatest
+            // The screen settles first; this is cancelled if a sync starts meanwhile.
+            delay(TOUR_SETTLE_MILLIS)
+            FirstRunTutorial.startIfPending(appContext)
+          }
+      }
+    }
   }
 
   @Deprecated("Deprecated in Java")
@@ -166,5 +195,9 @@ class HomeFragment : Fragment() {
           long = true,
         )
     }
+  }
+
+  private companion object {
+    const val TOUR_SETTLE_MILLIS = 600L
   }
 }

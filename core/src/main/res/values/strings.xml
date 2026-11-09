@@ -597,7 +597,9 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
         name="questionnaire_required_answers_missing"
     >Answer the required questions on this page to continue. They are marked in red.</string>
     <string name="change_location">Change location</string>
-    <string name="settings_section_general">General</string>
+    <string name="settings_section_language_appearance">Language and appearance</string>
+    <string name="settings_section_general_security">General and security</string>
+    <string name="settings_section_forms_visits">Forms, visits and identifiers</string>
     <string name="settings_section_sync">Synchronization</string>
     <string name="settings_section_live">Live mode</string>
     <string
@@ -606,8 +608,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="settings_live_keep_patients_description"
     >On: a patient you open from the server stays on this device and can be used offline. Off: the patient is removed from the device once you leave them; anything not yet sent is kept until it is sent.</string>
-    <string name="settings_section_forms">Forms</string>
-    <string name="settings_section_visits">Visits</string>
     <string
         name="settings_automatic_visits"
     >Create visits automatically</string>
@@ -644,11 +644,9 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="theme_system">System default</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
-    <string name="settings_section_security">Security</string>
     <string name="continue_without_login">Continue without signing in</string>
     <string name="sign_in_with_sso">Sign in with SSO</string>
     <string name="login_or">or</string>
-    <string name="settings_section_shared_device">Shared device</string>
     <string
         name="settings_share_my_data"
     >Let other users see my registered data</string>
@@ -707,7 +705,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="tutorial_login_server_body"
     >The gear changes the server this app connects to, the theme and other settings, before anyone signs in.</string>
-    <string name="settings_section_patients">Patients</string>
     <string name="settings_recent_patients">Recent patients shown</string>
     <string name="settings_recent_patients_off">Off</string>
     <string name="recent_patients_title">Recent patients</string>
@@ -1497,4 +1494,8 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="diagnosis_picker_rank_hint"
     >The first diagnosis is the primary one; the others are secondary.</string>
+    <string name="tutorial_back">Back</string>
+    <string name="tutorial_wait_for_sync">The tour is available once the synchronization has finished. Try again then.</string>
+    <string name="help_settings_forms_title">Forms, visits and identifiers</string>
+    <string name="help_settings_forms_body">Which forms are offered and in what order, whether visits are created for you, and which identifier types new patients get.</string>
 </resources>

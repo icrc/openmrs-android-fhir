@@ -648,7 +648,9 @@
         name="questionnaire_required_answers_missing"
     >Ответьте на обязательные вопросы на этой странице, чтобы продолжить. Они отмечены красным.</string>
     <string name="change_location">Сменить местоположение</string>
-    <string name="settings_section_general">Общие</string>
+    <string name="settings_section_language_appearance">Язык и оформление</string>
+    <string name="settings_section_general_security">Общие и безопасность</string>
+    <string name="settings_section_forms_visits">Формы, визиты и идентификаторы</string>
     <string name="settings_section_sync">Синхронизация</string>
     <string name="settings_section_live">Режим онлайн</string>
     <string
@@ -657,8 +659,6 @@
     <string
         name="settings_live_keep_patients_description"
     >Включено: пациент, открытый с сервера, остаётся на этом устройстве и доступен без связи. Выключено: пациент удаляется с устройства, когда вы его закрываете; то, что ещё не отправлено, сохраняется до отправки.</string>
-    <string name="settings_section_forms">Формы</string>
-    <string name="settings_section_visits">Визиты</string>
     <string
         name="settings_automatic_visits"
     >Создавать визиты автоматически</string>
@@ -693,11 +693,9 @@
     <string name="theme_system">Как в системе</string>
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Тёмная</string>
-    <string name="settings_section_security">Безопасность</string>
     <string name="continue_without_login">Продолжить без входа</string>
     <string name="sign_in_with_sso">Войти через SSO</string>
     <string name="login_or">или</string>
-    <string name="settings_section_shared_device">Общее устройство</string>
     <string
         name="settings_share_my_data"
     >Разрешить другим пользователям видеть мои зарегистрированные данные</string>
@@ -1585,7 +1583,6 @@
     <string
         name="diagnosis_picker_rank_hint"
     >Первый диагноз — основной, остальные — вторичные.</string>
-    <string name="settings_section_patients">Пациенты</string>
     <string name="settings_recent_patients">Показывать недавних пациентов</string>
     <string name="settings_recent_patients_off">Выключено</string>
     <string name="recent_patients_title">Недавние пациенты</string>
@@ -1594,4 +1591,8 @@
     <string name="help_settings_patients_body">Сколько пациентов, с которыми вы работали последними, показывается вверху экрана «Пациенты». «Выключено» скрывает раздел.</string>
     <string name="help_patients_recent_title">Недавние пациенты</string>
     <string name="help_patients_recent_body">Пациенты, чью карту вы открывали или для кого сохраняли данные в последний раз, самые свежие сверху. Количество задаётся в настройках.</string>
+    <string name="tutorial_back">Назад</string>
+    <string name="tutorial_wait_for_sync">Тур будет доступен после завершения синхронизации. Попробуйте тогда.</string>
+    <string name="help_settings_forms_title">Формы, визиты и идентификаторы</string>
+    <string name="help_settings_forms_body">Какие формы предлагаются и в каком порядке, создаются ли визиты за вас и какие типы идентификаторов получают новые пациенты.</string>
 </resources>

@@ -180,17 +180,17 @@ object ScreenTours {
           R.string.help_sync_status_body,
         ),
         step(
-          TutorialTargets.SYNC_IDENTIFY,
-          R.string.help_sync_identify_title,
-          R.string.help_sync_identify_body,
-          optional = true,
-        ),
-        step(
           TutorialTargets.SYNC_MODE,
           R.string.help_sync_mode_title,
           R.string.help_sync_mode_body,
         ),
         step(TutorialTargets.SYNC_NOW, R.string.help_sync_now_title, R.string.help_sync_now_body),
+        step(
+          TutorialTargets.SYNC_IDENTIFY,
+          R.string.help_sync_identify_title,
+          R.string.help_sync_identify_body,
+          optional = true,
+        ),
         step(
           TutorialTargets.SYNC_TABS,
           R.string.help_sync_tabs_title,
@@ -236,16 +236,6 @@ object ScreenTours {
           optional = true,
         ),
         step(
-          TutorialTargets.SETTINGS_SYNC,
-          R.string.help_settings_sync_title,
-          R.string.help_settings_sync_body,
-        ),
-        step(
-          TutorialTargets.SETTINGS_LIVE,
-          R.string.help_settings_live_title,
-          R.string.help_settings_live_body,
-        ),
-        step(
           TutorialTargets.SETTINGS_PATIENTS,
           R.string.help_settings_patients_title,
           R.string.help_settings_patients_body,
@@ -261,6 +251,21 @@ object ScreenTours {
           R.string.help_settings_security_title,
           R.string.help_settings_security_body,
           optional = true,
+        ),
+        step(
+          TutorialTargets.SETTINGS_FORMS,
+          R.string.help_settings_forms_title,
+          R.string.help_settings_forms_body,
+        ),
+        step(
+          TutorialTargets.SETTINGS_LIVE,
+          R.string.help_settings_live_title,
+          R.string.help_settings_live_body,
+        ),
+        step(
+          TutorialTargets.SETTINGS_SYNC,
+          R.string.help_settings_sync_title,
+          R.string.help_settings_sync_body,
         ),
       ),
     )

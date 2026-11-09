@@ -121,6 +121,7 @@ object TutorialTargets {
   const val SETTINGS_LANGUAGE = "settings.language"
   const val SETTINGS_APPEARANCE = "settings.appearance"
   const val SETTINGS_SYNC = "settings.sync"
+  const val SETTINGS_FORMS = "settings.forms"
   const val SETTINGS_LIVE = "settings.live"
   const val SETTINGS_PATIENTS = "settings.patients"
   const val SETTINGS_SHARED = "settings.shared"

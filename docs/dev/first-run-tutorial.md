@@ -41,8 +41,10 @@ into view.
 
 **First run.** `FirstRunTutorial` keeps a flag in its own preferences file. `FhirApplication.onCreate`
 sets it once, to `firstInstallTime == lastUpdateTime`: a fresh installation gets the tour and an update
-of an app already in use does not. `HomeFragment` starts the tour when it is laid out, and the flag is
-cleared as the tour starts, so it never repeats. The manifests set `allowBackup="false"`, so
+of an app already in use does not. `HomeFragment` starts the tour once Home shows its data (the counts
+are in) and nothing is syncing or loading (`TutorialGate`; the first sync covers the app and the
+numbers change while it runs), and the flag is cleared as the tour starts, so it never repeats and
+stays pending until then. The manifests set `allowBackup="false"`, so
 reinstalling runs it again. To see it again on a device, write `<boolean name="pending" value="true" />`
 in `shared_prefs/first_run_tutorial.xml`.
 
@@ -52,10 +54,18 @@ activity. All its steps are `Acknowledge`, so the page cannot be left during the
 
 **Screens.** `ScreenTours` maps each navigation destination to a `Tour`. `MainActivity` shows the "?"
 action (`menu/help_menu.xml`) only when the screen on show has a tour, and `startScreenTour()` starts
-it. Its steps are all `Acknowledge`. A step is `optional` when its element may be absent (an empty
+it, unless a sync or a load is running (`TutorialGate`): it then says so and does not start. Its steps are all `Acknowledge`. A step is `optional` when its element may be absent (an empty
 list, an action only some users have): it is skipped instead of ending the tour. Views that are not
 composables are listed in `Tour.viewTargets` (key to view id). A screen without a tour (identifier
 choice, the patient dialog of a group session, unsynced resources) has no "?".
+
+## The card
+
+"Step n of m" does not count an optional step whose element is not on the screen. **Back** returns
+to the closest earlier step that is a card and whose element is there; it is not offered to a step
+that follows a `Tap` step, since the screen that step was on may have been left (`TutorialController`).
+The steps of a tour follow the order of the elements on the screen, top to bottom: check that when a
+step is added.
 
 ## When a feature changes
 

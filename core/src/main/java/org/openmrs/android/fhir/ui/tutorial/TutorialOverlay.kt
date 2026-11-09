@@ -35,11 +35,11 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -261,7 +261,9 @@ private fun Callout(active: TutorialController.Active, modifier: Modifier) {
       Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
           text =
-            stringResource(R.string.tutorial_step_counter, active.index + 1, active.steps.size),
+            (TutorialController.progress() ?: (active.index + 1 to active.steps.size)).let {
+              stringResource(R.string.tutorial_step_counter, it.first, it.second)
+            },
           style = MaterialTheme.typography.labelMedium,
           color = MaterialTheme.colorScheme.primary,
           modifier = Modifier.weight(1f),
@@ -297,9 +299,14 @@ private fun Callout(active: TutorialController.Active, modifier: Modifier) {
       }
       Row(
         modifier = Modifier.fillMaxWidth().padding(end = 8.dp, top = 4.dp),
-        horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically,
       ) {
+        if (TutorialController.previousIndex() != null) {
+          TextButton(onClick = TutorialController::previous) {
+            Text(text = stringResource(R.string.tutorial_back))
+          }
+        }
+        Spacer(modifier = Modifier.weight(1f))
         TextButton(onClick = TutorialController::end) {
           Text(text = stringResource(R.string.tutorial_skip))
         }

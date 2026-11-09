@@ -82,6 +82,41 @@ object TutorialController {
     if (active?.step?.action == TutorialAction.Acknowledge) next()
   }
 
+  /**
+   * The step to go back to from the current one: the closest earlier step that is only a card (a
+   * step that asks for a tap is not gone back to: the screen it was on may be left) and whose
+   * element is there, if it is optional. `null` when there is none.
+   */
+  fun previousIndex(): Int? {
+    val current = active ?: return null
+    for (i in current.index - 1 downTo 0) {
+      val step = current.steps[i]
+      if (step.action != TutorialAction.Acknowledge) return null
+      if (!step.optional || step.targetKey in targets) return i
+    }
+    return null
+  }
+
+  /**
+   * Where the card is in the tour, as "step n of m": an optional step whose element is not on the
+   * screen is not counted, since it is skipped.
+   */
+  fun progress(): Pair<Int, Int>? {
+    val current = active ?: return null
+    val shown =
+      current.steps.indices.filter { i ->
+        val step = current.steps[i]
+        !step.optional || i == current.index || step.targetKey in targets
+      }
+    return (shown.count { it <= current.index }) to shown.size
+  }
+
+  /** The "Back" button of a card. */
+  fun previous() {
+    val current = active ?: return
+    previousIndex()?.let { active = current.copy(index = it) }
+  }
+
   /** The element of an optional step is not there: on to the next step. */
   fun skipMissing() = next()
 

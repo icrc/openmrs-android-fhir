@@ -667,7 +667,9 @@
         name="questionnaire_required_answers_missing"
     >Répondez aux questions obligatoires de cette page pour continuer. Elles sont marquées en rouge.</string>
     <string name="change_location">Changer de lieu</string>
-    <string name="settings_section_general">Général</string>
+    <string name="settings_section_language_appearance">Langue et apparence</string>
+    <string name="settings_section_general_security">Général et sécurité</string>
+    <string name="settings_section_forms_visits">Formulaires, visites et identifiants</string>
     <string name="settings_section_sync">Synchronisation</string>
     <string name="settings_section_live">Mode en direct</string>
     <string
@@ -676,8 +678,6 @@
     <string
         name="settings_live_keep_patients_description"
     >Activé : un patient ouvert depuis le serveur reste sur cet appareil et peut être utilisé hors connexion. Désactivé : le patient est retiré de l\'appareil dès que vous le quittez ; ce qui n\'est pas encore envoyé est conservé jusqu\'à son envoi.</string>
-    <string name="settings_section_forms">Formulaires</string>
-    <string name="settings_section_visits">Visites</string>
     <string
         name="settings_automatic_visits"
     >Créer les visites automatiquement</string>
@@ -714,11 +714,9 @@
     <string name="theme_system">Par défaut du système</string>
     <string name="theme_light">Clair</string>
     <string name="theme_dark">Sombre</string>
-    <string name="settings_section_security">Sécurité</string>
     <string name="continue_without_login">Continuer sans se connecter</string>
     <string name="sign_in_with_sso">Se connecter avec le SSO</string>
     <string name="login_or">ou</string>
-    <string name="settings_section_shared_device">Appareil partagé</string>
     <string
         name="settings_share_my_data"
     >Laisser les autres utilisateurs voir mes données enregistrées</string>
@@ -785,7 +783,6 @@
     <string
         name="tutorial_login_server_body"
     >L\'engrenage change le serveur auquel l\'application se connecte, le thème et d\'autres réglages, avant toute connexion.</string>
-    <string name="settings_section_patients">Patients</string>
     <string name="settings_recent_patients">Patients récents affichés</string>
     <string name="settings_recent_patients_off">Désactivé</string>
     <string name="recent_patients_title">Patients récents</string>
@@ -1649,4 +1646,8 @@
     <string
         name="diagnosis_picker_rank_hint"
     >Le premier diagnostic est le diagnostic principal ; les autres sont secondaires.</string>
+    <string name="tutorial_back">Retour</string>
+    <string name="tutorial_wait_for_sync">La visite est disponible une fois la synchronisation terminée. Réessayez alors.</string>
+    <string name="help_settings_forms_title">Formulaires, visites et identifiants</string>
+    <string name="help_settings_forms_body">Quels formulaires sont proposés et dans quel ordre, si les visites sont créées pour vous et quels types d\'identifiant reçoivent les nouveaux patients.</string>
 </resources>

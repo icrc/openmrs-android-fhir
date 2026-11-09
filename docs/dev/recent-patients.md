@@ -1,7 +1,7 @@
 # Recent patients
 
 The Patients screen lists the patients the user worked with last, above the list of all patients
-(**Recent patients** / **All patients**). Settings > Patients > **Recent patients shown** says how
+(**Recent patients** / **All patients**). Settings > General and security > **Recent patients shown** says how
 many (Off, 5, 10, 15 or 20; 5 until the user chooses). Off hides the section and stops noting
 patients; the list already kept is shown again when the setting is raised.
 
