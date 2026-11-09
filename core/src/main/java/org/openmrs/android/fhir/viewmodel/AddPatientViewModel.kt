@@ -29,6 +29,8 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -39,15 +41,22 @@ import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.google.android.fhir.datacapture.validation.Invalid
 import com.google.android.fhir.datacapture.validation.QuestionnaireResponseValidator
+import com.google.android.fhir.db.ResourceNotFoundException
 import com.google.android.fhir.get
+import com.google.android.fhir.search.StringFilterModifier
+import com.google.android.fhir.search.search
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Identifier
@@ -221,12 +230,70 @@ constructor(
         )
       }
       // Live mode sends it now; otherwise it waits for the sync.
+      val uploaded = uploadWaiter()
       LiveSync.requestUpload(applicationContext)
+      if (uploaded != null) {
+        uploaded.await()
+        savedPatientId = idAfterUpload(patient)
+      }
       // Known gap (docs/dev/known-gaps.md): the patient is not added to a cohort here.
       isPatientSaved.value = true
       saveInProgress = false
     }
   }
+
+  /** Live mode with a network: waits for the upload that is about to start. */
+  private suspend fun uploadWaiter(): Deferred<Unit?>? {
+    if (!LiveSync.isEnabled(applicationContext) || !hasNetwork()) return null
+    // Collecting starts before the upload is requested, so its end cannot be missed.
+    return viewModelScope.async(start = CoroutineStart.UNDISPATCHED) {
+      withTimeoutOrNull(UPLOAD_WAIT_MILLIS) { LiveSync.uploaded.first() }
+    }
+  }
+
+  private fun hasNetwork(): Boolean {
+    val manager = applicationContext.getSystemService(ConnectivityManager::class.java)
+    val capabilities = manager?.getNetworkCapabilities(manager.activeNetwork)
+    return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+  }
+
+  /**
+   * The server gives a new patient its own id and the device's copy takes it once uploaded: the
+   * patient's page has to open under that one. Without a sign that the upload went through, the id
+   * the patient was created with is kept.
+   */
+  private suspend fun idAfterUpload(created: Patient): String {
+    val createdId = created.idElement.idPart
+    try {
+      fhirEngine.get<Patient>(createdId)
+      return createdId
+    } catch (e: ResourceNotFoundException) {
+      // Replaced by the server's id: found again by what was entered.
+    }
+    val family = created.nameFirstRep.family
+    if (family.isNullOrBlank()) return createdId
+    return fhirEngine
+      .search<Patient> {
+        filter(
+          Patient.FAMILY,
+          {
+            modifier = StringFilterModifier.MATCHES_EXACTLY
+            value = family
+          },
+        )
+      }
+      .map { it.resource }
+      .filter { it.idElement.idPart != createdId && sameEntry(it, created) }
+      .maxByOrNull { it.meta.lastUpdated?.time ?: 0L }
+      ?.idElement
+      ?.idPart
+      ?: createdId
+  }
+
+  private fun sameEntry(a: Patient, b: Patient): Boolean =
+    a.nameFirstRep.givenAsSingleString.equals(b.nameFirstRep.givenAsSingleString, true) &&
+      a.birthDateElement.valueAsString == b.birthDateElement.valueAsString &&
+      a.gender == b.gender
 
   private suspend fun addPatientToSelectedPatientList(patient: Patient) {
     val selectedPatientListId =
@@ -368,5 +435,9 @@ constructor(
 
   private fun generateUuid(): String {
     return UUID.randomUUID().toString()
+  }
+
+  private companion object {
+    const val UPLOAD_WAIT_MILLIS = 20_000L
   }
 }

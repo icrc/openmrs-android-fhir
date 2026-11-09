@@ -194,22 +194,24 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
       }
       AppMessage.show(requireContext(), getString(R.string.patient_is_saved), MessageKind.Success)
       val savedId = viewModel.savedPatientId
-      if (identifyEntryId.isNotEmpty() && savedId != null) {
+      if (savedId == null) {
+        NavHostFragment.findNavController(this).navigateUp()
+        return@observe
+      }
+      if (identifyEntryId.isNotEmpty()) {
         AppMessage.show(
           requireContext(),
           getString(R.string.identify_done, viewModel.linkedRecords),
           MessageKind.Success,
         )
-        // The new patient, with what was recorded: back from there is where the user came from.
-        NavHostFragment.findNavController(this)
-          .navigate(
-            R.id.patient_details,
-            bundleOf("patient_id" to savedId),
-            NavOptions.Builder().setPopUpTo(R.id.addPatientFragment, true).build(),
-          )
-      } else {
-        NavHostFragment.findNavController(this).navigateUp()
       }
+      // Back from the patient's page is where the user came from.
+      NavHostFragment.findNavController(this)
+        .navigate(
+          R.id.patient_details,
+          bundleOf("patient_id" to savedId),
+          NavOptions.Builder().setPopUpTo(R.id.addPatientFragment, true).build(),
+        )
     }
   }
 
