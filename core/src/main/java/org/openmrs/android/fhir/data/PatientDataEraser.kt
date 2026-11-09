@@ -101,7 +101,10 @@ class PatientDataEraser(
       preferences.remove(PreferenceKeys.LIVE_PATIENT_IDS)
       preferences.remove(PreferenceKeys.LIVE_TEMPORARY_IDS)
     }
-    DemoDataStore(context.applicationContext).clearLastUpdatedTimestamps(*ORDER.toTypedArray())
+    val demoDataStore = DemoDataStore(context.applicationContext)
+    demoDataStore.clearLastUpdatedTimestamps(*ORDER.toTypedArray())
+    // They have no history on the device any more.
+    demoDataStore.forgetPatientHistory(patients)
     return patients.size
   }
 

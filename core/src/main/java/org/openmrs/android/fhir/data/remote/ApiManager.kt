@@ -29,6 +29,7 @@
 package org.openmrs.android.fhir.data.remote
 
 import android.content.Context
+import com.google.android.fhir.sync.download.UrlDownloadRequest
 import java.io.IOException
 import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
@@ -44,6 +45,7 @@ import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.Resource
 import org.openmrs.android.fhir.BuildConfig
+import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.LoginRepository
 import org.openmrs.android.fhir.data.remote.interceptor.AddCookiesInterceptor
 import org.openmrs.android.fhir.data.remote.interceptor.ReceivedCookiesInterceptor
@@ -51,8 +53,10 @@ import org.openmrs.android.fhir.data.remote.model.IdentifierWrapper
 import org.openmrs.android.fhir.data.remote.model.ResponseWrapper
 import org.openmrs.android.fhir.data.remote.model.SessionLocation
 import org.openmrs.android.fhir.data.remote.model.SessionResponse
+import org.openmrs.android.fhir.data.sync.DemoSyncProgressStore
+import org.openmrs.android.fhir.data.sync.ListDownloadStore
+import org.openmrs.android.fhir.data.sync.PatientDownloadWorkManager
 import org.openmrs.android.fhir.data.sync.SyncUrls
-import org.openmrs.android.fhir.data.sync.applyPatientListScope
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
@@ -231,9 +235,10 @@ class ApiManager @Inject constructor(context: Context) : Api {
 
   /**
    * The patients of the patient lists [listIds] with their encounters and observations, page by
-   * page ([onPage] receives each one as it arrives), following the `next` links. Unlike the sync it
-   * does not ask only for what changed since the last one: the lists are new to the device. Read
-   * only.
+   * page ([onPage] receives each one as it arrives), the way the sync downloads them
+   * ([PatientDownloadWorkManager]: small pages, and what is done is remembered, so a download that
+   * is cut goes on from where it was). Unlike the sync it does not ask only for what changed since
+   * the last one: the lists are new to the device. Read only.
    *
    * @return how many patients came.
    */
@@ -241,20 +246,30 @@ class ApiManager @Inject constructor(context: Context) : Api {
     listIds: Set<String>,
     onPage: suspend (List<Resource>) -> Unit,
   ): Int {
-    val search = applyPatientListScope(SyncUrls.patients(appContext), listIds) ?: return 0
+    val manager =
+      PatientDownloadWorkManager(
+        searches = emptyList(),
+        idSearches = SyncUrls.patientIdSearches(listIds),
+        store = ListDownloadStore(DemoSyncProgressStore(DemoDataStore(appContext))),
+        skipKnownPatients = true,
+      )
     var patients = 0
-    var url: String? =
-      ServerSettings.fhirBaseUrl(appContext) + search + "&_count=$PATIENT_DOWNLOAD_PAGE"
-    var pages = 0
-    while (url != null) {
-      check(pages++ < MAX_PATIENT_DOWNLOAD_PAGES) { "Too many pages of patients" }
+    var requests = 0
+    while (true) {
+      val request = manager.getNextRequest() as? UrlDownloadRequest ?: break
+      check(requests++ < MAX_PATIENT_DOWNLOAD_REQUESTS) { "Too many requests for the patients" }
+      val url =
+        if (request.url.startsWith("http")) {
+          request.url
+        } else {
+          ServerSettings.fhirBaseUrl(appContext) + request.url
+        }
       val response = fhirApiService.getBundle(url)
       if (!response.isSuccessful) throw IOException("Server answered ${response.code()}")
       val bundle = response.body() ?: break
-      val resources = bundle.entry.mapNotNull { it.resource }.filter { it !is OperationOutcome }
+      val resources = manager.processResponse(bundle).filter { it !is OperationOutcome }
       patients += resources.count { it is Patient }
       if (resources.isNotEmpty()) onPage(resources)
-      url = bundle.link.firstOrNull { it.relation == "next" }?.url
     }
     return patients
   }
@@ -306,8 +321,7 @@ private const val MAX_QUESTIONNAIRE_PAGES = 20
 private const val MAX_RECORD_PAGES = 20
 private const val MAX_PATIENT_LIST_PAGES = 20
 private const val PATIENT_LIST_PAGE = 100
-private const val PATIENT_DOWNLOAD_PAGE = 50
-private const val MAX_PATIENT_DOWNLOAD_PAGES = 500
+private const val MAX_PATIENT_DOWNLOAD_REQUESTS = 200_000
 private const val PATIENT_SEARCH_LIMIT = 20
 private const val PATIENT_SEARCH_ELEMENTS =
   "id,name,identifier,birthDate,gender,address,telecom,active"
