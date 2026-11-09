@@ -111,7 +111,9 @@
     <string
         name="live_server_open_failed"
     >Не удалось открыть пациента с сервера. Повторите попытку.</string>
-    <string name="live_server_download_description">Скачать этого пациента, не открывая</string>
+    <string
+        name="live_server_download_description"
+    >Скачать этого пациента, не открывая</string>
     <string name="live_status_live">Онлайн</string>
     <string name="live_status_sending">Отправка…</string>
     <string
@@ -648,9 +650,15 @@
         name="questionnaire_required_answers_missing"
     >Ответьте на обязательные вопросы на этой странице, чтобы продолжить. Они отмечены красным.</string>
     <string name="change_location">Сменить местоположение</string>
-    <string name="settings_section_language_appearance">Язык и оформление</string>
-    <string name="settings_section_general_security">Общие и безопасность</string>
-    <string name="settings_section_forms_visits">Формы, визиты и идентификаторы</string>
+    <string
+        name="settings_section_language_appearance"
+    >Язык и оформление</string>
+    <string
+        name="settings_section_general_security"
+    >Общие и безопасность</string>
+    <string
+        name="settings_section_forms_visits"
+    >Формы, визиты и идентификаторы</string>
     <string name="settings_section_sync">Синхронизация</string>
     <string name="settings_section_live">Режим онлайн</string>
     <string
@@ -674,7 +682,9 @@
     <string
         name="reopen_visit_blocked"
     >Другой визит уже открыт. Сначала завершите его.</string>
-    <string name="patient_refresh_failed">Не удалось связаться с сервером. Показаны данные этого устройства.</string>
+    <string
+        name="patient_refresh_failed"
+    >Не удалось связаться с сервером. Показаны данные этого устройства.</string>
     <string name="no_open_visit_title">Нет открытого визита</string>
     <string
         name="no_open_visit_message"
@@ -1583,16 +1593,28 @@
     <string
         name="diagnosis_picker_rank_hint"
     >Первый диагноз — основной, остальные — вторичные.</string>
-    <string name="settings_recent_patients">Показывать недавних пациентов</string>
+    <string
+        name="settings_recent_patients"
+    >Показывать недавних пациентов</string>
     <string name="settings_recent_patients_off">Выключено</string>
     <string name="recent_patients_title">Недавние пациенты</string>
     <string name="patients_all_title">Все пациенты</string>
     <string name="help_settings_patients_title">Недавние пациенты</string>
-    <string name="help_settings_patients_body">Сколько пациентов, с которыми вы работали последними, показывается вверху экрана «Пациенты». «Выключено» скрывает раздел.</string>
+    <string
+        name="help_settings_patients_body"
+    >Сколько пациентов, с которыми вы работали последними, показывается вверху экрана «Пациенты». «Выключено» скрывает раздел.</string>
     <string name="help_patients_recent_title">Недавние пациенты</string>
-    <string name="help_patients_recent_body">Пациенты, чью карту вы открывали или для кого сохраняли данные в последний раз, самые свежие сверху. Количество задаётся в настройках.</string>
+    <string
+        name="help_patients_recent_body"
+    >Пациенты, чью карту вы открывали или для кого сохраняли данные в последний раз, самые свежие сверху. Количество задаётся в настройках.</string>
     <string name="tutorial_back">Назад</string>
-    <string name="tutorial_wait_for_sync">Тур будет доступен после завершения синхронизации. Попробуйте тогда.</string>
-    <string name="help_settings_forms_title">Формы, визиты и идентификаторы</string>
-    <string name="help_settings_forms_body">Какие формы предлагаются и в каком порядке, создаются ли визиты за вас и какие типы идентификаторов получают новые пациенты.</string>
+    <string
+        name="tutorial_wait_for_sync"
+    >Тур будет доступен после завершения синхронизации. Попробуйте тогда.</string>
+    <string
+        name="help_settings_forms_title"
+    >Формы, визиты и идентификаторы</string>
+    <string
+        name="help_settings_forms_body"
+    >Какие формы предлагаются и в каком порядке, создаются ли визиты за вас и какие типы идентификаторов получают новые пациенты.</string>
 </resources>

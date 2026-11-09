@@ -99,7 +99,9 @@
     <string
         name="live_server_open_failed"
     >Impossible d\'ouvrir ce patient depuis le serveur. Réessayez.</string>
-    <string name="live_server_download_description">Télécharger ce patient sans l\'ouvrir</string>
+    <string
+        name="live_server_download_description"
+    >Télécharger ce patient sans l\'ouvrir</string>
     <string name="live_status_live">En direct</string>
     <string name="live_status_sending">Envoi…</string>
     <string
@@ -667,9 +669,15 @@
         name="questionnaire_required_answers_missing"
     >Répondez aux questions obligatoires de cette page pour continuer. Elles sont marquées en rouge.</string>
     <string name="change_location">Changer de lieu</string>
-    <string name="settings_section_language_appearance">Langue et apparence</string>
-    <string name="settings_section_general_security">Général et sécurité</string>
-    <string name="settings_section_forms_visits">Formulaires, visites et identifiants</string>
+    <string
+        name="settings_section_language_appearance"
+    >Langue et apparence</string>
+    <string
+        name="settings_section_general_security"
+    >Général et sécurité</string>
+    <string
+        name="settings_section_forms_visits"
+    >Formulaires, visites et identifiants</string>
     <string name="settings_section_sync">Synchronisation</string>
     <string name="settings_section_live">Mode en direct</string>
     <string
@@ -695,7 +703,9 @@
     <string
         name="reopen_visit_blocked"
     >Une autre visite est déjà ouverte. Terminez-la d\'abord.</string>
-    <string name="patient_refresh_failed">Le serveur est injoignable. Les données de cet appareil sont affichées.</string>
+    <string
+        name="patient_refresh_failed"
+    >Le serveur est injoignable. Les données de cet appareil sont affichées.</string>
     <string name="no_open_visit_title">Aucune visite ouverte</string>
     <string
         name="no_open_visit_message"
@@ -788,9 +798,13 @@
     <string name="recent_patients_title">Patients récents</string>
     <string name="patients_all_title">Tous les patients</string>
     <string name="help_settings_patients_title">Patients récents</string>
-    <string name="help_settings_patients_body">Combien des derniers patients avec lesquels vous avez travaillé sont listés en haut de l\'écran Patients. Désactivé masque la section.</string>
+    <string
+        name="help_settings_patients_body"
+    >Combien des derniers patients avec lesquels vous avez travaillé sont listés en haut de l\'écran Patients. Désactivé masque la section.</string>
     <string name="help_patients_recent_title">Patients récents</string>
-    <string name="help_patients_recent_body">Les patients que vous avez ouverts ou pour lesquels vous avez enregistré quelque chose en dernier, le plus récent d\'abord. Le nombre est un réglage.</string>
+    <string
+        name="help_patients_recent_body"
+    >Les patients que vous avez ouverts ou pour lesquels vous avez enregistré quelque chose en dernier, le plus récent d\'abord. Le nombre est un réglage.</string>
     <string name="tutorial_show_screen">Afficher la visite de cet écran</string>
     <string name="help_home_status_title">Où vous travaillez</string>
     <string
@@ -1647,7 +1661,13 @@
         name="diagnosis_picker_rank_hint"
     >Le premier diagnostic est le diagnostic principal ; les autres sont secondaires.</string>
     <string name="tutorial_back">Retour</string>
-    <string name="tutorial_wait_for_sync">La visite est disponible une fois la synchronisation terminée. Réessayez alors.</string>
-    <string name="help_settings_forms_title">Formulaires, visites et identifiants</string>
-    <string name="help_settings_forms_body">Quels formulaires sont proposés et dans quel ordre, si les visites sont créées pour vous et quels types d\'identifiant reçoivent les nouveaux patients.</string>
+    <string
+        name="tutorial_wait_for_sync"
+    >La visite est disponible une fois la synchronisation terminée. Réessayez alors.</string>
+    <string
+        name="help_settings_forms_title"
+    >Formulaires, visites et identifiants</string>
+    <string
+        name="help_settings_forms_body"
+    >Quels formulaires sont proposés et dans quel ordre, si les visites sont créées pour vous et quels types d\'identifiant reçoivent les nouveaux patients.</string>
 </resources>

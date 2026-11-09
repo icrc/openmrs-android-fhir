@@ -84,7 +84,9 @@
     <string
         name="live_server_open_failed"
     >تعذّر فتح هذا المريض من الخادم. حاول مرة أخرى.</string>
-    <string name="live_server_download_description">تنزيل هذا المريض دون فتحه</string>
+    <string
+        name="live_server_download_description"
+    >تنزيل هذا المريض دون فتحه</string>
     <string name="live_status_live">مباشر</string>
     <string name="live_status_sending">جارٍ الإرسال…</string>
     <string name="live_status_retry">لم يُرسل بعد، ستتم إعادة المحاولة</string>
@@ -571,7 +573,9 @@
     <string name="change_location">تغيير الموقع</string>
     <string name="settings_section_language_appearance">اللغة والمظهر</string>
     <string name="settings_section_general_security">عام والأمان</string>
-    <string name="settings_section_forms_visits">النماذج والزيارات والمعرّفات</string>
+    <string
+        name="settings_section_forms_visits"
+    >النماذج والزيارات والمعرّفات</string>
     <string name="settings_section_sync">المزامنة</string>
     <string name="settings_section_live">الوضع المباشر</string>
     <string
@@ -593,7 +597,9 @@
     <string
         name="reopen_visit_blocked"
     >توجد زيارة أخرى مفتوحة. أنهِها أولاً.</string>
-    <string name="patient_refresh_failed">تعذّر الوصول إلى الخادم. يتم عرض البيانات الموجودة على هذا الجهاز.</string>
+    <string
+        name="patient_refresh_failed"
+    >تعذّر الوصول إلى الخادم. يتم عرض البيانات الموجودة على هذا الجهاز.</string>
     <string name="no_open_visit_title">لا توجد زيارة مفتوحة</string>
     <string
         name="no_open_visit_message"
@@ -1468,16 +1474,28 @@
     <string
         name="diagnosis_picker_rank_hint"
     >التشخيص الأول هو التشخيص الأساسي، والبقية ثانوية.</string>
-    <string name="settings_recent_patients">عدد المرضى الأخيرين المعروضين</string>
+    <string
+        name="settings_recent_patients"
+    >عدد المرضى الأخيرين المعروضين</string>
     <string name="settings_recent_patients_off">متوقف</string>
     <string name="recent_patients_title">المرضى الأخيرون</string>
     <string name="patients_all_title">جميع المرضى</string>
     <string name="help_settings_patients_title">المرضى الأخيرون</string>
-    <string name="help_settings_patients_body">عدد المرضى الذين عملت معهم مؤخراً والمعروضين أعلى شاشة المرضى. الإيقاف يخفي القسم.</string>
+    <string
+        name="help_settings_patients_body"
+    >عدد المرضى الذين عملت معهم مؤخراً والمعروضين أعلى شاشة المرضى. الإيقاف يخفي القسم.</string>
     <string name="help_patients_recent_title">المرضى الأخيرون</string>
-    <string name="help_patients_recent_body">المرضى الذين فتحت ملفهم أو حفظت لهم شيئاً مؤخراً، الأحدث أولاً. العدد من الإعدادات.</string>
+    <string
+        name="help_patients_recent_body"
+    >المرضى الذين فتحت ملفهم أو حفظت لهم شيئاً مؤخراً، الأحدث أولاً. العدد من الإعدادات.</string>
     <string name="tutorial_back">رجوع</string>
-    <string name="tutorial_wait_for_sync">الجولة متاحة بعد انتهاء المزامنة. حاول عندئذٍ.</string>
-    <string name="help_settings_forms_title">النماذج والزيارات والمعرّفات</string>
-    <string name="help_settings_forms_body">أي النماذج تُعرض وبأي ترتيب، وهل تُنشأ الزيارات نيابةً عنك، وأي أنواع المعرّفات يحصل عليها المرضى الجدد.</string>
+    <string
+        name="tutorial_wait_for_sync"
+    >الجولة متاحة بعد انتهاء المزامنة. حاول عندئذٍ.</string>
+    <string
+        name="help_settings_forms_title"
+    >النماذج والزيارات والمعرّفات</string>
+    <string
+        name="help_settings_forms_body"
+    >أي النماذج تُعرض وبأي ترتيب، وهل تُنشأ الزيارات نيابةً عنك، وأي أنواع المعرّفات يحصل عليها المرضى الجدد.</string>
 </resources>
