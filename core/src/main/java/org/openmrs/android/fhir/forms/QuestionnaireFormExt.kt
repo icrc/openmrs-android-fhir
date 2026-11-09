@@ -44,6 +44,7 @@ import java.util.WeakHashMap
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
+import timber.log.Timber
 
 /**
  * Creates the data-capture form with the display options every screen shares (review page, optional
@@ -64,7 +65,15 @@ fun Fragment.newQuestionnaireFragment(
   explainBlockedNavigationIn(this)
   return QuestionnaireFragment.builder()
     .apply {
-      setQuestionnaire(questionnaireJson)
+      // Without a file (a full disk) the library gets the text and keeps its large saved state.
+      val file =
+        try {
+          QuestionnaireFiles.uriOf(requireContext().applicationContext, questionnaireJson)
+        } catch (e: Exception) {
+          Timber.w(e, "The questionnaire could not be kept in a file")
+          null
+        }
+      if (file != null) setQuestionnaire(file) else setQuestionnaire(questionnaireJson)
       responseJson?.let { setQuestionnaireResponse(it) }
       showReviewPageBeforeSubmit(true)
       showOptionalText(true)

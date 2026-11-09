@@ -119,7 +119,7 @@ internal fun QuestionnaireFragment.installPageBreadcrumbs(formView: View) {
       return
     }
   var jumping = false
-  val questionnaire = arguments?.getString(QUESTIONNAIRE_ARGUMENT).orEmpty()
+  val questionnaire = QuestionnaireFiles.jsonOf(formView.context.applicationContext, this)
   val titles = pageTitles(questionnaire)
   val pageOfLinkId by lazy { pageOfLinkIds(questionnaire) }
   var shown by mutableStateOf(PagesShown())
@@ -203,9 +203,6 @@ private const val ROW_HEIGHT_DP = 40
 
 /** How long a jump waits for the library to show the page it was set to. */
 private const val PAGE_TIMEOUT_MS = 600L
-
-/** The key of the questionnaire in the arguments of the form fragment (the library's own). */
-private const val QUESTIONNAIRE_ARGUMENT = "questionnaire"
 
 /** Reads the pages from the form library's view model and sets the page on show. */
 private class FormPager(private val viewModel: ViewModel) {
