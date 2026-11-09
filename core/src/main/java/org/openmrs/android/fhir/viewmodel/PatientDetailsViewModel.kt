@@ -154,21 +154,14 @@ constructor(
   }
 
   private enum class ServerRead {
-    /** The record was read and stored. */
     Done,
 
     /** Nothing to ask: a guest session, or a patient the server does not know yet. */
     NotNeeded,
-
-    /** Offline, or the server did not answer: the device's copy is what is shown. */
     Failed,
   }
 
-  /**
-   * Reads the patient's record again from the server and stores it; what waits for upload on the
-   * device wins over it. Used whatever the mode: opening the page in live mode, and the pull to
-   * refresh.
-   */
+  /** Reads the record again from the server; what waits for upload on the device wins. */
   private suspend fun downloadFromServer(): ServerRead {
     if (GuestSession.isActive(applicationContext)) return ServerRead.NotNeeded
     // Created on this device and not sent yet: the server has nothing to give.
@@ -192,17 +185,14 @@ constructor(
 
   private val _isRefreshing = MutableStateFlow(false)
 
-  /** The pull to refresh is running. */
   val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
   private val _refreshFailed = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
-  /** Emits when a pull to refresh could not reach the server (the device's data is shown). */
   val refreshFailed: SharedFlow<Unit> = _refreshFailed
 
   /**
-   * The pull to refresh: reads the record from the server again (live mode or not; offline it only
-   * reloads what the device holds) and rebuilds the page.
+   * The pull to refresh: reads the record again and rebuilds the page (offline: device data only).
    */
   fun refresh() {
     if (_isRefreshing.value) return

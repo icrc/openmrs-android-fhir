@@ -121,9 +121,7 @@ fun PatientDetailsScreen(
   onEditNote: () -> Unit = {},
   /** Identifying needs a signed-in user with a connection to the server. */
   identifyAvailable: Boolean = true,
-  /** The pull to refresh is running. */
   isRefreshing: Boolean = false,
-  /** Pulling the page down asks for the record again; no pull without it. */
   onRefresh: (() -> Unit)? = null,
 ) {
   val topInset = rememberAppBarHeight()

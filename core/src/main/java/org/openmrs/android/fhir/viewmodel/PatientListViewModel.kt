@@ -453,16 +453,29 @@ constructor(
    * they can be opened like any other patient.
    */
   fun openServerPatient(patient: PatientItem, onOpened: (String) -> Unit) {
+    bringServerPatient(patient, keep = false, onOpened)
+  }
+
+  /** The cloud icon: brings [patient] to the device without opening them, and keeps them. */
+  fun downloadServerPatient(patient: PatientItem) {
+    bringServerPatient(patient, keep = true) {}
+  }
+
+  private fun bringServerPatient(
+    patient: PatientItem,
+    keep: Boolean,
+    onDone: (String) -> Unit,
+  ) {
     if (_uiState.value.serverSearch.openingId != null) return
     updateServerSearch { it.copy(openingId = patient.resourceId) }
     viewModelScope.launch {
       try {
         withTimeout(SERVER_OPEN_TIMEOUT_MILLIS) {
-          withContext(ioDispatcher) { live.download(patient.resourceId) }
+          withContext(ioDispatcher) { live.download(patient.resourceId, keep = keep) }
         }
         // The list now includes them.
         reloadQuietly()
-        onOpened(patient.resourceId)
+        onDone(patient.resourceId)
       } catch (e: TimeoutCancellationException) {
         updateServerSearch { it.copy(messageRes = R.string.live_server_open_failed) }
       } catch (e: CancellationException) {

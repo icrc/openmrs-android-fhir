@@ -99,6 +99,7 @@
     <string
         name="live_server_open_failed"
     >Impossible d\'ouvrir ce patient depuis le serveur. Réessayez.</string>
+    <string name="live_server_download_description">Télécharger ce patient sans l\'ouvrir</string>
     <string name="live_status_live">En direct</string>
     <string name="live_status_sending">Envoi…</string>
     <string
@@ -816,7 +817,7 @@
     <string name="help_patients_list_title">Patients de cet appareil</string>
     <string
         name="help_patients_list_body"
-    >Touchez un patient pour ouvrir son profil, avec ses visites et ses rencontres. Un nuage indique ce qui n\'est pas encore synchronisé.</string>
+    >Touchez un patient pour ouvrir son profil, avec ses visites et ses rencontres. Un nuage indique ce qui n\'est pas encore synchronisé. En mode direct, le bouton nuage d\'un patient trouvé sur le serveur le télécharge sans l\'ouvrir.</string>
     <string name="help_patients_identify_title">Identifier plus tard</string>
     <string
         name="help_patients_identify_body"

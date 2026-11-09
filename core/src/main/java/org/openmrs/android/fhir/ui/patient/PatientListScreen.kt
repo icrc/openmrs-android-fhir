@@ -102,6 +102,7 @@ fun PatientListScreen(
   onFabClick: () -> Unit,
   modifier: Modifier = Modifier,
   onServerPatientClick: (PatientListViewModel.PatientItem) -> Unit = {},
+  onServerPatientDownload: (PatientListViewModel.PatientItem) -> Unit = {},
   onSortChange: (PatientSort) -> Unit = {},
   onShowMore: () -> Unit = {},
   /** Records for a patient who is not on the device: asked with a note, identified later. */
@@ -175,7 +176,7 @@ fun PatientListScreen(
           emptyContent = { PatientListEmptyState() },
           extraRows =
             run {
-              val server = serverRows(uiState, onServerPatientClick)
+              val server = serverRows(uiState, onServerPatientClick, onServerPatientDownload)
               val footer = showMoreRow(uiState.hasMore, onShowMore)
               if (server == null && footer == null) {
                 null
@@ -227,6 +228,7 @@ fun PatientListScreen(
 private fun serverRows(
   uiState: PatientListUiState,
   onClick: (PatientListViewModel.PatientItem) -> Unit,
+  onDownload: (PatientListViewModel.PatientItem) -> Unit,
 ): (LazyListScope.() -> Unit)? {
   val search = uiState.serverSearch
   if (!search.active) return null
@@ -262,6 +264,7 @@ private fun serverRows(
         onClick = { onClick(patient) },
         onServer = true,
         isOpening = search.openingId == patient.resourceId,
+        onDownloadClick = { onDownload(patient) },
       )
     }
     if (!search.loading && found.isEmpty()) {

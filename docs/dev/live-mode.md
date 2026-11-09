@@ -49,7 +49,9 @@ the device.
 
 * Patients not on the device appear under **On the server**. Tapping one reads it with its encounters
   and observations (the request the sync uses), stores it with `FhirEngine.syncDownload` (so it is not
-  a local change and never overwrites what waits for upload), and opens it. From then on it is an
+  a local change and never overwrites what waits for upload), and opens it. The **cloud button** at
+  the end of the row does the same without opening: the patient joins the list and is kept on the
+  device whatever the "keep patients" setting says (`LivePatients.download(keep = true)`). From then on it is an
   ordinary patient, offline too. Its id is kept in `PreferenceKeys.LIVE_PATIENT_IDS` so the list shows
   it although it is in none of the selected patient lists.
 * Opening any patient re-reads the record in the background (once per 30 s per patient).

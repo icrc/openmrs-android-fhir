@@ -111,6 +111,7 @@
     <string
         name="live_server_open_failed"
     >Не удалось открыть пациента с сервера. Повторите попытку.</string>
+    <string name="live_server_download_description">Скачать этого пациента, не открывая</string>
     <string name="live_status_live">Онлайн</string>
     <string name="live_status_sending">Отправка…</string>
     <string
@@ -787,7 +788,7 @@
     <string name="help_patients_list_title">Пациенты на этом устройстве</string>
     <string
         name="help_patients_list_body"
-    >Нажмите на пациента, чтобы открыть профиль с визитами и приёмами. Значок облака показывает, что ещё не синхронизировано.</string>
+    >Нажмите на пациента, чтобы открыть профиль с визитами и приёмами. Значок облака показывает, что ещё не синхронизировано. В онлайн-режиме кнопка облака у пациента, найденного на сервере, скачивает его, не открывая.</string>
     <string name="help_patients_identify_title">Идентифицировать позже</string>
     <string
         name="help_patients_identify_body"

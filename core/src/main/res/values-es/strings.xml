@@ -88,6 +88,7 @@
     <string
         name="live_server_open_failed"
     >No se pudo abrir este paciente desde el servidor. Inténtelo de nuevo.</string>
+    <string name="live_server_download_description">Descargar este paciente sin abrirlo</string>
     <string name="live_status_live">En vivo</string>
     <string name="live_status_sending">Enviando…</string>
     <string name="live_status_retry">Aún no enviado, se reintentará</string>
@@ -792,7 +793,7 @@
     >Pacientes de este dispositivo</string>
     <string
         name="help_patients_list_body"
-    >Toque un paciente para abrir su perfil, con sus visitas y encuentros. Una nube indica lo que aún no se ha sincronizado.</string>
+    >Toque un paciente para abrir su perfil, con sus visitas y encuentros. Una nube indica lo que aún no se ha sincronizado. En modo en vivo, el botón de nube de un paciente encontrado en el servidor lo descarga sin abrirlo.</string>
     <string name="help_patients_identify_title">Identificar después</string>
     <string
         name="help_patients_identify_body"

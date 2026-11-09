@@ -212,7 +212,7 @@ class PatientDetailsFragment : Fragment() {
           AppMessage.show(
             requireContext(),
             getString(R.string.patient_refresh_failed),
-            MessageKind.Info
+            MessageKind.Info,
           )
         }
       }

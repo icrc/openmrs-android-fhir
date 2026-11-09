@@ -117,6 +117,7 @@ class PatientListFragment : Fragment() {
           onServerPatientClick = { patient ->
             patientListViewModel.openServerPatient(patient) { id -> openPatient(id) }
           },
+          onServerPatientDownload = patientListViewModel::downloadServerPatient,
           onSortChange = patientListViewModel::setSort,
           onShowMore = patientListViewModel::showMore,
           onFabClick = { onAddPatientClick() },

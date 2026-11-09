@@ -84,6 +84,7 @@
     <string
         name="live_server_open_failed"
     >تعذّر فتح هذا المريض من الخادم. حاول مرة أخرى.</string>
+    <string name="live_server_download_description">تنزيل هذا المريض دون فتحه</string>
     <string name="live_status_live">مباشر</string>
     <string name="live_status_sending">جارٍ الإرسال…</string>
     <string name="live_status_retry">لم يُرسل بعد، ستتم إعادة المحاولة</string>
@@ -702,7 +703,7 @@
     <string name="help_patients_list_title">المرضى على هذا الجهاز</string>
     <string
         name="help_patients_list_body"
-    >اضغط على مريض لفتح ملفه مع زياراته ولقاءاته. تشير السحابة إلى ما لم تتم مزامنته بعد.</string>
+    >اضغط على مريض لفتح ملفه مع زياراته ولقاءاته. تشير السحابة إلى ما لم تتم مزامنته بعد. في الوضع المباشر، يقوم زر السحابة لمريض موجود على الخادم بتنزيله دون فتحه.</string>
     <string name="help_patients_identify_title">التعرّف لاحقاً</string>
     <string
         name="help_patients_identify_body"
