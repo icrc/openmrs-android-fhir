@@ -63,7 +63,6 @@ class UploadPreparer(
   }
 
   suspend fun embedIdentifiersInUnsyncedPatients() {
-    // Setting location session first.
     context.dataStore.data.first()[PreferenceKeys.LOCATION_ID]?.let {
       apiManager.setLocationSession(SessionLocation(it))
     }

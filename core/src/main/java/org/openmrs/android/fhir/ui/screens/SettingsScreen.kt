@@ -395,7 +395,7 @@ fun SettingsScreen(
               testTag = SettingsTestTags.EmbeddedFormsSwitch,
             )
           }
-          if (showFetch && onFetchQuestionnairesClicked != null) {
+          if (showFetch) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             SettingsAction(
               description =
@@ -426,7 +426,7 @@ fun SettingsScreen(
               testTag = SettingsTestTags.FetchQuestionnairesButton,
             )
           }
-          if (showFavorites && favoriteFormOptions != null && onFavoriteFormsSaved != null) {
+          if (showFavorites) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Text(
               text = stringResource(R.string.favorite_forms),

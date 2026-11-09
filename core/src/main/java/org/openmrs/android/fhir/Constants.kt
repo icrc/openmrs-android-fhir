@@ -33,23 +33,24 @@ import java.util.Locale
 
 object Constants {
   val DATE24_FORMATTER = SimpleDateFormat("dd MMM yyyy HH:mm", Locale.getDefault())
-  val VISIT_TYPE_UUID = "7b0f5697-27e3-40c4-8bae-f4049abfb4ed"
-  val VISIT_TYPE_CODE_SYSTEM = "http://fhir.openmrs.org/code-system/visit-type"
-  val CONDITION_CATEGORY_SYSTEM_URL = "http://terminology.hl7.org/CodeSystem/condition-category"
+  const val VISIT_TYPE_UUID = "7b0f5697-27e3-40c4-8bae-f4049abfb4ed"
+  const val VISIT_TYPE_CODE_SYSTEM = "http://fhir.openmrs.org/code-system/visit-type"
+  const val CONDITION_CATEGORY_SYSTEM_URL =
+    "http://terminology.hl7.org/CodeSystem/condition-category"
 
-  // FHIR URLs
-  val PATIENT_LOCATION_IDENTIFIER_URL = "http://fhir.openmrs.org/ext/patient/identifier#location"
-  val PATIENT_IDENTIFIER_DEFINITION_URL =
+  const val PATIENT_LOCATION_IDENTIFIER_URL =
+    "http://fhir.openmrs.org/ext/patient/identifier#location"
+  const val PATIENT_IDENTIFIER_DEFINITION_URL =
     "http://hl7.org/fhir/StructureDefinition/Patient#Patient.identifier"
-  val PERSON_ATTRIBUTE_LINK_ID_PREFIX = "PersonAttribute#"
-  val OPENMRS_PERSON_ATTRIBUTE_URL = "http://fhir.openmrs.org/ext/person-attribute"
-  val OPENMRS_PERSON_ATTRIBUTE_TYPE_URL = "http://fhir.openmrs.org/ext/person-attribute-type"
-  val OPENMRS_PERSON_ATTRIBUTE_VALUE_URL = "http://fhir.openmrs.org/ext/person-attribute-value"
-  val SHOW_SCREENER_EXTENSION_URL = "https://openmrs.org/ext/show-screener"
+  const val PERSON_ATTRIBUTE_LINK_ID_PREFIX = "PersonAttribute#"
+  const val OPENMRS_PERSON_ATTRIBUTE_URL = "http://fhir.openmrs.org/ext/person-attribute"
+  const val OPENMRS_PERSON_ATTRIBUTE_TYPE_URL = "http://fhir.openmrs.org/ext/person-attribute-type"
+  const val OPENMRS_PERSON_ATTRIBUTE_VALUE_URL =
+    "http://fhir.openmrs.org/ext/person-attribute-value"
+  const val SHOW_SCREENER_EXTENSION_URL = "https://openmrs.org/ext/show-screener"
 
-  // Screener questionnaire internal observation ids.
-  val SESSION_IDENTIFIER_UUID = "6a803908-8a5b-4598-adea-19358c83529a"
-  val COHORT_IDENTIFIER_UUID = "5461f231-7e59-4be8-93a4-6d49fd13c00a"
-  val COHORT_NAME_UUID = "6029f289-92a6-4a68-80f1-3078d0152449"
-  val SESSION_DATE_UUID = "ceaca505-6dff-4940-8a43-8c060a0924d7"
+  const val SESSION_IDENTIFIER_UUID = "6a803908-8a5b-4598-adea-19358c83529a"
+  const val COHORT_IDENTIFIER_UUID = "5461f231-7e59-4be8-93a4-6d49fd13c00a"
+  const val COHORT_NAME_UUID = "6029f289-92a6-4a68-80f1-3078d0152449"
+  const val SESSION_DATE_UUID = "ceaca505-6dff-4940-8a43-8c060a0924d7"
 }

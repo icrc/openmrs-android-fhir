@@ -113,7 +113,6 @@ constructor(
       true
     }
 
-  // Visit related functions
   /** The patient's visits, each with its encounters, and the encounters that are in no visit. */
   suspend fun getVisitsAndOthers(patientId: String): PatientVisits {
     val visits = linkedMapOf<Encounter, List<Encounter>>()
@@ -130,11 +129,7 @@ constructor(
 
     val visitEncounters =
       allEncounters
-        .filter { encounter ->
-          encounter.type.any { type ->
-            type.coding.any { coding -> coding.system == Constants.VISIT_TYPE_CODE_SYSTEM }
-          }
-        }
+        .filter { it.isVisit() }
         .sortedByDescending { encounter ->
           encounter.period?.start ?: encounter.period?.end ?: Date(0)
         }
@@ -167,7 +162,6 @@ constructor(
       fhirEngine.search<Encounter> { filter(Encounter.SUBJECT, { value = "Patient/$patientId" }) }
     val encounters = searchResult.map { it.resource }
 
-    // Find and return the active encounter
     var currentVisit =
       encounters.find { encounter: Encounter ->
         val isVisitType =
@@ -367,11 +361,7 @@ constructor(
           done += id
           continue
         }
-      val isVisit =
-        encounter.type.any { type ->
-          type.coding.any { it.system == Constants.VISIT_TYPE_CODE_SYSTEM }
-        }
-      if (isVisit) {
+      if (encounter.isVisit()) {
         done += id
         continue
       }
@@ -434,10 +424,7 @@ constructor(
         fhirEngine.getLocalChanges(ResourceType.Encounter, it.idElement.idPart).isNotEmpty()
       }
       .forEach { encounter ->
-        val isVisit =
-          encounter.type.any { type ->
-            type.coding.any { it.system == Constants.VISIT_TYPE_CODE_SYSTEM }
-          }
+        val isVisit = encounter.isVisit()
         encounter.participant
           .filter { missing(it.individual?.reference) }
           .forEach {
@@ -495,7 +482,6 @@ constructor(
       items: List<QuestionnaireResponse.QuestionnaireResponseItemComponent>?,
     ) {
       items?.forEach { item ->
-        // Add the current item's ID
         if (item.linkId != null && personAttributeQuestionnaireLinkIds.contains(item.linkId)) {
           if (item.answer.isNotEmpty()) {
             val extensionValue = item.answer[0].value
@@ -503,7 +489,6 @@ constructor(
           }
         }
 
-        // Recursively process child items
         traverseQuestionnaireResponseItems(item.item)
       }
     }
@@ -519,7 +504,7 @@ constructor(
    * URL, and contains a child extension with the specific attribute type URL and value.
    *
    * @param extensionValue The value of the person attribute (as a FHIR Type)
-   * @param personAttributeQuestionnaireItem The questionnaire item containing attribute metadata
+   * @param linkId The link id of the question; what follows `#` is the attribute type
    * @return A properly structured FHIR Extension for the person attribute
    */
   fun getPersonAttributeExtension(extensionValue: Type, linkId: String): Extension {
@@ -533,7 +518,6 @@ constructor(
           },
           Extension().apply {
             url = OPENMRS_PERSON_ATTRIBUTE_VALUE_URL
-            value = extensionValue
             value =
               when (val v = extensionValue) {
                 is CodeableConcept -> v
@@ -550,17 +534,13 @@ constructor(
   private fun extractAllItemLinkIds(questionnaire: Questionnaire): Set<String> {
     val linkIds = mutableSetOf<String>()
 
-    // Helper function for recursive traversal
     fun traverseQuestionnaireItems(items: List<QuestionnaireItemComponent>?) {
       items?.forEach { item ->
-        // Add the current item's ID
         item.linkId?.let { if (it.contains(PERSON_ATTRIBUTE_LINK_ID_PREFIX)) linkIds.add(it) }
 
-        // Recursively process child items
         traverseQuestionnaireItems(item.item)
       }
     }
-    // Start traversal with top-level items
     traverseQuestionnaireItems(questionnaire.item)
 
     return linkIds
@@ -637,8 +617,9 @@ data class PatientVisits(
   val withoutVisit: List<Encounter>,
 )
 
+/** Whether this encounter is an OpenMRS visit, the container of the encounters of a stay. */
+fun Encounter.isVisit(): Boolean =
+  type.any { type -> type.coding.any { it.system == Constants.VISIT_TYPE_CODE_SYSTEM } }
+
 /** A visit that has started and not ended. */
-fun Encounter.isOpenVisit(): Boolean =
-  type.any { type -> type.coding.any { it.system == Constants.VISIT_TYPE_CODE_SYSTEM } } &&
-    period?.start != null &&
-    period?.end == null
+fun Encounter.isOpenVisit(): Boolean = isVisit() && period?.start != null && period?.end == null

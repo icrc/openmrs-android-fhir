@@ -241,9 +241,7 @@ class LocationFragment : Fragment() {
                 MessageKind.Error,
               )
             }
-            else -> {
-              //
-            }
+            else -> {}
           }
         }
       }

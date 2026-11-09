@@ -71,13 +71,13 @@ import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.RiskAssessment
-import org.openmrs.android.fhir.Constants.VISIT_TYPE_CODE_SYSTEM
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.FormCatalog
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.RecentPatients
+import org.openmrs.android.fhir.data.isVisit
 import org.openmrs.android.fhir.data.sync.LivePatients
 import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.multiuser.DataVisibility
@@ -594,7 +594,7 @@ constructor(
           it.status != Encounter.EncounterStatus.CANCELLED &&
             it.status != Encounter.EncounterStatus.ENTEREDINERROR &&
             // A visit is the container of the encounters, not one of them.
-            it.type.none { type -> type.coding.any { c -> c.system == VISIT_TYPE_CODE_SYSTEM } }
+            !it.isVisit()
         }
         .forEach { encounter ->
           val patientId = encounter.subject?.reference?.substringAfter("Patient/") ?: return@forEach

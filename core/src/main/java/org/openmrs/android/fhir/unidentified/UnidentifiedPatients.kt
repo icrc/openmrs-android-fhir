@@ -47,9 +47,9 @@ import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.Resource
 import org.hl7.fhir.r4.model.ResourceType
-import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.UnidentifiedPatient
+import org.openmrs.android.fhir.data.isVisit
 import org.openmrs.android.fhir.data.sync.LivePatients
 import org.openmrs.android.fhir.data.sync.LiveSync
 
@@ -173,8 +173,6 @@ constructor(
     lock.withLock { store.ids().forEach { store.remove(it) } }
   }
 
-  // ---- records of a placeholder -----------------------------------------------------------------
-
   private suspend fun recordsOf(patientId: String): List<Resource> {
     val reference = "Patient/$patientId"
     val encounters =
@@ -208,12 +206,6 @@ constructor(
       is Condition -> 2
       else -> 3
     }
-
-  private fun Encounter.isVisit(): Boolean =
-    type.any { type -> type.coding.any { it.system == Constants.VISIT_TYPE_CODE_SYSTEM } }
-
-  // ---- the placeholder patient
-  // --------------------------------------------------------------------
 
   private fun placeholder(entry: UnidentifiedPatient) =
     Patient().apply {

@@ -163,7 +163,6 @@ constructor(
         personAttributeValueMap[linkId] = extensionValue
       }
 
-    // Process items recursively
     fillPersonAttributeQuestionnaireItemRecursively(
       questionnaireResponse.item,
       personAttributeValueMap,
@@ -177,7 +176,6 @@ constructor(
     personAttributeValueMap: Map<String, Type>,
   ) {
     items.forEach { item ->
-      // Process current item
       if (item.linkId.contains(PERSON_ATTRIBUTE_LINK_ID_PREFIX)) {
         if (personAttributeValueMap.containsKey(item.linkId)) {
           item.answer.add(
@@ -190,7 +188,6 @@ constructor(
         }
       }
 
-      // Recursively process nested items if they exist
       if (item.item.isNotEmpty()) {
         fillPersonAttributeQuestionnaireItemRecursively(item.item, personAttributeValueMap)
       }
@@ -214,14 +211,12 @@ constructor(
           patient.name[0].hasFamily() &&
           patient.hasGender()
       ) {
-        // Name
         originalPatient.name[0].given = patient.name[0].given
         originalPatient.name[0].family = patient.name[0].family
         if (patient.name[0].hasText()) {
           originalPatient.name[0].text = patient.name[0].text
         }
 
-        // Birth date and gender
         val birthDate = openMRSHelper.birthDateFrom(questionnaireResponse)
         if (birthDate != null && openMRSHelper.isInTheFuture(birthDate)) {
           saveFailure.value = R.string.birth_date_in_the_future
@@ -236,7 +231,6 @@ constructor(
         originalPatient.birthDateElement = birthDate
         originalPatient.gender = patient.gender
 
-        // Telecom
         if (patient.hasTelecom()) {
           val telecom = patient.telecomFirstRep
           if (originalPatient.hasTelecom()) {
@@ -253,7 +247,6 @@ constructor(
           }
         }
 
-        // Address
         if (patient.hasAddress()) {
           val address = patient.addressFirstRep
           if (originalPatient.hasAddress()) {
@@ -337,7 +330,6 @@ constructor(
     }
   }
 
-  // Extension functions for cleaner syntax
   private fun QuestionnaireResponse.QuestionnaireResponseItemComponent.setBooleanAnswer(
     value: Boolean,
   ) {

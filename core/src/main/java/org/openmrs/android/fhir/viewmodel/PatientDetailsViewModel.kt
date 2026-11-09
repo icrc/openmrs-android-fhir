@@ -298,7 +298,6 @@ constructor(
       if (patientItem.isSynced == false) {
         add(PatientUnsynced(false, false))
       }
-      // Add other patient details if necessary
     }
   }
 

@@ -36,8 +36,6 @@ data class AuthConfigData(
   @Json(name = "client_id") val clientId: String,
   @Json(name = "authorization_scope") val authorizationScope: String?,
   @Json(name = "redirect_uri") val redirectUri: String?,
-  // @Json(name = "end_session_redirect_uri") val endSessionRedirectUri: String?, // Uncomment if
-  // needed
   @Json(name = "discovery_uri") val discoveryUri: String?,
   @Json(name = "authorization_endpoint_uri") val authorizationEndpointUri: String?,
   @Json(name = "token_endpoint_uri") val tokenEndpointUri: String?,

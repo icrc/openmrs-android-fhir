@@ -133,10 +133,8 @@ internal fun affixLastUpdatedTimestamp(url: String, lastUpdated: String): String
     val lastUpdatedRegex = Regex("([?&])_lastUpdated=gt[^&]*")
 
     if (downloadUrl.contains("_lastUpdated=")) {
-      // Replace existing _lastUpdated value
       downloadUrl = downloadUrl.replace(lastUpdatedRegex, "$1_lastUpdated=gt$lastUpdated")
     } else {
-      // Append _lastUpdated normally
       val separator = if (downloadUrl.contains('?')) "&" else "?"
       downloadUrl = "$downloadUrl${separator}_lastUpdated=gt$lastUpdated"
     }

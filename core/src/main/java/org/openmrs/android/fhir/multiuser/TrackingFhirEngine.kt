@@ -119,8 +119,7 @@ class TrackingFhirEngine(
     ledger.deleted(type, id)
   }
 
-  // ---- "identify patient after": the records of a placeholder patient are never uploaded
-  // -----------
+  // "Identify patient after": the records of a placeholder patient are never uploaded.
 
   private suspend fun heldIndexes(records: Array<out Resource>): List<Int> {
     val ids = unidentified.ids()

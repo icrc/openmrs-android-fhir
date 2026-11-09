@@ -152,7 +152,6 @@ class PatientListFragment : Fragment() {
         if (patientListViewModel.uiState.value.query.isNotEmpty()) {
           patientListViewModel.clearSearch()
         } else {
-          //          isEnabled = false
           NavHostFragment.findNavController(this).navigateUp()
         }
         true

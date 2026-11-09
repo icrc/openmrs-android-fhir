@@ -228,7 +228,6 @@ constructor(
           questionnaire.code.any { it.code == encounterType }
         }
       if (questionnaire == null) {
-        // Look into assets folder
         questionnaire = findBundledQuestionnaire(encounterType)
       }
 

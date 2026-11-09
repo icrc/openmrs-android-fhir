@@ -110,13 +110,10 @@ private constructor(
   suspend fun initializeAppAuth() {
     Timber.i("Initializing AppAuth")
     if (authStateManager.current.authorizationServiceConfiguration != null) {
-      // configuration is already created, skip to client initialization
       Timber.i("auth authConfig already established")
       clientId.set(authConfig.clientId)
       return
     }
-    // if we are not using discovery, build the authorization service configuration directly
-    // from the static configuration values.
     if (authConfig.discoveryUri == null) {
       Timber.i("Creating auth authConfig from res/raw/auth_config.json")
       val authConfig =

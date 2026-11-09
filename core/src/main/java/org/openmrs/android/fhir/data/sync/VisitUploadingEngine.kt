@@ -44,10 +44,10 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onCompletion
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.ResourceType
-import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.data.isVisit
 import org.openmrs.android.fhir.data.remote.ApiManager
 import timber.log.Timber
 
@@ -128,9 +128,6 @@ class VisitUploadingEngine(private val delegate: FhirEngine, context: Context) :
   }
 
   private fun List<Encounter>.ids(): Set<String> = map { it.idElement.idPart }.toSet()
-
-  private fun Encounter.isVisit(): Boolean =
-    type.any { type -> type.coding.any { it.system == Constants.VISIT_TYPE_CODE_SYSTEM } }
 
   private companion object {
     const val ENCOUNTER = "Encounter"

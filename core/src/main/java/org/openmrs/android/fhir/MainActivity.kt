@@ -1098,7 +1098,6 @@ class MainActivity : AppCompatActivity() {
     lifecycleScope.launch {
       viewModel.pollPeriodicSyncJobStatus?.collect {
         Timber.d("observerSyncState: pollState Got status $it")
-        //        handleCurrentSyncJobStatus(it.currentSyncJobStatus)
       }
     }
   }

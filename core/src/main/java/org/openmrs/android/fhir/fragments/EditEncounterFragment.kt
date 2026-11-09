@@ -92,7 +92,6 @@ class EditEncounterFragment : Fragment(R.layout.generic_formentry_fragment) {
       savedInstanceState?.getBoolean(STATE_READ_ONLY)
         ?: requireArguments().getBoolean(ARG_READ_ONLY, false)
 
-    // Retrieve the encounter_id from arguments
     encounterId =
       requireArguments().getString("encounter_id")
         ?: throw IllegalArgumentException("Encounter ID is required")

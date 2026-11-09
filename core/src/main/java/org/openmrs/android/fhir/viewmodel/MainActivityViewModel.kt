@@ -411,7 +411,6 @@ constructor(
     updateConnectivityState()
   }
 
-  // Unregister the network callback
   fun unregisterNetworkCallback() {
     connectivityManager.unregisterNetworkCallback(networkCallBack)
   }
@@ -471,7 +470,7 @@ constructor(
    */
   private fun observeAutoSync() {
     viewModelScope.launch {
-      combine(
+      combine<Any, AutoSyncConditions>(
           demoDataStore.getAutoSyncEnabledFlow(),
           demoDataStore.getPeriodicSyncDelayMinutesFlow(),
           networkStatus.map { it.isServerReachable() },
