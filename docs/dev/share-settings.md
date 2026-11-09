@@ -7,8 +7,8 @@ the user approves.
 ## Where
 
 * **Settings** page: the QR icon in the app bar (next to "Reset settings").
-* **Login page**: the QR icon in the footer, next to the settings gear (a new device can be set up
-  before anyone signs in).
+
+Not on the login page: share and import are reached from the Settings page, after signing in.
 
 ## What is in a code
 
@@ -32,8 +32,7 @@ available as text ("Copy code", and "Or paste the code" on the importing side):
    is not applied. Nothing changes until **Apply** (the button says how many).
 4. The **server** starts as *Keep mine* with a warning, because taking it signs the user out and
    points the app at another host (a code from someone untrusted could otherwise redirect the
-   login). On the Settings page it goes through `MainActivity.changeServer` (sign-out, restart); on
-   the login page through the login page's own restart.
+   login). It goes through `MainActivity.changeServer` (sign-out, restart).
 5. After applying, the screens are recreated to show the new values.
 
 ## Scanner

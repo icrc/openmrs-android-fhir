@@ -135,6 +135,5 @@ object TutorialTargets {
   const val LOGIN_USERNAME = "login.username"
   const val LOGIN_SSO = "login.sso"
   const val LOGIN_GUEST = "login.guest"
-  const val LOGIN_SHARE = "login.share"
   const val LOGIN_SERVER = "login.server"
 }

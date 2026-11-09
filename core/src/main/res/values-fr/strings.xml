@@ -783,10 +783,6 @@
     <string
         name="tutorial_login_server_body"
     >L\'engrenage change le serveur auquel l\'application se connecte, le thème et d\'autres réglages, avant toute connexion.</string>
-    <string name="tutorial_login_share_title">Partager les réglages</string>
-    <string
-        name="tutorial_login_share_body"
-    >Affichez un code QR des réglages de cet appareil à scanner depuis un autre appareil, ou scannez celui d\'un autre appareil.</string>
     <string name="tutorial_show_screen">Afficher la visite de cet écran</string>
     <string name="help_home_status_title">Où vous travaillez</string>
     <string

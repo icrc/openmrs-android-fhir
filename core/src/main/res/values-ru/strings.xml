@@ -754,10 +754,6 @@
     <string
         name="tutorial_login_server_body"
     >Шестерёнка меняет сервер, к которому подключается приложение, тему и другие настройки до входа.</string>
-    <string name="tutorial_login_share_title">Поделиться настройками</string>
-    <string
-        name="tutorial_login_share_body"
-    >Покажите QR-код настроек этого устройства для сканирования на другом или отсканируйте код с другого устройства.</string>
     <string name="tutorial_show_screen">Показать обзор этого экрана</string>
     <string name="help_home_status_title">Где вы работаете</string>
     <string

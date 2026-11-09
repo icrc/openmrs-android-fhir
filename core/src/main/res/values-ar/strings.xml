@@ -669,10 +669,6 @@
     <string
         name="tutorial_login_server_body"
     >يغيّر الترس الخادم الذي يتصل به التطبيق والمظهر وإعدادات أخرى قبل أن يسجّل أي شخص الدخول.</string>
-    <string name="tutorial_login_share_title">مشاركة الإعدادات</string>
-    <string
-        name="tutorial_login_share_body"
-    >اعرض رمز QR لإعدادات هذا الجهاز ليمسحه جهاز آخر، أو امسح رمز جهاز آخر.</string>
     <string name="tutorial_show_screen">عرض جولة هذه الشاشة</string>
     <string name="help_home_status_title">مكان عملك</string>
     <string

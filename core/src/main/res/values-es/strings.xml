@@ -755,10 +755,6 @@
     <string
         name="tutorial_login_server_body"
     >El engranaje cambia el servidor al que se conecta la aplicación, el tema y otros ajustes, antes de que nadie inicie sesión.</string>
-    <string name="tutorial_login_share_title">Compartir ajustes</string>
-    <string
-        name="tutorial_login_share_body"
-    >Muestre un código QR con los ajustes de este dispositivo para que otro lo escanee, o escanee el de otro dispositivo.</string>
     <string
         name="tutorial_show_screen"
     >Mostrar la visita guiada de esta pantalla</string>
