@@ -34,6 +34,9 @@ save (ViewModel) -> LiveSync.requestUpload() -> [0.8 s] -> LiveUploadWorker
   take turns. Live uploads leave no entry in Sync > History.
 * "Last sync" is the last *full* sync (`DemoDataStore.saveLastFullSync`), because the engine also
   stamps it after an upload-only run.
+* **The automatic (periodic) sync does not run** while live mode is on: its countdown is not started
+  (`MainActivityViewModel.observeAutoSync`), so the banner shows no "next sync in" time. It starts
+  counting from the full interval when live mode is turned off. "Sync now" and the Sync page still work.
 * A guest session never uploads, nor does anything while the data entered as a guest waits to be
   completed.
 
