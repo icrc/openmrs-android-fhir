@@ -36,6 +36,7 @@ import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.LocalChange
 import com.google.android.fhir.search.revInclude
 import com.google.android.fhir.search.search
 import dagger.assisted.Assisted
@@ -46,6 +47,11 @@ import java.util.Locale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -65,9 +71,11 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PatientVisits
+import org.openmrs.android.fhir.data.RecentPatients
 import org.openmrs.android.fhir.data.VisitEditState
 import org.openmrs.android.fhir.data.VisitPeriodError
 import org.openmrs.android.fhir.data.isOpenVisit
@@ -114,12 +122,16 @@ constructor(
   init {
     AuditLog.record(AuditAction.PATIENT_OPENED, AuditOutcome.SUCCESS, "patient" to patientId)
     LivePatients.markOpen(patientId)
+    touch()
     // An upload went through: what is shown as waiting for the server may not be any more.
     viewModelScope.launch {
       LiveSync.uploaded.collect { if (livePatientData.value != null) getPatientDetailData() }
     }
     viewModelScope.launch { refreshFromServer() }
   }
+
+  /** The patient is the one the user is working with now: first of the recent patients. */
+  private fun touch() = RecentPatients.record(applicationContext, patientId)
 
   override fun onCleared() {
     // The patient was brought by the live search and the user does not want those kept: they are
@@ -136,15 +148,68 @@ constructor(
   private suspend fun refreshFromServer() {
     try {
       if (!LiveSync.isEnabled(applicationContext) || LivePatients.isFresh(patientId)) return
-      withTimeout(REFRESH_TIMEOUT_MILLIS) {
-        withContext(ioDispatcher) { live.download(patientId, remember = false) }
+      if (downloadFromServer() == ServerRead.Done && livePatientData.value != null) {
+        getPatientDetailData()
       }
-      if (livePatientData.value != null) getPatientDetailData()
     } catch (e: CancellationException) {
       throw e
     } catch (e: Exception) {
-      // Offline, or a patient the server does not know yet: the device's copy is what is shown.
       Timber.d(e, "The patient was not refreshed from the server")
+    }
+  }
+
+  private enum class ServerRead {
+    Done,
+
+    /** Nothing to ask: a guest session, or a patient the server does not know yet. */
+    NotNeeded,
+    Failed,
+  }
+
+  /** Reads the record again from the server; what waits for upload on the device wins. */
+  private suspend fun downloadFromServer(): ServerRead {
+    if (GuestSession.isActive(applicationContext)) return ServerRead.NotNeeded
+    // Created on this device and not sent yet: the server has nothing to give.
+    val notSentYet =
+      fhirEngine.getLocalChanges(ResourceType.Patient, patientId).any {
+        it.type == LocalChange.Type.INSERT
+      }
+    if (notSentYet) return ServerRead.NotNeeded
+    return try {
+      withTimeout(REFRESH_TIMEOUT_MILLIS) {
+        withContext(ioDispatcher) { live.download(patientId, remember = false) }
+      }
+      ServerRead.Done
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      Timber.d(e, "The patient was not read from the server")
+      ServerRead.Failed
+    }
+  }
+
+  private val _isRefreshing = MutableStateFlow(false)
+
+  val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
+  private val _refreshFailed = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+  val refreshFailed: SharedFlow<Unit> = _refreshFailed
+
+  /**
+   * The pull to refresh: reads the record again and rebuilds the page (offline: device data only).
+   */
+  fun refresh() {
+    if (_isRefreshing.value) return
+    _isRefreshing.value = true
+    viewModelScope.launch {
+      try {
+        val result = downloadFromServer()
+        livePatientData.value = getPatientDetailDataModel()
+        if (result == ServerRead.Failed) _refreshFailed.tryEmit(Unit)
+      } finally {
+        _isRefreshing.value = false
+      }
     }
   }
 
@@ -233,7 +298,6 @@ constructor(
       if (patientItem.isSynced == false) {
         add(PatientUnsynced(false, false))
       }
-      // Add other patient details if necessary
     }
   }
 
@@ -391,11 +455,13 @@ constructor(
   /** Opens a visit that started at [startDate], and shows it. */
   suspend fun startVisit(startDate: Date) {
     openMRSHelper.startVisit(patientId, Constants.VISIT_TYPE_UUID, startDate)
+    touch()
     getPatientDetailData()
   }
 
   suspend fun endVisit(visitId: String) {
     openMRSHelper.endVisit(visitId)
+    touch()
     getPatientDetailData()
   }
 
@@ -409,14 +475,20 @@ constructor(
   /** @return what stopped the change, or `null` when it was saved. */
   suspend fun saveVisitPeriod(visitId: String, start: Date, end: Date?): VisitPeriodError? {
     val problem = openMRSHelper.updateVisitPeriod(visitId, start, end)
-    if (problem == null) getPatientDetailData()
+    if (problem == null) {
+      touch()
+      getPatientDetailData()
+    }
     return problem
   }
 
   /** @return false when another visit is open, which has to be ended first. */
   suspend fun reopenVisit(visitId: String): Boolean {
     val reopened = openMRSHelper.reopenVisit(visitId)
-    if (reopened) getPatientDetailData()
+    if (reopened) {
+      touch()
+      getPatientDetailData()
+    }
     return reopened
   }
 

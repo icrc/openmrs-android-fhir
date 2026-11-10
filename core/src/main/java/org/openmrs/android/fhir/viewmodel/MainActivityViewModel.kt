@@ -411,7 +411,6 @@ constructor(
     updateConnectivityState()
   }
 
-  // Unregister the network callback
   fun unregisterNetworkCallback() {
     connectivityManager.unregisterNetworkCallback(networkCallBack)
   }
@@ -463,22 +462,35 @@ constructor(
   )
 
   /**
-   * Counts down to the next automatic sync while it can happen: the setting is on, the server is
+   * Counts down to the next automatic sync while it can happen: the setting is on, live mode is off
+   * (live mode sends what is saved at once, so the timer has nothing to add), the server is
    * reachable, the user is signed in and no sync is running. Anything else stops the count; it
    * starts over, from the full interval, once the conditions hold again (back online, a sync that
-   * has finished, the setting turned on).
+   * has finished, the setting turned on, live mode turned off).
    */
   private fun observeAutoSync() {
     viewModelScope.launch {
-      combine(
+      combine<Any, AutoSyncConditions>(
           demoDataStore.getAutoSyncEnabledFlow(),
           demoDataStore.getPeriodicSyncDelayMinutesFlow(),
           networkStatus.map { it.isServerReachable() },
           syncingFlow,
           autoSyncGeneration,
-        ) { enabled, minutes, online, syncing, run ->
+          demoDataStore.getLiveModeEnabledFlow(),
+        ) { values ->
+          val enabled = values[0] as Boolean
+          val minutes = values[1] as Int
+          val online = values[2] as Boolean
+          val syncing = values[3] as Boolean
+          val run = values[4] as Int
+          val liveMode = values[5] as Boolean
           AutoSyncConditions(
-            active = enabled && online && !syncing && !GuestSession.isActive(applicationContext),
+            active =
+              enabled &&
+                !liveMode &&
+                online &&
+                !syncing &&
+                !GuestSession.isActive(applicationContext),
             intervalMinutes = minutes,
             run = run,
           )

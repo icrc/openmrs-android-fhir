@@ -83,9 +83,9 @@ class LivePatients(
   /**
    * Brings the patient's record from the server to the device. With [remember] (the patient comes
    * from the live search) it is also listed from now on, for good or only until the user leaves
-   * them, depending on the setting.
+   * them, depending on the setting. With [keep] it is for good whatever the setting says.
    */
-  suspend fun download(patientId: String, remember: Boolean = true) {
+  suspend fun download(patientId: String, remember: Boolean = true, keep: Boolean = false) {
     val resources = apiManager.fetchPatientRecord(patientId)
     check(resources.any { it is Patient }) { "The server did not return the patient" }
     // A patient that was already here (a list the user deselected since) is not this feature's to
@@ -94,9 +94,15 @@ class LivePatients(
     fhirEngine.syncDownload(AcceptLocalConflictResolver) { flowOf(resources) }
     downloadedAt[patientId] = SystemClock.elapsedRealtime()
     if (remember) {
-      awaitingOpen[patientId] = SystemClock.elapsedRealtime()
-      if (wasHere || keepPatients()) {
+      if (!keep) awaitingOpen[patientId] = SystemClock.elapsedRealtime()
+      if (keep || wasHere || keepPatients()) {
         add(PreferenceKeys.LIVE_PATIENT_IDS, patientId)
+        if (keep) {
+          context.dataStore.edit { preferences ->
+            preferences[PreferenceKeys.LIVE_TEMPORARY_IDS] =
+              preferences[PreferenceKeys.LIVE_TEMPORARY_IDS].orEmpty() - patientId
+          }
+        }
       } else {
         add(PreferenceKeys.LIVE_TEMPORARY_IDS, patientId)
       }

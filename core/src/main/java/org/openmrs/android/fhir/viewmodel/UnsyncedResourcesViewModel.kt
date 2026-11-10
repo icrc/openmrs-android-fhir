@@ -107,11 +107,9 @@ constructor(
       flattenedList.add(UnsyncedResource.PatientItem(patient))
 
       if (patient.isExpanded) {
-        // Add encounters
         patient.encounters.forEach { encounter ->
           flattenedList.add(UnsyncedResource.EncounterItem(encounter))
 
-          // Add observations if encounter is expanded
           if (encounter.isExpanded) {
             encounter.observations.forEach { observation ->
               flattenedList.add(UnsyncedResource.ObservationItem(observation))
@@ -153,12 +151,10 @@ constructor(
       try {
         val resourceIdMap = unsyncedIdsOf(resource.model())
 
-        // Purge all related resources
         resourceIdMap.forEach { (resourceType, resourceIds) ->
           fhirEngine.purge(resourceType, resourceIds, forcePurge = true)
         }
 
-        // Handle UI
         when (resource) {
           is UnsyncedResource.PatientItem -> {
             patients = patients.filter { it.logicalId != resource.patient.logicalId }
@@ -178,7 +174,6 @@ constructor(
               }
           }
           is UnsyncedResource.ObservationItem -> {
-            // Find patient and encounter, then remove observation
             val patientId = resource.observation.patientId
             val encounterId = resource.observation.encounterId
             patients =
@@ -234,7 +229,6 @@ constructor(
       try {
         val resourceIdMap = unsyncedIdsOf(unsyncedResource.model())
 
-        // Bundle all related resources
         resourceIdMap.forEach { (resourceType, resourceIds) ->
           resourceIds.forEach {
             bundle.addEntry(
@@ -323,7 +317,6 @@ constructor(
     val patientToEncounterMap = mutableMapOf<String, MutableList<UnsyncedEncounter>>()
     val localChangesCache = mutableMapOf<ResourceType, MutableMap<String, Boolean>>()
 
-    // Get all observations and check for local changes, group by encounter and add to map
     val observations = fhirEngine.search<Observation> {}.map { it.resource }
     for (observation in observations) {
       if (hasLocalChanges(ResourceType.Observation, observation.logicalId, localChangesCache)) {
@@ -333,7 +326,6 @@ constructor(
       }
     }
 
-    // Get all encounters and check for local changes
     val encounters = fhirEngine.search<Encounter> {}.map { it.resource }
     for (encounter in encounters) {
       val hasChanges =
@@ -361,7 +353,6 @@ constructor(
       }
     }
 
-    // Get all patients and check for local changes
     val patients = fhirEngine.search<Patient> {}.map { it.resource }
     for (patient in patients) {
       val hasChanges = hasLocalChanges(ResourceType.Patient, patient.logicalId, localChangesCache)

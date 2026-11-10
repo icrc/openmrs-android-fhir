@@ -122,8 +122,8 @@ fun ShareSettingsDialog(
   onApplied: (() -> Unit)? = null,
 ) {
   val context = LocalContext.current
-  // By default (the login page) the server is saved and the app restarts on the login page; the
-  // screens are recreated to show the rest.
+  // By default the server is saved and the app restarts; the screens are recreated to show the
+  // rest.
   val applyServer: (String) -> Unit = onApplyServer ?: { url -> saveServerAndRestart(context, url) }
   val applied: () -> Unit = onApplied ?: { context.findActivity()?.recreate() }
   val share = remember { FhirApplication.appComponent(context).settingsShare() }

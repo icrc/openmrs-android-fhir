@@ -139,6 +139,7 @@ import org.openmrs.android.fhir.ui.screens.MainActivityScaffold
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.ui.tutorial.ScreenTours
 import org.openmrs.android.fhir.ui.tutorial.TutorialController
+import org.openmrs.android.fhir.ui.tutorial.TutorialGate
 import org.openmrs.android.fhir.ui.tutorial.TutorialOverlay
 import org.openmrs.android.fhir.ui.tutorial.registerViewTarget
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
@@ -654,6 +655,12 @@ class MainActivity : AppCompatActivity() {
   /** The tour of the screen on show: the help button of the app bar. */
   private fun startScreenTour() {
     val tour = currentScreenTour() ?: return
+    // The screens are covered while a sync runs and their data is about to change.
+    val state = viewModel.uiState.value
+    if (TutorialGate.isBusy(state.isSyncing, state.isSyncTasksVisible, state.loading)) {
+      AppMessage.show(this, R.string.tutorial_wait_for_sync, MessageKind.Info)
+      return
+    }
     // Forms that are still Android views announce their place now.
     tour.viewTargets.forEach { (key, viewId) ->
       findViewById<View>(viewId)
@@ -1091,7 +1098,6 @@ class MainActivity : AppCompatActivity() {
     lifecycleScope.launch {
       viewModel.pollPeriodicSyncJobStatus?.collect {
         Timber.d("observerSyncState: pollState Got status $it")
-        //        handleCurrentSyncJobStatus(it.currentSyncJobStatus)
       }
     }
   }

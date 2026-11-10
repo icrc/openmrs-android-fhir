@@ -68,7 +68,7 @@ screen lock). It then:
   after being out of sight** for the chosen time;
 - asks again before deleting data (Settings, "Delete patient data" of the drawer).
 
-Settings > Security:
+Settings > General and security:
 
 - **Offline login** (switch): turns the offline login on, also after "Not now" at sign-in (it asks
   for the fingerprint, face or screen lock once), or off (it asks to confirm, removes what was saved
@@ -95,4 +95,4 @@ The flow of the start of the app is in `offline_login_flow.mmd`.
 | Password rejected with a correct password | The server may accept only the single sign-on. Use "Sign in with SSO". |
 | Asked to sign in again every few minutes | The refresh token is not issued or the SSO session is shorter than expected: check the realm's SSO session idle time. |
 | "Session expired" strip under the connection strip | The server no longer accepts the session. Tap "Sign in"; what was done meanwhile stays on the device and is sent after. |
-| The lock screen never appears | The offline login is off (Settings > Security), the user is a guest, or the app was away for less than the chosen time. |
+| The lock screen never appears | The offline login is off (Settings > General and security), the user is a guest, or the app was away for less than the chosen time. |

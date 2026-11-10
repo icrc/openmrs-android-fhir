@@ -39,6 +39,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Cake
@@ -48,6 +49,9 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -99,6 +103,7 @@ import org.openmrs.android.fhir.viewmodel.PatientUnsynced
  * can be ended, and the button starts a new encounter. [patientData] is null while the data is
  * loading.
  */
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun PatientDetailsScreen(
   patientData: List<PatientDetailData>?,
@@ -116,8 +121,12 @@ fun PatientDetailsScreen(
   onEditNote: () -> Unit = {},
   /** Identifying needs a signed-in user with a connection to the server. */
   identifyAvailable: Boolean = true,
+  isRefreshing: Boolean = false,
+  onRefresh: (() -> Unit)? = null,
 ) {
   val topInset = rememberAppBarHeight()
+  val refreshState =
+    rememberPullRefreshState(refreshing = isRefreshing, onRefresh = { onRefresh?.invoke() })
   val encounterCount =
     remember(patientData) { patientData.orEmpty().count { it is PatientDetailEncounter } }
   val firstHeader = remember(patientData) { patientData?.firstOrNull { it is PatientDetailHeader } }
@@ -126,7 +135,11 @@ fun PatientDetailsScreen(
   val rows = remember(patientData) { patientData.orEmpty().filterNot { it is PatientUnsynced } }
 
   Box(
-    modifier = modifier.fillMaxSize().testTag("PatientDetailsScreen"),
+    modifier =
+      modifier
+        .fillMaxSize()
+        .testTag("PatientDetailsScreen")
+        .pullRefresh(refreshState, enabled = onRefresh != null && patientData != null),
   ) {
     if (patientData == null) {
       CircularProgressIndicator(
@@ -253,6 +266,15 @@ fun PatientDetailsScreen(
         text = { Text(text = stringResource(id = R.string.create_encounter)) },
       )
     }
+
+    PullRefreshIndicator(
+      refreshing = isRefreshing,
+      state = refreshState,
+      modifier =
+        Modifier.align(Alignment.TopCenter)
+          .padding(top = topInset)
+          .testTag("PatientDetailsRefresh"),
+    )
   }
 }
 

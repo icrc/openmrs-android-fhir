@@ -51,9 +51,11 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -113,6 +115,7 @@ class PatientDetailsFragment : Fragment() {
   ): View = composeView {
     OpenMrsTheme {
       val patientData by patientDetailsViewModel.livePatientData.observeAsState(null)
+      val refreshing by patientDetailsViewModel.isRefreshing.collectAsStateWithLifecycle()
       var identifying by rememberSaveable { mutableStateOf(false) }
       var editingNote by rememberSaveable { mutableStateOf(false) }
       var editingVisit by rememberSaveable { mutableStateOf<String?>(null) }
@@ -182,6 +185,8 @@ class PatientDetailsFragment : Fragment() {
         onEditVisit = { editingVisit = it },
         identifyAvailable = identifyAvailable,
         onEditNote = { editingNote = true },
+        isRefreshing = refreshing,
+        onRefresh = patientDetailsViewModel::refresh,
       )
     }
   }
@@ -201,6 +206,17 @@ class PatientDetailsFragment : Fragment() {
       requireActivity().invalidateOptionsMenu()
     }
     patientDetailsViewModel.getPatientDetailData()
+    viewLifecycleOwner.lifecycleScope.launch {
+      viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        patientDetailsViewModel.refreshFailed.collect {
+          AppMessage.show(
+            requireContext(),
+            getString(R.string.patient_refresh_failed),
+            MessageKind.Info,
+          )
+        }
+      }
+    }
     mainActivityViewModel.setDrawerEnabled(false)
   }
 

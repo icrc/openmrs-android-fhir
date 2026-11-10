@@ -88,6 +88,9 @@
     <string
         name="live_server_open_failed"
     >No se pudo abrir este paciente desde el servidor. Inténtelo de nuevo.</string>
+    <string
+        name="live_server_download_description"
+    >Descargar este paciente sin abrirlo</string>
     <string name="live_status_live">En vivo</string>
     <string name="live_status_sending">Enviando…</string>
     <string name="live_status_retry">Aún no enviado, se reintentará</string>
@@ -638,7 +641,15 @@
         name="questionnaire_required_answers_missing"
     >Responda las preguntas obligatorias de esta página para continuar. Están marcadas en rojo.</string>
     <string name="change_location">Cambiar ubicación</string>
-    <string name="settings_section_general">General</string>
+    <string
+        name="settings_section_language_appearance"
+    >Idioma y apariencia</string>
+    <string
+        name="settings_section_general_security"
+    >General y seguridad</string>
+    <string
+        name="settings_section_forms_visits"
+    >Formularios, visitas e identificadores</string>
     <string name="settings_section_sync">Sincronización</string>
     <string name="settings_section_live">Modo en vivo</string>
     <string
@@ -647,8 +658,6 @@
     <string
         name="settings_live_keep_patients_description"
     >Activado: un paciente abierto desde el servidor se queda en este dispositivo y puede usarse sin conexión. Desactivado: el paciente se elimina del dispositivo al salir de él; lo que aún no se ha enviado se conserva hasta que se envíe.</string>
-    <string name="settings_section_forms">Formularios</string>
-    <string name="settings_section_visits">Visitas</string>
     <string
         name="settings_automatic_visits"
     >Crear las visitas automáticamente</string>
@@ -666,6 +675,9 @@
     <string
         name="reopen_visit_blocked"
     >Ya hay otra visita abierta. Finalícela primero.</string>
+    <string
+        name="patient_refresh_failed"
+    >No se pudo contactar con el servidor. Se muestran los datos de este dispositivo.</string>
     <string name="no_open_visit_title">Ninguna visita abierta</string>
     <string
         name="no_open_visit_message"
@@ -684,13 +696,9 @@
     <string name="theme_system">Predeterminado del sistema</string>
     <string name="theme_light">Claro</string>
     <string name="theme_dark">Oscuro</string>
-    <string name="settings_section_security">Seguridad</string>
     <string name="continue_without_login">Continuar sin iniciar sesión</string>
     <string name="sign_in_with_sso">Iniciar sesión con SSO</string>
     <string name="login_or">o</string>
-    <string
-        name="settings_section_shared_device"
-    >Dispositivo compartido</string>
     <string
         name="settings_share_my_data"
     >Permitir que otros usuarios vean mis datos registrados</string>
@@ -755,10 +763,6 @@
     <string
         name="tutorial_login_server_body"
     >El engranaje cambia el servidor al que se conecta la aplicación, el tema y otros ajustes, antes de que nadie inicie sesión.</string>
-    <string name="tutorial_login_share_title">Compartir ajustes</string>
-    <string
-        name="tutorial_login_share_body"
-    >Muestre un código QR con los ajustes de este dispositivo para que otro lo escanee, o escanee el de otro dispositivo.</string>
     <string
         name="tutorial_show_screen"
     >Mostrar la visita guiada de esta pantalla</string>
@@ -795,7 +799,7 @@
     >Pacientes de este dispositivo</string>
     <string
         name="help_patients_list_body"
-    >Toque un paciente para abrir su perfil, con sus visitas y encuentros. Una nube indica lo que aún no se ha sincronizado.</string>
+    >Toque un paciente para abrir su perfil, con sus visitas y encuentros. Una nube indica lo que aún no se ha sincronizado. En modo en vivo, el botón de nube de un paciente encontrado en el servidor lo descarga sin abrirlo.</string>
     <string name="help_patients_identify_title">Identificar después</string>
     <string
         name="help_patients_identify_body"
@@ -806,7 +810,7 @@
     <string name="help_details_overview_title">El paciente</string>
     <string
         name="help_details_overview_body"
-    >Nombre, identificadores, edad y datos de contacto. El lápiz edita el registro y se puede tocar un teléfono para llamar.</string>
+    >Nombre, identificadores, edad y datos de contacto. El lápiz edita el registro y se puede tocar un teléfono para llamar. Desliza la página hacia abajo para volver a leer el registro del servidor.</string>
     <string name="help_details_encounters_title">Visitas y encuentros</string>
     <string
         name="help_details_encounters_body"
@@ -1606,4 +1610,28 @@
     <string
         name="diagnosis_picker_rank_hint"
     >El primer diagnóstico es el principal; los demás son secundarios.</string>
+    <string
+        name="settings_recent_patients"
+    >Pacientes recientes mostrados</string>
+    <string name="settings_recent_patients_off">Desactivado</string>
+    <string name="recent_patients_title">Pacientes recientes</string>
+    <string name="patients_all_title">Todos los pacientes</string>
+    <string name="help_settings_patients_title">Pacientes recientes</string>
+    <string
+        name="help_settings_patients_body"
+    >Cuántos de los últimos pacientes con los que trabajó se listan al principio de la pantalla Pacientes. Desactivado oculta la sección.</string>
+    <string name="help_patients_recent_title">Pacientes recientes</string>
+    <string
+        name="help_patients_recent_body"
+    >Los pacientes que abrió o para los que guardó algo por última vez, el más reciente primero. El número es un ajuste.</string>
+    <string name="tutorial_back">Atrás</string>
+    <string
+        name="tutorial_wait_for_sync"
+    >La visita guiada está disponible cuando termine la sincronización. Inténtelo entonces.</string>
+    <string
+        name="help_settings_forms_title"
+    >Formularios, visitas e identificadores</string>
+    <string
+        name="help_settings_forms_body"
+    >Qué formularios se ofrecen y en qué orden, si las visitas se crean por usted y qué tipos de identificador reciben los pacientes nuevos.</string>
 </resources>

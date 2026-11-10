@@ -233,6 +233,7 @@ class SettingsFragment : Fragment() {
           onLiveModeToggle = settingsViewModel::onLiveModeToggle,
           onKeepLivePatientsToggle = settingsViewModel::onKeepLivePatientsToggle,
           onAutomaticVisitsToggle = settingsViewModel::onAutomaticVisitsToggle,
+          onRecentPatientsLimitSelected = settingsViewModel::onRecentPatientsLimitSelected,
           onShareMyDataToggle = settingsViewModel::onShareMyDataToggle,
           onRememberLocationToggle = settingsViewModel::onRememberLocationToggle,
           onServerChanged = { url -> (activity as? MainActivity)?.changeServer(url) },

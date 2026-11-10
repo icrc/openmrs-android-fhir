@@ -1,7 +1,7 @@
 # Visits
 
 A visit is an `Encounter` of type `http://fhir.openmrs.org/code-system/visit-type`; its encounters point
-at it with `partOf`, and it is open while it has no `period.end`. **Settings > Visits > Create visits
+at it with `partOf`, and it is open while it has no `period.end`. **Settings > Forms, visits and identifiers > Create visits
 automatically** chooses who manages them.
 
 ## Automatic (default)

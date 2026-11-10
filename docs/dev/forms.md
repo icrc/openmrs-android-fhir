@@ -17,6 +17,17 @@ The app side of this: the lists that only need the name and encounter type of a 
 `FormSummary` (`forms/FormSummaries.kt`) instead of parsing every bundled form, and a bundled form is
 read with the translations of the device language only (`expandCompactQuestionnaire(json, locale)`).
 
+## The form in the saved state
+
+Android saves the state of the screen when the app goes to the background and refuses a state over
+about 500 KB (`TransactionTooLargeException`, the app crashes when it is left). The form library keeps
+the questionnaire it is given as text twice in that state, so a large form (the assessment form is
+330 KB) was enough. `newQuestionnaireFragment` therefore gives the library the address of a file
+(`forms/QuestionnaireFiles`, `files/questionnaires`, named after the content, unused files removed after
+two weeks) and not the text; the page breadcrumbs read the questionnaire from the same file. Patient
+answers (`responseJson`) are never written to a file: they stay in the state, which is small. Any new
+screen that shows a form must go through `newQuestionnaireFragment`.
+
 ## The bundled forms
 
 `core/src/main/assets/questionnaires` holds the forms in a compact format

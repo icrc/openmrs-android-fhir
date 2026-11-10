@@ -84,6 +84,9 @@
     <string
         name="live_server_open_failed"
     >تعذّر فتح هذا المريض من الخادم. حاول مرة أخرى.</string>
+    <string
+        name="live_server_download_description"
+    >تنزيل هذا المريض دون فتحه</string>
     <string name="live_status_live">مباشر</string>
     <string name="live_status_sending">جارٍ الإرسال…</string>
     <string name="live_status_retry">لم يُرسل بعد، ستتم إعادة المحاولة</string>
@@ -568,7 +571,11 @@
         name="questionnaire_required_answers_missing"
     >أجب عن الأسئلة المطلوبة في هذه الصفحة للمتابعة. وهي مُعلَّمة باللون الأحمر.</string>
     <string name="change_location">تغيير الموقع</string>
-    <string name="settings_section_general">عام</string>
+    <string name="settings_section_language_appearance">اللغة والمظهر</string>
+    <string name="settings_section_general_security">عام والأمان</string>
+    <string
+        name="settings_section_forms_visits"
+    >النماذج والزيارات والمعرّفات</string>
     <string name="settings_section_sync">المزامنة</string>
     <string name="settings_section_live">الوضع المباشر</string>
     <string
@@ -577,8 +584,6 @@
     <string
         name="settings_live_keep_patients_description"
     >مفعّل: يبقى المريض الذي تفتحه من الخادم على هذا الجهاز ويمكن استخدامه دون اتصال. معطّل: تتم إزالة المريض من الجهاز عند مغادرته؛ ويُحتفظ بما لم يُرسل بعد حتى يُرسل.</string>
-    <string name="settings_section_forms">النماذج</string>
-    <string name="settings_section_visits">الزيارات</string>
     <string name="settings_automatic_visits">إنشاء الزيارات تلقائياً</string>
     <string
         name="settings_automatic_visits_description"
@@ -592,6 +597,9 @@
     <string
         name="reopen_visit_blocked"
     >توجد زيارة أخرى مفتوحة. أنهِها أولاً.</string>
+    <string
+        name="patient_refresh_failed"
+    >تعذّر الوصول إلى الخادم. يتم عرض البيانات الموجودة على هذا الجهاز.</string>
     <string name="no_open_visit_title">لا توجد زيارة مفتوحة</string>
     <string
         name="no_open_visit_message"
@@ -610,11 +618,9 @@
     <string name="theme_system">افتراضي النظام</string>
     <string name="theme_light">فاتح</string>
     <string name="theme_dark">داكن</string>
-    <string name="settings_section_security">الأمان</string>
     <string name="continue_without_login">المتابعة دون تسجيل الدخول</string>
     <string name="sign_in_with_sso">تسجيل الدخول عبر SSO</string>
     <string name="login_or">أو</string>
-    <string name="settings_section_shared_device">جهاز مشترك</string>
     <string
         name="settings_share_my_data"
     >السماح للمستخدمين الآخرين برؤية بياناتي المسجلة</string>
@@ -669,10 +675,6 @@
     <string
         name="tutorial_login_server_body"
     >يغيّر الترس الخادم الذي يتصل به التطبيق والمظهر وإعدادات أخرى قبل أن يسجّل أي شخص الدخول.</string>
-    <string name="tutorial_login_share_title">مشاركة الإعدادات</string>
-    <string
-        name="tutorial_login_share_body"
-    >اعرض رمز QR لإعدادات هذا الجهاز ليمسحه جهاز آخر، أو امسح رمز جهاز آخر.</string>
     <string name="tutorial_show_screen">عرض جولة هذه الشاشة</string>
     <string name="help_home_status_title">مكان عملك</string>
     <string
@@ -705,7 +707,7 @@
     <string name="help_patients_list_title">المرضى على هذا الجهاز</string>
     <string
         name="help_patients_list_body"
-    >اضغط على مريض لفتح ملفه مع زياراته ولقاءاته. تشير السحابة إلى ما لم تتم مزامنته بعد.</string>
+    >اضغط على مريض لفتح ملفه مع زياراته ولقاءاته. تشير السحابة إلى ما لم تتم مزامنته بعد. في الوضع المباشر، يقوم زر السحابة لمريض موجود على الخادم بتنزيله دون فتحه.</string>
     <string name="help_patients_identify_title">التعرّف لاحقاً</string>
     <string
         name="help_patients_identify_body"
@@ -716,7 +718,7 @@
     <string name="help_details_overview_title">المريض</string>
     <string
         name="help_details_overview_body"
-    >الاسم والمعرّفات والعمر وبيانات الاتصال. القلم يعدّل التسجيل ويمكن الضغط على رقم الهاتف للاتصال.</string>
+    >الاسم والمعرّفات والعمر وبيانات الاتصال. القلم يعدّل التسجيل ويمكن الضغط على رقم الهاتف للاتصال. اسحب الصفحة للأسفل لإعادة قراءة السجل من الخادم.</string>
     <string name="help_details_encounters_title">الزيارات واللقاءات</string>
     <string
         name="help_details_encounters_body"
@@ -1472,4 +1474,28 @@
     <string
         name="diagnosis_picker_rank_hint"
     >التشخيص الأول هو التشخيص الأساسي، والبقية ثانوية.</string>
+    <string
+        name="settings_recent_patients"
+    >عدد المرضى الأخيرين المعروضين</string>
+    <string name="settings_recent_patients_off">متوقف</string>
+    <string name="recent_patients_title">المرضى الأخيرون</string>
+    <string name="patients_all_title">جميع المرضى</string>
+    <string name="help_settings_patients_title">المرضى الأخيرون</string>
+    <string
+        name="help_settings_patients_body"
+    >عدد المرضى الذين عملت معهم مؤخراً والمعروضين أعلى شاشة المرضى. الإيقاف يخفي القسم.</string>
+    <string name="help_patients_recent_title">المرضى الأخيرون</string>
+    <string
+        name="help_patients_recent_body"
+    >المرضى الذين فتحت ملفهم أو حفظت لهم شيئاً مؤخراً، الأحدث أولاً. العدد من الإعدادات.</string>
+    <string name="tutorial_back">رجوع</string>
+    <string
+        name="tutorial_wait_for_sync"
+    >الجولة متاحة بعد انتهاء المزامنة. حاول عندئذٍ.</string>
+    <string
+        name="help_settings_forms_title"
+    >النماذج والزيارات والمعرّفات</string>
+    <string
+        name="help_settings_forms_body"
+    >أي النماذج تُعرض وبأي ترتيب، وهل تُنشأ الزيارات نيابةً عنك، وأي أنواع المعرّفات يحصل عليها المرضى الجدد.</string>
 </resources>

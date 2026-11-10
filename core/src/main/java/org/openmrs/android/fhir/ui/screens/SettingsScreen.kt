@@ -82,6 +82,9 @@ import org.openmrs.android.fhir.viewmodel.SettingsUiState
 object SettingsDefaults {
   val TokenDelayOptions = listOf(1, 2, 4, 5, 10)
   val PeriodicSyncDelayOptions = listOf(5, 10, 15, 20, 30, 60)
+
+  /** How many recent patients the Patients screen lists; 0 turns the section off. */
+  val RecentPatientsOptions = listOf(0, 5, 10, 15, 20)
 }
 
 object SettingsTestTags {
@@ -94,6 +97,7 @@ object SettingsTestTags {
   const val LiveModeSwitch = "SettingsLiveModeSwitch"
   const val KeepLivePatientsSwitch = "SettingsKeepLivePatientsSwitch"
   const val AutomaticVisitsSwitch = "SettingsAutomaticVisitsSwitch"
+  const val RecentPatientsField = "SettingsRecentPatientsField"
   const val ShareMyDataSwitch = "SettingsShareMyDataSwitch"
   const val ChangeServerButton = "SettingsChangeServerButton"
   const val RememberLocationSwitch = "SettingsRememberLocationSwitch"
@@ -175,6 +179,7 @@ fun SettingsScreen(
   onLiveModeToggle: (Boolean) -> Unit = {},
   onKeepLivePatientsToggle: (Boolean) -> Unit = {},
   onAutomaticVisitsToggle: (Boolean) -> Unit = {},
+  onRecentPatientsLimitSelected: (Int) -> Unit = {},
   onShareMyDataToggle: (Boolean) -> Unit = {},
   onRememberLocationToggle: (Boolean) -> Unit = {},
   /** Called with the new server (`null`: the build's default) once the user confirmed. */
@@ -219,9 +224,71 @@ fun SettingsScreen(
         shape = RoundedCornerShape(24.dp),
       )
       CompositionLocalProvider(LocalSettingsSearch provides search) {
+        val showLanguage = selectedLanguage != null && onLanguageSelected != null
+        val showAppearance = onThemeModeSelected != null
+        if (showLanguage || showAppearance) {
+          SettingsSection(
+            title = stringResource(R.string.settings_section_language_appearance),
+            searchText =
+              stringResource(R.string.settings_language) +
+                " " +
+                stringResource(R.string.help_settings_language_body) +
+                " " +
+                stringResource(R.string.settings_section_appearance) +
+                " " +
+                stringResource(R.string.help_settings_appearance_body),
+          ) {
+            if (selectedLanguage != null && onLanguageSelected != null) {
+              Column(modifier = Modifier.tutorialTarget(TutorialTargets.SETTINGS_LANGUAGE)) {
+                LanguagePicker(selected = selectedLanguage, onSelected = onLanguageSelected)
+              }
+            }
+            if (showLanguage && showAppearance) {
+              HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            }
+            if (onThemeModeSelected != null) {
+              Column(
+                modifier = Modifier.tutorialTarget(TutorialTargets.SETTINGS_APPEARANCE),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+              ) {
+                ThemeModeChoice(selected = themeMode, onSelected = onThemeModeSelected)
+                if (onColorVisionSelected != null) {
+                  HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                  ColorVisionChoice(selected = colorVision, onSelected = onColorVisionSelected)
+                }
+              }
+            }
+          }
+        }
+
+        val recentPatientsOff = stringResource(R.string.settings_recent_patients_off)
         SettingsSection(
-          title = stringResource(R.string.settings_section_general),
-          searchText = stringResource(R.string.enable_notifications),
+          title = stringResource(R.string.settings_section_general_security),
+          searchText =
+            stringResource(R.string.enable_notifications) +
+              " " +
+              stringResource(R.string.help_settings_patients_body) +
+              " " +
+              stringResource(R.string.settings_recent_patients) +
+              (if (uiState.signedInUser != null) {
+                " " + stringResource(R.string.help_settings_shared_body)
+              } else {
+                ""
+              }) +
+              (if (onOfflineLoginChange != null) {
+                " " +
+                  stringResource(R.string.help_settings_security_body) +
+                  " " +
+                  stringResource(R.string.offline_login_title) +
+                  " " +
+                  stringResource(R.string.app_lock_delay) +
+                  " " +
+                  stringResource(R.string.app_lock_screen_off) +
+                  " " +
+                  stringResource(R.string.app_lock_hide_recents)
+              } else {
+                ""
+              }),
         ) {
           SettingsSwitchRow(
             label = stringResource(R.string.enable_notifications),
@@ -229,30 +296,205 @@ fun SettingsScreen(
             onCheckedChange = onNotificationsToggle,
             testTag = SettingsTestTags.NotificationsSwitch,
           )
-        }
-
-        if (selectedLanguage != null && onLanguageSelected != null) {
-          SettingsSection(
-            title = stringResource(R.string.settings_language),
-            tutorialKey = TutorialTargets.SETTINGS_LANGUAGE,
-            searchText = stringResource(R.string.help_settings_language_body),
-          ) {
-            LanguagePicker(selected = selectedLanguage, onSelected = onLanguageSelected)
-          }
-        }
-
-        if (onThemeModeSelected != null) {
-          SettingsSection(
-            title = stringResource(R.string.settings_section_appearance),
-            tutorialKey = TutorialTargets.SETTINGS_APPEARANCE,
-            searchText = stringResource(R.string.help_settings_appearance_body),
-          ) {
-            ThemeModeChoice(selected = themeMode, onSelected = onThemeModeSelected)
-            if (onColorVisionSelected != null) {
+          HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+          SettingsDropdown(
+            label = stringResource(R.string.settings_recent_patients),
+            selectedValue = uiState.recentPatientsLimit,
+            options = SettingsDefaults.RecentPatientsOptions,
+            onOptionSelected = onRecentPatientsLimitSelected,
+            testTag = SettingsTestTags.RecentPatientsField,
+            modifier = Modifier.tutorialTarget(TutorialTargets.SETTINGS_PATIENTS),
+            format = { if (it == 0) recentPatientsOff else it.toString() },
+          )
+          // Only a signed-in user has data of their own to share (a guest has none to hide).
+          uiState.signedInUser?.let { user ->
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Column(
+              modifier = Modifier.tutorialTarget(TutorialTargets.SETTINGS_SHARED),
+              verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+              SettingsSwitchRow(
+                label = stringResource(R.string.settings_share_my_data),
+                description = stringResource(R.string.settings_share_my_data_description, user),
+                checked = uiState.shareMyData,
+                onCheckedChange = onShareMyDataToggle,
+                testTag = SettingsTestTags.ShareMyDataSwitch,
+              )
               HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-              ColorVisionChoice(selected = colorVision, onSelected = onColorVisionSelected)
+              SettingsSwitchRow(
+                label = stringResource(R.string.settings_remember_location),
+                description = stringResource(R.string.settings_remember_location_description),
+                checked = uiState.rememberLocation,
+                onCheckedChange = onRememberLocationToggle,
+                testTag = SettingsTestTags.RememberLocationSwitch,
+              )
             }
           }
+          if (onOfflineLoginChange != null) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Column(
+              modifier = Modifier.tutorialTarget(TutorialTargets.SETTINGS_SECURITY),
+              verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+              SettingsSwitchRow(
+                label = stringResource(R.string.offline_login_title),
+                description =
+                  stringResource(
+                    if (offlineLoginEnabled == true && offlineLoginUnavailable) {
+                      R.string.offline_login_unavailable_status
+                    } else {
+                      R.string.offline_login_description
+                    },
+                  ),
+                checked = offlineLoginEnabled == true,
+                onCheckedChange = onOfflineLoginChange,
+                testTag = SettingsTestTags.OfflineLoginSwitch,
+                enabled = offlineLoginEnabled != null,
+              )
+              if (offlineLoginEnabled == true && appLock != null) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                AppLockOptions(
+                  state = appLock,
+                  onDelaySelected = onLockDelaySelected,
+                  onLockOnScreenOffChange = onLockOnScreenOffChange,
+                  onHideInRecentsChange = onHideInRecentsChange,
+                )
+              }
+            }
+          }
+        }
+
+        val showSections =
+          favoriteFormOptions != null && onFormSectionsSaved != null && onFormSectionsReset != null
+        val showFetch = onFetchQuestionnairesClicked != null && !embeddedFormsOnly
+        val showFavorites = favoriteFormOptions != null && onFavoriteFormsSaved != null
+        val showForms =
+          onEmbeddedFormsOnlyChange != null || showSections || showFetch || showFavorites
+        SettingsSection(
+          title = stringResource(R.string.settings_section_forms_visits),
+          tutorialKey = TutorialTargets.SETTINGS_FORMS,
+          searchText =
+            stringResource(R.string.embedded_forms_only) +
+              " " +
+              stringResource(R.string.favorite_forms) +
+              " " +
+              stringResource(R.string.form_sections_title) +
+              " " +
+              stringResource(R.string.settings_automatic_visits) +
+              " " +
+              stringResource(R.string.settings_automatic_visits_description) +
+              " " +
+              stringResource(R.string.settings_section_identifiers),
+        ) {
+          if (onEmbeddedFormsOnlyChange != null) {
+            SettingsSwitchRow(
+              label = stringResource(R.string.embedded_forms_only),
+              description = stringResource(R.string.embedded_forms_only_description),
+              checked = embeddedFormsOnly,
+              onCheckedChange = onEmbeddedFormsOnlyChange,
+              testTag = SettingsTestTags.EmbeddedFormsSwitch,
+            )
+          }
+          if (showFetch) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            SettingsAction(
+              description =
+                stringResource(
+                  if (fetchQuestionnairesAvailable) {
+                    R.string.fetch_questionnaires_description
+                  } else {
+                    R.string.fetch_questionnaires_sign_in
+                  },
+                ) +
+                  offlineNote(
+                    serverReachable && fetchQuestionnairesAvailable ||
+                      !fetchQuestionnairesAvailable,
+                  ),
+              buttonText =
+                stringResource(
+                  if (isFetchingQuestionnaires) {
+                    R.string.fetching_questionnaires
+                  } else {
+                    R.string.fetch_questionnaires
+                  },
+                ),
+              icon = Icons.Default.Refresh,
+              onClick = onFetchQuestionnairesClicked,
+              enabled =
+                fetchQuestionnairesAvailable && serverReachable && !isFetchingQuestionnaires,
+              inProgress = isFetchingQuestionnaires,
+              testTag = SettingsTestTags.FetchQuestionnairesButton,
+            )
+          }
+          if (showFavorites) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Text(
+              text = stringResource(R.string.favorite_forms),
+              style = MaterialTheme.typography.titleSmall,
+              color = MaterialTheme.colorScheme.onSurface,
+            )
+            FavoriteFormsSetting(
+              options = favoriteFormOptions,
+              selectedIds = favoriteFormIds,
+              onSaved = onFavoriteFormsSaved,
+            )
+          }
+          if (showSections) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Text(
+              text = stringResource(R.string.form_sections_title),
+              style = MaterialTheme.typography.titleSmall,
+              color = MaterialTheme.colorScheme.onSurface,
+            )
+            FormSectionsSetting(
+              options = favoriteFormOptions.orEmpty(),
+              custom = customFormSections,
+              defaults = defaultFormSections,
+              onSaved = onFormSectionsSaved,
+              onReset = onFormSectionsReset,
+            )
+          }
+          if (showForms) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+          SettingsSwitchRow(
+            label = stringResource(R.string.settings_automatic_visits),
+            description = stringResource(R.string.settings_automatic_visits_description),
+            checked = uiState.automaticVisits,
+            onCheckedChange = onAutomaticVisitsToggle,
+            testTag = SettingsTestTags.AutomaticVisitsSwitch,
+          )
+          if (identifierTypes != null && onIdentifierTypesSaved != null) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            IdentifierTypesSetting(
+              identifierTypes = identifierTypes,
+              selectedIds = selectedIdentifierIds,
+              isLoading = isLoadingIdentifierTypes,
+              onOpen = onIdentifierTypesRequested,
+              onSaved = onIdentifierTypesSaved,
+            )
+          }
+        }
+
+        SettingsSection(
+          title = stringResource(R.string.settings_section_live),
+          tutorialKey = TutorialTargets.SETTINGS_LIVE,
+          searchText = stringResource(R.string.help_settings_live_body),
+        ) {
+          SettingsSwitchRow(
+            label = stringResource(R.string.settings_live_mode),
+            description = stringResource(R.string.settings_live_mode_description),
+            checked = uiState.isLiveModeEnabled,
+            onCheckedChange = onLiveModeToggle,
+            testTag = SettingsTestTags.LiveModeSwitch,
+          )
+          HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+          SettingsSwitchRow(
+            label = stringResource(R.string.settings_live_keep_patients),
+            description = stringResource(R.string.settings_live_keep_patients_description),
+            checked = uiState.keepLivePatients,
+            onCheckedChange = onKeepLivePatientsToggle,
+            testTag = SettingsTestTags.KeepLivePatientsSwitch,
+            enabled = uiState.isLiveModeEnabled,
+          )
         }
 
         SettingsSection(
@@ -331,209 +573,6 @@ fun SettingsScreen(
             inProgress = uiState.isInitialSyncInProgress,
             testTag = SettingsTestTags.InitialSyncButton,
           )
-        }
-
-        SettingsSection(
-          title = stringResource(R.string.settings_section_live),
-          tutorialKey = TutorialTargets.SETTINGS_LIVE,
-          searchText = stringResource(R.string.help_settings_live_body),
-        ) {
-          SettingsSwitchRow(
-            label = stringResource(R.string.settings_live_mode),
-            description = stringResource(R.string.settings_live_mode_description),
-            checked = uiState.isLiveModeEnabled,
-            onCheckedChange = onLiveModeToggle,
-            testTag = SettingsTestTags.LiveModeSwitch,
-          )
-          HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-          SettingsSwitchRow(
-            label = stringResource(R.string.settings_live_keep_patients),
-            description = stringResource(R.string.settings_live_keep_patients_description),
-            checked = uiState.keepLivePatients,
-            onCheckedChange = onKeepLivePatientsToggle,
-            testTag = SettingsTestTags.KeepLivePatientsSwitch,
-            enabled = uiState.isLiveModeEnabled,
-          )
-        }
-
-        SettingsSection(
-          title = stringResource(R.string.settings_section_visits),
-          searchText =
-            stringResource(R.string.settings_automatic_visits) +
-              " " +
-              stringResource(R.string.settings_automatic_visits_description),
-        ) {
-          SettingsSwitchRow(
-            label = stringResource(R.string.settings_automatic_visits),
-            description = stringResource(R.string.settings_automatic_visits_description),
-            checked = uiState.automaticVisits,
-            onCheckedChange = onAutomaticVisitsToggle,
-            testTag = SettingsTestTags.AutomaticVisitsSwitch,
-          )
-        }
-
-        // Only a signed-in user has data of their own to share (a guest has none to hide).
-        uiState.signedInUser?.let { user ->
-          SettingsSection(
-            title = stringResource(R.string.settings_section_shared_device),
-            tutorialKey = TutorialTargets.SETTINGS_SHARED,
-            searchText = stringResource(R.string.help_settings_shared_body),
-          ) {
-            SettingsSwitchRow(
-              label = stringResource(R.string.settings_share_my_data),
-              description = stringResource(R.string.settings_share_my_data_description, user),
-              checked = uiState.shareMyData,
-              onCheckedChange = onShareMyDataToggle,
-              testTag = SettingsTestTags.ShareMyDataSwitch,
-            )
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            SettingsSwitchRow(
-              label = stringResource(R.string.settings_remember_location),
-              description = stringResource(R.string.settings_remember_location_description),
-              checked = uiState.rememberLocation,
-              onCheckedChange = onRememberLocationToggle,
-              testTag = SettingsTestTags.RememberLocationSwitch,
-            )
-          }
-        }
-
-        if (onOfflineLoginChange != null) {
-          SettingsSection(
-            title = stringResource(R.string.settings_section_security),
-            tutorialKey = TutorialTargets.SETTINGS_SECURITY,
-            searchText =
-              stringResource(R.string.help_settings_security_body) +
-                " " +
-                stringResource(R.string.offline_login_title) +
-                " " +
-                stringResource(R.string.app_lock_delay) +
-                " " +
-                stringResource(R.string.app_lock_screen_off) +
-                " " +
-                stringResource(R.string.app_lock_hide_recents),
-          ) {
-            SettingsSwitchRow(
-              label = stringResource(R.string.offline_login_title),
-              description =
-                stringResource(
-                  if (offlineLoginEnabled == true && offlineLoginUnavailable) {
-                    R.string.offline_login_unavailable_status
-                  } else {
-                    R.string.offline_login_description
-                  },
-                ),
-              checked = offlineLoginEnabled == true,
-              onCheckedChange = onOfflineLoginChange,
-              testTag = SettingsTestTags.OfflineLoginSwitch,
-              enabled = offlineLoginEnabled != null,
-            )
-            if (offlineLoginEnabled == true && appLock != null) {
-              HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-              AppLockOptions(
-                state = appLock,
-                onDelaySelected = onLockDelaySelected,
-                onLockOnScreenOffChange = onLockOnScreenOffChange,
-                onHideInRecentsChange = onHideInRecentsChange,
-              )
-            }
-          }
-        }
-
-        if (identifierTypes != null && onIdentifierTypesSaved != null) {
-          SettingsSection(title = stringResource(R.string.settings_section_identifiers)) {
-            IdentifierTypesSetting(
-              identifierTypes = identifierTypes,
-              selectedIds = selectedIdentifierIds,
-              isLoading = isLoadingIdentifierTypes,
-              onOpen = onIdentifierTypesRequested,
-              onSaved = onIdentifierTypesSaved,
-            )
-          }
-        }
-
-        val showSections =
-          favoriteFormOptions != null && onFormSectionsSaved != null && onFormSectionsReset != null
-        val showFetch = onFetchQuestionnairesClicked != null && !embeddedFormsOnly
-        val showFavorites = favoriteFormOptions != null && onFavoriteFormsSaved != null
-        if (onEmbeddedFormsOnlyChange != null || showSections || showFetch || showFavorites) {
-          SettingsSection(
-            title = stringResource(R.string.settings_section_forms),
-            searchText =
-              stringResource(R.string.embedded_forms_only) +
-                " " +
-                stringResource(R.string.favorite_forms) +
-                " " +
-                stringResource(R.string.form_sections_title),
-          ) {
-            if (onEmbeddedFormsOnlyChange != null) {
-              SettingsSwitchRow(
-                label = stringResource(R.string.embedded_forms_only),
-                description = stringResource(R.string.embedded_forms_only_description),
-                checked = embeddedFormsOnly,
-                onCheckedChange = onEmbeddedFormsOnlyChange,
-                testTag = SettingsTestTags.EmbeddedFormsSwitch,
-              )
-            }
-            if (showFetch && onFetchQuestionnairesClicked != null) {
-              HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-              SettingsAction(
-                description =
-                  stringResource(
-                    if (fetchQuestionnairesAvailable) {
-                      R.string.fetch_questionnaires_description
-                    } else {
-                      R.string.fetch_questionnaires_sign_in
-                    },
-                  ) +
-                    offlineNote(
-                      serverReachable && fetchQuestionnairesAvailable ||
-                        !fetchQuestionnairesAvailable,
-                    ),
-                buttonText =
-                  stringResource(
-                    if (isFetchingQuestionnaires) {
-                      R.string.fetching_questionnaires
-                    } else {
-                      R.string.fetch_questionnaires
-                    },
-                  ),
-                icon = Icons.Default.Refresh,
-                onClick = onFetchQuestionnairesClicked,
-                enabled =
-                  fetchQuestionnairesAvailable && serverReachable && !isFetchingQuestionnaires,
-                inProgress = isFetchingQuestionnaires,
-                testTag = SettingsTestTags.FetchQuestionnairesButton,
-              )
-            }
-            if (showFavorites && favoriteFormOptions != null && onFavoriteFormsSaved != null) {
-              HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-              Text(
-                text = stringResource(R.string.favorite_forms),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-              )
-              FavoriteFormsSetting(
-                options = favoriteFormOptions,
-                selectedIds = favoriteFormIds,
-                onSaved = onFavoriteFormsSaved,
-              )
-            }
-            if (showSections) {
-              HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-              Text(
-                text = stringResource(R.string.form_sections_title),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-              )
-              FormSectionsSetting(
-                options = favoriteFormOptions.orEmpty(),
-                custom = customFormSections,
-                defaults = defaultFormSections,
-                onSaved = onFormSectionsSaved,
-                onReset = onFormSectionsReset,
-              )
-            }
-          }
         }
 
         if (query.isNotBlank() && search.shown == 0) {

@@ -102,6 +102,7 @@ fun PatientListScreen(
   onFabClick: () -> Unit,
   modifier: Modifier = Modifier,
   onServerPatientClick: (PatientListViewModel.PatientItem) -> Unit = {},
+  onServerPatientDownload: (PatientListViewModel.PatientItem) -> Unit = {},
   onSortChange: (PatientSort) -> Unit = {},
   onShowMore: () -> Unit = {},
   /** Records for a patient who is not on the device: asked with a note, identified later. */
@@ -173,9 +174,10 @@ fun PatientListScreen(
           contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 96.dp),
           verticalArrangement = Arrangement.spacedBy(10.dp),
           emptyContent = { PatientListEmptyState() },
+          headerRows = recentRows(uiState, onPatientClick),
           extraRows =
             run {
-              val server = serverRows(uiState, onServerPatientClick)
+              val server = serverRows(uiState, onServerPatientClick, onServerPatientDownload)
               val footer = showMoreRow(uiState.hasMore, onShowMore)
               if (server == null && footer == null) {
                 null
@@ -221,12 +223,63 @@ fun PatientListScreen(
 }
 
 /**
+ * "Recent patients": the patients the user interacted with last, above the list. Null (no section)
+ * while a search is typed, when the setting is off or when there are none. The list below is
+ * unchanged (a recent patient is in it too), so its count, sort and "Show more" stay right.
+ */
+private fun recentRows(
+  uiState: PatientListUiState,
+  onClick: (PatientListViewModel.PatientItem) -> Unit,
+): (LazyListScope.() -> Unit)? {
+  if (uiState.query.isNotBlank() || uiState.recentPatients.isEmpty()) return null
+  return {
+    item(key = "recent-header", contentType = "recent-header") {
+      Text(
+        modifier =
+          Modifier.fillMaxWidth()
+            .padding(top = 4.dp, bottom = 2.dp)
+            .tutorialTarget(TutorialTargets.PATIENT_RECENT),
+        text = stringResource(R.string.recent_patients_title),
+        style = MaterialTheme.typography.labelLarge,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.primary,
+      )
+    }
+    items(uiState.recentPatients, key = { "recent-" + it.resourceId }) { patient ->
+      PatientListItemRow(
+        name = patient.name,
+        ageGenderLabel =
+          if (patient.unidentified) {
+            stringResource(R.string.identify_later_chip)
+          } else {
+            formatAgeGender(patient)
+          },
+        isSynced = patient.isSynced == true || patient.unidentified,
+        identifier = if (patient.unidentified) null else patient.displayIdentifier(),
+        lastEncounter = patient.lastEncounter.toLabel(),
+        onClick = { onClick(patient) },
+      )
+    }
+    item(key = "all-header", contentType = "recent-header") {
+      Text(
+        modifier = Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 2.dp),
+        text = stringResource(R.string.patients_all_title),
+        style = MaterialTheme.typography.labelLarge,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.primary,
+      )
+    }
+  }
+}
+
+/**
  * "On the server": what the live search found that is not already listed above. Null (no section)
  * unless live mode is looking something up.
  */
 private fun serverRows(
   uiState: PatientListUiState,
   onClick: (PatientListViewModel.PatientItem) -> Unit,
+  onDownload: (PatientListViewModel.PatientItem) -> Unit,
 ): (LazyListScope.() -> Unit)? {
   val search = uiState.serverSearch
   if (!search.active) return null
@@ -262,6 +315,7 @@ private fun serverRows(
         onClick = { onClick(patient) },
         onServer = true,
         isOpening = search.openingId == patient.resourceId,
+        onDownloadClick = { onDownload(patient) },
       )
     }
     if (!search.loading && found.isEmpty()) {

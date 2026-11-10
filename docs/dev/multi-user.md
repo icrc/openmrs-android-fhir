@@ -8,7 +8,7 @@ nothing stays and none of this shows.
 
 * **Their own patients.** A patient is owned by whoever registered or downloaded it. Another user does
   not see it in the patient list, the group-session picker or the unsynced resources, unless the owner
-  turned on **Settings > Shared device > "Let other users see my registered data"** (per user, off by
+  turned on **Settings > General and security > "Let other users see my registered data"** (per user, off by
   default), or the user has the patient themselves (in a patient list they selected, opened from the
   server in live mode, downloaded or registered).
 * **Their own patient lists, live patients and location.** Signing in as another user puts that user's

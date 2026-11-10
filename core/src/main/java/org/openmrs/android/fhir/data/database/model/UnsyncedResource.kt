@@ -32,7 +32,6 @@ interface UnsyncedResourceModel {
   val logicalId: String
 }
 
-// Data models
 data class UnsyncedPatient(
   override val logicalId: String,
   val name: String,
@@ -58,7 +57,6 @@ data class UnsyncedObservation(
   val isSynced: Boolean = false,
 ) : UnsyncedResourceModel
 
-// Combined view item for the RecyclerView
 sealed class UnsyncedResource {
   data class PatientItem(val patient: UnsyncedPatient) : UnsyncedResource()
 

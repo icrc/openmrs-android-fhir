@@ -144,7 +144,6 @@ object BiometricUtils {
             // Keep per-use via CryptoObject (biometric only).
             // No validity window; prompt must be biometrics-only.
             // NOTE: device credential cannot be enforced per-use here.
-            // (No extra builder call needed.)
           }
           LegacyAuthFlow.DEVICE_CRED_VALIDITY_WINDOW -> {
             // Allow device credential by using a short validity window for security.

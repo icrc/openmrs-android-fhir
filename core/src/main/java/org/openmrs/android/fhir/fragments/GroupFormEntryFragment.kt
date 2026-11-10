@@ -61,6 +61,7 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.data.RecentPatients
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.databinding.GroupFormentryFragmentBinding
 import org.openmrs.android.fhir.di.ViewModelSavedStateFactory
@@ -99,7 +100,6 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
   private val binding
     get() = _binding!!
 
-  // Keep track of current questionnaire fragment
   private var currentQuestionnaireFragment: QuestionnaireFragment? = null
 
   /** Patients whose form is alive, the one in use first. */
@@ -498,7 +498,6 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       binding.patientTabLayout.addTab(tab)
     }
 
-    // Set up tab selection listener
     binding.patientTabLayout.addOnTabSelectedListener(
       object : TabLayout.OnTabSelectedListener {
         override fun onTabSelected(tab: TabLayout.Tab) {
@@ -507,7 +506,6 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
           val newTabPosition = tab.position
           val previousTabPosition = currentSelectedTabPosition
 
-          // If it's the same tab, just load the questionnaire
           if (newTabPosition == previousTabPosition) {
             loadQuestionnaireForTab(newTabPosition)
             return
@@ -516,7 +514,6 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
           // Immediately restore the previous tab selection to prevent visual jumps
           revertToTab(previousTabPosition)
 
-          // Validate the previous tab before switching
           lifecycleScope.launch {
             val hasValidationErrors = validateCurrentForm(previousTabPosition)
             val patientId = viewModel.patients.value?.get(previousTabPosition)?.resourceId
@@ -546,9 +543,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
           lifecycleScope.launch { cacheCurrentPatientResponse(patientId) }
         }
 
-        override fun onTabReselected(tab: TabLayout.Tab) {
-          // No functionality required for now
-        }
+        override fun onTabReselected(tab: TabLayout.Tab) {}
       },
     )
 
@@ -768,6 +763,7 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       patients.forEach { patient ->
         val patientId = patient.resourceId
         val responseJson = viewModel.patientResponses[patientId] ?: return@forEach
+        RecentPatients.record(requireContext(), patientId)
         val response =
           parser.parseResource(QuestionnaireResponse::class.java, responseJson)
             as QuestionnaireResponse

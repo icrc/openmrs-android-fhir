@@ -75,6 +75,11 @@ interface SettingsRepository {
 
   suspend fun setKeepLivePatients(keep: Boolean) {}
 
+  /** How many recent patients the Patients screen lists (0: none). */
+  suspend fun getRecentPatientsLimit(): Int = DemoDataStore.DEFAULT_RECENT_PATIENTS
+
+  suspend fun setRecentPatientsLimit(limit: Int) {}
+
   suspend fun getAutomaticVisits(): Boolean = true
 
   suspend fun setAutomaticVisits(automatic: Boolean) {}
@@ -157,6 +162,14 @@ constructor(
 
   override suspend fun getLiveModeDefault(): Boolean =
     AppConfig.get(appContext).sync.liveModeDefault
+
+  override suspend fun getRecentPatientsLimit(): Int {
+    return dataStore.getRecentPatientsLimitFlow().first()
+  }
+
+  override suspend fun setRecentPatientsLimit(limit: Int) {
+    dataStore.setRecentPatientsLimit(limit)
+  }
 
   override suspend fun getKeepLivePatients(): Boolean {
     return dataStore.getKeepLivePatientsFlow().first()

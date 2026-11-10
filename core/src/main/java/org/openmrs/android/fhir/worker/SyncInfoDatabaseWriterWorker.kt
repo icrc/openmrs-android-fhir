@@ -99,7 +99,6 @@ class SyncInfoDatabaseWriterWorker(
   private val workerScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
   init {
-    // Inject dependencies using your Dagger component
     DaggerWorkerComponent.builder()
       .appComponent((applicationContext as FhirApplication).appComponent)
       .build()
@@ -186,7 +185,6 @@ class SyncInfoDatabaseWriterWorker(
       }
 
       val runSync: suspend () -> CurrentSyncJobStatus = {
-        // This flow can still be shared if needed elsewhere
         val syncFlow =
           when (mode) {
             SyncMode.UPLOAD_ONLY -> Sync.oneTimeSync<UploadFhirSyncWorker>(applicationContext)
@@ -210,7 +208,6 @@ class SyncInfoDatabaseWriterWorker(
       val finalStatus =
         if (mode == SyncMode.DOWNLOAD_ONLY) runSync() else UploadGate.mutex.withLock { runSync() }
 
-      // Now, check the final status to determine the worker's result
       return if (finalStatus is CurrentSyncJobStatus.Succeeded) {
         setProgress(
           workDataOf(
@@ -223,7 +220,6 @@ class SyncInfoDatabaseWriterWorker(
         // Stopped on purpose: the work ends, but it is not a failure to report.
         Result.failure(workDataOf(PROGRESS_STATUS to "CANCELLED"))
       } else {
-        // The flow ended with a failure state
         setProgress(
           workDataOf(
             PROGRESS_STATUS to "FAILED",

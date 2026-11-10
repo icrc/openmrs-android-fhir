@@ -418,7 +418,6 @@ constructor(
         effective = nowUtcDateTime()
         value = observationValue
       }
-    // Delete observation if exists then create new observation.
     fhirEngine.withTransaction {
       fhirEngine
         .search<Observation> {

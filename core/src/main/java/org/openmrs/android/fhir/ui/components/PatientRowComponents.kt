@@ -104,6 +104,8 @@ fun PatientListItemRow(
   onServer: Boolean = false,
   /** The patient is being brought from the server. */
   isOpening: Boolean = false,
+  /** Brings the patient to the device without opening them; no button without it. */
+  onDownloadClick: (() -> Unit)? = null,
 ) {
   Surface(
     modifier =
@@ -179,6 +181,18 @@ fun PatientListItemRow(
             modifier = Modifier.padding(start = 8.dp).size(24.dp),
             strokeWidth = 2.dp,
           )
+        onServer && onDownloadClick != null ->
+          IconButton(
+            onClick = onDownloadClick,
+            modifier = Modifier.size(48.dp).testTag("PatientDownloadButton"),
+          ) {
+            Icon(
+              imageVector = Icons.Outlined.CloudDownload,
+              contentDescription = stringResource(R.string.live_server_download_description),
+              tint = MaterialTheme.colorScheme.primary,
+              modifier = Modifier.size(26.dp),
+            )
+          }
         onServer ->
           Icon(
             imageVector = Icons.Outlined.CloudDownload,

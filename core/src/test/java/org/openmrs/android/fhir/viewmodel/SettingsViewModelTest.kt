@@ -108,6 +108,40 @@ class SettingsViewModelTest {
   }
 
   @Test
+  fun theRecentPatientsLimitIsLoadedChangedAndKept() = runTest {
+    val repository = FakeSettingsRepository(recentPatientsLimit = 10)
+    val viewModel =
+      SettingsViewModel(
+        settingsRepository = repository,
+        initialSyncRunner = FakeInitialSyncRunner(),
+      )
+    dispatcher.scheduler.advanceUntilIdle()
+    assertEquals(10, viewModel.uiState.value.recentPatientsLimit)
+
+    viewModel.onRecentPatientsLimitSelected(0)
+    dispatcher.scheduler.advanceUntilIdle()
+
+    assertEquals(0, viewModel.uiState.value.recentPatientsLimit)
+    assertEquals(0, repository.recentPatientsLimit)
+  }
+
+  @Test
+  fun resetGoesBackToFiveRecentPatients() = runTest {
+    val repository = FakeSettingsRepository(recentPatientsLimit = 20)
+    val viewModel =
+      SettingsViewModel(
+        settingsRepository = repository,
+        initialSyncRunner = FakeInitialSyncRunner(),
+      )
+    dispatcher.scheduler.advanceUntilIdle()
+
+    viewModel.onResetToDefaults()
+    dispatcher.scheduler.advanceUntilIdle()
+
+    assertEquals(5, repository.recentPatientsLimit)
+  }
+
+  @Test
   fun resetGoesBackToTheConfiguredLiveModeDefault() = runTest {
     val repository = FakeSettingsRepository(liveModeEnabled = false, liveModeDefault = true)
     val viewModel =
@@ -132,7 +166,14 @@ class SettingsViewModelTest {
     var periodicDelayMinutes: Int = 15,
     var liveModeEnabled: Boolean = false,
     var liveModeDefault: Boolean = false,
+    var recentPatientsLimit: Int = 5,
   ) : SettingsRepository {
+    override suspend fun getRecentPatientsLimit(): Int = recentPatientsLimit
+
+    override suspend fun setRecentPatientsLimit(limit: Int) {
+      recentPatientsLimit = limit
+    }
+
     override suspend fun getLiveModeEnabled(): Boolean = liveModeEnabled
 
     override suspend fun setLiveModeEnabled(enabled: Boolean) {

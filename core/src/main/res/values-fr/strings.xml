@@ -99,6 +99,9 @@
     <string
         name="live_server_open_failed"
     >Impossible d\'ouvrir ce patient depuis le serveur. Réessayez.</string>
+    <string
+        name="live_server_download_description"
+    >Télécharger ce patient sans l\'ouvrir</string>
     <string name="live_status_live">En direct</string>
     <string name="live_status_sending">Envoi…</string>
     <string
@@ -666,7 +669,15 @@
         name="questionnaire_required_answers_missing"
     >Répondez aux questions obligatoires de cette page pour continuer. Elles sont marquées en rouge.</string>
     <string name="change_location">Changer de lieu</string>
-    <string name="settings_section_general">Général</string>
+    <string
+        name="settings_section_language_appearance"
+    >Langue et apparence</string>
+    <string
+        name="settings_section_general_security"
+    >Général et sécurité</string>
+    <string
+        name="settings_section_forms_visits"
+    >Formulaires, visites et identifiants</string>
     <string name="settings_section_sync">Synchronisation</string>
     <string name="settings_section_live">Mode en direct</string>
     <string
@@ -675,8 +686,6 @@
     <string
         name="settings_live_keep_patients_description"
     >Activé : un patient ouvert depuis le serveur reste sur cet appareil et peut être utilisé hors connexion. Désactivé : le patient est retiré de l\'appareil dès que vous le quittez ; ce qui n\'est pas encore envoyé est conservé jusqu\'à son envoi.</string>
-    <string name="settings_section_forms">Formulaires</string>
-    <string name="settings_section_visits">Visites</string>
     <string
         name="settings_automatic_visits"
     >Créer les visites automatiquement</string>
@@ -694,6 +703,9 @@
     <string
         name="reopen_visit_blocked"
     >Une autre visite est déjà ouverte. Terminez-la d\'abord.</string>
+    <string
+        name="patient_refresh_failed"
+    >Le serveur est injoignable. Les données de cet appareil sont affichées.</string>
     <string name="no_open_visit_title">Aucune visite ouverte</string>
     <string
         name="no_open_visit_message"
@@ -712,11 +724,9 @@
     <string name="theme_system">Par défaut du système</string>
     <string name="theme_light">Clair</string>
     <string name="theme_dark">Sombre</string>
-    <string name="settings_section_security">Sécurité</string>
     <string name="continue_without_login">Continuer sans se connecter</string>
     <string name="sign_in_with_sso">Se connecter avec le SSO</string>
     <string name="login_or">ou</string>
-    <string name="settings_section_shared_device">Appareil partagé</string>
     <string
         name="settings_share_my_data"
     >Laisser les autres utilisateurs voir mes données enregistrées</string>
@@ -783,10 +793,18 @@
     <string
         name="tutorial_login_server_body"
     >L\'engrenage change le serveur auquel l\'application se connecte, le thème et d\'autres réglages, avant toute connexion.</string>
-    <string name="tutorial_login_share_title">Partager les réglages</string>
+    <string name="settings_recent_patients">Patients récents affichés</string>
+    <string name="settings_recent_patients_off">Désactivé</string>
+    <string name="recent_patients_title">Patients récents</string>
+    <string name="patients_all_title">Tous les patients</string>
+    <string name="help_settings_patients_title">Patients récents</string>
     <string
-        name="tutorial_login_share_body"
-    >Affichez un code QR des réglages de cet appareil à scanner depuis un autre appareil, ou scannez celui d\'un autre appareil.</string>
+        name="help_settings_patients_body"
+    >Combien des derniers patients avec lesquels vous avez travaillé sont listés en haut de l\'écran Patients. Désactivé masque la section.</string>
+    <string name="help_patients_recent_title">Patients récents</string>
+    <string
+        name="help_patients_recent_body"
+    >Les patients que vous avez ouverts ou pour lesquels vous avez enregistré quelque chose en dernier, le plus récent d\'abord. Le nombre est un réglage.</string>
     <string name="tutorial_show_screen">Afficher la visite de cet écran</string>
     <string name="help_home_status_title">Où vous travaillez</string>
     <string
@@ -819,7 +837,7 @@
     <string name="help_patients_list_title">Patients de cet appareil</string>
     <string
         name="help_patients_list_body"
-    >Touchez un patient pour ouvrir son profil, avec ses visites et ses rencontres. Un nuage indique ce qui n\'est pas encore synchronisé.</string>
+    >Touchez un patient pour ouvrir son profil, avec ses visites et ses rencontres. Un nuage indique ce qui n\'est pas encore synchronisé. En mode direct, le bouton nuage d\'un patient trouvé sur le serveur le télécharge sans l\'ouvrir.</string>
     <string name="help_patients_identify_title">Identifier plus tard</string>
     <string
         name="help_patients_identify_body"
@@ -830,7 +848,7 @@
     <string name="help_details_overview_title">Le patient</string>
     <string
         name="help_details_overview_body"
-    >Nom, identifiants, âge et coordonnées. Le crayon modifie l\'enregistrement et un numéro de téléphone peut être touché pour appeler.</string>
+    >Nom, identifiants, âge et coordonnées. Le crayon modifie l\'enregistrement et un numéro de téléphone peut être touché pour appeler. Tirez la page vers le bas pour relire le dossier depuis le serveur.</string>
     <string name="help_details_encounters_title">Visites et rencontres</string>
     <string
         name="help_details_encounters_body"
@@ -1642,4 +1660,14 @@
     <string
         name="diagnosis_picker_rank_hint"
     >Le premier diagnostic est le diagnostic principal ; les autres sont secondaires.</string>
+    <string name="tutorial_back">Retour</string>
+    <string
+        name="tutorial_wait_for_sync"
+    >La visite est disponible une fois la synchronisation terminée. Réessayez alors.</string>
+    <string
+        name="help_settings_forms_title"
+    >Formulaires, visites et identifiants</string>
+    <string
+        name="help_settings_forms_body"
+    >Quels formulaires sont proposés et dans quel ordre, si les visites sont créées pour vous et quels types d\'identifiant reçoivent les nouveaux patients.</string>
 </resources>

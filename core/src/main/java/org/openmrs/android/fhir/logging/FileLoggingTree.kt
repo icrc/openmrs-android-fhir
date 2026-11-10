@@ -66,12 +66,10 @@ class FileLoggingTree(context: Context, private val maxFileSize: Long, password:
         logFile.createNewFile()
       }
 
-      // Check if the file size exceeds the maximum threshold
       if (logFile.length() > maxFileSize) {
         trimLogFile()
       }
 
-      // Append the log to the file
       FileWriter(logFile, true).use { writer -> writer.appendLine(log) }
     } catch (e: IOException) {
       Log.e("FileLoggingTree", "Failed to write log to file", e)
@@ -82,13 +80,11 @@ class FileLoggingTree(context: Context, private val maxFileSize: Long, password:
     try {
       val tempFile = File("${logFile.absolutePath}.tmp")
 
-      // First pass: count total lines
       val totalLines =
         BufferedReader(logFile.reader()).use { reader -> reader.useLines { it.count() } }
 
       val deleteCount = (totalLines * 0.1).toInt().coerceAtLeast(1)
 
-      // Second pass: copy lines we want to keep
       BufferedReader(logFile.reader()).use { reader ->
         BufferedWriter(tempFile.writer()).use { writer ->
           reader.useLines { lines ->
@@ -100,7 +96,6 @@ class FileLoggingTree(context: Context, private val maxFileSize: Long, password:
         }
       }
 
-      // Atomic replace
       if (!tempFile.renameTo(logFile)) {
         tempFile.delete()
         throw IOException("Failed to replace log file")

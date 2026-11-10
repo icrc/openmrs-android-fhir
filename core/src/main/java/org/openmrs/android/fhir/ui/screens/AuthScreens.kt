@@ -55,7 +55,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -130,7 +129,6 @@ private fun LoginFrame(
   }
   // Kept across the recreation a theme change causes, so the dialog stays open.
   var showServerDialog by rememberSaveable { mutableStateOf(false) }
-  var showShareDialog by rememberSaveable { mutableStateOf(false) }
 
   Box(
     modifier =
@@ -182,19 +180,6 @@ private fun LoginFrame(
           }
         }
         IconButton(
-          onClick = { showShareDialog = true },
-          modifier =
-            Modifier.size(40.dp)
-              .testTag("ShareSettingsButton")
-              .tutorialTarget(TutorialTargets.LOGIN_SHARE),
-        ) {
-          Icon(
-            imageVector = Icons.Filled.QrCode2,
-            contentDescription = stringResource(R.string.share_title),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-        }
-        IconButton(
           onClick = { showServerDialog = true },
           modifier =
             Modifier.size(40.dp)
@@ -211,9 +196,6 @@ private fun LoginFrame(
     }
   }
 
-  if (showShareDialog) {
-    ShareSettingsDialog(onDismiss = { showShareDialog = false })
-  }
   if (showServerDialog) {
     ServerSettingsDialog(
       onDismiss = { showServerDialog = false },
@@ -329,12 +311,6 @@ fun LoginScreen(
           TutorialTargets.LOGIN_SERVER,
           R.string.tutorial_login_server_title,
           R.string.tutorial_login_server_body,
-          TutorialAction.Acknowledge,
-        ),
-        TutorialStep(
-          TutorialTargets.LOGIN_SHARE,
-          R.string.tutorial_login_share_title,
-          R.string.tutorial_login_share_body,
           TutorialAction.Acknowledge,
         ),
       )

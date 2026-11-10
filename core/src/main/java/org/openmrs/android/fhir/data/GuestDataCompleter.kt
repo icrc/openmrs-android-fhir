@@ -39,7 +39,6 @@ import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.ResourceType
-import org.openmrs.android.fhir.Constants
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.database.AppDatabase
 import timber.log.Timber
@@ -148,12 +147,12 @@ class GuestDataCompleter(
         }
 
         if (encounter.needsParticipant()) {
-          val isVisit =
-            encounter.type.any { type ->
-              type.coding.any { it.system == Constants.VISIT_TYPE_CODE_SYSTEM }
-            }
           val replacement =
-            if (isVisit) helper.createVisitParticipant() else helper.createEncounterParticipant()
+            if (encounter.isVisit()) {
+              helper.createVisitParticipant()
+            } else {
+              helper.createEncounterParticipant()
+            }
           if (!isMissing(replacement.individual?.reference)) {
             encounter.participant
               .filter { isMissing(it.individual?.reference) }

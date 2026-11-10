@@ -64,5 +64,11 @@ class PreferenceKeys {
      * server.
      */
     val PENDING_LIST_DOWNLOADS = stringSetPreferencesKey("PENDING_LIST_DOWNLOADS")
+
+    /**
+     * The patients the user interacted with last, most recent first, their ids joined by commas
+     * (see `RecentPatients`). Personal: kept per user on a device shared by several users.
+     */
+    val RECENT_PATIENT_IDS = stringPreferencesKey("RECENT_PATIENT_IDS")
   }
 }

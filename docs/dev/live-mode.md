@@ -34,6 +34,9 @@ save (ViewModel) -> LiveSync.requestUpload() -> [0.8 s] -> LiveUploadWorker
   take turns. Live uploads leave no entry in Sync > History.
 * "Last sync" is the last *full* sync (`DemoDataStore.saveLastFullSync`), because the engine also
   stamps it after an upload-only run.
+* **The automatic (periodic) sync does not run** while live mode is on: its countdown is not started
+  (`MainActivityViewModel.observeAutoSync`), so the banner shows no "next sync in" time. It starts
+  counting from the full interval when live mode is turned off. "Sync now" and the Sync page still work.
 * A guest session never uploads, nor does anything while the data entered as a guest waits to be
   completed.
 
@@ -46,10 +49,16 @@ the device.
 
 * Patients not on the device appear under **On the server**. Tapping one reads it with its encounters
   and observations (the request the sync uses), stores it with `FhirEngine.syncDownload` (so it is not
-  a local change and never overwrites what waits for upload), and opens it. From then on it is an
+  a local change and never overwrites what waits for upload), and opens it. The **cloud button** at
+  the end of the row does the same without opening: the patient joins the list and is kept on the
+  device whatever the "keep patients" setting says (`LivePatients.download(keep = true)`). From then on it is an
   ordinary patient, offline too. Its id is kept in `PreferenceKeys.LIVE_PATIENT_IDS` so the list shows
   it although it is in none of the selected patient lists.
 * Opening any patient re-reads the record in the background (once per 30 s per patient).
+* **Pull to refresh** on the patient's page (`PatientDetailsViewModel.refresh`) reads the record again
+  at once, whether live mode is on or not (it is not limited by the 30 s). It does nothing but reload
+  the device's data for a guest session, for a patient created on the device and not sent yet, and
+  offline (a message says the server could not be reached). What waits for upload is kept.
 * The app searches instead of downloading because the server holds far more patients than a device
   should.
 

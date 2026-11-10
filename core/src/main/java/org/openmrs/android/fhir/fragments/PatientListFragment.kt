@@ -117,6 +117,7 @@ class PatientListFragment : Fragment() {
           onServerPatientClick = { patient ->
             patientListViewModel.openServerPatient(patient) { id -> openPatient(id) }
           },
+          onServerPatientDownload = patientListViewModel::downloadServerPatient,
           onSortChange = patientListViewModel::setSort,
           onShowMore = patientListViewModel::showMore,
           onFabClick = { onAddPatientClick() },
@@ -151,7 +152,6 @@ class PatientListFragment : Fragment() {
         if (patientListViewModel.uiState.value.query.isNotEmpty()) {
           patientListViewModel.clearSearch()
         } else {
-          //          isEnabled = false
           NavHostFragment.findNavController(this).navigateUp()
         }
         true
