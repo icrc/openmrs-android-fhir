@@ -3,7 +3,7 @@
 ## Before the build
 
 1. `CHANGELOG.md` says what is in the release, and how each change was verified.
-2. `./gradlew spotlessCheck :core:testDebugUnitTest :core:lintDebug` pass (the CI runs them).
+2. `./gradlew spotlessCheck :core:testDebugUnitTest :core:lintDebug` pass (the CI runs them; `getting-started.md` lists the commands).
 3. A change to the database after devices hold one has a version bump, a migration and its test
    (see `architecture.md`). The database is at version 1 with no migrations: an update over a
    build made before the baseline has to be a fresh install.
@@ -58,6 +58,9 @@ export OPENMRS_KEY_ALIAS=openmrs
 export OPENMRS_KEY_PASSWORD=...
 ./gradlew :app:assembleRelease
 ```
+
+In Windows PowerShell set the variables with `$env:OPENMRS_KEYSTORE = "C:\path\openmrs-release.jks"` (and so on)
+and build with `.\gradlew :app:assembleRelease`.
 
 In the CI put the same four as secrets and write the keystore from a base64 secret to a temporary
 file. Losing the key means users have to uninstall (and lose the data of the device) to install a

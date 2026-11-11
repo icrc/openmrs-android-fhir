@@ -51,7 +51,7 @@ The discovery document tells the app (and the phone's browser) which address to 
 page, often a name that only the server's network knows (for example `sso.example.org`).
 The phone must resolve it:
 
-- **Emulator**: `tools/emulator-hosts.sh sso.example.org <server-ip>` (needs an image that
+- **Emulator**: `python tools/dev.py hosts sso.example.org <server-ip>` (needs an image that
   allows `adb root`; it lays a hosts file over the system one, so it has to be run again after the
   emulator restarts). Then the discovery URL may use the same name.
 - **Phone on a Windows hotspot / local network**: add the name to the network's DNS or router.

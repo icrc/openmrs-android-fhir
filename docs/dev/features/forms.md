@@ -31,10 +31,10 @@ screen that shows a form must go through `newQuestionnaireFragment`.
 ## The bundled forms
 
 `core/src/main/assets/questionnaires` holds the forms in a compact format
-(`tools/compact_questionnaires.py`; the README lists the shortcuts). A synced form of the same id wins.
+(`tools/compact_questionnaires.py`; `configuration.md` lists the shortcuts). A synced form of the same id wins.
 
 ## Form sections
 
-The Create Encounter screen is configured in `<form-sections>` of `app_config.xml`: see the README.
+The Create Encounter screen is configured in `<form-sections>` of `app_config.xml`: see `configuration.md`.
 Section and form names are translated by the questionnaire's own translations, a section name by a
 `<name lang="xx">` child.

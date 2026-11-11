@@ -1,38 +1,34 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Something does not work as it should
 title: ''
-labels: ''
+labels: bug
 assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+**What happened**
+A clear description of the problem.
 
-**To Reproduce**
-Steps to reproduce the behavior:
+**Steps to reproduce**
 1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+2. Tap '...'
+3. See the problem
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**What you expected**
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+**Screenshots or a screen recording**
+Remove any patient data or password first.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+**Where it happened**
+ - App version (bottom of the login page): 
+ - Build: [app / dev3-app / a release APK]
+ - Device and Android version: [e.g. Pixel 6, Android 14; or an emulator]
+ - Language of the app: 
+ - Server: [OpenMRS version; online, offline or live mode; password or single sign-on]
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+**Diagnostics**
+If you can, attach the diagnostics file ("Send diagnostics" in the menu of the app). It is protected by a password and may
+hold patient data: do not post it in public, send it to the maintainers.
 
-**Additional context**
-Add any other context about the problem here.
+**Anything else**

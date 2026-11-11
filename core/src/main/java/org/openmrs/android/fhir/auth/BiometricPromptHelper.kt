@@ -80,7 +80,7 @@ object BiometricPromptHelper {
       return if (cipher != null) {
         biometricPrompt.authenticate(promptBuilder.build(), BiometricPrompt.CryptoObject(cipher))
       } else {
-        // Known gap (docs/dev/known-gaps.md): no dialog explains the encryption problem.
+        // Known gap (docs/dev/decisions/known-gaps.md): no dialog explains the encryption problem.
         showToast(activity.getString(R.string.error_encountered_while_setting_offline_login))
         navigateToMain()
       }

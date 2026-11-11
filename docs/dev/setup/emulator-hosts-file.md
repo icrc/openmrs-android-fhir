@@ -1,7 +1,7 @@
 # Changing the hosts file of an emulator by hand
 
-`tools/emulator-hosts.sh` does this for one name without changing the system image (see
-`sign-in-setup.md`). This is the long way, for an image that needs a system-wide hosts file:
+`python tools/dev.py hosts <host-name> <ip>` does this for one name without changing the system image
+(see `tools.md` and `sign-in-setup.md`). This is the long way, for an image that needs a system-wide hosts file:
 
 ```bash
 adb root

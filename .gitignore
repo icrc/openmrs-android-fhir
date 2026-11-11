@@ -4,3 +4,7 @@ build/
 local.properties
 /.env
 .kotlin/
+
+# Python
+__pycache__/
+*.pyc

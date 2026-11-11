@@ -38,16 +38,8 @@
 
 ## Building and checking
 
-```bash
-./gradlew spotlessApply                  # format (ktfmt, ktlint, license header)
-./gradlew spotlessCheck                  # what the CI runs
-./gradlew :core:testDebugUnitTest        # unit tests
-./gradlew :core:lintDebug                # Android lint (the CI fails on errors)
-./gradlew :app:assembleDebug             # APKs, one per ABI
-./gradlew :core:connectedDebugAndroidTest "-Pandroid.testInstrumentationRunnerArguments.class=<test class>"
-```
-
-The XML formatting check needs Node/npm, which the CI has.
+Set-up, the commands to build, run and check, and the helper scripts: `setup/getting-started.md` and
+`setup/tools.md`. Do not run plain `spotlessApply` (its XML step rewrites unrelated files).
 
 ## Rules of the house
 
@@ -70,3 +62,7 @@ The XML formatting check needs Node/npm, which the CI has.
    not). The pages in `docs/` describe how things are, not how they were checked: see `docs/README.md`.
 6. **Small screens**: check a 320 dp wide screen, a 1.3 times font and a long language (French,
    Russian) before calling a screen done; dialogs wrap their buttons.
+7. **The server is not yours to change**: the app works with OpenMRS as it is. A provider or an
+   encounter type the signed-in role cannot see is refused by the server, and the app handles it.
+8. **Debug network configuration**: `core/src/debug/res/xml/network_security_config.xml` is what lets
+   debug builds reach an http server. Never delete it.
