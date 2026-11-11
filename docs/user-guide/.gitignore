@@ -1,0 +1,9 @@
+build/
+pdf/node_modules/
+fake-backend/fake.log
+fake-backend/.server.pid
+fake-backend/__pycache__/
+scripts/__pycache__/
+scripts/.tmp-*
+screenshots/_*.png
+screenshots/raw/
