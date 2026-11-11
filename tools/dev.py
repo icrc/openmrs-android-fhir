@@ -456,7 +456,7 @@ def cmd_hosts(args):
     if code != 0 or args.host not in out:
         raise Fail(
             "the hosts file was not changed: this needs an emulator image that allows `adb root` "
-            "(not a 'Google Play' image). See docs/dev/emulator-hosts-file.md"
+            "(not a 'Google Play' image). See docs/dev/setup/emulator-hosts-file.md"
         )
     print("\n%s -> %s on %s (until the emulator restarts)" % (args.host, args.ip, device))
     return 0
