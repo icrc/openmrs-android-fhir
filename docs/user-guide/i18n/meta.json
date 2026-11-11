@@ -1,0 +1,52 @@
+{
+  "en": {
+    "dir": "ltr",
+    "title": "OpenMRS Tablet App: User Guide",
+    "kicker": "User guide",
+    "subtitle": "Register patients, record visits and keep your data safe, even without a connection.",
+    "versionLabel": "App version",
+    "audience": "For field agents, clinicians and other people who use the app every day. No technical knowledge needed.",
+    "tocTitle": "Contents",
+    "runningHeader": "OpenMRS user guide"
+  },
+  "fr": {
+    "dir": "ltr",
+    "title": "Application OpenMRS pour tablette : guide de l'utilisateur",
+    "kicker": "Guide de l'utilisateur",
+    "subtitle": "Enregistrez des patients, notez les consultations et protégez vos données, même sans connexion.",
+    "versionLabel": "Version de l'application",
+    "audience": "Pour les agents de terrain, les cliniciens et toutes les personnes qui utilisent l'application au quotidien. Aucune connaissance technique n'est nécessaire.",
+    "tocTitle": "Table des matières",
+    "runningHeader": "Guide OpenMRS"
+  },
+  "es": {
+    "dir": "ltr",
+    "title": "Aplicación OpenMRS para tableta: guía del usuario",
+    "kicker": "Guía del usuario",
+    "subtitle": "Registre pacientes, anote las consultas y proteja sus datos, incluso sin conexión.",
+    "versionLabel": "Versión de la aplicación",
+    "audience": "Para agentes de campo, clínicos y otras personas que usan la aplicación a diario. No se necesitan conocimientos técnicos.",
+    "tocTitle": "Contenido",
+    "runningHeader": "Guía de OpenMRS"
+  },
+  "ru": {
+    "dir": "ltr",
+    "title": "Приложение OpenMRS для планшета: руководство пользователя",
+    "kicker": "Руководство пользователя",
+    "subtitle": "Регистрируйте пациентов, записывайте приёмы и храните данные в безопасности, даже без подключения.",
+    "versionLabel": "Версия приложения",
+    "audience": "Для полевых сотрудников, врачей и всех, кто работает с приложением каждый день. Технических знаний не требуется.",
+    "tocTitle": "Содержание",
+    "runningHeader": "Руководство OpenMRS"
+  },
+  "ar": {
+    "dir": "rtl",
+    "title": "تطبيق OpenMRS للأجهزة اللوحية: دليل المستخدم",
+    "kicker": "دليل المستخدم",
+    "subtitle": "سجّل المرضى ودوّن الزيارات واحمِ بياناتك، حتى بدون اتصال بالإنترنت.",
+    "versionLabel": "إصدار التطبيق",
+    "audience": "لموظفي الميدان والأطباء وكل من يستخدم التطبيق يومياً. لا حاجة إلى معرفة تقنية.",
+    "tocTitle": "المحتويات",
+    "runningHeader": "دليل OpenMRS"
+  }
+}
