@@ -545,8 +545,7 @@ class Handler(BaseHTTPRequestHandler):
                     if g["id"] in lists:
                         members.update(m["entity"]["reference"].split("/")[1] for m in g.get("member", []))
                 items = [r for r in items if r["id"] in members]
-            if one("name"):
-                text = one("name").lower()
+            for text in [v.lower() for v in query.get("name", []) if v]:
                 items = [r for r in items if text in " ".join(" ".join(n.get("given", [])) + " " + n.get("family", "") for n in r.get("name", [])).lower()]
             if one("identifier") and not one("name"):
                 items = [r for r in items if any(i.get("value", "").lower() == one("identifier").lower() for i in r.get("identifier", []))]

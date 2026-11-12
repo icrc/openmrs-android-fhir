@@ -124,6 +124,27 @@ class PatientListViewModelSearchTest {
   }
 
   @Test
+  fun theTextOfTheFieldKeepsTheSpaceBetweenTwoNames() = runTest {
+    val fhirEngine =
+      mock<FhirEngine> {
+        onBlocking { search<Patient>(any<Search>()) } doReturn emptyList()
+        onBlocking { count(any<Search>()) } doReturn 0L
+        onBlocking { getLocalChanges(any<ResourceType>(), any()) } doReturn emptyList()
+      }
+    val viewModel =
+      PatientListViewModel(fhirEngine, mock()).also { it.backgroundDispatcher = dispatcher }
+    dispatcher.scheduler.advanceUntilIdle()
+
+    viewModel.searchPatientsByName("Ann ")
+    dispatcher.scheduler.advanceUntilIdle()
+    assertEquals("Ann ", viewModel.uiState.value.query)
+
+    viewModel.searchPatientsByName("Ann Smith")
+    dispatcher.scheduler.advanceUntilIdle()
+    assertEquals("Ann Smith", viewModel.uiState.value.query)
+  }
+
+  @Test
   fun failingSearch_doesNotLeaveScreenLoading() = runTest {
     val fhirEngine =
       mock<FhirEngine> {

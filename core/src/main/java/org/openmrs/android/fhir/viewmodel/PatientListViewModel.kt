@@ -45,6 +45,7 @@ import com.google.android.fhir.search.Search
 import com.google.android.fhir.search.StringFilterModifier
 import com.google.android.fhir.search.count
 import com.google.android.fhir.search.filter.ReferenceParamFilterCriterion
+import com.google.android.fhir.search.filter.StringParamFilterCriterion
 import com.google.android.fhir.search.search
 import java.time.LocalDate
 import java.time.ZoneId
@@ -741,18 +742,22 @@ constructor(
 /**
  * Applies the free-text patient query: a partial match on the name, or an exact match on an
  * identifier or phone number. The three are OR-ed so that scanning/typing an identifier finds the
- * patient the same way a name does. An empty query leaves the search unfiltered.
+ * patient the same way a name does. Every word of the query must match the name, so a given name
+ * and a family name can be typed together. An empty query leaves the search unfiltered.
  */
+private val WHITESPACE = Regex("\\s+")
+
 internal fun Search.applyPatientTextQuery(query: String) {
   val text = query.trim()
   if (text.isEmpty()) return
-  filter(
-    Patient.NAME,
-    {
-      modifier = StringFilterModifier.CONTAINS
-      value = text
-    },
-  )
+  val nameWords: List<StringParamFilterCriterion.() -> Unit> =
+    text.split(WHITESPACE).map { word ->
+      {
+        modifier = StringFilterModifier.CONTAINS
+        value = word
+      }
+    }
+  filter(Patient.NAME, *nameWords.toTypedArray(), operation = Operation.AND)
   filter(Patient.IDENTIFIER, { value = of(text) })
   filter(Patient.PHONE, { value = of(text) })
   operation = Operation.OR

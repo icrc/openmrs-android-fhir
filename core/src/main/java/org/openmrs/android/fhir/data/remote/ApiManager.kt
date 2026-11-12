@@ -167,10 +167,17 @@ class ApiManager @Inject constructor(context: Context) : Api {
    */
   suspend fun searchPatients(text: String): List<Patient> = coroutineScope {
     val query = URLEncoder.encode(text.trim(), "UTF-8")
+    // Each word is a name of its own (repeated parameters are ANDed): "Ann Smith" has no name that
+    // is
+    // all of it.
+    val names =
+      text.trim().split(Regex("\\s+")).joinToString("&") {
+        "name=" + URLEncoder.encode(it, "UTF-8")
+      }
     val base =
       ServerSettings.fhirBaseUrl(appContext) +
         "Patient?_count=$PATIENT_SEARCH_LIMIT&_elements=$PATIENT_SEARCH_ELEMENTS&"
-    val byName = async { patientSearch(base + "name=$query") }
+    val byName = async { patientSearch(base + names) }
     // The identifier search is exact and cheap; a server that does not take it still answers by
     // name.
     val byIdentifier = async {

@@ -109,7 +109,7 @@ class PatientListFragment : Fragment() {
         PatientListScreen(
           uiState = uiState,
           onQueryChange = {
-            patientListViewModel.searchPatientsByName(it.trim())
+            patientListViewModel.searchPatientsByName(it)
             patientListViewModel.searchServer(it)
           },
           onRefresh = { patientListViewModel.refreshPatients() },

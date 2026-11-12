@@ -43,9 +43,11 @@ save (ViewModel) -> LiveSync.requestUpload() -> [0.8 s] -> LiveUploadWorker
 ## Finding patients: `LivePatients`
 
 With 3 or more characters in the patient search, and a network, the app also asks the server (FHIR,
-read only) after a 450 ms pause: `Patient?name=` and `Patient?identifier=`, 20 results each. The server
-takes name prefixes and the exact identifier, not `telecom`, so a phone number only finds patients on
-the device.
+read only) after a 450 ms pause: `Patient?name=` and `Patient?identifier=`, 20 results each. A text of
+several words sends one `name` parameter per word (`name=Ann&name=Smith`, ANDed), because no single name
+holds all of them; the device search does the same (`applyPatientTextQuery`: every word must match the
+name). The server takes name prefixes and the exact identifier, not `telecom`, so a phone number only
+finds patients on the device.
 
 * Patients not on the device appear under **On the server**. Tapping one reads it with its encounters
   and observations (the request the sync uses), stores it with `FhirEngine.syncDownload` (so it is not
