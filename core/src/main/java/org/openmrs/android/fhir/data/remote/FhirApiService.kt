@@ -48,6 +48,8 @@ interface FhirApiService {
   /** Any FHIR search; read only. */
   @GET suspend fun getBundle(@Url url: String): Response<Bundle>
 
+  @GET suspend fun getResource(@Url url: String): Response<ResponseBody>
+
   /** Replaces a resource with [resource] (the whole of it). */
   @PUT suspend fun putResource(@Url url: String, @Body resource: Resource): Response<ResponseBody>
 }

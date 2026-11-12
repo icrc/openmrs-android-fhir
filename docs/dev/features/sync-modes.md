@@ -25,3 +25,27 @@ A sync can send what was recorded on the device, bring the latest data down, or 
 `MainActivityViewModel.startSync` resolves it (`mode ?: the setting`). A download skips the
 preparation of what would be uploaded (provider, guest data completion, identifiers in patients)
 and the "patients to identify" question, because nothing is sent.
+
+## Deleted on the server
+
+The sync asks only for what changed since the last run, and a patient's record read again only returns
+what exists: neither can tell that an encounter was deleted (or voided) on the server, so it would stay on
+the device for ever. `ServerDeletions` removes it, in two places:
+
+* **A patient's record read again** (pull to refresh, the read when a page opens in live mode, a patient
+  brought by the live search): the encounters and observations the device holds for the patient and the
+  answer does not contain. Only when every page of the answer was read.
+* **After a full sync** (not an upload-only one, not a guest session): every encounter on the device is
+  asked for in batches (`Encounter?_id=a,b,...&_elements=id`); the ones missing go through the same check
+  below, and their observations are removed with them. An observation deleted on its own, without its
+  encounter, is only noticed by the first case.
+
+What is missing from an answer is only a suspect. It is removed when the server then says so for that
+resource alone (`GET` answers 404 or 410), so a partial answer, a search that ignored its filter, a
+refusal or a server error never costs a record. Anything waiting for upload is kept (checked before the
+question), an encounter too when one of its observations waits. If more than 20 suspects turn out to
+exist, or more than 500 questions would be needed, the answers are not trusted and nothing is removed.
+Lists and the open patient page reload after a removal (`LiveSync.notifyUploaded`).
+
+Code: `data/sync/ServerDeletions.kt` (`ServerPresence`), `ApiManager` (`existingIds`, `isGone`,
+`fetchPatientRecord`), `LivePatients.download`, `MainActivityViewModel.handleSyncWorkInfos`.

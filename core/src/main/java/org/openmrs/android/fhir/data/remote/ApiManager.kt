@@ -44,6 +44,7 @@ import org.hl7.fhir.r4.model.OperationOutcome
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.Resource
+import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.BuildConfig
 import org.openmrs.android.fhir.DemoDataStore
 import org.openmrs.android.fhir.LoginRepository
@@ -56,11 +57,12 @@ import org.openmrs.android.fhir.data.remote.model.SessionResponse
 import org.openmrs.android.fhir.data.sync.DemoSyncProgressStore
 import org.openmrs.android.fhir.data.sync.ListDownloadStore
 import org.openmrs.android.fhir.data.sync.PatientDownloadWorkManager
+import org.openmrs.android.fhir.data.sync.ServerPresence
 import org.openmrs.android.fhir.data.sync.SyncUrls
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
-class ApiManager @Inject constructor(context: Context) : Api {
+class ApiManager @Inject constructor(context: Context) : Api, ServerPresence {
   private val appContext = context.applicationContext
 
   // Read for every request: the user may sign in after this object was created (a guest session
@@ -199,9 +201,10 @@ class ApiManager @Inject constructor(context: Context) : Api {
 
   /**
    * Everything the sync downloads about one patient: the patient, their encounters and their
-   * observations, following the search's `next` links. Read only.
+   * observations, following the search's `next` links. Read only. [PatientRecord.complete] is false
+   * when the last page was not reached.
    */
-  suspend fun fetchPatientRecord(patientId: String): List<Resource> {
+  suspend fun fetchPatientRecord(patientId: String): PatientRecord {
     require(patientId.all { it.isLetterOrDigit() || it == '-' }) { "Not a patient id" }
     val resources = mutableListOf<Resource>()
     var url: String? =
@@ -215,7 +218,41 @@ class ApiManager @Inject constructor(context: Context) : Api {
       bundle.entry.mapNotNullTo(resources) { it.resource }
       url = bundle.link.firstOrNull { it.relation == "next" }?.url
     }
-    return resources.filter { it !is OperationOutcome }
+    return PatientRecord(resources.filter { it !is OperationOutcome }, complete = url == null)
+  }
+
+  class PatientRecord(val resources: List<Resource>, val complete: Boolean)
+
+  override suspend fun isGone(type: ResourceType, id: String): Boolean? {
+    if (!id.all { it.isLetterOrDigit() || it == '-' }) return null
+    val response = fhirApiService.getResource(ServerSettings.fhirBaseUrl(appContext) + "$type/$id")
+    response.body()?.close()
+    response.errorBody()?.close()
+    return when (response.code()) {
+      404,
+      410, -> true
+      in 200..299 -> false
+      else -> null
+    }
+  }
+
+  override suspend fun existingIds(type: ResourceType, ids: Collection<String>): Set<String>? {
+    if (ids.isEmpty() || ids.any { id -> !id.all { it.isLetterOrDigit() || it == '-' } }) {
+      return null
+    }
+    val found = mutableSetOf<String>()
+    var url: String? =
+      ServerSettings.fhirBaseUrl(appContext) +
+        "$type?_id=${ids.joinToString(",")}&_elements=id&_count=${ids.size.coerceAtLeast(100)}"
+    var pages = 0
+    while (url != null && pages++ < MAX_EXISTENCE_PAGES) {
+      val response = fhirApiService.getBundle(url)
+      if (!response.isSuccessful) return null
+      val bundle = response.body() ?: return null
+      bundle.entry.forEach { entry -> entry.resource?.idElement?.idPart?.let { found += it } }
+      url = bundle.link.firstOrNull { it.relation == "next" }?.url
+    }
+    return if (url == null) found else null
   }
 
   /**
@@ -326,6 +363,7 @@ internal fun resolveAuthorizationHeader(
 
 private const val MAX_QUESTIONNAIRE_PAGES = 20
 private const val MAX_RECORD_PAGES = 20
+private const val MAX_EXISTENCE_PAGES = 3
 private const val MAX_PATIENT_LIST_PAGES = 20
 private const val PATIENT_LIST_PAGE = 100
 private const val MAX_PATIENT_DOWNLOAD_REQUESTS = 200_000

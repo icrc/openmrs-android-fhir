@@ -86,12 +86,23 @@ class LivePatients(
    * them, depending on the setting. With [keep] it is for good whatever the setting says.
    */
   suspend fun download(patientId: String, remember: Boolean = true, keep: Boolean = false) {
-    val resources = apiManager.fetchPatientRecord(patientId)
+    val record = apiManager.fetchPatientRecord(patientId)
+    val resources = record.resources
     check(resources.any { it is Patient }) { "The server did not return the patient" }
     // A patient that was already here (a list the user deselected since) is not this feature's to
     // remove.
     val wasHere = remember && patientId !in temporaryIds() && isOnDevice(patientId)
     fhirEngine.syncDownload(AcceptLocalConflictResolver) { flowOf(resources) }
+    // What the server deleted is not in its answer; a record not read to the end proves nothing.
+    if (record.complete) {
+      try {
+        ServerDeletions(fhirEngine, apiManager).afterRecordDownload(patientId, resources)
+      } catch (e: CancellationException) {
+        throw e
+      } catch (e: Exception) {
+        Timber.w(e, "Could not look for records deleted on the server")
+      }
+    }
     downloadedAt[patientId] = SystemClock.elapsedRealtime()
     if (remember) {
       if (!keep) awaitingOpen[patientId] = SystemClock.elapsedRealtime()

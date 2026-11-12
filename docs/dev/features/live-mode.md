@@ -61,6 +61,10 @@ finds patients on the device.
   at once, whether live mode is on or not (it is not limited by the 30 s). It does nothing but reload
   the device's data for a guest session, for a patient created on the device and not sent yet, and
   offline (a message says the server could not be reached). What waits for upload is kept.
+* **What the server deleted goes too.** A download only brings what exists, so `ServerDeletions` (see
+  [Deleted on the server](sync-modes.md#deleted-on-the-server)) compares what the device holds for the
+  patient (encounters, observations) with the record just read, on the page's read and on the pull to
+  refresh, and removes what the server confirms is gone.
 * The app searches instead of downloading because the server holds far more patients than a device
   should.
 
