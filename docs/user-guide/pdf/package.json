@@ -1,0 +1,12 @@
+{
+  "name": "user-guide-pdf",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Builds the PDFs of the user guide (Markdown to HTML, paged by Paged.js, printed by headless Edge)",
+  "type": "module",
+  "dependencies": {
+    "markdown-it": "^14.3.3",
+    "markdown-it-attrs": "^4.5.0",
+    "pagedjs": "^0.4.3"
+  }
+}

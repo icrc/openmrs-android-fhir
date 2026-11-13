@@ -238,7 +238,7 @@ constructor(
         savedPatientId = idAfterUpload(patient)
       }
       savedPatientId?.let { RecentPatients.record(applicationContext, it) }
-      // Known gap (docs/dev/known-gaps.md): the patient is not added to a cohort here.
+      // Known gap (docs/dev/decisions/known-gaps.md): the patient is not added to a cohort here.
       isPatientSaved.value = true
       saveInProgress = false
     }

@@ -78,7 +78,8 @@ object BiometricUtils {
           canBioStrong = canBioStrong == BiometricManager.BIOMETRIC_SUCCESS,
         )
       } else {
-        // Known gap (docs/dev/known-gaps.md): no screen offers to set up a screen lock here.
+        // Known gap (docs/dev/decisions/known-gaps.md): no screen offers to set up a screen lock
+        // here.
       }
     } else {
       // API 23–29: pick the flow

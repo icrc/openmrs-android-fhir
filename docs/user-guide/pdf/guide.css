@@ -1,0 +1,83 @@
+/* Print stylesheet of the user guide (A4 portrait). Paged.js reads the @page rules and the margin boxes. */
+@page {
+  size: A4 portrait;
+  margin: 24mm 18mm 22mm 18mm;
+  @top-center {
+    content: string(apptitle) "  ·  " string(chapter);
+    font-size: 9pt;
+    color: #555;
+  }
+  @bottom-center {
+    content: counter(page);
+    font-size: 10pt;
+    color: #333;
+  }
+}
+@page :first {
+  margin: 0;
+  @top-center { content: none; }
+  @bottom-center { content: none; }
+}
+@page cover-less { margin: 24mm 18mm 22mm 18mm; }
+
+:root { --accent: #005f5f; --soft: #e7f1f1; }
+html { font-family: "Segoe UI", "Noto Sans", "Noto Naskh Arabic", "Noto Sans Arabic", Tahoma, Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #1d2b2b; }
+html[lang="ar"] { font-family: "Segoe UI", "Noto Naskh Arabic", "Noto Sans Arabic", Tahoma, Arial, sans-serif; line-height: 1.75; }
+html[lang="ru"] { hyphens: auto; }
+body { margin: 0; }
+
+/* cover */
+.cover { page: first; break-after: page; height: 297mm; box-sizing: border-box; padding: 70mm 22mm 20mm; background: linear-gradient(160deg, #005f5f 0%, #007a7a 100%); color: #fff; }
+.cover-kicker { font-size: 14pt; letter-spacing: 2px; text-transform: uppercase; opacity: .85; margin: 0 0 12mm; }
+.cover-title { font-size: 34pt; line-height: 1.15; margin: 0 0 8mm; border: 0; color: #fff; }
+.cover-sub { font-size: 16pt; margin: 0 0 26mm; opacity: .95; }
+.cover-meta { font-size: 13pt; margin: 0 0 4mm; }
+.cover-audience { font-size: 11pt; opacity: .85; max-width: 120mm; }
+
+/* table of contents */
+.toc { break-after: page; }
+.toc ol { list-style: none; padding: 0; margin: 0; }
+.toc li { margin: 1mm 0; font-size: 10pt; }
+.toc li.toc-1 { margin-top: 3.5mm; font-weight: 600; font-size: 10.5pt; }
+.toc li.toc-2 { padding-inline-start: 8mm; font-weight: 400; }
+.toc a { color: inherit; text-decoration: none; display: flex; justify-content: space-between; gap: 6mm; }
+.toc a::after { content: target-counter(attr(href), page); flex: none; }
+.toc-title { font-size: 22pt; font-weight: 700; color: var(--accent); margin: 0 0 6mm; padding-bottom: 3mm; border-bottom: 3px solid var(--accent); }
+
+/* headings, numbered by counters (the front matter is unnumbered) */
+h1 { font-size: 22pt; color: var(--accent); break-before: page; margin: 0 0 7mm; padding-bottom: 3mm; border-bottom: 3px solid var(--accent); string-set: chapter content(text); }
+h2 { font-size: 15pt; color: var(--accent); margin: 8mm 0 3mm; break-after: avoid; }
+.num { margin-inline-end: 2mm; }
+h3 { font-size: 12.5pt; margin: 5mm 0 2mm; break-after: avoid; }
+p { margin: 0 0 3mm; orphans: 3; widows: 3; }
+ol, ul { margin: 0 0 3mm; padding-inline-start: 7mm; }
+li { margin: 1.5mm 0; }
+li > p { margin: 0 0 1mm; }
+strong { color: #0b3b3b; }
+code { font-family: Consolas, "Courier New", monospace; font-size: 10pt; background: #f1f3f3; padding: 0 1mm; border-radius: 1mm; }
+a { color: var(--accent); }
+
+/* figures: never split, scaled to the page width */
+figure { margin: 4mm 0 6mm; text-align: center; break-inside: avoid; }
+figure img { max-width: 100%; max-height: 140mm; width: auto; height: auto; }
+figcaption { font-size: 9.5pt; color: #555; margin-top: 2mm; font-style: italic; }
+p > img { max-width: 100%; max-height: 140mm; }
+
+/* notes, tips and warnings */
+blockquote { margin: 4mm 0; padding: 3mm 4mm; border-inline-start: 4px solid var(--accent); background: var(--soft); break-inside: avoid; }
+blockquote p { margin: 0; }
+blockquote.warning, blockquote:has(strong:first-child) { }
+
+/* tables */
+table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 3mm 0 5mm; font-size: 10pt; break-inside: auto; }
+th, td { border: 1px solid #b8c4c4; padding: 2mm 2.5mm; vertical-align: top; overflow-wrap: anywhere; text-align: start; }
+th { background: var(--soft); }
+tr { break-inside: avoid; }
+
+/* right to left: Paged.js loses content when the whole page is right to left, so the page stays left to right
+   and the content itself is right to left */
+html.rtl main, html.rtl main *, html.rtl .toc, html.rtl .toc *, html.rtl .cover, html.rtl .cover *,
+html.rtl .pagedjs_margin-content, html.rtl .pagedjs_margin-content * { direction: rtl; }
+html.rtl code, html.rtl .latin { direction: ltr; unicode-bidi: embed; }
+html.rtl .toc a::after { direction: ltr; }
+html.rtl .toc a { flex-direction: row; }

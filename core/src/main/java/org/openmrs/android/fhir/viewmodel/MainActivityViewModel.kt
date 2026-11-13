@@ -95,6 +95,7 @@ import org.openmrs.android.fhir.data.sync.DownloadOnlyFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.FhirSyncWorker
 import org.openmrs.android.fhir.data.sync.LivePatients
 import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.data.sync.ServerDeletions
 import org.openmrs.android.fhir.data.sync.SyncMode
 import org.openmrs.android.fhir.data.sync.UploadFhirSyncWorker
 import org.openmrs.android.fhir.data.sync.UploadPreparer
@@ -168,6 +169,8 @@ constructor(
 
   /** The running sync was started by the timer: it stays out of the way (no popup, no snackbar). */
   private var backgroundSync = false
+
+  private var uploadOnlyRun = false
 
   private val syncingObserver =
     Observer<Boolean> { syncing ->
@@ -274,6 +277,7 @@ constructor(
 
     try {
       val effective = mode ?: demoDataStore.getAutoSyncModeFlow().first()
+      uploadOnlyRun = effective == SyncMode.UPLOAD_ONLY
       if (effective != SyncMode.DOWNLOAD_ONLY) {
         // Who is signed in is the provider of what is uploaded: it must be known, and what
         // waits without it gets it.
@@ -744,6 +748,9 @@ constructor(
           updateLastSyncTimestamp()
           setIsSyncing(false)
           LivePatients.discardInBackground(applicationContext, fhirEngine)
+          if (!uploadOnlyRun) {
+            ServerDeletions.afterSyncInBackground(applicationContext, fhirEngine, apiManager)
+          }
         }
       }
       workInfo.state == WorkInfo.State.FAILED -> {

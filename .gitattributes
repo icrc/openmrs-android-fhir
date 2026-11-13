@@ -1,0 +1,5 @@
+# Scripts that run on Linux, macOS and Git Bash must keep Unix line endings, whatever core.autocrlf says:
+# a Windows checkout with CRLF breaks them ("\r: command not found").
+*.sh   text eol=lf
+gradlew text eol=lf
+*.bat  text eol=crlf

@@ -1,0 +1,154 @@
+# One flow = a run of steps. A `shot` step writes screenshots/raw/<lang>/<id>.png (and the callout
+# boxes). Labels are the app's English words; the runner looks up the same string in the language
+# being captured. {loc:...} {pat:...} {grp:...} {user} {pw} are the fictional data in that language.
+# `at` = the element to point at; `redact` replaces text that must not appear (a local address).
+# tap_xy coordinates are for the 1600x2560 portrait tablet.
+flows:
+  - name: sign-in
+    setup: true
+    steps:
+      - {expect: "Log in", timeout: 40}
+      - {shot: {id: login-01-page, screen: Login page, scenario: default, callouts: [{n: 1, at: "Username"}, {n: 2, at: "Password"}, {n: 3, at: "Log in"}, {n: 4, at: "Sign in with SSO"}, {n: 5, at: "Continue without signing in"}]}}
+      - {tap: "Settings"}
+      - {wait: 2}
+      - {shot: {id: login-02-settings, screen: Login settings, scenario: default}}
+      - {back: 1}
+      - {type: {field: 0, text: "{user}"}}
+      - {type: {field: 1, text: "wrong-password"}}
+      - {tap: "Log in"}
+      - {wait: 1.2}
+      - {shot: {id: login-03-wrong-password, screen: Login page, scenario: default}}
+      - {wait: 3}
+      # Single sign-on: the organisation's own page opens in the browser.
+      - {tap: "Sign in with SSO"}
+      - {wait: 7}
+      - {shot: {id: sso-01-browser, screen: Single sign-on page, scenario: default}}
+      - {tap_xy: [800, 660], absolute: true}
+      - {web_type: "{user}"}
+      - {tap_xy: [800, 885], absolute: true}
+      - {web_type: "{pw}"}
+      - hide_keyboard
+      - {shot: {id: sso-02-filled, screen: Single sign-on page, scenario: default}}
+      - {tap_xy: [800, 1068], absolute: true}
+      - {expect: "Not now", timeout: 40}
+      - {shot: {id: login-04-offline-login, screen: Offline login prompt, scenario: default}}
+      - {tap: "Not now"}
+      - {expect: "{loc:north}", timeout: 120}
+      - {shot: {id: location-01-choose, screen: Location, scenario: default, callouts: [{n: 1, at: "{loc:north}"}, {n: 2, at: "Next"}]}}
+      - {tap: "{loc:north}"}
+      - {tap: "Next"}
+      - {expect: "{grp:morning}", timeout: 40}
+      - {tap: "{grp:morning}"}
+      - {tap: "{grp:followup}"}
+      - {shot: {id: lists-01-choose, screen: Patient lists, scenario: default, callouts: [{n: 1, at: "{grp:morning}"}, {n: 2, at: "Submit"}]}}
+      - {tap: "Submit"}
+      - {expect: "Register patient", timeout: 180}
+      - {wait: 2}
+      - {shot: {id: home-01-start, screen: Home, scenario: default, callouts: [{n: 1, at: "Register patient"}, {n: 2, at: "Patients"}, {n: 3, at: "Patient lists"}, {n: 4, at: "Group or family session"}, {n: 5, at: "Sync"}, {n: 6, at: "Import / Export"}]}}
+
+  - name: home-menu
+    steps:
+      - home
+      - {tap_xy: [72, 112]}
+      - {expect: "Settings"}
+      - {wait: 1}
+      - {shot: {id: menu-01-drawer, screen: Menu, scenario: default, callouts: [{n: 1, at: "Settings"}, {n: 2, at: "Send diagnostics"}, {n: 3, at: "Delete patient data"}, {n: 4, at: "Log out"}]}}
+      - {back: 1}
+
+  - name: patients
+    steps:
+      - home
+      - {tap: "Patients", nth: -1}
+      - {expect: "Find by name, identifier or phone"}
+      - {wait: 1}
+      - {shot: {id: patients-01-list, screen: Patients, scenario: default, callouts: [{n: 1, at: "Find by name, identifier or phone"}, {n: 2, at: "Name A–Z"}, {n: 3, at: "{pat:p10}"}]}}
+      - {type: {field: 0, text: "{family:p01}"}}
+      - {wait: 2}
+      - {shot: {id: patients-02-search, screen: Patients, scenario: default}}
+      - {tap: "{pat:p01}"}
+      - {expect: "Edit Patient", timeout: 20}
+      - {wait: 1}
+      - {shot: {id: patient-01-file, screen: Patient file, scenario: default, callouts: [{n: 1, at: "Edit Patient", nth: 0}]}}
+      - {tap_xy: [1384, 2352]}
+      - {expect: "Search forms"}
+      - {wait: 1}
+      - {shot: {id: forms-01-sections, screen: Create Encounter, scenario: default, callouts: [{n: 1, at: "Search forms"}, {n: 2, at: "MHPSS Forms", exact: false}]}}
+      - home
+
+  - name: register
+    steps:
+      - home
+      - {tap: "Register patient"}
+      - {wait: 4}
+      - {shot: {id: register-01-form, screen: Registration form, scenario: default}}
+      - home
+
+  - name: sync
+    steps:
+      - home
+      - {tap: "Sync", nth: -1}
+      - {wait: 3}
+      - {shot: {id: sync-01-page, screen: Sync, scenario: default, callouts: [{n: 1, at: "Sync now"}, {n: 2, at: "Download"}]}}
+      - home
+
+  - name: group
+    steps:
+      - home
+      - {tap: "Group", nth: -1}
+      - {wait: 3}
+      - {shot: {id: group-01-forms, screen: Group session, scenario: default}}
+      - home
+
+  - name: import-export
+    steps:
+      - home
+      - {tap: "Import / Export"}
+      - {wait: 3}
+      - {shot: {id: importexport-01-page, screen: Import / Export, scenario: default}}
+      - home
+
+  - name: patient-lists
+    steps:
+      - home
+      - {tap: "Patient lists"}
+      - {wait: 4}
+      - {shot: {id: lists-02-change, screen: Patient lists, scenario: default}}
+      - home
+
+  - name: settings
+    steps:
+      - home
+      - {tap_xy: [72, 112]}
+      - {tap: "Settings"}
+      - {expect: "Search settings", timeout: 20}
+      - {wait: 1}
+      - {shot: {id: settings-01-top, screen: Settings, scenario: default, callouts: [{n: 1, at: "Search settings"}]}}
+      - {swipe: [800, 2100, 800, 700, 600]}
+      - {shot: {id: settings-02-middle, screen: Settings, scenario: default}}
+      - {scroll_to: "Form sections"}
+      - {shot: {id: settings-03-form-sections, screen: Settings, scenario: default, callouts: [{n: 1, at: "Form sections"}, {n: 2, at: "Customize sections"}]}}
+      - {tap: "Customize sections"}
+      - {wait: 2}
+      - {shot: {id: settings-04-sections-editor, screen: Form sections editor, scenario: default}}
+      - {back: 1}
+      - home
+
+  - name: dialogs
+    steps:
+      - home
+      - open_menu
+      - {tap: "Send diagnostics"}
+      - {wait: 3}
+      - {shot: {id: diagnostics-01-dialog, screen: Send diagnostics, scenario: default}}
+      - {back: 1}
+      - open_menu
+      - {tap: "Delete patient data"}
+      - {wait: 3}
+      - {shot: {id: delete-01-dialog, screen: Delete patient data, scenario: default, callouts: [{n: 1, at: "Delete"}, {n: 2, at: "Cancel"}]}}
+      - {tap: "Cancel"}
+      - open_menu
+      - {tap: "Log out"}
+      - {wait: 3}
+      - {shot: {id: logout-01-dialog, screen: Log out, scenario: default, callouts: [{n: 1, at: "Yes"}, {n: 2, at: "No"}]}}
+      - {tap: "No"}
+      - home

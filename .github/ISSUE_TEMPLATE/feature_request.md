@@ -1,20 +1,22 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
+about: An idea for the app
 title: ''
-labels: ''
+labels: enhancement
 assignees: ''
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+**The problem**
+Who is blocked, doing what? ("As a field agent I cannot ... because ...")
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+**What you would like**
+A clear description of the behaviour you want.
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+**Alternatives you considered**
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+**Does it need the server to change?**
+The app must work with OpenMRS as it is. Say if your idea needs a new server resource or permission.
+
+**Anything else**
+Screens, mock-ups, links.
