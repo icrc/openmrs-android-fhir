@@ -32,9 +32,15 @@ The session details (the form's first step) cannot be skipped: with a required a
 review offers "Fix questions" only (`allowSubmitAnyway = false` for the screener of
 `GroupFormEntryFragment`; the patients' forms keep the library's default).
 
+What each patient was given is read from their form when **Submit** is pressed (and when the user moves to
+another patient), kept as JSON (`GroupFormEntryViewModel.patientResponses`) and saved from there. The form is
+not read again after Submit (`submitAllEncounters`): a form that was just submitted answers with only its first
+questions, and reading it again replaced everything the last patient had been given.
+
 The record of the session names its list: each encounter carries the list's id and name as the two
 internal observations (`GroupFormEntryViewModel.createInternalObservations`), read from the
-patient lists of the device, so a list created on the device and not sent yet works too.
+patient lists of the device, so a list created on the device and not sent yet works too, also by a guest
+(`GroupSessionListViewModel` offers the downloaded lists and the new ones).
 
 ## The cohort observations
 

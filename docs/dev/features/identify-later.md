@@ -39,9 +39,14 @@ it is, and finds the real patient on the server later.
 
 ## Where they show
 
-* The Home summary says how many patients wait to be identified (`HomeSummary.toIdentify`), next to
-  "Everything is uploaded": the sync does not send them, so that sentence alone would hide them.
-* The status card of the Sync page says how many ("1 patient to identify") under the pending changes.
+* The Home summary says how many patients wait to be identified (`HomeSummary.toIdentify`). "Everything is
+  uploaded" is only said when nothing waits and nobody is to be identified: the sync does not send them, and an
+  open action is not "uploaded". The row is a tonal pill (not a coloured text) whenever something is open; the
+  changes waiting include those to patient lists.
+* The status card of the Sync page does the same: with nothing to upload and patients to identify its title
+  is **Action needed**, and a tonal notice under it says how many ("1 patient to identify"), that their records
+  stay on the device, and **Review** opens the pending tab, where they are listed. With changes to upload the
+  title stays the count of pending changes and the notice shows under it.
   The pending tab lists them apart, above the changes to upload, with their visits, encounters and
   observations folded under them (`UnsyncedResourcesViewModel.fetchPatientsToIdentify`). Each row has
   an **Identify now** link that opens the identification for that patient (`MainActivity.showIdentifyDialog`

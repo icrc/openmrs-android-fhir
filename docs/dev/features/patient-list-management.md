@@ -39,11 +39,10 @@ The app relies on:
 A read adds the creator, the dates, who changed it last, the location, the type and the server's own
 attributes (extensions `.../ext/group/...`: `fhir-extensions.md`), shown as they come, read only.
 
-The module has not been run on a real server: it was written and unit tested without one (that HAPI
-merges a second provider of Group, and replaces the id of a `POST`ed resource, was read in the
-library's code, not run), and the app was tested against the fake server of the user guide
-(`docs/user-guide/fake-backend/groups.py`), which follows the same contract. `contract_check.py` in
-that folder sends the contract to any server: run it against the real one first.
+The module has not been run against a real server (that HAPI merges a second provider of Group, and replaces the
+id of a `POST`ed resource, was read in the library, not run). The fake server of the user guide
+(`docs/user-guide/fake-backend/groups.py`) follows the same contract, and `contract_check.py` in that folder sends
+the contract to any server: run it against the real one first.
 
 ## Why not the FHIR engine
 
@@ -80,6 +79,21 @@ one answer (`PatientListsRepository.store`).
   run reads nothing; with the live upload (`LiveUploadWorker`); on "Send now"; the Patient lists
   screen reads when it opens. A guest session does none of it (`PatientListsSync`).
 
+## Without a session (guest mode)
+
+A guest creates and manages lists like anyone: everything is saved on the device and nothing is asked of the
+server (`PatientListsRepository` with `signedIn = false`: no read, no send). The changes are made by the
+guest owner (`""`, `multi-user.md`). When someone signs in, `adoptGuestChanges` makes them that user's
+(`LoginActivityViewModel.signInUser`; a change the user already has for the same list or patient wins), and they
+are sent with the first sync like the user's own.
+
+A list is created with the location chosen on the device. One made before a location was chosen (a guest, or a
+user who has not picked one) has none, and it is not sent until it has: it takes the location chosen later when
+the user picks it (`LocationFragment` > `MainActivityViewModel.completeGuestDataForNewLocation`), when guest data
+is completed (`GuestDataCompleter`) and whenever the lists are sent (`PatientListsRepository.send` calls
+`assignSavedLocation`, so a sync, the live upload and **Send now** all do it). The lists of other locations that
+were chosen before keep theirs. A guest can add patients of the device only: the server is not searched.
+
 A patient registered on the device and not uploaded yet can be added to a list: the add is **held for
 the upload** (`PatientListMemberChange.heldForUpload`, shown as "Waiting for the upload"), because the
 server gives the patient its own id. The id is read from the answer of the upload itself
@@ -96,7 +110,7 @@ patient this is", and the user adds the patient again from the list (`Uploaded.A
 * **A patient's page** has a "Patient lists" card (`PatientListMembershipCard`, `PatientMembershipViewModel`):
   the lists the patient is in and **Manage**, a dialog with a tick per list. A tick is the same
   queued add or remove as on the page of the list. A list whose members have not been read yet
-  cannot be ticked (`Membership.UNKNOWN`). Not shown to a guest or when the device knows no list.
+  cannot be ticked (`Membership.UNKNOWN`). Not shown when the device knows no list.
 * **The Patients screen** can be limited to one list (`PatientListFilter`, a chip under the sort
   chips). Only the lists ticked for download are offered, since only their patients are on the
   device. The members come from `PatientListsRepository.memberIds` (the adds and removals not yet
@@ -149,8 +163,9 @@ patient this is", and the user adds the patient again from the list (`Uploaded.A
   with the next download of that list, until the server answers it right.
 * A list created here carries the location extension as a `Location/<id>` reference; the screen reads
   either form, but whether the server's `Group?location=` finds it was not checked.
-* The type is not chosen (the server's default applies); the location is the one chosen on the
-  device. Attributes are shown, not edited.
+* A created list is sent with its name, description, the location chosen on the device and, when the
+  configuration names one (`<sync cohort-type=...>`), that type as a `CohortType/<id>` reference
+  (`GroupMapper.toCreate`); without it the server's default applies. Attributes are shown, not edited.
 
 The tutorial: the Patient lists tour (`help_lists_*`) has the steps for the waiting changes and the new
 list button, and the page of a list has its own tour (`help_plist_*`).

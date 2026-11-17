@@ -21,6 +21,7 @@ import socket
 import sys
 import threading
 import time
+import uuid
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
 from urllib.parse import parse_qs, urlparse, urlencode
@@ -481,6 +482,23 @@ class Handler(BaseHTTPRequestHandler):
             return True
         if len(parts) == 1 and self.command == "GET":
             return self.search(kind, query)
+        if len(parts) == 1 and self.command == "POST" and kind in ("Patient", "Encounter", "Observation"):
+            # A create, as the module takes it: the server gives the id, and an identifier without a value gets one.
+            res = self.read_json()
+            if res is None:
+                self.fhir_reply(400, outcome("error", "invalid", "No body"))
+                return True
+            if STATE.scenario == "validation":
+                self.fhir_reply(400, outcome("error", "required", "Demo validation error: a required value is missing"))
+                return True
+            if kind == "Patient":
+                for identifier in res.get("identifier", []):
+                    if not identifier.get("value"):
+                        identifier["value"] = STATE.next_identifier()
+            rid = str(uuid.uuid4())
+            self.keep(kind, rid, res)
+            self.fhir_reply(201, res)
+            return True
         if len(parts) == 2:
             rid = parts[1]
             if self.command == "GET":
@@ -545,8 +563,6 @@ class Handler(BaseHTTPRequestHandler):
     def search(self, kind, query):
         scenario_empty = STATE.scenario == "empty"
         items = list(STATE.store.get(kind, {}).values())
-        if kind == "Questionnaire":
-            items = []
         if scenario_empty and kind in ("Group", "Patient", "Encounter", "Observation"):
             items = []
 
@@ -560,9 +576,18 @@ class Handler(BaseHTTPRequestHandler):
         if kind == "Location" and one("_tag"):
             tag = one("_tag").replace("+", " ")
             items = [r for r in items if any(t.get("code") == tag for t in r.get("meta", {}).get("tag", []))]
-        if kind == "Group" and one("location"):
-            loc = one("location")
-            items = [r for r in items if any(e.get("valueString") == loc for e in r.get("extension", []))]
+        if kind == "Group":
+            ext = "http://fhir.openmrs.org/ext/group/"
+
+            def has_uuid(r, url, wanted):
+                return any(e.get("url") == url and wanted in (e.get("valueString"), (e.get("valueReference") or {}).get("reference", "").split("/")[-1]) for e in r.get("extension", []))
+
+            if one("location"):
+                items = [r for r in items if has_uuid(groups.present(STATE, r), ext + "location", one("location").split("/")[-1])]
+            if one("cohort-type"):
+                items = [r for r in items if has_uuid(groups.present(STATE, r), ext + "cohort-type", one("cohort-type"))]
+            if one("name"):
+                items = [r for r in items if one("name").lower() in r.get("name", "").lower()]
         if kind == "Patient":
             has = [v for k, vs in query.items() if k.startswith("_has:Group") for v in vs]
             if has:

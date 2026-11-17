@@ -39,7 +39,7 @@ small ones of the group session and the read-only form (`patient_tab_item.xml`,
 
 ## Tests
 
-Compose tests are in `core/src/androidTest/.../ui` (`components`, `entrypoints`, `patient`). A screen
-exposes its tags in an `object ...TestTags`. ViewModels have unit tests in `core/src/test`.
+Compose tests are in `core/src/androidTest/.../ui`, in the package of the composable. A screen exposes its tags in an
+`object ...TestTags`. What is tested, and what is not: [`setup/testing.md`](setup/testing.md).
 
 A new control or screen also needs its tutorial step: see `first-run-tutorial.md`.

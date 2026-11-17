@@ -24,6 +24,7 @@ An app is configured by one file, `res/xml/app_config.xml`, in its module. It is
 | | `fetch-identifiers` | `true`: the device fetches auto-generated identifiers and adds them to new patients; `false`: the server creates them. |
 | `<group-sessions>` | `cohort-identifier-concept` | Concept (UUID) of the observation that records the id of the patient list a group session was held for, with every encounter of the session. Blank or absent: not recorded. |
 | | `cohort-name-concept` | The same for the name of the list. A concept the server does not have makes it refuse the encounter, so only set the ones it has. |
+| `<server-compatibility>` | `enabled` | `true` (default): **Settings > Advanced settings > Server compatibility** checks what the server supports and the app leaves out what it cannot do. `false`: the page and the summary are hidden, nothing is checked, and every feature is offered whatever the server answers. |
 | `<support>` | `email` | Where **Send diagnostics** and exported unsynced data go. |
 | `<diagnostics>` | `password` | **Required.** Password of the diagnostics archive and of the application log; support needs it to open a report. Change the example value. A setting of its own: it is not tied to the support e-mail. |
 | `<audit>` | `max-actions` | How many of the user's last steps the audit trail keeps for support (50-5000, default 500); older ones are overwritten. |
@@ -73,7 +74,7 @@ The Create Encounter screen lists forms in the sections declared in `<form-secti
 
 ## Bundled questionnaires
 
-The forms that ship with the app (`core/src/main/assets/questionnaires/<id>.json`, plus the registration form) are the offline fallback for forms that have not been synced; a synced form always wins. They are stored in a compact form that the app turns back into plain FHIR JSON before parsing it, so rendering, translations, show/hide rules, obs groups and extraction behave exactly as with the original file:
+The forms that ship with the app (`core/src/main/assets/questionnaires/<id>.json`, plus the registration form) are the forms the app uses by default (the setting **Use embedded forms only** is on). With it on the server's forms are not downloaded, and the ones the user took from the server on purpose replace the bundled copy one by one ([`features/form-updates.md`](features/form-updates.md)); with it off a synced form always wins. They are stored in a compact form that the app turns back into plain FHIR JSON before parsing it, so rendering, translations, show/hide rules, obs groups and extraction behave exactly as with the original file:
 
 - translations read `"text:i18n": {"fr": "...", "es": "..."}` instead of the verbose `"_text": {"extension": [...]}`;
 - `url` / `system` values can start with a prefix name (`"@h/questionnaire-itemControl"`), listed under the first key, `"$compact"`.

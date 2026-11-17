@@ -5,6 +5,10 @@ written, two concepts for group sessions). **Settings > Advanced settings > Serv
 (`ServerCompatibilityFragment`) checks them, and the app leaves out what the server cannot do, so a user is
 never offered a step that would be refused later.
 
+`<server-compatibility enabled="false" />` in `app_config.xml` (`configuration.md`) turns the whole feature off:
+the page and the summary in Advanced settings are hidden, no check runs, a refusal is not learned from, and
+`ServerCapabilities.current()` reports everything as supported.
+
 ## What is checked
 
 | Check | Request | Found | What the app does without it |
@@ -20,7 +24,7 @@ never offered a step that would be refused later.
 Nothing is written by the checks that run on their own. The write check creates one temporary patient list and
 deletes it at once; it is the only way to know that the server accepts what the app sends, so the page asks
 before running it. `ServerChecker` holds the logic and takes a `ServerProbe` (implemented by `ApiManager`), so
-it is tested with a fake one (`ServerChecksTest`); `docs/user-guide/fake-backend/` has a `cohort-module`
+it can be tried with a fake one; `docs/user-guide/fake-backend/` has a `cohort-module`
 scenario that behaves as a server with the Cohort Module and without the patient list module.
 
 ## When

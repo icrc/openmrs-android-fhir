@@ -28,7 +28,7 @@ Both are made up for the guide. The single sign-on page of the fake provider (`/
 `data.py` holds one set of personas: 12 patients (with a very long name and a patient without phone or address
 as edge cases), 5 locations, 4 patient lists. Ids and dates are fixed. The names, places and list names are written
 in the five languages, and `python ctl.py lang fr` makes the server answer in French (the capture script does this
-for every language). `fixtures/*.json` (optional) can add Encounter and Observation resources.
+for every language). `fixtures/*.json` (optional) can add Encounter, Observation and Questionnaire resources (the forms the server publishes).
 
 ## Scenarios
 
