@@ -9,7 +9,7 @@ buildscript {
     classpath("com.android.tools.build:gradle:8.10.1")
     classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.0")
     classpath("com.google.gms:google-services:4.4.2")
-    classpath("com.diffplug.spotless:spotless-plugin-gradle:6.21.0")
+    classpath("com.diffplug.spotless:spotless-plugin-gradle:8.10.4")
     classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.9.6")
     classpath(
       "org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:2.0.0",
