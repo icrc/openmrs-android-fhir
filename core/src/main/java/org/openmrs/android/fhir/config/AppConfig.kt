@@ -65,6 +65,12 @@ data class GroupSessionConfig(
   val cohortNameConcept: String = "",
 )
 
+/** The checks of what the server supports (and what the app leaves out when it does not). */
+data class ServerCompatibilityConfig(
+  /** Off: nothing is checked or learned, the page is not offered, and every feature is allowed. */
+  val enabled: Boolean = true,
+)
+
 /** How much of the user's trail the audit log keeps. */
 class AuditConfig(val maxActions: Int)
 
@@ -92,6 +98,7 @@ internal constructor(
   val formSections: List<FormSectionConfig>,
   val audit: AuditConfig = AuditConfig(DEFAULT_AUDIT_ACTIONS),
   val groupSessions: GroupSessionConfig = GroupSessionConfig(),
+  val serverCompatibility: ServerCompatibilityConfig = ServerCompatibilityConfig(),
 ) {
   companion object {
     /** Audit entries kept when the file does not say. */
@@ -123,6 +130,7 @@ internal constructor(
       var diagnosticsPassword = ""
       var auditActions = DEFAULT_AUDIT_ACTIONS
       var groupSessions = GroupSessionConfig()
+      var serverCompatibility = ServerCompatibilityConfig()
       val sections = mutableListOf<FormSectionConfig>()
 
       var sectionName = ""
@@ -164,6 +172,8 @@ internal constructor(
                   cohortIdentifierConcept = attr("cohort-identifier-concept").orEmpty(),
                   cohortNameConcept = attr("cohort-name-concept").orEmpty(),
                 )
+            "server-compatibility" ->
+              serverCompatibility = ServerCompatibilityConfig(enabled = attr("enabled") != "false")
             "section" -> {
               inSection = true
               sectionName = attr("name").orEmpty()
@@ -207,6 +217,7 @@ internal constructor(
         formSections = sections,
         audit = AuditConfig(auditActions),
         groupSessions = groupSessions,
+        serverCompatibility = serverCompatibility,
       )
     }
   }

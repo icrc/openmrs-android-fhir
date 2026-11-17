@@ -35,6 +35,7 @@ import dagger.multibindings.IntoMap
 import org.openmrs.android.fhir.viewmodel.AddPatientViewModel
 import org.openmrs.android.fhir.viewmodel.CreateEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.FavoriteFormsViewModel
+import org.openmrs.android.fhir.viewmodel.FormUpdatesViewModel
 import org.openmrs.android.fhir.viewmodel.GroupSessionListViewModel
 import org.openmrs.android.fhir.viewmodel.GroupSessionPatientsViewModel
 import org.openmrs.android.fhir.viewmodel.HomeViewModel
@@ -46,7 +47,6 @@ import org.openmrs.android.fhir.viewmodel.PatientListDetailViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListPickerViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import org.openmrs.android.fhir.viewmodel.PatientMembershipViewModel
-import org.openmrs.android.fhir.viewmodel.QuestionnaireFetchViewModel
 import org.openmrs.android.fhir.viewmodel.SelectPatientListViewModel
 import org.openmrs.android.fhir.viewmodel.ServerCompatibilityViewModel
 import org.openmrs.android.fhir.viewmodel.SettingsViewModel
@@ -122,8 +122,8 @@ abstract class ViewModelModule {
 
   @Binds
   @IntoMap
-  @ViewModelKey(QuestionnaireFetchViewModel::class)
-  abstract fun bindQuestionnaireFetchViewModel(viewmodel: QuestionnaireFetchViewModel): ViewModel
+  @ViewModelKey(FormUpdatesViewModel::class)
+  abstract fun bindFormUpdatesViewModel(viewmodel: FormUpdatesViewModel): ViewModel
 
   @Binds
   @IntoMap

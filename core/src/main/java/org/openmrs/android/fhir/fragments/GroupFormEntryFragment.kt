@@ -720,7 +720,10 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
       }
 
       viewModel.isLoading.value = true
-      cacheCurrentPatientResponse()
+      // The answers of the last patient were kept when Submit was pressed. They are not read from
+      // the
+      // form again: once submitted, the form answers with only what it still shows (the first
+      // questions), and that would replace the whole of what the patient was given.
       val questionnaire = genericFormEntryViewModel.questionnaire.value
       val patients = viewModel.patients.value.orEmpty()
       if (questionnaire == null || patients.isEmpty()) {

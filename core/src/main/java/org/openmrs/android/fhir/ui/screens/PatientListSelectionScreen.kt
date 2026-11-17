@@ -124,6 +124,8 @@ fun PatientListSelectionScreen(
   pendingChanges: Int = 0,
   sendingChanges: Boolean = false,
   onSendChanges: (() -> Unit)? = null,
+  /** Working without a session: the lists are kept on the device and sent after sign-in. */
+  guestNotice: Boolean = false,
 ) {
   var creating by rememberSaveable { mutableStateOf(false) }
   var createError by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -153,6 +155,12 @@ fun PatientListSelectionScreen(
         }
       }
 
+      if (guestNotice) {
+        PatientListBanner(
+          modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+          text = stringResource(R.string.plists_guest_note),
+        )
+      }
       val noLocation = locationName.isNullOrBlank()
       if (onChangeLocationClick != null) {
         Surface(

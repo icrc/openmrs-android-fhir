@@ -23,6 +23,8 @@
         cohort-identifier-concept="5461f231-7e59-4be8-93a4-6d49fd13c00a"
         cohort-name-concept="6029f289-92a6-4a68-80f1-3078d0152449"
     />
+    <server-compatibility enabled="true" />
+
 
     <support email="support@mail.com" />
 

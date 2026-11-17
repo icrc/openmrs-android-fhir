@@ -617,19 +617,9 @@
     <string
         name="fetch_questionnaires"
     >Buscar formularios nuevos o actualizados</string>
-    <string name="fetching_questionnaires">Obteniendo cuestionarios…</string>
-    <string
-        name="fetch_questionnaires_description"
-    >Busca en el servidor los formularios que aún no están en la aplicación y las versiones más recientes de los que ya tiene.</string>
-    <string
-        name="questionnaires_up_to_date"
-    >Los cuestionarios están al día.</string>
     <string
         name="questionnaires_fetch_failed"
     >No se pudieron obtener los cuestionarios. Compruebe la conexión e inténtelo de nuevo.</string>
-    <string
-        name="questionnaires_added"
-    >Cuestionarios nuevos añadidos: %d</string>
     <string
         name="questionnaire_required_answers_missing"
     >Responda las preguntas obligatorias de esta página para continuar. Están marcadas en rojo.</string>
@@ -810,9 +800,6 @@
         name="help_details_new_body"
     >Registre una visita o rellene un formulario para este paciente.</string>
     <string name="help_sync_status_title">Estado de la sincronización</string>
-    <string
-        name="help_sync_status_body"
-    >Si hay algo pendiente de subir y cuándo se sincronizaron los datos por última vez.</string>
     <string name="help_sync_mode_title">Descargar, subir o ambos</string>
     <string
         name="help_sync_mode_body"
@@ -1126,9 +1113,6 @@
     >Para subir los pacientes y formularios que ingresó, inicie sesión primero. Todo lo que ingresó permanece en este dispositivo.</string>
     <string name="sign_in">Iniciar sesión</string>
     <string
-        name="sign_in_for_patient_lists"
-    >Inicie sesión para descargar las listas de pacientes.</string>
-    <string
         name="identifier_types_required_title"
     >Se necesita un identificador</string>
     <string
@@ -1234,15 +1218,6 @@
     <string name="color_vision_standard">Estándar</string>
     <string name="color_vision_color_blind">Apto para daltonismo</string>
     <string name="embedded_forms_only">Usar solo formularios integrados</string>
-    <string
-        name="embedded_forms_only_description"
-    >La aplicación usa solo los formularios incluidos y no descarga cuestionarios del servidor.</string>
-    <string
-        name="fetch_questionnaires_sign_in"
-    >Inicie sesión para buscar en el servidor formularios nuevos o actualizados.</string>
-    <string
-        name="questionnaires_changes"
-    >Formularios nuevos: %1$d, actualizados: %2$d</string>
     <string
         name="diag_message"
     >Elija qué enviar al equipo de soporte. Todo está seleccionado por defecto. El informe es un archivo cifrado que se envía por correo.</string>
@@ -1536,9 +1511,6 @@
     <string name="home_summary_waiting">%1$d cambios aún sin subir</string>
     <string name="home_summary_uploaded">Todo está subido</string>
     <string name="help_home_summary_title">De un vistazo</string>
-    <string
-        name="help_home_summary_body"
-    >Cuántos pacientes hay en este dispositivo y cuántos cambios esperan aún para subirse. Toque para abrir la página Sincronización.</string>
     <string name="help_home_menu_title">El menú</string>
     <string
         name="help_home_menu_body"
@@ -1949,11 +1921,11 @@
     <string name="help_settings_advanced_title">Ajustes avanzados</string>
     <string
         name="help_settings_advanced_body"
-    >Para administradores y soporte: la dirección del servidor y la prueba de conexión, cada cuánto se comprueba el token de inicio de sesión, el intervalo de sincronización y las comprobaciones de compatibilidad del servidor.</string>
+    >Para administradores y soporte: la dirección del servidor y la prueba de conexión, cada cuánto se comprueba el token de inicio de sesión, el intervalo de sincronización, los formularios del servidor y las comprobaciones de compatibilidad del servidor.</string>
     <string name="settings_section_advanced">Ajustes avanzados</string>
     <string
         name="settings_advanced_description"
-    >Para administradores y soporte: servidor, tokens y lo que admite el servidor.</string>
+    >Para administradores y soporte: servidor, tokens, formularios y lo que admite el servidor.</string>
     <string name="settings_advanced_show">Mostrar los ajustes avanzados</string>
     <string name="settings_advanced_hide">Ocultar los ajustes avanzados</string>
     <string name="settings_compat_title">Compatibilidad del servidor</string>
@@ -1971,6 +1943,67 @@
         name="plist_readonly_members_banner"
     >Este servidor no permite añadir pacientes a una lista ni quitarlos.</string>
     <string name="plist_readonly_open">Compatibilidad del servidor</string>
+    <string name="title_form_updates">Formularios del servidor</string>
+    <string
+        name="forms_updates_intro_app"
+    >La aplicación usa los formularios que incluye. Consulte el servidor para ver cuáles son diferentes y actualice los que elija: un formulario actualizado se usa en lugar de la versión de la aplicación.</string>
+    <string
+        name="forms_updates_intro_server"
+    >La aplicación usa los formularios del servidor. Consulte el servidor para ver cuáles son nuevos o han cambiado y tómelos.</string>
+    <string name="forms_updates_never">Aún no se ha comprobado</string>
+    <string name="forms_updates_checked">Comprobado el %1$s</string>
+    <string name="forms_updates_checking">Consultando el servidor…</string>
+    <string name="forms_updates_checking_short">Comprobando…</string>
+    <string name="forms_updates_check">Consultar el servidor</string>
+    <string name="forms_updates_take_all">Actualizar todo (%1$d)</string>
+    <string
+        name="forms_updates_all_current"
+    >Todos los formularios están al día</string>
+    <string name="forms_updates_error">No se pudo comprobar: %1$s</string>
+    <string
+        name="forms_updates_sign_in"
+    >Inicie sesión para consultar los formularios del servidor.</string>
+    <string
+        name="forms_updates_unreachable"
+    >No se puede acceder al servidor ahora.</string>
+    <string name="forms_state_not_checked">Sin comprobar</string>
+    <string name="forms_state_up_to_date">Al día</string>
+    <string name="forms_state_update">Actualización disponible</string>
+    <string name="forms_state_new">Nuevo en el servidor</string>
+    <string name="forms_state_not_on_server">No está en el servidor</string>
+    <string
+        name="forms_state_not_usable"
+    >La copia del servidor no se puede usar</string>
+    <string name="forms_using_app">Se usa la versión de la aplicación</string>
+    <string name="forms_using_server">Se usa la versión del servidor</string>
+    <string name="forms_using_none">No está en este dispositivo</string>
+    <string name="forms_server_version">Versión del servidor %1$s</string>
+    <string name="forms_action_update">Actualizar</string>
+    <string name="forms_action_add">Añadir</string>
+    <string
+        name="forms_action_use_app"
+    >Usar la versión de la aplicación</string>
+    <string name="forms_msg_found">%1$d actualizaciones, %2$d nuevos</string>
+    <string
+        name="forms_msg_back_to_app"
+    >%1$s: se vuelve a usar la versión de la aplicación</string>
+    <string
+        name="embedded_forms_only_description"
+    >La aplicación usa los formularios que incluye y la sincronización no descarga cuestionarios del servidor. Los formularios que actualice desde el servidor (Ajustes avanzados) se usan en lugar de la versión de la aplicación.</string>
+    <string
+        name="fetch_questionnaires_description"
+    >Vea qué formularios son diferentes en el servidor y actualice los que elija.</string>
+    <string name="help_formupdates_actions_title">Consultar el servidor</string>
+    <string
+        name="help_formupdates_actions_body"
+    >Pregunte al servidor qué formularios son diferentes o nuevos y actualícelos todos o elíjalos uno por uno. Nada cambia hasta que lo haga.</string>
+    <string name="help_formupdates_list_title">Sus formularios</string>
+    <string
+        name="help_formupdates_list_body"
+    >Cada formulario indica si está al día, qué versión se usa y qué tiene el servidor. Actualizar toma la versión del servidor; Usar la versión de la aplicación vuelve atrás.</string>
+    <string
+        name="plists_guest_note"
+    >Está trabajando sin iniciar sesión. Las listas de pacientes que cree o cambie se guardan en este dispositivo y se envían después de iniciar sesión y sincronizar.</string>
     <string name="plist_action_history">Historial</string>
     <string name="plist_action_export">Exportar</string>
     <string name="plist_history_title">Historial de la lista</string>
@@ -2037,6 +2070,17 @@
     <string
         name="plist_registered_joined"
     >Añadido a la lista de pacientes %1$s</string>
+    <string name="sync_status_action_needed">Acción necesaria</string>
+    <string
+        name="sync_identify_hint"
+    >Sus registros se quedan en este dispositivo hasta que los identifique.</string>
+    <string name="sync_identify_review">Revisar</string>
+    <string
+        name="help_sync_status_body"
+    >Si hay algo pendiente de subir o que requiere su acción (un paciente por identificar) y cuándo se sincronizaron los datos por última vez.</string>
+    <string
+        name="help_home_summary_body"
+    >Cuántos pacientes hay en este dispositivo y cuántos cambios esperan aún para subirse o requieren su acción, como un paciente por identificar. Toque para abrir la página Sincronización.</string>
     <string
         name="help_patients_register_body"
     >Añada un paciente nuevo. Los datos obligatorios deben completarse antes de guardar. Si hay una lista de pacientes elegida como filtro, el nuevo paciente se añade a esa lista.</string>
@@ -2045,6 +2089,18 @@
         <item
             quantity="other"
         >%d cambios de listas de pacientes en espera</item>
+    </plurals>
+    <plurals name="forms_updates_count">
+        <item quantity="one">%d actualización disponible</item>
+        <item quantity="other">%d actualizaciones disponibles</item>
+    </plurals>
+    <plurals name="forms_new_count">
+        <item quantity="one">%d nuevo en el servidor</item>
+        <item quantity="other">%d nuevos en el servidor</item>
+    </plurals>
+    <plurals name="forms_msg_taken">
+        <item quantity="one">%d formulario actualizado</item>
+        <item quantity="other">%d formularios actualizados</item>
     </plurals>
     <plurals name="plist_picker_from_list_members">
         <item quantity="one">%d paciente</item>

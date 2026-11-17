@@ -334,6 +334,23 @@ object ScreenTours {
       ),
     )
 
+  private val formUpdates =
+    Tour(
+      listOf(
+        step(
+          TutorialTargets.FORMUPDATES_ACTIONS,
+          R.string.help_formupdates_actions_title,
+          R.string.help_formupdates_actions_body,
+        ),
+        step(
+          TutorialTargets.FORMUPDATES_LIST,
+          R.string.help_formupdates_list_title,
+          R.string.help_formupdates_list_body,
+          optional = true,
+        ),
+      ),
+    )
+
   private val settings =
     Tour(
       listOf(
@@ -538,6 +555,7 @@ object ScreenTours {
       R.id.importExportFragment -> importExport
       R.id.settings_fragment -> settings
       R.id.serverCompatibilityFragment -> serverCompatibility
+      R.id.formUpdatesFragment -> formUpdates
       R.id.selectPatientListFragment -> patientLists
       R.id.locationFragment -> location
       R.id.patientListDetailFragment -> patientList

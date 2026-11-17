@@ -160,7 +160,7 @@ fun UnsyncedResourcesScreen(
                     Text(
                       text = stringResource(id = R.string.identify_requires_connection),
                       style = MaterialTheme.typography.bodySmall,
-                      color = MaterialTheme.colorScheme.error,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                   }
                 }

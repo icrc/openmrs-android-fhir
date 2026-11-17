@@ -55,6 +55,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.isServerReachable
@@ -101,6 +102,7 @@ class SelectPatientListFragment : Fragment() {
             .connectivityState
             .isServerReachable()
         val features by selectPatientListViewModel.features.collectAsStateWithLifecycle()
+        val guest = remember { GuestSession.isActive(requireContext()) }
         val filteredPatientLists =
           remember(patientLists, uiState.query) {
             patientLists.filter { it.name.contains(uiState.query, true) }
@@ -119,7 +121,8 @@ class SelectPatientListFragment : Fragment() {
           onPatientListToggle = ::onSelectPatientListItemClicked,
           onActionClick = ::handleActionClick,
           locationName = locationName.value,
-          onChangeLocationClick = ::changeLocation,
+          onChangeLocationClick = if (guest) null else ::changeLocation,
+          guestNotice = guest,
           onOpenList =
             if (fromLogin) {
               null
@@ -136,7 +139,7 @@ class SelectPatientListFragment : Fragment() {
             if (fromLogin || !features.editLists) null else selectPatientListViewModel::create,
           pendingChanges = uiState.pendingChanges,
           sendingChanges = uiState.sendingChanges,
-          onSendChanges = if (online) selectPatientListViewModel::sendNow else null,
+          onSendChanges = if (online && !guest) selectPatientListViewModel::sendNow else null,
           topPadding = selectionScreenContentPadding().calculateTopPadding(),
           isRefreshing = uiState.isRefreshing,
           loadFailed = uiState.loadFailed,

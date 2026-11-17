@@ -174,6 +174,7 @@ constructor(
       if (UserRegistry.activate(applicationContext, name)) {
         withContext(ioDispatcher) { userDataLedger.attributeExistingPatients(fhirEngine) }
       }
+      patientLists.adoptGuestChanges()
     } catch (e: CancellationException) {
       throw e
     } catch (e: Exception) {

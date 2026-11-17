@@ -289,10 +289,19 @@
             android:id="@+id/action_settings_fragment_to_serverCompatibilityFragment"
             app:destination="@id/serverCompatibilityFragment"
         />
+    <action
+            android:id="@+id/action_settings_fragment_to_formUpdatesFragment"
+            app:destination="@id/formUpdatesFragment"
+        />
   </fragment>
   <fragment
         android:id="@+id/serverCompatibilityFragment"
         android:label="@string/title_server_compatibility"
         android:name="org.openmrs.android.fhir.fragments.ServerCompatibilityFragment"
+    />
+  <fragment
+        android:id="@+id/formUpdatesFragment"
+        android:label="@string/title_form_updates"
+        android:name="org.openmrs.android.fhir.fragments.FormUpdatesFragment"
     />
 </navigation>

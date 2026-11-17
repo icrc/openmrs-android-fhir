@@ -644,20 +644,8 @@
         name="fetch_questionnaires"
     >Rechercher des formulaires nouveaux ou mis à jour</string>
     <string
-        name="fetching_questionnaires"
-    >Récupération des questionnaires…</string>
-    <string
-        name="fetch_questionnaires_description"
-    >Recherche sur le serveur les formulaires absents de l\'application et les versions plus récentes de ceux qu\'elle contient.</string>
-    <string
-        name="questionnaires_up_to_date"
-    >Les questionnaires sont à jour.</string>
-    <string
         name="questionnaires_fetch_failed"
     >Impossible de récupérer les questionnaires. Vérifiez la connexion et réessayez.</string>
-    <string
-        name="questionnaires_added"
-    >Nouveaux questionnaires ajoutés : %d</string>
     <string
         name="questionnaire_required_answers_missing"
     >Répondez aux questions obligatoires de cette page pour continuer. Elles sont marquées en rouge.</string>
@@ -848,9 +836,6 @@
         name="help_details_new_body"
     >Enregistrez une visite ou remplissez un formulaire pour ce patient.</string>
     <string name="help_sync_status_title">État de la synchronisation</string>
-    <string
-        name="help_sync_status_body"
-    >S\'il y a quelque chose à envoyer et quand les données ont été synchronisées pour la dernière fois.</string>
     <string name="help_sync_mode_title">Réception, envoi ou les deux</string>
     <string
         name="help_sync_mode_body"
@@ -1163,9 +1148,6 @@
         name="sign_in_to_sync_message"
     >Pour envoyer les patients et formulaires saisis, connectez-vous d\u2019abord. Tout ce que vous avez saisi reste sur cet appareil.</string>
     <string name="sign_in">Se connecter</string>
-    <string
-        name="sign_in_for_patient_lists"
-    >Connectez-vous pour télécharger les listes de patients.</string>
     <string name="identifier_types_required_title">Identifiant requis</string>
     <string
         name="identifier_types_required_message"
@@ -1272,15 +1254,6 @@
     <string
         name="embedded_forms_only"
     >Utiliser uniquement les formulaires intégrés</string>
-    <string
-        name="embedded_forms_only_description"
-    >L\'application n\'utilise que les formulaires fournis avec elle et ne télécharge pas de questionnaires depuis le serveur.</string>
-    <string
-        name="fetch_questionnaires_sign_in"
-    >Connectez-vous pour rechercher sur le serveur des formulaires nouveaux ou mis à jour.</string>
-    <string
-        name="questionnaires_changes"
-    >Nouveaux formulaires : %1$d, mis à jour : %2$d</string>
     <string
         name="diag_message"
     >Choisissez ce qu\'il faut envoyer à l\'équipe d\'assistance. Tout est sélectionné par défaut. Le rapport est une archive chiffrée envoyée par e-mail.</string>
@@ -1584,9 +1557,6 @@
     >%1$d modifications pas encore envoyées</string>
     <string name="home_summary_uploaded">Tout est envoyé</string>
     <string name="help_home_summary_title">En un coup d\'œil</string>
-    <string
-        name="help_home_summary_body"
-    >Combien de patients sont sur cet appareil et combien de modifications attendent encore d\'être envoyées. Touchez pour ouvrir la page Synchronisation.</string>
     <string name="help_home_menu_title">Le menu</string>
     <string
         name="help_home_menu_body"
@@ -1985,11 +1955,11 @@
     <string name="help_settings_advanced_title">Paramètres avancés</string>
     <string
         name="help_settings_advanced_body"
-    >Pour les administrateurs et le support : l\'adresse du serveur et le test de connexion, la fréquence de vérification du jeton de connexion, l\'intervalle de synchronisation et les vérifications de compatibilité du serveur.</string>
+    >Pour les administrateurs et le support : l\'adresse du serveur et le test de connexion, la fréquence de vérification du jeton de connexion, l\'intervalle de synchronisation, les formulaires du serveur et les vérifications de compatibilité du serveur.</string>
     <string name="settings_section_advanced">Paramètres avancés</string>
     <string
         name="settings_advanced_description"
-    >Pour les administrateurs et le support : serveur, jetons et fonctions prises en charge par le serveur.</string>
+    >Pour les administrateurs et le support : serveur, jetons, formulaires et fonctions prises en charge par le serveur.</string>
     <string
         name="settings_advanced_show"
     >Afficher les paramètres avancés</string>
@@ -2011,6 +1981,67 @@
         name="plist_readonly_members_banner"
     >Ce serveur ne permet pas d\'ajouter des patients à une liste ni de les en retirer.</string>
     <string name="plist_readonly_open">Compatibilité du serveur</string>
+    <string name="title_form_updates">Formulaires du serveur</string>
+    <string
+        name="forms_updates_intro_app"
+    >L\'application utilise les formulaires fournis avec elle. Interrogez le serveur pour voir lesquels sont différents, puis mettez à jour ceux que vous choisissez : un formulaire mis à jour remplace la version de l\'application.</string>
+    <string
+        name="forms_updates_intro_server"
+    >L\'application utilise les formulaires du serveur. Interrogez le serveur pour voir lesquels sont nouveaux ou modifiés, et récupérez-les.</string>
+    <string name="forms_updates_never">Pas encore vérifié</string>
+    <string name="forms_updates_checked">Vérifié le %1$s</string>
+    <string name="forms_updates_checking">Interrogation du serveur…</string>
+    <string name="forms_updates_checking_short">Vérification…</string>
+    <string name="forms_updates_check">Vérifier le serveur</string>
+    <string name="forms_updates_take_all">Tout mettre à jour (%1$d)</string>
+    <string
+        name="forms_updates_all_current"
+    >Tous les formulaires sont à jour</string>
+    <string name="forms_updates_error">Vérification impossible : %1$s</string>
+    <string
+        name="forms_updates_sign_in"
+    >Connectez-vous pour vérifier les formulaires du serveur.</string>
+    <string
+        name="forms_updates_unreachable"
+    >Le serveur est injoignable pour le moment.</string>
+    <string name="forms_state_not_checked">Non vérifié</string>
+    <string name="forms_state_up_to_date">À jour</string>
+    <string name="forms_state_update">Mise à jour disponible</string>
+    <string name="forms_state_new">Nouveau sur le serveur</string>
+    <string name="forms_state_not_on_server">Absent du serveur</string>
+    <string
+        name="forms_state_not_usable"
+    >La copie du serveur est inutilisable</string>
+    <string name="forms_using_app">Version de l\'application utilisée</string>
+    <string name="forms_using_server">Version du serveur utilisée</string>
+    <string name="forms_using_none">Absent de cet appareil</string>
+    <string name="forms_server_version">Version du serveur %1$s</string>
+    <string name="forms_action_update">Mettre à jour</string>
+    <string name="forms_action_add">Ajouter</string>
+    <string
+        name="forms_action_use_app"
+    >Utiliser la version de l\'application</string>
+    <string name="forms_msg_found">%1$d mises à jour, %2$d nouveaux</string>
+    <string
+        name="forms_msg_back_to_app"
+    >%1$s : la version de l\'application est de nouveau utilisée</string>
+    <string
+        name="embedded_forms_only_description"
+    >L\'application utilise les formulaires fournis avec elle et la synchronisation ne télécharge pas de questionnaires du serveur. Les formulaires que vous mettez à jour depuis le serveur (Paramètres avancés) remplacent la version de l\'application.</string>
+    <string
+        name="fetch_questionnaires_description"
+    >Voyez quels formulaires sont différents sur le serveur et mettez à jour ceux que vous choisissez.</string>
+    <string name="help_formupdates_actions_title">Vérifier le serveur</string>
+    <string
+        name="help_formupdates_actions_body"
+    >Demandez au serveur quels formulaires sont différents ou nouveaux, puis mettez-les tous à jour ou choisissez-les un par un. Rien ne change tant que vous ne le faites pas.</string>
+    <string name="help_formupdates_list_title">Vos formulaires</string>
+    <string
+        name="help_formupdates_list_body"
+    >Chaque formulaire indique s\'il est à jour, quelle version est utilisée et ce que le serveur a. Mettre à jour prend la version du serveur ; Utiliser la version de l\'application revient en arrière.</string>
+    <string
+        name="plists_guest_note"
+    >Vous travaillez sans vous connecter. Les listes de patients que vous créez ou modifiez restent sur cet appareil et sont envoyées après votre connexion et une synchronisation.</string>
     <string name="plist_action_history">Historique</string>
     <string name="plist_action_export">Exporter</string>
     <string name="plist_history_title">Historique de la liste</string>
@@ -2081,6 +2112,17 @@
     <string
         name="plist_registered_joined"
     >Ajouté à la liste de patients %1$s</string>
+    <string name="sync_status_action_needed">Action requise</string>
+    <string
+        name="sync_identify_hint"
+    >Leurs données restent sur cet appareil tant que vous ne les avez pas identifiés.</string>
+    <string name="sync_identify_review">Voir</string>
+    <string
+        name="help_sync_status_body"
+    >S\'il y a quelque chose à envoyer ou une action à faire de votre part (un patient à identifier), et quand les données ont été synchronisées pour la dernière fois.</string>
+    <string
+        name="help_home_summary_body"
+    >Combien de patients sont sur cet appareil et combien de modifications attendent encore d\'être envoyées ou demandent votre action, comme un patient à identifier. Touchez pour ouvrir la page Synchronisation.</string>
     <string
         name="help_patients_register_body"
     >Ajoutez un nouveau patient. Les données obligatoires doivent être remplies avant l\'enregistrement. Si une liste de patients est choisie comme filtre, le nouveau patient est ajouté à cette liste.</string>
@@ -2091,6 +2133,18 @@
         <item
             quantity="other"
         >%d changements de listes de patients en attente</item>
+    </plurals>
+    <plurals name="forms_updates_count">
+        <item quantity="one">%d mise à jour disponible</item>
+        <item quantity="other">%d mises à jour disponibles</item>
+    </plurals>
+    <plurals name="forms_new_count">
+        <item quantity="one">%d nouveau sur le serveur</item>
+        <item quantity="other">%d nouveaux sur le serveur</item>
+    </plurals>
+    <plurals name="forms_msg_taken">
+        <item quantity="one">%d formulaire mis à jour</item>
+        <item quantity="other">%d formulaires mis à jour</item>
     </plurals>
     <plurals name="plist_picker_from_list_members">
         <item quantity="one">%d patient</item>

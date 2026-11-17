@@ -88,7 +88,7 @@ object GroupMapper {
     return Parsed(row, members)
   }
 
-  fun toCreate(change: PatientListChange): Group =
+  fun toCreate(change: PatientListChange, listType: String? = null): Group =
     Group().apply {
       id = change.listId
       active = true
@@ -97,6 +97,7 @@ object GroupMapper {
       name = change.name
       change.description?.takeIf { it.isNotBlank() }?.let { text(DESCRIPTION, it) }
       change.locationId?.let { addExtension(Extension(LOCATION, Reference("Location/$it"))) }
+      listType?.let { addExtension(Extension(LIST_TYPE, Reference("CohortType/$it"))) }
     }
 
   /**

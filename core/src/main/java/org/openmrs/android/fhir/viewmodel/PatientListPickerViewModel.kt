@@ -51,6 +51,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.sync.LivePatients
 import org.openmrs.android.fhir.data.sync.LiveSync
@@ -327,7 +328,10 @@ constructor(
         delay(SERVER_DEBOUNCE_MILLIS)
         // A session is held with patients on the device: the server is searched only in live mode,
         // which can bring the chosen ones here.
-        if (_uiState.value.session && !LiveSync.isAvailable(applicationContext)) {
+        if (
+          GuestSession.isActive(applicationContext) ||
+            (_uiState.value.session && !LiveSync.isAvailable(applicationContext))
+        ) {
           server = emptyList()
           _uiState.update {
             it.copy(serverSearching = false, serverLoading = false, serverFailed = false)

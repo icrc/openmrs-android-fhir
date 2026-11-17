@@ -56,6 +56,8 @@ constructor(
   private val prefs = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
   private val lock = Mutex()
 
+  private val enabled = AppConfig.get(appContext).serverCompatibility.enabled
+
   private val _report = MutableStateFlow(load())
   val report: StateFlow<ServerReport> = _report.asStateFlow()
 
@@ -65,13 +67,14 @@ constructor(
   private val _running = MutableStateFlow(false)
   val running: StateFlow<Boolean> = _running.asStateFlow()
 
-  fun current(): ServerFeatures = _features.value
+  fun current(): ServerFeatures = if (enabled) _features.value else ServerFeatures()
 
   fun reload() {
     publish(load())
   }
 
   suspend fun check(force: Boolean = true) {
+    if (!enabled) return
     lock.withLock {
       val stale = System.currentTimeMillis() - _report.value.checkedAt > STALE_MS
       if (!force && !stale) return
@@ -94,6 +97,7 @@ constructor(
   }
 
   suspend fun writeTest() {
+    if (!enabled) return
     lock.withLock {
       _running.value = true
       try {
@@ -110,7 +114,7 @@ constructor(
    * feature is left out from now on, until a check finds the server able to.
    */
   fun learnRefusal(code: Int, text: String?, members: Boolean) {
-    if (!ServerChecker.refusalMeansUnsupported(code, text)) return
+    if (!enabled || !ServerChecker.refusalMeansUnsupported(code, text)) return
     val key = if (members) Checks.GROUP_MEMBERS else Checks.GROUPS_WRITE
     if (_report.value.result(key)?.state == CheckState.UNSUPPORTED) return
     val result =

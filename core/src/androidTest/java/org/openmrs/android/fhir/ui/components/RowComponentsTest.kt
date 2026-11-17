@@ -30,18 +30,48 @@ package org.openmrs.android.fhir.ui.components
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import org.hl7.fhir.r4.model.CodeableConcept
+import org.hl7.fhir.r4.model.Identifier
 import org.junit.Rule
 import org.junit.Test
 import org.openmrs.android.fhir.data.database.model.SyncSession
 import org.openmrs.android.fhir.data.database.model.SyncStatus
 
-class AdditionalRowComponentsTest {
+/**
+ * The rows of the lists: what each shows, and the sync icon that follows the state of its record.
+ */
+class RowComponentsTest {
   @get:Rule val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+  @Test
+  fun showsUnsyncedIconWhenNotSynced() {
+    composeRule.setContent {
+      MaterialTheme {
+        PatientListItemRow(name = "Jane Doe", ageGenderLabel = "30,F", isSynced = false)
+      }
+    }
+
+    composeRule.onNodeWithTag("PatientSyncIcon").assertIsDisplayed()
+    composeRule.onNodeWithTag("PatientName").assertIsDisplayed()
+    composeRule.onNodeWithTag("PatientAgeGender").assertIsDisplayed()
+  }
+
+  @Test
+  fun hidesSyncIconWhenSynced() {
+    composeRule.setContent {
+      MaterialTheme {
+        PatientListItemRow(name = "John Doe", ageGenderLabel = "25,M", isSynced = true)
+      }
+    }
+
+    composeRule.onNodeWithTag("PatientSyncIcon").assertIsNotDisplayed()
+  }
 
   @Test
   fun patientPropertyRowShowsHeaderValueAndSyncIcon() {
@@ -53,21 +83,6 @@ class AdditionalRowComponentsTest {
     composeRule.onNodeWithTag("SyncStatusIcon").assertIsDisplayed()
     composeRule.onNodeWithTag("PropertyLabel").assertIsDisplayed()
     composeRule.onNodeWithTag("PropertyValue").assertIsDisplayed()
-  }
-
-  @Test
-  fun encounterRowHidesSyncIconWhenSynced() {
-    composeRule.setContent {
-      MaterialTheme {
-        EncounterListItemRow(
-          encounterType = "Consultation",
-          encounterDate = "2024-01-01",
-          showSyncIcon = false,
-        )
-      }
-    }
-
-    composeRule.onNodeWithTag("EncounterSyncIcon").assertIsNotDisplayed()
   }
 
   @Test
@@ -108,5 +123,74 @@ class AdditionalRowComponentsTest {
 
     composeRule.onNodeWithTag("SyncErrorCount").assertIsDisplayed()
     composeRule.onNodeWithText("- Error 1").assertIsDisplayed()
+  }
+
+  @Test
+  fun patientDetailsHeaderShowsNameAndIdentifiers() {
+    val identifier =
+      Identifier().apply {
+        type = CodeableConcept().apply { text = "MRN" }
+        value = "12345"
+      }
+    val filteredIdentifier =
+      Identifier().apply {
+        type = CodeableConcept().apply { text = "unsynced" }
+        value = "ignore"
+      }
+
+    composeRule.setContent {
+      MaterialTheme {
+        PatientDetailsOverviewHeader(
+          name = "Alice Kazadi",
+          identifiers = listOf(identifier, filteredIdentifier),
+        )
+      }
+    }
+
+    composeRule.onNodeWithTag("PatientDetailsOverviewHeader").assertIsDisplayed()
+    composeRule.onNodeWithText("Alice Kazadi").assertIsDisplayed()
+    composeRule.onNodeWithText("MRN: 12345").assertIsDisplayed()
+    composeRule.onNodeWithText("ignore").assertDoesNotExist()
+  }
+
+  @Test
+  fun encounterSyncIconUpdatesWhenStateChanges() {
+    val showSyncIcon = mutableStateOf(true)
+
+    composeRule.setContent {
+      MaterialTheme {
+        EncounterListItemRow(
+          encounterType = "Consultation",
+          encounterDate = "2024-01-01",
+          showSyncIcon = showSyncIcon.value,
+        )
+      }
+    }
+
+    composeRule.onNodeWithTag("EncounterSyncIcon").assertIsDisplayed()
+
+    composeRule.runOnUiThread { showSyncIcon.value = false }
+    composeRule.waitForIdle()
+
+    composeRule.onNodeWithTag("EncounterSyncIcon").assertIsNotDisplayed()
+  }
+
+  @Test
+  fun locationRowRendersFavoriteState() {
+    composeRule.setContent {
+      MaterialTheme {
+        LocationListItemRow(
+          name = "Test Location",
+          isFavorite = true,
+          isSelected = true,
+          onFavoriteClick = {},
+          onClick = {},
+        )
+      }
+    }
+
+    composeRule.onNodeWithTag("LocationListItem").assertIsDisplayed()
+    composeRule.onNodeWithTag("LocationFavorite").assertIsDisplayed()
+    composeRule.onNodeWithText("Test Location").assertIsDisplayed()
   }
 }

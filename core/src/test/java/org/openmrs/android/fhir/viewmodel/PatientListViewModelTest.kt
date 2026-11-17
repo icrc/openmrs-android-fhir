@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.viewmodel
 
+import com.google.common.truth.Truth.assertThat
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.Date
@@ -37,6 +38,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.patientlists.PatientListEntry
+import org.openmrs.android.fhir.patientlists.PatientListMember
+import org.openmrs.android.fhir.patientlists.PatientListState
+import org.openmrs.android.fhir.patientlists.SendResult
 
 class PatientListViewModelTest {
 
@@ -107,5 +113,57 @@ class PatientListViewModelTest {
     assertEquals(listOf(ann, bob, cy), all.sortedWith(patientOrder(PatientSort.NAME_ASC)))
     assertEquals(listOf(cy, bob, ann), all.sortedWith(patientOrder(PatientSort.NAME_DESC)))
     assertEquals(listOf(bob, ann, cy), all.sortedWith(patientOrder(PatientSort.AGE_OLDEST)))
+  }
+
+  private fun patientList(name: String, description: String? = null, location: String? = null) =
+    PatientListEntry(
+      id = "c",
+      name = name,
+      description = description,
+      typeName = null,
+      locationId = null,
+      locationName = location,
+      creatorName = null,
+      dateCreated = null,
+      changedByName = null,
+      dateChanged = null,
+      quantity = 0,
+      attributes = emptyList(),
+      state = PatientListState.SYNCED,
+      pendingChanges = 0,
+      error = null,
+      membersLoaded = true,
+    )
+
+  @Test
+  fun everyWordOfTheSearchMustMatchTheNameTheDescriptionOrTheLocation() {
+    val item = patientList("Morning clinic", "weekday follow up", "North")
+
+    assertThat(item.matches("")).isTrue()
+    assertThat(item.matches("morn clin")).isTrue()
+    assertThat(item.matches("north follow")).isTrue()
+    assertThat(item.matches("morning evening")).isFalse()
+  }
+
+  @Test
+  fun aMemberIsFoundByNameOrIdentifier() {
+    val member = PatientListMember("p1", "Amara Okafor", "female", null, "DEMO-0001000", null, null)
+
+    assertThat(member.matches("amara oka")).isTrue()
+    assertThat(member.matches("0001000")).isTrue()
+    assertThat(member.matches("daniel")).isFalse()
+  }
+
+  @Test
+  fun aSendIsToldAccordingToWhatHappened() {
+    assertThat(SendResult(unreachable = true).toMessage().res)
+      .isEqualTo(R.string.plists_send_unreachable)
+    assertThat(SendResult(sent = 2, refused = 1).toMessage().res)
+      .isEqualTo(R.plurals.plists_refused)
+    assertThat(SendResult(dropped = 3).toMessage())
+      .isEqualTo(PatientListMessage(R.plurals.plists_dropped, 3, plural = true, isError = true))
+    assertThat(SendResult(sent = 4).toMessage())
+      .isEqualTo(PatientListMessage(R.plurals.plists_sent, 4, plural = true))
+    assertThat(SendResult().toMessage().res).isEqualTo(R.string.plists_send_nothing)
   }
 }

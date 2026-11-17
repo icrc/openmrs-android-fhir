@@ -630,15 +630,9 @@
     <string
         name="fetch_questionnaires"
     >Проверить новые и обновлённые формы</string>
-    <string name="fetching_questionnaires">Загрузка анкет…</string>
-    <string
-        name="fetch_questionnaires_description"
-    >Проверяет сервер на наличие форм, которых ещё нет в приложении, и более новых версий имеющихся.</string>
-    <string name="questionnaires_up_to_date">Анкеты актуальны.</string>
     <string
         name="questionnaires_fetch_failed"
     >Не удалось загрузить анкеты. Проверьте соединение и повторите попытку.</string>
-    <string name="questionnaires_added">Добавлено новых анкет: %d</string>
     <string
         name="questionnaire_required_answers_missing"
     >Ответьте на обязательные вопросы на этой странице, чтобы продолжить. Они отмечены красным.</string>
@@ -807,9 +801,6 @@
         name="help_details_new_body"
     >Запишите визит или заполните форму для этого пациента.</string>
     <string name="help_sync_status_title">Состояние синхронизации</string>
-    <string
-        name="help_sync_status_body"
-    >Есть ли что-то для отправки и когда данные синхронизировались в последний раз.</string>
     <string name="help_sync_mode_title">Загрузка, отправка или обе</string>
     <string
         name="help_sync_mode_body"
@@ -1116,9 +1107,6 @@
         name="sign_in_to_sync_message"
     >Чтобы отправить введённых пациентов и формы, сначала войдите. Всё введённое останется на этом устройстве.</string>
     <string name="sign_in">Войти</string>
-    <string
-        name="sign_in_for_patient_lists"
-    >Войдите, чтобы загрузить списки пациентов.</string>
     <string name="identifier_types_required_title">Нужен идентификатор</string>
     <string
         name="identifier_types_required_message"
@@ -1221,15 +1209,6 @@
     <string name="color_vision_standard">Стандартная</string>
     <string name="color_vision_color_blind">Для дальтоников</string>
     <string name="embedded_forms_only">Только встроенные формы</string>
-    <string
-        name="embedded_forms_only_description"
-    >Приложение использует только встроенные формы и не загружает опросники с сервера.</string>
-    <string
-        name="fetch_questionnaires_sign_in"
-    >Войдите, чтобы проверить на сервере новые и обновлённые формы.</string>
-    <string
-        name="questionnaires_changes"
-    >Новых форм: %1$d, обновлено: %2$d</string>
     <string
         name="diag_message"
     >Выберите, что отправить в службу поддержки. По умолчанию выбрано всё. Отчёт — зашифрованный архив, который отправляется по электронной почте.</string>
@@ -1525,9 +1504,6 @@
     <string name="home_summary_waiting">Не отправлено изменений: %1$d</string>
     <string name="home_summary_uploaded">Всё отправлено</string>
     <string name="help_home_summary_title">Коротко</string>
-    <string
-        name="help_home_summary_body"
-    >Сколько пациентов на устройстве и сколько изменений ещё ждёт отправки. Нажмите, чтобы открыть страницу синхронизации.</string>
     <string name="help_home_menu_title">Меню</string>
     <string
         name="help_home_menu_body"
@@ -1932,11 +1908,11 @@
     >Дополнительные настройки</string>
     <string
         name="help_settings_advanced_body"
-    >Для администраторов и поддержки: адрес сервера и проверка соединения, как часто проверяется токен входа, интервал синхронизации и проверки совместимости сервера.</string>
+    >Для администраторов и поддержки: адрес сервера и проверка соединения, как часто проверяется токен входа, интервал синхронизации, формы на сервере и проверки совместимости сервера.</string>
     <string name="settings_section_advanced">Дополнительные настройки</string>
     <string
         name="settings_advanced_description"
-    >Для администраторов и поддержки: сервер, токены и то, что поддерживает сервер.</string>
+    >Для администраторов и поддержки: сервер, токены, формы и то, что поддерживает сервер.</string>
     <string
         name="settings_advanced_show"
     >Показать дополнительные настройки</string>
@@ -1956,6 +1932,61 @@
         name="plist_readonly_members_banner"
     >Этот сервер не позволяет добавлять пациентов в список и удалять их.</string>
     <string name="plist_readonly_open">Совместимость сервера</string>
+    <string name="title_form_updates">Формы на сервере</string>
+    <string
+        name="forms_updates_intro_app"
+    >Приложение использует формы, которые поставляются вместе с ним. Проверьте сервер, чтобы увидеть, какие формы отличаются, и обновите нужные: обновлённая форма используется вместо версии приложения.</string>
+    <string
+        name="forms_updates_intro_server"
+    >Приложение использует формы сервера. Проверьте сервер, чтобы увидеть новые и изменённые формы, и загрузите их.</string>
+    <string name="forms_updates_never">Ещё не проверялось</string>
+    <string name="forms_updates_checked">Проверено: %1$s</string>
+    <string name="forms_updates_checking">Запрос к серверу…</string>
+    <string name="forms_updates_checking_short">Проверка…</string>
+    <string name="forms_updates_check">Проверить сервер</string>
+    <string name="forms_updates_take_all">Обновить всё (%1$d)</string>
+    <string name="forms_updates_all_current">Все формы актуальны</string>
+    <string name="forms_updates_error">Не удалось проверить: %1$s</string>
+    <string
+        name="forms_updates_sign_in"
+    >Войдите, чтобы проверить формы сервера.</string>
+    <string name="forms_updates_unreachable">Сервер сейчас недоступен.</string>
+    <string name="forms_state_not_checked">Не проверено</string>
+    <string name="forms_state_up_to_date">Актуально</string>
+    <string name="forms_state_update">Есть обновление</string>
+    <string name="forms_state_new">Новая на сервере</string>
+    <string name="forms_state_not_on_server">Нет на сервере</string>
+    <string
+        name="forms_state_not_usable"
+    >Копию сервера нельзя использовать</string>
+    <string name="forms_using_app">Используется версия приложения</string>
+    <string name="forms_using_server">Используется версия сервера</string>
+    <string name="forms_using_none">Нет на этом устройстве</string>
+    <string name="forms_server_version">Версия сервера %1$s</string>
+    <string name="forms_action_update">Обновить</string>
+    <string name="forms_action_add">Добавить</string>
+    <string name="forms_action_use_app">Использовать версию приложения</string>
+    <string name="forms_msg_found">Обновлений: %1$d, новых: %2$d</string>
+    <string
+        name="forms_msg_back_to_app"
+    >%1$s: снова используется версия приложения</string>
+    <string
+        name="embedded_forms_only_description"
+    >Приложение использует формы, поставляемые с ним, и синхронизация не загружает опросники с сервера. Формы, которые вы обновите с сервера (Дополнительные настройки), используются вместо версии приложения.</string>
+    <string
+        name="fetch_questionnaires_description"
+    >Посмотрите, какие формы на сервере отличаются, и обновите нужные.</string>
+    <string name="help_formupdates_actions_title">Проверить сервер</string>
+    <string
+        name="help_formupdates_actions_body"
+    >Узнайте у сервера, какие формы отличаются или новые, и обновите их все или выберите по одной. Пока вы этого не сделаете, ничего не меняется.</string>
+    <string name="help_formupdates_list_title">Ваши формы</string>
+    <string
+        name="help_formupdates_list_body"
+    >Каждая форма показывает, актуальна ли она, какая версия используется и что есть на сервере. «Обновить» берёт версию сервера, «Использовать версию приложения» возвращает прежнюю.</string>
+    <string
+        name="plists_guest_note"
+    >Вы работаете без входа. Списки пациентов, которые вы создаёте или меняете, хранятся на этом устройстве и отправляются после входа и синхронизации.</string>
     <string name="plist_action_history">История</string>
     <string name="plist_action_export">Экспорт</string>
     <string name="plist_history_title">История списка</string>
@@ -2024,6 +2055,17 @@
     <string
         name="plist_registered_joined"
     >Добавлен в список пациентов %1$s</string>
+    <string name="sync_status_action_needed">Требуется действие</string>
+    <string
+        name="sync_identify_hint"
+    >Их записи остаются на этом устройстве, пока вы их не опознаете.</string>
+    <string name="sync_identify_review">Открыть</string>
+    <string
+        name="help_sync_status_body"
+    >Есть ли что-то для отправки или требующее вашего действия (пациент для идентификации) и когда данные синхронизировались в последний раз.</string>
+    <string
+        name="help_home_summary_body"
+    >Сколько пациентов на устройстве и сколько изменений ещё ждёт отправки или вашего действия, например пациент для идентификации. Нажмите, чтобы открыть страницу синхронизации.</string>
     <string
         name="help_patients_register_body"
     >Добавьте нового пациента. Перед сохранением нужно заполнить обязательные данные. Если в качестве фильтра выбран список пациентов, новый пациент добавляется в этот список.</string>
@@ -2032,6 +2074,24 @@
         <item quantity="few">%d изменения списков пациентов ожидают</item>
         <item quantity="many">%d изменений списков пациентов ожидают</item>
         <item quantity="other">%d изменений списков пациентов ожидают</item>
+    </plurals>
+    <plurals name="forms_updates_count">
+        <item quantity="one">Доступно обновлений: %d</item>
+        <item quantity="few">Доступно обновлений: %d</item>
+        <item quantity="many">Доступно обновлений: %d</item>
+        <item quantity="other">Доступно обновлений: %d</item>
+    </plurals>
+    <plurals name="forms_new_count">
+        <item quantity="one">Новых на сервере: %d</item>
+        <item quantity="few">Новых на сервере: %d</item>
+        <item quantity="many">Новых на сервере: %d</item>
+        <item quantity="other">Новых на сервере: %d</item>
+    </plurals>
+    <plurals name="forms_msg_taken">
+        <item quantity="one">Обновлено форм: %d</item>
+        <item quantity="few">Обновлено форм: %d</item>
+        <item quantity="many">Обновлено форм: %d</item>
+        <item quantity="other">Обновлено форм: %d</item>
     </plurals>
     <plurals name="plist_picker_from_list_members">
         <item quantity="one">%d пациент</item>

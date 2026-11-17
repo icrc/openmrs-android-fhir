@@ -61,6 +61,7 @@ import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.extensions.limitToReadableWidth
@@ -100,7 +101,9 @@ class PatientListDetailFragment : Fragment() {
       val activityState by mainActivityViewModel.uiState.collectAsStateWithLifecycle()
       PatientListDetailScreen(
         state = state,
-        online = activityState.connectivityState.isServerReachable(),
+        online =
+          activityState.connectivityState.isServerReachable() &&
+            !GuestSession.isActive(requireContext()),
         onQueryChange = viewModel::onQueryChange,
         onRefresh = viewModel::refresh,
         onEdit = viewModel::edit,

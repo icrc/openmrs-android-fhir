@@ -52,6 +52,8 @@ object PatientListsSync {
     val repository =
       FhirApplication.appComponent(context.applicationContext).patientListRepository()
     var result: SendResult? = null
+    // Lists created before a location was chosen get it when they are sent (`send`), and wait
+    // until there is one.
     if (send) {
       repository.releaseUploaded(
         repository.uploadedPatientFinder(

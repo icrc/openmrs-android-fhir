@@ -42,6 +42,10 @@
         cohort-name-concept="6029f289-92a6-4a68-80f1-3078d0152449"
     />
 
+    <!-- The checks of what the server supports (Settings > Advanced settings > Server
+         compatibility). enabled="false" hides them and the app offers every feature, whatever
+         the server can do. -->
+    <server-compatibility enabled="true" />
 
     <!-- Where "Send diagnostics" goes. The password (required: change it) protects the
          archive and the application logs; support needs it to open a report. -->

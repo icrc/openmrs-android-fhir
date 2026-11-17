@@ -44,6 +44,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.hl7.fhir.r4.model.Group
+import org.openmrs.android.fhir.auth.GuestSession
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.PatientListsDao
 import org.openmrs.android.fhir.data.database.model.PatientListChange
@@ -58,6 +60,7 @@ import org.openmrs.android.fhir.data.database.model.UploadedPatientId
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.remote.ServerCapabilities
 import org.openmrs.android.fhir.data.remote.ServerFeatures
+import org.openmrs.android.fhir.forms.savedLocation
 import org.openmrs.android.fhir.unidentified.UnidentifiedStore
 
 interface Transactor {
@@ -93,6 +96,14 @@ internal constructor(
   private val user: ActiveUser = ActiveUser { "" },
   private val supports: () -> ServerFeatures = { ServerFeatures() },
   private val onRefused: (Int, String, Boolean) -> Unit = { _, _, _ -> },
+  /** Without a session (a guest) nothing is asked of the server or sent: the changes wait. */
+  private val signedIn: () -> Boolean = { true },
+  /** The cohort type of the lists the app creates (the one that limits the download), if any. */
+  private val listType: () -> String? = { null },
+  /** The location chosen on this device (id and name), if one is. */
+  private val savedLocation: suspend () -> Pair<String, String?>? = { null },
+  /** A list is not sent before it has a location: the server needs it with the list. */
+  private val needsLocation: Boolean = false,
 ) {
   @Inject
   constructor(
@@ -111,6 +122,13 @@ internal constructor(
     ActiveUser.of(context),
     capabilities::current,
     capabilities::learnRefusal,
+    { !GuestSession.isActive(context) },
+    { AppConfig.get(context).sync.cohortType.trim().takeIf { it.isNotEmpty() } },
+    {
+      val saved = context.savedLocation()
+      saved.id?.takeIf { it.isNotBlank() }?.let { it to saved.name }
+    },
+    needsLocation = true,
   )
 
   private val gate = Mutex()
@@ -444,6 +462,53 @@ internal constructor(
    * one registered on this device and not uploaded (the records of the patient to identify were
    * linked to them): what was added waits for their upload, like any add for such a patient.
    */
+  /**
+   * What a guest changed in the patient lists (kept without an owner) becomes the changes of the
+   * user who signed in, to be sent with their session. Where the user already has a change for the
+   * same list or patient, theirs is kept.
+   */
+  suspend fun adoptGuestChanges() {
+    val owner = user.name()
+    if (owner.isEmpty()) return
+    transactor.run {
+      val own = dao.allChanges().filter { it.owner == owner }.mapTo(HashSet()) { it.listId }
+      dao
+        .allChanges()
+        .filter { it.owner.isEmpty() }
+        .forEach { change ->
+          dao.removeChangeFor(change.listId, "")
+          if (change.listId !in own) dao.putChange(change.copy(owner = owner))
+        }
+      val ownMembers =
+        dao
+          .allMemberChanges()
+          .filter { it.owner == owner }
+          .mapTo(HashSet()) { it.listId to it.patientId }
+      dao
+        .allMemberChanges()
+        .filter { it.owner.isEmpty() }
+        .forEach { change ->
+          dao.removeMemberChangesFor(change.listId, listOf(change.patientId), "")
+          if ((change.listId to change.patientId) !in ownMembers) {
+            dao.putMemberChanges(listOf(change.copy(owner = owner)))
+          }
+        }
+    }
+  }
+
+  /** The lists created before a location was chosen get the one chosen now, if there is one. */
+  suspend fun assignSavedLocation() {
+    savedLocation()?.let { (id, name) -> completeLocation(id, name) }
+  }
+
+  /** The lists created before a location was chosen get it, so the server has every field. */
+  suspend fun completeLocation(locationId: String, locationName: String?) {
+    dao
+      .allChanges()
+      .filter { it.kind == PatientListChangeKind.CREATE && it.locationId == null }
+      .forEach { dao.putChange(it.copy(locationId = locationId, locationName = locationName)) }
+  }
+
   suspend fun waitingByUser(): Map<String, Int> =
     (dao.allChanges().map { it.owner } + dao.allMemberChanges().map { it.owner })
       .groupingBy { it }
@@ -554,6 +619,7 @@ internal constructor(
 
   suspend fun refreshList(): RefreshResult =
     gate.withLock {
+      if (!signedIn()) return@withLock RefreshResult.DONE
       val list =
         try {
           server.groups()
@@ -603,6 +669,7 @@ internal constructor(
 
   suspend fun refreshMembers(id: String): RefreshResult =
     gate.withLock {
+      if (!signedIn()) return@withLock RefreshResult.DONE
       if (dao.change(id)?.kind == PatientListChangeKind.CREATE) return@withLock RefreshResult.DONE
       val read =
         try {
@@ -667,12 +734,16 @@ internal constructor(
    */
   suspend fun send(retryRefused: Boolean = false): SendResult =
     gate.withLock {
+      if (!signedIn()) return@withLock SendResult()
       if (retryRefused) clearReasons()
+      assignSavedLocation()
       var total = Tally()
       val blocked = HashSet<String>()
       val features = supports()
       for (change in dao.changes()) {
-        if (change.error != null || !features.editLists) {
+        val withoutLocation =
+          needsLocation && change.kind == PatientListChangeKind.CREATE && change.locationId == null
+        if (change.error != null || !features.editLists || withoutLocation) {
           blocked += change.listId
           continue
         }
@@ -715,7 +786,7 @@ internal constructor(
     val id = change.listId
     return when (change.kind) {
       PatientListChangeKind.CREATE ->
-        when (val answer = guarded { server.create(GroupMapper.toCreate(change)) }) {
+        when (val answer = guarded { server.create(GroupMapper.toCreate(change, listType())) }) {
           is ServerGroupWrite.Done -> {
             transactor.run {
               dao.removeChange(id)

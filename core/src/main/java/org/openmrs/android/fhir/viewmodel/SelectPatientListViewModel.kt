@@ -55,6 +55,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.PreferenceKeys
@@ -131,6 +132,7 @@ constructor(
 
   /** Asks the server again; the lists on screen stay until the new ones are saved. */
   fun refresh() {
+    if (GuestSession.isActive(applicationContext)) return
     refreshJob?.cancel()
     refreshJob =
       viewModelScope.launch {
@@ -206,7 +208,11 @@ constructor(
     if (isSelected) updatedSelection.remove(resourceId) else updatedSelection.add(resourceId)
     _uiState.update { it.copy(selectedPatientListIds = updatedSelection) }
     viewModelScope.launch {
-      selection.set(resourceId, ticked = !isSelected, downloadNow = !fromLogin)
+      selection.set(
+        resourceId,
+        ticked = !isSelected,
+        downloadNow = !fromLogin && !GuestSession.isActive(applicationContext),
+      )
     }
   }
 

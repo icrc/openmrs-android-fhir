@@ -26,7 +26,7 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.ui
+package org.openmrs.android.fhir.ui.screens
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
@@ -35,17 +35,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import org.openmrs.android.fhir.ui.screens.SettingsDefaults
-import org.openmrs.android.fhir.ui.screens.SettingsScreen
-import org.openmrs.android.fhir.ui.screens.SettingsTestTags
 import org.openmrs.android.fhir.viewmodel.SettingsUiState
 
 class SettingsScreenTest {
@@ -78,7 +76,7 @@ class SettingsScreenTest {
 
   @Test
   fun selectingDropdownUpdatesDelays() {
-    var uiState by mutableStateOf(SettingsUiState())
+    var uiState by mutableStateOf(SettingsUiState(isAutoSyncEnabled = true))
 
     composeRule.setContent {
       MaterialTheme {
@@ -97,11 +95,12 @@ class SettingsScreenTest {
     }
 
     composeRule.onNodeWithTag(SettingsTestTags.AdvancedToggle).performScrollTo().performClick()
-    composeRule.onNodeWithTag(SettingsTestTags.TokenDelayField).performClick()
-    composeRule.onNodeWithText("5").performClick()
+    composeRule.onNodeWithTag(SettingsTestTags.TokenDelayField).performScrollTo().performClick()
+    // The menu is the last thing in the tree; other texts of the page may say "5" too.
+    composeRule.onAllNodesWithText("5").onLast().performClick()
 
-    composeRule.onNodeWithTag(SettingsTestTags.PeriodicDelayField).performClick()
-    composeRule.onNodeWithText("30").performClick()
+    composeRule.onNodeWithTag(SettingsTestTags.PeriodicDelayField).performScrollTo().performClick()
+    composeRule.onAllNodesWithText("30").onLast().performClick()
 
     assertEquals(5, uiState.tokenCheckDelayMinutes)
     assertEquals(30, uiState.periodicSyncDelayMinutes)

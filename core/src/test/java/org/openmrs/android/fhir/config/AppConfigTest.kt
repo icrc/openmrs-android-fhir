@@ -66,4 +66,14 @@ class AppConfigTest {
     assertEquals("", one.cohortIdentifierConcept)
     assertEquals("b-uuid", one.cohortNameConcept)
   }
+
+  @Test
+  fun `the server checks are on unless the configuration turns them off`() {
+    assertEquals(true, parse("").serverCompatibility.enabled)
+    assertEquals(true, parse("""<server-compatibility />""").serverCompatibility.enabled)
+    assertEquals(
+      false,
+      parse("""<server-compatibility enabled="false" />""").serverCompatibility.enabled,
+    )
+  }
 }

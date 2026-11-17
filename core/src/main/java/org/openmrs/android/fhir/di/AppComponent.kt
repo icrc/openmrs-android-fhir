@@ -43,6 +43,7 @@ import org.openmrs.android.fhir.fragments.AddPatientFragment
 import org.openmrs.android.fhir.fragments.CreateEncountersFragment
 import org.openmrs.android.fhir.fragments.EditEncounterFragment
 import org.openmrs.android.fhir.fragments.EditPatientFragment
+import org.openmrs.android.fhir.fragments.FormUpdatesFragment
 import org.openmrs.android.fhir.fragments.GenericFormEntryFragment
 import org.openmrs.android.fhir.fragments.GroupFormEntryFragment
 import org.openmrs.android.fhir.fragments.GroupSessionListFragment
@@ -128,6 +129,8 @@ interface AppComponent {
   fun inject(fragment: ImportExportFragment)
 
   fun inject(fragment: ServerCompatibilityFragment)
+
+  fun inject(fragment: FormUpdatesFragment)
 
   fun inject(activity: LoginActivity)
 

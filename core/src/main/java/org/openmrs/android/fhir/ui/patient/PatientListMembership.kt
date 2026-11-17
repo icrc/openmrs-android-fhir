@@ -70,7 +70,7 @@ fun PatientListMembershipCard(
   onManage: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  if (!state.available || state.lists.isEmpty()) return
+  if (state.lists.isEmpty()) return
   Surface(
     modifier = modifier.fillMaxWidth().testTag("PatientListMembershipCard"),
     shape = RoundedCornerShape(16.dp),

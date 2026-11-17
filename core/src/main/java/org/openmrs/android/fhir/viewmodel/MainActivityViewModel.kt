@@ -71,6 +71,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.openmrs.android.fhir.DemoDataStore
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
@@ -357,6 +358,7 @@ constructor(
    */
   fun completeGuestDataForNewLocation() {
     viewModelScope.launch {
+      FhirApplication.appComponent(applicationContext).patientListRepository().assignSavedLocation()
       completeGuestData(
         applicationContext,
         AppConfig.get(applicationContext).fetchIdentifiers,

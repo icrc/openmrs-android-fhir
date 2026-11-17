@@ -577,17 +577,9 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="nav_sync">Sync</string>
     <string name="clear_search">Clear search</string>
     <string name="fetch_questionnaires">Check for new and updated forms</string>
-    <string name="fetching_questionnaires">Fetching questionnaires…</string>
-    <string
-        name="fetch_questionnaires_description"
-    >Check the server for forms that are not in the app yet and for newer versions of the ones it has.</string>
-    <string
-        name="questionnaires_up_to_date"
-    >Questionnaires are up to date.</string>
     <string
         name="questionnaires_fetch_failed"
     >Could not fetch questionnaires. Check the connection and try again.</string>
-    <string name="questionnaires_added">New questionnaires added: %d</string>
     <string
         name="questionnaire_required_answers_missing"
     >Answer the required questions on this page to continue. They are marked in red.</string>
@@ -770,9 +762,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
         name="help_details_new_body"
     >Record a visit or fill in a form for this patient.</string>
     <string name="help_sync_status_title">Sync status</string>
-    <string
-        name="help_sync_status_body"
-    >Whether something is waiting to upload, and when the data was last synced.</string>
     <string name="help_sync_mode_title">Download, upload or both</string>
     <string
         name="help_sync_mode_body"
@@ -1073,9 +1062,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
         name="sign_in_to_sync_message"
     >To upload the patients and forms you entered, sign in first. Everything you entered stays on this device.</string>
     <string name="sign_in">Sign in</string>
-    <string
-        name="sign_in_for_patient_lists"
-    >Sign in to download patient lists.</string>
     <string name="identifier_types_required_title">Identifier needed</string>
     <string
         name="identifier_types_required_message"
@@ -1174,15 +1160,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="color_vision_standard">Standard</string>
     <string name="color_vision_color_blind">Color-blind friendly</string>
     <string name="embedded_forms_only">Use embedded forms only</string>
-    <string
-        name="embedded_forms_only_description"
-    >The app uses only the forms shipped with it and does not download questionnaires from the server.</string>
-    <string
-        name="fetch_questionnaires_sign_in"
-    >Sign in to check the server for new and updated forms.</string>
-    <string
-        name="questionnaires_changes"
-    >New forms: %1$d, updated: %2$d</string>
     <string
         name="diag_message"
     >Choose what to send to the support team. Everything is selected by default. The report is an encrypted archive that you send by email.</string>
@@ -1440,9 +1417,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="home_summary_waiting">%1$d changes not uploaded yet</string>
     <string name="home_summary_uploaded">Everything is uploaded</string>
     <string name="help_home_summary_title">At a glance</string>
-    <string
-        name="help_home_summary_body"
-    >How many patients are on this device and how many changes still wait to be uploaded. Tap it to open the Sync page.</string>
     <string name="help_home_menu_title">The menu</string>
     <string
         name="help_home_menu_body"
@@ -1805,11 +1779,11 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="help_settings_advanced_title">Advanced settings</string>
     <string
         name="help_settings_advanced_body"
-    >For administrators and support: the server address and connection test, how often the sign-in token is checked, the sync interval, and the server compatibility checks.</string>
+    >For administrators and support: the server address and connection test, how often the sign-in token is checked, the sync interval, the forms on the server, and the server compatibility checks.</string>
     <string name="settings_section_advanced">Advanced settings</string>
     <string
         name="settings_advanced_description"
-    >For administrators and support: server, tokens and what the server supports.</string>
+    >For administrators and support: server, tokens, forms and what the server supports.</string>
     <string name="settings_advanced_show">Show the advanced settings</string>
     <string name="settings_advanced_hide">Hide the advanced settings</string>
     <string name="settings_compat_title">Server compatibility</string>
@@ -1827,6 +1801,63 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
         name="plist_readonly_members_banner"
     >This server does not let patients be added to a list or removed from it.</string>
     <string name="plist_readonly_open">Server compatibility</string>
+    <string name="title_form_updates">Forms on the server</string>
+    <string
+        name="forms_updates_intro_app"
+    >The app uses the forms that ship with it. Check the server to see which ones are different, then update the ones you choose: an updated form is used instead of the app\'s version.</string>
+    <string
+        name="forms_updates_intro_server"
+    >The app uses the forms of the server. Check the server to see which ones are new or changed, and take them.</string>
+    <string name="forms_updates_never">Not checked yet</string>
+    <string name="forms_updates_checked">Checked %1$s</string>
+    <string name="forms_updates_checking">Asking the server…</string>
+    <string name="forms_updates_checking_short">Checking…</string>
+    <string name="forms_updates_check">Check the server</string>
+    <string name="forms_updates_take_all">Update all (%1$d)</string>
+    <string name="forms_updates_all_current">Every form is up to date</string>
+    <string name="forms_updates_error">Could not check: %1$s</string>
+    <string
+        name="forms_updates_sign_in"
+    >Sign in to check the server\'s forms.</string>
+    <string
+        name="forms_updates_unreachable"
+    >The server cannot be reached now.</string>
+    <string name="forms_state_not_checked">Not checked</string>
+    <string name="forms_state_up_to_date">Up to date</string>
+    <string name="forms_state_update">Update available</string>
+    <string name="forms_state_new">New on the server</string>
+    <string name="forms_state_not_on_server">Not on the server</string>
+    <string
+        name="forms_state_not_usable"
+    >The server\'s copy cannot be used</string>
+    <string name="forms_using_app">Using the app\'s version</string>
+    <string name="forms_using_server">Using the server\'s version</string>
+    <string name="forms_using_none">Not on this device</string>
+    <string name="forms_server_version">Server version %1$s</string>
+    <string name="forms_action_update">Update</string>
+    <string name="forms_action_add">Add</string>
+    <string name="forms_action_use_app">Use the app\'s version</string>
+    <string name="forms_msg_found">%1$d updates, %2$d new</string>
+    <string
+        name="forms_msg_back_to_app"
+    >%1$s: the app\'s version is used again</string>
+    <string
+        name="embedded_forms_only_description"
+    >The app uses the forms shipped with it and the sync does not download questionnaires from the server. Forms you update from the server (Advanced settings) are used instead of the app\'s version.</string>
+    <string
+        name="fetch_questionnaires_description"
+    >See which forms are different on the server and update the ones you choose.</string>
+    <string name="help_formupdates_actions_title">Check the server</string>
+    <string
+        name="help_formupdates_actions_body"
+    >Ask the server which forms are different or new, then update them all or choose one by one. Nothing changes until you do.</string>
+    <string name="help_formupdates_list_title">Your forms</string>
+    <string
+        name="help_formupdates_list_body"
+    >Each form says whether it is up to date, which version is in use and what the server has. Update takes the server\'s version; Use the app\'s version goes back.</string>
+    <string
+        name="plists_guest_note"
+    >You are working without signing in. Patient lists you create or change are kept on this device and sent after you sign in and sync.</string>
     <string name="plist_action_history">History</string>
     <string name="plist_action_export">Export</string>
     <string name="plist_history_title">History of the list</string>
@@ -1891,12 +1922,35 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="plist_registered_joined"
     >Added to the patient list %1$s</string>
+    <string name="sync_status_action_needed">Action needed</string>
+    <string
+        name="sync_identify_hint"
+    >Their records stay on this device until you identify them.</string>
+    <string name="sync_identify_review">Review</string>
+    <string
+        name="help_sync_status_body"
+    >Whether something is waiting to upload or needs your action (a patient to identify), and when the data was last synced.</string>
+    <string
+        name="help_home_summary_body"
+    >How many patients are on this device and how many changes still wait to be uploaded or need your action, such as a patient to identify. Tap it to open the Sync page.</string>
     <string
         name="help_patients_register_body"
     >Add a new patient. Required data must be filled in before it can be saved. With a patient list chosen as the filter, the new patient is added to that list.</string>
     <plurals name="login_pending_list_changes">
         <item quantity="one">%d patient list change waiting</item>
         <item quantity="other">%d patient list changes waiting</item>
+    </plurals>
+    <plurals name="forms_updates_count">
+        <item quantity="one">%d update available</item>
+        <item quantity="other">%d updates available</item>
+    </plurals>
+    <plurals name="forms_new_count">
+        <item quantity="one">%d new on the server</item>
+        <item quantity="other">%d new on the server</item>
+    </plurals>
+    <plurals name="forms_msg_taken">
+        <item quantity="one">%d form updated</item>
+        <item quantity="other">%d forms updated</item>
     </plurals>
     <plurals name="plist_picker_from_list_members">
         <item quantity="one">%d patient</item>

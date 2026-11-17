@@ -551,15 +551,9 @@
     <string
         name="fetch_questionnaires"
     >التحقق من النماذج الجديدة والمحدّثة</string>
-    <string name="fetching_questionnaires">جارٍ جلب الاستبيانات…</string>
-    <string
-        name="fetch_questionnaires_description"
-    >يبحث في الخادم عن النماذج غير الموجودة في التطبيق وعن إصدارات أحدث للنماذج الموجودة.</string>
-    <string name="questionnaires_up_to_date">الاستبيانات محدثة.</string>
     <string
         name="questionnaires_fetch_failed"
     >تعذّر جلب الاستبيانات. تحقق من الاتصال وحاول مرة أخرى.</string>
-    <string name="questionnaires_added">الاستبيانات الجديدة المضافة: %d</string>
     <string
         name="questionnaire_required_answers_missing"
     >أجب عن الأسئلة المطلوبة في هذه الصفحة للمتابعة. وهي مُعلَّمة باللون الأحمر.</string>
@@ -718,9 +712,6 @@
         name="help_details_new_body"
     >سجّل زيارة أو املأ نموذجاً لهذا المريض.</string>
     <string name="help_sync_status_title">حالة المزامنة</string>
-    <string
-        name="help_sync_status_body"
-    >هل هناك ما ينتظر الرفع ومتى تمت آخر مزامنة للبيانات.</string>
     <string name="help_sync_mode_title">تنزيل أو رفع أو كلاهما</string>
     <string
         name="help_sync_mode_body"
@@ -1013,9 +1004,6 @@
         name="sign_in_to_sync_message"
     >لرفع المرضى والنماذج التي أدخلتها، سجّل الدخول أولاً. كل ما أدخلته يبقى على هذا الجهاز.</string>
     <string name="sign_in">تسجيل الدخول</string>
-    <string
-        name="sign_in_for_patient_lists"
-    >سجّل الدخول لتنزيل قوائم المرضى.</string>
     <string name="identifier_types_required_title">المعرّف مطلوب</string>
     <string
         name="identifier_types_required_message"
@@ -1116,15 +1104,6 @@
     <string name="color_vision_standard">قياسي</string>
     <string name="color_vision_color_blind">مناسب لعمى الألوان</string>
     <string name="embedded_forms_only">استخدام النماذج المضمنة فقط</string>
-    <string
-        name="embedded_forms_only_description"
-    >يستخدم التطبيق النماذج المرفقة به فقط ولا ينزّل الاستبيانات من الخادم.</string>
-    <string
-        name="fetch_questionnaires_sign_in"
-    >سجّل الدخول للتحقق من النماذج الجديدة والمحدّثة على الخادم.</string>
-    <string
-        name="questionnaires_changes"
-    >نماذج جديدة: %1$d، محدّثة: %2$d</string>
     <string
         name="diag_message"
     >اختر ما سيُرسل إلى فريق الدعم. كل شيء محدد افتراضياً. التقرير أرشيف مشفّر يُرسل بالبريد الإلكتروني.</string>
@@ -1410,9 +1389,6 @@
     <string name="home_summary_waiting">تغييرات لم تُرفع بعد: %1$d</string>
     <string name="home_summary_uploaded">تم رفع كل شيء</string>
     <string name="help_home_summary_title">نظرة سريعة</string>
-    <string
-        name="help_home_summary_body"
-    >عدد المرضى على هذا الجهاز وعدد التغييرات التي تنتظر الرفع. اضغط لفتح صفحة المزامنة.</string>
     <string name="help_home_menu_title">القائمة</string>
     <string
         name="help_home_menu_body"
@@ -1803,11 +1779,11 @@
     <string name="help_settings_advanced_title">الإعدادات المتقدمة</string>
     <string
         name="help_settings_advanced_body"
-    >للمسؤولين والدعم: عنوان الخادم واختبار الاتصال، وعدد مرات فحص رمز تسجيل الدخول، وفترة المزامنة، وفحوص توافق الخادم.</string>
+    >للمسؤولين والدعم: عنوان الخادم واختبار الاتصال، وعدد مرات فحص رمز تسجيل الدخول، وفترة المزامنة، ونماذج الخادم، وفحوص توافق الخادم.</string>
     <string name="settings_section_advanced">الإعدادات المتقدمة</string>
     <string
         name="settings_advanced_description"
-    >للمسؤولين والدعم: الخادم والرموز وما يدعمه الخادم.</string>
+    >للمسؤولين والدعم: الخادم والرموز والنماذج وما يدعمه الخادم.</string>
     <string name="settings_advanced_show">إظهار الإعدادات المتقدمة</string>
     <string name="settings_advanced_hide">إخفاء الإعدادات المتقدمة</string>
     <string name="settings_compat_title">توافق الخادم</string>
@@ -1823,6 +1799,61 @@
         name="plist_readonly_members_banner"
     >لا يسمح هذا الخادم بإضافة المرضى إلى قائمة أو إزالتهم منها.</string>
     <string name="plist_readonly_open">توافق الخادم</string>
+    <string name="title_form_updates">النماذج على الخادم</string>
+    <string
+        name="forms_updates_intro_app"
+    >يستخدم التطبيق النماذج المرفقة به. تحقق من الخادم لمعرفة النماذج المختلفة ثم حدّث ما تختاره: يُستخدم النموذج المحدَّث بدلاً من نسخة التطبيق.</string>
+    <string
+        name="forms_updates_intro_server"
+    >يستخدم التطبيق نماذج الخادم. تحقق من الخادم لمعرفة النماذج الجديدة أو المعدَّلة ثم احصل عليها.</string>
+    <string name="forms_updates_never">لم يتم التحقق بعد</string>
+    <string name="forms_updates_checked">تم التحقق: %1$s</string>
+    <string name="forms_updates_checking">جارٍ سؤال الخادم…</string>
+    <string name="forms_updates_checking_short">جارٍ التحقق…</string>
+    <string name="forms_updates_check">التحقق من الخادم</string>
+    <string name="forms_updates_take_all">تحديث الكل (%1$d)</string>
+    <string name="forms_updates_all_current">جميع النماذج محدّثة</string>
+    <string name="forms_updates_error">تعذّر التحقق: %1$s</string>
+    <string
+        name="forms_updates_sign_in"
+    >سجّل الدخول للتحقق من نماذج الخادم.</string>
+    <string
+        name="forms_updates_unreachable"
+    >لا يمكن الوصول إلى الخادم الآن.</string>
+    <string name="forms_state_not_checked">لم يتم التحقق</string>
+    <string name="forms_state_up_to_date">محدّث</string>
+    <string name="forms_state_update">تحديث متاح</string>
+    <string name="forms_state_new">جديد على الخادم</string>
+    <string name="forms_state_not_on_server">غير موجود على الخادم</string>
+    <string name="forms_state_not_usable">لا يمكن استخدام نسخة الخادم</string>
+    <string name="forms_using_app">يُستخدم إصدار التطبيق</string>
+    <string name="forms_using_server">يُستخدم إصدار الخادم</string>
+    <string name="forms_using_none">غير موجود على هذا الجهاز</string>
+    <string name="forms_server_version">إصدار الخادم %1$s</string>
+    <string name="forms_action_update">تحديث</string>
+    <string name="forms_action_add">إضافة</string>
+    <string name="forms_action_use_app">استخدام إصدار التطبيق</string>
+    <string name="forms_msg_found">%1$d تحديثات، %2$d جديدة</string>
+    <string
+        name="forms_msg_back_to_app"
+    >%1$s: يُستخدم إصدار التطبيق مجدداً</string>
+    <string
+        name="embedded_forms_only_description"
+    >يستخدم التطبيق النماذج المرفقة به ولا تنزّل المزامنة استبيانات من الخادم. تُستخدم النماذج التي تحدّثها من الخادم (الإعدادات المتقدمة) بدلاً من إصدار التطبيق.</string>
+    <string
+        name="fetch_questionnaires_description"
+    >اطّلع على النماذج المختلفة على الخادم وحدّث ما تختاره.</string>
+    <string name="help_formupdates_actions_title">التحقق من الخادم</string>
+    <string
+        name="help_formupdates_actions_body"
+    >اسأل الخادم عن النماذج المختلفة أو الجديدة ثم حدّثها كلها أو اخترها واحداً واحداً. لا يتغير شيء حتى تفعل ذلك.</string>
+    <string name="help_formupdates_list_title">نماذجك</string>
+    <string
+        name="help_formupdates_list_body"
+    >يوضح كل نموذج هل هو محدّث وأي إصدار مستخدم وما يملكه الخادم. يأخذ «تحديث» إصدار الخادم، ويعود «استخدام إصدار التطبيق» إلى الأصل.</string>
+    <string
+        name="plists_guest_note"
+    >أنت تعمل دون تسجيل الدخول. تُحفظ قوائم المرضى التي تنشئها أو تعدلها على هذا الجهاز وتُرسل بعد تسجيل الدخول والمزامنة.</string>
     <string name="plist_action_history">السجل</string>
     <string name="plist_action_export">تصدير</string>
     <string name="plist_history_title">سجل القائمة</string>
@@ -1885,6 +1916,17 @@
     <string
         name="plist_registered_joined"
     >تمت الإضافة إلى قائمة المرضى %1$s</string>
+    <string name="sync_status_action_needed">مطلوب إجراء</string>
+    <string
+        name="sync_identify_hint"
+    >تبقى سجلاتهم على هذا الجهاز إلى أن تحدد هويتهم.</string>
+    <string name="sync_identify_review">مراجعة</string>
+    <string
+        name="help_sync_status_body"
+    >هل هناك ما ينتظر الرفع أو يحتاج إلى إجراء منك (مريض لتحديد هويته) ومتى تمت آخر مزامنة للبيانات.</string>
+    <string
+        name="help_home_summary_body"
+    >عدد المرضى على هذا الجهاز وعدد التغييرات التي تنتظر الرفع أو تحتاج إلى إجراء منك، مثل مريض لتحديد هويته. اضغط لفتح صفحة المزامنة.</string>
     <string
         name="help_patients_register_body"
     >أضف مريضاً جديداً. يجب ملء البيانات المطلوبة قبل الحفظ. إذا كانت قائمة مرضى مختارة كمرشح فسيُضاف المريض الجديد إلى تلك القائمة.</string>
@@ -1895,6 +1937,30 @@
         <item quantity="few">%d تغييرات في قوائم المرضى بالانتظار</item>
         <item quantity="many">%d تغييراً في قوائم المرضى بالانتظار</item>
         <item quantity="other">%d تغيير في قوائم المرضى بالانتظار</item>
+    </plurals>
+    <plurals name="forms_updates_count">
+        <item quantity="zero">لا تحديثات متاحة</item>
+        <item quantity="one">تحديث واحد متاح</item>
+        <item quantity="two">تحديثان متاحان</item>
+        <item quantity="few">%d تحديثات متاحة</item>
+        <item quantity="many">%d تحديثاً متاحاً</item>
+        <item quantity="other">%d تحديث متاح</item>
+    </plurals>
+    <plurals name="forms_new_count">
+        <item quantity="zero">لا نماذج جديدة على الخادم</item>
+        <item quantity="one">نموذج جديد واحد على الخادم</item>
+        <item quantity="two">نموذجان جديدان على الخادم</item>
+        <item quantity="few">%d نماذج جديدة على الخادم</item>
+        <item quantity="many">%d نموذجاً جديداً على الخادم</item>
+        <item quantity="other">%d نموذج جديد على الخادم</item>
+    </plurals>
+    <plurals name="forms_msg_taken">
+        <item quantity="zero">لم يتم تحديث أي نموذج</item>
+        <item quantity="one">تم تحديث نموذج واحد</item>
+        <item quantity="two">تم تحديث نموذجين</item>
+        <item quantity="few">تم تحديث %d نماذج</item>
+        <item quantity="many">تم تحديث %d نموذجاً</item>
+        <item quantity="other">تم تحديث %d نموذج</item>
     </plurals>
     <plurals name="plist_picker_from_list_members">
         <item quantity="zero">لا مرضى</item>

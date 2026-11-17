@@ -78,7 +78,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.extensions.rememberActionBarContentPadding
-import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
 import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 import org.openmrs.android.fhir.viewmodel.HomePatientList
@@ -347,13 +346,15 @@ private fun SelectedListsDialog(
 /** How many patients are here and whether everything is uploaded; opens the Sync page. */
 @Composable
 private fun HomeSummaryRow(summary: HomeSummary, onClick: () -> Unit) {
+  // Uploaded is only said when nothing is left to do: a patient to identify is an open action.
+  val attention = summary.waiting > 0 || summary.toIdentify > 0
   val parts =
     listOfNotNull(
       summary.patients?.let { stringResource(R.string.home_summary_patients, it.toInt()) },
-      if (summary.waiting > 0) {
-        stringResource(R.string.home_summary_waiting, summary.waiting)
-      } else {
-        stringResource(R.string.home_summary_uploaded)
+      when {
+        summary.waiting > 0 -> stringResource(R.string.home_summary_waiting, summary.waiting)
+        attention -> null
+        else -> stringResource(R.string.home_summary_uploaded)
       },
       if (summary.toIdentify > 0) {
         pluralStringResource(
@@ -368,17 +369,25 @@ private fun HomeSummaryRow(summary: HomeSummary, onClick: () -> Unit) {
   Text(
     text = parts.joinToString(" · "),
     style = MaterialTheme.typography.bodyMedium,
+    fontWeight = if (attention) FontWeight.Medium else null,
     color =
-      if (summary.waiting > 0) {
-        OpenMrsTheme.colors.warning
+      if (attention) {
+        MaterialTheme.colorScheme.onSecondaryContainer
       } else {
         MaterialTheme.colorScheme.onSurfaceVariant
       },
     modifier =
       Modifier.fillMaxWidth()
         .clip(RoundedCornerShape(12.dp))
+        .then(
+          if (attention) {
+            Modifier.background(MaterialTheme.colorScheme.secondaryContainer)
+          } else {
+            Modifier
+          },
+        )
         .clickable(role = Role.Button, onClick = onClick)
-        .padding(horizontal = 4.dp, vertical = 8.dp)
+        .padding(horizontal = if (attention) 12.dp else 4.dp, vertical = 8.dp)
         .testTag("HomeSummary")
         .tutorialTarget(TutorialTargets.HOME_SUMMARY),
   )

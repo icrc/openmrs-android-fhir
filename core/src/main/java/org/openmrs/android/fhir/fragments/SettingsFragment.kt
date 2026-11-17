@@ -73,7 +73,7 @@ import org.openmrs.android.fhir.auth.BiometricUtils
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.OfflineAuthMethod
 import org.openmrs.android.fhir.auth.OfflineAuthPrompt
-import org.openmrs.android.fhir.data.QuestionnaireUpdater
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.remote.CheckState
 import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.data.sync.AutoSyncGate
@@ -86,6 +86,7 @@ import org.openmrs.android.fhir.extensions.ThemeMode
 import org.openmrs.android.fhir.extensions.ThemeModeStore
 import org.openmrs.android.fhir.extensions.limitToReadableWidth
 import org.openmrs.android.fhir.extensions.rememberAppBarHeight
+import org.openmrs.android.fhir.forms.AcceptedFormsStore
 import org.openmrs.android.fhir.forms.EmbeddedFormsStore
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
@@ -98,7 +99,6 @@ import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.viewmodel.FavoriteFormsViewModel
 import org.openmrs.android.fhir.viewmodel.IdentifierSelectionViewModel
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
-import org.openmrs.android.fhir.viewmodel.QuestionnaireFetchViewModel
 import org.openmrs.android.fhir.viewmodel.SettingsEvent
 import org.openmrs.android.fhir.viewmodel.SettingsViewModel
 
@@ -112,8 +112,6 @@ class SettingsFragment : Fragment() {
   private val mainActivityViewModel by
     activityViewModels<MainActivityViewModel> { viewModelFactory }
   private val settingsViewModel by viewModels<SettingsViewModel> { viewModelFactory }
-  private val questionnaireFetchViewModel by
-    viewModels<QuestionnaireFetchViewModel> { viewModelFactory }
   private val favoriteFormsViewModel by viewModels<FavoriteFormsViewModel> { viewModelFactory }
   private val identifierSelectionViewModel by
     viewModels<IdentifierSelectionViewModel> { viewModelFactory }
@@ -194,8 +192,6 @@ class SettingsFragment : Fragment() {
       }
       val uiState = settingsViewModel.uiState.collectAsStateWithLifecycle().value
       val activityState by mainActivityViewModel.uiState.collectAsStateWithLifecycle()
-      val isFetchingQuestionnaires by
-        questionnaireFetchViewModel.isFetching.collectAsStateWithLifecycle()
       val identifierState by identifierSelectionViewModel.uiState.collectAsStateWithLifecycle()
       val favoriteForms by favoriteFormsViewModel.forms.collectAsStateWithLifecycle()
       val favoriteIds by favoriteFormsViewModel.favoriteIds.collectAsStateWithLifecycle()
@@ -204,8 +200,9 @@ class SettingsFragment : Fragment() {
       val serverReport by
         remember { FhirApplication.appComponent(context).serverCapabilities().report }
           .collectAsStateWithLifecycle()
+      val serverChecks = remember { AppConfig.get(context).serverCompatibility.enabled }
       val compatibility =
-        if (serverReport.checkedAt == 0L) {
+        if (!serverChecks || serverReport.checkedAt == 0L) {
           null
         } else {
           CompatibilitySummary(
@@ -254,10 +251,15 @@ class SettingsFragment : Fragment() {
           onRememberLocationToggle = settingsViewModel::onRememberLocationToggle,
           onServerChanged = { url -> (activity as? MainActivity)?.changeServer(url) },
           compatibility = compatibility,
-          onOpenCompatibility = {
-            findNavController()
-              .navigate(R.id.action_settings_fragment_to_serverCompatibilityFragment)
-          },
+          onOpenCompatibility =
+            if (serverChecks) {
+              {
+                findNavController()
+                  .navigate(R.id.action_settings_fragment_to_serverCompatibilityFragment)
+              }
+            } else {
+              null
+            },
           selectedLanguage = AppLanguage.current(context),
           onLanguageSelected = { AppLanguage.apply(context, it) },
           onInitialSyncClicked = {
@@ -269,13 +271,9 @@ class SettingsFragment : Fragment() {
           },
           onBackClicked = ::navigateUp,
           topPadding = appBarHeight,
-          isFetchingQuestionnaires = isFetchingQuestionnaires,
-          fetchQuestionnairesAvailable = !GuestSession.isActive(context),
           serverReachable = activityState.connectivityState.isServerReachable(),
-          onFetchQuestionnairesClicked = {
-            // Asking the server for forms means the server's forms are wanted.
-            EmbeddedFormsStore.set(context, false)
-            questionnaireFetchViewModel.fetchQuestionnaires()
+          onOpenFormUpdates = {
+            findNavController().navigate(R.id.action_settings_fragment_to_formUpdatesFragment)
           },
           themeMode = themeSelection.value,
           onThemeModeSelected = { mode ->
@@ -439,6 +437,7 @@ class SettingsFragment : Fragment() {
     favoriteFormsViewModel.setFavorites(emptyList())
     favoriteFormsViewModel.resetSections()
     EmbeddedFormsStore.set(context, true)
+    AcceptedFormsStore.clear(context)
     embeddedFormsSelection.value = true
     ClearDataOnLogoutStore.set(context, false)
     clearDataOnLogout.value = false
@@ -460,11 +459,6 @@ class SettingsFragment : Fragment() {
     viewLifecycleOwner.lifecycleScope.launch {
       viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
         launch { settingsViewModel.events.collect { event -> handleSettingsEvent(event) } }
-        launch {
-          questionnaireFetchViewModel.outcomes.collect { outcome ->
-            showQuestionnaireOutcome(outcome)
-          }
-        }
       }
     }
   }
@@ -571,21 +565,6 @@ class SettingsFragment : Fragment() {
       "changed" to listOf("offline_login=false"),
     )
     AppMessage.show(context, R.string.offline_login_off_done, MessageKind.Success)
-  }
-
-  private fun showQuestionnaireOutcome(outcome: QuestionnaireUpdater.Outcome) {
-    val message =
-      when (outcome) {
-        is QuestionnaireUpdater.Outcome.Added ->
-          if (outcome.updated == 0) {
-            getString(R.string.questionnaires_added, outcome.added)
-          } else {
-            getString(R.string.questionnaires_changes, outcome.added, outcome.updated)
-          }
-        is QuestionnaireUpdater.Outcome.UpToDate -> getString(R.string.questionnaires_up_to_date)
-        is QuestionnaireUpdater.Outcome.Failed -> getString(R.string.questionnaires_fetch_failed)
-      }
-    AppMessage.show(requireContext(), message, MessageKind.Info, long = true)
   }
 
   private fun handleSettingsEvent(event: SettingsEvent) {

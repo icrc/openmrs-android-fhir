@@ -45,7 +45,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Patient
-import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.data.remote.ApiManager
 import org.openmrs.android.fhir.data.sync.PatientListSelection
@@ -120,7 +119,7 @@ constructor(
         _summary.value =
           HomeSummary(
             patients = patients,
-            waiting = dataTransfer.pendingCount(),
+            waiting = dataTransfer.pendingCount() + patientLists.pendingNow(),
             toIdentify = unidentified.visibleTo(dataVisibility).size,
           )
       } catch (e: CancellationException) {
@@ -140,10 +139,6 @@ constructor(
   }
 
   fun onCustomPatientListClicked() {
-    if (GuestSession.isActive(applicationContext)) {
-      _events.tryEmit(HomeEvent.ShowMessage(R.string.sign_in_for_patient_lists))
-      return
-    }
     // No reachability check first: the screen shows the lists saved on the device at once, asks the
     // server itself and says so when it cannot be reached.
     _events.tryEmit(HomeEvent.NavigateToCustomPatientList)

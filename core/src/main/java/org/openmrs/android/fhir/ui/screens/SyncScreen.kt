@@ -30,6 +30,7 @@ package org.openmrs.android.fhir.ui.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -50,6 +51,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -76,6 +78,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -136,6 +139,7 @@ fun SyncScreen(
 ) {
   val topInset = rememberAppBarHeight()
   val pendingCount = pendingResources.count { it is UnsyncedResource.PatientItem }
+  val toIdentifyCount = toIdentifyResources.count { it is UnsyncedResource.PatientItem }
 
   // Until the user picks a tab: pending changes first, the history when there is nothing to upload.
   var chosenTab by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -157,7 +161,8 @@ fun SyncScreen(
         isSyncing = isSyncing,
         progress = syncProgress,
         pendingCount = pendingCount,
-        toIdentifyCount = toIdentifyResources.count { it is UnsyncedResource.PatientItem },
+        toIdentifyCount = toIdentifyCount,
+        onReviewToIdentify = { chosenTab = 0 },
         lastSyncText = lastSyncText,
         onSyncNow = onSyncNow,
         onCancelSync = onCancelSync,
@@ -233,6 +238,7 @@ private fun SyncStatusCard(
   progress: SyncProgressState,
   pendingCount: Int,
   toIdentifyCount: Int,
+  onReviewToIdentify: () -> Unit,
   lastSyncText: String,
   onSyncNow: (SyncMode) -> Unit,
   onCancelSync: () -> Unit,
@@ -244,11 +250,15 @@ private fun SyncStatusCard(
   // This run only: the choice is not kept, and the setting is not touched.
   var chosen by rememberSaveable(defaultMode.value) { mutableStateOf(defaultMode.value) }
   val mode = SyncMode.fromValue(chosen)
+  // What waits for the user is not "uploaded": the uploads are done, but something is left to do.
+  val needsAction = !isSyncing && pendingCount == 0 && toIdentifyCount > 0
   val (accent, title) =
     when {
       isSyncing -> OpenMrsTheme.colors.warning to stringResource(R.string.sync_in_progress)
       pendingCount > 0 ->
         OpenMrsTheme.colors.warning to stringResource(R.string.sync_status_pending, pendingCount)
+      needsAction ->
+        MaterialTheme.colorScheme.primary to stringResource(R.string.sync_status_action_needed)
       else -> OpenMrsTheme.colors.success to stringResource(R.string.sync_status_up_to_date)
     }
   val fraction = progress.fraction
@@ -275,6 +285,13 @@ private fun SyncStatusCard(
               modifier = Modifier.size(24.dp),
               strokeWidth = 3.dp,
               color = accent,
+            )
+          } else if (needsAction) {
+            Icon(
+              imageVector = Icons.Filled.PersonSearch,
+              contentDescription = null,
+              tint = accent,
+              modifier = Modifier.size(24.dp),
             )
           } else {
             Icon(
@@ -308,9 +325,22 @@ private fun SyncStatusCard(
               color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
           }
-          if (toIdentifyCount > 0) {
+        }
+      }
+      if (toIdentifyCount > 0) {
+        Row(
+          modifier =
+            Modifier.fillMaxWidth()
+              .padding(top = 12.dp)
+              .clip(RoundedCornerShape(12.dp))
+              .background(MaterialTheme.colorScheme.secondaryContainer)
+              .clickable(role = Role.Button, onClick = onReviewToIdentify)
+              .padding(start = 14.dp, top = 10.dp, bottom = 10.dp, end = 6.dp)
+              .testTag(SyncScreenTestTags.ToIdentifyCount),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Column(modifier = Modifier.weight(1f)) {
             Text(
-              modifier = Modifier.testTag(SyncScreenTestTags.ToIdentifyCount),
               text =
                 pluralStringResource(
                   R.plurals.home_summary_to_identify,
@@ -319,9 +349,20 @@ private fun SyncStatusCard(
                 ),
               style = MaterialTheme.typography.bodyMedium,
               fontWeight = FontWeight.SemiBold,
-              color = OpenMrsTheme.colors.warning,
+              color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            Text(
+              text = stringResource(R.string.sync_identify_hint),
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSecondaryContainer,
             )
           }
+          Text(
+            text = stringResource(R.string.sync_identify_review),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 10.dp),
+          )
         }
       }
       if (isSyncing) {

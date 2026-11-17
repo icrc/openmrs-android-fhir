@@ -43,7 +43,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.HorizontalDivider
@@ -147,10 +146,8 @@ fun SettingsScreen(
   /** Every setting is kept the moment it changes: there is only a way back. */
   onBackClicked: () -> Unit,
   topPadding: Dp = 0.dp,
-  isFetchingQuestionnaires: Boolean = false,
-  onFetchQuestionnairesClicked: (() -> Unit)? = null,
+  onOpenFormUpdates: (() -> Unit)? = null,
   embeddedFormsOnly: Boolean = true,
-  fetchQuestionnairesAvailable: Boolean = true,
   /** The server can be reached: the actions that talk to it are available. */
   serverReachable: Boolean = true,
   onEmbeddedFormsOnlyChange: ((Boolean) -> Unit)? = null,
@@ -370,10 +367,8 @@ fun SettingsScreen(
 
         val showSections =
           favoriteFormOptions != null && onFormSectionsSaved != null && onFormSectionsReset != null
-        val showFetch = onFetchQuestionnairesClicked != null && !embeddedFormsOnly
         val showFavorites = favoriteFormOptions != null && onFavoriteFormsSaved != null
-        val showForms =
-          onEmbeddedFormsOnlyChange != null || showSections || showFetch || showFavorites
+        val showForms = onEmbeddedFormsOnlyChange != null || showSections || showFavorites
         SettingsSection(
           title = stringResource(R.string.settings_section_forms_visits),
           tutorialKey = TutorialTargets.SETTINGS_FORMS,
@@ -397,37 +392,6 @@ fun SettingsScreen(
               checked = embeddedFormsOnly,
               onCheckedChange = onEmbeddedFormsOnlyChange,
               testTag = SettingsTestTags.EmbeddedFormsSwitch,
-            )
-          }
-          if (showFetch) {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            SettingsAction(
-              description =
-                stringResource(
-                  if (fetchQuestionnairesAvailable) {
-                    R.string.fetch_questionnaires_description
-                  } else {
-                    R.string.fetch_questionnaires_sign_in
-                  },
-                ) +
-                  offlineNote(
-                    serverReachable && fetchQuestionnairesAvailable ||
-                      !fetchQuestionnairesAvailable,
-                  ),
-              buttonText =
-                stringResource(
-                  if (isFetchingQuestionnaires) {
-                    R.string.fetching_questionnaires
-                  } else {
-                    R.string.fetch_questionnaires
-                  },
-                ),
-              icon = Icons.Default.Refresh,
-              onClick = onFetchQuestionnairesClicked,
-              enabled =
-                fetchQuestionnairesAvailable && serverReachable && !isFetchingQuestionnaires,
-              inProgress = isFetchingQuestionnaires,
-              testTag = SettingsTestTags.FetchQuestionnairesButton,
             )
           }
           if (showFavorites) {
@@ -570,6 +534,7 @@ fun SettingsScreen(
           onServerChanged = onServerChanged,
           compatibility = compatibility,
           onOpenCompatibility = onOpenCompatibility,
+          onOpenFormUpdates = onOpenFormUpdates,
         )
 
         if (query.isNotBlank() && search.shown == 0) {

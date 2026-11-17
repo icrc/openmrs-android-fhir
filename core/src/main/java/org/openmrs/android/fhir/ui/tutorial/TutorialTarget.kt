@@ -145,6 +145,8 @@ object TutorialTargets {
   const val LISTS_PENDING = "lists.pending"
   const val PLIST_DOWNLOAD = "plist.download"
   const val COMPAT_ACTIONS = "compat.actions"
+  const val FORMUPDATES_ACTIONS = "formupdates.actions"
+  const val FORMUPDATES_LIST = "formupdates.list"
   const val COMPAT_LIST = "compat.list"
   const val SETTINGS_ADVANCED = "settings.advanced"
   const val LOCATION_SEARCH = "location.search"

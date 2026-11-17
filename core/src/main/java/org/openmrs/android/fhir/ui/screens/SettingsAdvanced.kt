@@ -76,6 +76,7 @@ internal fun AdvancedSettingsSection(
   onServerChanged: ((String?) -> Unit)?,
   compatibility: CompatibilitySummary?,
   onOpenCompatibility: (() -> Unit)?,
+  onOpenFormUpdates: (() -> Unit)?,
 ) {
   var open by rememberSaveable { mutableStateOf(false) }
   val searching = LocalSettingsSearch.current.query.isNotBlank()
@@ -89,7 +90,11 @@ internal fun AdvancedSettingsSection(
         " " +
         stringResource(R.string.periodic_sync_delay_in_minutes) +
         " " +
-        stringResource(R.string.settings_compat_title),
+        stringResource(R.string.settings_compat_title) +
+        " " +
+        stringResource(R.string.title_form_updates) +
+        " " +
+        stringResource(R.string.fetch_questionnaires),
   ) {
     val shown = open || searching
     Row(
@@ -133,6 +138,30 @@ internal fun AdvancedSettingsSection(
         testTag = SettingsTestTags.PeriodicDelayField,
         enabled = uiState.isAutoSyncEnabled,
       )
+      if (onOpenFormUpdates != null) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+          Text(
+            text = stringResource(R.string.title_form_updates),
+            style = MaterialTheme.typography.titleSmall,
+          )
+          Text(
+            text = stringResource(R.string.fetch_questionnaires_description),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+          OutlinedButton(
+            onClick = onOpenFormUpdates,
+            modifier =
+              Modifier.fillMaxWidth()
+                .heightIn(min = 48.dp)
+                .padding(top = 4.dp)
+                .testTag(SettingsTestTags.FetchQuestionnairesButton),
+          ) {
+            Text(text = stringResource(R.string.fetch_questionnaires))
+          }
+        }
+      }
       if (onOpenCompatibility != null) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

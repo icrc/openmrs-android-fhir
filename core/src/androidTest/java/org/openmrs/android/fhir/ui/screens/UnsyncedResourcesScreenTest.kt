@@ -26,7 +26,7 @@
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-package org.openmrs.android.fhir.ui
+package org.openmrs.android.fhir.ui.screens
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.MaterialTheme
@@ -37,8 +37,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.openmrs.android.fhir.data.database.model.UnsyncedPatient
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
-import org.openmrs.android.fhir.ui.screens.UnsyncedResourcesScreen
-import org.openmrs.android.fhir.ui.screens.UnsyncedResourcesTestTags
 
 class UnsyncedResourcesScreenTest {
 

@@ -48,7 +48,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
-import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.remote.ServerCapabilities
 import org.openmrs.android.fhir.data.sync.LiveSync
@@ -67,7 +66,6 @@ data class PatientMembershipUiState(
   val unsent: Boolean = false,
   val toIdentify: Boolean = false,
   val reading: Boolean = false,
-  val available: Boolean = true,
   val canChange: Boolean = true,
 ) {
   val inLists: List<PatientMembership>
@@ -113,7 +111,6 @@ constructor(
             toIdentify = identify,
             reading = reading,
             canChange = features.changeMembers,
-            available = !GuestSession.isActive(applicationContext),
           )
         }
       }

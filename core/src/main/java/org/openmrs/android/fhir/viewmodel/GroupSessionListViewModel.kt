@@ -77,7 +77,10 @@ constructor(
         ) { items, locationId, downloaded ->
           val scoped = AppConfig.get(applicationContext).sync.filterPatientListsByLocation
           items
-            .filter { it.state != PatientListState.DELETING && it.id in downloaded }
+            .filter {
+              it.state != PatientListState.DELETING &&
+                (it.id in downloaded || it.state == PatientListState.NEW)
+            }
             .atLocation(locationId, scoped)
         }
         .collect { shown -> _uiState.update { it.copy(lists = shown, loading = false) } }
