@@ -14,6 +14,16 @@
         registration-form="new-patient-registration-paginated"
         fetch-identifiers="true"
     />
+    <!-- Group sessions record the patient list they were held for with every encounter, as two
+         observations: the id and the name of the list. Give the concepts (UUIDs) of the server;
+         a concept the server does not have makes it refuse the encounter, so leave one out
+         (or the element) to not record it. -->
+    <group-sessions
+        cohort-identifier-concept="5461f231-7e59-4be8-93a4-6d49fd13c00a"
+        cohort-name-concept="6029f289-92a6-4a68-80f1-3078d0152449"
+    />
+
+    <server-compatibility enabled="true" />
 
     <support email="support@mail.com" />
 

@@ -36,28 +36,34 @@ import javax.inject.Singleton
 import org.openmrs.android.fhir.LoginActivity
 import org.openmrs.android.fhir.MainActivity
 import org.openmrs.android.fhir.data.database.AppDatabase
+import org.openmrs.android.fhir.data.remote.ServerCapabilities
 import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.extensions.PermissionChecker
 import org.openmrs.android.fhir.fragments.AddPatientFragment
 import org.openmrs.android.fhir.fragments.CreateEncountersFragment
 import org.openmrs.android.fhir.fragments.EditEncounterFragment
 import org.openmrs.android.fhir.fragments.EditPatientFragment
+import org.openmrs.android.fhir.fragments.FormUpdatesFragment
 import org.openmrs.android.fhir.fragments.GenericFormEntryFragment
 import org.openmrs.android.fhir.fragments.GroupFormEntryFragment
+import org.openmrs.android.fhir.fragments.GroupSessionListFragment
+import org.openmrs.android.fhir.fragments.GroupSessionPatientsFragment
 import org.openmrs.android.fhir.fragments.HomeFragment
 import org.openmrs.android.fhir.fragments.IdentifierFragment
 import org.openmrs.android.fhir.fragments.ImportExportFragment
 import org.openmrs.android.fhir.fragments.LocationFragment
 import org.openmrs.android.fhir.fragments.PatientDetailsFragment
+import org.openmrs.android.fhir.fragments.PatientListDetailFragment
 import org.openmrs.android.fhir.fragments.PatientListFragment
-import org.openmrs.android.fhir.fragments.PatientSelectionDialogFragment
+import org.openmrs.android.fhir.fragments.PatientListPickerFragment
 import org.openmrs.android.fhir.fragments.SelectPatientListFragment
+import org.openmrs.android.fhir.fragments.ServerCompatibilityFragment
 import org.openmrs.android.fhir.fragments.SettingsFragment
 import org.openmrs.android.fhir.fragments.SyncInfoFragment
 import org.openmrs.android.fhir.multiuser.UserDataLedger
+import org.openmrs.android.fhir.patientlists.PatientListsRepository
 import org.openmrs.android.fhir.settingsshare.SettingsShare
 import org.openmrs.android.fhir.unidentified.UnidentifiedPatients
-import org.openmrs.android.fhir.unidentified.UnidentifiedStore
 
 @Singleton
 @Component(
@@ -93,7 +99,9 @@ interface AppComponent {
 
   fun settingsShare(): SettingsShare
 
-  fun unidentifiedStore(): UnidentifiedStore
+  fun patientListRepository(): PatientListsRepository
+
+  fun serverCapabilities(): ServerCapabilities
 
   /*
    * Fragments & Activities
@@ -120,6 +128,10 @@ interface AppComponent {
 
   fun inject(fragment: ImportExportFragment)
 
+  fun inject(fragment: ServerCompatibilityFragment)
+
+  fun inject(fragment: FormUpdatesFragment)
+
   fun inject(activity: LoginActivity)
 
   fun inject(activity: MainActivity)
@@ -130,7 +142,13 @@ interface AppComponent {
 
   fun inject(fragment: SelectPatientListFragment)
 
+  fun inject(fragment: PatientListDetailFragment)
+
+  fun inject(fragment: PatientListPickerFragment)
+
   fun inject(fragment: GroupFormEntryFragment)
 
-  fun inject(fragment: PatientSelectionDialogFragment)
+  fun inject(fragment: GroupSessionListFragment)
+
+  fun inject(fragment: GroupSessionPatientsFragment)
 }

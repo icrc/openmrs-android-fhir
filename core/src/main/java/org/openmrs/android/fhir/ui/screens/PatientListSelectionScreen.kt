@@ -56,9 +56,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -66,6 +69,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -80,6 +85,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.patientlists.PatientListEdit
 import org.openmrs.android.fhir.ui.components.SelectPatientListItemRow
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
@@ -113,7 +119,16 @@ fun PatientListSelectionScreen(
   onRetry: (() -> Unit)? = null,
   /** With nothing ticked the action reads "Continue without a list" instead of "Submit". */
   continueWithoutSelection: Boolean = false,
+  onOpenList: ((SelectPatientListViewModel.SelectPatientListItem) -> Unit)? = null,
+  onCreateList: ((String, String, (PatientListEdit) -> Unit) -> Unit)? = null,
+  pendingChanges: Int = 0,
+  sendingChanges: Boolean = false,
+  onSendChanges: (() -> Unit)? = null,
+  /** Working without a session: the lists are kept on the device and sent after sign-in. */
+  guestNotice: Boolean = false,
 ) {
+  var creating by rememberSaveable { mutableStateOf(false) }
+  var createError by rememberSaveable { mutableStateOf<Int?>(null) }
   Box(
     modifier =
       modifier
@@ -140,6 +155,12 @@ fun PatientListSelectionScreen(
         }
       }
 
+      if (guestNotice) {
+        PatientListBanner(
+          modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+          text = stringResource(R.string.plists_guest_note),
+        )
+      }
       val noLocation = locationName.isNullOrBlank()
       if (onChangeLocationClick != null) {
         Surface(
@@ -221,6 +242,21 @@ fun PatientListSelectionScreen(
         )
       }
 
+      if (pendingChanges > 0) {
+        PatientListBanner(
+          modifier =
+            Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+              .testTag("PatientListPending")
+              .tutorialTarget(TutorialTargets.LISTS_PENDING),
+          text = pendingChangesText(pendingChanges),
+          actionLabel =
+            stringResource(
+              if (sendingChanges) R.string.plists_sending else R.string.plists_send_now,
+            ),
+          onAction = if (sendingChanges) null else onSendChanges,
+        )
+      }
+
       when {
         isLoading -> PatientListsSkeleton()
         nothingToShow ->
@@ -249,7 +285,12 @@ fun PatientListSelectionScreen(
                 .testTag("PatientListList")
                 .tutorialTarget(TutorialTargets.LISTS_LIST),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+            contentPadding =
+              PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                bottom = if (onCreateList != null) 96.dp else 16.dp,
+              ),
           ) {
             if (patientLists.isNotEmpty()) {
               stickyHeader(key = "lists-header", contentType = "header") {
@@ -264,12 +305,21 @@ fun PatientListSelectionScreen(
               SelectPatientListItemRow(
                 text = patientList.name,
                 subtitle =
-                  patientList.patientCount?.let {
-                    stringResource(id = R.string.patient_list_patient_count, it)
-                  },
+                  listOfNotNull(
+                      patientList.patientCount?.let {
+                        stringResource(id = R.string.patient_list_patient_count, it)
+                      },
+                      patientList.locationName,
+                    )
+                    .joinToString(" · ")
+                    .ifEmpty { null },
                 checked = checked,
                 onToggle = { onPatientListToggle(patientList, checked) },
                 modifier = Modifier.animateItem(),
+                tag = patientList.tagRes?.let { stringResource(it) },
+                tagIsError = patientList.tagIsError,
+                onOpen = onOpenList?.let { open -> { open(patientList) } },
+                selectable = patientList.selectable,
               )
             }
           }
@@ -303,6 +353,45 @@ fun PatientListSelectionScreen(
         }
       }
     }
+    if (onCreateList != null) {
+      ExtendedFloatingActionButton(
+        modifier =
+          Modifier.align(Alignment.BottomEnd)
+            .padding(16.dp)
+            .testTag("PatientListNewFab")
+            .tutorialTarget(TutorialTargets.LISTS_NEW),
+        onClick = {
+          createError = null
+          creating = true
+        },
+        icon = { Icon(imageVector = Icons.Default.Add, contentDescription = null) },
+        text = { Text(text = stringResource(R.string.plists_new)) },
+        containerColor = MaterialTheme.colorScheme.primary,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+      )
+    }
+  }
+  if (creating && onCreateList != null) {
+    PatientListEditDialog(
+      title = stringResource(R.string.plists_new),
+      confirmLabel = stringResource(R.string.plist_create_confirm),
+      initialName = "",
+      initialDescription = "",
+      nameError = createError,
+      locationName = locationName,
+      note = stringResource(R.string.plist_create_note),
+      onConfirm = { name, description ->
+        onCreateList(name, description) { result ->
+          when (result) {
+            is PatientListEdit.Saved,
+            PatientListEdit.NotFound, -> creating = false
+            PatientListEdit.NameMissing -> createError = R.string.plist_name_required
+            PatientListEdit.NameTaken -> createError = R.string.plist_name_taken
+          }
+        }
+      },
+      onDismiss = { creating = false },
+    )
   }
 }
 

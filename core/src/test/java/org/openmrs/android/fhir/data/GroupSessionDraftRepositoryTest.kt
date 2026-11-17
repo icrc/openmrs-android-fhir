@@ -44,11 +44,13 @@ import org.mockito.kotlin.whenever
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.Dao
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
+import org.openmrs.android.fhir.patientlists.ActiveUser
 
 class GroupSessionDraftRepositoryTest {
   private val dao = mock<Dao>()
   private val database = mock<AppDatabase> { on { dao() } doReturn dao }
-  private val repository = GroupSessionDraftRepository(database)
+  private var current = ""
+  private val repository = GroupSessionDraftRepository(database, ActiveUser { current })
 
   private fun draft(
     answers: Map<String, String> = mapOf("p1" to "{\"a\":1}", "p2" to "{}"),
@@ -59,6 +61,7 @@ class GroupSessionDraftRepositoryTest {
       questionnaireId = "q",
       sessionId = "s",
       patientIds = listOf("p1", "p2"),
+      patientListId = "list-1",
       patientResponses = answers,
       screenerResponse = screener,
       encounterQuestionnaireJson = "{form}",
@@ -72,24 +75,24 @@ class GroupSessionDraftRepositoryTest {
     repository.upsertDraft(draft())
 
     verify(dao).upsertGroupSessionDraft(any())
-    verify(dao, never()).touchGroupSessionDraft(any(), any())
+    verify(dao, never()).touchGroupSessionDraft(any(), any(), any())
   }
 
   @Test
   fun aSaveWithNothingNewOnlyUpdatesTheTimeOfTheDraft() = runTest {
-    whenever(dao.touchGroupSessionDraft(eq("q"), any())).thenReturn(1)
+    whenever(dao.touchGroupSessionDraft(eq("q"), any(), any())).thenReturn(1)
 
     repository.upsertDraft(draft())
     repository.upsertDraft(draft())
     repository.upsertDraft(draft())
 
     verify(dao, times(1)).upsertGroupSessionDraft(any())
-    verify(dao, times(2)).touchGroupSessionDraft(eq("q"), any())
+    verify(dao, times(2)).touchGroupSessionDraft(eq("q"), any(), any())
   }
 
   @Test
   fun everyKindOfChangeIsWritten() = runTest {
-    whenever(dao.touchGroupSessionDraft(any(), any())).thenReturn(1)
+    whenever(dao.touchGroupSessionDraft(any(), any(), any())).thenReturn(1)
     val changes =
       listOf(
         draft(answers = mapOf("p1" to "{\"a\":2}", "p2" to "{}")),
@@ -100,18 +103,19 @@ class GroupSessionDraftRepositoryTest {
           .copy(sessionDate = 6L),
         draft(answers = mapOf("p1" to "{\"a\":2}"), screener = null, completed = false)
           .copy(sessionDate = 6L, encounterQuestionnaireJson = "{form2}"),
+        draft().copy(patientListId = "list-2"),
       )
 
     repository.upsertDraft(draft())
     changes.forEach { repository.upsertDraft(it) }
 
     verify(dao, times(1 + changes.size)).upsertGroupSessionDraft(any())
-    verify(dao, never()).touchGroupSessionDraft(any(), any())
+    verify(dao, never()).touchGroupSessionDraft(any(), any(), any())
   }
 
   @Test
   fun answersMovedBetweenPatientsAreNotTakenForTheSameDraft() = runTest {
-    whenever(dao.touchGroupSessionDraft(any(), any())).thenReturn(1)
+    whenever(dao.touchGroupSessionDraft(any(), any(), any())).thenReturn(1)
 
     repository.upsertDraft(draft(answers = mapOf("p1" to "ab", "p2" to "c")))
     repository.upsertDraft(draft(answers = mapOf("p1" to "a", "p2" to "bc")))
@@ -122,7 +126,7 @@ class GroupSessionDraftRepositoryTest {
   @Test
   fun aDraftThatWasDeletedMeanwhileIsWrittenAgainInFull() = runTest {
     // Nothing to touch: the row is gone (for example the data was erased).
-    whenever(dao.touchGroupSessionDraft(any(), any())).thenReturn(0)
+    whenever(dao.touchGroupSessionDraft(any(), any(), any())).thenReturn(0)
 
     repository.upsertDraft(draft())
     repository.upsertDraft(draft())
@@ -132,15 +136,15 @@ class GroupSessionDraftRepositoryTest {
 
   @Test
   fun aDraftDeletedThroughTheRepositoryIsWrittenAgainInFull() = runTest {
-    whenever(dao.touchGroupSessionDraft(any(), any())).thenReturn(1)
+    whenever(dao.touchGroupSessionDraft(any(), any(), any())).thenReturn(1)
 
     repository.upsertDraft(draft())
     repository.deleteDraft("q")
     repository.upsertDraft(draft())
 
-    verify(dao).deleteGroupSessionDraft("q")
+    verify(dao).deleteGroupSessionDraft("q", "")
     verify(dao, times(2)).upsertGroupSessionDraft(any())
-    verify(dao, never()).touchGroupSessionDraft(any(), any())
+    verify(dao, never()).touchGroupSessionDraft(any(), any(), any())
   }
 
   @Test
@@ -153,5 +157,15 @@ class GroupSessionDraftRepositoryTest {
     verify(dao).upsertGroupSessionDraft(written.capture())
     assertTrue(written.firstValue.lastUpdated >= before)
     assertEquals("{form}", written.firstValue.encounterQuestionnaireJson)
+  }
+
+  @Test
+  fun aUserReadsAndDeletesOnlyTheirOwnDraft() = runTest {
+    current = "alice"
+    repository.getDraft("q")
+    repository.deleteDraft("q")
+
+    verify(dao).getGroupSessionDraft("q", "alice")
+    verify(dao).deleteGroupSessionDraft("q", "alice")
   }
 }

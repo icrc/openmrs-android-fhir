@@ -117,7 +117,6 @@ import org.openmrs.android.fhir.extensions.PermissionHelper
 import org.openmrs.android.fhir.extensions.PermissionHelperFactory
 import org.openmrs.android.fhir.forms.FormEngineWarmUp
 import org.openmrs.android.fhir.fragments.AddPatientFragment
-import org.openmrs.android.fhir.fragments.CreateEncountersFragmentArgs
 import org.openmrs.android.fhir.logging.UncaughtExceptionHandler
 import org.openmrs.android.fhir.multiuser.UserRegistry
 import org.openmrs.android.fhir.session.SessionCleaner
@@ -175,6 +174,8 @@ class MainActivity : AppCompatActivity() {
 
   /** The list of patients to identify after, with the search that identifies them. */
   private val identifyVisible = androidx.compose.runtime.mutableStateOf(false)
+
+  private val identifyEntryId = androidx.compose.runtime.mutableStateOf<String?>(null)
   private val diagnosticsEstimate =
     androidx.compose.runtime.mutableStateOf<DiagnosticsEstimate?>(null)
 
@@ -418,10 +419,14 @@ class MainActivity : AppCompatActivity() {
           OpenMrsTheme {
             if (identifyVisible.value) {
               IdentifyPatientDialog(
-                entryId = null,
-                onDismiss = { identifyVisible.value = false },
+                entryId = identifyEntryId.value,
+                onDismiss = {
+                  identifyVisible.value = false
+                  identifyEntryId.value = null
+                },
                 onRegisterNew = { entryId ->
                   identifyVisible.value = false
+                  identifyEntryId.value = null
                   getNavController()
                     ?.navigate(
                       R.id.addPatientFragment,
@@ -688,17 +693,13 @@ class MainActivity : AppCompatActivity() {
 
   private fun onTopLevelSelected(destination: TopLevelDestination) {
     val navController = getNavController() ?: return
-    if (destination == bottomBarSelection.value) return
+    // On the screen of the item itself nothing happens; deeper in the session it goes back to the
+    // start.
+    if (navController.currentDestination?.id == destination.destinationId) return
     val options =
       NavOptions.Builder().setLaunchSingleTop(true).setPopUpTo(R.id.home_fragment, false).build()
     when (destination) {
       TopLevelDestination.Home -> navController.popBackStack(R.id.home_fragment, false)
-      TopLevelDestination.GroupSession ->
-        navController.navigate(
-          destination.destinationId,
-          CreateEncountersFragmentArgs(patientId = "", isGroupEncounter = true).toBundle(),
-          options,
-        )
       else -> navController.navigate(destination.destinationId, null, options)
     }
   }
@@ -905,12 +906,13 @@ class MainActivity : AppCompatActivity() {
    * not); this is the user's chance to find them on the server before syncing the rest.
    */
   /** The search for the server patients that the ones recorded "to identify after" are. */
-  fun showIdentifyDialog() {
+  fun showIdentifyDialog(entryId: String? = null) {
     // The search is on the server and the new patient is registered to be sent to it.
     if (isGuest.value || !viewModel.uiState.value.connectivityState.isServerReachable()) {
       AppMessage.show(this, R.string.identify_requires_connection, MessageKind.Info)
       return
     }
+    identifyEntryId.value = entryId
     identifyVisible.value = true
   }
 
@@ -921,6 +923,7 @@ class MainActivity : AppCompatActivity() {
       .setMessage(getString(R.string.identify_sync_message, waiting))
       .setPositiveButton(getString(R.string.identify_sync_now)) { dialog, _ ->
         dialog.dismiss()
+        identifyEntryId.value = null
         identifyVisible.value = true
       }
       .setNegativeButton(getString(R.string.identify_sync_anyway)) { dialog, _ ->

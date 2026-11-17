@@ -59,6 +59,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
@@ -67,6 +68,8 @@ import org.openmrs.android.fhir.ui.components.UnsyncedEncounterRow
 import org.openmrs.android.fhir.ui.components.UnsyncedObservationRow
 import org.openmrs.android.fhir.ui.components.UnsyncedPatientRow
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
+import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 
 object UnsyncedResourcesTestTags {
   const val Screen = "UnsyncedResourcesScreen"
@@ -94,14 +97,17 @@ fun UnsyncedResourcesScreen(
   onDeleteAll: () -> Unit,
   onDownloadAll: () -> Unit,
   modifier: Modifier = Modifier,
+  toIdentify: List<UnsyncedResource> = emptyList(),
+  onIdentify: (patientId: String) -> Unit = {},
+  identifyAvailable: Boolean = true,
 ) {
   var pendingDeleteResource by remember { mutableStateOf<UnsyncedResource?>(null) }
   var showDeleteAllDialog by remember { mutableStateOf(false) }
 
   Box(modifier = modifier.fillMaxSize().testTag(UnsyncedResourcesTestTags.Screen)) {
     when {
-      isLoading && resources.isEmpty() -> Unit
-      resources.isEmpty() ->
+      isLoading && resources.isEmpty() && toIdentify.isEmpty() -> Unit
+      resources.isEmpty() && toIdentify.isEmpty() ->
         Column(
           modifier = Modifier.fillMaxSize().testTag(UnsyncedResourcesTestTags.EmptyState),
           verticalArrangement = Arrangement.Center,
@@ -136,73 +142,104 @@ fun UnsyncedResourcesScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
           ) {
-            item(key = "bulk-actions", contentType = "actions") {
-              Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-              ) {
-                TextButton(
-                  modifier = Modifier.testTag(UnsyncedResourcesTestTags.DownloadAllButton),
-                  onClick = onDownloadAll,
+            if (toIdentify.isNotEmpty()) {
+              item(key = "identify-header", contentType = "header") {
+                Column(
+                  modifier =
+                    Modifier.fillMaxWidth()
+                      .padding(top = 4.dp)
+                      .tutorialTarget(TutorialTargets.SYNC_IDENTIFY),
                 ) {
-                  Icon(
-                    modifier = Modifier.size(18.dp),
-                    painter = painterResource(id = R.drawable.ic_download),
-                    contentDescription = null,
+                  Text(
+                    text = stringResource(id = R.string.identify_banner_title).uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
                   )
-                  Spacer(modifier = Modifier.width(6.dp))
-                  Text(text = stringResource(id = R.string.download_all))
+                  if (!identifyAvailable) {
+                    Text(
+                      text = stringResource(id = R.string.identify_requires_connection),
+                      style = MaterialTheme.typography.bodySmall,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                  }
                 }
-                TextButton(
-                  modifier = Modifier.testTag(UnsyncedResourcesTestTags.DeleteAllButton),
-                  onClick = { showDeleteAllDialog = true },
-                ) {
-                  Icon(
-                    modifier = Modifier.size(18.dp),
-                    painter = painterResource(id = R.drawable.ic_delete),
-                    contentDescription = null,
+              }
+              items(
+                toIdentify,
+                key = { "identify-" + it.listKey() },
+                contentType = { it::class },
+              ) { resource ->
+                ResourceRow(
+                  resource = resource,
+                  onTogglePatientExpand = onTogglePatientExpand,
+                  onToggleEncounterExpand = onToggleEncounterExpand,
+                  onDownloadResource = {},
+                  onAskDelete = {},
+                  readOnly = true,
+                  onIdentify = onIdentify,
+                  identifyAvailable = identifyAvailable,
+                )
+              }
+              if (resources.isNotEmpty()) {
+                item(key = "pending-header", contentType = "header") {
+                  Text(
+                    modifier = Modifier.padding(top = 8.dp),
+                    text = stringResource(id = R.string.sync_tab_pending).uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
                   )
-                  Spacer(modifier = Modifier.width(6.dp))
-                  Text(text = stringResource(id = R.string.delete_all))
+                }
+              }
+            }
+            if (resources.isNotEmpty()) {
+              item(key = "bulk-actions", contentType = "actions") {
+                Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.End,
+                ) {
+                  TextButton(
+                    modifier = Modifier.testTag(UnsyncedResourcesTestTags.DownloadAllButton),
+                    onClick = onDownloadAll,
+                  ) {
+                    Icon(
+                      modifier = Modifier.size(18.dp),
+                      painter = painterResource(id = R.drawable.ic_download),
+                      contentDescription = null,
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = stringResource(id = R.string.download_all))
+                  }
+                  TextButton(
+                    modifier = Modifier.testTag(UnsyncedResourcesTestTags.DeleteAllButton),
+                    onClick = { showDeleteAllDialog = true },
+                  ) {
+                    Icon(
+                      modifier = Modifier.size(18.dp),
+                      painter = painterResource(id = R.drawable.ic_delete),
+                      contentDescription = null,
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = stringResource(id = R.string.delete_all))
+                  }
                 }
               }
             }
             items(resources, key = { it.listKey() }, contentType = { it::class }) { resource ->
-              when (resource) {
-                is UnsyncedResource.PatientItem ->
-                  UnsyncedPatientRow(
-                    name = resource.patient.name,
-                    onToggleExpand = { onTogglePatientExpand(resource.patient.logicalId) },
-                    onDownload = { onDownloadResource(resource) },
-                    onDelete = { pendingDeleteResource = resource },
-                    showExpand = resource.patient.encounters.isNotEmpty(),
-                    isSynced = resource.patient.isSynced,
-                    isExpanded = resource.patient.isExpanded,
-                  )
-                is UnsyncedResource.EncounterItem ->
-                  UnsyncedEncounterRow(
-                    title = resource.encounter.title,
-                    hasObservations = resource.encounter.observations.isNotEmpty(),
-                    onToggleExpand = { onToggleEncounterExpand(resource.encounter.logicalId) },
-                    onDownload = { onDownloadResource(resource) },
-                    onDelete = { pendingDeleteResource = resource },
-                    isSynced = resource.encounter.isSynced,
-                    isExpanded = resource.encounter.isExpanded,
-                  )
-                is UnsyncedResource.ObservationItem ->
-                  UnsyncedObservationRow(
-                    title = resource.observation.title,
-                    onDownload = { onDownloadResource(resource) },
-                    onDelete = { pendingDeleteResource = resource },
-                    isSynced = resource.observation.isSynced,
-                  )
-              }
+              ResourceRow(
+                resource = resource,
+                onTogglePatientExpand = onTogglePatientExpand,
+                onToggleEncounterExpand = onToggleEncounterExpand,
+                onDownloadResource = onDownloadResource,
+                onAskDelete = { pendingDeleteResource = it },
+              )
             }
           }
         }
     }
 
-    if (isLoading && resources.isEmpty()) {
+    if (isLoading && resources.isEmpty() && toIdentify.isEmpty()) {
       Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         CircularProgressIndicator(
           modifier = Modifier.testTag(UnsyncedResourcesTestTags.LoadingIndicator),
@@ -273,3 +310,55 @@ private fun UnsyncedResource.listKey(): String =
     is UnsyncedResource.EncounterItem -> "encounter-${encounter.logicalId}"
     is UnsyncedResource.ObservationItem -> "observation-${observation.logicalId}"
   }
+
+@Composable
+private fun ResourceRow(
+  resource: UnsyncedResource,
+  onTogglePatientExpand: (String) -> Unit,
+  onToggleEncounterExpand: (String) -> Unit,
+  onDownloadResource: (UnsyncedResource) -> Unit,
+  onAskDelete: (UnsyncedResource) -> Unit,
+  readOnly: Boolean = false,
+  onIdentify: (String) -> Unit = {},
+  identifyAvailable: Boolean = true,
+) {
+  when (resource) {
+    is UnsyncedResource.PatientItem ->
+      UnsyncedPatientRow(
+        name = resource.patient.name,
+        onToggleExpand = { onTogglePatientExpand(resource.patient.logicalId) },
+        onDownload = { onDownloadResource(resource) },
+        onDelete = { onAskDelete(resource) },
+        showExpand = resource.patient.encounters.isNotEmpty(),
+        isSynced = resource.patient.isSynced,
+        isExpanded = resource.patient.isExpanded,
+        readOnly = readOnly,
+        onIdentify =
+          if (readOnly) {
+            { onIdentify(resource.patient.logicalId) }
+          } else {
+            null
+          },
+        identifyEnabled = identifyAvailable,
+      )
+    is UnsyncedResource.EncounterItem ->
+      UnsyncedEncounterRow(
+        title = resource.encounter.title,
+        hasObservations = resource.encounter.observations.isNotEmpty(),
+        onToggleExpand = { onToggleEncounterExpand(resource.encounter.logicalId) },
+        onDownload = { onDownloadResource(resource) },
+        onDelete = { onAskDelete(resource) },
+        isSynced = resource.encounter.isSynced,
+        isExpanded = resource.encounter.isExpanded,
+        readOnly = readOnly,
+      )
+    is UnsyncedResource.ObservationItem ->
+      UnsyncedObservationRow(
+        title = resource.observation.title,
+        onDownload = { onDownloadResource(resource) },
+        onDelete = { onAskDelete(resource) },
+        isSynced = resource.observation.isSynced,
+        readOnly = readOnly,
+      )
+  }
+}

@@ -60,7 +60,7 @@ enum class TopLevelDestination(
   Home(R.id.home_fragment, R.string.nav_home, Icons.Default.Home, "BottomNavHome"),
   Patients(R.id.patient_list, R.string.nav_patients, Icons.Default.People, "BottomNavPatients"),
   GroupSession(
-    R.id.createEncounterFragment,
+    R.id.groupSessionListFragment,
     R.string.nav_group_session,
     Icons.Default.Groups,
     "BottomNavGroupSession",
@@ -79,6 +79,7 @@ fun topLevelDestinationFor(destinationId: Int, isGroupEncounter: Boolean): TopLe
   when (destinationId) {
     R.id.home_fragment -> TopLevelDestination.Home
     R.id.patient_list -> TopLevelDestination.Patients
+    R.id.groupSessionListFragment -> TopLevelDestination.GroupSession
     R.id.createEncounterFragment -> if (isGroupEncounter) TopLevelDestination.GroupSession else null
     R.id.syncInfoFragment -> TopLevelDestination.Sync
     else -> null

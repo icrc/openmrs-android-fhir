@@ -36,7 +36,7 @@ import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.ResourceType
 import org.openmrs.android.fhir.forms.orBundledIfAliased
 import org.openmrs.android.fhir.forms.readBundledQuestionnaire
-import org.openmrs.android.fhir.forms.useEmbeddedFormsOnly
+import org.openmrs.android.fhir.forms.usesStoredForm
 
 /**
  * The questionnaire to fill in, with the translations of the device language only: the form library
@@ -50,7 +50,7 @@ suspend fun FhirEngine.getQuestionnaireOrFromAssets(
 ): Questionnaire? {
   val locale = Locale.getDefault()
   return try {
-    check(!applicationContext.useEmbeddedFormsOnly())
+    check(applicationContext.usesStoredForm(questionnaireId))
     (this.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire)
       .orBundledIfAliased(applicationContext, parser)
       .also { it.pruneOtherLanguageTranslations(locale) }
@@ -73,7 +73,7 @@ suspend fun FhirEngine.getQuestionnaireOrFromAssetsAsString(
 ): String {
   val locale = Locale.getDefault()
   return try {
-    check(!applicationContext.useEmbeddedFormsOnly())
+    check(applicationContext.usesStoredForm(questionnaireId))
     val questionnaire =
       (this.get(ResourceType.Questionnaire, questionnaireId) as Questionnaire)
         .orBundledIfAliased(applicationContext, parser)

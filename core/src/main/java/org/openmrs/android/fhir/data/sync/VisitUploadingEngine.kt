@@ -42,13 +42,16 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.ResourceType
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.data.isVisit
 import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.patientlists.UploadedIds
 import timber.log.Timber
 
 /**
@@ -93,10 +96,27 @@ class VisitUploadingEngine(private val delegate: FhirEngine, context: Context) :
       }
       if (visits.isNotEmpty()) LiveSync.notifyUploaded()
       val rest = changes.filterNot { it.resourceType == ENCOUNTER && it.resourceId in visits.ids() }
-      val results = if (rest.isEmpty()) emptyFlow() else upload(rest, references)
+      val results =
+        if (rest.isEmpty()) {
+          emptyFlow()
+        } else {
+          upload(rest, references).onEach { noteUploadedPatients(it) }
+        }
       // The sync fails as it would for the SDK's own upload, after everything else was sent.
       results.onCompletion { cause -> if (cause == null) failure?.let { throw it } }
     }
+
+  private suspend fun noteUploadedPatients(result: UploadRequestResult) {
+    val pairs = UploadedIds.pairs(result)
+    if (pairs.isEmpty()) return
+    try {
+      FhirApplication.appComponent(appContext).patientListRepository().noteUploaded(pairs)
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      Timber.w(e, "Could not note the ids the server gave")
+    }
+  }
 
   /** The visits with changes to send as updates: on the server already, nothing else pending. */
   private suspend fun visitsToPut(changes: List<LocalChange>): List<Encounter> {

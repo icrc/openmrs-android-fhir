@@ -34,6 +34,7 @@ asks any other server.
 |---|---|---|---|
 | GET | `Location?_sort=_lastUpdated&_summary=data&_tag=<location-tag>` (also `_summary=count`) | Locations that can be chosen | Location, sync |
 | GET | `Location/<id>` | One location | Location |
+| GET | `metadata`, `Group?_count=1&_elements=id`; POST `Group/<unknown id>/$add-members`; REST `session`, `cohortm/cohort?limit=1`, `concept/<uuid>` | The server compatibility checks (`server-compatibility.md`); the scenario `cohort-module` of the fake server refuses Group writes | Settings, Advanced |
 | GET | `Group?location=<id>[&cohort-type=<uuid>]&_count=100` | Patient lists of the location (extension `http://fhir.openmrs.org/ext/group/location` holds the location id as a string) | Patient lists |
 | GET | `Patient?_has:Group:member:id=<ids>&_elements=id&_count=200` | The ids of the patients of the chosen lists (ids only) | First sync, "Patient lists" |
 | GET | `Patient?_id=<ids>&_count=50&_sort=_lastUpdated[&_lastUpdated=gt..]` | The patients, in batches | Sync |

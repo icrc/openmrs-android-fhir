@@ -41,9 +41,11 @@ import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.ResourceType
 import org.hl7.fhir.r4.model.RiskAssessment
 import org.openmrs.android.fhir.DemoDataStore
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.multiuser.UserDataLedger
+import org.openmrs.android.fhir.patientlists.ActiveUser
 import org.openmrs.android.fhir.unidentified.UnidentifiedPatients
 
 /**
@@ -53,8 +55,10 @@ import org.openmrs.android.fhir.unidentified.UnidentifiedPatients
  *
  * Gone: those patients and everything recorded for them (including what was not uploaded yet), the
  * patients to identify, the group-session drafts, the choice of patient lists (and the download
- * marks of patients, so the next download starts from the beginning). Kept: the signed-in session,
- * the location, the forms, the locations and the patient lists themselves, the settings.
+ * marks of patients, so the next download starts from the beginning), the members of the patient
+ * lists with what was changed in a patient list and not sent. Kept: the signed-in session, the
+ * location, the forms, the locations, the patient lists and the patient lists themselves, the
+ * settings.
  *
  * On a device shared by several users only the patients the signed-in user can see are removed.
  */
@@ -79,7 +83,11 @@ class PatientDataEraser(
       scope.entries.sumOf { (type, ids) ->
         ids.count { fhirEngine.getLocalChanges(type, it).isNotEmpty() }
       }
-    return Preview(patients = scope[ResourceType.Patient].orEmpty().size, notUploaded = notUploaded)
+    val patientListChanges = patientLists().pendingNow()
+    return Preview(
+      patients = scope[ResourceType.Patient].orEmpty().size,
+      notUploaded = notUploaded + patientListChanges,
+    )
   }
 
   /** @return how many patients were removed. */
@@ -92,9 +100,10 @@ class PatientDataEraser(
       }
     }
     val patients = scope[ResourceType.Patient].orEmpty()
-    ledger.forget(patients)
     unidentified.removeAll()
-    database.dao().clearGroupSessionDrafts()
+    ledger.forget(patients)
+    database.dao().clearGroupSessionDraftsOf(ActiveUser.of(context).name())
+    patientLists().clearPatientData()
     context.applicationContext.dataStore.edit { preferences ->
       preferences.remove(PreferenceKeys.SELECTED_PATIENT_LISTS)
       preferences.remove(PreferenceKeys.PENDING_LIST_DOWNLOADS)
@@ -108,6 +117,9 @@ class PatientDataEraser(
     demoDataStore.forgetPatientHistory(patients)
     return patients.size
   }
+
+  private fun patientLists() =
+    FhirApplication.appComponent(context.applicationContext).patientListRepository()
 
   /** The ids to remove, by type: the visible patients, and what points at them. */
   private suspend fun scope(): Map<ResourceType, Set<String>> {

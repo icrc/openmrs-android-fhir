@@ -106,26 +106,31 @@ interface Dao {
 
   /** Marks a draft as saved now without rewriting it; returns how many drafts there were. */
   @Query(
-    "UPDATE groupsessiondraft SET lastUpdated=:lastUpdated WHERE questionnaireId=:questionnaireId",
+    "UPDATE groupsessiondraft SET lastUpdated=:lastUpdated " +
+      "WHERE questionnaireId=:questionnaireId AND owner=:owner",
   )
-  suspend fun touchGroupSessionDraft(questionnaireId: String, lastUpdated: Long): Int
+  suspend fun touchGroupSessionDraft(questionnaireId: String, owner: String, lastUpdated: Long): Int
 
-  @Query("SELECT * FROM groupsessiondraft WHERE questionnaireId=:questionnaireId LIMIT 1")
-  suspend fun getGroupSessionDraft(questionnaireId: String): GroupSessionDraft?
-
-  /** Every draft, without its (large) forms and answers. */
   @Query(
-    "SELECT questionnaireId, patientIds, lastUpdated, screenerCompleted, " +
+    "SELECT * FROM groupsessiondraft WHERE questionnaireId=:questionnaireId AND owner=:owner LIMIT 1",
+  )
+  suspend fun getGroupSessionDraft(questionnaireId: String, owner: String): GroupSessionDraft?
+
+  @Query(
+    "SELECT questionnaireId, patientIds, patientListId, lastUpdated, screenerCompleted, " +
       "(screenerResponse IS NOT NULL AND screenerResponse != '') AS hasScreenerResponse, " +
       "(patientResponses IS NOT NULL AND patientResponses NOT IN ('', '{}')) AS hasPatientResponses " +
-      "FROM groupsessiondraft",
+      "FROM groupsessiondraft WHERE owner=:owner",
   )
-  suspend fun getGroupSessionDraftSummaries(): List<GroupSessionDraftSummary>
+  suspend fun getGroupSessionDraftSummaries(owner: String): List<GroupSessionDraftSummary>
 
   @Query("DELETE FROM groupsessiondraft") suspend fun clearGroupSessionDrafts()
 
-  @Query("DELETE FROM groupsessiondraft WHERE questionnaireId=:questionnaireId")
-  suspend fun deleteGroupSessionDraft(questionnaireId: String)
+  @Query("DELETE FROM groupsessiondraft WHERE owner=:owner")
+  suspend fun clearGroupSessionDraftsOf(owner: String)
+
+  @Query("DELETE FROM groupsessiondraft WHERE questionnaireId=:questionnaireId AND owner=:owner")
+  suspend fun deleteGroupSessionDraft(questionnaireId: String, owner: String)
 
   @Transaction
   suspend fun getOrCreateInProgressSyncSession(formatter: DateTimeFormatter): SyncSession {

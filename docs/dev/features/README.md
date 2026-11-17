@@ -10,6 +10,9 @@ and why. Read the page before changing the feature.
 | [`sync-modes.md`](sync-modes.md) | Download only, upload only or both |
 | [`sync-retries.md`](sync-retries.md) | Requests lost on a bad network are sent again inside the sync |
 | [`patient-list-download.md`](patient-list-download.md) | Downloading the patients of selected patient lists |
+| [`patient-list-management.md`](patient-list-management.md) | Creating and changing patient lists (FHIR Groups) and their patients, offline first |
+| [`server-compatibility.md`](server-compatibility.md) | What the server supports beyond standard OpenMRS, checked on a page of the settings, and the features left out when it does not |
+| [`group-sessions.md`](group-sessions.md) | Group sessions held with the patients of one patient list |
 | [`live-mode.md`](live-mode.md) | Uploading at once and searching the server, on top of the offline database |
 | [`import-export.md`](import-export.md) | Handing unsent data to a colleague in a PIN-protected file |
 | [`fhir-extensions.md`](fhir-extensions.md) | The FHIR extensions the app reads or writes |
@@ -28,6 +31,7 @@ and why. Read the page before changing the feature.
 | Page | About |
 |---|---|
 | [`forms.md`](forms.md) | Keeping a form fast; the extensions the forms use |
+| [`form-updates.md`](form-updates.md) | Comparing the forms of the app with the server's, and taking the ones the user chooses |
 | [`observations.md`](observations.md) | How answers become observation groups, and how an edit reconciles them |
 | [`diagnosis-picker.md`](diagnosis-picker.md) | The form question that searches a long list of diagnoses |
 | [`form-page-breadcrumbs.md`](form-page-breadcrumbs.md) | The row that jumps between the pages of a form |

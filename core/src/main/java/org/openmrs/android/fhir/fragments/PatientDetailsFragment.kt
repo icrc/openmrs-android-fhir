@@ -45,6 +45,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
@@ -76,13 +77,18 @@ import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.ui.components.AppMessage
 import org.openmrs.android.fhir.ui.components.MessageKind
 import org.openmrs.android.fhir.ui.patient.PatientDetailsScreen
+import org.openmrs.android.fhir.ui.patient.PatientListMembershipCard
+import org.openmrs.android.fhir.ui.patient.PatientListMembershipDialog
 import org.openmrs.android.fhir.ui.screens.EditVisitDialog
 import org.openmrs.android.fhir.ui.screens.IdentifyPatientDialog
 import org.openmrs.android.fhir.ui.screens.UnidentifiedNoteDialog
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
+import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
+import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
 import org.openmrs.android.fhir.viewmodel.MainActivityViewModel
 import org.openmrs.android.fhir.viewmodel.PatientDetailUnidentified
 import org.openmrs.android.fhir.viewmodel.PatientDetailsViewModel
+import org.openmrs.android.fhir.viewmodel.PatientMembershipViewModel
 
 class PatientDetailsFragment : Fragment() {
 
@@ -93,6 +99,8 @@ class PatientDetailsFragment : Fragment() {
   @Inject lateinit var viewModelFactory: ViewModelProvider.Factory
 
   @Inject lateinit var viewModelSavedStateFactory: ViewModelSavedStateFactory
+  private val patientMembershipViewModel by
+    viewModels<PatientMembershipViewModel> { viewModelFactory }
   private val patientDetailsViewModel: PatientDetailsViewModel by viewModels {
     viewModelSavedStateFactory
   }
@@ -172,8 +180,27 @@ class PatientDetailsFragment : Fragment() {
           onDismiss = { editingNote = false },
         )
       }
+      val membership by patientMembershipViewModel.uiState.collectAsStateWithLifecycle()
+      var managingLists by rememberSaveable { mutableStateOf(false) }
+      if (managingLists) {
+        PatientListMembershipDialog(
+          state = membership,
+          onToggle = patientMembershipViewModel::setMember,
+          onDismiss = { managingLists = false },
+        )
+      }
       PatientDetailsScreen(
         patientData = patientData,
+        membershipCard = {
+          PatientListMembershipCard(
+            state = membership,
+            onManage = {
+              patientMembershipViewModel.open()
+              managingLists = true
+            },
+            modifier = Modifier.tutorialTarget(TutorialTargets.DETAILS_LISTS),
+          )
+        },
         onEditPatient = ::onEditPatientClick,
         onViewEncounter = ::onViewEncounterClick,
         onEditEncounter = ::onEditEncounterClick,
@@ -206,6 +233,7 @@ class PatientDetailsFragment : Fragment() {
       requireActivity().invalidateOptionsMenu()
     }
     patientDetailsViewModel.getPatientDetailData()
+    patientMembershipViewModel.start(args.patientId)
     viewLifecycleOwner.lifecycleScope.launch {
       viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
         patientDetailsViewModel.refreshFailed.collect {

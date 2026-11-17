@@ -32,7 +32,6 @@ import android.content.Context
 import android.util.JsonReader
 import android.util.JsonToken
 import com.google.android.fhir.FhirEngine
-import com.google.android.fhir.search.search
 import java.io.IOException
 import java.io.StringReader
 import java.util.Locale
@@ -178,19 +177,13 @@ private fun expandPrefix(value: String, prefixes: Map<String, String>): String {
 suspend fun FhirEngine.allFormSummaries(context: Context): List<FormSummary> {
   val bundled = context.bundledFormSummaries().associateBy { it.id }
   val stored =
-    if (context.useEmbeddedFormsOnly()) {
-      emptyList()
-    } else {
-      search<Questionnaire> {}
-        .map { result ->
-          val questionnaire = result.resource
-          // A copy with compact aliases has lost its translations: the bundled summary stands in.
-          if (questionnaire.hasCompactAliases()) {
-            bundled[questionnaire.idElement.idPart] ?: questionnaire.toFormSummary()
-          } else {
-            questionnaire.toFormSummary()
-          }
-        }
+    formsInUse(context).map { questionnaire ->
+      // A copy with compact aliases has lost its translations: the bundled summary stands in.
+      if (questionnaire.hasCompactAliases()) {
+        bundled[questionnaire.idElement.idPart] ?: questionnaire.toFormSummary()
+      } else {
+        questionnaire.toFormSummary()
+      }
     }
   val storedIds = stored.map { it.id }.toSet()
   return stored + context.bundledFormSummaries().filter { it.id !in storedIds }

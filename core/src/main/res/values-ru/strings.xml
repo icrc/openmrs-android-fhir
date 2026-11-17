@@ -358,16 +358,9 @@
     <string name="errors">Ошибки</string>
 
     <string name="group_encounters">Групповая сессия</string>
-    <string
-        name="please_select_at_least_one_patient"
-    >Выберите хотя бы одного пациента.</string>
-    <string
-        name="select_patients_for_group_encounter"
-    >Выбрать пациентов для групповой встречи</string>
     <string name="select_all_patients">Выбрать всех пациентов</string>
     <string name="patient_is_saved">Пациент сохранен.</string>
     <string name="inputs_are_missing">Не заполнены необходимые поля.</string>
-    <string name="start">Начать</string>
     <string
         name="encounter_questionnaire_not_found_try_again_later"
     >Анкета встречи не найдена, попробуйте позже</string>
@@ -637,15 +630,9 @@
     <string
         name="fetch_questionnaires"
     >Проверить новые и обновлённые формы</string>
-    <string name="fetching_questionnaires">Загрузка анкет…</string>
-    <string
-        name="fetch_questionnaires_description"
-    >Проверяет сервер на наличие форм, которых ещё нет в приложении, и более новых версий имеющихся.</string>
-    <string name="questionnaires_up_to_date">Анкеты актуальны.</string>
     <string
         name="questionnaires_fetch_failed"
     >Не удалось загрузить анкеты. Проверьте соединение и повторите попытку.</string>
-    <string name="questionnaires_added">Добавлено новых анкет: %d</string>
     <string
         name="questionnaire_required_answers_missing"
     >Ответьте на обязательные вопросы на этой странице, чтобы продолжить. Они отмечены красным.</string>
@@ -801,9 +788,6 @@
     <string
         name="help_patients_identify_body"
     >Нет сети, а пациент есть на сервере, но не здесь? Записывайте сейчас и идентифицируйте позже, не создавая дубликат.</string>
-    <string
-        name="help_patients_register_body"
-    >Добавьте нового пациента. Перед сохранением нужно заполнить обязательные данные.</string>
     <string name="help_details_overview_title">Пациент</string>
     <string
         name="help_details_overview_body"
@@ -817,9 +801,6 @@
         name="help_details_new_body"
     >Запишите визит или заполните форму для этого пациента.</string>
     <string name="help_sync_status_title">Состояние синхронизации</string>
-    <string
-        name="help_sync_status_body"
-    >Есть ли что-то для отправки и когда данные синхронизировались в последний раз.</string>
     <string name="help_sync_mode_title">Загрузка, отправка или обе</string>
     <string
         name="help_sync_mode_body"
@@ -871,7 +852,7 @@
     <string name="help_lists_list_title">Выбор списков</string>
     <string
         name="help_lists_list_body"
-    >Отметьте списки, пациенты которых нужны на этом устройстве. Отметка загружает пациентов списка сразу; без отмеченных списков пациенты не загружаются.</string>
+    >Отметьте списки, пациенты которых нужны на этом устройстве. Отметка загружает пациентов списка сразу; без отмеченных списков пациенты не загружаются. Стрелка открывает список: его пациентов, сведения о нём и того, кто его создал.</string>
     <string name="help_location_search_title">Поиск местоположений</string>
     <string
         name="help_location_search_body"
@@ -909,16 +890,10 @@
     <string
         name="sync_unavailable_offline"
     >Нет соединения с сервером: синхронизация сейчас недоступна.</string>
-    <string
-        name="sync_identify_title"
-    >Пациентов для идентификации: %1$d</string>
-    <string
-        name="sync_identify_subtitle"
-    >Идентифицируйте их до синхронизации: их записи не отправляются, пока вы этого не сделаете.</string>
     <string name="help_sync_identify_title">Пациенты для идентификации</string>
     <string
         name="help_sync_identify_body"
-    >Если пациенты записаны для идентификации позже, здесь показано их число. Синхронизация не отправляет их данные, пока вы их не идентифицируете, поэтому сделайте это до синхронизации. Нужен вошедший пользователь со связью с сервером; если пациента нет на сервере, можно осторожно зарегистрировать нового.</string>
+    >Пациенты, записанные для идентификации позже, перечислены здесь, а карточка выше показывает их число. То, что с ними записано, не отправляется синхронизацией, пока вы их не опознаете: нажмите «Опознать сейчас» в строке. Нужен вошедший пользователь с подключением к серверу; если пациента нет на сервере, можно осторожно зарегистрировать нового.</string>
     <string
         name="identify_requires_connection"
     >Войдите в систему и подключитесь к серверу, чтобы их идентифицировать.</string>
@@ -1132,9 +1107,6 @@
         name="sign_in_to_sync_message"
     >Чтобы отправить введённых пациентов и формы, сначала войдите. Всё введённое останется на этом устройстве.</string>
     <string name="sign_in">Войти</string>
-    <string
-        name="sign_in_for_patient_lists"
-    >Войдите, чтобы загрузить списки пациентов.</string>
     <string name="identifier_types_required_title">Нужен идентификатор</string>
     <string
         name="identifier_types_required_message"
@@ -1238,15 +1210,6 @@
     <string name="color_vision_color_blind">Для дальтоников</string>
     <string name="embedded_forms_only">Только встроенные формы</string>
     <string
-        name="embedded_forms_only_description"
-    >Приложение использует только встроенные формы и не загружает опросники с сервера.</string>
-    <string
-        name="fetch_questionnaires_sign_in"
-    >Войдите, чтобы проверить на сервере новые и обновлённые формы.</string>
-    <string
-        name="questionnaires_changes"
-    >Новых форм: %1$d, обновлено: %2$d</string>
-    <string
         name="diag_message"
     >Выберите, что отправить в службу поддержки. По умолчанию выбрано всё. Отчёт — зашифрованный архив, который отправляется по электронной почте.</string>
     <string name="diag_logs">Журналы приложения</string>
@@ -1295,10 +1258,6 @@
         name="pending_session_line"
     >Незавершённый сеанс · %1$s · %2$s</string>
     <string name="patients_selected_of">Выбрано %1$d из %2$d</string>
-    <string name="search_patients_hint">Поиск пациентов</string>
-    <string
-        name="no_patients_to_select"
-    >Нет пациентов для выбора. Сначала зарегистрируйте или синхронизируйте пациентов.</string>
     <string name="start_with_count">Начать (%1$d)</string>
     <string name="logout_delete_title">Выйти и удалить все данные</string>
     <string
@@ -1545,9 +1504,6 @@
     <string name="home_summary_waiting">Не отправлено изменений: %1$d</string>
     <string name="home_summary_uploaded">Всё отправлено</string>
     <string name="help_home_summary_title">Коротко</string>
-    <string
-        name="help_home_summary_body"
-    >Сколько пациентов на устройстве и сколько изменений ещё ждёт отправки. Нажмите, чтобы открыть страницу синхронизации.</string>
     <string name="help_home_menu_title">Меню</string>
     <string
         name="help_home_menu_body"
@@ -1617,4 +1573,536 @@
     <string
         name="help_settings_forms_body"
     >Какие формы предлагаются и в каком порядке, создаются ли визиты за вас и какие типы идентификаторов получают новые пациенты.</string>
+    <string name="plists_try_again">Повторить</string>
+    <string name="plists_send_now">Отправить сейчас</string>
+    <string name="plists_sending">Отправка…</string>
+    <string name="plist_state_new">Ещё не отправлен</string>
+    <string name="plist_state_edited">Изменения не отправлены</string>
+    <string name="plist_state_deleting">Будет удалён</string>
+    <string name="plist_state_refused">Сервер не принял</string>
+    <string name="plist_action_edit">Изменить</string>
+    <string name="plist_action_delete">Удалить</string>
+    <string name="plist_action_undo">Отменить</string>
+    <string name="plist_action_discard">Отбросить изменения</string>
+    <string name="plist_edit_title">Изменить список пациентов</string>
+    <string name="plist_field_name">Название</string>
+    <string name="plist_field_description">Описание (необязательно)</string>
+    <string name="plist_name_required">Введите название</string>
+    <string
+        name="plist_name_taken"
+    >Список пациентов с таким названием уже существует</string>
+    <string name="plist_create_location">Для места: %1$s</string>
+    <string
+        name="plist_create_note"
+    >Он сохраняется на этом устройстве и отправляется на сервер, как только это возможно.</string>
+    <string name="plist_delete_title">Удалить этот список пациентов?</string>
+    <string
+        name="plist_delete_message"
+    >«%1$s» будет удалён с сервера при отправке изменения. Пациенты не удаляются, только список. До этого момента удаление можно отменить.</string>
+    <string name="plists_send_nothing">Отправлять было нечего</string>
+    <string
+        name="plists_send_unreachable"
+    >Не удалось связаться с сервером. Изменения остаются на этом устройстве.</string>
+    <string
+        name="plist_gone"
+    >Этот список пациентов больше не существует на сервере.</string>
+    <string name="plist_about">О списке пациентов</string>
+    <string name="plist_no_description">Нет описания</string>
+    <string name="plist_label_type">Тип</string>
+    <string name="plist_label_location">Место</string>
+    <string name="plist_label_created">Создана</string>
+    <string name="plist_label_changed">Последнее изменение</string>
+    <string name="plist_by_on">%1$s · %2$s</string>
+    <string name="plist_label_attributes">Другие сведения</string>
+    <string name="plist_members_header">Участники</string>
+    <string name="plist_members_search_hint">Поиск участников</string>
+    <string name="plist_add_patients">Добавить пациентов</string>
+    <string
+        name="plist_members_empty_title"
+    >В этом списке нет пациентов</string>
+    <string
+        name="plist_members_empty_body"
+    >Добавьте пациентов, которых нужно объединить.</string>
+    <string
+        name="plist_members_no_match"
+    >Нет участников, подходящих под запрос</string>
+    <string name="plist_members_loading">Загрузка участников…</string>
+    <string
+        name="plist_members_offline"
+    >Не удалось получить участников с сервера. Показаны сохранённые на этом устройстве.</string>
+    <string name="plist_member_remove">Убрать из этого списка</string>
+    <string name="plist_member_will_remove">Будет убран</string>
+    <string name="plist_member_will_add">Ожидает добавления</string>
+    <string name="plist_member_unknown">Неизвестный пациент</string>
+    <string name="plist_refused_reason">Не принято: %1$s</string>
+    <string name="plist_picker_search_hint">Имя или идентификатор</string>
+    <string
+        name="plist_picker_hint"
+    >Показаны пациенты этого устройства. Введите не менее 3 букв, чтобы искать и на сервере.</string>
+    <string name="plist_picker_on_device">На этом устройстве</string>
+    <string name="plist_picker_on_server">На сервере</string>
+    <string name="plist_picker_none">Пациенты не найдены</string>
+    <string
+        name="plist_picker_server_failed"
+    >Не удалось выполнить поиск на сервере</string>
+    <string name="plist_picker_already">Уже в этом списке</string>
+    <string
+        name="plist_picker_added_note"
+    >Они будут отправлены на сервер, как только это возможно.</string>
+    <string name="help_lists_pending_title">Ожидающие изменения</string>
+    <string
+        name="help_lists_pending_body"
+    >Изменения списков сначала сохраняются на этом устройстве. Здесь указано, сколько их ожидает. «Отправить сейчас» отправляет их при наличии связи; синхронизация тоже это делает.</string>
+    <string name="help_lists_new_title">Создать список</string>
+    <string
+        name="help_lists_new_body"
+    >Укажите название и, при желании, описание. Список создаётся для выбранного вами места.</string>
+    <string name="help_plist_about_title">О списке</string>
+    <string
+        name="help_plist_about_body"
+    >Описание, тип и место, а также кто создал список и кто изменил его последним. «Изменить» переименовывает его; «Удалить» убирает его, и это можно отменить, пока оно не отправлено.</string>
+    <string name="help_plist_members_title">Участники</string>
+    <string
+        name="help_plist_members_body"
+    >Пациенты списка. Ищите их и убирайте кнопкой удаления. Убранный пациент остаётся в списке зачёркнутым, пока изменение не отправлено: «Отменить» возвращает его.</string>
+    <string name="help_plist_add_title">Добавить пациентов</string>
+    <string
+        name="help_plist_add_body"
+    >Выбирайте пациентов с этого устройства или с сервера. Пациента, зарегистрированного здесь и ещё не отправленного, нельзя добавить, пока он не отправлен.</string>
+    <string name="plists_new">Новый список пациентов</string>
+    <string name="plist_open">Открыть этот список пациентов</string>
+    <string name="plist_create_confirm">Создать</string>
+    <string
+        name="plist_download"
+    >Хранить его пациентов на этом устройстве</string>
+    <string
+        name="plist_download_hint"
+    >Они загружаются при каждой синхронизации.</string>
+    <string name="help_plist_download_title">Хранить пациентов здесь</string>
+    <string
+        name="help_plist_download_body"
+    >Когда это включено, пациенты списка загружаются на это устройство при каждой синхронизации, как при отметке списка на экране «Списки пациентов».</string>
+    <plurals name="plists_pending">
+        <item quantity="one">Ожидает отправки изменений: %d</item>
+        <item quantity="few">Ожидает отправки изменений: %d</item>
+        <item quantity="many">Ожидает отправки изменений: %d</item>
+        <item quantity="other">Ожидает отправки изменений: %d</item>
+    </plurals>
+    <plurals name="plists_sent">
+        <item quantity="one">Отправлено изменений: %d</item>
+        <item quantity="few">Отправлено изменений: %d</item>
+        <item quantity="many">Отправлено изменений: %d</item>
+        <item quantity="other">Отправлено изменений: %d</item>
+    </plurals>
+    <plurals name="plists_refused">
+        <item quantity="one">Сервер не принял изменений: %d</item>
+        <item quantity="few">Сервер не принял изменений: %d</item>
+        <item quantity="many">Сервер не принял изменений: %d</item>
+        <item quantity="other">Сервер не принял изменений: %d</item>
+    </plurals>
+    <plurals name="plists_dropped">
+        <item
+            quantity="one"
+        >Отброшено изменений: %d — список больше не существует</item>
+        <item
+            quantity="few"
+        >Отброшено изменений: %d — список больше не существует</item>
+        <item
+            quantity="many"
+        >Отброшено изменений: %d — список больше не существует</item>
+        <item
+            quantity="other"
+        >Отброшено изменений: %d — список больше не существует</item>
+    </plurals>
+    <plurals name="plist_picker_add">
+        <item quantity="one">Добавить: %d</item>
+        <item quantity="few">Добавить: %d</item>
+        <item quantity="many">Добавить: %d</item>
+        <item quantity="other">Добавить: %d</item>
+    </plurals>
+    <plurals name="plist_picker_added">
+        <item quantity="one">Добавлено: %d</item>
+        <item quantity="few">Добавлено: %d</item>
+        <item quantity="many">Добавлено: %d</item>
+        <item quantity="other">Добавлено: %d</item>
+    </plurals>
+    <string name="plist_card_title">Списки пациентов</string>
+    <string name="plist_card_manage">Изменить</string>
+    <string name="plist_card_none">Не входит ни в один список пациентов</string>
+    <string name="plist_membership_title">Списки пациентов</string>
+    <string
+        name="plist_membership_hint"
+    >Отметьте списки, в которые входит этот пациент. Изменения сохраняются здесь и отправляются, как только это возможно.</string>
+    <string name="plist_to_identify_tag">Ожидает идентификации</string>
+    <string name="help_details_lists_title">Списки пациентов</string>
+    <string
+        name="help_details_lists_body"
+    >Списки пациентов, в которые входит этот пациент. «Изменить» добавляет пациента в список или убирает его; пациент для идентификации войдёт в список после идентификации.</string>
+    <string name="plist_filter_all">Все пациенты</string>
+    <string name="plist_filter_chip">Список: %1$s</string>
+    <string
+        name="plist_filter_empty"
+    >Ни один пациент этого списка не на этом устройстве</string>
+    <string name="help_patients_filter_title">Фильтр по списку</string>
+    <string
+        name="help_patients_filter_body"
+    >Показывать только пациентов одного списка.</string>
+    <string name="plist_session_choose_title">Выберите список пациентов</string>
+    <string name="plist_session_in_list">В этом списке</string>
+    <string name="plist_session_added">Добавлены в сессию</string>
+    <string name="plist_session_not_here">Нет на этом устройстве</string>
+    <string
+        name="plist_session_added_note"
+    >Они войдут в список пациентов при начале сессии.</string>
+    <string name="plist_session_remove">Убрать из сессии</string>
+    <string
+        name="plist_session_list_empty"
+    >В этом списке пока нет пациентов. Добавьте их ниже.</string>
+    <string name="plist_start_session">Начать групповую сессию</string>
+    <string
+        name="plist_picker_later_done"
+    >Добавлено. Пациент войдёт в список после идентификации.</string>
+    <string name="help_psession_list_title">Выберите список</string>
+    <string
+        name="help_psession_list_body"
+    >Выберите список пациентов, для которого проводится сессия. Его пациенты будут предложены на следующих шагах.</string>
+    <string name="help_psession_patients_title">Кто участвует</string>
+    <string
+        name="help_psession_patients_body"
+    >Пациенты списка отмечены. Снимите отметку с отсутствующих; пациенты, которых нет на этом устройстве, выделены серым.</string>
+    <string name="help_psession_add_title">Добавить пациентов</string>
+    <string
+        name="help_psession_add_body"
+    >Добавьте пациентов не из списка или пациента для идентификации позже: они войдут в список при начале сессии.</string>
+    <string name="help_plist_session_title">Начать сессию</string>
+    <string
+        name="help_plist_session_body"
+    >Проведите групповую сессию с пациентами этого списка: снимите отметку с отсутствующих и добавьте других, они войдут в список.</string>
+    <string
+        name="plist_session_none"
+    >На этом устройстве не загружено ни одного списка пациентов. Отметьте список на экране «Списки пациентов», чтобы провести сессию.</string>
+    <string
+        name="plist_session_choose_hint"
+    >Групповая сессия проводится с пациентами одного загруженного списка. Можно добавить других пациентов: они войдут в список.</string>
+    <string
+        name="plist_picker_not_sent"
+    >Ещё не отправлен на сервер: войдёт в список после отправки</string>
+    <string
+        name="plist_membership_unsent"
+    >Этот пациент ещё не отправлен на сервер. Добавление ждёт отправки пациента, затем отправляется.</string>
+    <string name="plist_waits_upload_tag">Ожидает отправки</string>
+    <string name="plist_picker_create_prompt">Нет в списке?</string>
+    <string name="plist_picker_create_action">Создать пациента</string>
+    <string name="home_lists_dialog_title">Выбранные списки пациентов</string>
+    <string name="home_lists_change">Изменить</string>
+    <string name="home_lists_view">Показать выбранные списки пациентов</string>
+    <string name="help_home_inuse_title">Используемые списки пациентов</string>
+    <string
+        name="help_home_inuse_body"
+    >Списки пациентов, с которыми вы работаете: их пациенты находятся на этом устройстве. Глаз показывает все списки, «Изменить» открывает экран «Списки пациентов».</string>
+    <string
+        name="plist_session_download_failed"
+    >Некоторых пациентов не удалось загрузить с сервера, они не добавлены.</string>
+    <string
+        name="plist_picker_session_hint"
+    >Показаны пациенты этого устройства; в режиме онлайн введите 3 буквы, чтобы искать и на сервере. Добавленные сейчас пациенты войдут в список при начале сессии.</string>
+    <plurals name="home_lists_selected">
+        <item quantity="one">Выбран %d список пациентов</item>
+        <item quantity="few">Выбрано %d списка пациентов</item>
+        <item quantity="many">Выбрано %d списков пациентов</item>
+        <item quantity="other">Выбрано %d списков пациентов</item>
+    </plurals>
+    <plurals name="home_summary_to_identify">
+        <item quantity="one">%d пациент для идентификации</item>
+        <item quantity="few">%d пациента для идентификации</item>
+        <item quantity="many">%d пациентов для идентификации</item>
+        <item quantity="other">%d пациентов для идентификации</item>
+    </plurals>
+    <string
+        name="plist_ambiguous_upload_tag"
+    >Не удалось определить, какой это пациент: добавьте его снова из списка</string>
+    <string name="title_server_compatibility">Совместимость сервера</string>
+    <string
+        name="compat_intro"
+    >Приложению нужны от сервера несколько функций помимо стандартного OpenMRS. Эта страница их проверяет. Что сервер не умеет, то в приложении отключается, чтобы ничего из сделанного вами не было отклонено позже.</string>
+    <string name="compat_server_line">Сервер: %1$s</string>
+    <string name="compat_checked_at">Последняя проверка: %1$s</string>
+    <string name="compat_never">Ещё не проверено</string>
+    <string
+        name="compat_unreachable"
+    >Сервер недоступен, поэтому ничего не проверено: %1$s</string>
+    <string name="compat_check_again">Проверить снова</string>
+    <string name="compat_checking">Проверка…</string>
+    <string name="compat_test_write">Проверить запись</string>
+    <string name="compat_test_write_title">Проверить запись на сервер?</string>
+    <string
+        name="compat_test_write_message"
+    >На сервере создаётся временный список пациентов и сразу удаляется. Больше ничего не меняется. Если сервер его отклонит, изменения списков пациентов не будут предлагаться и отправляться.</string>
+    <string name="compat_test_write_confirm">Запустить проверку</string>
+    <string name="compat_copy">Скопировать отчёт</string>
+    <string name="compat_copied">Отчёт скопирован</string>
+    <string name="compat_state_ok">Поддерживается</string>
+    <string
+        name="compat_state_unsupported"
+    >Не поддерживается: отключено в приложении</string>
+    <string name="compat_state_unknown">Не удалось проверить</string>
+    <string name="compat_state_info">Для сведения</string>
+    <string
+        name="compat_state_not_used"
+    >Не используется этим приложением</string>
+    <string name="compat_state_pending">Ещё не проверено</string>
+    <string name="compat_state_installed">Установлен</string>
+    <string name="compat_state_not_installed">Не установлен</string>
+    <string name="compat_server_title">Подключение и вход</string>
+    <string
+        name="compat_server_what"
+    >Приложение связывается с сервером, и ваша учётная запись принята.</string>
+    <string name="compat_fhir_title">Интерфейс FHIR (R4)</string>
+    <string
+        name="compat_fhir_what"
+    >Нужен для синхронизации пациентов, приёмов и форм.</string>
+    <string
+        name="compat_groups_read_title"
+    >Списки пациентов доступны для чтения</string>
+    <string
+        name="compat_groups_read_what"
+    >Нужно, чтобы предлагать списки пациентов для загрузки.</string>
+    <string
+        name="compat_groups_write_title"
+    >Списки пациентов можно создавать и изменять</string>
+    <string
+        name="compat_groups_write_what"
+    >Без этого списки пациентов только для чтения: нельзя создавать, переименовывать и удалять.</string>
+    <string
+        name="compat_group_members_title"
+    >Пациентов можно добавлять в список и удалять</string>
+    <string
+        name="compat_group_members_what"
+    >Без этого состав списка нельзя изменить из приложения.</string>
+    <string name="compat_cohort_module_title">Модуль Cohort</string>
+    <string
+        name="compat_cohort_module_what"
+    >Не обязателен. Если он установлен, стандартный FHIR отказывается записывать списки пациентов: серверу нужен собственный модуль списков пациентов.</string>
+    <string
+        name="compat_concept_id_title"
+    >Концепт идентификатора списка групповых сессий</string>
+    <string
+        name="compat_concept_id_what"
+    >Без него приёмы групповой сессии не записывают идентификатор своего списка.</string>
+    <string
+        name="compat_concept_name_title"
+    >Концепт названия списка групповых сессий</string>
+    <string
+        name="compat_concept_name_what"
+    >Без него приёмы групповой сессии не записывают название своего списка.</string>
+    <string name="help_compat_actions_title">Проверка сервера</string>
+    <string
+        name="help_compat_actions_body"
+    >«Проверить снова» считывает, что поддерживает сервер. «Проверить запись» создаёт на сервере временный список пациентов и удаляет его: это единственный надёжный способ узнать, принимает ли сервер изменения списков пациентов. Скопируйте отчёт, чтобы отправить тому, кто поддерживает сервер.</string>
+    <string name="help_compat_list_title">Что поддерживает сервер</string>
+    <string
+        name="help_compat_list_body"
+    >Каждая строка — то, что нужно приложению. Зелёная галочка — поддерживается; красный крест — сервер этого не умеет, и приложение отключает функцию; вопросительный знак — проверка не смогла определить. Серый текст — ответ сервера, для тех, кто разбирается.</string>
+    <string
+        name="help_settings_advanced_title"
+    >Дополнительные настройки</string>
+    <string
+        name="help_settings_advanced_body"
+    >Для администраторов и поддержки: адрес сервера и проверка соединения, как часто проверяется токен входа, интервал синхронизации, формы на сервере и проверки совместимости сервера.</string>
+    <string name="settings_section_advanced">Дополнительные настройки</string>
+    <string
+        name="settings_advanced_description"
+    >Для администраторов и поддержки: сервер, токены, формы и то, что поддерживает сервер.</string>
+    <string
+        name="settings_advanced_show"
+    >Показать дополнительные настройки</string>
+    <string
+        name="settings_advanced_hide"
+    >Скрыть дополнительные настройки</string>
+    <string name="settings_compat_title">Совместимость сервера</string>
+    <string
+        name="settings_compat_summary"
+    >Поддерживается: %1$d, не поддерживается: %2$d (отключено в приложении)</string>
+    <string name="settings_compat_unchecked">Сервер ещё не проверялся.</string>
+    <string name="settings_compat_open">Открыть проверки</string>
+    <string
+        name="plist_readonly_banner"
+    >Этот сервер не принимает изменения списков пациентов, поэтому они только для чтения.</string>
+    <string
+        name="plist_readonly_members_banner"
+    >Этот сервер не позволяет добавлять пациентов в список и удалять их.</string>
+    <string name="plist_readonly_open">Совместимость сервера</string>
+    <string name="title_form_updates">Формы на сервере</string>
+    <string
+        name="forms_updates_intro_app"
+    >Приложение использует формы, которые поставляются вместе с ним. Проверьте сервер, чтобы увидеть, какие формы отличаются, и обновите нужные: обновлённая форма используется вместо версии приложения.</string>
+    <string
+        name="forms_updates_intro_server"
+    >Приложение использует формы сервера. Проверьте сервер, чтобы увидеть новые и изменённые формы, и загрузите их.</string>
+    <string name="forms_updates_never">Ещё не проверялось</string>
+    <string name="forms_updates_checked">Проверено: %1$s</string>
+    <string name="forms_updates_checking">Запрос к серверу…</string>
+    <string name="forms_updates_checking_short">Проверка…</string>
+    <string name="forms_updates_check">Проверить сервер</string>
+    <string name="forms_updates_take_all">Обновить всё (%1$d)</string>
+    <string name="forms_updates_all_current">Все формы актуальны</string>
+    <string name="forms_updates_error">Не удалось проверить: %1$s</string>
+    <string
+        name="forms_updates_sign_in"
+    >Войдите, чтобы проверить формы сервера.</string>
+    <string name="forms_updates_unreachable">Сервер сейчас недоступен.</string>
+    <string name="forms_state_not_checked">Не проверено</string>
+    <string name="forms_state_up_to_date">Актуально</string>
+    <string name="forms_state_update">Есть обновление</string>
+    <string name="forms_state_new">Новая на сервере</string>
+    <string name="forms_state_not_on_server">Нет на сервере</string>
+    <string
+        name="forms_state_not_usable"
+    >Копию сервера нельзя использовать</string>
+    <string name="forms_using_app">Используется версия приложения</string>
+    <string name="forms_using_server">Используется версия сервера</string>
+    <string name="forms_using_none">Нет на этом устройстве</string>
+    <string name="forms_server_version">Версия сервера %1$s</string>
+    <string name="forms_action_update">Обновить</string>
+    <string name="forms_action_add">Добавить</string>
+    <string name="forms_action_use_app">Использовать версию приложения</string>
+    <string name="forms_msg_found">Обновлений: %1$d, новых: %2$d</string>
+    <string
+        name="forms_msg_back_to_app"
+    >%1$s: снова используется версия приложения</string>
+    <string
+        name="embedded_forms_only_description"
+    >Приложение использует формы, поставляемые с ним, и синхронизация не загружает опросники с сервера. Формы, которые вы обновите с сервера (Дополнительные настройки), используются вместо версии приложения.</string>
+    <string
+        name="fetch_questionnaires_description"
+    >Посмотрите, какие формы на сервере отличаются, и обновите нужные.</string>
+    <string name="help_formupdates_actions_title">Проверить сервер</string>
+    <string
+        name="help_formupdates_actions_body"
+    >Узнайте у сервера, какие формы отличаются или новые, и обновите их все или выберите по одной. Пока вы этого не сделаете, ничего не меняется.</string>
+    <string name="help_formupdates_list_title">Ваши формы</string>
+    <string
+        name="help_formupdates_list_body"
+    >Каждая форма показывает, актуальна ли она, какая версия используется и что есть на сервере. «Обновить» берёт версию сервера, «Использовать версию приложения» возвращает прежнюю.</string>
+    <string
+        name="plists_guest_note"
+    >Вы работаете без входа. Списки пациентов, которые вы создаёте или меняете, хранятся на этом устройстве и отправляются после входа и синхронизации.</string>
+    <string name="plist_action_history">История</string>
+    <string name="plist_action_export">Экспорт</string>
+    <string name="plist_history_title">История списка</string>
+    <string
+        name="plist_history_empty"
+    >С этим списком на этом устройстве пока ничего не делали.</string>
+    <string name="plist_history_created">Список создан: %1$s</string>
+    <string name="plist_history_renamed">Переименован в %1$s</string>
+    <string name="plist_history_deleted">Список удалён</string>
+    <string name="plist_history_added">%1$s добавлен в список</string>
+    <string name="plist_history_removed">%1$s удалён из списка</string>
+    <string name="plist_history_by_on">%1$s · %2$s</string>
+    <string name="plist_history_guest">Гость</string>
+    <string
+        name="plist_history_note"
+    >Показано только то, что сделано на этом устройстве.</string>
+    <string name="plist_export_title">Экспортировать список?</string>
+    <string
+        name="plist_export_message"
+    >Файл содержит имена, пол, даты рождения и идентификаторы пациентов этого списка и не защищён. Передавайте его только тем, кому разрешено видеть эти данные.</string>
+    <string name="plist_export_confirm">Экспортировать</string>
+    <string
+        name="plist_export_columns"
+    >Имя|Пол|Дата рождения|Идентификатор|Id пациента|Статус</string>
+    <string name="plist_export_status_in">В списке</string>
+    <string
+        name="plist_export_empty"
+    >В этом списке нет пациентов для экспорта.</string>
+    <string name="plist_export_subject">Список пациентов %1$s</string>
+    <string name="plist_export_chooser">Поделиться списком</string>
+    <string
+        name="plist_export_failed"
+    >Не удалось экспортировать список.</string>
+    <string name="help_plist_history_title">История</string>
+    <string
+        name="help_plist_history_body"
+    >Показывает, что делали с этим списком на этом устройстве, кто и когда: создание или переименование списка, добавление и удаление пациентов. Остаётся и после отправки изменений.</string>
+    <string name="help_plist_export_title">Экспорт списка</string>
+    <string
+        name="help_plist_export_body"
+    >Сохраняет пациентов списка в файл таблицы (CSV), которым можно поделиться. Файл не защищён: передавайте его только тем, кому разрешено видеть эти данные.</string>
+    <string
+        name="plist_session_no_join_note"
+    >Этот сервер не позволяет добавлять пациентов в список: добавленные вами пациенты участвуют только в этой сессии.</string>
+    <string name="plist_picker_select_all">Выбрать всех (%1$d)</string>
+    <string name="plist_picker_unselect_all">Снять выбор</string>
+    <string
+        name="plist_picker_from_list"
+    >Добавить участников другого списка</string>
+    <string
+        name="plist_picker_from_list_title"
+    >Выберите список пациентов</string>
+    <string
+        name="plist_picker_from_list_none"
+    >На этом устройстве нет других списков пациентов.</string>
+    <string
+        name="plist_picker_from_list_unreachable"
+    >Не удалось прочитать участников этого списка: подключитесь к серверу и повторите.</string>
+    <string
+        name="plist_picker_from_list_empty"
+    >В этом списке нет пациентов для добавления.</string>
+    <string name="help_plist_bulk_title">Выбрать сразу многих</string>
+    <string
+        name="help_plist_bulk_body"
+    >«Выбрать всех» выбирает всех показанных пациентов, поэтому сначала сузьте поиск. «Добавить участников другого списка» выбирает всех из выбранного списка. Затем проверьте выбор и добавьте.</string>
+    <string
+        name="plist_registered_joined"
+    >Добавлен в список пациентов %1$s</string>
+    <string name="sync_status_action_needed">Требуется действие</string>
+    <string
+        name="sync_identify_hint"
+    >Их записи остаются на этом устройстве, пока вы их не опознаете.</string>
+    <string name="sync_identify_review">Открыть</string>
+    <string
+        name="help_sync_status_body"
+    >Есть ли что-то для отправки или требующее вашего действия (пациент для идентификации) и когда данные синхронизировались в последний раз.</string>
+    <string
+        name="help_home_summary_body"
+    >Сколько пациентов на устройстве и сколько изменений ещё ждёт отправки или вашего действия, например пациент для идентификации. Нажмите, чтобы открыть страницу синхронизации.</string>
+    <string
+        name="help_patients_register_body"
+    >Добавьте нового пациента. Перед сохранением нужно заполнить обязательные данные. Если в качестве фильтра выбран список пациентов, новый пациент добавляется в этот список.</string>
+    <plurals name="login_pending_list_changes">
+        <item quantity="one">%d изменение списка пациентов ожидает</item>
+        <item quantity="few">%d изменения списков пациентов ожидают</item>
+        <item quantity="many">%d изменений списков пациентов ожидают</item>
+        <item quantity="other">%d изменений списков пациентов ожидают</item>
+    </plurals>
+    <plurals name="forms_updates_count">
+        <item quantity="one">Доступно обновлений: %d</item>
+        <item quantity="few">Доступно обновлений: %d</item>
+        <item quantity="many">Доступно обновлений: %d</item>
+        <item quantity="other">Доступно обновлений: %d</item>
+    </plurals>
+    <plurals name="forms_new_count">
+        <item quantity="one">Новых на сервере: %d</item>
+        <item quantity="few">Новых на сервере: %d</item>
+        <item quantity="many">Новых на сервере: %d</item>
+        <item quantity="other">Новых на сервере: %d</item>
+    </plurals>
+    <plurals name="forms_msg_taken">
+        <item quantity="one">Обновлено форм: %d</item>
+        <item quantity="few">Обновлено форм: %d</item>
+        <item quantity="many">Обновлено форм: %d</item>
+        <item quantity="other">Обновлено форм: %d</item>
+    </plurals>
+    <plurals name="plist_picker_from_list_members">
+        <item quantity="one">%d пациент</item>
+        <item quantity="few">%d пациента</item>
+        <item quantity="many">%d пациентов</item>
+        <item quantity="other">%d пациентов</item>
+    </plurals>
+    <plurals name="plist_picker_from_list_done">
+        <item quantity="one">Выбран %d пациент списка</item>
+        <item quantity="few">Выбрано %d пациента списка</item>
+        <item quantity="many">Выбрано %d пациентов списка</item>
+        <item quantity="other">Выбрано %d пациентов списка</item>
+    </plurals>
 </resources>

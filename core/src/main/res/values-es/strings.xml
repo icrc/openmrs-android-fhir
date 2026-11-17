@@ -304,12 +304,6 @@
     <string name="completed_at">Completado a las</string>
     <string name="errors">Errores</string>
     <string name="group_encounters">Sesión grupal</string>
-    <string
-        name="please_select_at_least_one_patient"
-    >Por favor, seleccione al menos un paciente.</string>
-    <string
-        name="select_patients_for_group_encounter"
-    >Seleccionar pacientes para el encuentro grupal</string>
     <string name="select_all_patients">Seleccionar todos los pacientes</string>
     <string name="search_forms">Buscar formularios</string>
     <string name="all_forms">Todos los formularios</string>
@@ -322,7 +316,6 @@
     <string name="create_group_encounter">Nueva sesión grupal</string>
     <string name="patient_is_saved">El paciente ha sido guardado.</string>
     <string name="inputs_are_missing">Faltan datos.</string>
-    <string name="start">Iniciar</string>
     <string
         name="encounter_questionnaire_not_found_try_again_later"
     >Cuestionario del encuentro no encontrado, inténtelo más tarde</string>
@@ -624,19 +617,9 @@
     <string
         name="fetch_questionnaires"
     >Buscar formularios nuevos o actualizados</string>
-    <string name="fetching_questionnaires">Obteniendo cuestionarios…</string>
-    <string
-        name="fetch_questionnaires_description"
-    >Busca en el servidor los formularios que aún no están en la aplicación y las versiones más recientes de los que ya tiene.</string>
-    <string
-        name="questionnaires_up_to_date"
-    >Los cuestionarios están al día.</string>
     <string
         name="questionnaires_fetch_failed"
     >No se pudieron obtener los cuestionarios. Compruebe la conexión e inténtelo de nuevo.</string>
-    <string
-        name="questionnaires_added"
-    >Cuestionarios nuevos añadidos: %d</string>
     <string
         name="questionnaire_required_answers_missing"
     >Responda las preguntas obligatorias de esta página para continuar. Están marcadas en rojo.</string>
@@ -804,9 +787,6 @@
     <string
         name="help_patients_identify_body"
     >¿Sin conexión y el paciente está en el servidor pero no aquí? Registre ahora e identifíquelo después, sin crear un duplicado.</string>
-    <string
-        name="help_patients_register_body"
-    >Añada un paciente nuevo. Los datos obligatorios deben completarse antes de guardar.</string>
     <string name="help_details_overview_title">El paciente</string>
     <string
         name="help_details_overview_body"
@@ -820,9 +800,6 @@
         name="help_details_new_body"
     >Registre una visita o rellene un formulario para este paciente.</string>
     <string name="help_sync_status_title">Estado de la sincronización</string>
-    <string
-        name="help_sync_status_body"
-    >Si hay algo pendiente de subir y cuándo se sincronizaron los datos por última vez.</string>
     <string name="help_sync_mode_title">Descargar, subir o ambos</string>
     <string
         name="help_sync_mode_body"
@@ -874,7 +851,7 @@
     <string name="help_lists_list_title">Elegir las listas</string>
     <string
         name="help_lists_list_body"
-    >Marque las listas cuyos pacientes quiere en este dispositivo. Marcar una lista descarga sus pacientes al instante; sin ninguna marcada no se descarga ningún paciente.</string>
+    >Marque las listas cuyos pacientes quiere en este dispositivo. Marcar una lista descarga sus pacientes al instante; sin ninguna marcada no se descarga ningún paciente. La flecha abre una lista: sus pacientes, sus datos y quién la creó.</string>
     <string name="help_location_search_title">Buscar ubicaciones</string>
     <string
         name="help_location_search_body"
@@ -912,14 +889,10 @@
     <string
         name="sync_unavailable_offline"
     >Sin conexión con el servidor: la sincronización no está disponible ahora.</string>
-    <string name="sync_identify_title">Pacientes por identificar: %1$d</string>
-    <string
-        name="sync_identify_subtitle"
-    >Identifíquelos antes de sincronizar: sus registros no se envían hasta que lo haga.</string>
     <string name="help_sync_identify_title">Pacientes por identificar</string>
     <string
         name="help_sync_identify_body"
-    >Cuando hay pacientes registrados para identificar después, aquí se indica cuántos. Ninguna sincronización envía lo que contienen hasta que los identifique; hágalo antes de sincronizar. Necesita un usuario con sesión iniciada y conectado al servidor; si el paciente no está en el servidor puede registrar uno nuevo, con cuidado.</string>
+    >Los pacientes registrados para identificar más tarde se listan aquí, y la tarjeta de arriba dice cuántos son. Lo que contienen no se envía en ninguna sincronización hasta que los identifique: pulse Identificar ahora en una fila. Requiere un usuario con sesión iniciada y conexión al servidor; si el paciente no está en el servidor, puede registrar uno nuevo, con cuidado.</string>
     <string
         name="identify_requires_connection"
     >Inicie sesión y conéctese al servidor para identificarlos.</string>
@@ -1140,9 +1113,6 @@
     >Para subir los pacientes y formularios que ingresó, inicie sesión primero. Todo lo que ingresó permanece en este dispositivo.</string>
     <string name="sign_in">Iniciar sesión</string>
     <string
-        name="sign_in_for_patient_lists"
-    >Inicie sesión para descargar las listas de pacientes.</string>
-    <string
         name="identifier_types_required_title"
     >Se necesita un identificador</string>
     <string
@@ -1249,15 +1219,6 @@
     <string name="color_vision_color_blind">Apto para daltonismo</string>
     <string name="embedded_forms_only">Usar solo formularios integrados</string>
     <string
-        name="embedded_forms_only_description"
-    >La aplicación usa solo los formularios incluidos y no descarga cuestionarios del servidor.</string>
-    <string
-        name="fetch_questionnaires_sign_in"
-    >Inicie sesión para buscar en el servidor formularios nuevos o actualizados.</string>
-    <string
-        name="questionnaires_changes"
-    >Formularios nuevos: %1$d, actualizados: %2$d</string>
-    <string
         name="diag_message"
     >Elija qué enviar al equipo de soporte. Todo está seleccionado por defecto. El informe es un archivo cifrado que se envía por correo.</string>
     <string name="diag_logs">Registros de la aplicación</string>
@@ -1303,10 +1264,6 @@
     </plurals>
     <string name="pending_session_line">Sesión pendiente · %1$s · %2$s</string>
     <string name="patients_selected_of">%1$d de %2$d seleccionados</string>
-    <string name="search_patients_hint">Buscar pacientes</string>
-    <string
-        name="no_patients_to_select"
-    >No hay pacientes para seleccionar. Registre o sincronice pacientes primero.</string>
     <string name="start_with_count">Iniciar (%1$d)</string>
     <string
         name="logout_delete_title"
@@ -1554,9 +1511,6 @@
     <string name="home_summary_waiting">%1$d cambios aún sin subir</string>
     <string name="home_summary_uploaded">Todo está subido</string>
     <string name="help_home_summary_title">De un vistazo</string>
-    <string
-        name="help_home_summary_body"
-    >Cuántos pacientes hay en este dispositivo y cuántos cambios esperan aún para subirse. Toque para abrir la página Sincronización.</string>
     <string name="help_home_menu_title">El menú</string>
     <string
         name="help_home_menu_body"
@@ -1634,4 +1588,526 @@
     <string
         name="help_settings_forms_body"
     >Qué formularios se ofrecen y en qué orden, si las visitas se crean por usted y qué tipos de identificador reciben los pacientes nuevos.</string>
+    <string name="plists_try_again">Reintentar</string>
+    <string name="plists_send_now">Enviar ahora</string>
+    <string name="plists_sending">Enviando…</string>
+    <string name="plist_state_new">Aún sin enviar</string>
+    <string name="plist_state_edited">Cambios sin enviar</string>
+    <string name="plist_state_deleting">Se eliminará</string>
+    <string name="plist_state_refused">No aceptada por el servidor</string>
+    <string name="plist_action_edit">Editar</string>
+    <string name="plist_action_delete">Eliminar</string>
+    <string name="plist_action_undo">Deshacer</string>
+    <string name="plist_action_discard">Descartar los cambios</string>
+    <string name="plist_edit_title">Editar la lista de pacientes</string>
+    <string name="plist_field_name">Nombre</string>
+    <string name="plist_field_description">Descripción (opcional)</string>
+    <string name="plist_name_required">Escriba un nombre</string>
+    <string
+        name="plist_name_taken"
+    >Ya existe una lista de pacientes con este nombre</string>
+    <string name="plist_create_location">Para la ubicación %1$s</string>
+    <string
+        name="plist_create_note"
+    >Se guarda en este dispositivo y se envía al servidor en cuanto es posible.</string>
+    <string
+        name="plist_delete_title"
+    >¿Eliminar esta lista de pacientes?</string>
+    <string
+        name="plist_delete_message"
+    >%1$s se eliminará del servidor cuando se envíe el cambio. No se eliminan los pacientes, solo la lista de pacientes. Puede deshacerlo hasta entonces.</string>
+    <string name="plists_send_nothing">No había nada que enviar</string>
+    <string
+        name="plists_send_unreachable"
+    >No se pudo contactar con el servidor. Los cambios esperan en este dispositivo.</string>
+    <string
+        name="plist_gone"
+    >Esta lista de pacientes ya no existe en el servidor.</string>
+    <string name="plist_about">Acerca de esta lista de pacientes</string>
+    <string name="plist_no_description">Sin descripción</string>
+    <string name="plist_label_type">Tipo</string>
+    <string name="plist_label_location">Ubicación</string>
+    <string name="plist_label_created">Creada</string>
+    <string name="plist_label_changed">Último cambio</string>
+    <string name="plist_by_on">%1$s · %2$s</string>
+    <string name="plist_label_attributes">Otros datos</string>
+    <string name="plist_members_header">Miembros</string>
+    <string name="plist_members_search_hint">Buscar un miembro</string>
+    <string name="plist_add_patients">Añadir pacientes</string>
+    <string
+        name="plist_members_empty_title"
+    >No hay pacientes en esta lista de pacientes</string>
+    <string
+        name="plist_members_empty_body"
+    >Añada los pacientes que quiere reunir.</string>
+    <string
+        name="plist_members_no_match"
+    >Ningún miembro coincide con la búsqueda</string>
+    <string name="plist_members_loading">Leyendo los miembros…</string>
+    <string
+        name="plist_members_offline"
+    >No se pudieron leer los miembros del servidor. Estos son los guardados en este dispositivo.</string>
+    <string
+        name="plist_member_remove"
+    >Quitar de esta lista de pacientes</string>
+    <string name="plist_member_will_remove">Se quitará</string>
+    <string name="plist_member_will_add">Pendiente de añadir</string>
+    <string name="plist_member_unknown">Paciente desconocido</string>
+    <string name="plist_refused_reason">No aceptado: %1$s</string>
+    <string name="plist_picker_search_hint">Nombre o identificador</string>
+    <string
+        name="plist_picker_hint"
+    >Se muestran los pacientes de este dispositivo. Escriba al menos 3 letras para buscar también en el servidor.</string>
+    <string name="plist_picker_on_device">En este dispositivo</string>
+    <string name="plist_picker_on_server">En el servidor</string>
+    <string name="plist_picker_none">No se encontró ningún paciente</string>
+    <string
+        name="plist_picker_server_failed"
+    >No se pudo consultar el servidor</string>
+    <string
+        name="plist_picker_already"
+    >Ya está en esta lista de pacientes</string>
+    <string
+        name="plist_picker_added_note"
+    >Se envían al servidor en cuanto es posible.</string>
+    <string name="help_lists_pending_title">Cambios pendientes</string>
+    <string
+        name="help_lists_pending_body"
+    >Lo que cambia se guarda primero en este dispositivo. Esta línea indica cuántos cambios esperan. Enviar ahora los envía cuando hay conexión; una sincronización también lo hace.</string>
+    <string name="help_lists_new_title">Crear una lista</string>
+    <string
+        name="help_lists_new_body"
+    >Póngale un nombre y, si quiere, una descripción. Se crea para la ubicación que eligió.</string>
+    <string
+        name="help_plist_about_title"
+    >Acerca de la lista de pacientes</string>
+    <string
+        name="help_plist_about_body"
+    >La descripción, el tipo y la ubicación, quién creó la lista de pacientes y quién la cambió por última vez. Editar la renombra; Eliminar la quita, y puede deshacerlo mientras no se envíe.</string>
+    <string name="help_plist_members_title">Los miembros</string>
+    <string
+        name="help_plist_members_body"
+    >Los pacientes de la lista de pacientes. Búsquelos y use el botón de quitar para sacar uno. Una baja sigue en la lista, tachada, hasta que se envía: Deshacer la revierte.</string>
+    <string name="help_plist_add_title">Añadir pacientes</string>
+    <string
+        name="help_plist_add_body"
+    >Elija pacientes de este dispositivo o del servidor. Un paciente registrado aquí y aún sin enviar no se puede añadir hasta que se envíe.</string>
+    <string name="plists_new">Nueva lista de pacientes</string>
+    <string name="plist_open">Abrir esta lista de pacientes</string>
+    <string name="plist_create_confirm">Crear</string>
+    <string
+        name="plist_download"
+    >Conservar sus pacientes en este dispositivo</string>
+    <string
+        name="plist_download_hint"
+    >Se descargan con cada sincronización.</string>
+    <string
+        name="help_plist_download_title"
+    >Conservar sus pacientes aquí</string>
+    <string
+        name="help_plist_download_body"
+    >Con esto activado, los pacientes de la lista se descargan en este dispositivo con cada sincronización, como al marcar la lista en la pantalla Listas de pacientes.</string>
+    <plurals name="plists_pending">
+        <item quantity="one">%d cambio espera ser enviado</item>
+        <item quantity="other">%d cambios esperan ser enviados</item>
+    </plurals>
+    <plurals name="plists_sent">
+        <item quantity="one">%d cambio enviado</item>
+        <item quantity="other">%d cambios enviados</item>
+    </plurals>
+    <plurals name="plists_refused">
+        <item quantity="one">El servidor no aceptó %d cambio</item>
+        <item quantity="other">El servidor no aceptó %d cambios</item>
+    </plurals>
+    <plurals name="plists_dropped">
+        <item
+            quantity="one"
+        >%d cambio descartado: la lista de pacientes ya no existe</item>
+        <item
+            quantity="other"
+        >%d cambios descartados: la lista de pacientes ya no existe</item>
+    </plurals>
+    <plurals name="plist_picker_add">
+        <item quantity="one">Añadir %d paciente</item>
+        <item quantity="other">Añadir %d pacientes</item>
+    </plurals>
+    <plurals name="plist_picker_added">
+        <item quantity="one">%d paciente añadido</item>
+        <item quantity="other">%d pacientes añadidos</item>
+    </plurals>
+    <string name="plist_card_title">Listas de pacientes</string>
+    <string name="plist_card_manage">Gestionar</string>
+    <string name="plist_card_none">En ninguna lista de pacientes</string>
+    <string name="plist_membership_title">Listas de pacientes</string>
+    <string
+        name="plist_membership_hint"
+    >Marque las listas a las que pertenece este paciente. Los cambios se guardan aquí y se envían en cuanto es posible.</string>
+    <string
+        name="plist_to_identify_tag"
+    >A la espera de la identificación</string>
+    <string name="help_details_lists_title">Listas de pacientes</string>
+    <string
+        name="help_details_lists_body"
+    >Las listas de pacientes en las que está este paciente. Gestionar lo añade a una lista o lo quita; un paciente por identificar pasa a la lista cuando se identifica.</string>
+    <string name="plist_filter_all">Todos los pacientes</string>
+    <string name="plist_filter_chip">Lista: %1$s</string>
+    <string
+        name="plist_filter_empty"
+    >Ningún paciente de esta lista está en este dispositivo</string>
+    <string name="help_patients_filter_title">Filtrar por lista</string>
+    <string
+        name="help_patients_filter_body"
+    >Mostrar solo los pacientes de una lista de pacientes.</string>
+    <string
+        name="plist_session_choose_title"
+    >Elegir una lista de pacientes</string>
+    <string name="plist_session_in_list">En esta lista</string>
+    <string name="plist_session_added">Añadidos a la sesión</string>
+    <string name="plist_session_not_here">No está en este dispositivo</string>
+    <string
+        name="plist_session_added_note"
+    >Pasan a la lista de pacientes al empezar la sesión.</string>
+    <string name="plist_session_remove">Quitar de la sesión</string>
+    <string
+        name="plist_session_list_empty"
+    >Esta lista aún no tiene pacientes. Añada algunos abajo.</string>
+    <string name="plist_start_session">Iniciar una sesión de grupo</string>
+    <string
+        name="plist_picker_later_done"
+    >Añadido. El paciente pasará a la lista cuando se identifique.</string>
+    <string name="help_psession_list_title">Elegir la lista</string>
+    <string
+        name="help_psession_list_body"
+    >Elija la lista de pacientes de la sesión. Sus pacientes se ofrecen en los pasos siguientes.</string>
+    <string name="help_psession_patients_title">Quién participa</string>
+    <string
+        name="help_psession_patients_body"
+    >Los pacientes de la lista están marcados. Desmarque a los ausentes; los pacientes que no están en este dispositivo aparecen en gris.</string>
+    <string name="help_psession_add_title">Añadir pacientes</string>
+    <string
+        name="help_psession_add_body"
+    >Añada pacientes de fuera de la lista, o un paciente por identificar después: pasan a la lista al empezar la sesión.</string>
+    <string name="help_plist_session_title">Iniciar una sesión</string>
+    <string
+        name="help_plist_session_body"
+    >Haga una sesión de grupo con los pacientes de esta lista: desmarque a los ausentes y añada otros, que pasan a la lista.</string>
+    <string
+        name="plist_session_none"
+    >No hay ninguna lista de pacientes descargada en este dispositivo. Marque una en la pantalla Listas de pacientes para hacer una sesión.</string>
+    <string
+        name="plist_session_choose_hint"
+    >Una sesión de grupo se hace con los pacientes de una lista descargada. Puede añadir otros pacientes: pasan a formar parte de la lista.</string>
+    <string
+        name="plist_picker_not_sent"
+    >Aún no enviado al servidor: pasa a la lista tras el envío</string>
+    <string
+        name="plist_membership_unsent"
+    >Este paciente aún no se ha enviado al servidor. La incorporación espera al envío del paciente y luego se envía.</string>
+    <string name="plist_waits_upload_tag">A la espera del envío</string>
+    <string name="plist_picker_create_prompt">¿No está en la lista?</string>
+    <string name="plist_picker_create_action">Crear un paciente</string>
+    <string
+        name="home_lists_dialog_title"
+    >Listas de pacientes seleccionadas</string>
+    <string name="home_lists_change">Cambiar</string>
+    <string
+        name="home_lists_view"
+    >Ver las listas de pacientes seleccionadas</string>
+    <string name="help_home_inuse_title">Listas de pacientes en uso</string>
+    <string
+        name="help_home_inuse_body"
+    >Las listas de pacientes con las que trabaja: sus pacientes están en este dispositivo. El ojo las muestra todas y Cambiar abre la pantalla Listas de pacientes.</string>
+    <string
+        name="plist_session_download_failed"
+    >No se pudieron descargar del servidor algunos pacientes y se han dejado fuera.</string>
+    <string
+        name="plist_picker_session_hint"
+    >Se muestran los pacientes de este dispositivo; con el modo en vivo, escriba 3 letras para buscar también en el servidor. Los pacientes añadidos ahora pasan a la lista al empezar la sesión.</string>
+    <plurals name="home_lists_selected">
+        <item quantity="one">%d lista de pacientes seleccionada</item>
+        <item quantity="other">%d listas de pacientes seleccionadas</item>
+    </plurals>
+    <plurals name="home_summary_to_identify">
+        <item quantity="one">%d paciente por identificar</item>
+        <item quantity="other">%d pacientes por identificar</item>
+    </plurals>
+    <string
+        name="plist_ambiguous_upload_tag"
+    >No se pudo saber de qué paciente se trata: añádalo de nuevo desde la lista</string>
+    <string
+        name="title_server_compatibility"
+    >Compatibilidad del servidor</string>
+    <string
+        name="compat_intro"
+    >La aplicación necesita del servidor algunas funciones además de OpenMRS estándar. Esta página las comprueba. Lo que el servidor no puede hacer se omite en la aplicación, para que nada de lo que haga sea rechazado después.</string>
+    <string name="compat_server_line">Servidor: %1$s</string>
+    <string name="compat_checked_at">Última comprobación: %1$s</string>
+    <string name="compat_never">Aún no comprobado</string>
+    <string
+        name="compat_unreachable"
+    >No se pudo contactar con el servidor, así que no se comprobó nada: %1$s</string>
+    <string name="compat_check_again">Comprobar de nuevo</string>
+    <string name="compat_checking">Comprobando…</string>
+    <string name="compat_test_write">Probar la escritura</string>
+    <string
+        name="compat_test_write_title"
+    >¿Probar la escritura en el servidor?</string>
+    <string
+        name="compat_test_write_message"
+    >Se crea una lista de pacientes temporal en el servidor y se elimina enseguida. No se cambia nada más. Si el servidor la rechaza, los cambios de las listas de pacientes no se ofrecerán ni se enviarán.</string>
+    <string name="compat_test_write_confirm">Hacer la prueba</string>
+    <string name="compat_copy">Copiar el informe</string>
+    <string name="compat_copied">Informe copiado</string>
+    <string name="compat_state_ok">Compatible</string>
+    <string
+        name="compat_state_unsupported"
+    >No compatible: se omite en la aplicación</string>
+    <string name="compat_state_unknown">No se pudo comprobar</string>
+    <string name="compat_state_info">Informativo</string>
+    <string name="compat_state_not_used">No lo usa esta aplicación</string>
+    <string name="compat_state_pending">Aún no comprobado</string>
+    <string name="compat_state_installed">Instalado</string>
+    <string name="compat_state_not_installed">No instalado</string>
+    <string name="compat_server_title">Conexión e inicio de sesión</string>
+    <string
+        name="compat_server_what"
+    >La aplicación llega al servidor y su cuenta es aceptada.</string>
+    <string name="compat_fhir_title">Interfaz FHIR (R4)</string>
+    <string
+        name="compat_fhir_what"
+    >Necesaria para sincronizar pacientes, encuentros y formularios.</string>
+    <string
+        name="compat_groups_read_title"
+    >Las listas de pacientes se pueden leer</string>
+    <string
+        name="compat_groups_read_what"
+    >Necesario para ofrecer listas de pacientes para descargar.</string>
+    <string
+        name="compat_groups_write_title"
+    >Las listas de pacientes se pueden crear y cambiar</string>
+    <string
+        name="compat_groups_write_what"
+    >Sin esto las listas de pacientes son de solo lectura: no se pueden crear, renombrar ni eliminar.</string>
+    <string
+        name="compat_group_members_title"
+    >Se pueden añadir pacientes a una lista y quitarlos</string>
+    <string
+        name="compat_group_members_what"
+    >Sin esto los miembros de una lista no se pueden cambiar desde la aplicación.</string>
+    <string name="compat_cohort_module_title">Módulo Cohort</string>
+    <string
+        name="compat_cohort_module_what"
+    >No es obligatorio. Cuando está instalado, el FHIR estándar se niega a escribir listas de pacientes: el servidor necesita su propio módulo de listas de pacientes.</string>
+    <string
+        name="compat_concept_id_title"
+    >Concepto del id de lista de las sesiones de grupo</string>
+    <string
+        name="compat_concept_id_what"
+    >Sin él, los encuentros de una sesión de grupo no registran el id de su lista.</string>
+    <string
+        name="compat_concept_name_title"
+    >Concepto del nombre de lista de las sesiones de grupo</string>
+    <string
+        name="compat_concept_name_what"
+    >Sin él, los encuentros de una sesión de grupo no registran el nombre de su lista.</string>
+    <string name="help_compat_actions_title">Comprobar el servidor</string>
+    <string
+        name="help_compat_actions_body"
+    >Comprobar de nuevo lee lo que admite el servidor. Probar la escritura crea una lista de pacientes temporal en el servidor y la elimina: es la única forma segura de saber si el servidor acepta cambios en las listas de pacientes. Copie el informe para enviarlo a quien administra el servidor.</string>
+    <string name="help_compat_list_title">Lo que admite el servidor</string>
+    <string
+        name="help_compat_list_body"
+    >Cada línea es algo que necesita la aplicación. Una marca verde significa compatible; una cruz roja, que el servidor no puede hacerlo y la aplicación omite esa función; un signo de interrogación, que la comprobación no pudo determinarlo. El texto gris es la respuesta del servidor, para quien depura.</string>
+    <string name="help_settings_advanced_title">Ajustes avanzados</string>
+    <string
+        name="help_settings_advanced_body"
+    >Para administradores y soporte: la dirección del servidor y la prueba de conexión, cada cuánto se comprueba el token de inicio de sesión, el intervalo de sincronización, los formularios del servidor y las comprobaciones de compatibilidad del servidor.</string>
+    <string name="settings_section_advanced">Ajustes avanzados</string>
+    <string
+        name="settings_advanced_description"
+    >Para administradores y soporte: servidor, tokens, formularios y lo que admite el servidor.</string>
+    <string name="settings_advanced_show">Mostrar los ajustes avanzados</string>
+    <string name="settings_advanced_hide">Ocultar los ajustes avanzados</string>
+    <string name="settings_compat_title">Compatibilidad del servidor</string>
+    <string
+        name="settings_compat_summary"
+    >%1$d compatibles, %2$d no compatibles (omitidos en la aplicación)</string>
+    <string
+        name="settings_compat_unchecked"
+    >El servidor aún no se ha comprobado.</string>
+    <string name="settings_compat_open">Abrir las comprobaciones</string>
+    <string
+        name="plist_readonly_banner"
+    >Este servidor no acepta cambios en las listas de pacientes, por eso son de solo lectura.</string>
+    <string
+        name="plist_readonly_members_banner"
+    >Este servidor no permite añadir pacientes a una lista ni quitarlos.</string>
+    <string name="plist_readonly_open">Compatibilidad del servidor</string>
+    <string name="title_form_updates">Formularios del servidor</string>
+    <string
+        name="forms_updates_intro_app"
+    >La aplicación usa los formularios que incluye. Consulte el servidor para ver cuáles son diferentes y actualice los que elija: un formulario actualizado se usa en lugar de la versión de la aplicación.</string>
+    <string
+        name="forms_updates_intro_server"
+    >La aplicación usa los formularios del servidor. Consulte el servidor para ver cuáles son nuevos o han cambiado y tómelos.</string>
+    <string name="forms_updates_never">Aún no se ha comprobado</string>
+    <string name="forms_updates_checked">Comprobado el %1$s</string>
+    <string name="forms_updates_checking">Consultando el servidor…</string>
+    <string name="forms_updates_checking_short">Comprobando…</string>
+    <string name="forms_updates_check">Consultar el servidor</string>
+    <string name="forms_updates_take_all">Actualizar todo (%1$d)</string>
+    <string
+        name="forms_updates_all_current"
+    >Todos los formularios están al día</string>
+    <string name="forms_updates_error">No se pudo comprobar: %1$s</string>
+    <string
+        name="forms_updates_sign_in"
+    >Inicie sesión para consultar los formularios del servidor.</string>
+    <string
+        name="forms_updates_unreachable"
+    >No se puede acceder al servidor ahora.</string>
+    <string name="forms_state_not_checked">Sin comprobar</string>
+    <string name="forms_state_up_to_date">Al día</string>
+    <string name="forms_state_update">Actualización disponible</string>
+    <string name="forms_state_new">Nuevo en el servidor</string>
+    <string name="forms_state_not_on_server">No está en el servidor</string>
+    <string
+        name="forms_state_not_usable"
+    >La copia del servidor no se puede usar</string>
+    <string name="forms_using_app">Se usa la versión de la aplicación</string>
+    <string name="forms_using_server">Se usa la versión del servidor</string>
+    <string name="forms_using_none">No está en este dispositivo</string>
+    <string name="forms_server_version">Versión del servidor %1$s</string>
+    <string name="forms_action_update">Actualizar</string>
+    <string name="forms_action_add">Añadir</string>
+    <string
+        name="forms_action_use_app"
+    >Usar la versión de la aplicación</string>
+    <string name="forms_msg_found">%1$d actualizaciones, %2$d nuevos</string>
+    <string
+        name="forms_msg_back_to_app"
+    >%1$s: se vuelve a usar la versión de la aplicación</string>
+    <string
+        name="embedded_forms_only_description"
+    >La aplicación usa los formularios que incluye y la sincronización no descarga cuestionarios del servidor. Los formularios que actualice desde el servidor (Ajustes avanzados) se usan en lugar de la versión de la aplicación.</string>
+    <string
+        name="fetch_questionnaires_description"
+    >Vea qué formularios son diferentes en el servidor y actualice los que elija.</string>
+    <string name="help_formupdates_actions_title">Consultar el servidor</string>
+    <string
+        name="help_formupdates_actions_body"
+    >Pregunte al servidor qué formularios son diferentes o nuevos y actualícelos todos o elíjalos uno por uno. Nada cambia hasta que lo haga.</string>
+    <string name="help_formupdates_list_title">Sus formularios</string>
+    <string
+        name="help_formupdates_list_body"
+    >Cada formulario indica si está al día, qué versión se usa y qué tiene el servidor. Actualizar toma la versión del servidor; Usar la versión de la aplicación vuelve atrás.</string>
+    <string
+        name="plists_guest_note"
+    >Está trabajando sin iniciar sesión. Las listas de pacientes que cree o cambie se guardan en este dispositivo y se envían después de iniciar sesión y sincronizar.</string>
+    <string name="plist_action_history">Historial</string>
+    <string name="plist_action_export">Exportar</string>
+    <string name="plist_history_title">Historial de la lista</string>
+    <string
+        name="plist_history_empty"
+    >Todavía no se ha hecho nada en esta lista con este dispositivo.</string>
+    <string name="plist_history_created">Lista creada: %1$s</string>
+    <string name="plist_history_renamed">Renombrada a %1$s</string>
+    <string name="plist_history_deleted">Lista eliminada</string>
+    <string name="plist_history_added">%1$s añadido a la lista</string>
+    <string name="plist_history_removed">%1$s quitado de la lista</string>
+    <string name="plist_history_by_on">%1$s · %2$s</string>
+    <string name="plist_history_guest">Invitado</string>
+    <string
+        name="plist_history_note"
+    >Solo se muestra lo que se hizo en este dispositivo.</string>
+    <string name="plist_export_title">¿Exportar la lista?</string>
+    <string
+        name="plist_export_message"
+    >El archivo contiene los nombres, el sexo, las fechas de nacimiento y los identificadores de los pacientes de esta lista y no está protegido. Compártalo solo con personas autorizadas a ver estos datos.</string>
+    <string name="plist_export_confirm">Exportar</string>
+    <string
+        name="plist_export_columns"
+    >Nombre|Sexo|Fecha de nacimiento|Identificador|Id del paciente|Estado</string>
+    <string name="plist_export_status_in">En la lista</string>
+    <string
+        name="plist_export_empty"
+    >Esta lista no tiene pacientes que exportar.</string>
+    <string name="plist_export_subject">Lista de pacientes %1$s</string>
+    <string name="plist_export_chooser">Compartir la lista</string>
+    <string name="plist_export_failed">No se pudo exportar la lista.</string>
+    <string name="help_plist_history_title">Historial</string>
+    <string
+        name="help_plist_history_body"
+    >Muestra lo que se hizo en esta lista con este dispositivo, quién y cuándo: lista creada o renombrada, pacientes añadidos o quitados. Se conserva después de enviar los cambios.</string>
+    <string name="help_plist_export_title">Exportar la lista</string>
+    <string
+        name="help_plist_export_body"
+    >Guarda los pacientes de la lista en un archivo de hoja de cálculo (CSV) que puede compartir. El archivo no está protegido: compártalo solo con personas autorizadas a ver estos datos.</string>
+    <string
+        name="plist_session_no_join_note"
+    >Este servidor no permite añadir pacientes a una lista: los pacientes que añada participan solo en esta sesión.</string>
+    <string name="plist_picker_select_all">Seleccionar todo (%1$d)</string>
+    <string name="plist_picker_unselect_all">Quitar la selección</string>
+    <string
+        name="plist_picker_from_list"
+    >Añadir los miembros de otra lista</string>
+    <string
+        name="plist_picker_from_list_title"
+    >Elija una lista de pacientes</string>
+    <string
+        name="plist_picker_from_list_none"
+    >No hay otra lista de pacientes en este dispositivo.</string>
+    <string
+        name="plist_picker_from_list_unreachable"
+    >No se pudieron leer los miembros de esa lista: conéctese al servidor e inténtelo de nuevo.</string>
+    <string
+        name="plist_picker_from_list_empty"
+    >Esa lista no tiene pacientes que añadir.</string>
+    <string name="help_plist_bulk_title">Seleccionar varios a la vez</string>
+    <string
+        name="help_plist_bulk_body"
+    >Seleccionar todo elige a todos los pacientes mostrados, así que busque primero para acotarlos. Añadir los miembros de otra lista elige a todos los de la lista que indique. Revise después la selección y añada.</string>
+    <string
+        name="plist_registered_joined"
+    >Añadido a la lista de pacientes %1$s</string>
+    <string name="sync_status_action_needed">Acción necesaria</string>
+    <string
+        name="sync_identify_hint"
+    >Sus registros se quedan en este dispositivo hasta que los identifique.</string>
+    <string name="sync_identify_review">Revisar</string>
+    <string
+        name="help_sync_status_body"
+    >Si hay algo pendiente de subir o que requiere su acción (un paciente por identificar) y cuándo se sincronizaron los datos por última vez.</string>
+    <string
+        name="help_home_summary_body"
+    >Cuántos pacientes hay en este dispositivo y cuántos cambios esperan aún para subirse o requieren su acción, como un paciente por identificar. Toque para abrir la página Sincronización.</string>
+    <string
+        name="help_patients_register_body"
+    >Añada un paciente nuevo. Los datos obligatorios deben completarse antes de guardar. Si hay una lista de pacientes elegida como filtro, el nuevo paciente se añade a esa lista.</string>
+    <plurals name="login_pending_list_changes">
+        <item quantity="one">%d cambio de lista de pacientes en espera</item>
+        <item
+            quantity="other"
+        >%d cambios de listas de pacientes en espera</item>
+    </plurals>
+    <plurals name="forms_updates_count">
+        <item quantity="one">%d actualización disponible</item>
+        <item quantity="other">%d actualizaciones disponibles</item>
+    </plurals>
+    <plurals name="forms_new_count">
+        <item quantity="one">%d nuevo en el servidor</item>
+        <item quantity="other">%d nuevos en el servidor</item>
+    </plurals>
+    <plurals name="forms_msg_taken">
+        <item quantity="one">%d formulario actualizado</item>
+        <item quantity="other">%d formularios actualizados</item>
+    </plurals>
+    <plurals name="plist_picker_from_list_members">
+        <item quantity="one">%d paciente</item>
+        <item quantity="other">%d pacientes</item>
+    </plurals>
+    <plurals name="plist_picker_from_list_done">
+        <item quantity="one">%d paciente de la lista seleccionado</item>
+        <item quantity="other">%d pacientes de la lista seleccionados</item>
+    </plurals>
 </resources>

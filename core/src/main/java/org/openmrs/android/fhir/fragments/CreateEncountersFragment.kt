@@ -101,7 +101,11 @@ class CreateEncountersFragment : Fragment() {
           sessions = choices,
           onResume = { form, summary ->
             pendingChoices.value = emptyList()
-            navigateToGroupFormEntry(form.questionnaireId, summary.patientIds.toTypedArray())
+            navigateToGroupFormEntry(
+              form.questionnaireId,
+              summary.patientIds.toTypedArray(),
+              summary.patientListId,
+            )
           },
           onDismiss = { pendingChoices.value = emptyList() },
         )
@@ -179,7 +183,12 @@ class CreateEncountersFragment : Fragment() {
         sessions.size > 1 -> pendingChoices.value = sessions
         sessions.size == 1 -> {
           val (formItem, draft) = sessions.first()
-          showResumeDraftDialog(formItem, draft.patientIds.toTypedArray(), true)
+          showResumeDraftDialog(
+            formItem,
+            draft.patientIds.toTypedArray(),
+            draft.patientListId,
+            true,
+          )
         }
       }
     }
@@ -202,7 +211,7 @@ class CreateEncountersFragment : Fragment() {
         val draft = groupSessionDraftRepository.getDraft(questionnaireId)
         if (draft != null) {
           if (draft.hasContent()) {
-            showResumeDraftDialog(formItem, draft.patientIds.toTypedArray())
+            showResumeDraftDialog(formItem, draft.patientIds.toTypedArray(), draft.patientListId)
           } else {
             groupSessionDraftRepository.deleteDraft(questionnaireId)
             navigateToPatientSelection(questionnaireId)
@@ -231,16 +240,24 @@ class CreateEncountersFragment : Fragment() {
   private fun navigateToPatientSelection(questionnaireId: String) {
     val action =
       CreateEncountersFragmentDirections
-        .actionCreateEncounterFragmentToPatientSelectionDialogFragment(questionnaireId)
+        .actionCreateEncounterFragmentToGroupSessionPatientsFragment(
+          patientListId = args.patientListId,
+          questionnaireId = questionnaireId,
+        )
     findNavController().navigate(action)
   }
 
-  private fun navigateToGroupFormEntry(questionnaireId: String, patientIds: Array<String>) {
+  private fun navigateToGroupFormEntry(
+    questionnaireId: String,
+    patientIds: Array<String>,
+    patientListId: String?,
+  ) {
     val action =
       CreateEncountersFragmentDirections.actionCreateEncounterFragmentToGroupFormEntryFragment(
         questionnaireId = questionnaireId,
         patientIds = patientIds,
         resumeDraft = true,
+        patientListId = patientListId.orEmpty(),
       )
     findNavController().navigate(action)
   }
@@ -248,6 +265,7 @@ class CreateEncountersFragment : Fragment() {
   private fun showResumeDraftDialog(
     formItem: FormItem,
     patientIds: Array<String>,
+    patientListId: String?,
     showCancel: Boolean = false,
   ) {
     val dialog =
@@ -260,7 +278,7 @@ class CreateEncountersFragment : Fragment() {
           ),
         )
         .setPositiveButton(getString(R.string.resume_session)) { _, _ ->
-          navigateToGroupFormEntry(formItem.questionnaireId, patientIds)
+          navigateToGroupFormEntry(formItem.questionnaireId, patientIds, patientListId)
         }
 
     if (showCancel) {

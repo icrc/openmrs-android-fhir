@@ -50,7 +50,5 @@ object Constants {
   const val SHOW_SCREENER_EXTENSION_URL = "https://openmrs.org/ext/show-screener"
 
   const val SESSION_IDENTIFIER_UUID = "6a803908-8a5b-4598-adea-19358c83529a"
-  const val COHORT_IDENTIFIER_UUID = "5461f231-7e59-4be8-93a4-6d49fd13c00a"
-  const val COHORT_NAME_UUID = "6029f289-92a6-4a68-80f1-3078d0152449"
   const val SESSION_DATE_UUID = "ceaca505-6dff-4940-8a43-8c060a0924d7"
 }

@@ -71,8 +71,60 @@ fun expandAliasedUrls(json: String): String {
       .put("s", "http://hl7.org/fhir/uv/sdc/StructureDefinition/")
       .put("o", "http://fhir.openmrs.org/ext/")
       .put("q", "http://hl7.org/fhir/questionnaire-item-control")
-  return expandObject(JSONObject(json), prefixes, null).toString()
+  return withNumbersKept(json) { expandObject(JSONObject(it), prefixes, null).toString() }
 }
+
+/**
+ * Runs [transform] on [json] with every number written as a placeholder text, and puts the numbers
+ * back as they were written. `org.json` reads a number into a `Double` or an `Integer` and writes
+ * that back, so `45.0` became `45`, `1.50` became `1.5` and a long decimal lost its digits: a form
+ * from the server (read by the FHIR parser as written) and the same form bundled with the app then
+ * gave different decimals, limits and extracted values.
+ */
+private fun withNumbersKept(json: String, transform: (String) -> String): String {
+  val numbers = ArrayList<String>()
+  val masked = StringBuilder(json.length)
+  var inString = false
+  var i = 0
+  while (i < json.length) {
+    val c = json[i]
+    when {
+      inString -> {
+        masked.append(c)
+        if (c == '\\' && i + 1 < json.length) {
+          masked.append(json[++i])
+        } else if (c == '"') {
+          inString = false
+        }
+        i++
+      }
+      c == '"' -> {
+        inString = true
+        masked.append(c)
+        i++
+      }
+      c == '-' || c in '0'..'9' -> {
+        var end = i + 1
+        while (end < json.length && json[end] in NUMBER_CHARS) end++
+        masked.append('"').append(NUMBER_MARK).append(numbers.size).append('"')
+        numbers.add(json.substring(i, end))
+        i = end
+      }
+      else -> {
+        masked.append(c)
+        i++
+      }
+    }
+  }
+  if (numbers.isEmpty()) return transform(json)
+  val out = transform(masked.toString())
+  val placeholder = Regex("\"" + NUMBER_MARK + "(\\d+)\"")
+  return placeholder.replace(out) { numbers[it.groupValues[1].toInt()] }
+}
+
+/** What a number is written with, and the text that stands for one while it is transformed. */
+private const val NUMBER_CHARS = "0123456789+-.eE"
+private const val NUMBER_MARK = "__number__"
 
 /**
  * The plain FHIR JSON of a bundled questionnaire. With a [locale] only the translations in the
@@ -82,14 +134,16 @@ fun expandAliasedUrls(json: String): String {
  */
 fun expandCompactQuestionnaire(json: String, locale: Locale? = null): String {
   if (!COMPACT_START.containsMatchIn(json.take(COMPACT_START_WINDOW))) return json
-  val root = JSONObject(json)
-  val prefixes = root.getJSONObject(COMPACT_MARKER)
-  root.remove(COMPACT_MARKER)
   val keep =
     locale?.let {
       LanguageFilter(it.language.lowercase(Locale.ROOT), it.toLanguageTag().lowercase(Locale.ROOT))
     }
-  return expandObject(root, prefixes, keep).toString()
+  return withNumbersKept(json) { text ->
+    val root = JSONObject(text)
+    val prefixes = root.getJSONObject(COMPACT_MARKER)
+    root.remove(COMPACT_MARKER)
+    expandObject(root, prefixes, keep).toString()
+  }
 }
 
 /** Which translations stay: the language itself or one of its regional variants. */

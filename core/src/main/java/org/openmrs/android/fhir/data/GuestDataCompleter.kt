@@ -39,6 +39,7 @@ import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.ResourceType
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.database.AppDatabase
 import timber.log.Timber
@@ -82,6 +83,9 @@ class GuestDataCompleter(
         as? Location
         ?: return Result.NoLocation
 
+    FhirApplication.appComponent(context.applicationContext)
+      .patientListRepository()
+      .completeLocation(locationId, location.name)
     val patientsStillWithoutIdentifiers = completePatients(location, fetchIdentifiers)
     completeEncounters(locationId)
     return if (patientsStillWithoutIdentifiers == 0) {

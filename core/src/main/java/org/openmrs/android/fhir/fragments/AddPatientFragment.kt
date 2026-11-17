@@ -84,6 +84,12 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
   private val identifyEntryId: String
     get() = arguments?.getString(ARG_IDENTIFY_ENTRY).orEmpty()
 
+  private val forSession: Boolean
+    get() = arguments?.getBoolean(ARG_FOR_SESSION, false) == true
+
+  private val joinListId: String
+    get() = arguments?.getString(ARG_JOIN_LIST).orEmpty()
+
   private val locationBanner = mutableStateOf<LocationBannerState>(LocationBannerState.Loading)
 
   override fun onCreateView(
@@ -107,6 +113,7 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
       locationBanner.value = location.bannerState(requireContext())
     }
     viewModel.identifyEntryId = identifyEntryId
+    viewModel.joinListId = joinListId
     if (identifyEntryId.isNotEmpty() && savedInstanceState == null) {
       AppMessage.show(
         requireContext(),
@@ -205,6 +212,22 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
           MessageKind.Success,
         )
       }
+      viewModel.joinedListName?.let {
+        AppMessage.show(
+          requireContext(),
+          getString(R.string.plist_registered_joined, it),
+          MessageKind.Success,
+        )
+      }
+      if (forSession) {
+        val controller = NavHostFragment.findNavController(this)
+        runCatching { controller.getBackStackEntry(R.id.groupSessionPatientsFragment) }
+          .getOrNull()
+          ?.savedStateHandle
+          ?.set(GroupSessionPatientsFragment.RESULT_PATIENT_IDS, arrayListOf(savedId))
+        controller.popBackStack(R.id.groupSessionPatientsFragment, false)
+        return@observe
+      }
       // Back from the patient's page is where the user came from.
       NavHostFragment.findNavController(this)
         .navigate(
@@ -239,6 +262,10 @@ class AddPatientFragment : Fragment(R.layout.add_patient_fragment) {
   companion object {
     /** The patient to identify after the registration is for (its id). */
     const val ARG_IDENTIFY_ENTRY = "identify_entry_id"
+
+    const val ARG_FOR_SESSION = "for_session"
+
+    const val ARG_JOIN_LIST = "join_list_id"
 
     const val QUESTIONNAIRE_FRAGMENT_TAG = "questionnaire-fragment-tag"
   }

@@ -28,5 +28,4 @@ request is therefore sent again *inside* the call, before the library hears of t
     connect, unknown host). After a reset in the middle of an exchange the server may have done the
     work, and a second POST could create it twice; the sync fails as before and the next one sends it.
 
-Each retry is logged, so a bad network can be told from the diagnostics log. Tests: `SyncRetriesTest`,
-`RetryingRequestsTest`.
+Each retry is logged, so a bad network can be told from the diagnostics log.

@@ -57,7 +57,7 @@ action (`menu/help_menu.xml`) only when the screen on show has a tour, and `star
 it, unless a sync or a load is running (`TutorialGate`): it then says so and does not start. Its steps are all `Acknowledge`. A step is `optional` when its element may be absent (an empty
 list, an action only some users have): it is skipped instead of ending the tour. Views that are not
 composables are listed in `Tour.viewTargets` (key to view id). A screen without a tour (identifier
-choice, the patient dialog of a group session, unsynced resources) has no "?".
+choice, unsynced resources) has no "?".
 
 ## The card
 

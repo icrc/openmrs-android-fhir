@@ -86,11 +86,13 @@ class HomeFragment : Fragment() {
       OpenMrsTheme {
         val activityState by mainActivityViewModel.uiState.collectAsStateWithLifecycle()
         val summary by homeViewModel.summary.collectAsStateWithLifecycle()
+        val selectedLists by homeViewModel.selectedLists.collectAsStateWithLifecycle()
         androidx.compose.runtime.LaunchedEffect(activityState.lastSyncText) {
           homeViewModel.refreshSummary()
         }
         HomeScreen(
           summary = summary,
+          selectedLists = selectedLists,
           locationName = activityState.locationMenuTitle,
           lastSyncText = activityState.lastSyncText,
           onNewPatientClicked = homeViewModel::onNewPatientClicked,
@@ -176,12 +178,7 @@ class HomeFragment : Fragment() {
           .navigate(HomeFragmentDirections.actionHomeFragmentToSelectPatientListFragment(false))
       HomeEvent.NavigateToGroupEncounter ->
         findNavController()
-          .navigate(
-            HomeFragmentDirections.actionHomeFragmentToCreateEncounterFragment(
-              patientId = "",
-              isGroupEncounter = true,
-            ),
-          )
+          .navigate(HomeFragmentDirections.actionHomeFragmentToGroupSessionListFragment())
       HomeEvent.NavigateToSyncInfo ->
         findNavController().navigate(HomeFragmentDirections.actionHomeFragmentToSyncInfoFragment())
       HomeEvent.NavigateToImportExport ->

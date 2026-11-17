@@ -277,16 +277,9 @@
     <string name="completed_at">أكمل في</string>
     <string name="errors">الأخطاء</string>
     <string name="group_encounters">جلسة جماعية</string>
-    <string
-        name="please_select_at_least_one_patient"
-    >يرجى تحديد مريض واحد على الأقل.</string>
-    <string
-        name="select_patients_for_group_encounter"
-    >حدد المرضى لمواجهة المجموعة</string>
     <string name="select_all_patients">حدد جميع المرضى</string>
     <string name="patient_is_saved">يتم حفظ المريض.</string>
     <string name="inputs_are_missing">المدخلات مفقودة.</string>
-    <string name="start">يبدأ</string>
     <string
         name="encounter_questionnaire_not_found_try_again_later"
     >لم يتم العثور على استبيان اللقاء ، حاول مرة أخرى لاحقًا</string>
@@ -558,15 +551,9 @@
     <string
         name="fetch_questionnaires"
     >التحقق من النماذج الجديدة والمحدّثة</string>
-    <string name="fetching_questionnaires">جارٍ جلب الاستبيانات…</string>
-    <string
-        name="fetch_questionnaires_description"
-    >يبحث في الخادم عن النماذج غير الموجودة في التطبيق وعن إصدارات أحدث للنماذج الموجودة.</string>
-    <string name="questionnaires_up_to_date">الاستبيانات محدثة.</string>
     <string
         name="questionnaires_fetch_failed"
     >تعذّر جلب الاستبيانات. تحقق من الاتصال وحاول مرة أخرى.</string>
-    <string name="questionnaires_added">الاستبيانات الجديدة المضافة: %d</string>
     <string
         name="questionnaire_required_answers_missing"
     >أجب عن الأسئلة المطلوبة في هذه الصفحة للمتابعة. وهي مُعلَّمة باللون الأحمر.</string>
@@ -712,9 +699,6 @@
     <string
         name="help_patients_identify_body"
     >دون اتصال والمريض موجود على الخادم وليس هنا؟ سجّل الآن وتعرّف عليه لاحقاً دون إنشاء نسخة مكررة.</string>
-    <string
-        name="help_patients_register_body"
-    >أضف مريضاً جديداً. يجب ملء البيانات المطلوبة قبل الحفظ.</string>
     <string name="help_details_overview_title">المريض</string>
     <string
         name="help_details_overview_body"
@@ -728,9 +712,6 @@
         name="help_details_new_body"
     >سجّل زيارة أو املأ نموذجاً لهذا المريض.</string>
     <string name="help_sync_status_title">حالة المزامنة</string>
-    <string
-        name="help_sync_status_body"
-    >هل هناك ما ينتظر الرفع ومتى تمت آخر مزامنة للبيانات.</string>
     <string name="help_sync_mode_title">تنزيل أو رفع أو كلاهما</string>
     <string
         name="help_sync_mode_body"
@@ -780,7 +761,7 @@
     <string name="help_lists_list_title">اختيار القوائم</string>
     <string
         name="help_lists_list_body"
-    >حدّد القوائم التي تريد مرضاها على هذا الجهاز. تحديد قائمة ينزّل مرضاها فوراً، ودون أي قائمة لا يُنزَّل أي مريض.</string>
+    >حدّد القوائم التي تريد مرضاها على هذا الجهاز. تحديد قائمة ينزّل مرضاها فوراً، ودون أي قائمة لا يُنزَّل أي مريض. يفتح السهم القائمة: مرضاها وتفاصيلها ومن أنشأها.</string>
     <string name="help_location_search_title">البحث عن المواقع</string>
     <string
         name="help_location_search_body"
@@ -818,14 +799,10 @@
     <string
         name="sync_unavailable_offline"
     >لا يوجد اتصال بالخادم: المزامنة غير متاحة الآن.</string>
-    <string name="sync_identify_title">مرضى بانتظار التعرّف: %1$d</string>
-    <string
-        name="sync_identify_subtitle"
-    >تعرّف عليهم قبل المزامنة: لا تُرسل سجلاتهم حتى تفعل ذلك.</string>
     <string name="help_sync_identify_title">مرضى بانتظار التعرّف</string>
     <string
         name="help_sync_identify_body"
-    >عندما يُسجَّل مرضى للتعرّف عليهم لاحقاً يظهر هنا عددهم. لا ترسل أي مزامنة ما يحتويه سجلهم حتى تتعرّف عليهم، فافعل ذلك قبل المزامنة. يلزم مستخدم مسجّل الدخول ومتصل بالخادم؛ وإذا لم يكن المريض على الخادم يمكنك تسجيل مريض جديد بحذر.</string>
+    >المرضى المسجَّلون لتحديد هويتهم لاحقاً مدرجون هنا، وتذكر البطاقة أعلاه عددهم. لا ترسل أي مزامنة ما سُجّل لهم قبل تحديد هويتهم: اضغط «تعرّف الآن» في الصف. يتطلب مستخدماً مسجّل الدخول ومتصلاً بالخادم؛ وإذا لم يكن المريض على الخادم يمكنك تسجيل مريض جديد بحذر.</string>
     <string
         name="identify_requires_connection"
     >سجّل الدخول واتصل بالخادم للتعرّف عليهم.</string>
@@ -1027,9 +1004,6 @@
         name="sign_in_to_sync_message"
     >لرفع المرضى والنماذج التي أدخلتها، سجّل الدخول أولاً. كل ما أدخلته يبقى على هذا الجهاز.</string>
     <string name="sign_in">تسجيل الدخول</string>
-    <string
-        name="sign_in_for_patient_lists"
-    >سجّل الدخول لتنزيل قوائم المرضى.</string>
     <string name="identifier_types_required_title">المعرّف مطلوب</string>
     <string
         name="identifier_types_required_message"
@@ -1131,15 +1105,6 @@
     <string name="color_vision_color_blind">مناسب لعمى الألوان</string>
     <string name="embedded_forms_only">استخدام النماذج المضمنة فقط</string>
     <string
-        name="embedded_forms_only_description"
-    >يستخدم التطبيق النماذج المرفقة به فقط ولا ينزّل الاستبيانات من الخادم.</string>
-    <string
-        name="fetch_questionnaires_sign_in"
-    >سجّل الدخول للتحقق من النماذج الجديدة والمحدّثة على الخادم.</string>
-    <string
-        name="questionnaires_changes"
-    >نماذج جديدة: %1$d، محدّثة: %2$d</string>
-    <string
         name="diag_message"
     >اختر ما سيُرسل إلى فريق الدعم. كل شيء محدد افتراضياً. التقرير أرشيف مشفّر يُرسل بالبريد الإلكتروني.</string>
     <string name="diag_logs">سجلات التطبيق</string>
@@ -1186,10 +1151,6 @@
     </plurals>
     <string name="pending_session_line">جلسة معلّقة · %1$s · %2$s</string>
     <string name="patients_selected_of">تم اختيار %1$d من %2$d</string>
-    <string name="search_patients_hint">بحث عن المرضى</string>
-    <string
-        name="no_patients_to_select"
-    >لا يوجد مرضى للاختيار. سجّل مرضى أو زامنهم أولاً.</string>
     <string name="start_with_count">ابدأ (%1$d)</string>
     <string name="logout_delete_title">تسجيل الخروج وحذف جميع البيانات</string>
     <string
@@ -1428,9 +1389,6 @@
     <string name="home_summary_waiting">تغييرات لم تُرفع بعد: %1$d</string>
     <string name="home_summary_uploaded">تم رفع كل شيء</string>
     <string name="help_home_summary_title">نظرة سريعة</string>
-    <string
-        name="help_home_summary_body"
-    >عدد المرضى على هذا الجهاز وعدد التغييرات التي تنتظر الرفع. اضغط لفتح صفحة المزامنة.</string>
     <string name="help_home_menu_title">القائمة</string>
     <string
         name="help_home_menu_body"
@@ -1498,4 +1456,526 @@
     <string
         name="help_settings_forms_body"
     >أي النماذج تُعرض وبأي ترتيب، وهل تُنشأ الزيارات نيابةً عنك، وأي أنواع المعرّفات يحصل عليها المرضى الجدد.</string>
+    <string name="plists_try_again">حاول مجدداً</string>
+    <string name="plists_send_now">أرسل الآن</string>
+    <string name="plists_sending">جارٍ الإرسال…</string>
+    <string name="plist_state_new">لم تُرسل بعد</string>
+    <string name="plist_state_edited">تغييرات لم تُرسل</string>
+    <string name="plist_state_deleting">سيتم حذفها</string>
+    <string name="plist_state_refused">لم يقبلها الخادم</string>
+    <string name="plist_action_edit">تعديل</string>
+    <string name="plist_action_delete">حذف</string>
+    <string name="plist_action_undo">تراجع</string>
+    <string name="plist_action_discard">تجاهل التغييرات</string>
+    <string name="plist_edit_title">تعديل القائمة</string>
+    <string name="plist_field_name">الاسم</string>
+    <string name="plist_field_description">الوصف (اختياري)</string>
+    <string name="plist_name_required">أدخل اسماً</string>
+    <string name="plist_name_taken">توجد قائمة بهذا الاسم بالفعل</string>
+    <string name="plist_create_location">للموقع %1$s</string>
+    <string
+        name="plist_create_note"
+    >تُحفظ على هذا الجهاز وتُرسل إلى الخادم عندما يكون ذلك ممكناً.</string>
+    <string name="plist_delete_title">حذف هذه القائمة؟</string>
+    <string
+        name="plist_delete_message"
+    >سيتم حذف %1$s من الخادم عند إرسال التغيير. لا يُحذف المرضى، بل القائمة فقط. يمكنك التراجع حتى ذلك الحين.</string>
+    <string name="plists_send_nothing">لا شيء لإرساله</string>
+    <string
+        name="plists_send_unreachable"
+    >تعذر الوصول إلى الخادم. تبقى التغييرات على هذا الجهاز.</string>
+    <string name="plist_gone">لم تعد هذه القائمة موجودة على الخادم.</string>
+    <string name="plist_about">حول هذه القائمة</string>
+    <string name="plist_no_description">لا يوجد وصف</string>
+    <string name="plist_label_type">النوع</string>
+    <string name="plist_label_location">الموقع</string>
+    <string name="plist_label_created">تاريخ الإنشاء</string>
+    <string name="plist_label_changed">آخر تعديل</string>
+    <string name="plist_by_on">%1$s · %2$s</string>
+    <string name="plist_label_attributes">تفاصيل أخرى</string>
+    <string name="plist_members_header">الأعضاء</string>
+    <string name="plist_members_search_hint">ابحث عن عضو</string>
+    <string name="plist_add_patients">إضافة مرضى</string>
+    <string
+        name="plist_members_empty_title"
+    >لا يوجد مرضى في هذه القائمة</string>
+    <string
+        name="plist_members_empty_body"
+    >أضف المرضى الذين تريد جمعهم.</string>
+    <string name="plist_members_no_match">لا يوجد عضو يطابق بحثك</string>
+    <string name="plist_members_loading">جارٍ قراءة الأعضاء…</string>
+    <string
+        name="plist_members_offline"
+    >تعذرت قراءة الأعضاء من الخادم. هؤلاء هم المحفوظون على هذا الجهاز.</string>
+    <string name="plist_member_remove">إزالة من هذه القائمة</string>
+    <string name="plist_member_will_remove">ستتم إزالته</string>
+    <string name="plist_member_will_add">بانتظار الإضافة</string>
+    <string name="plist_member_unknown">مريض غير معروف</string>
+    <string name="plist_refused_reason">لم يُقبل: %1$s</string>
+    <string name="plist_picker_search_hint">الاسم أو المعرّف</string>
+    <string
+        name="plist_picker_hint"
+    >يُعرض مرضى هذا الجهاز. اكتب 3 أحرف على الأقل للبحث في الخادم أيضاً.</string>
+    <string name="plist_picker_on_device">على هذا الجهاز</string>
+    <string name="plist_picker_on_server">على الخادم</string>
+    <string name="plist_picker_none">لم يُعثر على مريض</string>
+    <string name="plist_picker_server_failed">تعذر البحث في الخادم</string>
+    <string name="plist_picker_already">موجود بالفعل في هذه القائمة</string>
+    <string
+        name="plist_picker_added_note"
+    >تُرسل إلى الخادم عندما يكون ذلك ممكناً.</string>
+    <string name="help_lists_pending_title">تغييرات بانتظار الإرسال</string>
+    <string
+        name="help_lists_pending_body"
+    >تُحفظ تغييراتك أولاً على هذا الجهاز. يبيّن هذا السطر عدد التغييرات المنتظرة. يرسلها «أرسل الآن» عند توفر الاتصال، وتفعل المزامنة ذلك أيضاً.</string>
+    <string name="help_lists_new_title">إنشاء قائمة</string>
+    <string
+        name="help_lists_new_body"
+    >أعطها اسماً ووصفاً إن شئت. تُنشأ للموقع الذي اخترته.</string>
+    <string name="help_plist_about_title">حول القائمة</string>
+    <string
+        name="help_plist_about_body"
+    >الوصف والنوع والموقع ومن أنشأ القائمة ومن عدّلها آخر مرة. يغيّر «تعديل» اسمها، ويحذفها «حذف»، ويمكنك التراجع ما دام لم يُرسل.</string>
+    <string name="help_plist_members_title">الأعضاء</string>
+    <string
+        name="help_plist_members_body"
+    >مرضى القائمة. ابحث عنهم واستخدم زر الإزالة لإخراج أحدهم. تبقى الإزالة في القائمة مشطوبة حتى تُرسل، ويعيده «تراجع».</string>
+    <string name="help_plist_add_title">إضافة مرضى</string>
+    <string
+        name="help_plist_add_body"
+    >اختر مرضى من هذا الجهاز أو من الخادم. لا يمكن إضافة مريض سجّلته هنا ولم يُرسل بعد حتى يُرسل.</string>
+    <string name="plists_new">قائمة مرضى جديدة</string>
+    <string name="plist_open">فتح قائمة المرضى هذه</string>
+    <string name="plist_create_confirm">إنشاء</string>
+    <string name="plist_download">الاحتفاظ بمرضاها على هذا الجهاز</string>
+    <string name="plist_download_hint">تُنزَّل مع كل مزامنة.</string>
+    <string name="help_plist_download_title">الاحتفاظ بالمرضى هنا</string>
+    <string
+        name="help_plist_download_body"
+    >عند تفعيل هذا الخيار يُنزَّل مرضى القائمة إلى هذا الجهاز مع كل مزامنة، كما لو حدّدتها في شاشة قوائم المرضى.</string>
+    <plurals name="plists_pending">
+        <item quantity="zero">لا توجد تغييرات بانتظار الإرسال</item>
+        <item quantity="one">تغيير واحد بانتظار الإرسال</item>
+        <item quantity="two">تغييران بانتظار الإرسال</item>
+        <item quantity="few">%d تغييرات بانتظار الإرسال</item>
+        <item quantity="many">%d تغييراً بانتظار الإرسال</item>
+        <item quantity="other">%d تغيير بانتظار الإرسال</item>
+    </plurals>
+    <plurals name="plists_sent">
+        <item quantity="zero">لم يُرسل أي تغيير</item>
+        <item quantity="one">تم إرسال تغيير واحد</item>
+        <item quantity="two">تم إرسال تغييرين</item>
+        <item quantity="few">تم إرسال %d تغييرات</item>
+        <item quantity="many">تم إرسال %d تغييراً</item>
+        <item quantity="other">تم إرسال %d تغيير</item>
+    </plurals>
+    <plurals name="plists_refused">
+        <item quantity="zero">لم يرفض الخادم أي تغيير</item>
+        <item quantity="one">رفض الخادم تغييراً واحداً</item>
+        <item quantity="two">رفض الخادم تغييرين</item>
+        <item quantity="few">رفض الخادم %d تغييرات</item>
+        <item quantity="many">رفض الخادم %d تغييراً</item>
+        <item quantity="other">رفض الخادم %d تغيير</item>
+    </plurals>
+    <plurals name="plists_dropped">
+        <item quantity="zero">لا تغييرات مهملة</item>
+        <item quantity="one">أُهمل تغيير واحد لأن القائمة لم تعد موجودة</item>
+        <item quantity="two">أُهمل تغييران لأن القائمة لم تعد موجودة</item>
+        <item quantity="few">أُهملت %d تغييرات لأن القائمة لم تعد موجودة</item>
+        <item quantity="many">أُهمل %d تغييراً لأن القائمة لم تعد موجودة</item>
+        <item quantity="other">أُهمل %d تغيير لأن القائمة لم تعد موجودة</item>
+    </plurals>
+    <plurals name="plist_picker_add">
+        <item quantity="zero">إضافة</item>
+        <item quantity="one">إضافة مريض واحد</item>
+        <item quantity="two">إضافة مريضين</item>
+        <item quantity="few">إضافة %d مرضى</item>
+        <item quantity="many">إضافة %d مريضاً</item>
+        <item quantity="other">إضافة %d مريض</item>
+    </plurals>
+    <plurals name="plist_picker_added">
+        <item quantity="zero">لم تتم إضافة أحد</item>
+        <item quantity="one">تمت إضافة مريض واحد</item>
+        <item quantity="two">تمت إضافة مريضين</item>
+        <item quantity="few">تمت إضافة %d مرضى</item>
+        <item quantity="many">تمت إضافة %d مريضاً</item>
+        <item quantity="other">تمت إضافة %d مريض</item>
+    </plurals>
+    <string name="plist_card_title">قوائم المرضى</string>
+    <string name="plist_card_manage">إدارة</string>
+    <string name="plist_card_none">ليس في أي قائمة مرضى</string>
+    <string name="plist_membership_title">قوائم المرضى</string>
+    <string
+        name="plist_membership_hint"
+    >حدّد القوائم التي ينتمي إليها هذا المريض. تُحفظ التغييرات هنا وتُرسل عندما يكون ذلك ممكناً.</string>
+    <string name="plist_to_identify_tag">بانتظار تحديد الهوية</string>
+    <string name="help_details_lists_title">قوائم المرضى</string>
+    <string
+        name="help_details_lists_body"
+    >قوائم المرضى التي يوجد فيها هذا المريض. تضيفه «إدارة» إلى قائمة أو تُخرجه منها، ويدخل المريض المراد تحديد هويته القائمة بعد تحديدها.</string>
+    <string name="plist_filter_all">كل المرضى</string>
+    <string name="plist_filter_chip">القائمة: %1$s</string>
+    <string
+        name="plist_filter_empty"
+    >لا يوجد على هذا الجهاز مرضى من هذه القائمة</string>
+    <string name="help_patients_filter_title">التصفية حسب القائمة</string>
+    <string name="help_patients_filter_body">عرض مرضى قائمة واحدة فقط.</string>
+    <string name="plist_session_choose_title">اختر قائمة مرضى</string>
+    <string name="plist_session_in_list">في هذه القائمة</string>
+    <string name="plist_session_added">أُضيفوا إلى الجلسة</string>
+    <string name="plist_session_not_here">ليس على هذا الجهاز</string>
+    <string
+        name="plist_session_added_note"
+    >ينضمون إلى قائمة المرضى عند بدء الجلسة.</string>
+    <string name="plist_session_remove">إزالة من الجلسة</string>
+    <string
+        name="plist_session_list_empty"
+    >لا يوجد مرضى في هذه القائمة بعد. أضف بعضهم أدناه.</string>
+    <string name="plist_start_session">بدء جلسة جماعية</string>
+    <string
+        name="plist_picker_later_done"
+    >تمت الإضافة. ينضم المريض إلى القائمة بعد تحديد هويته.</string>
+    <string name="help_psession_list_title">اختر القائمة</string>
+    <string
+        name="help_psession_list_body"
+    >اختر قائمة المرضى الخاصة بالجلسة. يُعرض مرضاها في الخطوات التالية.</string>
+    <string name="help_psession_patients_title">من يشارك</string>
+    <string
+        name="help_psession_patients_body"
+    >مرضى القائمة محدّدون. ألغِ تحديد الغائبين، والمرضى غير الموجودين على هذا الجهاز باللون الرمادي.</string>
+    <string name="help_psession_add_title">إضافة مرضى</string>
+    <string
+        name="help_psession_add_body"
+    >أضف مرضى من خارج القائمة أو مريضاً لتحديد هويته لاحقاً: ينضمون إلى القائمة عند بدء الجلسة.</string>
+    <string name="help_plist_session_title">بدء جلسة</string>
+    <string
+        name="help_plist_session_body"
+    >أجرِ جلسة جماعية مع مرضى هذه القائمة: ألغِ تحديد الغائبين وأضف آخرين ينضمون إلى القائمة.</string>
+    <string
+        name="plist_session_none"
+    >لا توجد قائمة مرضى منزَّلة على هذا الجهاز. حدّد قائمة في شاشة قوائم المرضى لعقد جلسة.</string>
+    <string
+        name="plist_session_choose_hint"
+    >تُعقد الجلسة الجماعية مع مرضى قائمة منزَّلة واحدة. يمكنك إضافة مرضى آخرين فينضمون إلى القائمة.</string>
+    <string
+        name="plist_picker_not_sent"
+    >لم يُرسل إلى الخادم بعد: ينضم إلى القائمة بعد الإرسال</string>
+    <string
+        name="plist_membership_unsent"
+    >لم يُرسل هذا المريض إلى الخادم بعد. تنتظر الإضافة إرسال المريض ثم تُرسل.</string>
+    <string name="plist_waits_upload_tag">بانتظار الإرسال</string>
+    <string name="plist_picker_create_prompt">ليس في القائمة؟</string>
+    <string name="plist_picker_create_action">إنشاء مريض جديد</string>
+    <string name="home_lists_dialog_title">قوائم المرضى المحددة</string>
+    <string name="home_lists_change">تغيير</string>
+    <string name="home_lists_view">عرض قوائم المرضى المحددة</string>
+    <string name="help_home_inuse_title">قوائم المرضى المستخدمة</string>
+    <string
+        name="help_home_inuse_body"
+    >قوائم المرضى التي تعمل بها: مرضاها على هذا الجهاز. تعرضها العين كلها، ويفتح «تغيير» شاشة قوائم المرضى.</string>
+    <string
+        name="plist_session_download_failed"
+    >تعذّر تنزيل بعض المرضى من الخادم وتم استبعادهم.</string>
+    <string
+        name="plist_picker_session_hint"
+    >تُعرض مرضى هذا الجهاز؛ في الوضع المباشر اكتب 3 أحرف للبحث في الخادم أيضاً. المرضى المضافون الآن ينضمون إلى القائمة عند بدء الجلسة.</string>
+    <plurals name="home_lists_selected">
+        <item quantity="zero">لم تُحدَّد قوائم</item>
+        <item quantity="one">تم تحديد قائمة مرضى واحدة</item>
+        <item quantity="two">تم تحديد قائمتي مرضى</item>
+        <item quantity="few">تم تحديد %d قوائم مرضى</item>
+        <item quantity="many">تم تحديد %d قائمة مرضى</item>
+        <item quantity="other">تم تحديد %d قائمة مرضى</item>
+    </plurals>
+    <plurals name="home_summary_to_identify">
+        <item quantity="zero">لا مرضى لتحديد هويتهم</item>
+        <item quantity="one">مريض واحد لتحديد هويته</item>
+        <item quantity="two">مريضان لتحديد هويتهما</item>
+        <item quantity="few">%d مرضى لتحديد هويتهم</item>
+        <item quantity="many">%d مريضاً لتحديد هويتهم</item>
+        <item quantity="other">%d مريض لتحديد هويتهم</item>
+    </plurals>
+    <string
+        name="plist_ambiguous_upload_tag"
+    >تعذّر معرفة أي مريض هذا: أضفه مجدداً من القائمة</string>
+    <string name="title_server_compatibility">توافق الخادم</string>
+    <string
+        name="compat_intro"
+    >يحتاج التطبيق إلى بعض الميزات من الخادم إضافةً إلى OpenMRS القياسي. تفحصها هذه الصفحة. ما لا يستطيع الخادم فعله يُستبعد من التطبيق حتى لا يُرفض لاحقاً ما تقوم به.</string>
+    <string name="compat_server_line">الخادم: %1$s</string>
+    <string name="compat_checked_at">آخر فحص: %1$s</string>
+    <string name="compat_never">لم يُفحص بعد</string>
+    <string
+        name="compat_unreachable"
+    >تعذّر الوصول إلى الخادم، لذلك لم يُفحص شيء: %1$s</string>
+    <string name="compat_check_again">فحص مجدداً</string>
+    <string name="compat_checking">جارٍ الفحص…</string>
+    <string name="compat_test_write">اختبار الكتابة</string>
+    <string name="compat_test_write_title">اختبار الكتابة على الخادم؟</string>
+    <string
+        name="compat_test_write_message"
+    >تُنشأ قائمة مرضى مؤقتة على الخادم وتُحذف فوراً. لا يتغير شيء آخر. إذا رفضها الخادم فلن تُعرض تعديلات قوائم المرضى ولن تُرسل.</string>
+    <string name="compat_test_write_confirm">إجراء الاختبار</string>
+    <string name="compat_copy">نسخ التقرير</string>
+    <string name="compat_copied">تم نسخ التقرير</string>
+    <string name="compat_state_ok">مدعوم</string>
+    <string
+        name="compat_state_unsupported"
+    >غير مدعوم: مُستبعد من التطبيق</string>
+    <string name="compat_state_unknown">تعذّر الفحص</string>
+    <string name="compat_state_info">للعلم</string>
+    <string name="compat_state_not_used">لا يستخدمه هذا التطبيق</string>
+    <string name="compat_state_pending">لم يُفحص بعد</string>
+    <string name="compat_state_installed">مثبّت</string>
+    <string name="compat_state_not_installed">غير مثبّت</string>
+    <string name="compat_server_title">الاتصال وتسجيل الدخول</string>
+    <string
+        name="compat_server_what"
+    >يصل التطبيق إلى الخادم ويُقبل حسابك.</string>
+    <string name="compat_fhir_title">واجهة FHIR (R4)</string>
+    <string
+        name="compat_fhir_what"
+    >ضرورية لمزامنة المرضى والزيارات والنماذج.</string>
+    <string name="compat_groups_read_title">يمكن قراءة قوائم المرضى</string>
+    <string
+        name="compat_groups_read_what"
+    >ضروري لعرض قوائم المرضى للتنزيل.</string>
+    <string
+        name="compat_groups_write_title"
+    >يمكن إنشاء قوائم المرضى وتعديلها</string>
+    <string
+        name="compat_groups_write_what"
+    >بدونه تكون قوائم المرضى للقراءة فقط: لا إنشاء ولا إعادة تسمية ولا حذف.</string>
+    <string
+        name="compat_group_members_title"
+    >يمكن إضافة المرضى إلى قائمة وإزالتهم</string>
+    <string
+        name="compat_group_members_what"
+    >بدونه لا يمكن تغيير أعضاء القائمة من التطبيق.</string>
+    <string name="compat_cohort_module_title">وحدة Cohort</string>
+    <string
+        name="compat_cohort_module_what"
+    >غير مطلوب. عند تثبيته يرفض FHIR القياسي كتابة قوائم المرضى: يحتاج الخادم إلى وحدة قوائم المرضى الخاصة به.</string>
+    <string
+        name="compat_concept_id_title"
+    >مفهوم معرّف القائمة في الجلسات الجماعية</string>
+    <string
+        name="compat_concept_id_what"
+    >بدونه لا تسجّل زيارات الجلسة الجماعية معرّف قائمتها.</string>
+    <string
+        name="compat_concept_name_title"
+    >مفهوم اسم القائمة في الجلسات الجماعية</string>
+    <string
+        name="compat_concept_name_what"
+    >بدونه لا تسجّل زيارات الجلسة الجماعية اسم قائمتها.</string>
+    <string name="help_compat_actions_title">فحص الخادم</string>
+    <string
+        name="help_compat_actions_body"
+    >«فحص مجدداً» يقرأ ما يدعمه الخادم. «اختبار الكتابة» ينشئ قائمة مرضى مؤقتة على الخادم ويحذفها، وهي الطريقة المؤكدة الوحيدة لمعرفة ما إذا كان الخادم يقبل تعديلات قوائم المرضى. انسخ التقرير لإرساله إلى من يدعم الخادم.</string>
+    <string name="help_compat_list_title">ما يدعمه الخادم</string>
+    <string
+        name="help_compat_list_body"
+    >كل سطر هو شيء يحتاجه التطبيق. علامة خضراء تعني مدعوم؛ وعلامة حمراء تعني أن الخادم لا يستطيع ذلك فيستبعد التطبيق الميزة؛ وعلامة استفهام تعني أن الفحص لم يستطع الحسم. النص الرمادي هو ما أجاب به الخادم لمن يبحث عن الخلل.</string>
+    <string name="help_settings_advanced_title">الإعدادات المتقدمة</string>
+    <string
+        name="help_settings_advanced_body"
+    >للمسؤولين والدعم: عنوان الخادم واختبار الاتصال، وعدد مرات فحص رمز تسجيل الدخول، وفترة المزامنة، ونماذج الخادم، وفحوص توافق الخادم.</string>
+    <string name="settings_section_advanced">الإعدادات المتقدمة</string>
+    <string
+        name="settings_advanced_description"
+    >للمسؤولين والدعم: الخادم والرموز والنماذج وما يدعمه الخادم.</string>
+    <string name="settings_advanced_show">إظهار الإعدادات المتقدمة</string>
+    <string name="settings_advanced_hide">إخفاء الإعدادات المتقدمة</string>
+    <string name="settings_compat_title">توافق الخادم</string>
+    <string
+        name="settings_compat_summary"
+    >%1$d مدعوم، %2$d غير مدعوم (مُستبعد من التطبيق)</string>
+    <string name="settings_compat_unchecked">لم يُفحص الخادم بعد.</string>
+    <string name="settings_compat_open">فتح الفحوص</string>
+    <string
+        name="plist_readonly_banner"
+    >لا يقبل هذا الخادم تعديلات قوائم المرضى، لذلك فهي للقراءة فقط.</string>
+    <string
+        name="plist_readonly_members_banner"
+    >لا يسمح هذا الخادم بإضافة المرضى إلى قائمة أو إزالتهم منها.</string>
+    <string name="plist_readonly_open">توافق الخادم</string>
+    <string name="title_form_updates">النماذج على الخادم</string>
+    <string
+        name="forms_updates_intro_app"
+    >يستخدم التطبيق النماذج المرفقة به. تحقق من الخادم لمعرفة النماذج المختلفة ثم حدّث ما تختاره: يُستخدم النموذج المحدَّث بدلاً من نسخة التطبيق.</string>
+    <string
+        name="forms_updates_intro_server"
+    >يستخدم التطبيق نماذج الخادم. تحقق من الخادم لمعرفة النماذج الجديدة أو المعدَّلة ثم احصل عليها.</string>
+    <string name="forms_updates_never">لم يتم التحقق بعد</string>
+    <string name="forms_updates_checked">تم التحقق: %1$s</string>
+    <string name="forms_updates_checking">جارٍ سؤال الخادم…</string>
+    <string name="forms_updates_checking_short">جارٍ التحقق…</string>
+    <string name="forms_updates_check">التحقق من الخادم</string>
+    <string name="forms_updates_take_all">تحديث الكل (%1$d)</string>
+    <string name="forms_updates_all_current">جميع النماذج محدّثة</string>
+    <string name="forms_updates_error">تعذّر التحقق: %1$s</string>
+    <string
+        name="forms_updates_sign_in"
+    >سجّل الدخول للتحقق من نماذج الخادم.</string>
+    <string
+        name="forms_updates_unreachable"
+    >لا يمكن الوصول إلى الخادم الآن.</string>
+    <string name="forms_state_not_checked">لم يتم التحقق</string>
+    <string name="forms_state_up_to_date">محدّث</string>
+    <string name="forms_state_update">تحديث متاح</string>
+    <string name="forms_state_new">جديد على الخادم</string>
+    <string name="forms_state_not_on_server">غير موجود على الخادم</string>
+    <string name="forms_state_not_usable">لا يمكن استخدام نسخة الخادم</string>
+    <string name="forms_using_app">يُستخدم إصدار التطبيق</string>
+    <string name="forms_using_server">يُستخدم إصدار الخادم</string>
+    <string name="forms_using_none">غير موجود على هذا الجهاز</string>
+    <string name="forms_server_version">إصدار الخادم %1$s</string>
+    <string name="forms_action_update">تحديث</string>
+    <string name="forms_action_add">إضافة</string>
+    <string name="forms_action_use_app">استخدام إصدار التطبيق</string>
+    <string name="forms_msg_found">%1$d تحديثات، %2$d جديدة</string>
+    <string
+        name="forms_msg_back_to_app"
+    >%1$s: يُستخدم إصدار التطبيق مجدداً</string>
+    <string
+        name="embedded_forms_only_description"
+    >يستخدم التطبيق النماذج المرفقة به ولا تنزّل المزامنة استبيانات من الخادم. تُستخدم النماذج التي تحدّثها من الخادم (الإعدادات المتقدمة) بدلاً من إصدار التطبيق.</string>
+    <string
+        name="fetch_questionnaires_description"
+    >اطّلع على النماذج المختلفة على الخادم وحدّث ما تختاره.</string>
+    <string name="help_formupdates_actions_title">التحقق من الخادم</string>
+    <string
+        name="help_formupdates_actions_body"
+    >اسأل الخادم عن النماذج المختلفة أو الجديدة ثم حدّثها كلها أو اخترها واحداً واحداً. لا يتغير شيء حتى تفعل ذلك.</string>
+    <string name="help_formupdates_list_title">نماذجك</string>
+    <string
+        name="help_formupdates_list_body"
+    >يوضح كل نموذج هل هو محدّث وأي إصدار مستخدم وما يملكه الخادم. يأخذ «تحديث» إصدار الخادم، ويعود «استخدام إصدار التطبيق» إلى الأصل.</string>
+    <string
+        name="plists_guest_note"
+    >أنت تعمل دون تسجيل الدخول. تُحفظ قوائم المرضى التي تنشئها أو تعدلها على هذا الجهاز وتُرسل بعد تسجيل الدخول والمزامنة.</string>
+    <string name="plist_action_history">السجل</string>
+    <string name="plist_action_export">تصدير</string>
+    <string name="plist_history_title">سجل القائمة</string>
+    <string
+        name="plist_history_empty"
+    >لم يُجرَ أي شيء على هذه القائمة بهذا الجهاز بعد.</string>
+    <string name="plist_history_created">تم إنشاء القائمة: %1$s</string>
+    <string name="plist_history_renamed">أُعيدت تسميتها إلى %1$s</string>
+    <string name="plist_history_deleted">تم حذف القائمة</string>
+    <string name="plist_history_added">تمت إضافة %1$s إلى القائمة</string>
+    <string name="plist_history_removed">تمت إزالة %1$s من القائمة</string>
+    <string name="plist_history_by_on">%1$s · %2$s</string>
+    <string name="plist_history_guest">ضيف</string>
+    <string
+        name="plist_history_note"
+    >تُعرض فقط الإجراءات التي تمت على هذا الجهاز.</string>
+    <string name="plist_export_title">تصدير القائمة؟</string>
+    <string
+        name="plist_export_message"
+    >يحتوي الملف على أسماء مرضى هذه القائمة وجنسهم وتواريخ ميلادهم ومعرّفاتهم وهو غير محمي. شاركه فقط مع من يحق لهم الاطلاع على هذه البيانات.</string>
+    <string name="plist_export_confirm">تصدير</string>
+    <string
+        name="plist_export_columns"
+    >الاسم|الجنس|تاريخ الميلاد|المعرّف|معرّف المريض|الحالة</string>
+    <string name="plist_export_status_in">في القائمة</string>
+    <string
+        name="plist_export_empty"
+    >لا يوجد مرضى في هذه القائمة لتصديرهم.</string>
+    <string name="plist_export_subject">قائمة المرضى %1$s</string>
+    <string name="plist_export_chooser">مشاركة القائمة</string>
+    <string name="plist_export_failed">تعذّر تصدير القائمة.</string>
+    <string name="help_plist_history_title">السجل</string>
+    <string
+        name="help_plist_history_body"
+    >يعرض ما تم على هذه القائمة بهذا الجهاز ومن قام به ومتى: إنشاء القائمة أو إعادة تسميتها وإضافة المرضى أو إزالتهم. يبقى السجل بعد إرسال التغييرات.</string>
+    <string name="help_plist_export_title">تصدير القائمة</string>
+    <string
+        name="help_plist_export_body"
+    >يحفظ مرضى القائمة في ملف جدول بيانات (CSV) يمكنك مشاركته. الملف غير محمي، لذا شاركه فقط مع من يحق لهم الاطلاع على هذه البيانات.</string>
+    <string
+        name="plist_session_no_join_note"
+    >لا يسمح هذا الخادم بإضافة المرضى إلى قائمة: المرضى الذين تضيفهم يشاركون في هذه الجلسة فقط.</string>
+    <string name="plist_picker_select_all">تحديد الكل (%1$d)</string>
+    <string name="plist_picker_unselect_all">إلغاء التحديد</string>
+    <string name="plist_picker_from_list">إضافة أعضاء قائمة أخرى</string>
+    <string name="plist_picker_from_list_title">اختر قائمة مرضى</string>
+    <string
+        name="plist_picker_from_list_none"
+    >لا توجد قائمة مرضى أخرى على هذا الجهاز.</string>
+    <string
+        name="plist_picker_from_list_unreachable"
+    >تعذّرت قراءة أعضاء تلك القائمة: اتصل بالخادم وحاول مجدداً.</string>
+    <string
+        name="plist_picker_from_list_empty"
+    >لا يوجد مرضى في تلك القائمة لإضافتهم.</string>
+    <string name="help_plist_bulk_title">تحديد عدة مرضى دفعة واحدة</string>
+    <string
+        name="help_plist_bulk_body"
+    >«تحديد الكل» يحدد كل المرضى المعروضين لذا ابحث أولاً لتضييقهم. «إضافة أعضاء قائمة أخرى» يحدد كل من في قائمة تختارها. ثم راجع التحديد وأضف.</string>
+    <string
+        name="plist_registered_joined"
+    >تمت الإضافة إلى قائمة المرضى %1$s</string>
+    <string name="sync_status_action_needed">مطلوب إجراء</string>
+    <string
+        name="sync_identify_hint"
+    >تبقى سجلاتهم على هذا الجهاز إلى أن تحدد هويتهم.</string>
+    <string name="sync_identify_review">مراجعة</string>
+    <string
+        name="help_sync_status_body"
+    >هل هناك ما ينتظر الرفع أو يحتاج إلى إجراء منك (مريض لتحديد هويته) ومتى تمت آخر مزامنة للبيانات.</string>
+    <string
+        name="help_home_summary_body"
+    >عدد المرضى على هذا الجهاز وعدد التغييرات التي تنتظر الرفع أو تحتاج إلى إجراء منك، مثل مريض لتحديد هويته. اضغط لفتح صفحة المزامنة.</string>
+    <string
+        name="help_patients_register_body"
+    >أضف مريضاً جديداً. يجب ملء البيانات المطلوبة قبل الحفظ. إذا كانت قائمة مرضى مختارة كمرشح فسيُضاف المريض الجديد إلى تلك القائمة.</string>
+    <plurals name="login_pending_list_changes">
+        <item quantity="zero">لا تغييرات في قوائم المرضى بالانتظار</item>
+        <item quantity="one">تغيير واحد في قوائم المرضى بالانتظار</item>
+        <item quantity="two">تغييران في قوائم المرضى بالانتظار</item>
+        <item quantity="few">%d تغييرات في قوائم المرضى بالانتظار</item>
+        <item quantity="many">%d تغييراً في قوائم المرضى بالانتظار</item>
+        <item quantity="other">%d تغيير في قوائم المرضى بالانتظار</item>
+    </plurals>
+    <plurals name="forms_updates_count">
+        <item quantity="zero">لا تحديثات متاحة</item>
+        <item quantity="one">تحديث واحد متاح</item>
+        <item quantity="two">تحديثان متاحان</item>
+        <item quantity="few">%d تحديثات متاحة</item>
+        <item quantity="many">%d تحديثاً متاحاً</item>
+        <item quantity="other">%d تحديث متاح</item>
+    </plurals>
+    <plurals name="forms_new_count">
+        <item quantity="zero">لا نماذج جديدة على الخادم</item>
+        <item quantity="one">نموذج جديد واحد على الخادم</item>
+        <item quantity="two">نموذجان جديدان على الخادم</item>
+        <item quantity="few">%d نماذج جديدة على الخادم</item>
+        <item quantity="many">%d نموذجاً جديداً على الخادم</item>
+        <item quantity="other">%d نموذج جديد على الخادم</item>
+    </plurals>
+    <plurals name="forms_msg_taken">
+        <item quantity="zero">لم يتم تحديث أي نموذج</item>
+        <item quantity="one">تم تحديث نموذج واحد</item>
+        <item quantity="two">تم تحديث نموذجين</item>
+        <item quantity="few">تم تحديث %d نماذج</item>
+        <item quantity="many">تم تحديث %d نموذجاً</item>
+        <item quantity="other">تم تحديث %d نموذج</item>
+    </plurals>
+    <plurals name="plist_picker_from_list_members">
+        <item quantity="zero">لا مرضى</item>
+        <item quantity="one">مريض واحد</item>
+        <item quantity="two">مريضان</item>
+        <item quantity="few">%d مرضى</item>
+        <item quantity="many">%d مريضاً</item>
+        <item quantity="other">%d مريض</item>
+    </plurals>
+    <plurals name="plist_picker_from_list_done">
+        <item quantity="zero">لم يُحدَّد مرضى</item>
+        <item quantity="one">تم تحديد مريض واحد من القائمة</item>
+        <item quantity="two">تم تحديد مريضين من القائمة</item>
+        <item quantity="few">تم تحديد %d مرضى من القائمة</item>
+        <item quantity="many">تم تحديد %d مريضاً من القائمة</item>
+        <item quantity="other">تم تحديد %d مريض من القائمة</item>
+    </plurals>
 </resources>

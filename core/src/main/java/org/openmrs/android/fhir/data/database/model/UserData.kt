@@ -67,4 +67,5 @@ data class PendingUser(
   val user: String,
   val patients: Int,
   val records: Int,
+  val listChanges: Int = 0,
 )

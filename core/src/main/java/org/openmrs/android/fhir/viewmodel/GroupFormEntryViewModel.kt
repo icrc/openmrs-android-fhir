@@ -39,7 +39,6 @@ import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.delete
-import com.google.android.fhir.get
 import com.google.android.fhir.search.Operation
 import com.google.android.fhir.search.search
 import dagger.assisted.Assisted
@@ -49,7 +48,6 @@ import java.util.Date
 import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.hl7.fhir.r4.model.CodeType
@@ -57,19 +55,17 @@ import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.DateType
-import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Observation
-import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.QuestionnaireResponse
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.StringType
 import org.hl7.fhir.r4.model.Type
 import org.openmrs.android.fhir.Constants
-import org.openmrs.android.fhir.auth.dataStore
+import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.GroupSessionDraftRepository
-import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
+import org.openmrs.android.fhir.data.remote.ServerCapabilities
 import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.di.IoDispatcher
 import org.openmrs.android.fhir.di.ViewModelAssistedFactory
@@ -80,6 +76,8 @@ import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.hasInvalidAnswers
 import org.openmrs.android.fhir.extensions.nowLocalDateTime
 import org.openmrs.android.fhir.extensions.nowUtcDateTime
+import org.openmrs.android.fhir.patientlists.PatientListsRepository
+import org.openmrs.android.fhir.patientlists.patientsById
 
 class GroupFormEntryViewModel
 @AssistedInject
@@ -87,6 +85,8 @@ constructor(
   private val applicationContext: Context,
   private val fhirEngine: FhirEngine,
   private val groupSessionDraftRepository: GroupSessionDraftRepository,
+  private val patientLists: PatientListsRepository,
+  private val serverCapabilities: ServerCapabilities,
   @Assisted private val savedStateHandle: SavedStateHandle,
   @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
   @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -112,6 +112,8 @@ constructor(
   private val screenerLinkIds = mutableSetOf<String>()
   private val screenerEncounterLinkIds = mutableSetOf<String>()
   var sessionId: String = UUID.randomUUID().toString()
+
+  var patientListId: String = ""
   var isScreenerCompleted = false
   var sessionDate: Date? = null
   var screenerResponseJson: String? = null
@@ -137,10 +139,9 @@ constructor(
     isLoading.value = true
     viewModelScope.launch {
       _patients.value =
-        fhirEngine
-          .search<Patient> {}
-          .filter { patientIds.contains(it.resource.idElement.idPart) }
-          .mapIndexed { index, fhirPatient -> fhirPatient.resource.toPatientItem(index + 1) }
+        fhirEngine.patientsById(patientIds).mapIndexed { index, patient ->
+          patient.toPatientItem(index + 1)
+        }
       isLoading.value = false
     }
   }
@@ -361,25 +362,29 @@ constructor(
     encounterId: String,
     sessionId: String,
   ) {
-    val selectedPatientListId =
-      applicationContext.dataStore.data
-        .first()[PreferenceKeys.SELECTED_PATIENT_LISTS]
-        ?.firstOrNull()
+    // The patient list the session is for: its id and its name, recorded with every encounter of
+    // the session and never shown in the form.
+    val listId = patientListId.takeIf { it.isNotBlank() }
+    val listName = listId?.let { patientLists.nameOf(it) }
+    val concepts = AppConfig.get(applicationContext).groupSessions
+    // A concept the server does not have would make it refuse the whole encounter.
+    val known = serverCapabilities.current()
     try {
-      if (selectedPatientListId != null) {
-        val cohortName = fhirEngine.get<Group>(selectedPatientListId).name
+      if (listId != null && known.hasConcept(concepts.cohortIdentifierConcept)) {
         createObservation(
           patientId,
           encounterId,
-          Constants.COHORT_IDENTIFIER_UUID,
-          StringType(selectedPatientListId),
+          concepts.cohortIdentifierConcept,
+          StringType(listId),
           "Cohort Identifier",
         )
+      }
+      if (listName != null && known.hasConcept(concepts.cohortNameConcept)) {
         createObservation(
           patientId,
           encounterId,
-          Constants.COHORT_NAME_UUID,
-          StringType(cohortName),
+          concepts.cohortNameConcept,
+          StringType(listName),
           "Cohort Name",
         )
       }
@@ -501,6 +506,7 @@ constructor(
         questionnaireId = questionnaireId,
         sessionId = sessionId,
         patientIds = patientIds,
+        patientListId = patientListId.ifBlank { null },
         patientResponses = patientResponses.toMap(),
         screenerResponse = screenerResponseJson,
         encounterQuestionnaireJson = encounterQuestionnaireJson.value,

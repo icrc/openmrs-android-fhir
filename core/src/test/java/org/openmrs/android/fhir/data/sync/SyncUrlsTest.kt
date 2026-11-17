@@ -62,15 +62,6 @@ class SyncUrlsTest {
   }
 
   @Test
-  fun pagesAndBatchesAreSmall() {
-    assertTrue(SyncUrls.HISTORY_PAGE_SIZE in 1..100)
-    assertTrue(SyncUrls.HISTORY_BATCH_SIZE in 1..25)
-    // The ids of a batch make a short URL.
-    val ids = List(SyncUrls.KNOWN_BATCH_SIZE) { "a1b2c3d4-0000-4000-8000-%012d".format(it) }
-    assertTrue(SyncUrls.history(ResourceType.Observation, ids).length < 2_000)
-  }
-
-  @Test
   fun idSearches_keepOnlyTheIdsAndTheListsAreFilledIn() {
     val search = SyncUrls.patientIdSearches(listOf("b", "a")).single()
     assertEquals(

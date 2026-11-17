@@ -39,14 +39,19 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.hl7.fhir.r4.model.Patient
-import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.data.sync.PatientListSelection
 import org.openmrs.android.fhir.data.transfer.DataTransfer
 import org.openmrs.android.fhir.multiuser.DataVisibility
+import org.openmrs.android.fhir.patientlists.PatientListsRepository
+import org.openmrs.android.fhir.unidentified.UnidentifiedStore
 import timber.log.Timber
 
 sealed interface HomeEvent {
@@ -66,10 +71,12 @@ sealed interface HomeEvent {
 }
 
 /**
- * What the device holds, at a glance: patients (`null` when not worth counting) and changes
- * waiting.
+ * What the device holds, at a glance: patients (`null` when not worth counting), changes waiting
+ * and patients to identify (recorded without being registered: no sync sends them).
  */
-data class HomeSummary(val patients: Long?, val waiting: Int)
+data class HomeSummary(val patients: Long?, val waiting: Int, val toIdentify: Int = 0)
+
+data class HomePatientList(val id: String, val name: String, val patients: Int)
 
 class HomeViewModel
 @Inject
@@ -79,12 +86,27 @@ constructor(
   private val fhirEngine: FhirEngine,
   private val dataTransfer: DataTransfer,
   private val dataVisibility: DataVisibility,
+  private val patientLists: PatientListsRepository,
+  private val unidentified: UnidentifiedStore,
 ) : ViewModel() {
   private val _events = MutableSharedFlow<HomeEvent>(extraBufferCapacity = 1)
   val events: SharedFlow<HomeEvent> = _events
 
   private val _summary = MutableStateFlow<HomeSummary?>(null)
   val summary: StateFlow<HomeSummary?> = _summary
+
+  val selectedLists: StateFlow<List<HomePatientList>> =
+    combine(patientLists.items, PatientListSelection(applicationContext, fhirEngine).selected) {
+        items,
+        selected,
+        ->
+        if (GuestSession.isActive(applicationContext)) {
+          emptyList()
+        } else {
+          items.filter { it.id in selected }.map { HomePatientList(it.id, it.name, it.quantity) }
+        }
+      }
+      .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT), emptyList())
 
   /**
    * Counts again: after a sync, or when the screen is back in front. Patients are not counted on a
@@ -94,7 +116,12 @@ constructor(
     viewModelScope.launch {
       try {
         val patients = if (dataVisibility.isSharedDevice()) null else fhirEngine.count<Patient> {}
-        _summary.value = HomeSummary(patients = patients, waiting = dataTransfer.pendingCount())
+        _summary.value =
+          HomeSummary(
+            patients = patients,
+            waiting = dataTransfer.pendingCount() + patientLists.pendingNow(),
+            toIdentify = unidentified.visibleTo(dataVisibility).size,
+          )
       } catch (e: CancellationException) {
         throw e
       } catch (e: Exception) {
@@ -112,10 +139,6 @@ constructor(
   }
 
   fun onCustomPatientListClicked() {
-    if (GuestSession.isActive(applicationContext)) {
-      _events.tryEmit(HomeEvent.ShowMessage(R.string.sign_in_for_patient_lists))
-      return
-    }
     // No reachability check first: the screen shows the lists saved on the device at once, asks the
     // server itself and says so when it cannot be reached.
     _events.tryEmit(HomeEvent.NavigateToCustomPatientList)
@@ -137,5 +160,9 @@ constructor(
     // No location needed to register or look up patients (a guest has none to pick; anyone else
     // may not have chosen one yet): what is saved gets it later.
     _events.tryEmit(event)
+  }
+
+  private companion object {
+    const val STOP_TIMEOUT = 5_000L
   }
 }

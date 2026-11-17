@@ -29,6 +29,8 @@
 package org.openmrs.android.fhir.data.sync
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -74,6 +76,7 @@ import org.openmrs.android.fhir.data.IdentifierTypeManager
 import org.openmrs.android.fhir.data.OpenMRSHelper
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.remote.ApiManager
+import org.openmrs.android.fhir.patientlists.PatientListsSync
 import timber.log.Timber
 
 /**
@@ -108,6 +111,14 @@ object LiveSync {
 
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
   private var pending: Job? = null
+
+  fun hasNetwork(context: Context): Boolean {
+    val manager = context.getSystemService(ConnectivityManager::class.java)
+    val capabilities = manager?.getNetworkCapabilities(manager.activeNetwork)
+    return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+  }
+
+  suspend fun isAvailable(context: Context): Boolean = isEnabled(context) && hasNetwork(context)
 
   /** Live mode is on and this is a signed-in user (a guest has no server to send to). */
   suspend fun isEnabled(context: Context): Boolean =
@@ -181,7 +192,24 @@ class LiveUploadWorker(context: Context, params: WorkerParameters) :
         LiveSync.setState(LiveSync.State.Idle)
         return Result.success()
       }
-      UploadGate.mutex.withLock { upload(context) }
+      // The patient lists are not in the SDK's queue: they go first, and never hold the upload
+      // back.
+      try {
+        PatientListsSync.run(context, send = true, refresh = false)
+      } catch (e: CancellationException) {
+        throw e
+      } catch (e: Exception) {
+        Timber.w(e, "The patient lists could not be sent with the live upload")
+      }
+      val result = UploadGate.mutex.withLock { upload(context) }
+      try {
+        PatientListsSync.run(context, send = true, refresh = false)
+      } catch (e: CancellationException) {
+        throw e
+      } catch (e: Exception) {
+        Timber.w(e, "The patient lists could not be sent after the live upload")
+      }
+      result
     } catch (e: CancellationException) {
       LiveSync.setState(LiveSync.State.Idle)
       throw e

@@ -71,6 +71,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.openmrs.android.fhir.DemoDataStore
+import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
@@ -102,6 +103,7 @@ import org.openmrs.android.fhir.data.sync.UploadPreparer
 import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.extensions.NotificationHelper
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
+import org.openmrs.android.fhir.patientlists.PatientListsSync
 import org.openmrs.android.fhir.ui.screens.SyncProgressState
 import org.openmrs.android.fhir.worker.SyncInfoDatabaseWriterWorker
 import timber.log.Timber
@@ -171,6 +173,7 @@ constructor(
   private var backgroundSync = false
 
   private var uploadOnlyRun = false
+  private var downloadOnlyRun = false
 
   private val syncingObserver =
     Observer<Boolean> { syncing ->
@@ -278,6 +281,7 @@ constructor(
     try {
       val effective = mode ?: demoDataStore.getAutoSyncModeFlow().first()
       uploadOnlyRun = effective == SyncMode.UPLOAD_ONLY
+      downloadOnlyRun = effective == SyncMode.DOWNLOAD_ONLY
       if (effective != SyncMode.DOWNLOAD_ONLY) {
         // Who is signed in is the provider of what is uploaded: it must be known, and what
         // waits without it gets it.
@@ -354,6 +358,7 @@ constructor(
    */
   fun completeGuestDataForNewLocation() {
     viewModelScope.launch {
+      FhirApplication.appComponent(applicationContext).patientListRepository().assignSavedLocation()
       completeGuestData(
         applicationContext,
         AppConfig.get(applicationContext).fetchIdentifiers,
@@ -751,6 +756,11 @@ constructor(
           if (!uploadOnlyRun) {
             ServerDeletions.afterSyncInBackground(applicationContext, fhirEngine, apiManager)
           }
+          PatientListsSync.runInBackground(
+            applicationContext,
+            send = !downloadOnlyRun,
+            refresh = !uploadOnlyRun,
+          )
         }
       }
       workInfo.state == WorkInfo.State.FAILED -> {

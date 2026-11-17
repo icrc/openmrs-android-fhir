@@ -11,6 +11,7 @@ signed-in user has on the device so that a new flow can start, without signing o
 | The patients the signed-in user can see, with their encounters, observations, conditions and risk assessments, including what was not uploaded yet | The signed-in session |
 | The patients to identify later | The selected location |
 | The group-session drafts | The forms, the locations and the patient lists themselves |
+| The members of the patient lists and what was changed in a list and not sent (counted as "never uploaded") | The patient lists themselves |
 | The choice of patient lists, the lists still waiting to be downloaded, the patients brought by live mode | The settings |
 | The "last downloaded" marks of those resource types, so the next download starts from the beginning | |
 

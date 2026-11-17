@@ -29,12 +29,8 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.db.ResourceNotFoundException
@@ -81,7 +77,12 @@ import org.openmrs.android.fhir.data.RecentPatients
 import org.openmrs.android.fhir.data.isVisit
 import org.openmrs.android.fhir.data.sync.LivePatients
 import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.data.sync.PatientListSelection
 import org.openmrs.android.fhir.multiuser.DataVisibility
+import org.openmrs.android.fhir.patientlists.MemberPending
+import org.openmrs.android.fhir.patientlists.PatientListMember
+import org.openmrs.android.fhir.patientlists.PatientListsRepository
+import org.openmrs.android.fhir.patientlists.patientsById
 import org.openmrs.android.fhir.unidentified.UnidentifiedStore
 import timber.log.Timber
 
@@ -109,7 +110,11 @@ data class PatientListUiState(
   val serverSearch: ServerSearchState = ServerSearchState(),
   /** The patients the user interacted with last, most recent first (see `RecentPatients`). */
   val recentPatients: List<PatientListViewModel.PatientItem> = emptyList(),
+  val listFilter: PatientListFilter? = null,
+  val filterLists: List<PatientListFilter> = emptyList(),
 )
+
+data class PatientListFilter(val id: String, val name: String)
 
 /**
  * The "On the server" part of the patient search. It is [active] while live mode is on and the
@@ -137,12 +142,12 @@ constructor(
   private val dataVisibility: DataVisibility = DataVisibility.Everything,
   private val unidentified: UnidentifiedStore? = null,
   private val recents: RecentPatients? = null,
+  private val lists: PatientListsRepository? = null,
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(PatientListUiState())
   val uiState: StateFlow<PatientListUiState> = _uiState.asStateFlow()
 
-  val liveSearchedPatients: LiveData<List<PatientItem>> = uiState.map { it.patients }.asLiveData()
   val patientCount = MutableLiveData<Long>()
 
   private var loadJob: Job? = null
@@ -155,6 +160,7 @@ constructor(
   init {
     loadPatients()
     loadRecents()
+    offerFilterLists()
     // An upload went through: what was marked as waiting is not any more.
     viewModelScope.launch { LiveSync.uploaded.collect { reloadQuietly() } }
   }
@@ -187,6 +193,30 @@ constructor(
   fun showMore() {
     limit += PAGE_SIZE
     reloadQuietly()
+  }
+
+  fun setListFilter(list: PatientListFilter?) {
+    _uiState.update { it.copy(listFilter = list, serverSearch = ServerSearchState()) }
+    loadPatients()
+  }
+
+  private fun offerFilterLists() {
+    val repository = lists ?: return
+    viewModelScope.launch {
+      val selection = PatientListSelection(applicationContext, fhirEngine)
+      kotlinx.coroutines.flow
+        .combine(repository.items, selection.selected) { items, selected ->
+          items.filter { it.id in selected }.map { PatientListFilter(it.id, it.name) }
+        }
+        .collect { available ->
+          val before = _uiState.value.listFilter
+          val stale = before != null && available.none { it.id == before.id }
+          _uiState.update {
+            it.copy(filterLists = available, listFilter = if (stale) null else it.listFilter)
+          }
+          if (stale) loadPatients()
+        }
+    }
   }
 
   fun setSort(sort: PatientSort) {
@@ -317,30 +347,38 @@ constructor(
       _uiState.update { it.copy(isLoading = true) }
     }
     val patients: MutableList<PatientItem> = mutableListOf()
-    val memberIds = selectedListMemberIds()
+    val filterIds = _uiState.value.listFilter?.let { lists?.memberIds(it.id) }
+    val memberIds = filterIds ?: selectedListMemberIds()
     // On a device shared by several users some patients may have to be left out (below), so more
     // candidates are looked at, as with a list restriction.
     val sharedDevice = dataVisibility.isSharedDevice()
     val restricted = memberIds != null || sharedDevice
     // Patients brought from the server by the live search belong to the list too.
     val liveIds = if (restricted) live.rememberedIds() else emptySet()
+    val onFilterDevice = filterIds?.let { fhirEngine.patientsById(it) }.orEmpty()
     val matches =
-      fhirEngine
-        .search<Patient> {
-          applyPatientTextQuery(nameQuery)
-          when (_uiState.value.sort) {
-            PatientSort.NAME_ASC -> sort(Patient.GIVEN, Order.ASCENDING)
-            PatientSort.NAME_DESC -> sort(Patient.GIVEN, Order.DESCENDING)
-            PatientSort.AGE_YOUNGEST -> sort(Patient.BIRTHDATE, Order.DESCENDING)
-            PatientSort.AGE_OLDEST -> sort(Patient.BIRTHDATE, Order.ASCENDING)
+      if (filterIds != null) {
+        onFilterDevice
+          .filter { it.matchesText(nameQuery) }
+          .sortedWith(patientOrder(_uiState.value.sort))
+      } else {
+        fhirEngine
+          .search<Patient> {
+            applyPatientTextQuery(nameQuery)
+            when (_uiState.value.sort) {
+              PatientSort.NAME_ASC -> sort(Patient.GIVEN, Order.ASCENDING)
+              PatientSort.NAME_DESC -> sort(Patient.GIVEN, Order.DESCENDING)
+              PatientSort.AGE_YOUNGEST -> sort(Patient.BIRTHDATE, Order.DESCENDING)
+              PatientSort.AGE_OLDEST -> sort(Patient.BIRTHDATE, Order.ASCENDING)
+            }
+            // Without a list restriction the page is the result (one more, to know whether there
+            // are more); with one, look at more candidates because the ones outside the selected
+            // lists are dropped below.
+            count = if (restricted) maxOf(CANDIDATE_LIMIT, limit + 1) else limit + 1
+            from = 0
           }
-          // Without a list restriction the page is the result (one more, to know whether there are
-          // more); with one, look at more candidates because the ones outside the selected lists
-          // are dropped below.
-          count = if (restricted) maxOf(CANDIDATE_LIMIT, limit + 1) else limit + 1
-          from = 0
-        }
-        .map { it.resource }
+          .map { it.resource }
+      }
     // Only patients of the selected lists are shown. A patient registered on this device is kept
     // until it is uploaded, otherwise it would vanish right after being saved.
     val toIdentify = unidentified?.ids().orEmpty()
@@ -378,6 +416,13 @@ constructor(
         }
       }
 
+    if (filterIds != null) {
+      offerListMembersOnServer(
+        _uiState.value.listFilter?.id,
+        filterIds - onFilterDevice.mapTo(HashSet()) { it.idElement.idPart },
+        nameQuery,
+      )
+    }
     val risks = getRiskAssessments()
     patients.forEach { patient ->
       risks["Patient/${patient.resourceId}"]?.let {
@@ -393,6 +438,49 @@ constructor(
     }
     return patients
   }
+
+  /**
+   * With live mode, the members of the chosen patient list that are only on the server (added from
+   * a search, never downloaded) are offered under "On the server", to bring to the device.
+   */
+  private suspend fun offerListMembersOnServer(
+    listId: String?,
+    missing: Set<String>,
+    text: String,
+  ) {
+    val repository = lists
+    if (listId == null || repository == null || missing.isEmpty() || !liveSearchAvailable()) {
+      updateServerSearch { ServerSearchState(openingId = it.openingId) }
+      return
+    }
+    val items =
+      repository
+        .members(listId)
+        .first()
+        .filter {
+          it.patientId in missing && it.pending != MemberPending.REMOVE && it.matches(text)
+        }
+        .mapIndexed { index, member -> member.toPatientItem(index + 1) }
+    updateServerSearch {
+      ServerSearchState(active = items.isNotEmpty(), results = items, openingId = it.openingId)
+    }
+  }
+
+  private fun PatientListMember.toPatientItem(position: Int) =
+    PatientItem(
+      id = position.toString(),
+      resourceId = patientId,
+      name = name,
+      gender = gender.orEmpty(),
+      dob = birthDate?.let { runCatching { LocalDate.parse(it.take(10)) }.getOrNull() },
+      phone = "",
+      city = "",
+      country = "",
+      isActive = true,
+      identifiers = listOfNotNull(identifier?.let { Identifier().apply { value = it } }),
+      html = "",
+      isSynced = true,
+    )
 
   // ---- Recent patients -------------------------------------------------------------------
 
@@ -459,6 +547,7 @@ constructor(
   fun searchServer(query: String) {
     serverSearchJob?.cancel()
     val text = query.trim()
+    if (_uiState.value.listFilter != null) return
     if (text.length < MIN_SERVER_QUERY_LENGTH) {
       updateServerSearch { ServerSearchState(openingId = it.openingId) }
       return
@@ -499,18 +588,12 @@ constructor(
   /** Live mode is on and the device has a network to ask with. */
   private suspend fun liveSearchAvailable(): Boolean =
     try {
-      LiveSync.isEnabled(applicationContext) && hasNetwork()
+      LiveSync.isAvailable(applicationContext)
     } catch (e: CancellationException) {
       throw e
     } catch (e: Exception) {
       false
     }
-
-  private fun hasNetwork(): Boolean {
-    val manager = applicationContext.getSystemService(ConnectivityManager::class.java)
-    val capabilities = manager?.getNetworkCapabilities(manager.activeNetwork)
-    return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
-  }
 
   /**
    * Brings [patient], found on the server, to the device and calls [onOpened] with their id once
@@ -763,12 +846,27 @@ internal fun Search.applyPatientTextQuery(query: String) {
   operation = Operation.OR
 }
 
-internal fun filterSelectedIdsForPatients(
-  patients: List<PatientListViewModel.PatientItem>,
-  selectedIds: Set<String>,
-): Set<String> {
-  val validIds = patients.map { it.resourceId }.toSet()
-  return selectedIds.filter { it in validIds }.toSet()
+internal fun Patient.matchesText(query: String): Boolean {
+  val text = query.trim()
+  if (text.isEmpty()) return true
+  val names = name.joinToString(" ") { it.nameAsSingleString.orEmpty() }.lowercase()
+  return text.lowercase().split(WHITESPACE).all { names.contains(it) } ||
+    identifier.any { it.value.equals(text, ignoreCase = true) } ||
+    telecom.any { it.value.orEmpty().contains(text) }
+}
+
+internal fun patientOrder(sort: PatientSort): Comparator<Patient> {
+  val given =
+    compareBy<Patient, String>(String.CASE_INSENSITIVE_ORDER) {
+      it.nameFirstRep.givenAsSingleString.orEmpty()
+    }
+  val born = compareBy<Patient, Long?>(nullsLast()) { it.birthDate?.time }
+  return when (sort) {
+    PatientSort.NAME_ASC -> given
+    PatientSort.NAME_DESC -> given.reversed()
+    PatientSort.AGE_YOUNGEST -> born.reversed()
+    PatientSort.AGE_OLDEST -> born
+  }
 }
 
 internal fun Patient.toPatientItem(position: Int): PatientListViewModel.PatientItem {

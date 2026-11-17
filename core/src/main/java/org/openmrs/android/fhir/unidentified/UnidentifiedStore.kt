@@ -33,6 +33,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.UnidentifiedPatient
+import org.openmrs.android.fhir.multiuser.DataVisibility
 
 /**
  * Which patients are "to identify after", read once and kept in memory: the engine asks on every
@@ -54,6 +55,9 @@ class UnidentifiedStore @Inject constructor(private val database: Lazy<AppDataba
     entries().values.sortedByDescending { it.createdAt }
 
   suspend fun get(patientId: String): UnidentifiedPatient? = entries()[patientId]
+
+  suspend fun visibleTo(visibility: DataVisibility): List<UnidentifiedPatient> =
+    visibility.visibleAmong(all()) { it.patientId }
 
   suspend fun put(entry: UnidentifiedPatient) {
     dao.upsert(entry)

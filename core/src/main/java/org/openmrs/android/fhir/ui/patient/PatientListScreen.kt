@@ -46,8 +46,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.PersonSearch
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -58,6 +61,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -69,6 +73,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 import java.time.Period
@@ -81,6 +86,7 @@ import org.openmrs.android.fhir.ui.components.PatientListItemRow
 import org.openmrs.android.fhir.ui.screens.UnidentifiedNoteDialog
 import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
 import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
+import org.openmrs.android.fhir.viewmodel.PatientListFilter
 import org.openmrs.android.fhir.viewmodel.PatientListUiState
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
 import org.openmrs.android.fhir.viewmodel.PatientSort
@@ -104,6 +110,7 @@ fun PatientListScreen(
   onServerPatientClick: (PatientListViewModel.PatientItem) -> Unit = {},
   onServerPatientDownload: (PatientListViewModel.PatientItem) -> Unit = {},
   onSortChange: (PatientSort) -> Unit = {},
+  onListFilterChange: (PatientListFilter?) -> Unit = {},
   onShowMore: () -> Unit = {},
   /** Records for a patient who is not on the device: asked with a note, identified later. */
   onIdentifyLater: ((note: String) -> Unit)? = null,
@@ -161,6 +168,11 @@ fun PatientListScreen(
           onQueryChange = onQueryChange,
         )
         PatientSortRow(selected = uiState.sort, onSelected = onSortChange)
+        PatientListFilterRow(
+          selected = uiState.listFilter,
+          lists = uiState.filterLists,
+          onSelected = onListFilterChange,
+        )
         PatientListContainerScreen(
           patients = uiState.patients,
           isLoading = uiState.isLoading,
@@ -173,7 +185,7 @@ fun PatientListScreen(
           // Room under the last card for the floating button.
           contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 96.dp),
           verticalArrangement = Arrangement.spacedBy(10.dp),
-          emptyContent = { PatientListEmptyState() },
+          emptyContent = { PatientListEmptyState(filtered = uiState.listFilter != null) },
           headerRows = recentRows(uiState, onPatientClick),
           extraRows =
             run {
@@ -231,7 +243,11 @@ private fun recentRows(
   uiState: PatientListUiState,
   onClick: (PatientListViewModel.PatientItem) -> Unit,
 ): (LazyListScope.() -> Unit)? {
-  if (uiState.query.isNotBlank() || uiState.recentPatients.isEmpty()) return null
+  if (
+    uiState.query.isNotBlank() || uiState.listFilter != null || uiState.recentPatients.isEmpty()
+  ) {
+    return null
+  }
   return {
     item(key = "recent-header", contentType = "recent-header") {
       Text(
@@ -384,6 +400,60 @@ private fun PatientSortRow(selected: PatientSort, onSelected: (PatientSort) -> U
 }
 
 @Composable
+private fun PatientListFilterRow(
+  selected: PatientListFilter?,
+  lists: List<PatientListFilter>,
+  onSelected: (PatientListFilter?) -> Unit,
+) {
+  if (lists.isEmpty()) return
+  var open by remember { mutableStateOf(false) }
+  Box(
+    modifier =
+      Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
+        .tutorialTarget(TutorialTargets.PATIENT_FILTER),
+  ) {
+    FilterChip(
+      selected = selected != null,
+      onClick = { open = true },
+      label = {
+        Text(
+          text =
+            if (selected == null) {
+              stringResource(R.string.plist_filter_all)
+            } else {
+              stringResource(R.string.plist_filter_chip, selected.name)
+            },
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+        )
+      },
+      trailingIcon = { Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = null) },
+      modifier = Modifier.testTag("PatientListFilterChip"),
+    )
+    DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+      DropdownMenuItem(
+        text = { Text(text = stringResource(R.string.plist_filter_all)) },
+        onClick = {
+          open = false
+          onSelected(null)
+        },
+        modifier = Modifier.testTag("PatientListFilterAll"),
+      )
+      lists.forEach { list ->
+        DropdownMenuItem(
+          text = { Text(text = list.name) },
+          onClick = {
+            open = false
+            onSelected(list)
+          },
+          modifier = Modifier.testTag("PatientListFilter_${list.id}"),
+        )
+      }
+    }
+  }
+}
+
+@Composable
 private fun PatientSearchField(
   query: String,
   onQueryChange: (String) -> Unit,
@@ -402,6 +472,7 @@ private fun PatientSearchField(
 
 @Composable
 private fun PatientListEmptyState(
+  filtered: Boolean,
   modifier: Modifier = Modifier,
 ) {
   Box(
@@ -433,7 +504,12 @@ private fun PatientListEmptyState(
           Modifier.padding(top = 20.dp).testTag(PatientListScreenTestTags.EmptyStateMessage),
         text =
           stringResource(
-            id = R.string.no_patients_available_register_a_new_one_using_the_button_below,
+            id =
+              if (filtered) {
+                R.string.plist_filter_empty
+              } else {
+                R.string.no_patients_available_register_a_new_one_using_the_button_below
+              },
           ),
         style = MaterialTheme.typography.bodyLarge,
         textAlign = TextAlign.Center,

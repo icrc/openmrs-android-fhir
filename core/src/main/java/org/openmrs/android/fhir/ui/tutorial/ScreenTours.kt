@@ -72,6 +72,12 @@ object ScreenTours {
           optional = true,
         ),
         step(
+          TutorialTargets.HOME_LISTS_IN_USE,
+          R.string.help_home_inuse_title,
+          R.string.help_home_inuse_body,
+          optional = true,
+        ),
+        step(
           TutorialTargets.HOME_SUMMARY,
           R.string.help_home_summary_title,
           R.string.help_home_summary_body,
@@ -124,6 +130,12 @@ object ScreenTours {
           R.string.help_patients_sort_body,
         ),
         step(
+          TutorialTargets.PATIENT_FILTER,
+          R.string.help_patients_filter_title,
+          R.string.help_patients_filter_body,
+          optional = true,
+        ),
+        step(
           TutorialTargets.PATIENT_RECENT,
           R.string.help_patients_recent_title,
           R.string.help_patients_recent_body,
@@ -158,6 +170,12 @@ object ScreenTours {
           optional = true,
         ),
         step(
+          TutorialTargets.DETAILS_LISTS,
+          R.string.help_details_lists_title,
+          R.string.help_details_lists_body,
+          optional = true,
+        ),
+        step(
           TutorialTargets.DETAILS_ENCOUNTERS,
           R.string.help_details_encounters_title,
           R.string.help_details_encounters_body,
@@ -167,6 +185,91 @@ object ScreenTours {
           TutorialTargets.DETAILS_NEW_ENCOUNTER,
           R.string.help_details_new_title,
           R.string.help_details_new_body,
+        ),
+      ),
+    )
+
+  private val patientList =
+    Tour(
+      listOf(
+        step(
+          TutorialTargets.PLIST_ABOUT,
+          R.string.help_plist_about_title,
+          R.string.help_plist_about_body,
+        ),
+        step(
+          TutorialTargets.PLIST_DOWNLOAD,
+          R.string.help_plist_download_title,
+          R.string.help_plist_download_body,
+          optional = true,
+        ),
+        step(
+          TutorialTargets.PLIST_MEMBERS,
+          R.string.help_plist_members_title,
+          R.string.help_plist_members_body,
+        ),
+        step(
+          TutorialTargets.PLIST_SESSION,
+          R.string.help_plist_session_title,
+          R.string.help_plist_session_body,
+          optional = true,
+        ),
+        step(
+          TutorialTargets.PLIST_HISTORY,
+          R.string.help_plist_history_title,
+          R.string.help_plist_history_body,
+        ),
+        step(
+          TutorialTargets.PLIST_EXPORT,
+          R.string.help_plist_export_title,
+          R.string.help_plist_export_body,
+        ),
+        step(
+          TutorialTargets.PLIST_ADD,
+          R.string.help_plist_add_title,
+          R.string.help_plist_add_body,
+          optional = true,
+        ),
+      ),
+    )
+
+  private val patientListPicker =
+    Tour(
+      listOf(
+        step(
+          TutorialTargets.PLIST_BULK,
+          R.string.help_plist_bulk_title,
+          R.string.help_plist_bulk_body,
+          optional = true,
+        ),
+      ),
+    )
+
+  private val groupSessionList =
+    Tour(
+      listOf(
+        step(
+          TutorialTargets.PSESSION_LIST,
+          R.string.help_psession_list_title,
+          R.string.help_psession_list_body,
+          optional = true,
+        ),
+      ),
+    )
+
+  private val groupSessionPatients =
+    Tour(
+      listOf(
+        step(
+          TutorialTargets.PSESSION_PATIENTS,
+          R.string.help_psession_patients_title,
+          R.string.help_psession_patients_body,
+          optional = true,
+        ),
+        step(
+          TutorialTargets.PSESSION_ADD,
+          R.string.help_psession_add_title,
+          R.string.help_psession_add_body,
         ),
       ),
     )
@@ -186,15 +289,15 @@ object ScreenTours {
         ),
         step(TutorialTargets.SYNC_NOW, R.string.help_sync_now_title, R.string.help_sync_now_body),
         step(
+          TutorialTargets.SYNC_TABS,
+          R.string.help_sync_tabs_title,
+          R.string.help_sync_tabs_body,
+        ),
+        step(
           TutorialTargets.SYNC_IDENTIFY,
           R.string.help_sync_identify_title,
           R.string.help_sync_identify_body,
           optional = true,
-        ),
-        step(
-          TutorialTargets.SYNC_TABS,
-          R.string.help_sync_tabs_title,
-          R.string.help_sync_tabs_body,
         ),
       ),
     )
@@ -211,6 +314,39 @@ object ScreenTours {
           TutorialTargets.IE_IMPORT,
           R.string.help_ie_import_title,
           R.string.help_ie_import_body,
+        ),
+      ),
+    )
+
+  private val serverCompatibility =
+    Tour(
+      listOf(
+        step(
+          TutorialTargets.COMPAT_ACTIONS,
+          R.string.help_compat_actions_title,
+          R.string.help_compat_actions_body,
+        ),
+        step(
+          TutorialTargets.COMPAT_LIST,
+          R.string.help_compat_list_title,
+          R.string.help_compat_list_body,
+        ),
+      ),
+    )
+
+  private val formUpdates =
+    Tour(
+      listOf(
+        step(
+          TutorialTargets.FORMUPDATES_ACTIONS,
+          R.string.help_formupdates_actions_title,
+          R.string.help_formupdates_actions_body,
+        ),
+        step(
+          TutorialTargets.FORMUPDATES_LIST,
+          R.string.help_formupdates_list_title,
+          R.string.help_formupdates_list_body,
+          optional = true,
         ),
       ),
     )
@@ -267,6 +403,12 @@ object ScreenTours {
           R.string.help_settings_sync_title,
           R.string.help_settings_sync_body,
         ),
+        step(
+          TutorialTargets.SETTINGS_ADVANCED,
+          R.string.help_settings_advanced_title,
+          R.string.help_settings_advanced_body,
+          optional = true,
+        ),
       ),
     )
 
@@ -283,6 +425,18 @@ object ScreenTours {
           TutorialTargets.LISTS_LIST,
           R.string.help_lists_list_title,
           R.string.help_lists_list_body,
+        ),
+        step(
+          TutorialTargets.LISTS_PENDING,
+          R.string.help_lists_pending_title,
+          R.string.help_lists_pending_body,
+          optional = true,
+        ),
+        step(
+          TutorialTargets.LISTS_NEW,
+          R.string.help_lists_new_title,
+          R.string.help_lists_new_body,
+          optional = true,
         ),
       ),
     )
@@ -400,9 +554,15 @@ object ScreenTours {
       R.id.syncInfoFragment -> sync
       R.id.importExportFragment -> importExport
       R.id.settings_fragment -> settings
+      R.id.serverCompatibilityFragment -> serverCompatibility
+      R.id.formUpdatesFragment -> formUpdates
       R.id.selectPatientListFragment -> patientLists
       R.id.locationFragment -> location
+      R.id.patientListDetailFragment -> patientList
+      R.id.patientListPickerFragment -> patientListPicker
       R.id.createEncounterFragment -> forms
+      R.id.groupSessionListFragment -> groupSessionList
+      R.id.groupSessionPatientsFragment -> groupSessionPatients
       R.id.addPatientFragment,
       R.id.editPatientFragment, -> registrationForm
       R.id.genericFormEntryFragment,

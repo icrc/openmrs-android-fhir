@@ -43,7 +43,8 @@ The same manager runs the download of lists just added:
    will bring them, and `SyncInfoDatabaseWriterWorker` downloads them first in every sync that
    downloads (not in an upload-only one).
 
-Read only: nothing is sent to the server.
+Read only: nothing is sent to the server. (Creating and changing the lists themselves is
+`patient-list-management.md`.)
 
 ## Why not `_revinclude`
 

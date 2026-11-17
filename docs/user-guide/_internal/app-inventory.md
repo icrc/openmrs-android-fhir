@@ -52,11 +52,12 @@ Entry point: the launcher starts `SplashActivity`, which decides where to go.
 | S17 | Encounter form (`genericFormEntryFragment`) | Pick a form | Form, Review, Submit |
 | S18 | Edit / view encounter (`editEncounterFragment`) | Tap an encounter / the pencil | Read-only view, **Edit** |
 | S19 | Group session form (`groupFormEntryFragment`) | **Group or family session** | Tabs per patient, form |
-| S20 | Select patients dialog (`patientSelectionDialogFragment`) | Group session, after the form is chosen | Pick the patients of the session |
+| S20 | Group session participants (`groupSessionPatientsFragment`) | Group session, after the list and the form are chosen | Untick the absent patients of the list, add others or a patient to identify later, start |
+| S20b | Group session list (`groupSessionListFragment`) | Home card or Group tab | Choose the patient list the session is for |
 | S21 | Sync page (`syncInfoFragment`) | Home tile, bottom bar, menu, summary | Status, Download/Upload/Both, **Sync now**, **Cancel sync**, Pending and History tabs, patients to identify |
 | S22 | Unsynced resources (inside Sync, Pending tab) | Sync page | Patients and records waiting, expand, remove |
 | S23 | Import / Export (`importExportFragment`) | Home tile, Sync page | **Export**, **Import**, PIN |
-| S24 | Settings (`settings_fragment`) | Menu, **Settings** | Search, Language and appearance, General and security, Forms visits and identifiers, Live mode, Synchronization |
+| S24 | Settings (`settings_fragment`) | Menu, **Settings** | Search, Language and appearance, General and security, Forms visits and identifiers, Live mode, Synchronization, Advanced settings (closed: server and connection test, token and sync delays, server compatibility) |
 | S25 | Share settings dialog | Settings, QR icon | Shows a QR code; **Import** scans or pastes a code |
 | S26 | QR scanner (`SettingsScanActivity`) | Share settings, scan | Needs the camera |
 | S27 | Identify patient dialog | Patient file (patient to identify), Sync "Identify now" | Search on the server, confirm |
@@ -68,6 +69,8 @@ Entry point: the launcher starts `SplashActivity`, which decides where to go.
 | S33 | Log out dialog | Menu | Explains what stays or goes, confirm |
 | S34 | Pending uploads / pending sessions dialogs | Sync, Group | Warn before leaving with unsent work |
 | S35 | Spotlight tutorial | First run, "?" in the app bar, "?" on the login page | One tour per screen |
+| S36 | Server compatibility (`serverCompatibilityFragment`) | Settings, Advanced settings, **Open the checks** | What the server supports, **Check again**, **Test writing** (asks first), **Copy the report** |
+| S37 | Patient list history and export dialogs | A patient list's page, **History**, **Export** | Who did what on this device; a warning before the CSV file is shared |
 
 Tablet layout: see below.
 
@@ -105,6 +108,8 @@ Tablet layout: see below.
 | F28 | Language switch (5 languages, right to left for Arabic) | Settings |
 | F29 | Notifications for syncs | Android notification, Settings "Enable Notifications" |
 | F30 | Empty, loading and error states | Lists, Sync, login |
+| F31 | The app leaves out what the server cannot do (patient list changes, concept observations) | S36, patient lists, group sessions |
+| F32 | Add many patients to a list at once (select all, the members of another list), register a patient into a list, export a list, history of a list | Patient list pages, Patients, S37 |
 
 ## Permissions
 

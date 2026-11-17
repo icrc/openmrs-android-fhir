@@ -35,14 +35,20 @@ import dagger.multibindings.IntoMap
 import org.openmrs.android.fhir.viewmodel.AddPatientViewModel
 import org.openmrs.android.fhir.viewmodel.CreateEncounterViewModel
 import org.openmrs.android.fhir.viewmodel.FavoriteFormsViewModel
+import org.openmrs.android.fhir.viewmodel.FormUpdatesViewModel
+import org.openmrs.android.fhir.viewmodel.GroupSessionListViewModel
+import org.openmrs.android.fhir.viewmodel.GroupSessionPatientsViewModel
 import org.openmrs.android.fhir.viewmodel.HomeViewModel
 import org.openmrs.android.fhir.viewmodel.IdentifierSelectionViewModel
 import org.openmrs.android.fhir.viewmodel.ImportExportViewModel
 import org.openmrs.android.fhir.viewmodel.LocationViewModel
 import org.openmrs.android.fhir.viewmodel.LoginActivityViewModel
+import org.openmrs.android.fhir.viewmodel.PatientListDetailViewModel
+import org.openmrs.android.fhir.viewmodel.PatientListPickerViewModel
 import org.openmrs.android.fhir.viewmodel.PatientListViewModel
-import org.openmrs.android.fhir.viewmodel.QuestionnaireFetchViewModel
+import org.openmrs.android.fhir.viewmodel.PatientMembershipViewModel
 import org.openmrs.android.fhir.viewmodel.SelectPatientListViewModel
+import org.openmrs.android.fhir.viewmodel.ServerCompatibilityViewModel
 import org.openmrs.android.fhir.viewmodel.SettingsViewModel
 import org.openmrs.android.fhir.viewmodel.SyncInfoViewModel
 import org.openmrs.android.fhir.viewmodel.UnsyncedResourcesViewModel
@@ -96,6 +102,11 @@ abstract class ViewModelModule {
 
   @Binds
   @IntoMap
+  @ViewModelKey(ServerCompatibilityViewModel::class)
+  abstract fun bindServerCompatibilityViewModel(viewmodel: ServerCompatibilityViewModel): ViewModel
+
+  @Binds
+  @IntoMap
   @ViewModelKey(ImportExportViewModel::class)
   abstract fun bindImportExportViewModel(viewmodel: ImportExportViewModel): ViewModel
 
@@ -111,8 +122,8 @@ abstract class ViewModelModule {
 
   @Binds
   @IntoMap
-  @ViewModelKey(QuestionnaireFetchViewModel::class)
-  abstract fun bindQuestionnaireFetchViewModel(viewmodel: QuestionnaireFetchViewModel): ViewModel
+  @ViewModelKey(FormUpdatesViewModel::class)
+  abstract fun bindFormUpdatesViewModel(viewmodel: FormUpdatesViewModel): ViewModel
 
   @Binds
   @IntoMap
@@ -123,4 +134,31 @@ abstract class ViewModelModule {
   @IntoMap
   @ViewModelKey(SettingsViewModel::class)
   abstract fun bindSettingsViewModel(viewmodel: SettingsViewModel): ViewModel
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(PatientMembershipViewModel::class)
+  abstract fun bindPatientMembershipViewModel(viewmodel: PatientMembershipViewModel): ViewModel
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(PatientListDetailViewModel::class)
+  abstract fun bindPatientListDetailViewModel(viewmodel: PatientListDetailViewModel): ViewModel
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(GroupSessionListViewModel::class)
+  abstract fun bindGroupSessionListViewModel(viewmodel: GroupSessionListViewModel): ViewModel
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(GroupSessionPatientsViewModel::class)
+  abstract fun bindGroupSessionPatientsViewModel(
+    viewmodel: GroupSessionPatientsViewModel,
+  ): ViewModel
+
+  @Binds
+  @IntoMap
+  @ViewModelKey(PatientListPickerViewModel::class)
+  abstract fun bindPatientListPickerViewModel(viewmodel: PatientListPickerViewModel): ViewModel
 }

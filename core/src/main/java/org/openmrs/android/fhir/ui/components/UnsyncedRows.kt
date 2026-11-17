@@ -43,6 +43,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -69,6 +70,7 @@ fun UnsyncedEncounterRow(
   isSynced: Boolean,
   modifier: Modifier = Modifier,
   isExpanded: Boolean = false,
+  readOnly: Boolean = false,
 ) {
   Surface(
     modifier = modifier.fillMaxWidth().padding(start = 20.dp).testTag("UnsyncedEncounterRow"),
@@ -93,15 +95,17 @@ fun UnsyncedEncounterRow(
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,
       )
-      PendingActions(
-        isSynced = isSynced,
-        onDownload = onDownload,
-        onDelete = onDelete,
-        downloadTag = "DownloadEncounter",
-        deleteTag = "DeleteEncounter",
-        downloadDescription = stringResource(id = R.string.download_encounter),
-        deleteDescription = stringResource(id = R.string.delete_encounter),
-      )
+      if (!readOnly) {
+        PendingActions(
+          isSynced = isSynced,
+          onDownload = onDownload,
+          onDelete = onDelete,
+          downloadTag = "DownloadEncounter",
+          deleteTag = "DeleteEncounter",
+          downloadDescription = stringResource(id = R.string.download_encounter),
+          deleteDescription = stringResource(id = R.string.delete_encounter),
+        )
+      }
     }
   }
 }
@@ -117,6 +121,9 @@ fun UnsyncedPatientRow(
   isSynced: Boolean,
   modifier: Modifier = Modifier,
   isExpanded: Boolean = false,
+  readOnly: Boolean = false,
+  onIdentify: (() -> Unit)? = null,
+  identifyEnabled: Boolean = true,
 ) {
   Surface(
     modifier = modifier.fillMaxWidth().testTag("UnsyncedPatientRow"),
@@ -156,15 +163,26 @@ fun UnsyncedPatientRow(
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,
       )
-      PendingActions(
-        isSynced = isSynced,
-        onDownload = onDownload,
-        onDelete = onDelete,
-        downloadTag = "DownloadPatient",
-        deleteTag = "DeletePatient",
-        downloadDescription = stringResource(id = R.string.download_patient),
-        deleteDescription = stringResource(id = R.string.delete_patient),
-      )
+      if (!readOnly) {
+        PendingActions(
+          isSynced = isSynced,
+          onDownload = onDownload,
+          onDelete = onDelete,
+          downloadTag = "DownloadPatient",
+          deleteTag = "DeletePatient",
+          downloadDescription = stringResource(id = R.string.download_patient),
+          deleteDescription = stringResource(id = R.string.delete_patient),
+        )
+      }
+      if (onIdentify != null) {
+        TextButton(
+          onClick = onIdentify,
+          enabled = identifyEnabled,
+          modifier = Modifier.testTag("IdentifyPatientNow"),
+        ) {
+          Text(text = stringResource(id = R.string.identify_sync_now))
+        }
+      }
       ExpandChevron(
         expanded = isExpanded,
         visible = showExpand,
@@ -184,6 +202,7 @@ fun UnsyncedObservationRow(
   onDelete: () -> Unit,
   isSynced: Boolean,
   modifier: Modifier = Modifier,
+  readOnly: Boolean = false,
 ) {
   Surface(
     modifier = modifier.fillMaxWidth().padding(start = 40.dp).testTag("UnsyncedObservationRow"),
@@ -201,15 +220,17 @@ fun UnsyncedObservationRow(
         maxLines = 3,
         overflow = TextOverflow.Ellipsis,
       )
-      PendingActions(
-        isSynced = isSynced,
-        onDownload = onDownload,
-        onDelete = onDelete,
-        downloadTag = "DownloadObservation",
-        deleteTag = "DeleteObservation",
-        downloadDescription = stringResource(id = R.string.download_observation),
-        deleteDescription = stringResource(id = R.string.delete_observation),
-      )
+      if (!readOnly) {
+        PendingActions(
+          isSynced = isSynced,
+          onDownload = onDownload,
+          onDelete = onDelete,
+          downloadTag = "DownloadObservation",
+          deleteTag = "DeleteObservation",
+          downloadDescription = stringResource(id = R.string.download_observation),
+          deleteDescription = stringResource(id = R.string.delete_observation),
+        )
+      }
     }
   }
 }

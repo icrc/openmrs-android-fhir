@@ -48,6 +48,16 @@ FhirEngine      -> TrackingFhirEngine -> UserDataLedger -> Room: patient_owner, 
   user B syncs (or has live mode on) while user A's records wait, they are uploaded under B's session
   and the server records B as creator. The login-page list says who has something waiting but cannot
   hold it back. The safe routine: log in as the user, sync, log out.
+* **The patient list changes are the user's** (`patient-list-management.md`): each one carries who made it
+  (`UserScopedPatientLists`); only that user sees it, and it is sent only in that user's session, so the
+  server records the right person. The login page lists the users with changes to lists waiting next to
+  those with records. Two users can have the same patient waiting for the same list without one replacing the
+  other. What follows a patient (the id the server gave a registered patient, the identification of a patient
+  to identify) works on the changes of every user and keeps their owner.
+* **A group session that was started and not finished** (`GroupSessionDraft`) is kept per user: a user who
+  signs in finds their own, never another user's. The patients to identify follow the visibility of patients:
+  another user does not see them on Home, on the Sync page or in the list of patients to identify, and
+  "Delete patient data" removes only those of the signed-in user.
 * **Data waiting from before multi-user tracking** is attributed to no one, so it is not listed on the
   login page; it uploads with the next sync.
 * **Hiding is in the app, not on the disk**: the database is one for the whole device. Import / Export

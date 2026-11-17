@@ -67,6 +67,7 @@ import org.openmrs.android.fhir.di.IoDispatcher
 import org.openmrs.android.fhir.extensions.getServerConnectivityState
 import org.openmrs.android.fhir.multiuser.UserDataLedger
 import org.openmrs.android.fhir.multiuser.UserRegistry
+import org.openmrs.android.fhir.patientlists.PatientListsRepository
 import timber.log.Timber
 
 /**
@@ -80,6 +81,7 @@ constructor(
   private val apiManager: ApiManager,
   private val fhirEngine: FhirEngine,
   private val userDataLedger: UserDataLedger,
+  private val patientLists: PatientListsRepository,
   @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ViewModel() {
 
@@ -139,7 +141,7 @@ constructor(
     viewModelScope.launch(ioDispatcher) {
       _pendingUsers.value =
         try {
-          userDataLedger.pendingByUser(fhirEngine)
+          withListChanges(userDataLedger.pendingByUser(fhirEngine))
         } catch (e: CancellationException) {
           throw e
         } catch (e: Exception) {
@@ -147,6 +149,18 @@ constructor(
           emptyList()
         }
     }
+  }
+
+  private suspend fun withListChanges(users: List<PendingUser>): List<PendingUser> {
+    val lists = patientLists.waitingByUser().filterKeys { it.isNotEmpty() }
+    if (lists.isEmpty()) return users
+    val known = users.associateBy { it.user }
+    val merged =
+      users.map { it.copy(listChanges = lists[it.user] ?: 0) } +
+        lists.filterKeys { it !in known }.map { (user, count) -> PendingUser(user, 0, 0, count) }
+    return merged.sortedWith(
+      compareByDescending<PendingUser> { it.records + it.listChanges }.thenBy { it.user },
+    )
   }
 
   /**
@@ -160,6 +174,7 @@ constructor(
       if (UserRegistry.activate(applicationContext, name)) {
         withContext(ioDispatcher) { userDataLedger.attributeExistingPatients(fhirEngine) }
       }
+      patientLists.adoptGuestChanges()
     } catch (e: CancellationException) {
       throw e
     } catch (e: Exception) {

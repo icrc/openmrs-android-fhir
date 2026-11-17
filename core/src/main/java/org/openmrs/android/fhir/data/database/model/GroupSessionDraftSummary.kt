@@ -35,6 +35,7 @@ package org.openmrs.android.fhir.data.database.model
 data class GroupSessionDraftSummary(
   val questionnaireId: String,
   val patientIds: List<String>,
+  val patientListId: String?,
   val lastUpdated: Long,
   val screenerCompleted: Boolean,
   val hasScreenerResponse: Boolean,

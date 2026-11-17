@@ -29,14 +29,13 @@
 package org.openmrs.android.fhir.viewmodel
 
 import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import ca.uhn.fhir.context.FhirVersionEnum
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.LocalChange
 import com.google.android.fhir.datacapture.extensions.allItems
 import com.google.android.fhir.datacapture.mapping.ResourceMapper
 import com.google.android.fhir.datacapture.validation.Invalid
@@ -58,7 +57,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.hl7.fhir.r4.model.CodeableConcept
-import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Patient
@@ -81,11 +79,14 @@ import org.openmrs.android.fhir.data.PatientIdentifierFactory
 import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.RecentPatients
 import org.openmrs.android.fhir.data.database.AppDatabase
+import org.openmrs.android.fhir.data.remote.ServerCapabilities
 import org.openmrs.android.fhir.data.sync.LiveSync
 import org.openmrs.android.fhir.di.DefaultDispatcher
 import org.openmrs.android.fhir.extensions.getQuestionnaireOrFromAssets
 import org.openmrs.android.fhir.extensions.pagedBySections
 import org.openmrs.android.fhir.extensions.requireAnswersBeforeReview
+import org.openmrs.android.fhir.patientlists.GroupMapper
+import org.openmrs.android.fhir.patientlists.PatientListsRepository
 import timber.log.Timber
 
 /** ViewModel for patient registration screen {@link AddPatientFragment}. */
@@ -96,6 +97,8 @@ constructor(
   private val fhirEngine: FhirEngine,
   private val database: AppDatabase,
   private val openMRSHelper: OpenMRSHelper,
+  private val patientLists: PatientListsRepository,
+  private val capabilities: ServerCapabilities,
   @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : ViewModel() {
 
@@ -108,6 +111,11 @@ constructor(
    * once the patient is saved, what was recorded for it is linked to the new patient.
    */
   var identifyEntryId: String = ""
+
+  var joinListId: String = ""
+
+  var joinedListName: String? = null
+    private set
 
   /** The patient just saved, and how many records of [identifyEntryId] were linked to them. */
   var savedPatientId: String? = null
@@ -238,25 +246,47 @@ constructor(
         savedPatientId = idAfterUpload(patient)
       }
       savedPatientId?.let { RecentPatients.record(applicationContext, it) }
-      // Known gap (docs/dev/decisions/known-gaps.md): the patient is not added to a cohort here.
+      joinList()
       isPatientSaved.value = true
       saveInProgress = false
     }
   }
 
+  /**
+   * The registration was started from a patient list: the patient joins it. One not uploaded yet is
+   * added for their id of now, and the add waits for the upload (the server gives them another).
+   */
+  private suspend fun joinList() {
+    val listId = joinListId.takeIf { it.isNotBlank() } ?: return
+    val id = savedPatientId ?: return
+    if (!capabilities.current().changeMembers) return
+    try {
+      val saved = fhirEngine.get<Patient>(id)
+      val name = patientLists.nameOf(listId) ?: return
+      val unsent =
+        fhirEngine.getLocalChanges(ResourceType.Patient, id).any {
+          it.type == LocalChange.Type.INSERT
+        }
+      patientLists.addMembers(
+        listId,
+        listOf(GroupMapper.summary(saved)),
+        heldForUpload = if (unsent) setOf(id) else emptySet(),
+      )
+      joinedListName = name
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      Timber.w(e, "Could not add the new patient to the patient list")
+    }
+  }
+
   /** Live mode with a network: waits for the upload that is about to start. */
   private suspend fun uploadWaiter(): Deferred<Unit?>? {
-    if (!LiveSync.isEnabled(applicationContext) || !hasNetwork()) return null
+    if (!LiveSync.isAvailable(applicationContext)) return null
     // Collecting starts before the upload is requested, so its end cannot be missed.
     return viewModelScope.async(start = CoroutineStart.UNDISPATCHED) {
       withTimeoutOrNull(UPLOAD_WAIT_MILLIS) { LiveSync.uploaded.first() }
     }
-  }
-
-  private fun hasNetwork(): Boolean {
-    val manager = applicationContext.getSystemService(ConnectivityManager::class.java)
-    val capabilities = manager?.getNetworkCapabilities(manager.activeNetwork)
-    return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
   }
 
   /**
@@ -296,50 +326,6 @@ constructor(
     a.nameFirstRep.givenAsSingleString.equals(b.nameFirstRep.givenAsSingleString, true) &&
       a.birthDateElement.valueAsString == b.birthDateElement.valueAsString &&
       a.gender == b.gender
-
-  private suspend fun addPatientToSelectedPatientList(patient: Patient) {
-    val selectedPatientListId =
-      applicationContext.dataStore.data
-        .first()[PreferenceKeys.SELECTED_PATIENT_LISTS]
-        ?.firstOrNull()
-        ?: return
-
-    try {
-      val group = fhirEngine.get<Group>(selectedPatientListId)
-      val patientReference =
-        Reference().apply {
-          reference = "Patient/${patient.id}"
-          type = ResourceType.Patient.name
-          display =
-            buildString {
-                val patientName =
-                  if (patient.hasName()) patient.nameFirstRep.nameAsSingleString else ""
-                if (patientName.isNotBlank()) {
-                  append(patientName)
-                }
-                val identifierValue = patient.identifier.firstOrNull()?.value
-                if (!identifierValue.isNullOrBlank()) {
-                  if (isNotEmpty()) {
-                    append(" ")
-                  }
-                  append("(ID: $identifierValue)")
-                }
-              }
-              .takeIf { it.isNotBlank() }
-        }
-
-      val isAlreadyMember =
-        group.member.any { member -> member.entity.reference == patientReference.reference }
-
-      if (!isAlreadyMember) {
-        group.addMember(Group.GroupMemberComponent().apply { entity = patientReference })
-        group.quantity = group.member.size
-        fhirEngine.update(group)
-      }
-    } catch (exception: Exception) {
-      Timber.e(exception, "Failed to add patient to group %s", selectedPatientListId)
-    }
-  }
 
   private fun extractLocationIdentifiersFromQuestionnaireResponse(
     questionnaireResponse: QuestionnaireResponse,

@@ -7,6 +7,7 @@ uploads it with their own account.
 * **File**: a FHIR `Bundle` (`transaction`), gzipped and sealed with a 4-digit PIN (`TransferCrypto`).
   An entry is the whole resource, `POST` if it was created on the device, `PUT` if it edits a record
   the server has. `Bundle.meta` says who exported it and from which location.
+* Changes to patient lists that were not sent (`patient-list-management.md`) are not in the file.
 * **Import**: records are stored as local changes. A `PUT` is only stored if the device has the record;
   the others are reported, with what to do. Importing a file twice does nothing.
 * **Upload**: as recorded, location included. The server notes the uploader as creator, as always. The

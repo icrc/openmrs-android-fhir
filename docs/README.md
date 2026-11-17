@@ -9,6 +9,7 @@
 | Change a feature | The page for it in [`dev/features/`](dev/features/README.md) |
 | Add or change a screen, setting or control | [`dev/first-run-tutorial.md`](dev/first-run-tutorial.md): the in-app tutorial has to follow |
 | Use the helper scripts | [`dev/setup/tools.md`](dev/setup/tools.md) |
+| Add or run tests | [`dev/setup/testing.md`](dev/setup/testing.md) |
 | Publish a version | [`dev/releasing.md`](dev/releasing.md) |
 | Know what is missing or why something was not done | [`dev/decisions/`](dev/decisions/): [`known-gaps.md`](dev/decisions/known-gaps.md), [`database-encryption.md`](dev/decisions/database-encryption.md) |
 | Write or update the user guide (five languages, PDFs) | [`user-guide/README.md`](user-guide/README.md) |
@@ -16,7 +17,7 @@
 ```
 docs/
   dev/
-    setup/        getting-started, troubleshooting, tools, emulator-hosts-file
+    setup/        getting-started, troubleshooting, tools, testing, emulator-hosts-file
     features/     one page per behaviour that differs from a standard OpenMRS client
     decisions/    known gaps and decisions not to do something
     architecture.md  ui.md  configuration.md  first-run-tutorial.md  releasing.md

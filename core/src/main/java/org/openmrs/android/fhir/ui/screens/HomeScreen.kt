@@ -48,28 +48,39 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.extensions.rememberActionBarContentPadding
-import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
 import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
+import org.openmrs.android.fhir.viewmodel.HomePatientList
 import org.openmrs.android.fhir.viewmodel.HomeSummary
 
 object HomeTestTags {
@@ -183,7 +194,9 @@ fun HomeScreen(
   lastSyncText: String = "",
   onImportExportClicked: () -> Unit = {},
   summary: HomeSummary? = null,
+  selectedLists: List<HomePatientList> = emptyList(),
 ) {
+  var showLists by rememberSaveable { mutableStateOf(false) }
   val contentPadding = rememberActionBarContentPadding(extraTop = 8.dp)
   val rows = HomeRows
 
@@ -195,8 +208,13 @@ fun HomeScreen(
     // location and the last sync are read after the screen opens) would otherwise be added above
     // the item the list is keeping in place, and push the list up under the app bar.
     item(key = "status-header") {
-      if (locationName.isNotBlank() || lastSyncText.isNotBlank()) {
-        HomeStatusHeader(locationName = locationName, lastSyncText = lastSyncText)
+      if (locationName.isNotBlank() || lastSyncText.isNotBlank() || selectedLists.isNotEmpty()) {
+        HomeStatusHeader(
+          locationName = locationName,
+          lastSyncText = lastSyncText,
+          selectedLists = selectedLists,
+          onShowLists = { showLists = true },
+        )
       }
     }
     // Also always there (empty until the counts are in), for the same reason.
@@ -230,34 +248,146 @@ fun HomeScreen(
       }
     }
   }
+  if (showLists) {
+    SelectedListsDialog(
+      lists = selectedLists,
+      onChange = onCustomPatientListClicked,
+      onDismiss = { showLists = false },
+    )
+  }
+}
+
+@Composable
+private fun SelectedListsPill(
+  lists: List<HomePatientList>,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  Surface(
+    onClick = onClick,
+    modifier =
+      modifier.testTag("HomeSelectedLists").tutorialTarget(TutorialTargets.HOME_LISTS_IN_USE),
+    shape = RoundedCornerShape(50),
+    color = MaterialTheme.colorScheme.secondaryContainer,
+  ) {
+    Row(
+      modifier = Modifier.padding(start = 10.dp, top = 5.dp, bottom = 5.dp, end = 12.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Icon(
+        imageVector = Icons.Default.Groups,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+        modifier = Modifier.size(16.dp),
+      )
+      Text(
+        modifier = Modifier.weight(1f, fill = false).padding(horizontal = 8.dp),
+        text =
+          if (lists.size == 1) {
+            lists.first().name
+          } else {
+            pluralStringResource(R.plurals.home_lists_selected, lists.size, lists.size)
+          },
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.onSecondaryContainer,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+      )
+      Icon(
+        imageVector = Icons.Default.Visibility,
+        contentDescription = stringResource(R.string.home_lists_view),
+        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+        modifier = Modifier.size(18.dp),
+      )
+    }
+  }
+}
+
+@Composable
+private fun SelectedListsDialog(
+  lists: List<HomePatientList>,
+  onChange: () -> Unit,
+  onDismiss: () -> Unit,
+) {
+  AlertDialog(
+    onDismissRequest = onDismiss,
+    modifier = Modifier.testTag("HomeSelectedListsDialog"),
+    title = { Text(text = stringResource(R.string.home_lists_dialog_title)) },
+    text = {
+      LazyColumn(modifier = Modifier.heightIn(max = 320.dp)) {
+        items(lists, key = { it.id }) { list ->
+          Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+            Text(text = list.name, style = MaterialTheme.typography.bodyLarge)
+            Text(
+              text = stringResource(R.string.patient_list_patient_count, list.patients),
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+        }
+      }
+    },
+    confirmButton = {
+      TextButton(
+        onClick = {
+          onDismiss()
+          onChange()
+        },
+      ) {
+        Text(text = stringResource(R.string.home_lists_change))
+      }
+    },
+    dismissButton = {
+      TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.close)) }
+    },
+  )
 }
 
 /** How many patients are here and whether everything is uploaded; opens the Sync page. */
 @Composable
 private fun HomeSummaryRow(summary: HomeSummary, onClick: () -> Unit) {
+  // Uploaded is only said when nothing is left to do: a patient to identify is an open action.
+  val attention = summary.waiting > 0 || summary.toIdentify > 0
   val parts =
     listOfNotNull(
       summary.patients?.let { stringResource(R.string.home_summary_patients, it.toInt()) },
-      if (summary.waiting > 0) {
-        stringResource(R.string.home_summary_waiting, summary.waiting)
+      when {
+        summary.waiting > 0 -> stringResource(R.string.home_summary_waiting, summary.waiting)
+        attention -> null
+        else -> stringResource(R.string.home_summary_uploaded)
+      },
+      if (summary.toIdentify > 0) {
+        pluralStringResource(
+          R.plurals.home_summary_to_identify,
+          summary.toIdentify,
+          summary.toIdentify,
+        )
       } else {
-        stringResource(R.string.home_summary_uploaded)
+        null
       },
     )
   Text(
     text = parts.joinToString(" · "),
     style = MaterialTheme.typography.bodyMedium,
+    fontWeight = if (attention) FontWeight.Medium else null,
     color =
-      if (summary.waiting > 0) {
-        OpenMrsTheme.colors.warning
+      if (attention) {
+        MaterialTheme.colorScheme.onSecondaryContainer
       } else {
         MaterialTheme.colorScheme.onSurfaceVariant
       },
     modifier =
       Modifier.fillMaxWidth()
         .clip(RoundedCornerShape(12.dp))
+        .then(
+          if (attention) {
+            Modifier.background(MaterialTheme.colorScheme.secondaryContainer)
+          } else {
+            Modifier
+          },
+        )
         .clickable(role = Role.Button, onClick = onClick)
-        .padding(horizontal = 4.dp, vertical = 8.dp)
+        .padding(horizontal = if (attention) 12.dp else 4.dp, vertical = 8.dp)
         .testTag("HomeSummary")
         .tutorialTarget(TutorialTargets.HOME_SUMMARY),
   )
@@ -268,14 +398,19 @@ private fun HomeSummaryRow(summary: HomeSummary, onClick: () -> Unit) {
  * screen's background, without a card around it.
  */
 @Composable
-private fun HomeStatusHeader(locationName: String, lastSyncText: String) {
+private fun HomeStatusHeader(
+  locationName: String,
+  lastSyncText: String,
+  selectedLists: List<HomePatientList>,
+  onShowLists: () -> Unit,
+) {
   Row(
     modifier =
       Modifier.fillMaxWidth()
         .padding(vertical = 4.dp)
         .testTag("HomeStatusHeader")
         .tutorialTarget(TutorialTargets.HOME_STATUS),
-    verticalAlignment = Alignment.CenterVertically,
+    verticalAlignment = Alignment.Top,
   ) {
     Box(
       modifier =
@@ -303,6 +438,13 @@ private fun HomeStatusHeader(locationName: String, lastSyncText: String) {
           text = stringResource(id = R.string.last_sync) + ": " + lastSyncText,
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+      if (selectedLists.isNotEmpty()) {
+        SelectedListsPill(
+          lists = selectedLists,
+          onClick = onShowLists,
+          modifier = Modifier.padding(top = 6.dp),
         )
       }
     }

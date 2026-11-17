@@ -378,16 +378,9 @@
     <string name="completed_at">Completed At</string>
     <string name="errors">Errors</string>
     <string name="group_encounters">Group Session</string>
-    <string
-        name="please_select_at_least_one_patient"
-    >Please select at least one patient.</string>
-    <string
-        name="select_patients_for_group_encounter"
-    >Select Patients for Group Encounter</string>
     <string name="select_all_patients">Select All Patients</string>
     <string name="patient_is_saved">Patient is saved.</string>
     <string name="inputs_are_missing">Inputs are missing.</string>
-    <string name="start">Start</string>
     <string
         name="encounter_questionnaire_not_found_try_again_later"
     >Encounter questionnaire not found, try again later</string>
@@ -584,17 +577,9 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="nav_sync">Sync</string>
     <string name="clear_search">Clear search</string>
     <string name="fetch_questionnaires">Check for new and updated forms</string>
-    <string name="fetching_questionnaires">Fetching questionnaires…</string>
-    <string
-        name="fetch_questionnaires_description"
-    >Check the server for forms that are not in the app yet and for newer versions of the ones it has.</string>
-    <string
-        name="questionnaires_up_to_date"
-    >Questionnaires are up to date.</string>
     <string
         name="questionnaires_fetch_failed"
     >Could not fetch questionnaires. Check the connection and try again.</string>
-    <string name="questionnaires_added">New questionnaires added: %d</string>
     <string
         name="questionnaire_required_answers_missing"
     >Answer the required questions on this page to continue. They are marked in red.</string>
@@ -764,9 +749,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="help_patients_identify_body"
     >Offline, and the patient is on the server but not here? Record now and identify them later, without creating a duplicate.</string>
-    <string
-        name="help_patients_register_body"
-    >Add a new patient. Required data must be filled in before it can be saved.</string>
     <string name="help_details_overview_title">The patient</string>
     <string
         name="help_details_overview_body"
@@ -780,9 +762,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
         name="help_details_new_body"
     >Record a visit or fill in a form for this patient.</string>
     <string name="help_sync_status_title">Sync status</string>
-    <string
-        name="help_sync_status_body"
-    >Whether something is waiting to upload, and when the data was last synced.</string>
     <string name="help_sync_mode_title">Download, upload or both</string>
     <string
         name="help_sync_mode_body"
@@ -834,7 +813,7 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="help_lists_list_title">Choose the lists</string>
     <string
         name="help_lists_list_body"
-    >Tick the lists whose patients you want on this device. Ticking a list downloads its patients at once; with none ticked no patients are downloaded.</string>
+    >Tick the lists whose patients you want on this device. Ticking a list downloads its patients at once; with none ticked no patients are downloaded. The arrow opens a list: its patients, its details and who made it.</string>
     <string name="help_location_search_title">Search locations</string>
     <string
         name="help_location_search_body"
@@ -872,14 +851,10 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="sync_unavailable_offline"
     >No connection to the server: syncing is not available now.</string>
-    <string name="sync_identify_title">Patients to identify: %1$d</string>
-    <string
-        name="sync_identify_subtitle"
-    >Identify them before syncing: their records are not sent until you do.</string>
     <string name="help_sync_identify_title">Patients to identify</string>
     <string
         name="help_sync_identify_body"
-    >When patients were recorded to be identified later, this shows how many. What they hold is never sent by a sync until you identify them, so do it before syncing. It needs a signed-in user connected to the server; if the patient is not on the server you can register a new one, carefully.</string>
+    >Patients recorded to be identified later are listed here, and the card above says how many. What they hold is never sent by a sync until you identify them: tap Identify now on a row. It needs a signed-in user connected to the server; if the patient is not on the server you can register a new one, carefully.</string>
     <string
         name="identify_requires_connection"
     >Sign in and connect to the server to identify them.</string>
@@ -1087,9 +1062,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
         name="sign_in_to_sync_message"
     >To upload the patients and forms you entered, sign in first. Everything you entered stays on this device.</string>
     <string name="sign_in">Sign in</string>
-    <string
-        name="sign_in_for_patient_lists"
-    >Sign in to download patient lists.</string>
     <string name="identifier_types_required_title">Identifier needed</string>
     <string
         name="identifier_types_required_message"
@@ -1189,15 +1161,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="color_vision_color_blind">Color-blind friendly</string>
     <string name="embedded_forms_only">Use embedded forms only</string>
     <string
-        name="embedded_forms_only_description"
-    >The app uses only the forms shipped with it and does not download questionnaires from the server.</string>
-    <string
-        name="fetch_questionnaires_sign_in"
-    >Sign in to check the server for new and updated forms.</string>
-    <string
-        name="questionnaires_changes"
-    >New forms: %1$d, updated: %2$d</string>
-    <string
         name="diag_message"
     >Choose what to send to the support team. Everything is selected by default. The report is an encrypted archive that you send by email.</string>
     <string name="diag_logs">Application logs</string>
@@ -1242,10 +1205,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     </plurals>
     <string name="pending_session_line">Pending session · %1$s · %2$s</string>
     <string name="patients_selected_of">%1$d of %2$d selected</string>
-    <string name="search_patients_hint">Search patients</string>
-    <string
-        name="no_patients_to_select"
-    >No patients to select. Register or sync patients first.</string>
     <string name="start_with_count">Start (%1$d)</string>
     <string name="logout_delete_title">Log out and delete all data</string>
     <string
@@ -1458,9 +1417,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string name="home_summary_waiting">%1$d changes not uploaded yet</string>
     <string name="home_summary_uploaded">Everything is uploaded</string>
     <string name="help_home_summary_title">At a glance</string>
-    <string
-        name="help_home_summary_body"
-    >How many patients are on this device and how many changes still wait to be uploaded. Tap it to open the Sync page.</string>
     <string name="help_home_menu_title">The menu</string>
     <string
         name="help_home_menu_body"
@@ -1518,4 +1474,490 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     <string
         name="help_settings_forms_body"
     >Which forms are offered and in what order, whether visits are created for you, and which identifier types new patients get.</string>
+    <string name="plists_try_again">Try again</string>
+    <string name="plists_send_now">Send now</string>
+    <string name="plists_sending">Sending…</string>
+    <string name="plist_state_new">Not sent yet</string>
+    <string name="plist_state_edited">Changes not sent</string>
+    <string name="plist_state_deleting">Will be deleted</string>
+    <string name="plist_state_refused">Not accepted by the server</string>
+    <string name="plist_action_edit">Edit</string>
+    <string name="plist_action_delete">Delete</string>
+    <string name="plist_action_undo">Undo</string>
+    <string name="plist_action_discard">Discard changes</string>
+    <string name="plist_edit_title">Edit patient list</string>
+    <string name="plist_field_name">Name</string>
+    <string name="plist_field_description">Description (optional)</string>
+    <string name="plist_name_required">Enter a name</string>
+    <string
+        name="plist_name_taken"
+    >A patient list with this name already exists</string>
+    <string name="plist_create_location">For the location %1$s</string>
+    <string
+        name="plist_create_note"
+    >It is saved on this device and sent to the server when possible.</string>
+    <string name="plist_delete_title">Delete this patient list?</string>
+    <string
+        name="plist_delete_message"
+    >%1$s will be deleted from the server when the change is sent. The patients are not deleted, only the patient list. You can undo this until then.</string>
+    <string name="plists_send_nothing">There was nothing to send</string>
+    <string
+        name="plists_send_unreachable"
+    >The server could not be reached. The changes wait on this device.</string>
+    <string
+        name="plist_gone"
+    >This patient list no longer exists on the server.</string>
+    <string name="plist_about">About this patient list</string>
+    <string name="plist_no_description">No description</string>
+    <string name="plist_label_type">Type</string>
+    <string name="plist_label_location">Location</string>
+    <string name="plist_label_created">Created</string>
+    <string name="plist_label_changed">Last changed</string>
+    <string name="plist_by_on">%1$s · %2$s</string>
+    <string name="plist_label_attributes">Other details</string>
+    <string name="plist_members_header">Members</string>
+    <string name="plist_members_search_hint">Search the members</string>
+    <string name="plist_add_patients">Add patients</string>
+    <string
+        name="plist_members_empty_title"
+    >No patients in this patient list</string>
+    <string
+        name="plist_members_empty_body"
+    >Add the patients you want to keep together.</string>
+    <string name="plist_members_no_match">No member matches your search</string>
+    <string name="plist_members_loading">Reading the members…</string>
+    <string
+        name="plist_members_offline"
+    >The members could not be read from the server. These are the ones saved on this device.</string>
+    <string name="plist_member_remove">Remove from this patient list</string>
+    <string name="plist_member_will_remove">Will be removed</string>
+    <string name="plist_member_will_add">Waiting to be added</string>
+    <string name="plist_member_unknown">Unknown patient</string>
+    <string name="plist_refused_reason">Not accepted: %1$s</string>
+    <string name="plist_picker_search_hint">Name or identifier</string>
+    <string
+        name="plist_picker_hint"
+    >The patients of this device are listed. Type at least 3 letters to search the server too.</string>
+    <string name="plist_picker_on_device">On this device</string>
+    <string name="plist_picker_on_server">On the server</string>
+    <string name="plist_picker_none">No patient found</string>
+    <string
+        name="plist_picker_server_failed"
+    >The server could not be searched</string>
+    <string name="plist_picker_already">Already in this patient list</string>
+    <string
+        name="plist_picker_added_note"
+    >They are sent to the server when possible.</string>
+    <string name="help_lists_pending_title">Changes waiting</string>
+    <string
+        name="help_lists_pending_body"
+    >What you change is saved on this device first. This line says how many changes wait. Send now sends them when you have a connection; a sync does it too.</string>
+    <string name="help_lists_new_title">Create a list</string>
+    <string
+        name="help_lists_new_body"
+    >Give it a name and, if you like, a description. It is created for the location you have chosen.</string>
+    <string name="help_plist_about_title">About the patient list</string>
+    <string
+        name="help_plist_about_body"
+    >The description, type and location, who created the patient list and who changed it last. Edit renames it; Delete removes it, and you can undo that until it is sent.</string>
+    <string name="help_plist_members_title">The members</string>
+    <string
+        name="help_plist_members_body"
+    >The patients in the patient list. Search them, and use the remove button to take one out. A removal stays in the list, crossed out, until it is sent: Undo takes it back.</string>
+    <string name="help_plist_add_title">Add patients</string>
+    <string
+        name="help_plist_add_body"
+    >Pick patients from this device or from the server. A patient you registered here and have not sent yet cannot be added until they are sent.</string>
+    <string name="plists_new">New patient list</string>
+    <string name="plist_open">Open this patient list</string>
+    <string name="plist_create_confirm">Create</string>
+    <string name="plist_download">Keep its patients on this device</string>
+    <string
+        name="plist_download_hint"
+    >They are downloaded with every sync.</string>
+    <string name="help_plist_download_title">Keep its patients here</string>
+    <string
+        name="help_plist_download_body"
+    >With this on, the patients of the list are downloaded to this device with every sync, like ticking the list on the Patient lists screen.</string>
+    <plurals name="plists_pending">
+        <item quantity="one">%d change is waiting to be sent</item>
+        <item quantity="other">%d changes are waiting to be sent</item>
+    </plurals>
+    <plurals name="plists_sent">
+        <item quantity="one">%d change sent</item>
+        <item quantity="other">%d changes sent</item>
+    </plurals>
+    <plurals name="plists_refused">
+        <item quantity="one">The server did not accept %d change</item>
+        <item quantity="other">The server did not accept %d changes</item>
+    </plurals>
+    <plurals name="plists_dropped">
+        <item
+            quantity="one"
+        >%d change was dropped: the patient list no longer exists</item>
+        <item
+            quantity="other"
+        >%d changes were dropped: the patient list no longer exists</item>
+    </plurals>
+    <plurals name="plist_picker_add">
+        <item quantity="one">Add %d patient</item>
+        <item quantity="other">Add %d patients</item>
+    </plurals>
+    <plurals name="plist_picker_added">
+        <item quantity="one">%d patient added</item>
+        <item quantity="other">%d patients added</item>
+    </plurals>
+    <string name="plist_card_title">Patient lists</string>
+    <string name="plist_card_manage">Manage</string>
+    <string name="plist_card_none">Not in any patient list</string>
+    <string name="plist_membership_title">Patient lists</string>
+    <string
+        name="plist_membership_hint"
+    >Tick the lists this patient belongs to. Changes are saved here and sent when possible.</string>
+    <string name="plist_to_identify_tag">Waiting for the identification</string>
+    <string name="help_details_lists_title">Patient lists</string>
+    <string
+        name="help_details_lists_body"
+    >The patient lists this patient is in. Manage adds the patient to a list or takes them out; a patient to identify joins the list once identified.</string>
+    <string name="plist_filter_all">All patients</string>
+    <string name="plist_filter_chip">List: %1$s</string>
+    <string
+        name="plist_filter_empty"
+    >No patient of this list is on this device</string>
+    <string name="help_patients_filter_title">Filter by list</string>
+    <string
+        name="help_patients_filter_body"
+    >Show only the patients of one patient list.</string>
+    <string name="plist_session_choose_title">Choose a patient list</string>
+    <string name="plist_session_in_list">In this list</string>
+    <string name="plist_session_added">Added to the session</string>
+    <string name="plist_session_not_here">Not on this device</string>
+    <string
+        name="plist_session_added_note"
+    >They join the patient list when the session starts.</string>
+    <string name="plist_session_remove">Remove from the session</string>
+    <string
+        name="plist_session_list_empty"
+    >This list has no patients yet. Add some below.</string>
+    <string name="plist_start_session">Start a group session</string>
+    <string
+        name="plist_picker_later_done"
+    >Added. The patient joins the list once identified.</string>
+    <string name="help_psession_list_title">Choose the list</string>
+    <string
+        name="help_psession_list_body"
+    >Pick the patient list the session is for. Its patients are offered in the next steps.</string>
+    <string name="help_psession_patients_title">Who takes part</string>
+    <string
+        name="help_psession_patients_body"
+    >The patients of the list are ticked. Untick those who are absent; patients who are not on this device are greyed.</string>
+    <string name="help_psession_add_title">Add patients</string>
+    <string
+        name="help_psession_add_body"
+    >Add patients from outside the list, or a patient to identify later: they join the list when the session starts.</string>
+    <string name="help_plist_session_title">Start a session</string>
+    <string
+        name="help_plist_session_body"
+    >Hold a group session with the patients of this list: untick the absent ones and add others, who join the list.</string>
+    <string
+        name="plist_session_none"
+    >No patient list is downloaded on this device. Tick one on the Patient lists screen to hold a session.</string>
+    <string
+        name="plist_session_choose_hint"
+    >A group session is held with the patients of one downloaded list. You can add other patients: they join the list.</string>
+    <string
+        name="plist_picker_not_sent"
+    >Not sent to the server yet: joins the list after the upload</string>
+    <string
+        name="plist_membership_unsent"
+    >This patient has not been sent to the server yet. The addition waits for the upload and is then sent.</string>
+    <string name="plist_waits_upload_tag">Waiting for the upload</string>
+    <string name="plist_picker_create_prompt">Not in the list?</string>
+    <string name="plist_picker_create_action">Create a new patient</string>
+    <string name="home_lists_dialog_title">Patient lists selected</string>
+    <string name="home_lists_change">Change</string>
+    <string name="home_lists_view">See the selected patient lists</string>
+    <string name="help_home_inuse_title">Patient lists in use</string>
+    <string
+        name="help_home_inuse_body"
+    >The patient lists you work with: their patients are on this device. The eye shows them all, and Change opens the Patient lists screen.</string>
+    <string
+        name="plist_session_download_failed"
+    >Some patients could not be downloaded from the server and were left out.</string>
+    <string
+        name="plist_picker_session_hint"
+    >The patients of this device are listed; with live mode, type 3 letters to search the server too. Patients added now join the list when the session starts.</string>
+    <plurals name="home_lists_selected">
+        <item quantity="one">%d patient list selected</item>
+        <item quantity="other">%d patient lists selected</item>
+    </plurals>
+    <plurals name="home_summary_to_identify">
+        <item quantity="one">%d patient to identify</item>
+        <item quantity="other">%d patients to identify</item>
+    </plurals>
+    <string
+        name="plist_ambiguous_upload_tag"
+    >Could not tell which patient this is: add them again from the list</string>
+    <string name="title_server_compatibility">Server compatibility</string>
+    <string
+        name="compat_intro"
+    >The app needs a few things from the server beyond standard OpenMRS. This page checks them. What the server cannot do is left out of the app, so nothing you do is refused later.</string>
+    <string name="compat_server_line">Server: %1$s</string>
+    <string name="compat_checked_at">Last checked %1$s</string>
+    <string name="compat_never">Not checked yet</string>
+    <string
+        name="compat_unreachable"
+    >The server could not be reached, so nothing was checked: %1$s</string>
+    <string name="compat_check_again">Check again</string>
+    <string name="compat_checking">Checking…</string>
+    <string name="compat_test_write">Test writing</string>
+    <string name="compat_test_write_title">Test writing to the server?</string>
+    <string
+        name="compat_test_write_message"
+    >A temporary patient list is created on the server and deleted right away. Nothing else is changed. If the server refuses it, patient list changes will not be offered or sent.</string>
+    <string name="compat_test_write_confirm">Run the test</string>
+    <string name="compat_copy">Copy the report</string>
+    <string name="compat_copied">Report copied</string>
+    <string name="compat_state_ok">Supported</string>
+    <string
+        name="compat_state_unsupported"
+    >Not supported: left out of the app</string>
+    <string name="compat_state_unknown">Could not check</string>
+    <string name="compat_state_info">For information</string>
+    <string name="compat_state_not_used">Not used by this app</string>
+    <string name="compat_state_pending">Not checked yet</string>
+    <string name="compat_state_installed">Installed</string>
+    <string name="compat_state_not_installed">Not installed</string>
+    <string name="compat_server_title">Connection and sign-in</string>
+    <string
+        name="compat_server_what"
+    >The app reaches the server and your account is accepted.</string>
+    <string name="compat_fhir_title">FHIR interface (R4)</string>
+    <string
+        name="compat_fhir_what"
+    >Needed to sync patients, encounters and forms.</string>
+    <string name="compat_groups_read_title">Patient lists can be read</string>
+    <string
+        name="compat_groups_read_what"
+    >Needed to offer patient lists to download.</string>
+    <string
+        name="compat_groups_write_title"
+    >Patient lists can be created and changed</string>
+    <string
+        name="compat_groups_write_what"
+    >Without it patient lists are read only: no new list, rename or delete.</string>
+    <string
+        name="compat_group_members_title"
+    >Patients can be added to a list and removed</string>
+    <string
+        name="compat_group_members_what"
+    >Without it the members of a list cannot be changed from the app.</string>
+    <string name="compat_cohort_module_title">Cohort Module</string>
+    <string
+        name="compat_cohort_module_what"
+    >Not required. When it is installed, standard FHIR refuses to write patient lists: the server needs its own patient list module.</string>
+    <string
+        name="compat_concept_id_title"
+    >Concept for the list id of group sessions</string>
+    <string
+        name="compat_concept_id_what"
+    >Without it the encounters of a group session do not record the id of their list.</string>
+    <string
+        name="compat_concept_name_title"
+    >Concept for the list name of group sessions</string>
+    <string
+        name="compat_concept_name_what"
+    >Without it the encounters of a group session do not record the name of their list.</string>
+    <string name="help_compat_actions_title">Check the server</string>
+    <string
+        name="help_compat_actions_body"
+    >Check again reads what the server supports. Test writing creates a temporary patient list on the server and deletes it, the only sure way to know the server accepts changes to patient lists. Copy the report to send it to whoever supports the server.</string>
+    <string name="help_compat_list_title">What the server supports</string>
+    <string
+        name="help_compat_list_body"
+    >Each line is something the app needs. A green tick means supported; a red cross means the server cannot do it, so the app leaves that feature out; a question mark means the check could not tell. The grey text is what the server answered, for whoever debugs.</string>
+    <string name="help_settings_advanced_title">Advanced settings</string>
+    <string
+        name="help_settings_advanced_body"
+    >For administrators and support: the server address and connection test, how often the sign-in token is checked, the sync interval, the forms on the server, and the server compatibility checks.</string>
+    <string name="settings_section_advanced">Advanced settings</string>
+    <string
+        name="settings_advanced_description"
+    >For administrators and support: server, tokens, forms and what the server supports.</string>
+    <string name="settings_advanced_show">Show the advanced settings</string>
+    <string name="settings_advanced_hide">Hide the advanced settings</string>
+    <string name="settings_compat_title">Server compatibility</string>
+    <string
+        name="settings_compat_summary"
+    >%1$d supported, %2$d not supported (left out of the app)</string>
+    <string
+        name="settings_compat_unchecked"
+    >The server has not been checked yet.</string>
+    <string name="settings_compat_open">Open the checks</string>
+    <string
+        name="plist_readonly_banner"
+    >This server does not accept changes to patient lists, so they are read only.</string>
+    <string
+        name="plist_readonly_members_banner"
+    >This server does not let patients be added to a list or removed from it.</string>
+    <string name="plist_readonly_open">Server compatibility</string>
+    <string name="title_form_updates">Forms on the server</string>
+    <string
+        name="forms_updates_intro_app"
+    >The app uses the forms that ship with it. Check the server to see which ones are different, then update the ones you choose: an updated form is used instead of the app\'s version.</string>
+    <string
+        name="forms_updates_intro_server"
+    >The app uses the forms of the server. Check the server to see which ones are new or changed, and take them.</string>
+    <string name="forms_updates_never">Not checked yet</string>
+    <string name="forms_updates_checked">Checked %1$s</string>
+    <string name="forms_updates_checking">Asking the server…</string>
+    <string name="forms_updates_checking_short">Checking…</string>
+    <string name="forms_updates_check">Check the server</string>
+    <string name="forms_updates_take_all">Update all (%1$d)</string>
+    <string name="forms_updates_all_current">Every form is up to date</string>
+    <string name="forms_updates_error">Could not check: %1$s</string>
+    <string
+        name="forms_updates_sign_in"
+    >Sign in to check the server\'s forms.</string>
+    <string
+        name="forms_updates_unreachable"
+    >The server cannot be reached now.</string>
+    <string name="forms_state_not_checked">Not checked</string>
+    <string name="forms_state_up_to_date">Up to date</string>
+    <string name="forms_state_update">Update available</string>
+    <string name="forms_state_new">New on the server</string>
+    <string name="forms_state_not_on_server">Not on the server</string>
+    <string
+        name="forms_state_not_usable"
+    >The server\'s copy cannot be used</string>
+    <string name="forms_using_app">Using the app\'s version</string>
+    <string name="forms_using_server">Using the server\'s version</string>
+    <string name="forms_using_none">Not on this device</string>
+    <string name="forms_server_version">Server version %1$s</string>
+    <string name="forms_action_update">Update</string>
+    <string name="forms_action_add">Add</string>
+    <string name="forms_action_use_app">Use the app\'s version</string>
+    <string name="forms_msg_found">%1$d updates, %2$d new</string>
+    <string
+        name="forms_msg_back_to_app"
+    >%1$s: the app\'s version is used again</string>
+    <string
+        name="embedded_forms_only_description"
+    >The app uses the forms shipped with it and the sync does not download questionnaires from the server. Forms you update from the server (Advanced settings) are used instead of the app\'s version.</string>
+    <string
+        name="fetch_questionnaires_description"
+    >See which forms are different on the server and update the ones you choose.</string>
+    <string name="help_formupdates_actions_title">Check the server</string>
+    <string
+        name="help_formupdates_actions_body"
+    >Ask the server which forms are different or new, then update them all or choose one by one. Nothing changes until you do.</string>
+    <string name="help_formupdates_list_title">Your forms</string>
+    <string
+        name="help_formupdates_list_body"
+    >Each form says whether it is up to date, which version is in use and what the server has. Update takes the server\'s version; Use the app\'s version goes back.</string>
+    <string
+        name="plists_guest_note"
+    >You are working without signing in. Patient lists you create or change are kept on this device and sent after you sign in and sync.</string>
+    <string name="plist_action_history">History</string>
+    <string name="plist_action_export">Export</string>
+    <string name="plist_history_title">History of the list</string>
+    <string
+        name="plist_history_empty"
+    >Nothing was done to this list on this device yet.</string>
+    <string name="plist_history_created">List created: %1$s</string>
+    <string name="plist_history_renamed">Renamed to %1$s</string>
+    <string name="plist_history_deleted">List deleted</string>
+    <string name="plist_history_added">%1$s added to the list</string>
+    <string name="plist_history_removed">%1$s removed from the list</string>
+    <string name="plist_history_by_on">%1$s · %2$s</string>
+    <string name="plist_history_guest">Guest</string>
+    <string
+        name="plist_history_note"
+    >Only what was done on this device is listed.</string>
+    <string name="plist_export_title">Export the list?</string>
+    <string
+        name="plist_export_message"
+    >The file holds the names, sex, birth dates and identifiers of the patients of this list and is not protected. Share it only with people who may see this data.</string>
+    <string name="plist_export_confirm">Export</string>
+    <string
+        name="plist_export_columns"
+    >Name|Sex|Birth date|Identifier|Patient id|Status</string>
+    <string name="plist_export_status_in">In the list</string>
+    <string
+        name="plist_export_empty"
+    >This list has no patients to export.</string>
+    <string name="plist_export_subject">Patient list %1$s</string>
+    <string name="plist_export_chooser">Share the list</string>
+    <string name="plist_export_failed">The list could not be exported.</string>
+    <string name="help_plist_history_title">History</string>
+    <string
+        name="help_plist_history_body"
+    >Shows what was done to this list on this device, by whom and when: the list created or renamed, patients added or removed. It stays after the changes are sent.</string>
+    <string name="help_plist_export_title">Export the list</string>
+    <string
+        name="help_plist_export_body"
+    >Saves the patients of the list in a spreadsheet file (CSV) that you can share. The file is not protected, so share it only with people who may see this data.</string>
+    <string
+        name="plist_session_no_join_note"
+    >This server does not let patients be added to a list: the patients you add take part in this session only.</string>
+    <string name="plist_picker_select_all">Select all (%1$d)</string>
+    <string name="plist_picker_unselect_all">Clear the selection</string>
+    <string
+        name="plist_picker_from_list"
+    >Add the members of another list</string>
+    <string name="plist_picker_from_list_title">Choose a patient list</string>
+    <string
+        name="plist_picker_from_list_none"
+    >There is no other patient list on this device.</string>
+    <string
+        name="plist_picker_from_list_unreachable"
+    >The members of that list could not be read: connect to the server and try again.</string>
+    <string
+        name="plist_picker_from_list_empty"
+    >That list has no patients to add.</string>
+    <string name="help_plist_bulk_title">Select many at once</string>
+    <string
+        name="help_plist_bulk_body"
+    >Select all chooses every patient shown, so search first to narrow them down. Add the members of another list chooses everyone in a list you pick. Then review the selection and add.</string>
+    <string
+        name="plist_registered_joined"
+    >Added to the patient list %1$s</string>
+    <string name="sync_status_action_needed">Action needed</string>
+    <string
+        name="sync_identify_hint"
+    >Their records stay on this device until you identify them.</string>
+    <string name="sync_identify_review">Review</string>
+    <string
+        name="help_sync_status_body"
+    >Whether something is waiting to upload or needs your action (a patient to identify), and when the data was last synced.</string>
+    <string
+        name="help_home_summary_body"
+    >How many patients are on this device and how many changes still wait to be uploaded or need your action, such as a patient to identify. Tap it to open the Sync page.</string>
+    <string
+        name="help_patients_register_body"
+    >Add a new patient. Required data must be filled in before it can be saved. With a patient list chosen as the filter, the new patient is added to that list.</string>
+    <plurals name="login_pending_list_changes">
+        <item quantity="one">%d patient list change waiting</item>
+        <item quantity="other">%d patient list changes waiting</item>
+    </plurals>
+    <plurals name="forms_updates_count">
+        <item quantity="one">%d update available</item>
+        <item quantity="other">%d updates available</item>
+    </plurals>
+    <plurals name="forms_new_count">
+        <item quantity="one">%d new on the server</item>
+        <item quantity="other">%d new on the server</item>
+    </plurals>
+    <plurals name="forms_msg_taken">
+        <item quantity="one">%d form updated</item>
+        <item quantity="other">%d forms updated</item>
+    </plurals>
+    <plurals name="plist_picker_from_list_members">
+        <item quantity="one">%d patient</item>
+        <item quantity="other">%d patients</item>
+    </plurals>
+    <plurals name="plist_picker_from_list_done">
+        <item quantity="one">%d patient of the list selected</item>
+        <item quantity="other">%d patients of the list selected</item>
+    </plurals>
 </resources>

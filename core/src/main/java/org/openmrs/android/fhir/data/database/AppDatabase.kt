@@ -34,10 +34,16 @@ import androidx.room.TypeConverters
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.data.database.model.Identifier
 import org.openmrs.android.fhir.data.database.model.IdentifierType
+import org.openmrs.android.fhir.data.database.model.PatientListChange
+import org.openmrs.android.fhir.data.database.model.PatientListEvent
+import org.openmrs.android.fhir.data.database.model.PatientListMemberChange
+import org.openmrs.android.fhir.data.database.model.PatientListMemberRow
+import org.openmrs.android.fhir.data.database.model.PatientListRow
 import org.openmrs.android.fhir.data.database.model.PatientOwner
 import org.openmrs.android.fhir.data.database.model.PendingChange
 import org.openmrs.android.fhir.data.database.model.SyncSession
 import org.openmrs.android.fhir.data.database.model.UnidentifiedPatient
+import org.openmrs.android.fhir.data.database.model.UploadedPatientId
 
 @Database(
   entities =
@@ -49,6 +55,12 @@ import org.openmrs.android.fhir.data.database.model.UnidentifiedPatient
       PatientOwner::class,
       PendingChange::class,
       UnidentifiedPatient::class,
+      PatientListRow::class,
+      PatientListMemberRow::class,
+      PatientListChange::class,
+      PatientListMemberChange::class,
+      UploadedPatientId::class,
+      PatientListEvent::class,
     ],
   version = 1,
   exportSchema = true,
@@ -60,4 +72,6 @@ abstract class AppDatabase : RoomDatabase() {
   abstract fun userDataDao(): UserDataDao
 
   abstract fun unidentifiedDao(): UnidentifiedDao
+
+  abstract fun patientListDao(): PatientListsDao
 }

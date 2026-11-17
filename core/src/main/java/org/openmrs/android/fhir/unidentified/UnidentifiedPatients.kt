@@ -30,6 +30,7 @@ package org.openmrs.android.fhir.unidentified
 
 import android.content.Context
 import com.google.android.fhir.FhirEngine
+import com.google.android.fhir.get
 import com.google.android.fhir.search.search
 import com.google.android.fhir.sync.AcceptLocalConflictResolver
 import java.util.UUID
@@ -52,6 +53,9 @@ import org.openmrs.android.fhir.data.database.model.UnidentifiedPatient
 import org.openmrs.android.fhir.data.isVisit
 import org.openmrs.android.fhir.data.sync.LivePatients
 import org.openmrs.android.fhir.data.sync.LiveSync
+import org.openmrs.android.fhir.multiuser.DataVisibility
+import org.openmrs.android.fhir.patientlists.GroupMapper
+import org.openmrs.android.fhir.patientlists.PatientListsRepository
 
 /**
  * "Identify patient after": record visits, encounters and observations for a patient who is on the
@@ -70,6 +74,8 @@ constructor(
   private val context: Context,
   private val fhirEngine: FhirEngine,
   private val store: UnidentifiedStore,
+  private val lists: PatientListsRepository,
+  private val visibility: DataVisibility,
 ) {
   private val lock = Mutex()
 
@@ -82,9 +88,11 @@ constructor(
     val encounters: Int,
   )
 
-  suspend fun count(): Int = store.ids().size
+  suspend fun count(): Int = visible().size
 
-  suspend fun ids(): Set<String> = store.ids()
+  suspend fun ids(): Set<String> = visible().mapTo(HashSet()) { it.patientId }
+
+  private suspend fun visible() = store.visibleTo(visibility)
 
   suspend fun note(patientId: String): String? = store.get(patientId)?.note
 
@@ -108,7 +116,7 @@ constructor(
     }
 
   suspend fun entries(): List<Entry> =
-    store.all().map { entry ->
+    visible().map { entry ->
       val encounters = recordsOf(entry.patientId).filterIsInstance<Encounter>()
       val visits = encounters.count { it.isVisit() }
       Entry(entry.patientId, entry.note, entry.createdAt, visits, encounters.size - visits)
@@ -128,7 +136,11 @@ constructor(
       store.get(entryId) ?: return@withLock 0
       // First the real patient: if this fails nothing has been touched.
       LivePatients(context, fhirEngine).download(serverPatientId, remember = true)
-      moveRecords(entryId, serverPatientId)
+      val moved = moveRecords(entryId, serverPatientId)
+      runCatching { fhirEngine.get<Patient>(serverPatientId) }
+        .getOrNull()
+        ?.let { lists.replacePlaceholder(entryId, GroupMapper.summary(it)) }
+      moved
     }
 
   /**
@@ -140,6 +152,11 @@ constructor(
   suspend fun linkToNewPatient(entryId: String, newPatientId: String): Int =
     lock.withLock {
       store.get(entryId) ?: return@withLock 0
+      // The patient lists the placeholder was added to get the new patient once it is uploaded (the
+      // server gives it its own id then).
+      runCatching { fhirEngine.get<Patient>(newPatientId) }
+        .getOrNull()
+        ?.let { lists.replacePlaceholder(entryId, GroupMapper.summary(it), heldForUpload = true) }
       moveRecords(entryId, newPatientId)
     }
 
@@ -168,9 +185,13 @@ constructor(
   /** The database was emptied: forget what was cached. */
   fun forget() = store.invalidate()
 
-  /** Their records were removed from the device: nobody is waiting to be identified any more. */
+  /**
+   * Their records were removed from the device: nobody is waiting to be identified any more. Only
+   * the ones the signed-in user may see go, as only their records were removed; call it before the
+   * ownership of the removed patients is forgotten.
+   */
   suspend fun removeAll() {
-    lock.withLock { store.ids().forEach { store.remove(it) } }
+    lock.withLock { visible().forEach { store.remove(it.patientId) } }
   }
 
   private suspend fun recordsOf(patientId: String): List<Resource> {

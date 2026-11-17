@@ -29,13 +29,17 @@
 package org.openmrs.android.fhir.data.database.model
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 
-@Entity(tableName = "groupsessiondraft")
+/**
+ * A group session started and not finished. There is one per form and user ([owner], blank for a
+ * guest): a user who signs in finds their own session, never another user's.
+ */
+@Entity(tableName = "groupsessiondraft", primaryKeys = ["questionnaireId", "owner"])
 data class GroupSessionDraft(
-  @PrimaryKey val questionnaireId: String,
+  val questionnaireId: String,
   val sessionId: String,
   val patientIds: List<String>,
+  val patientListId: String?,
   val patientResponses: Map<String, String>,
   val screenerResponse: String?,
   val encounterQuestionnaireJson: String?,
@@ -43,4 +47,5 @@ data class GroupSessionDraft(
   val sessionDate: Long?,
   val screenerCompleted: Boolean,
   val lastUpdated: Long = System.currentTimeMillis(),
+  val owner: String = "",
 )

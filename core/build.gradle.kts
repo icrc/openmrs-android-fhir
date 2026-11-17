@@ -173,6 +173,8 @@ dependencies {
   testImplementation(libs.kotlinx.coroutines.test)
   // The real org.json: the one in android.jar only has stubs in a plain JVM test.
   testImplementation(libs.org.json)
+  // A real XML pull parser: the one in android.jar only has stubs in a plain JVM test.
+  testImplementation(libs.kxml2)
 
   // Dependency injection
   implementation(libs.dagger.base)

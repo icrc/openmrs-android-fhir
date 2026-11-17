@@ -40,9 +40,11 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -53,8 +55,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.FhirApplication
 import org.openmrs.android.fhir.R
+import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.data.PreferenceKeys
+import org.openmrs.android.fhir.data.remote.isServerReachable
 import org.openmrs.android.fhir.data.sync.PatientListDownloader
 import org.openmrs.android.fhir.extensions.composeView
 import org.openmrs.android.fhir.ui.components.AppMessage
@@ -91,6 +95,14 @@ class SelectPatientListFragment : Fragment() {
         val patientLists by
           selectPatientListViewModel.selectPatientListItems.observeAsState(emptyList())
         val uiState by selectPatientListViewModel.uiState.collectAsStateWithLifecycle()
+        val online =
+          mainActivityViewModel.uiState
+            .collectAsStateWithLifecycle()
+            .value
+            .connectivityState
+            .isServerReachable()
+        val features by selectPatientListViewModel.features.collectAsStateWithLifecycle()
+        val guest = remember { GuestSession.isActive(requireContext()) }
         val filteredPatientLists =
           remember(patientLists, uiState.query) {
             patientLists.filter { it.name.contains(uiState.query, true) }
@@ -109,7 +121,25 @@ class SelectPatientListFragment : Fragment() {
           onPatientListToggle = ::onSelectPatientListItemClicked,
           onActionClick = ::handleActionClick,
           locationName = locationName.value,
-          onChangeLocationClick = ::changeLocation,
+          onChangeLocationClick = if (guest) null else ::changeLocation,
+          guestNotice = guest,
+          onOpenList =
+            if (fromLogin) {
+              null
+            } else {
+              { list ->
+                findNavController()
+                  .navigate(
+                    R.id.action_selectPatientListFragment_to_patientListDetailFragment,
+                    bundleOf(PatientListDetailFragment.ARG_LIST_ID to list.resourceId),
+                  )
+              }
+            },
+          onCreateList =
+            if (fromLogin || !features.editLists) null else selectPatientListViewModel::create,
+          pendingChanges = uiState.pendingChanges,
+          sendingChanges = uiState.sendingChanges,
+          onSendChanges = if (online && !guest) selectPatientListViewModel::sendNow else null,
           topPadding = selectionScreenContentPadding().calculateTopPadding(),
           isRefreshing = uiState.isRefreshing,
           loadFailed = uiState.loadFailed,
@@ -167,6 +197,11 @@ class SelectPatientListFragment : Fragment() {
               MessageKind.Info,
             )
         }
+      }
+    }
+    viewLifecycleOwner.lifecycleScope.launch {
+      viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+        selectPatientListViewModel.messages.collect { showPatientListMessage(requireContext(), it) }
       }
     }
     // The lists on the device show at once; the server is asked in the background.

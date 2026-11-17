@@ -67,6 +67,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -224,16 +225,30 @@ private fun PendingUserRow(pending: PendingUser, onUse: (() -> Unit)?) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
           )
-          Text(
-            text =
-              if (pending.patients > 0) {
-                stringResource(R.string.login_pending_counts, pending.patients, pending.records)
-              } else {
-                stringResource(R.string.login_pending_records_only, pending.records)
-              },
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
+          if (pending.records > 0) {
+            Text(
+              text =
+                if (pending.patients > 0) {
+                  stringResource(R.string.login_pending_counts, pending.patients, pending.records)
+                } else {
+                  stringResource(R.string.login_pending_records_only, pending.records)
+                },
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+          if (pending.listChanges > 0) {
+            Text(
+              text =
+                pluralStringResource(
+                  R.plurals.login_pending_list_changes,
+                  pending.listChanges,
+                  pending.listChanges,
+                ),
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
         }
       }
       if (onUse != null) {

@@ -39,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -119,6 +120,7 @@ class PatientListFragment : Fragment() {
           },
           onServerPatientDownload = patientListViewModel::downloadServerPatient,
           onSortChange = patientListViewModel::setSort,
+          onListFilterChange = patientListViewModel::setListFilter,
           onShowMore = patientListViewModel::showMore,
           onFabClick = { onAddPatientClick() },
           onIdentifyLater = { note -> onIdentifyLater(note) },
@@ -182,7 +184,11 @@ class PatientListFragment : Fragment() {
   private fun onAddPatientClick() {
     // Without a location (a guest, or before one is chosen) a patient can still be registered:
     // it gets the location, and its identifiers, once there is one.
+    val joinList = patientListViewModel.uiState.value.listFilter?.id
     findNavController()
-      .navigate(PatientListFragmentDirections.actionPatientListToAddPatientFragment())
+      .navigate(
+        R.id.action_patient_list_to_addPatientFragment,
+        joinList?.let { bundleOf(AddPatientFragment.ARG_JOIN_LIST to it) },
+      )
   }
 }

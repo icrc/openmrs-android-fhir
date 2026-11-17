@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.data
 
+import android.content.Context
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import javax.inject.Inject
@@ -37,9 +38,15 @@ import kotlinx.coroutines.sync.withLock
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraft
 import org.openmrs.android.fhir.data.database.model.GroupSessionDraftSummary
+import org.openmrs.android.fhir.patientlists.ActiveUser
 
 @Singleton
-class GroupSessionDraftRepository @Inject constructor(private val database: AppDatabase) {
+class GroupSessionDraftRepository(
+  private val database: AppDatabase,
+  private val user: ActiveUser,
+) {
+  @Inject
+  constructor(database: AppDatabase, context: Context) : this(database, ActiveUser.of(context))
 
   private val lock = Mutex()
 
@@ -54,24 +61,30 @@ class GroupSessionDraftRepository @Inject constructor(private val database: AppD
   suspend fun upsertDraft(draft: GroupSessionDraft) =
     lock.withLock {
       val dao = database.dao()
+      val owner = user.name()
       val now = System.currentTimeMillis()
       val digest = draft.contentDigest()
-      val unchanged = written[draft.questionnaireId]?.contentEquals(digest) == true
+      val key = keyOf(owner, draft.questionnaireId)
+      val unchanged = written[key]?.contentEquals(digest) == true
       // A draft deleted behind our back (rows touched = 0) is written again, whole.
-      if (unchanged && dao.touchGroupSessionDraft(draft.questionnaireId, now) > 0) return@withLock
-      dao.upsertGroupSessionDraft(draft.copy(lastUpdated = now))
-      written[draft.questionnaireId] = digest
+      if (unchanged && dao.touchGroupSessionDraft(draft.questionnaireId, owner, now) > 0) {
+        return@withLock
+      }
+      dao.upsertGroupSessionDraft(draft.copy(lastUpdated = now, owner = owner))
+      written[key] = digest
     }
 
   suspend fun getDraft(questionnaireId: String): GroupSessionDraft? {
-    return database.dao().getGroupSessionDraft(questionnaireId)
+    return database.dao().getGroupSessionDraft(questionnaireId, user.name())
   }
+
+  private fun keyOf(owner: String, questionnaireId: String) = "$owner/$questionnaireId"
 
   /** The drafts worth resuming, by form. */
   suspend fun pendingSessions(): Map<String, GroupSessionDraftSummary> =
     database
       .dao()
-      .getGroupSessionDraftSummaries()
+      .getGroupSessionDraftSummaries(user.name())
       .filter { it.hasContent }
       .associateBy { it.questionnaireId }
 
@@ -79,15 +92,16 @@ class GroupSessionDraftRepository @Inject constructor(private val database: AppD
   suspend fun deleteEmptyDrafts() {
     database
       .dao()
-      .getGroupSessionDraftSummaries()
+      .getGroupSessionDraftSummaries(user.name())
       .filterNot { it.hasContent }
       .forEach { deleteDraft(it.questionnaireId) }
   }
 
   suspend fun deleteDraft(questionnaireId: String) =
     lock.withLock {
-      written.remove(questionnaireId)
-      database.dao().deleteGroupSessionDraft(questionnaireId)
+      val owner = user.name()
+      written.remove(keyOf(owner, questionnaireId))
+      database.dao().deleteGroupSessionDraft(questionnaireId, owner)
     }
 }
 
@@ -110,6 +124,7 @@ private fun GroupSessionDraft.contentDigest(): ByteArray {
   add(sessionId)
   add(patientIds.size.toString())
   patientIds.forEach(::add)
+  add(patientListId)
   add(patientResponses.size.toString())
   patientResponses.forEach { (patientId, response) ->
     add(patientId)

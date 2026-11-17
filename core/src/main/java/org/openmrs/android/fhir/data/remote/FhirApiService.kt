@@ -34,7 +34,9 @@ import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.Resource
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Url
 
@@ -52,4 +54,8 @@ interface FhirApiService {
 
   /** Replaces a resource with [resource] (the whole of it). */
   @PUT suspend fun putResource(@Url url: String, @Body resource: Resource): Response<ResponseBody>
+
+  @POST suspend fun postResource(@Url url: String, @Body resource: Resource): Response<ResponseBody>
+
+  @DELETE suspend fun deleteResource(@Url url: String): Response<ResponseBody>
 }

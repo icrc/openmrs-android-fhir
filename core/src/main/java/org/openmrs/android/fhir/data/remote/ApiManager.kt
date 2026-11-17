@@ -29,18 +29,22 @@
 package org.openmrs.android.fhir.data.remote
 
 import android.content.Context
+import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.sync.download.UrlDownloadRequest
 import java.io.IOException
 import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import okhttp3.OkHttpClient
+import okhttp3.ResponseBody
 import okhttp3.logging.HttpLoggingInterceptor
 import org.hl7.fhir.r4.model.Group
 import org.hl7.fhir.r4.model.Location
 import org.hl7.fhir.r4.model.OperationOutcome
+import org.hl7.fhir.r4.model.Parameters
 import org.hl7.fhir.r4.model.Patient
 import org.hl7.fhir.r4.model.Questionnaire
 import org.hl7.fhir.r4.model.Resource
@@ -59,10 +63,18 @@ import org.openmrs.android.fhir.data.sync.ListDownloadStore
 import org.openmrs.android.fhir.data.sync.PatientDownloadWorkManager
 import org.openmrs.android.fhir.data.sync.ServerPresence
 import org.openmrs.android.fhir.data.sync.SyncUrls
+import org.openmrs.android.fhir.patientlists.GroupMapper
+import org.openmrs.android.fhir.patientlists.GroupServer
+import org.openmrs.android.fhir.patientlists.PatientSummary
+import org.openmrs.android.fhir.patientlists.ServerGroupRead
+import org.openmrs.android.fhir.patientlists.ServerGroupWrite
+import org.openmrs.android.fhir.patientlists.ServerGroups
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
-class ApiManager @Inject constructor(context: Context) : Api, ServerPresence {
+class ApiManager @Inject constructor(context: Context) :
+  Api, ServerPresence, GroupServer, ServerProbe {
   private val appContext = context.applicationContext
 
   // Read for every request: the user may sign in after this object was created (a guest session
@@ -255,15 +267,158 @@ class ApiManager @Inject constructor(context: Context) : Api, ServerPresence {
     return if (url == null) found else null
   }
 
+  override suspend fun groups(): ServerGroups =
+    readGroups(
+      ServerSettings.fhirBaseUrl(appContext) +
+        "Group?_elements=$GROUP_ELEMENTS&_count=$PATIENT_LIST_PAGE",
+    )
+
+  override suspend fun group(id: String): ServerGroupRead {
+    require(isFhirId(id)) { "Not a patient list id" }
+    val response = fhirApiService.getResource(ServerSettings.fhirBaseUrl(appContext) + "Group/$id")
+    val text =
+      (if (response.isSuccessful) response.body() else response.errorBody())?.use { it.string() }
+    return when {
+      response.code() == 404 || response.code() == 410 -> ServerGroupRead.Gone
+      !response.isSuccessful ->
+        throw IOException("Server answered ${response.code()} for a patient list")
+      else ->
+        ServerGroupRead.Found(
+          parseResource(text) as? Group
+            ?: throw IOException("The server did not answer with a Group"),
+        )
+    }
+  }
+
+  override suspend fun patients(ids: List<String>): List<PatientSummary> {
+    val clean = ids.filter(::isFhirId)
+    if (clean.isEmpty()) return emptyList()
+    val response =
+      fhirApiService.getBundle(
+        ServerSettings.fhirBaseUrl(appContext) +
+          "Patient?_id=${clean.joinToString(",")}&_count=${clean.size}" +
+          "&_elements=$PATIENT_SUMMARY_ELEMENTS",
+      )
+    if (!response.isSuccessful) throw IOException("Server answered ${response.code()} for patients")
+    return response.body()?.entry.orEmpty().mapNotNull {
+      (it.resource as? Patient)?.let(GroupMapper::summary)
+    }
+  }
+
+  /**
+   * A `PUT` with the id chosen on the device, not a `POST`: HAPI replaces the id of a created
+   * resource, and the changes queued for this patient list carry the device's id. Sent again, it is
+   * an update, so a lost answer does no harm.
+   */
+  override suspend fun create(group: Group): ServerGroupWrite = write {
+    fhirApiService.putResource(
+      ServerSettings.fhirBaseUrl(appContext) + "Group/${group.idElement.idPart}",
+      group,
+    )
+  }
+
+  override suspend fun update(group: Group): ServerGroupWrite = write {
+    fhirApiService.putResource(
+      ServerSettings.fhirBaseUrl(appContext) + "Group/${group.idElement.idPart}",
+      group,
+    )
+  }
+
+  override suspend fun delete(id: String): ServerGroupWrite = write {
+    require(isFhirId(id)) { "Not a patient list id" }
+    fhirApiService.deleteResource(ServerSettings.fhirBaseUrl(appContext) + "Group/$id")
+  }
+
+  override suspend fun addMembers(id: String, patientIds: List<String>): ServerGroupWrite = write {
+    require(isFhirId(id)) { "Not a patient list id" }
+    fhirApiService.postResource(
+      ServerSettings.fhirBaseUrl(appContext) + "Group/$id/\$add-members",
+      GroupMapper.parameters(patientIds),
+    )
+  }
+
+  override suspend fun removeMembers(id: String, patientIds: List<String>): ServerGroupWrite =
+    write {
+      require(isFhirId(id)) { "Not a patient list id" }
+      fhirApiService.postResource(
+        ServerSettings.fhirBaseUrl(appContext) + "Group/$id/\$remove-members",
+        GroupMapper.parameters(patientIds),
+      )
+    }
+
+  /**
+   * A change to a patient list, answered. 5xx and "too many requests" are the server being busy,
+   * not a refusal: the change is kept and goes later. The reason of a refusal is the server's own
+   * text.
+   */
+  private suspend fun write(call: suspend () -> Response<ResponseBody>): ServerGroupWrite {
+    val response = call()
+    val text =
+      (if (response.isSuccessful) response.body() else response.errorBody())?.use { it.string() }
+    val code = response.code()
+    return when {
+      response.isSuccessful -> ServerGroupWrite.Done(parseResource(text) as? Group)
+      // 401: the session ended (a single sign-on token, say): the change is fine, and goes after
+      // the next sign-in.
+      code == 401 || code == 408 || code == 429 || code >= 500 ->
+        ServerGroupWrite.Unreachable("Server answered $code")
+      else -> ServerGroupWrite.Refused(code, refusalReason(text, code))
+    }
+  }
+
+  override suspend fun send(method: String, url: String, body: Resource?): ProbeAnswer =
+    try {
+      val response =
+        when (method) {
+          "GET" -> fhirApiService.getResource(url)
+          "POST" -> fhirApiService.postResource(url, body ?: Parameters())
+          "PUT" -> fhirApiService.putResource(url, requireNotNull(body))
+          "DELETE" -> fhirApiService.deleteResource(url)
+          else -> throw IllegalArgumentException("Unknown method $method")
+        }
+      val text =
+        (if (response.isSuccessful) response.body() else response.errorBody())?.use { it.string() }
+      ProbeAnswer(response.code(), text?.take(PROBE_TEXT_LENGTH))
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: IOException) {
+      ProbeAnswer(0, e.message)
+    }
+
+  private fun parseResource(text: String?): Resource? =
+    if (text.isNullOrBlank()) {
+      null
+    } else {
+      try {
+        FhirContext.forR4Cached().newJsonParser().parseResource(text) as? Resource
+      } catch (e: Exception) {
+        null
+      }
+    }
+
+  private fun refusalReason(text: String?, code: Int): String {
+    val issue = (parseResource(text) as? OperationOutcome)?.issueFirstRep
+    val reason = issue?.diagnostics ?: issue?.details?.text
+    return reason?.take(REASON_LENGTH)?.takeIf { it.isNotBlank() } ?: "Server answered $code"
+  }
+
+  private fun isFhirId(id: String) = id.isNotEmpty() && id.all { it.isLetterOrDigit() || it == '-' }
+
   /**
    * The patient lists (Groups) of [search] (`Group?location=...`, see `SyncUrls.groups`), following
    * the `next` links. Read only.
    */
   suspend fun fetchPatientLists(search: String): List<Group> {
-    val groups = mutableListOf<Group>()
     val separator = if (search.contains('?')) "&" else "?"
-    var url: String? =
-      ServerSettings.fhirBaseUrl(appContext) + search + separator + "_count=$PATIENT_LIST_PAGE"
+    return readGroups(
+        ServerSettings.fhirBaseUrl(appContext) + search + separator + "_count=$PATIENT_LIST_PAGE",
+      )
+      .groups
+  }
+
+  private suspend fun readGroups(firstPage: String): ServerGroups {
+    val groups = mutableListOf<Group>()
+    var url: String? = firstPage
     var pages = 0
     while (url != null && pages++ < MAX_PATIENT_LIST_PAGES) {
       val response = fhirApiService.getBundle(url)
@@ -274,7 +429,7 @@ class ApiManager @Inject constructor(context: Context) : Api, ServerPresence {
       bundle.entry.mapNotNullTo(groups) { it.resource as? Group }
       url = bundle.link.firstOrNull { it.relation == "next" }?.url
     }
-    return groups
+    return ServerGroups(groups, complete = url == null)
   }
 
   /**
@@ -366,7 +521,12 @@ private const val MAX_RECORD_PAGES = 20
 private const val MAX_EXISTENCE_PAGES = 3
 private const val MAX_PATIENT_LIST_PAGES = 20
 private const val PATIENT_LIST_PAGE = 100
+private const val PROBE_TEXT_LENGTH = 4000
 private const val MAX_PATIENT_DOWNLOAD_REQUESTS = 200_000
 private const val PATIENT_SEARCH_LIMIT = 20
 private const val PATIENT_SEARCH_ELEMENTS =
   "id,name,identifier,birthDate,gender,address,telecom,active"
+
+private const val GROUP_ELEMENTS = "id,name,quantity,extension,managingEntity,meta,active"
+private const val PATIENT_SUMMARY_ELEMENTS = "id,name,identifier,birthDate,gender"
+private const val REASON_LENGTH = 200

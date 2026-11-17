@@ -35,6 +35,7 @@ import androidx.lifecycle.viewModelScope
 import ca.uhn.fhir.context.FhirContext
 import com.google.android.fhir.FhirEngine
 import com.google.android.fhir.datacapture.extensions.logicalId
+import com.google.android.fhir.get
 import com.google.android.fhir.search.search
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -58,6 +59,7 @@ import org.openmrs.android.fhir.data.database.model.UnsyncedResource
 import org.openmrs.android.fhir.data.database.model.UnsyncedResourceModel
 import org.openmrs.android.fhir.di.IoDispatcher
 import org.openmrs.android.fhir.multiuser.DataVisibility
+import org.openmrs.android.fhir.unidentified.UnidentifiedStore
 
 class UnsyncedResourcesViewModel
 @Inject
@@ -65,10 +67,14 @@ constructor(
   private val fhirEngine: FhirEngine,
   @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
   private val dataVisibility: DataVisibility = DataVisibility.Everything,
+  private val unidentified: UnidentifiedStore? = null,
 ) : ViewModel() {
 
   private val _resources = MutableLiveData<List<UnsyncedResource>>(emptyList())
   val resources: LiveData<List<UnsyncedResource>> = _resources
+
+  private val _toIdentify = MutableLiveData<List<UnsyncedResource>>(emptyList())
+  val toIdentify: LiveData<List<UnsyncedResource>> = _toIdentify
 
   private val _downloadResource = MutableLiveData<String>()
   val downloadResource: LiveData<String> = _downloadResource
@@ -77,6 +83,7 @@ constructor(
   val isLoading: LiveData<Boolean> = _isLoading
 
   private var patients: List<UnsyncedPatient> = emptyList()
+  private var patientsToIdentify: List<UnsyncedPatient> = emptyList()
 
   private val jsonParser = FhirContext.forR4Cached().newJsonParser()
 
@@ -91,6 +98,7 @@ constructor(
         val latestPatients =
           withContext(ioDispatcher) { fetchUnsyncedPatientsWithEncounterAndObservations() }
         patients = latestPatients
+        patientsToIdentify = withContext(ioDispatcher) { fetchPatientsToIdentify() }
         updateResourcesList()
       } catch (_: Exception) {
         // Keep previously loaded resources visible on failure.
@@ -101,6 +109,11 @@ constructor(
   }
 
   private fun updateResourcesList() {
+    _resources.value = flatten(patients)
+    _toIdentify.value = flatten(patientsToIdentify)
+  }
+
+  private fun flatten(patients: List<UnsyncedPatient>): List<UnsyncedResource> {
     val flattenedList = mutableListOf<UnsyncedResource>()
 
     patients.forEach { patient ->
@@ -119,17 +132,17 @@ constructor(
       }
     }
 
-    _resources.value = flattenedList.toImmutableList()
+    return flattenedList.toImmutableList()
   }
 
   fun togglePatientExpansion(patientId: String) {
-    val patient = patients.find { it.logicalId == patientId } ?: return
+    val patient = (patients + patientsToIdentify).find { it.logicalId == patientId } ?: return
     patient.isExpanded = !patient.isExpanded
     updateResourcesList()
   }
 
   fun toggleEncounterExpansion(encounterId: String) {
-    patients.forEach { patient ->
+    (patients + patientsToIdentify).forEach { patient ->
       val encounter = patient.encounters.find { it.logicalId == encounterId }
       if (encounter != null) {
         encounter.isExpanded = !encounter.isExpanded
@@ -377,6 +390,30 @@ constructor(
 
     // What another user of the device registered is not listed (unless they share it).
     return dataVisibility.visibleAmong(unsyncedPatients) { it.logicalId }
+  }
+
+  private suspend fun fetchPatientsToIdentify(): List<UnsyncedPatient> {
+    val store = unidentified ?: return emptyList()
+    return store.visibleTo(dataVisibility).mapNotNull { entry ->
+      val reference = "Patient/${entry.patientId}"
+      val patient = runCatching { fhirEngine.get<Patient>(entry.patientId) }.getOrNull()
+      val observations =
+        fhirEngine
+          .search<Observation> { filter(Observation.SUBJECT, { value = reference }) }
+          .map { it.resource }
+          .groupBy { it.getEncounterId() }
+      val encounters =
+        fhirEngine
+          .search<Encounter> { filter(Encounter.SUBJECT, { value = reference }) }
+          .map { it.resource }
+          .map { encounter ->
+            encounter.toEncounterItem(
+              isSynced = false,
+              (observations[encounter.logicalId] ?: emptyList()).map { it.toObservationItem() },
+            )
+          }
+      patient?.toPatientItem(isSynced = false, encounters)
+    }
   }
 
   private suspend fun hasLocalChanges(

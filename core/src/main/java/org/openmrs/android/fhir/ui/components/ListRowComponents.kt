@@ -30,7 +30,6 @@ package org.openmrs.android.fhir.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +43,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -63,7 +63,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -84,10 +83,14 @@ fun SelectPatientListItemRow(
   onToggle: () -> Unit,
   modifier: Modifier = Modifier,
   subtitle: String? = null,
+  tag: String? = null,
+  tagIsError: Boolean = false,
+  onOpen: (() -> Unit)? = null,
+  selectable: Boolean = true,
 ) {
   val primary = MaterialTheme.colorScheme.primary
   Surface(
-    onClick = onToggle,
+    onClick = if (selectable || onOpen == null) onToggle else onOpen,
     modifier = modifier.fillMaxWidth().testTag("SelectPatientRow"),
     shape = RoundedCornerShape(16.dp),
     color =
@@ -137,10 +140,22 @@ fun SelectPatientListItemRow(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
         }
+        if (tag != null) {
+          PatientListTag(modifier = Modifier.padding(top = 4.dp), text = tag, isError = tagIsError)
+        }
+      }
+      if (onOpen != null) {
+        IconButton(onClick = onOpen, modifier = Modifier.testTag("OpenPatientList")) {
+          Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = stringResource(R.string.plist_open),
+          )
+        }
       }
       Checkbox(
         modifier = Modifier.testTag("SelectPatientCheckbox"),
         checked = checked,
+        enabled = selectable,
         onCheckedChange = { onToggle() },
       )
     }
@@ -148,32 +163,21 @@ fun SelectPatientListItemRow(
 }
 
 @Composable
-fun PatientSelectableRow(
-  name: String,
-  checked: Boolean,
-  onToggle: () -> Unit,
-) {
-  Surface(color = MaterialTheme.colorScheme.surface) {
-    Row(
-      modifier =
-        Modifier.fillMaxWidth()
-          .padding(horizontal = 0.dp, vertical = 12.dp)
-          .clickable(role = Role.Checkbox) { onToggle() }
-          .testTag("PatientSelectableRow"),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Checkbox(
-        modifier = Modifier.padding(end = 12.dp).testTag("PatientSelectableCheckbox"),
-        checked = checked,
-        onCheckedChange = { onToggle() },
-      )
-      Text(
-        modifier = Modifier.weight(1f).testTag("PatientSelectableName"),
-        text = name,
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onSurface,
-      )
-    }
+internal fun PatientListTag(text: String, isError: Boolean, modifier: Modifier = Modifier) {
+  val tint = if (isError) MaterialTheme.colorScheme.error else OpenMrsTheme.colors.warning
+  Surface(
+    modifier = modifier,
+    shape = RoundedCornerShape(50),
+    color = tint.copy(alpha = 0.16f),
+  ) {
+    Text(
+      modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp),
+      text = text,
+      style = MaterialTheme.typography.labelSmall,
+      color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+      maxLines = 2,
+      overflow = TextOverflow.Ellipsis,
+    )
   }
 }
 

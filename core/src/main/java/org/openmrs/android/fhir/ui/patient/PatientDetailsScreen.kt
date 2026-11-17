@@ -123,6 +123,7 @@ fun PatientDetailsScreen(
   identifyAvailable: Boolean = true,
   isRefreshing: Boolean = false,
   onRefresh: (() -> Unit)? = null,
+  membershipCard: (@Composable () -> Unit)? = null,
 ) {
   val topInset = rememberAppBarHeight()
   val refreshState =
@@ -155,17 +156,19 @@ fun PatientDetailsScreen(
         items(rows, key = { it.listKey() }, contentType = { it::class }) { item ->
           when (item) {
             is PatientDetailOverview ->
-              PatientDetailsOverviewHeader(
-                modifier = Modifier.tutorialTarget(TutorialTargets.DETAILS_OVERVIEW),
-                name = item.patient.name,
-                identifiers = item.patient.identifiers,
-                ageGender = formatAgeGender(item.patient),
-                details = patientDetailLines(item.patient),
-                extraDetails = extraDetailLines(item.extraDetails),
-                // A placeholder has no registration to edit.
-                onEditClick = if (item.unidentified) null else onEditPatient,
-                unsynced = unsynced,
-              )
+              Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                PatientDetailsOverviewHeader(
+                  modifier = Modifier.tutorialTarget(TutorialTargets.DETAILS_OVERVIEW),
+                  name = item.patient.name,
+                  identifiers = item.patient.identifiers,
+                  ageGender = formatAgeGender(item.patient),
+                  details = patientDetailLines(item.patient),
+                  extraDetails = extraDetailLines(item.extraDetails),
+                  onEditClick = if (item.unidentified) null else onEditPatient,
+                  unsynced = unsynced,
+                )
+                membershipCard?.invoke()
+              }
             is PatientDetailUnidentified ->
               UnidentifiedCard(
                 note = item.note,

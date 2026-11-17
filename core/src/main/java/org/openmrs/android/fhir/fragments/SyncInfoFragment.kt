@@ -35,7 +35,6 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
@@ -90,6 +89,10 @@ class SyncInfoFragment : Fragment() {
       OpenMrsTheme {
         val sessions by syncInfoViewModel.syncSessions.observeAsState(emptyList())
         val pending by unsyncedViewModel.resources.observeAsState(emptyList())
+        val toIdentifyResources by unsyncedViewModel.toIdentify.observeAsState(emptyList())
+        androidx.compose.runtime.LaunchedEffect(Unit) {
+          LiveSync.uploaded.collect { unsyncedViewModel.loadUnsyncedResources() }
+        }
         val isLoadingPending by unsyncedViewModel.isLoading.observeAsState(false)
         val isSyncing by mainActivityViewModel.isSyncing.observeAsState(false)
         val activityState by mainActivityViewModel.uiState.collectAsStateWithLifecycle()
@@ -98,23 +101,15 @@ class SyncInfoFragment : Fragment() {
         val defaultMode by
           remember { DemoDataStore(context.applicationContext).getAutoSyncModeFlow() }
             .collectAsStateWithLifecycle(initialValue = SyncMode.BOTH)
-        // Patients recorded to be identified after; it changes when one is identified.
-        val unidentifiedCount by
-          produceState(0) {
-            val patients =
-              FhirApplication.appComponent(context.applicationContext).unidentifiedPatients()
-            value = patients.count()
-            LiveSync.uploaded.collect { value = patients.count() }
-          }
         SyncScreen(
-          unidentifiedCount = unidentifiedCount,
-          onIdentify = { (requireActivity() as? MainActivity)?.showIdentifyDialog() },
+          onIdentify = { id -> (requireActivity() as? MainActivity)?.showIdentifyDialog(id) },
           identifyAvailable =
             !GuestSession.isActive(context) && activityState.connectivityState.isServerReachable(),
           defaultSyncMode = defaultMode,
           syncAvailable = activityState.connectivityState.isServerReachable(),
           syncSessions = sessions,
           pendingResources = pending,
+          toIdentifyResources = toIdentifyResources,
           isLoadingPending = isLoadingPending,
           isSyncing = isSyncing,
           syncProgress = activityState.syncProgressState,
