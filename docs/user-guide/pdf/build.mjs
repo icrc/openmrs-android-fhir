@@ -2,6 +2,13 @@
 //
 //   node pdf/build.mjs --lang fr            -> build/user-guide-fr-v<version>.pdf (and build/user-guide-fr.html)
 //   node pdf/build.mjs --lang fr --html     -> only the HTML preview
+//   node pdf/build.mjs --lang en --auth sso -> the guide for an organisation that signs in with single sign-on
+//                                              (--auth basic: user name and password; default: both)
+//
+// The Markdown can hold parts that depend on how the user signs in:
+//   <!-- auth: sso -->  ...  <!-- /auth -->      kept in the "sso" guide and in the "both" guide
+//   <!-- auth: both -->  ...  <!-- /auth -->     kept in the "both" guide only
+// The tags are basic, sso and both; a list ("basic, sso") keeps the part for each of them. No nesting.
 //
 // No Pandoc or LaTeX needed: Markdown is read by markdown-it, the pages (running headers, page numbers, the
 // table of contents with page numbers) are made by Paged.js, and the PDF is printed by Edge or Chrome.
@@ -22,6 +29,10 @@ const args = process.argv.slice(2);
 const langIndex = args.indexOf("--lang");
 const lang = langIndex >= 0 ? args[langIndex + 1] : "en";
 const htmlOnly = args.includes("--html");
+const authIndex = args.indexOf("--auth");
+const auth = authIndex >= 0 ? args[authIndex + 1] : "both";
+if (!["both", "sso", "basic"].includes(auth)) throw new Error("--auth must be both, sso or basic");
+const authSuffix = auth === "both" ? "" : "-" + auth;
 
 const meta = JSON.parse(fs.readFileSync(path.join(guide, "i18n", "meta.json"), "utf8"));
 const m = meta[lang];
@@ -39,12 +50,27 @@ md.validateLink = () => true; // the images are file: addresses on the build mac
 const contentDir = path.join(guide, "content", lang);
 const files = fs.readdirSync(contentDir).filter((f) => /^\d\d-.*\.md$/.test(f)).sort();
 
+// Keeps or drops the parts that depend on the way of signing in (see the head of this file).
+let authBlocksSeen = 0;
+function applyAuth(source, file) {
+  const block = /<!--\s*auth:\s*([a-z, ]+?)\s*-->[ \t]*\r?\n?([\s\S]*?)<!--\s*\/auth\s*-->[ \t]*\r?\n?/g;
+  const out = source.replace(block, (_all, tags, body) => {
+    authBlocksSeen += 1;
+    const wanted = tags.split(",").map((s) => s.trim());
+    const keep = wanted.includes(auth) || (auth === "both" && (wanted.includes("basic") || wanted.includes("sso")));
+    return keep ? body : "";
+  });
+  if (/<!--\s*\/?auth/.test(out)) throw new Error(file + ": an auth block is not closed, or is nested");
+  return out;
+}
+
 let chapterNo = 0;
 let sectionNo = 0;
 const chapters = [];
 const toc = [];
 for (const file of files) {
   let source = fs.readFileSync(path.join(contentDir, file), "utf8");
+  source = applyAuth(source, file);
   const resolved = resolveLabels(source, lang);
   if (resolved.missing.length) console.error("UNKNOWN LABEL KEYS in " + file + ": " + resolved.missing.join(", "));
   source = resolved.text;
@@ -54,8 +80,11 @@ for (const file of files) {
   });
   let html = md.render(source);
   // a figure: an image paragraph followed by an emphasised caption paragraph
+  // (the number in the caption is counted again here, so a picture that is left out of an auth variant leaves no gap)
+  let figureNo = 0;
   html = html.replace(/<p>(<img [^>]*>)<\/p>\s*<p><em>([\s\S]*?)<\/em><\/p>/g, (_all, img, caption) => {
-    return "<figure>" + img + "<figcaption>" + caption + "</figcaption></figure>";
+    figureNo += 1;
+    return "<figure>" + img + "<figcaption>" + caption.replace(/\d+/, String(figureNo)) + "</figcaption></figure>";
   });
   // numbered headings; the "template" headings of a chapter stay out of the contents
   html = html.replace(/<h([12])([^>]*)>([\s\S]*?)<\/h\1>/g, (all, level, attributes, inner) => {
@@ -79,6 +108,17 @@ for (const file of files) {
     return `<h${level}${attributes}>${prefix}${inner}</h${level}>`;
   });
   chapters.push(html);
+}
+
+if (auth !== "both" && authBlocksSeen === 0) {
+  console.error("NOTE: the " + lang + " chapters have no <!-- auth: --> blocks yet (not translated since they were added): this guide describes every way of signing in.");
+}
+
+// a picture that is not there would print as an empty frame
+for (const html of chapters) {
+  for (const src of html.matchAll(/<img [^>]*src="(file:[^"]+)"/g)) {
+    if (!fs.existsSync(fileURLToPath(src[1]))) console.error("MISSING IMAGE: " + fileURLToPath(src[1]));
+  }
 }
 
 const tocHtml = toc
@@ -127,12 +167,12 @@ window.PagedConfig = { auto: true, after: function () { window.__guideDone = tru
 
 const buildDir = path.join(guide, "build");
 fs.mkdirSync(buildDir, { recursive: true });
-const htmlFile = path.join(buildDir, `user-guide-${lang}.html`);
+const htmlFile = path.join(buildDir, `user-guide-${lang}${authSuffix}.html`);
 fs.writeFileSync(htmlFile, page, "utf8");
 console.log("wrote", path.relative(repo, htmlFile));
 if (htmlOnly) process.exit(0);
 
-const pdf = path.join(buildDir, `user-guide-${lang}-v${version}.pdf`);
+const pdf = path.join(buildDir, `user-guide-${lang}${authSuffix}-v${version}.pdf`);
 if (fs.existsSync(pdf)) fs.unlinkSync(pdf);
 const pages = await printToPdf(pathToFileURL(htmlFile).href, pdf);
 console.log("wrote", path.relative(repo, pdf), Math.round(fs.statSync(pdf).size / 1024) + " KB,", pages, "pages");

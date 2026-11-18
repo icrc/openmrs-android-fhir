@@ -119,7 +119,7 @@ class Runner(object):
     def do(self, step):
         if isinstance(step, str):
             step = {step: True}
-        (verb, arg), = [(k, v) for k, v in step.items() if k not in ("exact", "nth", "timeout", "absolute")]
+        (verb, arg), = [(k, v) for k, v in step.items() if k not in ("exact", "nth", "timeout", "absolute", "auth")]
         exact = step.get("exact", True)
         nth = step.get("nth", 0)
         timeout = step.get("timeout", 20)
@@ -263,7 +263,12 @@ def onboard(runner):
     time.sleep(2)
 
 
-def run(lang, ids=None, skip_reset=False):
+def applies(step, auth):
+    """A step (or a flow) may say `auth: [sso]`: it is run only when the app was built with that way of signing in."""
+    return not isinstance(step, dict) or auth in step.get("auth", [auth])
+
+
+def run(lang, ids=None, skip_reset=False, auth="both"):
     manifest = yaml.safe_load(open(MANIFEST, encoding="utf-8"))
     prepare_device()
     runner = Runner(lang)
@@ -272,11 +277,15 @@ def run(lang, ids=None, skip_reset=False):
     for flow in manifest["flows"]:
         if skip_reset and flow.get("setup"):
             continue
-        wanted = [s for s in flow["steps"] if isinstance(s, dict) and "shot" in s]
+        if not applies(flow, auth):
+            continue
+        wanted = [s for s in flow["steps"] if isinstance(s, dict) and "shot" in s and applies(s, auth)]
         if ids and not any((s["shot"]["id"] if isinstance(s["shot"], dict) else s["shot"]) in ids for s in wanted) and not flow.get("setup"):
             continue
         print("flow %s" % flow["name"])
         for step in flow["steps"]:
+            if not applies(step, auth):
+                continue
             if step == "onboard":
                 onboard(runner)
                 continue
@@ -292,8 +301,10 @@ def main():
     parser.add_argument("--lang", default="en", choices=gl.LANGS)
     parser.add_argument("--ids", default="")
     parser.add_argument("--skip-reset", action="store_true")
+    parser.add_argument("--auth", default="both", choices=("both", "sso", "basic"),
+                        help="how the installed app signs in (tasks.py app --auth): steps tagged with another way are skipped")
     args = parser.parse_args()
-    run(args.lang, [i for i in args.ids.split(",") if i], args.skip_reset)
+    run(args.lang, [i for i in args.ids.split(",") if i], args.skip_reset, args.auth)
 
 
 if __name__ == "__main__":

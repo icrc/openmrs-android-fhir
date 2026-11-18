@@ -11,7 +11,8 @@ screenshots/raw/<lang>/        the captures as they came from the tablet (+ the 
                                `tasks.py screenshots` writes them and `tasks.py polish` redraws the images from them
 screenshots/<lang>/            the polished images used by the guide
 fake-backend/                  the fictional server (see its README), no real server is ever used
-device-config/                 test-only app configuration and single sign-on settings (debug build only)
+device-config/                 test-only app configuration and single sign-on settings, and the Gradle init script
+                               that builds the test app with them (debug build only)
 i18n/                          glossary.yml, translation-status.json, meta.json (titles of the PDF)
 tasks.py                       the tasks below (Windows, macOS and Linux; Python 3.7+, no make or bash)
 scripts/                       screenshots.py, postprocess.py, guide.py (checks and translation status),
@@ -27,12 +28,35 @@ Commands (`python tasks.py <task> [--lang fr]`, from any folder; `python tasks.p
 |---|---|
 | Install the PDF tools once | `tasks.py deps` (needs Node 22 or newer; Edge or Chrome is used to print) |
 | Start / stop the fake server | `tasks.py fake-backend-up` / `tasks.py fake-backend-down` |
-| Build and install the test app | `tasks.py app [--serial S]` |
-| Capture one language / all | `tasks.py screenshots --lang fr` / `tasks.py screenshots-all` |
+| Build and install the test app | `tasks.py app [--auth both\|sso\|basic] [--app-config FILE] [--serial S]` |
+| Capture one language / all | `tasks.py screenshots --lang fr [--auth sso]` / `tasks.py screenshots-all` |
 | See what needs translating | `tasks.py status` and `tasks.py check-translations` |
 | Check the guide | `tasks.py check` (after a capture also `tasks.py smoke-test`) |
 | Rebuild the glossary from the app strings | `tasks.py glossary` |
-| Build the PDF of one language / all | `tasks.py pdf --lang ar` / `tasks.py pdf-all` |
+| Build the PDF of one language / all | `tasks.py pdf --lang ar [--auth sso]` / `tasks.py pdf-all` |
+
+## One guide per way of signing in: `--auth`
+
+Organisations sign in in different ways, and the guide should only describe the one a reader has.
+`--auth both` (the default) describes user name and password and single sign-on, `--auth sso` only single
+sign-on, `--auth basic` only user name and password. The PDF is then `user-guide-<lang>-sso-v<version>.pdf`
+(`both` keeps the old name).
+
+* In the Markdown, a part that depends on it is wrapped in `<!-- auth: sso -->` ... `<!-- /auth -->`. The tags are
+  `basic`, `sso` and `both` (a list such as `sso, both` is allowed): a block is kept in a build of that kind, and
+  `both`-tagged blocks only in the `both` build. Blocks cannot be nested; markers are on their own lines (or
+  inline, with the space *outside* the block). Headings in blocks need distinct ids.
+* The "Figure N" numbers are counted again when the PDF is built, so a picture left out leaves no gap.
+* A language whose chapters have no `auth` blocks yet (not translated since they were added) still builds with
+  `--auth sso`, but says so and describes every way of signing in.
+* `tasks.py check` fails on a block that is not closed, nested, or has an unknown tag. The translations must
+  carry the same blocks as the English file (`tasks.py status` shows a different structure).
+* The login page differs, so there is one capture per way of signing in: `login-01-page` (both),
+  `login-01-page-sso`, `login-01-page-basic`. In `screenshots/manifest.yml` a step with `auth: [sso]` runs only
+  when the installed app was built with that way (`tasks.py app --auth sso`, `tasks.py screenshots --auth sso`).
+* `tasks.py app` builds the test app with the guide's configuration: the file of `device-config/` or the one given
+  with `--app-config` (for example the local `app_config.xml` of the app module), pointed at the fictional server,
+  without its `cohort-type`, with the sign-in methods of `--auth`. No project file changes.
 
 ## Words of the app: `{{string_key}}`
 

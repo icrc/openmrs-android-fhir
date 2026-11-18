@@ -49,6 +49,7 @@ def structure(text):
         "labels": sorted(re.findall(r"\{\{([a-z0-9_]+)\}\}", text)),
         "callouts": len(re.findall(r"(?m)^> \*\*", text)),
         "tables": len(re.findall(r"(?m)^\|---", text)),
+        "auth_blocks": re.findall(r"<!--\s*auth:\s*([a-z, ]+?)\s*-->", text),
     }
 
 
@@ -187,6 +188,14 @@ def cmd_check(_args):
             for key in re.findall(r"\{\{([a-z0-9_]+)\}\}", text):
                 if key not in strs:
                     errors.append("%s/%s: unknown label key {{%s}}" % (lang, name, key))
+            opened = len(re.findall(r"<!--\s*auth:", text))
+            closed = len(re.findall(r"<!--\s*/auth\s*-->", text))
+            nested = re.search(r"<!--\s*auth:(?:(?!<!--\s*/auth).)*<!--\s*auth:", text, re.S)
+            if opened != closed or nested:
+                errors.append("%s/%s: auth blocks are not closed or are nested (%d opened, %d closed)" % (lang, name, opened, closed))
+            for tags in re.findall(r"<!--\s*auth:\s*([^>]*?)\s*-->", text):
+                if not all(x.strip() in ("basic", "sso", "both") for x in tags.split(",")):
+                    errors.append("%s/%s: unknown auth tag %r (use basic, sso or both)" % (lang, name, tags))
             if re.search(r"(?m)^(?!\s*\|)(?!\s*<!--).*\b(TODO)\b", text) and "<!-- TODO" not in text:
                 errors.append("%s/%s: a TODO outside a comment" % (lang, name))
             if re.search(r"https?://(?!openmrs\.example|login\.example)", text):

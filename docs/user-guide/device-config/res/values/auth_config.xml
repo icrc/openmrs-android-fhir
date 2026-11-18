@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  Test-only single sign-on settings for the user-guide screenshots. They point at the fictional
+  identity provider of docs/user-guide/fake-backend (the emulator reaches the host as 10.0.2.2).
+  The redirect scheme is registered by the init script (a browser does not accept the underscore of the application id).
+-->
+<resources>
+    <string translatable="false" name="auth_authorization_scope">openid</string>
+    <string translatable="false" name="auth_client_id">openmrs-fhir</string>
+    <string
+        translatable="false"
+        name="auth_redirect_uri_host"
+    >org.openmrs.android.fhir.guide</string>
+    <string
+        translatable="false"
+        name="auth_redirect_uri_path"
+    >/oauth2redirect</string>
+    <string
+        translatable="false"
+        name="auth_discovery_uri"
+    >http://openmrs-demo.example:8089/realms/main/.well-known/openid-configuration</string>
+    <bool name="auth_https_required">false</bool>
+</resources>

@@ -8,28 +8,41 @@ flows:
     setup: true
     steps:
       - {expect: "Log in", timeout: 40}
-      - {shot: {id: login-01-page, screen: Login page, scenario: default, callouts: [{n: 1, at: "Username"}, {n: 2, at: "Password"}, {n: 3, at: "Log in"}, {n: 4, at: "Sign in with SSO"}, {n: 5, at: "Continue without signing in"}]}}
+      # the page has to be fully drawn (the splash screen says "Checking server connectivity")
+      - {absent: "Checking server connectivity", timeout: 30}
+      - {wait: 3}
+      - {expect: "Continue without signing in", timeout: 20}
+      # `auth: [..]` on a step: only when the app was built with that way of signing in (tasks.py app --auth).
+      - {auth: [both], shot: {id: login-01-page, screen: Login page, scenario: default, callouts: [{n: 1, at: "Username"}, {n: 2, at: "Password"}, {n: 3, at: "Log in"}, {n: 4, at: "Sign in with SSO"}, {n: 5, at: "Continue without signing in"}]}}
+      - {auth: [sso], shot: {id: login-01-page-sso, screen: Login page, scenario: default, callouts: [{n: 1, at: "Log in"}, {n: 2, at: "Continue without signing in"}]}}
+      - {auth: [basic], shot: {id: login-01-page-basic, screen: Login page, scenario: default, callouts: [{n: 1, at: "Username"}, {n: 2, at: "Password"}, {n: 3, at: "Log in"}, {n: 4, at: "Continue without signing in"}]}}
       - {tap: "Settings"}
       - {wait: 2}
       - {shot: {id: login-02-settings, screen: Login settings, scenario: default}}
       - {back: 1}
-      - {type: {field: 0, text: "{user}"}}
-      - {type: {field: 1, text: "wrong-password"}}
-      - {tap: "Log in"}
-      - {wait: 1.2}
-      - {shot: {id: login-03-wrong-password, screen: Login page, scenario: default}}
+      - {auth: [basic, both], type: {field: 0, text: "{user}"}}
+      - {auth: [basic, both], type: {field: 1, text: "wrong-password"}}
+      - {auth: [basic, both], tap: "Log in"}
+      - {auth: [basic, both], wait: 1.2}
+      - {auth: [basic, both], shot: {id: login-03-wrong-password, screen: Login page, scenario: default}}
       - {wait: 3}
+      # With a user name and password only: sign in.
+      - {auth: [basic], clear: 1}
+      - {auth: [basic], type: {field: 1, text: "{pw}"}}
+      - {auth: [basic], tap: "Log in"}
       # Single sign-on: the organisation's own page opens in the browser.
-      - {tap: "Sign in with SSO"}
-      - {wait: 7}
-      - {shot: {id: sso-01-browser, screen: Single sign-on page, scenario: default}}
-      - {tap_xy: [800, 660], absolute: true}
-      - {web_type: "{user}"}
-      - {tap_xy: [800, 885], absolute: true}
-      - {web_type: "{pw}"}
-      - hide_keyboard
-      - {shot: {id: sso-02-filled, screen: Single sign-on page, scenario: default}}
-      - {tap_xy: [800, 1068], absolute: true}
+      # with single sign-on only, the one button of the page is the main one: it reads "Log in"
+      - {auth: [sso], tap: "Log in"}
+      - {auth: [both], tap: "Sign in with SSO"}
+      - {auth: [sso, both], wait: 7}
+      - {auth: [sso, both], shot: {id: sso-01-browser, screen: Single sign-on page, scenario: default}}
+      - {auth: [sso, both], tap_xy: [800, 660], absolute: true}
+      - {auth: [sso, both], web_type: "{user}"}
+      - {auth: [sso, both], tap_xy: [800, 885], absolute: true}
+      - {auth: [sso, both], web_type: "{pw}"}
+      - {auth: [sso, both], hide_keyboard: true}
+      - {auth: [sso, both], shot: {id: sso-02-filled, screen: Single sign-on page, scenario: default}}
+      - {auth: [sso, both], tap_xy: [800, 1068], absolute: true}
       - {expect: "Not now", timeout: 40}
       - {shot: {id: login-04-offline-login, screen: Offline login prompt, scenario: default}}
       - {tap: "Not now"}
@@ -151,4 +164,46 @@ flows:
       - {wait: 3}
       - {shot: {id: logout-01-dialog, screen: Log out, scenario: default, callouts: [{n: 1, at: "Yes"}, {n: 2, at: "No"}]}}
       - {tap: "No"}
+      - home
+
+  # screens for the training deck (not in the guide): nothing is saved, every flow ends on the home screen
+  - name: extra
+    steps:
+      - home
+      - {tap: "Patients", nth: -1}
+      - {expect: "Find by name, identifier or phone"}
+      - {tap: "{pat:p01}"}
+      - {expect: "Edit Patient", timeout: 20}
+      - {tap_xy: [1384, 2352]}
+      - {expect: "Search forms"}
+      - {tap: "Follow-up Form"}
+      - {wait: 5}
+      - {shot: {id: encounter-01-form, screen: Form, scenario: default}}
+      # leaving a form asks to discard the answers
+      - {tap_xy: [68, 112]}
+      - {wait: 1.5}
+      - {tap: "OK"}
+      - home
+      - {tap: "Patient lists"}
+      - {wait: 5}
+      - {tap_xy: [1408, 1016]}
+      - {wait: 4}
+      - {shot: {id: lists-03-detail, screen: Patient list page, scenario: default}}
+      - home
+      - {tap: "Patients", nth: -1}
+      - {expect: "Find by name, identifier or phone"}
+      - {tap_xy: [1332, 2052]}
+      - {wait: 3}
+      - {shot: {id: identify-01-note, screen: Identify later, scenario: default}}
+      - {back: 1}
+      - home
+      - {tap_xy: [72, 112]}
+      - {tap: "Settings"}
+      - {expect: "Search settings", timeout: 20}
+      - {scroll_to: "Advanced settings"}
+      - {tap: "Show the advanced settings"}
+      - {wait: 1}
+      - {swipe: [800, 2100, 800, 900, 600]}
+      - {shot: {id: settings-05-advanced, screen: Advanced settings, scenario: default}}
+      - {back: 1}
       - home

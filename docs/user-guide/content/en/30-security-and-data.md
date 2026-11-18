@@ -12,13 +12,9 @@ By default your data stays on the tablet when you log out, so the next person to
 
 - You only see the patients you registered or downloaded. Other users do not see them, unless you allow it in {{settings}} ({{settings_share_my_data}}).
 - Each user has their own patient lists and location.
-- On the login page, the small cloud icon shows if some users still have data waiting to be sent. Tap it to see them, then tap {{login_pending_use_user}} to fill in the user name.
+- On the login page, the small cloud icon shows if some users still have data waiting to be sent. Tap it to see them<!-- auth: basic, both -->, then tap {{login_pending_use_user}} to fill in the user name<!-- /auth -->.
 
 ## Log out {#log-out}
-
-![The question when you log out](../../screenshots/en/logout-01-dialog.png)
-
-*Figure 1: Log out asks you to confirm.*
 
 1. Open the menu and tap {{logout}}.
 2. Read the message. It tells you what happens to your data.
@@ -42,10 +38,6 @@ This removes the patients of your account from the tablet, with their encounters
 
 If the support team asks for it, the app can prepare a report that helps to find a problem. You choose what goes in it, and the report is protected.
 
-![The diagnostics choices](../../screenshots/en/diagnostics-01-dialog.png)
-
-*Figure 3: Choose what to include in the report.*
-
 1. Open the menu and tap {{send_diagnostics}}.
 2. Choose what to include and how far back.
 3. Follow the steps to send the report by e-mail. <!-- TODO: verify the exact steps of the e-mail screen -->
@@ -55,4 +47,4 @@ If the support team asks for it, the app can prepare a report that helps to find
 ## If something goes wrong {#security-problems}
 
 - You cannot unlock the app: tap the button to log in with your account instead.
-- You forgot your password: ask your organisation to reset it.
+- You cannot sign in: ask your organisation. The app cannot reset your account.

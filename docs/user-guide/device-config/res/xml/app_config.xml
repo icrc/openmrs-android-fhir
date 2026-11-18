@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<app-config>
+    <server url="https://openmrs.example.org/openmrs" />
+
+    <auth method="both" guest-mode="true" />
+
+    <sync
+        location-tag="Offline"
+        cohort-type="40b140e9-9366-4f47-aaf1-8ed19ab129cc"
+        filter-patient-lists-by-location="true"
+    />
+
+    <patients
+        registration-form="61f69448-5d6d-46eb-b4ef-375733b432b0"
+        fetch-identifiers="false"
+    />
+
+    <support email="support@mail.com" />
+
+    <diagnostics password="changeit" />
+
+    <form-sections>
+        <section name="MHPSS Forms">
+            <name lang="fr">MHPSS Formulaires</name>
+            <name lang="es">Formularios de MHPSS</name>
+            <name lang="ar">استمارات الدعم النفسي والاجتماعي</name>
+            <name lang="ru">Формы МППСЗ</name>
+            <form code="0c63150d-ff39-42e1-9048-834mh76p2s72" />
+            <form code="07a7dd1c-7280-483a-a3bc-01be995293ac" />
+            <form code="95458795-3o06-4l59-9508-c217aa21ea26" />
+            <form code="f1d54f03-f40f-46db-b2c5-c0a5af03e726" />
+        </section>
+        <section name="Distress Scales">
+            <name lang="fr">Échelles de détresse</name>
+            <name lang="es">Escala de angustia</name>
+            <name lang="ar">مقاييس الكرب/الضيق</name>
+            <name lang="ru">Шкалы дистресса</name>
+            <form code="3cf75b45-d3b6-4459-a7d1-379851299ba9" />
+            <form code="74c7c564-b6b6-4b2a-918e-421f45fe9aa8" />
+            <form code="74c7c0c4-e9e9-fb2a-998e-421f49fc9cc8" />
+            <form code="790a93a8-bfb6-49ab-b98d-2e9b436f93a8" />
+            <form code="929fa5bb-0917-49d1-b06c-5a347aa0f17c" />
+            <form code="48f3392e-9ad8-4492-ae7a-6bf134c23a86" />
+            <form code="790a93a8-fff6-49af-f98d-2e9f436f93a8" />
+            <form code="303d95f7-dcb9-499f-9554-7129f0a61e6f" />
+            <form code="b5f4d12e-08cb-459d-83c9-d8b4992c93e7" />
+            <form code="74c7c064-a5a5-4b2a-918e-421f45fc9aa8" />
+            <form code="dfc44987-ff14-4510-91c5-d96d053bb93a" />
+            <form code="98cea304-0341-4bb8-8218-860aee65b4d4" />
+        </section>
+        <section name="Functioning Scales">
+            <name lang="fr">Échelles de fonctionnement</name>
+            <name lang="es">Escala de funcionamiento</name>
+            <name lang="ar">مقاييس الأداء/الوظيفة</name>
+            <name lang="ru">Шкалы функционирования</name>
+            <form code="805f55bb-5f5c-475d-bd71-e9553d38bde9" />
+            <form code="6d9df509-a22f-48aa-8a94-fc72ded71acc" />
+            <form code="c877fdd2-6011-42e6-9474-bf4a9b8e2aba" />
+            <form code="9ca554df-a162-40d6-b598-259b2a77de30" />
+            <form code="2691998f-7bef-4258-8ef2-d58b1c652e33" />
+            <form code="604b1caa-d4eb-41fe-92b6-1e96982a1b67" />
+        </section>
+    </form-sections>
+    <audit max-actions="500" />
+</app-config>
