@@ -342,19 +342,38 @@ class ServerChecker(
         type = Group.GroupType.PERSON
         actual = true
         name = "Compatibility test " + id.take(8)
+        addExtension(
+          org.hl7.fhir.r4.model.Extension(
+            GroupMapper.DESCRIPTION,
+            org.hl7.fhir.r4.model.StringType("Made by the compatibility check of the app"),
+          ),
+        )
       }
     val created = probe.send("PUT", endpoints.fhir + "Group/$id", group)
     if (created.code in 200..299) {
+      // Some servers say yes and keep nothing: read it back.
+      val read = probe.send("GET", endpoints.fhir + "Group/$id")
+      val kept = (parse(read.text) as? Group)?.takeIf { read.code in 200..299 && it.hasName() }
+      if (kept == null) {
+        val missing = read.code == 404 || read.code == 410 || read.code in 200..299
+        return result(
+          Checks.GROUPS_WRITE,
+          if (missing) CheckState.UNSUPPORTED else CheckState.UNKNOWN,
+          "The server accepted the patient list (${created.code}) but it was not there afterwards " +
+            "(asking for it answered ${read.code}). Is the patient list module installed?",
+        )
+      }
       val removed = probe.send("DELETE", endpoints.fhir + "Group/$id")
       val cleaned = removed.code in 200..299 || removed.code == 404 || removed.code == 410
+      val withoutDescription = kept.getExtensionByUrl(GroupMapper.DESCRIPTION) == null
       return result(
         Checks.GROUPS_WRITE,
         CheckState.OK,
-        if (cleaned) {
-          "Created and deleted a temporary patient list"
+        (if (cleaned) {
+          "Created, read back and deleted a temporary patient list"
         } else {
           "Created a temporary patient list ($id); deleting it answered ${removed.code}"
-        },
+        }) + if (withoutDescription) ". The server did not keep its description" else "",
       )
     }
     val unsupported = refusalMeansUnsupported(created.code, created.text)

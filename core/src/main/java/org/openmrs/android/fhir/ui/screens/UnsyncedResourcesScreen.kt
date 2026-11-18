@@ -40,7 +40,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -100,6 +102,8 @@ fun UnsyncedResourcesScreen(
   toIdentify: List<UnsyncedResource> = emptyList(),
   onIdentify: (patientId: String) -> Unit = {},
   identifyAvailable: Boolean = true,
+  listState: LazyListState = rememberLazyListState(),
+  highlightToIdentify: Boolean = false,
 ) {
   var pendingDeleteResource by remember { mutableStateOf<UnsyncedResource?>(null) }
   var showDeleteAllDialog by remember { mutableStateOf(false) }
@@ -138,6 +142,7 @@ fun UnsyncedResourcesScreen(
             )
           }
           LazyColumn(
+            state = listState,
             modifier = Modifier.weight(1f).fillMaxWidth().testTag(UnsyncedResourcesTestTags.List),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 24.dp),
@@ -179,6 +184,7 @@ fun UnsyncedResourcesScreen(
                   readOnly = true,
                   onIdentify = onIdentify,
                   identifyAvailable = identifyAvailable,
+                  highlighted = highlightToIdentify,
                 )
               }
               if (resources.isNotEmpty()) {
@@ -321,6 +327,7 @@ private fun ResourceRow(
   readOnly: Boolean = false,
   onIdentify: (String) -> Unit = {},
   identifyAvailable: Boolean = true,
+  highlighted: Boolean = false,
 ) {
   when (resource) {
     is UnsyncedResource.PatientItem ->
@@ -340,6 +347,7 @@ private fun ResourceRow(
             null
           },
         identifyEnabled = identifyAvailable,
+        highlighted = highlighted,
       )
     is UnsyncedResource.EncounterItem ->
       UnsyncedEncounterRow(

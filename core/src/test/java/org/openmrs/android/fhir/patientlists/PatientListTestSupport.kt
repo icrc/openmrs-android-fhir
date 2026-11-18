@@ -248,6 +248,8 @@ class FakeGroupServer : GroupServer {
   var listComplete = true
   var unreachable = false
 
+  var ignoresWrites = false
+
   val answers = mutableMapOf<String, MutableList<ServerGroupWrite>>()
   val requests = mutableListOf<String>()
 
@@ -286,15 +288,28 @@ class FakeGroupServer : GroupServer {
   override suspend fun create(group: Group): ServerGroupWrite {
     val answer = next("create")
     if (unreachable) return ServerGroupWrite.Unreachable("offline")
-    if (answer != null) return answer
-    groups[group.idElement.idPart] = group
+    if (answer != null) {
+      (answer as? ServerGroupWrite.Done)?.group?.let {
+        if (!ignoresWrites) groups[it.idElement.idPart] = it
+      }
+      return answer
+    }
+    if (!ignoresWrites) groups[group.idElement.idPart] = group
     return ServerGroupWrite.Done(group)
   }
 
   override suspend fun update(group: Group): ServerGroupWrite {
     val answer = next("update:${group.idElement.idPart}")
     if (unreachable) return ServerGroupWrite.Unreachable("offline")
-    return answer ?: ServerGroupWrite.Done(null)
+    if (answer != null) return answer
+    if (!ignoresWrites) {
+      groups[group.idElement.idPart]?.let { kept ->
+        kept.name = group.name
+        kept.extension.removeIf { it.url == GroupMapper.DESCRIPTION }
+        group.getExtensionByUrl(GroupMapper.DESCRIPTION)?.let { kept.addExtension(it.copy()) }
+      }
+    }
+    return ServerGroupWrite.Done(null)
   }
 
   override suspend fun delete(id: String): ServerGroupWrite {

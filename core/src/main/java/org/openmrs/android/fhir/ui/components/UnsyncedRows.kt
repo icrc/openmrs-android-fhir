@@ -28,6 +28,7 @@
 */
 package org.openmrs.android.fhir.ui.components
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -92,6 +93,7 @@ fun UnsyncedEncounterRow(
         modifier = Modifier.weight(1f).padding(horizontal = 8.dp).testTag("EncounterTitle"),
         text = title,
         style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurface,
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,
       )
@@ -124,12 +126,31 @@ fun UnsyncedPatientRow(
   readOnly: Boolean = false,
   onIdentify: (() -> Unit)? = null,
   identifyEnabled: Boolean = true,
+  highlighted: Boolean = false,
 ) {
+  val container by
+    animateColorAsState(
+      targetValue =
+        if (highlighted) {
+          OpenMrsTheme.colors.highlightContainer
+        } else {
+          MaterialTheme.colorScheme.surface
+        },
+      label = "patientRowContainer",
+    )
   Surface(
     modifier = modifier.fillMaxWidth().testTag("UnsyncedPatientRow"),
     shape = RoundedCornerShape(16.dp),
-    color = MaterialTheme.colorScheme.surface,
-    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    color = container,
+    border =
+      BorderStroke(
+        if (highlighted) 2.dp else 1.dp,
+        if (highlighted) {
+          MaterialTheme.colorScheme.primary
+        } else {
+          MaterialTheme.colorScheme.outlineVariant
+        },
+      ),
   ) {
     Row(
       modifier = Modifier.padding(start = 12.dp, top = 6.dp, bottom = 6.dp, end = 4.dp),
@@ -160,6 +181,7 @@ fun UnsyncedPatientRow(
         text = name,
         style = MaterialTheme.typography.bodyLarge,
         fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface,
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,
       )
@@ -217,6 +239,8 @@ fun UnsyncedObservationRow(
         modifier = Modifier.weight(1f).padding(end = 8.dp).testTag("ObservationTitle"),
         text = title,
         style = MaterialTheme.typography.bodySmall,
+        // The row is translucent and sets no content colour: without this the text is black.
+        color = MaterialTheme.colorScheme.onSurface,
         maxLines = 3,
         overflow = TextOverflow.Ellipsis,
       )

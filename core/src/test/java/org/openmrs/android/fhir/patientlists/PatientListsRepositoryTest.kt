@@ -29,6 +29,7 @@
 package org.openmrs.android.fhir.patientlists
 
 import com.google.common.truth.Truth.assertThat
+import java.io.IOException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -197,7 +198,9 @@ class PatientListsRepositoryTest {
     val result = repository.send()
 
     assertThat(result).isEqualTo(SendResult(sent = 3))
-    assertThat(server.requests).containsExactly("create", "add-members:new-1:p1,p2").inOrder()
+    assertThat(server.requests)
+      .containsExactly("create", "read:new-1", "add-members:new-1:p1,p2")
+      .inOrder()
     assertThat(server.groups["new-1"]?.name).isEqualTo("Mothers")
     assertThat(dao.pendingCount()).isEqualTo(0)
     assertThat(dao.patientList("new-1")?.name).isEqualTo("Mothers")
@@ -215,7 +218,9 @@ class PatientListsRepositoryTest {
     val result = repository.send()
 
     assertThat(result).isEqualTo(SendResult(sent = 2))
-    assertThat(server.requests).containsExactly("create", "add-members:server-7:p1").inOrder()
+    assertThat(server.requests)
+      .containsExactly("create", "read:server-7", "add-members:server-7:p1")
+      .inOrder()
     assertThat(dao.patientList("server-7")).isNotNull()
     assertThat(dao.members("server-7").map { it.patientId }).containsExactly("p1")
     assertThat(dao.pendingCount()).isEqualTo(0)
@@ -286,16 +291,65 @@ class PatientListsRepositoryTest {
   @Test
   fun anEditIsSentAsAnUpdateAndTheRowFollows() = runTest {
     dao.upsertPatientLists(listOf(row("a", "Mothers", quantity = 4, membersLoaded = true)))
+    server.groups["a"] = group("a", "Mothers")
     repository.edit("a", "Mothers and babies", "x")
 
     val result = repository.send()
 
     assertThat(result).isEqualTo(SendResult(sent = 1))
-    assertThat(server.requests).containsExactly("update:a")
+    assertThat(server.requests).containsExactly("update:a", "read:a").inOrder()
     val saved = dao.patientList("a")!!
     assertThat(saved.name).isEqualTo("Mothers and babies")
     assertThat(saved.quantity).isEqualTo(4)
     assertThat(saved.membersLoaded).isTrue()
+  }
+
+  @Test
+  fun aCreateTheServerSaidYesToButDoesNotHaveIsNotDone() = runTest {
+    repository.create("Mothers", "text", "loc-1", "North")
+    server.ignoresWrites = true
+
+    val result = repository.send()
+
+    assertThat(result).isEqualTo(SendResult(refused = 1))
+    assertThat(dao.change("new-1")?.error).isEqualTo(PatientListsRepository.NOT_CREATED)
+    assertThat(items().single().id).isEqualTo("new-1")
+
+    server.ignoresWrites = false
+    assertThat(repository.send(retryRefused = true)).isEqualTo(SendResult(sent = 1))
+    assertThat(dao.change("new-1")).isNull()
+    assertThat(server.groups.keys).containsExactly("new-1")
+  }
+
+  @Test
+  fun anEditTheServerSaidYesToButDidNotKeepIsNotDone() = runTest {
+    dao.upsertPatientLists(listOf(row("a", "Mothers", quantity = 4, membersLoaded = true)))
+    server.groups["a"] = group("a", "Mothers")
+    server.ignoresWrites = true
+    repository.edit("a", "Mothers and babies", "x")
+
+    val result = repository.send()
+
+    assertThat(result).isEqualTo(SendResult(refused = 1))
+    assertThat(dao.change("a")?.error).isEqualTo(PatientListsRepository.NOT_SAVED)
+    assertThat(dao.patientList("a")?.name).isEqualTo("Mothers")
+  }
+
+  @Test
+  fun aCreateWhoseAnswerCannotBeCheckedGoesAgain() = runTest {
+    repository.create("Mothers", null, null, null)
+    val flaky =
+      object : GroupServer by server {
+        override suspend fun group(id: String): ServerGroupRead = throw IOException("offline")
+      }
+    val again =
+      PatientListsRepository(dao, flaky, NoTransaction, { 1L }, { "new-2" }, { emptySet() })
+
+    val result = again.send()
+
+    assertThat(result.unreachable).isTrue()
+    assertThat(dao.change("new-1")).isNotNull()
+    assertThat(dao.change("new-1")?.error).isNull()
   }
 
   @Test

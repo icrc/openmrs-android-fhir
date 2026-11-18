@@ -115,6 +115,8 @@ class FhirApplication : Application(), DataCaptureConfig.Provider {
       Timber.w("The diagnostics password is still the example value: change it in app_config.xml")
     }
     Timber.plant(FileLoggingTree(this, loggingMaxFileSize, loggingPassword))
+    // The file log is encrypted (Send diagnostics); a debug build also writes to logcat.
+    if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
     FhirEngineProvider.init(
       FhirEngineConfiguration(
         enableEncryptionIfSupported = false,

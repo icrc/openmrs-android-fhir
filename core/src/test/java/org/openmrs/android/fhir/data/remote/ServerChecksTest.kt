@@ -142,10 +142,28 @@ class ServerChecksTest {
   fun theWriteTestCreatesThenDeletesAndAServerThatRefusesIsNotSupported() = runTest {
     val accepting = healthy()
     accepting.answers["PUT fhir/Group/"] = ProbeAnswer(201, "{}")
+    accepting.answers.remove("GET fhir/Group")
+    accepting.answers["GET fhir/Group/"] =
+      ProbeAnswer(
+        200,
+        """{"resourceType":"Group","id":"x","type":"person","actual":true,"name":"Compatibility test",
+           "extension":[{"url":"http://fhir.openmrs.org/ext/group/description","valueString":"d"}]}""",
+      )
     accepting.answers["DELETE fhir/Group/"] = ProbeAnswer(200, "")
     val ok = checker(accepting).writeTest()
     assertThat(ok.state).isEqualTo(CheckState.OK)
-    assertThat(accepting.requests.map { it.substringBefore(' ') }).containsExactly("PUT", "DELETE")
+    assertThat(accepting.requests.map { it.substringBefore(' ') })
+      .containsExactly("PUT", "GET", "DELETE")
+      .inOrder()
+
+    val silent = healthy()
+    silent.answers["PUT fhir/Group/"] = ProbeAnswer(200, "{}")
+    silent.answers.remove("GET fhir/Group")
+    silent.answers["GET fhir/Group/"] = ProbeAnswer(404, "")
+    val notKept = checker(silent).writeTest()
+    assertThat(notKept.state).isEqualTo(CheckState.UNSUPPORTED)
+    assertThat(notKept.detail).contains("not there afterwards")
+    assertThat(silent.requests.none { it.startsWith("DELETE") }).isTrue()
 
     val refusing = healthy()
     refusing.answers["PUT fhir/Group/"] =

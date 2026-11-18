@@ -103,7 +103,12 @@ class PatientListGuestTest {
     assertThat(raw.allMemberChanges().map { it.owner }.distinct()).containsExactly("alice")
     assertThat(alice.send()).isEqualTo(SendResult(sent = 3))
     assertThat(server.requests)
-      .containsExactly("create", "add-members:${saved.id}:p1", "add-members:existing:p2")
+      .containsExactly(
+        "create",
+        "read:${saved.id}",
+        "add-members:${saved.id}:p1",
+        "add-members:existing:p2",
+      )
   }
 
   @Test
@@ -175,7 +180,8 @@ class PatientListGuestTest {
 
     assertThat(GroupMapper.parse(server.groups.getValue(saved.id), 0L).row.locationId)
       .isEqualTo("north")
-    assertThat(server.requests).containsExactly("create", "add-members:${saved.id}:p1")
+    assertThat(server.requests)
+      .containsExactly("create", "read:${saved.id}", "add-members:${saved.id}:p1")
   }
 
   @Test

@@ -44,6 +44,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.hl7.fhir.r4.model.Group
+import org.openmrs.android.fhir.audit.AuditAction
+import org.openmrs.android.fhir.audit.AuditLog
+import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.GuestSession
 import org.openmrs.android.fhir.config.AppConfig
 import org.openmrs.android.fhir.data.database.AppDatabase
@@ -62,6 +65,7 @@ import org.openmrs.android.fhir.data.remote.ServerCapabilities
 import org.openmrs.android.fhir.data.remote.ServerFeatures
 import org.openmrs.android.fhir.forms.savedLocation
 import org.openmrs.android.fhir.unidentified.UnidentifiedStore
+import timber.log.Timber
 
 interface Transactor {
   suspend fun <T> run(block: suspend () -> T): T
@@ -786,22 +790,11 @@ internal constructor(
     val id = change.listId
     return when (change.kind) {
       PatientListChangeKind.CREATE ->
-        when (val answer = guarded { server.create(GroupMapper.toCreate(change, listType())) }) {
-          is ServerGroupWrite.Done -> {
-            transactor.run {
-              dao.removeChange(id)
-              val row = rowAfterCreate(change, answer.group)
-              dao.upsertPatientLists(listOf(row))
-              // A server that numbers the patient list itself: what waits for it follows the id it
-              // gave.
-              if (row.id != id) {
-                val waiting = dao.memberChanges().filter { it.listId == id }
-                dao.removeMemberChangesOf(id)
-                dao.putMemberChanges(waiting.map { it.copy(listId = row.id) })
-              }
-            }
-            Tally(sent = 1)
-          }
+        when (
+          val answer =
+            guarded(what = "create $id") { server.create(GroupMapper.toCreate(change, listType())) }
+        ) {
+          is ServerGroupWrite.Done -> createdOnServer(change, answer.group)
           // The server has it already (an earlier send whose answer was lost).
           is ServerGroupWrite.Refused ->
             if (answer.code == 409) {
@@ -816,28 +809,15 @@ internal constructor(
           is ServerGroupWrite.Unreachable -> Tally(unreachable = true)
         }
       PatientListChangeKind.UPDATE ->
-        when (val answer = guarded { server.update(GroupMapper.toUpdate(change)) }) {
-          is ServerGroupWrite.Done -> {
-            transactor.run {
-              dao.removeChange(id)
-              dao.patientList(id)?.let { old ->
-                val fresh = answer.group?.let { GroupMapper.parse(it, clock()).row }
-                dao.upsertPatientLists(
-                  listOf(
-                    (fresh
-                        ?: old.copy(name = change.name.orEmpty(), description = change.description))
-                      .copy(membersLoaded = old.membersLoaded, quantity = old.quantity),
-                  ),
-                )
-              }
-            }
-            Tally(sent = 1)
-          }
+        when (
+          val answer = guarded(what = "update $id") { server.update(GroupMapper.toUpdate(change)) }
+        ) {
+          is ServerGroupWrite.Done -> updatedOnServer(change)
           is ServerGroupWrite.Refused -> if (answer.gone) drop(id) else refuse(change, answer)
           is ServerGroupWrite.Unreachable -> Tally(unreachable = true)
         }
       PatientListChangeKind.DELETE ->
-        when (val answer = guarded { server.delete(id) }) {
+        when (val answer = guarded(what = "delete $id") { server.delete(id) }) {
           is ServerGroupWrite.Done -> {
             transactor.run { forget(id) }
             Tally(sent = 1)
@@ -862,7 +842,7 @@ internal constructor(
   ): Tally {
     val ids = chunk.map { it.patientId }
     val answer =
-      guarded(members = true) {
+      guarded(members = true, what = "${action.lowercase()}-members $listId") {
         if (action == PatientListMemberAction.ADD) {
           server.addMembers(listId, ids)
         } else {
@@ -920,17 +900,140 @@ internal constructor(
     }
   }
 
+  /** [what] names the request in the log ("create <id>") with what the server answered. */
   private suspend fun guarded(
     members: Boolean = false,
+    what: String,
     call: suspend () -> ServerGroupWrite,
   ): ServerGroupWrite =
     try {
-      call().also { if (it is ServerGroupWrite.Refused) onRefused(it.code, it.reason, members) }
+      call().also {
+        when (it) {
+          is ServerGroupWrite.Done -> note(what, AuditOutcome.SUCCESS, "answer" to "accepted")
+          is ServerGroupWrite.Refused -> {
+            onRefused(it.code, it.reason, members)
+            note(
+              what,
+              AuditOutcome.FAILURE,
+              "answer" to "refused",
+              "code" to it.code,
+              "reason" to it.reason,
+            )
+          }
+          is ServerGroupWrite.Unreachable ->
+            note(what, AuditOutcome.FAILURE, "answer" to "unreachable", "reason" to it.reason)
+        }
+      }
     } catch (e: CancellationException) {
       throw e
     } catch (e: IOException) {
+      note(what, AuditOutcome.FAILURE, "answer" to "unreachable", "reason" to e.message)
       ServerGroupWrite.Unreachable(e.message.orEmpty())
     }
+
+  private fun note(what: String, outcome: AuditOutcome, vararg details: Pair<String, Any?>) {
+    Timber.log(
+      if (outcome == AuditOutcome.SUCCESS) android.util.Log.INFO else android.util.Log.WARN,
+      "Patient list %s: %s",
+      what,
+      details.joinToString { "${it.first}=${it.second}" },
+    )
+    AuditLog.record(
+      AuditAction.PATIENT_LIST_SENT,
+      outcome,
+      "what" to what,
+      *details,
+    )
+  }
+
+  private suspend fun readBack(id: String): ServerGroupRead? =
+    try {
+      server.group(id)
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: IOException) {
+      note("read back $id", AuditOutcome.FAILURE, "answer" to "unreachable", "reason" to e.message)
+      null
+    }
+
+  /**
+   * A "yes" is not proof (a gateway's page, a server without the patient list module): the list is
+   * read back, and one that is not there stays queued with a reason. What the server did not keep
+   * is logged.
+   */
+  private suspend fun createdOnServer(change: PatientListChange, answered: Group?): Tally {
+    val id = change.listId
+    val serverId = answered?.takeIf { it.hasIdElement() }?.idElement?.idPart ?: id
+    val read = readBack(serverId) ?: return Tally(unreachable = true)
+    val found = (read as? ServerGroupRead.Found)?.group
+    if (found == null) {
+      note("create $id", AuditOutcome.FAILURE, "answer" to "not_there_after_the_yes")
+      return refuse(change, ServerGroupWrite.Refused(0, NOT_CREATED))
+    }
+    val lost = notKept(change.name, change.description, change.locationId, listType(), found)
+    if (lost.isNotEmpty()) {
+      note("create $id", AuditOutcome.FAILURE, "answer" to "created_without", "fields" to lost)
+    }
+    transactor.run {
+      dao.removeChange(id)
+      val row = rowAfterCreate(change, found)
+      dao.upsertPatientLists(listOf(row))
+      // A server that numbers the patient list itself: what waits for it follows the id it gave.
+      if (row.id != id) {
+        val waiting = dao.memberChanges().filter { it.listId == id }
+        dao.removeMemberChangesOf(id)
+        dao.putMemberChanges(waiting.map { it.copy(listId = row.id) })
+      }
+    }
+    return Tally(sent = 1)
+  }
+
+  private suspend fun updatedOnServer(change: PatientListChange): Tally {
+    val id = change.listId
+    val read = readBack(id) ?: return Tally(unreachable = true)
+    val fresh = (read as? ServerGroupRead.Found)?.group?.let { GroupMapper.parse(it, clock()).row }
+    if (
+      fresh == null ||
+        !fresh.name.trim().equals(change.name.orEmpty().trim()) ||
+        fresh.description.cleaned() != change.description.cleaned()
+    ) {
+      note(
+        "update $id",
+        AuditOutcome.FAILURE,
+        "answer" to if (fresh == null) "not_there_after_the_yes" else "different_after_the_yes",
+      )
+      return refuse(change, ServerGroupWrite.Refused(0, NOT_SAVED))
+    }
+    transactor.run {
+      dao.removeChange(id)
+      dao.patientList(id)?.let { old ->
+        dao.upsertPatientLists(
+          listOf(fresh.copy(membersLoaded = old.membersLoaded, quantity = old.quantity)),
+        )
+      }
+    }
+    return Tally(sent = 1)
+  }
+
+  private fun notKept(
+    name: String?,
+    description: String?,
+    locationId: String?,
+    cohortType: String?,
+    found: Group,
+  ): List<String> {
+    val row = GroupMapper.parse(found, clock()).row
+    return buildList {
+      if (!row.name.trim().equals(name.orEmpty().trim())) add("name")
+      if (description.cleaned() != null && row.description.cleaned() != description.cleaned()) {
+        add("description")
+      }
+      if (locationId != null && row.locationId != locationId) add("location")
+      if (cohortType != null && found.getExtensionByUrl(GroupMapper.LIST_TYPE) == null) {
+        add("cohort type")
+      }
+    }
+  }
 
   private suspend fun refuse(change: PatientListChange, answer: ServerGroupWrite.Refused): Tally {
     dao.putChange(change.copy(error = answer.reason))
@@ -1011,5 +1114,11 @@ internal constructor(
      * again.
      */
     const val AMBIGUOUS_UPLOAD = "ambiguous-upload"
+
+    internal const val NOT_CREATED =
+      "The server said yes but did not create the patient list. Its patient list module may be missing or too old."
+
+    internal const val NOT_SAVED =
+      "The server said yes but did not keep the change to the patient list."
   }
 }

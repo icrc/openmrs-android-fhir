@@ -60,6 +60,9 @@
         >@color/onSurfaceVariant_neutral_variant_80</item>
 
       <item name="colorOutline">@color/outline_neutral_variant_60</item>
+
+      <!-- Without it the form library uses its own Material 3 colours in the dark theme. -->
+      <item name="questionnaire_theme">@style/Questionnaire</item>
     </style>
     <style name="ThemeOverlay.OpenMrs.Toolbar" parent="">
         <item name="colorControlNormal">?attr/colorOnSurface</item>

@@ -12,6 +12,17 @@
     <color name="o3_on_surface_variant">#C6C6C6</color>
     <color name="o3_outline">#8D8D8D</color>
     <color name="o3_background">#161616</color>
+    <color name="o3_on_secondary">#003A3A</color>
+    <color name="o3_secondary_container">#004144</color>
+    <color name="o3_on_secondary_container">#D9FBFB</color>
+    <color name="o3_tertiary">#42BE65</color>
+    <color name="o3_on_tertiary">#022D0D</color>
+    <color name="o3_tertiary_container">#0E6027</color>
+    <color name="o3_on_tertiary_container">#DEFBE6</color>
+    <color name="o3_error">#FA4D56</color>
+    <color name="o3_on_error">#161616</color>
+    <color name="o3_error_container">#601410</color>
+    <color name="o3_on_error_container">#F9DEDC</color>
     <color name="cb_primary">#7CC4F2</color>
     <color name="cb_on_primary">#00263F</color>
     <color name="cb_primary_container">#00508C</color>

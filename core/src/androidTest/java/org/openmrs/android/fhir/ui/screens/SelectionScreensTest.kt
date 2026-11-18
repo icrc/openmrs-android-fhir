@@ -35,6 +35,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
@@ -139,6 +140,36 @@ class SelectionScreensTest {
         )
       }
     }
+
+    composeRule.onAllNodesWithTag("SelectPatientCheckbox")[0].performClick()
+    composeRule.onAllNodesWithTag("SelectPatientCheckbox")[0].assertIsOn()
+  }
+
+  @Test
+  fun tappingTheRowOfAPatientListDoesNotTickIt() {
+    composeRule.setContent {
+      MaterialTheme {
+        var selected by remember { mutableStateOf(emptySet<String>()) }
+        PatientListSelectionScreen(
+          query = "",
+          onQueryChange = {},
+          patientLists =
+            listOf(SelectPatientListViewModel.SelectPatientListItem("1", "group-1", "Group A")),
+          selectedPatientListIds = selected,
+          showTitle = false,
+          showActionButton = false,
+          showEmptyState = false,
+          isLoading = false,
+          onPatientListToggle = { item, isSelected ->
+            selected = if (isSelected) selected - item.resourceId else selected + item.resourceId
+          },
+          onActionClick = {},
+        )
+      }
+    }
+
+    composeRule.onNodeWithText("Group A").performClick()
+    composeRule.onAllNodesWithTag("SelectPatientCheckbox")[0].assertIsOff()
 
     composeRule.onAllNodesWithTag("SelectPatientCheckbox")[0].performClick()
     composeRule.onAllNodesWithTag("SelectPatientCheckbox")[0].assertIsOn()

@@ -32,7 +32,7 @@ import groups
 PREFIX = "/openmrs"
 FHIR = PREFIX + "/ws/fhir2/R4"
 REST = PREFIX + "/ws/rest/v1"
-SCENARIOS = ("default", "empty", "error", "validation", "slow", "offline", "cohort-module")
+SCENARIOS = ("default", "empty", "error", "validation", "slow", "offline", "cohort-module", "silent-writes")
 SLOW_SECONDS = 4.0
 PAGE = 50
 
@@ -477,6 +477,11 @@ class Handler(BaseHTTPRequestHandler):
                 self.fhir_reply(400, outcome("error", "processing", "Patch is not supported for Group"))
             else:
                 self.fhir_reply(422, outcome("error", "processing", "A standard cohort should not be created while the cohort module is active"))
+            return True
+        if kind == "Group" and STATE.scenario == "silent-writes" and self.command in ("PUT", "POST", "DELETE"):
+            # A server (or a gateway in front of it) that says yes to a write and keeps nothing.
+            res = self.read_json()
+            self.fhir_reply(200, res if isinstance(res, dict) and res.get("resourceType") else outcome("information", "informational", "Accepted"))
             return True
         if kind == "Group" and groups.handle(self, STATE, parts, query):
             return True

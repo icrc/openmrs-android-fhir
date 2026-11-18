@@ -21,8 +21,8 @@ the page and the summary in Advanced settings are hidden, no check runs, a refus
 | Cohort Module | `GET cohortm/cohort?limit=1` (REST) | 200 or 404 | Information only: with the Cohort Module installed, standard FHIR refuses to write a Group, which is why the patient list module of the server is needed |
 | The two group-session concepts | `GET concept/<id>` (REST) for each id of `<group-sessions>` | 200, or 404: missing | The observation is not recorded: a concept the server lacks would make it refuse the whole encounter |
 
-Nothing is written by the checks that run on their own. The write check creates one temporary patient list and
-deletes it at once; it is the only way to know that the server accepts what the app sends, so the page asks
+Nothing is written by the checks that run on their own. The write check creates one temporary patient list, **reads it
+back** (a server that says yes and keeps nothing is reported as not supporting it) and deletes it at once; it is the only way to know that the server accepts what the app sends, so the page asks
 before running it. `ServerChecker` holds the logic and takes a `ServerProbe` (implemented by `ApiManager`), so
 it can be tried with a fake one; `docs/user-guide/fake-backend/` has a `cohort-module`
 scenario that behaves as a server with the Cohort Module and without the patient list module.
