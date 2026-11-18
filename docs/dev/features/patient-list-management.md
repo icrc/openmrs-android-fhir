@@ -175,9 +175,16 @@ patient this is", and the user adds the patient again from the list (`Uploaded.A
   with the next download of that list, until the server answers it right.
 * A list created here carries the location extension as a `Location/<id>` reference; the screen reads
   either form, but whether the server's `Group?location=` finds it was not checked.
-* A created list is sent with its name, description, the location chosen on the device and, when the
-  configuration names one (`<sync cohort-type=...>`), that type as a `CohortType/<id>` reference
-  (`GroupMapper.toCreate`); without it the server's default applies. Attributes are shown, not edited.
+* A created list is sent with its name, description, the location chosen on the device, the creator
+  (`managingEntity`, the signed-in user's provider) and, when the configuration names one
+  (`<sync cohort-type=...>`), that type as a `CohortType/<id>` reference (`GroupMapper.toCreate`); without
+  it the server's default applies. An edit sends the name, the description and the type, and the current
+  location when the list has none. The attributes of the list (the module's own, one text field each in the
+  create and edit dialogs) are sent as `.../ext/group/attribute` extensions, only the ones that changed on
+  an edit, and an emptied one removes the attribute. The names of the attribute types come from
+  `GET Group/$attribute-types` (`GroupServer.attributeTypes`), read with the lists and kept on the device
+  (`AttributeTypeStore`) so that the dialogs offer them offline; a server without the operation offers
+  only the attributes a list already has.
 
 The tutorial: the Patient lists tour (`help_lists_*`) has the steps for the waiting changes and the new
 list button, and the page of a list has its own tour (`help_plist_*`).

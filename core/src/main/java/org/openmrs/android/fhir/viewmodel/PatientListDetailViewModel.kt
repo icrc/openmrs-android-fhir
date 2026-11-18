@@ -171,10 +171,18 @@ constructor(
     }
   }
 
-  fun edit(name: String, description: String, onResult: (PatientListEdit) -> Unit) {
+  fun attributeTypes(): List<String> = repository.attributeTypes()
+
+  fun edit(
+    name: String,
+    description: String,
+    attributes: Map<String, String>,
+    onResult: (PatientListEdit) -> Unit,
+  ) {
     val id = listId.value ?: return
     viewModelScope.launch {
-      val result = withContext(NonCancellable) { repository.edit(id, name, description) }
+      val result =
+        withContext(NonCancellable) { repository.edit(id, name, description, attributes) }
       if (result is PatientListEdit.Saved) changed()
       onResult(result)
     }

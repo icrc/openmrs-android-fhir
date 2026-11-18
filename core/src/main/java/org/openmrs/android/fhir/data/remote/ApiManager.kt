@@ -325,6 +325,24 @@ class ApiManager @Inject constructor(context: Context) :
     )
   }
 
+  override suspend fun attributeTypes(): List<String>? {
+    val response =
+      fhirApiService.getResource(ServerSettings.fhirBaseUrl(appContext) + "Group/\$attribute-types")
+    val text =
+      (if (response.isSuccessful) response.body() else response.errorBody())?.use { it.string() }
+    if (!response.isSuccessful) return null
+    val answer = parseResource(text) as? Parameters ?: return null
+    return answer.parameter
+      .filter { it.name == "attributeType" }
+      .mapNotNull { entry ->
+        entry.part
+          .firstOrNull { it.name == "name" }
+          ?.value
+          ?.primitiveValue()
+          ?.takeIf { it.isNotBlank() }
+      }
+  }
+
   override suspend fun delete(id: String): ServerGroupWrite = write {
     require(isFhirId(id)) { "Not a patient list id" }
     fhirApiService.deleteResource(ServerSettings.fhirBaseUrl(appContext) + "Group/$id")

@@ -109,9 +109,25 @@ def trim(res, elements):
 
 
 # ---- requests ------------------------------------------------------------------------------------
+ATTRIBUTE_TYPES = ("Program", "Schedule", "Funding")
+
+
+def attribute_types(h):
+    parameters = []
+    for name in ATTRIBUTE_TYPES:
+        parameters.append({"name": "attributeType", "part": [
+            {"name": "name", "valueString": name},
+            {"name": "uuid", "valueString": data.uid("attribute-type", name)},
+        ]})
+    h.fhir_reply(200, {"resourceType": "Parameters", "parameter": parameters})
+    return True
+
+
 def handle(h, state, parts, query):
     """Answers a request on Group/..., or returns False for the plain reads the server already does."""
     method = h.command
+    if method == "GET" and parts[1:] == ["$attribute-types"]:
+        return attribute_types(h)
     if method == "PATCH":
         h.fhir_reply(400, outcome("error", "invalid", "PATCH is not supported on Group"))
         return True
@@ -214,6 +230,36 @@ def copy_attributes(res, stored):
         uuid = uuid_of(get_extension(res, url))
         if uuid:
             put_extension(stored, url, "valueReference", {"reference": prefix + uuid})
+    apply_attributes(res, stored)
+
+
+def apply_attributes(res, stored):
+    """The attributes a Group lists are set; an empty value removes one; the others stay."""
+    incoming = []
+    for e in res.get("extension", []):
+        if e.get("url") != ATTRIBUTE:
+            continue
+        fields = {x.get("url"): x.get("valueString", "") for x in e.get("extension", [])}
+        if fields.get("type"):
+            incoming.append((fields["type"], fields.get("value", "")))
+    if not incoming:
+        return
+    key = (stored.get("identifier") or [{}])[0].get("value")
+    current = {}
+    for e in stored.get("extension", []):
+        if e.get("url") == ATTRIBUTE:
+            fields = {x.get("url"): x.get("valueString", "") for x in e.get("extension", [])}
+            current[fields.get("type")] = fields.get("value", "")
+    if not current:
+        current = dict(SEED_DETAILS.get(key, (None, []))[1])
+    for name, value in incoming:
+        if value:
+            current[name] = value
+        else:
+            current.pop(name, None)
+    stored["extension"] = [e for e in stored.get("extension", []) if e.get("url") != ATTRIBUTE]
+    for name, value in current.items():
+        stored["extension"].append({"url": ATTRIBUTE, "extension": [{"url": "type", "valueString": name}, {"url": "value", "valueString": value}]})
 
 
 def update(h, state, rid):

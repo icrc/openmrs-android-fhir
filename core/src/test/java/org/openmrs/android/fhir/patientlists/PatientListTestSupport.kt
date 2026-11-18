@@ -252,6 +252,7 @@ class FakeGroupServer : GroupServer {
 
   val answers = mutableMapOf<String, MutableList<ServerGroupWrite>>()
   val requests = mutableListOf<String>()
+  val sentGroups = mutableListOf<Group>()
 
   fun answer(key: String, vararg writes: ServerGroupWrite) {
     answers[key] = writes.toMutableList()
@@ -286,6 +287,7 @@ class FakeGroupServer : GroupServer {
   }
 
   override suspend fun create(group: Group): ServerGroupWrite {
+    sentGroups += group
     val answer = next("create")
     if (unreachable) return ServerGroupWrite.Unreachable("offline")
     if (answer != null) {
@@ -299,6 +301,7 @@ class FakeGroupServer : GroupServer {
   }
 
   override suspend fun update(group: Group): ServerGroupWrite {
+    sentGroups += group
     val answer = next("update:${group.idElement.idPart}")
     if (unreachable) return ServerGroupWrite.Unreachable("offline")
     if (answer != null) return answer
@@ -310,6 +313,13 @@ class FakeGroupServer : GroupServer {
       }
     }
     return ServerGroupWrite.Done(null)
+  }
+
+  var attributeTypes: List<String>? = null
+
+  override suspend fun attributeTypes(): List<String>? {
+    failIfOffline()
+    return attributeTypes
   }
 
   override suspend fun delete(id: String): ServerGroupWrite {

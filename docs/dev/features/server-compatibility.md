@@ -40,10 +40,11 @@ scenario that behaves as a server with the Cohort Module and without the patient
 
 ## Where it shows
 
-`ServerFeatures` (`editLists`, `changeMembers`, `missingConcepts`) is read by `PatientListDetailViewModel`,
-`SelectPatientListViewModel`, `PatientMembershipViewModel`, `GroupSessionPatientsViewModel`,
-`AddPatientViewModel`, `GroupFormEntryViewModel` and `PatientListsRepository.send`. The page of a list says so
-in a banner that opens the compatibility page.
+`ServerFeatures` (`changeMembers`, `missingConcepts`) is read by `PatientListDetailViewModel`,
+`PatientMembershipViewModel`, `GroupSessionPatientsViewModel`, `AddPatientViewModel`,
+`GroupFormEntryViewModel` and `PatientListsRepository.send`. The page of a list says so in a banner that opens
+the compatibility page. Creating, editing and deleting a list never wait for a check: they are saved on the
+device, and a server that refuses them says so when they are sent.
 
 ## Advanced settings
 

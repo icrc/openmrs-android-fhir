@@ -1975,9 +1975,6 @@
     >Le serveur n\'a pas encore été vérifié.</string>
     <string name="settings_compat_open">Ouvrir les vérifications</string>
     <string
-        name="plist_readonly_banner"
-    >Ce serveur n\'accepte pas les modifications des listes de patients, elles sont donc en lecture seule.</string>
-    <string
         name="plist_readonly_members_banner"
     >Ce serveur ne permet pas d\'ajouter des patients à une liste ni de les en retirer.</string>
     <string name="plist_readonly_open">Compatibilité du serveur</string>

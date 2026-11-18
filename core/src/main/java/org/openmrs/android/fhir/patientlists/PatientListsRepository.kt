@@ -44,11 +44,15 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.hl7.fhir.r4.model.Group
+import org.hl7.fhir.r4.model.Identifier
+import org.hl7.fhir.r4.model.Reference
 import org.openmrs.android.fhir.audit.AuditAction
 import org.openmrs.android.fhir.audit.AuditLog
 import org.openmrs.android.fhir.audit.AuditOutcome
 import org.openmrs.android.fhir.auth.GuestSession
+import org.openmrs.android.fhir.auth.dataStore
 import org.openmrs.android.fhir.config.AppConfig
+import org.openmrs.android.fhir.data.PreferenceKeys
 import org.openmrs.android.fhir.data.database.AppDatabase
 import org.openmrs.android.fhir.data.database.PatientListsDao
 import org.openmrs.android.fhir.data.database.model.PatientListChange
@@ -106,8 +110,10 @@ internal constructor(
   private val listType: () -> String? = { null },
   /** The location chosen on this device (id and name), if one is. */
   private val savedLocation: suspend () -> Pair<String, String?>? = { null },
+  private val creator: suspend () -> Reference? = { null },
   /** A list is not sent before it has a location: the server needs it with the list. */
   private val needsLocation: Boolean = false,
+  private val attributeTypes: AttributeTypeStore = AttributeTypeStore.memory(),
 ) {
   @Inject
   constructor(
@@ -132,7 +138,20 @@ internal constructor(
       val saved = context.savedLocation()
       saved.id?.takeIf { it.isNotBlank() }?.let { it to saved.name }
     },
+    {
+      val preferences = context.dataStore.data.first()
+      val provider = preferences[PreferenceKeys.USER_PROVIDER_UUID]?.takeIf { it.isNotBlank() }
+      val user = preferences[PreferenceKeys.USER_UUID]?.takeIf { it.isNotBlank() }
+      when {
+        provider != null ->
+          Reference("Practitioner/$provider")
+            .setDisplay(preferences[PreferenceKeys.USER_PROVIDER_NAME])
+        user != null -> Reference().setIdentifier(Identifier().setValue(user))
+        else -> null
+      }
+    },
     needsLocation = true,
+    attributeTypes = StoredAttributeTypes(context),
   )
 
   private val gate = Mutex()
@@ -213,6 +232,7 @@ internal constructor(
     description: String?,
     locationId: String?,
     locationName: String?,
+    attributes: Map<String, String> = emptyMap(),
   ): PatientListEdit =
     transactor.run {
       val clean = name.trim()
@@ -231,6 +251,7 @@ internal constructor(
               locationName = locationName,
               createdAt = clock(),
               error = null,
+              attributesJson = GroupMapper.attributesJson(attributes.filled()),
             ),
           )
           record(id, PatientListEventAction.LIST_CREATED, detail = clean)
@@ -239,9 +260,18 @@ internal constructor(
       }
     }
 
-  suspend fun edit(id: String, name: String, description: String?): PatientListEdit =
+  suspend fun edit(
+    id: String,
+    name: String,
+    description: String?,
+    attributes: Map<String, String>? = null,
+  ): PatientListEdit =
     transactor.run {
       val clean = name.trim()
+      val here = savedLocation()
+      val kept = PatientListOverlay.attributes(dao.patientList(id)?.attributesJson).toMap()
+      val changed =
+        attributes?.mapValues { it.value.trim() }?.filter { it.value != kept[it.key].orEmpty() }
       val change = dao.change(id)
       val row = dao.patientList(id)
       when {
@@ -250,13 +280,25 @@ internal constructor(
         nameTaken(clean, exceptId = id) -> PatientListEdit.NameTaken
         change?.kind == PatientListChangeKind.CREATE -> {
           dao.putChange(
-            change.copy(name = clean, description = description.cleaned(), error = null),
+            change.copy(
+              name = clean,
+              description = description.cleaned(),
+              error = null,
+              attributesJson =
+                if (attributes == null) {
+                  change.attributesJson
+                } else {
+                  GroupMapper.attributesJson(attributes.filled())
+                },
+            ),
           )
           if (clean != change.name) record(id, PatientListEventAction.LIST_RENAMED, detail = clean)
           PatientListEdit.Saved(id)
         }
         row == null -> PatientListEdit.NotFound
-        clean == row.name && description.cleaned() == row.description.cleaned() -> {
+        clean == row.name &&
+          description.cleaned() == row.description.cleaned() &&
+          changed.isNullOrEmpty() -> {
           if (change != null) dao.removeChange(id)
           PatientListEdit.Saved(id)
         }
@@ -267,10 +309,11 @@ internal constructor(
               kind = PatientListChangeKind.UPDATE,
               name = clean,
               description = description.cleaned(),
-              locationId = null,
-              locationName = null,
+              locationId = if (row.locationId == null) here?.first else null,
+              locationName = if (row.locationId == null) here?.second else null,
               createdAt = change?.createdAt ?: clock(),
               error = null,
+              attributesJson = changed?.let { GroupMapper.attributesJson(it) },
             ),
           )
           if (clean != row.name) record(id, PatientListEventAction.LIST_RENAMED, detail = clean)
@@ -631,8 +674,22 @@ internal constructor(
           return@withLock RefreshResult.UNREACHABLE
         }
       keep(list.groups, list.complete)
+      learnAttributeTypes()
       RefreshResult.DONE
     }
+
+  fun attributeTypes(): List<String> = attributeTypes.names()
+
+  private suspend fun learnAttributeTypes() {
+    try {
+      server.attributeTypes()?.let { attributeTypes.save(it) }
+    } catch (e: IOException) {
+      Timber.w(e, "Could not read the attribute types of the patient lists")
+    }
+  }
+
+  private fun Map<String, String>.filled() =
+    mapValues { it.value.trim() }.filterValues { it.isNotEmpty() }
 
   /**
    * Keeps Groups that were just read for another purpose (the screen of the patient lists reads
@@ -747,7 +804,7 @@ internal constructor(
       for (change in dao.changes()) {
         val withoutLocation =
           needsLocation && change.kind == PatientListChangeKind.CREATE && change.locationId == null
-        if (change.error != null || !features.editLists || withoutLocation) {
+        if (change.error != null || withoutLocation) {
           blocked += change.listId
           continue
         }
@@ -792,7 +849,9 @@ internal constructor(
       PatientListChangeKind.CREATE ->
         when (
           val answer =
-            guarded(what = "create $id") { server.create(GroupMapper.toCreate(change, listType())) }
+            guarded(what = "create $id") {
+              server.create(GroupMapper.toCreate(change, listType(), creator()))
+            }
         ) {
           is ServerGroupWrite.Done -> createdOnServer(change, answer.group)
           // The server has it already (an earlier send whose answer was lost).
@@ -810,7 +869,8 @@ internal constructor(
         }
       PatientListChangeKind.UPDATE ->
         when (
-          val answer = guarded(what = "update $id") { server.update(GroupMapper.toUpdate(change)) }
+          val answer =
+            guarded(what = "update $id") { server.update(GroupMapper.toUpdate(change, listType())) }
         ) {
           is ServerGroupWrite.Done -> updatedOnServer(change)
           is ServerGroupWrite.Refused -> if (answer.gone) drop(id) else refuse(change, answer)
@@ -1072,7 +1132,7 @@ internal constructor(
           changedByName = null,
           dateChanged = null,
           quantity = 0,
-          attributesJson = null,
+          attributesJson = change.attributesJson,
           membersLoaded = true,
           refreshedAt = clock(),
         ))

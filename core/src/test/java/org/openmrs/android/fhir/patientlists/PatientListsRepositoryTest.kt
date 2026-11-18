@@ -32,6 +32,7 @@ import com.google.common.truth.Truth.assertThat
 import java.io.IOException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import org.hl7.fhir.r4.model.Reference
 import org.junit.Before
 import org.junit.Test
 import org.openmrs.android.fhir.data.database.model.PatientListChangeKind
@@ -122,6 +123,87 @@ class PatientListsRepositoryTest {
     assertThat(change.kind).isEqualTo(PatientListChangeKind.CREATE)
     assertThat(change.name).isEqualTo("Mothers 2")
     assertThat(change.locationId).isEqualTo("loc-1")
+  }
+
+  private fun repositoryHere(location: Pair<String, String?>?) =
+    PatientListsRepository(
+      dao,
+      server,
+      NoTransaction,
+      { time++ },
+      { "new-${++ids}" },
+      { toIdentify },
+      listType = { "type-1" },
+      savedLocation = { location },
+      creator = { Reference("Practitioner/prov-1").setDisplay("Dr Who") },
+    )
+
+  @Test
+  fun aNewPatientListIsSentWithItsLocationCohortTypeAndCreator() = runTest {
+    val here = repositoryHere(null)
+    here.create("Mothers", "every Monday", "loc-1", "North")
+
+    here.send()
+
+    val sent = server.sentGroups.single()
+    assertThat(sent.name).isEqualTo("Mothers")
+    assertThat(sent.getExtensionByUrl(GroupMapper.DESCRIPTION).value.primitiveValue())
+      .isEqualTo("every Monday")
+    assertThat((sent.getExtensionByUrl(GroupMapper.LOCATION).value as Reference).reference)
+      .isEqualTo("Location/loc-1")
+    assertThat((sent.getExtensionByUrl(GroupMapper.LIST_TYPE).value as Reference).reference)
+      .isEqualTo("CohortType/type-1")
+    assertThat(sent.managingEntity.reference).isEqualTo("Practitioner/prov-1")
+  }
+
+  @Test
+  fun theAttributesOfAPatientListAreSentOnCreateAndOnlyTheChangedOnesOnEdit() = runTest {
+    val here = repositoryHere(null)
+    here.create(
+      "Mothers",
+      null,
+      "loc-1",
+      "North",
+      mapOf("Funding" to " Ministry ", "Cadence" to ""),
+    )
+    here.send()
+    val created = server.sentGroups.single()
+    assertThat(attributesOf(created)).containsExactly("Funding", "Ministry")
+
+    server.sentGroups.clear()
+    dao.upsertPatientLists(
+      listOf(
+        row("new-1", "Mothers")
+          .copy(attributesJson = """[["Funding","Ministry"],["Cadence","Daily"]]"""),
+      ),
+    )
+    here.edit("new-1", "Mothers", null, mapOf("Funding" to "Ministry", "Cadence" to "Weekly"))
+    here.send()
+
+    assertThat(attributesOf(server.sentGroups.single())).containsExactly("Cadence", "Weekly")
+  }
+
+  private fun attributesOf(group: org.hl7.fhir.r4.model.Group) =
+    group.getExtensionsByUrl(GroupMapper.ATTRIBUTE).associate {
+      it.getExtensionByUrl("type").value.primitiveValue() to
+        it.getExtensionByUrl("value").value.primitiveValue()
+    }
+
+  @Test
+  fun editingAPatientListWithoutALocationSendsTheCurrentLocationAndTheCohortType() = runTest {
+    dao.upsertPatientLists(listOf(row("a", "Mothers")))
+    server.groups["a"] = group("a", "Mothers")
+    val here = repositoryHere("loc-2" to "South")
+
+    here.edit("a", "Mothers and babies", "new")
+    here.send()
+
+    val sent = server.sentGroups.single()
+    assertThat((sent.getExtensionByUrl(GroupMapper.LOCATION).value as Reference).reference)
+      .isEqualTo("Location/loc-2")
+    assertThat((sent.getExtensionByUrl(GroupMapper.LIST_TYPE).value as Reference).reference)
+      .isEqualTo("CohortType/type-1")
+    assertThat(sent.name).isEqualTo("Mothers and babies")
   }
 
   @Test

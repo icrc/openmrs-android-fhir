@@ -88,7 +88,11 @@ object GroupMapper {
     return Parsed(row, members)
   }
 
-  fun toCreate(change: PatientListChange, listType: String? = null): Group =
+  fun toCreate(
+    change: PatientListChange,
+    listType: String? = null,
+    creator: Reference? = null,
+  ): Group =
     Group().apply {
       id = change.listId
       active = true
@@ -98,13 +102,15 @@ object GroupMapper {
       change.description?.takeIf { it.isNotBlank() }?.let { text(DESCRIPTION, it) }
       change.locationId?.let { addExtension(Extension(LOCATION, Reference("Location/$it"))) }
       listType?.let { addExtension(Extension(LIST_TYPE, Reference("CohortType/$it"))) }
+      creator?.let { managingEntity = it }
+      attributes(change.attributesJson)
     }
 
   /**
    * `Group` to send when the patient list is edited. It has no `member`, which the server reads as
    * "leave the members as they are": the members are changed by [parameters] only.
    */
-  fun toUpdate(change: PatientListChange): Group =
+  fun toUpdate(change: PatientListChange, listType: String? = null): Group =
     Group().apply {
       id = change.listId
       active = true
@@ -113,6 +119,9 @@ object GroupMapper {
       name = change.name
       // An empty description is sent as an empty text so that the server clears it.
       text(DESCRIPTION, change.description.orEmpty())
+      change.locationId?.let { addExtension(Extension(LOCATION, Reference("Location/$it"))) }
+      listType?.let { addExtension(Extension(LIST_TYPE, Reference("CohortType/$it"))) }
+      attributes(change.attributesJson)
     }
 
   fun parameters(patientIds: Collection<String>): Parameters =
@@ -140,6 +149,39 @@ object GroupMapper {
 
   private fun Group.text(url: String, value: String) {
     addExtension(Extension(url, StringType(value)))
+  }
+
+  private fun Group.attributes(json: String?) {
+    pairs(json).forEach { (type, value) ->
+      addExtension(
+        Extension().apply {
+          url = ATTRIBUTE
+          addExtension(Extension("type", StringType(type)))
+          addExtension(Extension("value", StringType(value)))
+        },
+      )
+    }
+  }
+
+  /** The attributes as `[["type","value"], ...]`, an empty value meaning "remove". */
+  fun attributesJson(values: Map<String, String>): String? {
+    if (values.isEmpty()) return null
+    val array = JSONArray()
+    values.forEach { (type, value) -> array.put(JSONArray().put(type).put(value)) }
+    return array.toString()
+  }
+
+  fun pairs(json: String?): List<Pair<String, String>> {
+    if (json.isNullOrBlank()) return emptyList()
+    return try {
+      val array = JSONArray(json)
+      (0 until array.length()).mapNotNull { index ->
+        val pair = array.optJSONArray(index) ?: return@mapNotNull null
+        pair.optString(0).takeIf { it.isNotBlank() }?.let { it to pair.optString(1) }
+      }
+    } catch (e: org.json.JSONException) {
+      emptyList()
+    }
   }
 
   private fun idOf(reference: Reference?): String? {
