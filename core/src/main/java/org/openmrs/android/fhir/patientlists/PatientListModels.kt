@@ -175,7 +175,7 @@ object PatientListOverlay {
       changedByName = row.changedByName,
       dateChanged = row.dateChanged,
       quantity = quantity(row.quantity, memberChanges),
-      attributes = attributes(row.attributesJson),
+      attributes = withEdit(attributes(row.attributesJson), edit?.attributesJson),
       state =
         when (change?.kind) {
           PatientListChangeKind.DELETE -> PatientListState.DELETING
@@ -205,7 +205,7 @@ object PatientListOverlay {
       changedByName = null,
       dateChanged = null,
       quantity = memberChanges.count { it.action == PatientListMemberAction.ADD },
-      attributes = emptyList(),
+      attributes = attributes(change.attributesJson),
       state = PatientListState.NEW,
       pendingChanges = 1 + memberChanges.count { !it.isHeld(held) },
       error = change.error ?: memberChanges.firstRefusal(),
@@ -274,6 +274,18 @@ object PatientListOverlay {
    */
   fun PatientListMemberChange.isHeld(held: Set<String>) =
     action == PatientListMemberAction.ADD && (patientId in held || heldForUpload)
+
+  private fun withEdit(
+    current: List<Pair<String, String>>,
+    editJson: String?,
+  ): List<Pair<String, String>> {
+    if (editJson == null) return current
+    val merged = LinkedHashMap(current.toMap())
+    GroupMapper.pairs(editJson).forEach { (type, value) ->
+      if (value.isBlank()) merged.remove(type) else merged[type] = value
+    }
+    return merged.toList()
+  }
 
   fun attributes(json: String?): List<Pair<String, String>> {
     if (json.isNullOrBlank()) return emptyList()

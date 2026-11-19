@@ -9,10 +9,6 @@ When a tablet cannot sync, you can pass its unsent data to a colleague in a file
 - The tablet that exports must have data waiting to be sent.
 - Both people must agree on a PIN of four digits.
 
-![The import and export page](../../screenshots/en/importexport-01-page.png)
-
-*Figure 1: The import and export page.*
-
 ## Export a file {#export}
 
 1. On the home screen, tap {{title_import_export}}.

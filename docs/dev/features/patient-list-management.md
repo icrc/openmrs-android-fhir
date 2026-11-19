@@ -71,6 +71,18 @@ one answer (`PatientListsRepository.store`).
   drops it. A patient the server does not accept does not hold back the others. 404 or 410 for a list
   means it is gone: what was changed in it is dropped and counted. A server that cannot be reached
   (no answer, 5xx, 408, 429) or that says the session ended (401) stops the send and loses nothing.
+* **A "yes" is checked.** After a create or an edit that the server accepts, the patient list is read
+  back: one that is not there (a gateway that answers a write with its own page, a server without the
+  patient list module) is **not created**, and the change stays with the reason "The server said yes but
+  did not create the patient list" until "Send now" tries again; an edit the server did not keep is the
+  same ("did not keep the change"). A server that cannot be asked afterwards leaves the change to go
+  again (a `PUT` is safe to repeat). What the server kept of a create is compared with what was sent
+  (name, description, location, cohort type) and anything missing is written in the log. A write answered
+  with a web page is treated as not answered.
+* **The log.** Every request about a patient list is logged (`Patient list create <id>: answer=...`, with
+  the code and the server's reason) and recorded in the audit trail (`PATIENT_LIST_SENT`, with the same
+  facts and never a patient's name), so a list that does not arrive can be followed in a diagnostics
+  report.
 * **`refreshList` / `refreshMembers` / `store`**: the lists are read page by page; a list the server no
   longer lists is removed from the device, but never one something waits for, and nothing is removed
   when a page could not be read or the lists are those of one location. The members are read when a
@@ -163,9 +175,16 @@ patient this is", and the user adds the patient again from the list (`Uploaded.A
   with the next download of that list, until the server answers it right.
 * A list created here carries the location extension as a `Location/<id>` reference; the screen reads
   either form, but whether the server's `Group?location=` finds it was not checked.
-* A created list is sent with its name, description, the location chosen on the device and, when the
-  configuration names one (`<sync cohort-type=...>`), that type as a `CohortType/<id>` reference
-  (`GroupMapper.toCreate`); without it the server's default applies. Attributes are shown, not edited.
+* A created list is sent with its name, description, the location chosen on the device, the creator
+  (`managingEntity`, the signed-in user's provider) and, when the configuration names one
+  (`<sync cohort-type=...>`), that type as a `CohortType/<id>` reference (`GroupMapper.toCreate`); without
+  it the server's default applies. An edit sends the name, the description and the type, and the current
+  location when the list has none. The attributes of the list (the module's own, one text field each in the
+  create and edit dialogs) are sent as `.../ext/group/attribute` extensions, only the ones that changed on
+  an edit, and an emptied one removes the attribute. The names of the attribute types come from
+  `GET Group/$attribute-types` (`GroupServer.attributeTypes`), read with the lists and kept on the device
+  (`AttributeTypeStore`) so that the dialogs offer them offline; a server without the operation offers
+  only the attributes a list already has.
 
 The tutorial: the Patient lists tour (`help_lists_*`) has the steps for the waiting changes and the new
 list button, and the page of a list has its own tour (`help_plist_*`).

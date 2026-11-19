@@ -92,6 +92,7 @@ data class PatientListChange(
   val createdAt: Long,
   val error: String?,
   val owner: String = "",
+  val attributesJson: String? = null,
 )
 
 /**

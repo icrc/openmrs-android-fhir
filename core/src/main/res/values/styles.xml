@@ -170,6 +170,23 @@
             name="colorOnPrimaryContainer"
         >@color/o3_on_primary_container</item>
         <item name="colorSecondary">@color/o3_secondary</item>
+        <item name="colorOnSecondary">@color/o3_on_secondary</item>
+        <item
+            name="colorSecondaryContainer"
+        >@color/o3_secondary_container</item>
+        <item
+            name="colorOnSecondaryContainer"
+        >@color/o3_on_secondary_container</item>
+        <item name="colorTertiary">@color/o3_tertiary</item>
+        <item name="colorOnTertiary">@color/o3_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/o3_tertiary_container</item>
+        <item
+            name="colorOnTertiaryContainer"
+        >@color/o3_on_tertiary_container</item>
+        <item name="colorError">@color/o3_error</item>
+        <item name="colorOnError">@color/o3_on_error</item>
+        <item name="colorErrorContainer">@color/o3_error_container</item>
+        <item name="colorOnErrorContainer">@color/o3_on_error_container</item>
         <item name="colorSurface">@color/o3_surface</item>
         <item name="colorOnSurface">@color/o3_on_surface</item>
         <item name="colorSurfaceVariant">@color/o3_surface_variant</item>

@@ -195,8 +195,13 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
           cacheCurrentPatientResponse(patientId)
           patientId?.let { viewModel.submittedPatientIds.add(it) }
           if (selectedTab < binding.patientTabLayout.tabCount - 1) {
-            binding.patientTabLayout.selectTab(binding.patientTabLayout.getTabAt(selectedTab + 1))
+            // A submitted form answers with only its first questions when read again, so the tab
+            // is changed without reading it and the form is dropped (rebuilt from the kept
+            // answers).
+            switchToTab(selectedTab + 1)
             binding.patientTabLayout.setScrollPosition(selectedTab + 1, 0f, true)
+            patientId?.let { dropLiveForm(it) }
+            saveDraftInBackground()
           } else {
             submitAllEncounters()
           }
@@ -326,6 +331,12 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
     currentPatientId = patientId
 
     view?.post { viewModel.isLoading.value = false }
+  }
+
+  private fun dropLiveForm(patientId: String) {
+    recentForms.remove(patientId)
+    val form = liveForms.remove(patientId) ?: return
+    childFragmentManager.commit(allowStateLoss = true) { remove(form) }
   }
 
   /** The forms are out of date (another questionnaire, a restored draft): build them again. */
@@ -753,6 +764,9 @@ class GroupFormEntryFragment : Fragment(R.layout.group_formentry_fragment) {
 
       if (patientsWithIssues.isNotEmpty()) {
         viewModel.isLoading.value = false
+        // The form on the screen was submitted: rebuild it so that it can be read again.
+        currentPatientId?.let { dropLiveForm(it) }
+        loadQuestionnaireForTab(currentSelectedTabPosition)
         showIncompletePatientsDialog(patientsWithIssues)
         return@launch
       }

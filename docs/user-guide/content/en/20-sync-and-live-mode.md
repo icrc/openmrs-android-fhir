@@ -22,6 +22,8 @@ You need a connection to the server. If you work as a guest, the app asks you to
 
 Below, {{sync_tab_pending}} lists what has not been sent yet, and {{sync_tab_history}} lists past syncs and how they ended.
 
+If a patient waits to be identified, the page says {{sync_status_action_needed}} instead of {{home_summary_uploaded}}. Tap {{sync_identify_review}} to see them (see [Identify later](#identify-later)). Their records stay on the tablet until you identify them.
+
 > **Warning:** do not delete patient data or log out before everything is sent, if you can avoid it. Check that the home screen says {{home_summary_uploaded}}.
 
 ## Automatic sync {#automatic-sync}
@@ -36,7 +38,7 @@ Turn it on in {{settings}}, in the section {{settings_section_live}}.
 
 ## Session expired {#session-expired}
 
-If the server no longer accepts your login, a strip appears under the connection status. Tap {{sign_in}}. What you did meanwhile stays on the tablet and is sent after.
+If the server no longer accepts your login, a strip appears under the connection status. Tap {{sign_in}}<!-- auth: sso --> and sign in again on your organisation's page<!-- /auth -->. What you did meanwhile stays on the tablet and is sent after.
 
 ## If something goes wrong {#sync-problems}
 

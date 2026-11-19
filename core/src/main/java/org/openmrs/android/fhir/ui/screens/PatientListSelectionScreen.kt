@@ -120,7 +120,8 @@ fun PatientListSelectionScreen(
   /** With nothing ticked the action reads "Continue without a list" instead of "Submit". */
   continueWithoutSelection: Boolean = false,
   onOpenList: ((SelectPatientListViewModel.SelectPatientListItem) -> Unit)? = null,
-  onCreateList: ((String, String, (PatientListEdit) -> Unit) -> Unit)? = null,
+  onCreateList: ((String, String, Map<String, String>, (PatientListEdit) -> Unit) -> Unit)? = null,
+  attributeNames: List<String> = emptyList(),
   pendingChanges: Int = 0,
   sendingChanges: Boolean = false,
   onSendChanges: (() -> Unit)? = null,
@@ -380,8 +381,9 @@ fun PatientListSelectionScreen(
       nameError = createError,
       locationName = locationName,
       note = stringResource(R.string.plist_create_note),
-      onConfirm = { name, description ->
-        onCreateList(name, description) { result ->
+      attributeNames = attributeNames,
+      onConfirm = { name, description, attributes ->
+        onCreateList(name, description, attributes) { result ->
           when (result) {
             is PatientListEdit.Saved,
             PatientListEdit.NotFound, -> creating = false

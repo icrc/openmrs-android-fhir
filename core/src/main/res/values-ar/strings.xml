@@ -1793,9 +1793,6 @@
     <string name="settings_compat_unchecked">لم يُفحص الخادم بعد.</string>
     <string name="settings_compat_open">فتح الفحوص</string>
     <string
-        name="plist_readonly_banner"
-    >لا يقبل هذا الخادم تعديلات قوائم المرضى، لذلك فهي للقراءة فقط.</string>
-    <string
         name="plist_readonly_members_banner"
     >لا يسمح هذا الخادم بإضافة المرضى إلى قائمة أو إزالتهم منها.</string>
     <string name="plist_readonly_open">توافق الخادم</string>

@@ -1926,9 +1926,6 @@
     <string name="settings_compat_unchecked">Сервер ещё не проверялся.</string>
     <string name="settings_compat_open">Открыть проверки</string>
     <string
-        name="plist_readonly_banner"
-    >Этот сервер не принимает изменения списков пациентов, поэтому они только для чтения.</string>
-    <string
         name="plist_readonly_members_banner"
     >Этот сервер не позволяет добавлять пациентов в список и удалять их.</string>
     <string name="plist_readonly_open">Совместимость сервера</string>

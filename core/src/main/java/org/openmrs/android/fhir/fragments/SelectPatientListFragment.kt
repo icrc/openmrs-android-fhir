@@ -101,7 +101,6 @@ class SelectPatientListFragment : Fragment() {
             .value
             .connectivityState
             .isServerReachable()
-        val features by selectPatientListViewModel.features.collectAsStateWithLifecycle()
         val guest = remember { GuestSession.isActive(requireContext()) }
         val filteredPatientLists =
           remember(patientLists, uiState.query) {
@@ -135,8 +134,8 @@ class SelectPatientListFragment : Fragment() {
                   )
               }
             },
-          onCreateList =
-            if (fromLogin || !features.editLists) null else selectPatientListViewModel::create,
+          onCreateList = if (fromLogin) null else selectPatientListViewModel::create,
+          attributeNames = remember { selectPatientListViewModel.attributeTypes() },
           pendingChanges = uiState.pendingChanges,
           sendingChanges = uiState.sendingChanges,
           onSendChanges = if (online && !guest) selectPatientListViewModel::sendNow else null,

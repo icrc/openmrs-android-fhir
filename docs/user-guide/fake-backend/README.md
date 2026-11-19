@@ -43,6 +43,7 @@ for every language). `fixtures/*.json` (optional) can add Encounter, Observation
 | `slow` | waits 4 seconds before every answer |
 | `offline` | drops the connection without an answer |
 | `cohort-module` | refuses to write a patient list (422, as a server with the Cohort Module and without the patient list module does) and does not know `$add-members`: the app then leaves the changes to patient lists out. A concept whose id starts with `0000` does not exist on any scenario |
+| `silent-writes` | says yes (200) to a write of a patient list and keeps nothing, as a gateway that answers with its own page or a server without the patient list module may: the app must not call the list created, and says so ("The server said yes but did not create the patient list") |
 
 ## What it answers
 

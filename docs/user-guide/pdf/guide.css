@@ -57,11 +57,14 @@ strong { color: #0b3b3b; }
 code { font-family: Consolas, "Courier New", monospace; font-size: 10pt; background: #f1f3f3; padding: 0 1mm; border-radius: 1mm; }
 a { color: var(--accent); }
 
+/* short lists stay in one piece (a step list is not cut after its first step) */
+ol, ul { break-inside: avoid; }
+
 /* figures: never split, scaled to the page width */
 figure { margin: 4mm 0 6mm; text-align: center; break-inside: avoid; }
-figure img { max-width: 100%; max-height: 140mm; width: auto; height: auto; }
+figure img { max-width: 100%; max-height: 88mm; width: auto; height: auto; }
 figcaption { font-size: 9.5pt; color: #555; margin-top: 2mm; font-style: italic; }
-p > img { max-width: 100%; max-height: 140mm; }
+p > img { max-width: 100%; max-height: 88mm; }
 
 /* notes, tips and warnings */
 blockquote { margin: 4mm 0; padding: 3mm 4mm; border-inline-start: 4px solid var(--accent); background: var(--soft); break-inside: avoid; }

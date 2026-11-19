@@ -101,13 +101,17 @@ internal fun PatientListEditDialog(
   initialName: String,
   initialDescription: String,
   nameError: Int?,
-  onConfirm: (name: String, description: String) -> Unit,
+  onConfirm: (name: String, description: String, attributes: Map<String, String>) -> Unit,
   onDismiss: () -> Unit,
   locationName: String? = null,
   note: String? = null,
+  attributeNames: List<String> = emptyList(),
+  initialAttributes: Map<String, String> = emptyMap(),
 ) {
   var name by rememberSaveable { mutableStateOf(initialName) }
   var description by rememberSaveable { mutableStateOf(initialDescription) }
+  var attributes by rememberSaveable { mutableStateOf(HashMap(initialAttributes)) }
+  val fields = (attributeNames + initialAttributes.keys).distinct()
   AlertDialog(
     onDismissRequest = onDismiss,
     title = { Text(text = title) },
@@ -132,6 +136,15 @@ internal fun PatientListEditDialog(
           maxLines = 4,
           keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
         )
+        fields.forEach { field ->
+          OutlinedTextField(
+            modifier = Modifier.fillMaxWidth().testTag("PatientListAttribute_$field"),
+            value = attributes[field].orEmpty(),
+            onValueChange = { attributes = HashMap(attributes).apply { put(field, it) } },
+            label = { Text(text = field) },
+            singleLine = true,
+          )
+        }
         if (!locationName.isNullOrBlank()) {
           Text(
             text = stringResource(R.string.plist_create_location, locationName),
@@ -152,7 +165,9 @@ internal fun PatientListEditDialog(
     confirmButton = {
       TextButton(
         modifier = Modifier.testTag("PatientListDialogConfirm"),
-        onClick = { onConfirm(name, description) },
+        onClick = {
+          onConfirm(name, description, fields.associateWith { attributes[it].orEmpty() })
+        },
       ) {
         Text(text = confirmLabel)
       }

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "fdede0270b9bf43e80fcc800b2ea8a86",
+    "identityHash": "d6b2ac6b395f970f458a4f6408356f84",
     "entities": [
       {
         "tableName": "Identifier",
@@ -469,7 +469,7 @@
       },
       {
         "tableName": "patient_list_change",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`listId` TEXT NOT NULL, `kind` TEXT NOT NULL, `name` TEXT, `description` TEXT, `locationId` TEXT, `locationName` TEXT, `createdAt` INTEGER NOT NULL, `error` TEXT, `owner` TEXT NOT NULL, PRIMARY KEY(`listId`, `owner`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`listId` TEXT NOT NULL, `kind` TEXT NOT NULL, `name` TEXT, `description` TEXT, `locationId` TEXT, `locationName` TEXT, `createdAt` INTEGER NOT NULL, `error` TEXT, `owner` TEXT NOT NULL, `attributesJson` TEXT, PRIMARY KEY(`listId`, `owner`))",
         "fields": [
           {
             "fieldPath": "listId",
@@ -519,6 +519,11 @@
             "columnName": "owner",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "attributesJson",
+            "columnName": "attributesJson",
+            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -717,7 +722,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fdede0270b9bf43e80fcc800b2ea8a86')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd6b2ac6b395f970f458a4f6408356f84')"
     ]
   }
 }

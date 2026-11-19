@@ -1795,9 +1795,6 @@ Set up biometrics (face/fingerprint) in Settings to enable offline login.
     >The server has not been checked yet.</string>
     <string name="settings_compat_open">Open the checks</string>
     <string
-        name="plist_readonly_banner"
-    >This server does not accept changes to patient lists, so they are read only.</string>
-    <string
         name="plist_readonly_members_banner"
     >This server does not let patients be added to a list or removed from it.</string>
     <string name="plist_readonly_open">Server compatibility</string>

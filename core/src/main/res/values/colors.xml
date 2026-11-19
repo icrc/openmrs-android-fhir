@@ -95,6 +95,18 @@
     <color name="o3_on_surface_variant">#525252</color>
     <color name="o3_outline">#8D8D8D</color>
     <color name="o3_background">#F4F4F4</color>
+    <!-- The form style sets these, or the form library takes stock Material 3 colours. -->
+    <color name="o3_on_secondary">#FFFFFF</color>
+    <color name="o3_secondary_container">#E6F1F0</color>
+    <color name="o3_on_secondary_container">#004144</color>
+    <color name="o3_tertiary">#198038</color>
+    <color name="o3_on_tertiary">#FFFFFF</color>
+    <color name="o3_tertiary_container">#DEFBE6</color>
+    <color name="o3_on_tertiary_container">#022D0D</color>
+    <color name="o3_error">#DA1E28</color>
+    <color name="o3_on_error">#FFFFFF</color>
+    <color name="o3_error_container">#FFD7D9</color>
+    <color name="o3_on_error_container">#750E13</color>
     <color name="cb_primary">#00508C</color>
     <color name="cb_on_primary">#FFFFFF</color>
     <color name="cb_primary_container">#D6E8F7</color>

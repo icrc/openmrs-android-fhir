@@ -33,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import org.junit.Rule
 import org.junit.Test
 import org.openmrs.android.fhir.data.database.model.UnsyncedPatient
@@ -159,5 +160,46 @@ class UnsyncedResourcesScreenTest {
     }
 
     composeRule.onNodeWithTag(UnsyncedResourcesTestTags.List).assertIsDisplayed()
+  }
+
+  @Test
+  fun reviewShowsThePatientsToIdentify() {
+    val patient =
+      UnsyncedResource.PatientItem(
+        UnsyncedPatient(
+          logicalId = "patient-1",
+          name = "Jane Doe",
+          isExpanded = false,
+          isSynced = false,
+        ),
+      )
+    composeRule.setContent {
+      MaterialTheme {
+        SyncScreen(
+          syncSessions = emptyList(),
+          pendingResources = emptyList(),
+          isLoadingPending = false,
+          isSyncing = false,
+          syncProgress = SyncProgressState(current = 0, total = 0),
+          lastSyncText = "",
+          onSyncNow = {},
+          onTogglePatientExpand = {},
+          onToggleEncounterExpand = {},
+          onDeleteResource = {},
+          onDownloadResource = {},
+          onDeleteAllPending = {},
+          onDownloadAllPending = {},
+          onDeleteSession = {},
+          onClearHistory = {},
+          toIdentifyResources = listOf(patient),
+        )
+      }
+    }
+
+    composeRule.onNodeWithTag(SyncScreenTestTags.HistoryTab).performClick()
+    composeRule.onNodeWithTag("IdentifyPatientNow").assertDoesNotExist()
+
+    composeRule.onNodeWithTag(SyncScreenTestTags.ToIdentifyCount).performClick()
+    composeRule.onNodeWithTag("IdentifyPatientNow").assertIsDisplayed()
   }
 }

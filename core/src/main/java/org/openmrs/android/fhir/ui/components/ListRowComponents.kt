@@ -73,8 +73,8 @@ import org.openmrs.android.fhir.data.database.model.SyncStatus
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 
 /**
- * A selectable patient list: tonal group icon, name and a checkbox. The whole card toggles it; a
- * selected list gets the brand border and tint.
+ * A selectable patient list: tonal group icon, name and a checkbox. Only the checkbox ticks it; the
+ * arrow opens it. A selected list gets the brand border and tint.
  */
 @Composable
 fun SelectPatientListItemRow(
@@ -90,7 +90,6 @@ fun SelectPatientListItemRow(
 ) {
   val primary = MaterialTheme.colorScheme.primary
   Surface(
-    onClick = if (selectable || onOpen == null) onToggle else onOpen,
     modifier = modifier.fillMaxWidth().testTag("SelectPatientRow"),
     shape = RoundedCornerShape(16.dp),
     color =

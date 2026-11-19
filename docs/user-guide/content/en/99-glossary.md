@@ -13,6 +13,8 @@
 | Offline login | Unlocking the app with fingerprint, face or screen lock, without internet. |
 | Patient list | A group of patients that you choose to keep on the tablet. |
 | Server | The central computer where the data of your organisation is kept. |
+<!-- auth: sso, both -->
 | Single sign-on | Signing in with the account your organisation gave you, on its own page. |
+<!-- /auth -->
 | Sync | Sending your work to the server and receiving the latest data. |
 | Visit | A period of care that can hold several encounters. |

@@ -35,6 +35,7 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.core.content.FileProvider
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -99,6 +100,7 @@ class PatientListDetailFragment : Fragment() {
     return composeView {
       val state by viewModel.uiState.collectAsStateWithLifecycle()
       val activityState by mainActivityViewModel.uiState.collectAsStateWithLifecycle()
+      val attributeNames = remember { viewModel.attributeTypes() }
       PatientListDetailScreen(
         state = state,
         online =
@@ -107,6 +109,7 @@ class PatientListDetailFragment : Fragment() {
         onQueryChange = viewModel::onQueryChange,
         onRefresh = viewModel::refresh,
         onEdit = viewModel::edit,
+        attributeNames = attributeNames,
         onDelete = { viewModel.delete { findNavController().navigateUp() } },
         onUndoDelete = viewModel::undoDelete,
         onDownloadedChange = viewModel::setDownloaded,

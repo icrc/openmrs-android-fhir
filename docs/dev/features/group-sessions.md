@@ -34,8 +34,12 @@ review offers "Fix questions" only (`allowSubmitAnyway = false` for the screener
 
 What each patient was given is read from their form when **Submit** is pressed (and when the user moves to
 another patient), kept as JSON (`GroupFormEntryViewModel.patientResponses`) and saved from there. The form is
-not read again after Submit (`submitAllEncounters`): a form that was just submitted answers with only its first
-questions, and reading it again replaced everything the last patient had been given.
+not read again after Submit: a form that was just submitted answers with only its first questions, and reading
+it again replaced what the patient had been given. That holds for every patient: Submit on a patient who is not
+the last moves to the next tab with the tab guard on (`switchToTab`, which reads nothing, where selecting the tab
+would read the form it leaves, twice) and drops the submitted form (`dropLiveForm`), so that coming back to the
+patient builds it again from the kept answers; `submitAllEncounters` reads nothing, and builds the form of the
+screen again when it lists patients to complete.
 
 The record of the session names its list: each encounter carries the list's id and name as the two
 internal observations (`GroupFormEntryViewModel.createInternalObservations`), read from the

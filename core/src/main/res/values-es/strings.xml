@@ -1937,9 +1937,6 @@
     >El servidor aún no se ha comprobado.</string>
     <string name="settings_compat_open">Abrir las comprobaciones</string>
     <string
-        name="plist_readonly_banner"
-    >Este servidor no acepta cambios en las listas de pacientes, por eso son de solo lectura.</string>
-    <string
         name="plist_readonly_members_banner"
     >Este servidor no permite añadir pacientes a una lista ni quitarlos.</string>
     <string name="plist_readonly_open">Compatibilidad del servidor</string>

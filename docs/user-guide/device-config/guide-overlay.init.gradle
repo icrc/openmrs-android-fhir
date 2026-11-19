@@ -1,0 +1,30 @@
+// Test-only Gradle init script of the user guide: builds the debug dev3-app with the guide's own
+// configuration, without touching a project file.
+//
+//   gradlew --init-script docs/user-guide/device-config/guide-overlay.init.gradle \
+//           -PguideOverlay=<folder with res/xml/app_config.xml and res/values/auth_config.xml> \
+//           :dev3-app:assembleDebug
+//
+// `tasks.py app` makes the folder (it takes app_config.xml and the sign-in methods from its options)
+// and calls this. Two things change in the debug build only:
+//   * the files of the overlay replace the app configuration and the single sign-on settings, so the
+//     app talks to the fictional server of fake-backend/;
+//   * the redirect scheme of the single sign-on is a valid one. The application id of dev3-app has an
+//     underscore, which a browser does not accept in a scheme, so the app would never be reopened.
+allprojects {
+    if (path == ':dev3-app') {
+        def overlay = gradle.startParameter.projectProperties['guideOverlay']
+        if (overlay == null) {
+            throw new GradleException('guide-overlay.init.gradle needs -PguideOverlay=<folder>')
+        }
+        pluginManager.withPlugin('com.android.application') {
+            extensions.getByName('androidComponents').onVariants(
+                extensions.getByName('androidComponents').selector().withBuildType('debug')
+            ) { variant ->
+                variant.manifestPlaceholders.put('appAuthRedirectScheme', 'org.openmrs.android.fhir.guide')
+            }
+            // the debug source set comes after main, so its files replace those of main
+            extensions.getByName('android').sourceSets.getByName('debug').res.srcDir(new File(overlay, 'res'))
+        }
+    }
+}

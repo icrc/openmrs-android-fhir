@@ -6,10 +6,6 @@ For each problem you find why it happens, and what to do.
 
 **Why:** the tablet has no internet, the server is down, or the server address in the settings is wrong.
 
-![The settings of the login page](../../screenshots/en/login-02-settings.png)
-
-*Figure 1: The settings of the login page: language, appearance and the address of the server.*
-
 **What to do:**
 
 1. Check that Wi-Fi or mobile data is on, and open a web page to test.
@@ -18,17 +14,34 @@ For each problem you find why it happens, and what to do.
 
 You can keep working offline: your work is kept and sent later.
 
+<!-- auth: basic -->
 ## My password is refused {#password-refused}
+
+**Why:** the password is wrong.
+
+**What to do:** type it again, slowly. If it still fails, ask your organisation to reset it.
+<!-- /auth -->
+<!-- auth: both -->
+## My password is refused {#password-refused-sso}
 
 **Why:** the password is wrong, or your account uses single sign-on only.
 
 **What to do:** type it again, slowly. If the page offers {{sign_in_with_sso}}, try that. If it still fails, ask your organisation to reset it.
+<!-- /auth -->
+<!-- auth: sso -->
+## The sign-in page does not open or does not return to the app {#sso-fails}
 
-## The single sign-on page does not open or does not return to the app {#sso-fails}
+**Why:** there is no connection, or the browser tab was closed before you finished.
 
-**Why:** there is no connection, or the browser was closed before you finished.
+**What to do:** tap {{button_login}} again and finish the sign-in without closing the browser tab. If you cannot sign in on that page, ask your organisation: the app cannot help with your account.
+<!-- /auth -->
+<!-- auth: both -->
+## The single sign-on page does not open or does not return to the app {#sso-fails-both}
 
-**What to do:** tap {{sign_in_with_sso}} again and finish the sign-in without closing the browser tab.
+**Why:** there is no connection, or the browser tab was closed before you finished.
+
+**What to do:** tap {{sign_in_with_sso}} again and finish the sign-in without closing the browser tab. If the page asks for a password you do not know, ask your organisation: the app cannot reset it.
+<!-- /auth -->
 
 ## The patient lists do not load {#lists-fail}
 

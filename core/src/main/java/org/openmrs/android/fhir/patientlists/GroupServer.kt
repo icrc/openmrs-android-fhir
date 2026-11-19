@@ -74,6 +74,9 @@ interface GroupServer {
 
   suspend fun delete(id: String): ServerGroupWrite
 
+  /** The attribute types a patient list can have; null when the server does not say. */
+  suspend fun attributeTypes(): List<String>?
+
   suspend fun addMembers(id: String, patientIds: List<String>): ServerGroupWrite
 
   suspend fun removeMembers(id: String, patientIds: List<String>): ServerGroupWrite

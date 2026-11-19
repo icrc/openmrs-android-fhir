@@ -45,6 +45,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -68,6 +69,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -82,6 +85,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.openmrs.android.fhir.R
 import org.openmrs.android.fhir.data.database.model.SyncSession
 import org.openmrs.android.fhir.data.database.model.UnsyncedResource
@@ -91,6 +96,8 @@ import org.openmrs.android.fhir.ui.components.SyncHistoryList
 import org.openmrs.android.fhir.ui.theme.OpenMrsTheme
 import org.openmrs.android.fhir.ui.tutorial.TutorialTargets
 import org.openmrs.android.fhir.ui.tutorial.tutorialTarget
+
+private const val HIGHLIGHT_MILLIS = 1600L
 
 object SyncScreenTestTags {
   const val Screen = "SyncScreen"
@@ -143,6 +150,9 @@ fun SyncScreen(
 
   // Until the user picks a tab: pending changes first, the history when there is nothing to upload.
   var chosenTab by rememberSaveable { mutableStateOf<Int?>(null) }
+  val scope = rememberCoroutineScope()
+  val listState = rememberLazyListState()
+  var highlightToIdentify by remember { mutableStateOf(false) }
   val selectedTab =
     chosenTab
       ?: if (pendingCount > 0 || isLoadingPending || toIdentifyResources.isNotEmpty()) 0 else 1
@@ -162,7 +172,15 @@ fun SyncScreen(
         progress = syncProgress,
         pendingCount = pendingCount,
         toIdentifyCount = toIdentifyCount,
-        onReviewToIdentify = { chosenTab = 0 },
+        onReviewToIdentify = {
+          chosenTab = 0
+          scope.launch {
+            listState.animateScrollToItem(0)
+            highlightToIdentify = true
+            delay(HIGHLIGHT_MILLIS)
+            highlightToIdentify = false
+          }
+        },
         lastSyncText = lastSyncText,
         onSyncNow = onSyncNow,
         onCancelSync = onCancelSync,
@@ -216,6 +234,8 @@ fun SyncScreen(
           toIdentify = toIdentifyResources,
           onIdentify = onIdentify,
           identifyAvailable = identifyAvailable,
+          listState = listState,
+          highlightToIdentify = highlightToIdentify,
         )
       } else {
         SyncHistoryList(

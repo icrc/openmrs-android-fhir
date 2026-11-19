@@ -72,6 +72,7 @@ import org.openmrs.android.fhir.patientlists.ServerGroups
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import timber.log.Timber
 
 class ApiManager @Inject constructor(context: Context) :
   Api, ServerPresence, GroupServer, ServerProbe {
@@ -324,6 +325,24 @@ class ApiManager @Inject constructor(context: Context) :
     )
   }
 
+  override suspend fun attributeTypes(): List<String>? {
+    val response =
+      fhirApiService.getResource(ServerSettings.fhirBaseUrl(appContext) + "Group/\$attribute-types")
+    val text =
+      (if (response.isSuccessful) response.body() else response.errorBody())?.use { it.string() }
+    if (!response.isSuccessful) return null
+    val answer = parseResource(text) as? Parameters ?: return null
+    return answer.parameter
+      .filter { it.name == "attributeType" }
+      .mapNotNull { entry ->
+        entry.part
+          .firstOrNull { it.name == "name" }
+          ?.value
+          ?.primitiveValue()
+          ?.takeIf { it.isNotBlank() }
+      }
+  }
+
   override suspend fun delete(id: String): ServerGroupWrite = write {
     require(isFhirId(id)) { "Not a patient list id" }
     fhirApiService.deleteResource(ServerSettings.fhirBaseUrl(appContext) + "Group/$id")
@@ -356,8 +375,22 @@ class ApiManager @Inject constructor(context: Context) :
     val text =
       (if (response.isSuccessful) response.body() else response.errorBody())?.use { it.string() }
     val code = response.code()
+    Timber.i(
+      "%s %s answered %d (%s)",
+      response.raw().request.method,
+      response.raw().request.url.encodedPath,
+      code,
+      response.headers()["Content-Type"],
+    )
     return when {
-      response.isSuccessful -> ServerGroupWrite.Done(parseResource(text) as? Group)
+      response.isSuccessful -> {
+        val resource = parseResource(text)
+        // A gateway may answer a write with its own page: not a yes.
+        if (resource == null && text.isWebPage()) {
+          throw IOException("The server answered $code with a web page, not with FHIR")
+        }
+        ServerGroupWrite.Done(resource as? Group)
+      }
       // 401: the session ended (a single sign-on token, say): the change is fine, and goes after
       // the next sign-in.
       code == 401 || code == 408 || code == 429 || code >= 500 ->
@@ -384,6 +417,12 @@ class ApiManager @Inject constructor(context: Context) :
     } catch (e: IOException) {
       ProbeAnswer(0, e.message)
     }
+
+  private fun String?.isWebPage(): Boolean {
+    val start = this?.trimStart().orEmpty()
+    return start.startsWith("<!doctype", ignoreCase = true) ||
+      start.startsWith("<html", ignoreCase = true)
+  }
 
   private fun parseResource(text: String?): Resource? =
     if (text.isNullOrBlank()) {

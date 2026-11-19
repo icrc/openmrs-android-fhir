@@ -216,11 +216,20 @@ constructor(
     }
   }
 
-  fun create(name: String, description: String, onResult: (PatientListEdit) -> Unit) {
+  fun attributeTypes(): List<String> = lists.attributeTypes()
+
+  fun create(
+    name: String,
+    description: String,
+    attributes: Map<String, String>,
+    onResult: (PatientListEdit) -> Unit,
+  ) {
     viewModelScope.launch {
       val location = applicationContext.savedLocation()
       val result =
-        withContext(NonCancellable) { lists.create(name, description, location.id, location.name) }
+        withContext(NonCancellable) {
+          lists.create(name, description, location.id, location.name, attributes)
+        }
       if (result is PatientListEdit.Saved) LiveSync.requestUpload(applicationContext)
       onResult(result)
     }

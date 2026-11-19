@@ -120,7 +120,13 @@ fun PatientListDetailScreen(
   online: Boolean,
   onQueryChange: (String) -> Unit,
   onRefresh: () -> Unit,
-  onEdit: (name: String, description: String, onResult: (PatientListEdit) -> Unit) -> Unit,
+  onEdit:
+    (
+      name: String,
+      description: String,
+      attributes: Map<String, String>,
+      onResult: (PatientListEdit) -> Unit,
+    ) -> Unit,
   onDelete: () -> Unit,
   onUndoDelete: () -> Unit,
   onAddPatients: () -> Unit,
@@ -132,6 +138,7 @@ fun PatientListDetailScreen(
   onDiscard: () -> Unit,
   onExport: () -> Unit = {},
   onOpenCompatibility: () -> Unit = {},
+  attributeNames: List<String> = emptyList(),
   modifier: Modifier = Modifier,
 ) {
   val patientList = state.patientList
@@ -185,7 +192,6 @@ fun PatientListDetailScreen(
                 downloaded = state.downloaded,
                 onDownloadedChange = onDownloadedChange,
                 onStartSession = onStartSession,
-                canEdit = state.features.editLists,
                 onEdit = {
                   editError = null
                   editing = true
@@ -285,8 +291,10 @@ fun PatientListDetailScreen(
       initialName = patientList.name,
       initialDescription = patientList.description.orEmpty(),
       nameError = editError,
-      onConfirm = { name, description ->
-        onEdit(name, description) { result ->
+      attributeNames = attributeNames,
+      initialAttributes = patientList.attributes.toMap(),
+      onConfirm = { name, description, attributes ->
+        onEdit(name, description, attributes) { result ->
           when (result) {
             is PatientListEdit.Saved,
             PatientListEdit.NotFound, -> editing = false
@@ -343,7 +351,6 @@ private fun AboutCard(
   downloaded: Boolean,
   onDownloadedChange: (Boolean) -> Unit,
   onStartSession: () -> Unit,
-  canEdit: Boolean,
   onEdit: () -> Unit,
   onDelete: () -> Unit,
   onUndoDelete: () -> Unit,
@@ -429,13 +436,11 @@ private fun AboutCard(
               Text(text = stringResource(R.string.plist_start_session))
             }
           }
-          if (canEdit) {
-            OutlinedButton(
-              modifier = Modifier.testTag(PatientListDetailTestTags.Edit),
-              onClick = onEdit,
-            ) {
-              Text(text = stringResource(R.string.plist_action_edit))
-            }
+          OutlinedButton(
+            modifier = Modifier.testTag(PatientListDetailTestTags.Edit),
+            onClick = onEdit,
+          ) {
+            Text(text = stringResource(R.string.plist_action_edit))
           }
           OutlinedButton(
             modifier =
@@ -453,16 +458,14 @@ private fun AboutCard(
           ) {
             Text(text = stringResource(R.string.plist_action_export))
           }
-          if (canEdit) {
-            TextButton(
-              modifier = Modifier.testTag(PatientListDetailTestTags.Delete),
-              onClick = onDelete,
-            ) {
-              Text(
-                text = stringResource(R.string.plist_action_delete),
-                color = MaterialTheme.colorScheme.error,
-              )
-            }
+          TextButton(
+            modifier = Modifier.testTag(PatientListDetailTestTags.Delete),
+            onClick = onDelete,
+          ) {
+            Text(
+              text = stringResource(R.string.plist_action_delete),
+              color = MaterialTheme.colorScheme.error,
+            )
           }
         }
       }
@@ -532,17 +535,10 @@ private fun Notices(
     modifier = Modifier.padding(horizontal = 16.dp),
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-    if (!state.features.editLists || !state.features.changeMembers) {
+    if (!state.features.changeMembers) {
       PatientListBanner(
         modifier = Modifier.testTag(PatientListDetailTestTags.ReadOnlyNotice),
-        text =
-          stringResource(
-            if (!state.features.editLists) {
-              R.string.plist_readonly_banner
-            } else {
-              R.string.plist_readonly_members_banner
-            },
-          ),
+        text = stringResource(R.string.plist_readonly_members_banner),
         actionLabel = stringResource(R.string.plist_readonly_open),
         onAction = onOpenCompatibility,
       )
